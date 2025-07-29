@@ -149,28 +149,25 @@
       <Filter>externals\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="engine\graphics\2d\Sprite.cpp">
-      <Filter>engine\2d</Filter>
+      <Filter>engine\graphics\2d</Filter>
     </ClCompile>
     <ClCompile Include="engine\graphics\2d\SpriteCommon.cpp">
-      <Filter>engine\2d</Filter>
+      <Filter>engine\graphics\2d</Filter>
     </ClCompile>
     <ClCompile Include="engine\graphics\3d\Model.cpp">
-      <Filter>engine\3d</Filter>
+      <Filter>engine\graphics\3d</Filter>
     </ClCompile>
     <ClCompile Include="engine\graphics\3d\ModelCommon.cpp">
-      <Filter>engine\3d</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\manager\graphics\ModelManager.cpp">
-      <Filter>engine\3d</Filter>
+      <Filter>engine\graphics\3d</Filter>
     </ClCompile>
     <ClCompile Include="engine\graphics\3d\Object3d.cpp">
-      <Filter>engine\3d</Filter>
+      <Filter>engine\graphics\3d</Filter>
     </ClCompile>
     <ClCompile Include="engine\graphics\3d\Object3dCommon.cpp">
-      <Filter>engine\3d</Filter>
+      <Filter>engine\graphics\3d</Filter>
     </ClCompile>
     <ClCompile Include="engine\graphics\3d\Skybox.cpp">
-      <Filter>engine\3d</Filter>
+      <Filter>engine\graphics\3d</Filter>
     </ClCompile>
     <ClCompile Include="engine\audio\Audio.cpp">
       <Filter>engine\audio</Filter>
@@ -214,59 +211,50 @@
     <ClCompile Include="engine\camerawork\spline\SplineData.cpp">
       <Filter>engine\camerawork\spline</Filter>
     </ClCompile>
-    <ClCompile Include="engine\effects\particle\ParticleEmitter.cpp">
-      <Filter>engine\effect</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\effects\particle\ParticleGroup.cpp">
-      <Filter>engine\effect</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\effects\particle\ParticleMath.cpp">
-      <Filter>engine\effect</Filter>
-    </ClCompile>
     <ClCompile Include="engine\effects\particle\component\group\MaterialColorComponent.cpp">
-      <Filter>engine\effect\component\group</Filter>
+      <Filter>engine\effect\particle\component\group</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\component\group\UVRotateComponent.cpp">
-      <Filter>engine\effect\component\group</Filter>
+      <Filter>engine\effect\particle\component\group</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\component\group\UVScaleComponent.cpp">
-      <Filter>engine\effect\component\group</Filter>
+      <Filter>engine\effect\particle\component\group</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\component\group\UVTranslateComponent.cpp">
-      <Filter>engine\effect\component\group</Filter>
+      <Filter>engine\effect\particle\component\group</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\component\single\AccelerationComponent.cpp">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\component\single\BounceComponent.cpp">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\component\single\ColorFadeOutComponent.cpp">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\component\single\DragComponent.cpp">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\component\single\ForceFieldComponent.cpp">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\component\single\GravityComponent.cpp">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\component\single\MoveToTargetComponent.cpp">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\component\single\OrbitComponent.cpp">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\component\single\RandomInitialVelocityComponent.cpp">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\component\single\RotationComponent.cpp">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\component\single\ScaleOverLifetimeComponent.cpp">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClCompile>
     <ClCompile Include="engine\framework\Framework.cpp">
       <Filter>engine\framework</Filter>
@@ -289,35 +277,23 @@
     <ClCompile Include="engine\line\LineCommon.cpp">
       <Filter>engine\line</Filter>
     </ClCompile>
-    <ClCompile Include="engine\manager\scene\CameraManager.cpp">
-      <Filter>engine\manager</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\manager\editor\ImGuiManager.cpp">
-      <Filter>engine\manager</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\manager\system\SrvManager.cpp">
-      <Filter>engine\manager</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\manager\graphics\TextureManager.cpp">
-      <Filter>engine\manager</Filter>
-    </ClCompile>
     <ClCompile Include="engine\math\MathUtils.cpp">
       <Filter>engine\math</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\postprocess\base\BasePostEffect.cpp">
-      <Filter>engine\postprocess</Filter>
+      <Filter>engine\effect\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\postprocess\CRTEffect.cpp">
-      <Filter>engine\postprocess</Filter>
+      <Filter>engine\effect\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\postprocess\GrayscaleEffect.cpp">
-      <Filter>engine\postprocess</Filter>
+      <Filter>engine\effect\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\postprocess\NoiseEffect.cpp">
-      <Filter>engine\postprocess</Filter>
+      <Filter>engine\effect\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\postprocess\VignetteEffect.cpp">
-      <Filter>engine\postprocess</Filter>
+      <Filter>engine\effect\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="engine\scene\MyGame.cpp">
       <Filter>engine\scene</Filter>
@@ -328,29 +304,53 @@
     <ClCompile Include="engine\scene\manager\SceneManager.cpp">
       <Filter>engine\scene\manager</Filter>
     </ClCompile>
-    <ClCompile Include="engine\manager\effect\ParticleManager.cpp">
-      <Filter>engine\manager</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\manager\graphics\LineManager.cpp">
-      <Filter>engine\manager</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\manager\effect\ParticlePipelineManager.cpp">
-      <Filter>engine\manager</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\manager\scene\LightManager.cpp">
-      <Filter>engine\manager</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\manager\editor\JsonEditorManager.cpp">
-      <Filter>engine\manager</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\manager\effect\PostProcessManager.cpp">
-      <Filter>engine\manager</Filter>
-    </ClCompile>
     <ClCompile Include="engine\camerawork\debug\DebugCamera.cpp">
       <Filter>engine\camerawork\debug</Filter>
     </ClCompile>
     <ClCompile Include="engine\camerawork\follow\FollowCamera.cpp">
       <Filter>engine\camerawork\follow</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\manager\editor\ImGuiManager.cpp">
+      <Filter>engine\manager\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\manager\editor\JsonEditorManager.cpp">
+      <Filter>engine\manager\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\manager\effect\ParticleManager.cpp">
+      <Filter>engine\manager\effect</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\manager\effect\ParticlePipelineManager.cpp">
+      <Filter>engine\manager\effect</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\manager\effect\PostProcessManager.cpp">
+      <Filter>engine\manager\effect</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\manager\graphics\LineManager.cpp">
+      <Filter>engine\manager\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\manager\graphics\TextureManager.cpp">
+      <Filter>engine\manager\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\manager\graphics\ModelManager.cpp">
+      <Filter>engine\manager\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\manager\scene\CameraManager.cpp">
+      <Filter>engine\manager\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\manager\scene\LightManager.cpp">
+      <Filter>engine\manager\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\manager\system\SrvManager.cpp">
+      <Filter>engine\manager\system</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\effects\particle\ParticleEmitter.cpp">
+      <Filter>engine\effect\particle</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\effects\particle\ParticleGroup.cpp">
+      <Filter>engine\effect\particle</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\effects\particle\ParticleMath.cpp">
+      <Filter>engine\effect\particle</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -499,28 +499,25 @@
       <Filter>externals\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="engine\graphics\2d\Sprite.h">
-      <Filter>engine\2d</Filter>
+      <Filter>engine\graphics\2d</Filter>
     </ClInclude>
     <ClInclude Include="engine\graphics\2d\SpriteCommon.h">
-      <Filter>engine\2d</Filter>
+      <Filter>engine\graphics\2d</Filter>
     </ClInclude>
     <ClInclude Include="engine\graphics\3d\Model.h">
-      <Filter>engine\3d</Filter>
+      <Filter>engine\graphics\3d</Filter>
     </ClInclude>
     <ClInclude Include="engine\graphics\3d\ModelCommon.h">
-      <Filter>engine\3d</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\manager\graphics\ModelManager.h">
-      <Filter>engine\3d</Filter>
+      <Filter>engine\graphics\3d</Filter>
     </ClInclude>
     <ClInclude Include="engine\graphics\3d\Object3d.h">
-      <Filter>engine\3d</Filter>
+      <Filter>engine\graphics\3d</Filter>
     </ClInclude>
     <ClInclude Include="engine\graphics\3d\Object3dCommon.h">
-      <Filter>engine\3d</Filter>
+      <Filter>engine\graphics\3d</Filter>
     </ClInclude>
     <ClInclude Include="engine\graphics\3d\Skybox.h">
-      <Filter>engine\3d</Filter>
+      <Filter>engine\graphics\3d</Filter>
     </ClInclude>
     <ClInclude Include="engine\audio\Audio.h">
       <Filter>engine\audio</Filter>
@@ -570,68 +567,59 @@
     <ClInclude Include="engine\camerawork\spline\SplineData.h">
       <Filter>engine\camerawork\spline</Filter>
     </ClInclude>
-    <ClInclude Include="engine\effects\particle\ParticleEmitter.h">
-      <Filter>engine\effect</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\ParticleGroup.h">
-      <Filter>engine\effect</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\ParticleMath.h">
-      <Filter>engine\effect</Filter>
-    </ClInclude>
     <ClInclude Include="engine\effects\particle\component\group\MaterialColorComponent.h">
-      <Filter>engine\effect\component\group</Filter>
+      <Filter>engine\effect\particle\component\group</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\component\group\UVRotateComponent.h">
-      <Filter>engine\effect\component\group</Filter>
+      <Filter>engine\effect\particle\component\group</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\component\group\UVScaleComponent.h">
-      <Filter>engine\effect\component\group</Filter>
+      <Filter>engine\effect\particle\component\group</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\component\group\UVTranslateComponent.h">
-      <Filter>engine\effect\component\group</Filter>
+      <Filter>engine\effect\particle\component\group</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\component\interface\IParticleComponent.h">
-      <Filter>engine\effect\component\interface</Filter>
+      <Filter>engine\effect\particle\component\interface</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\component\interface\IParticleBehaviorComponent.h">
-      <Filter>engine\effect\component\interface</Filter>
+      <Filter>engine\effect\particle\component\interface</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\component\interface\IParticleGroupComponent.h">
-      <Filter>engine\effect\component\interface</Filter>
+      <Filter>engine\effect\particle\component\interface</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\component\single\AccelerationComponent.h">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\component\single\BounceComponent.h">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\component\single\ColorFadeOutComponent.h">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\component\single\DragComponent.h">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\component\single\ForceFieldComponent.h">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\component\single\GravityComponent.h">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\component\single\MoveToTargetComponent.h">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\component\single\OrbitComponent.h">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\component\single\RandomInitialVelocityComponent.h">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\component\single\RotationComponent.h">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\component\single\ScaleOverLifetimeComponent.h">
-      <Filter>engine\effect\component\single</Filter>
+      <Filter>engine\effect\particle\component\single</Filter>
     </ClInclude>
     <ClInclude Include="engine\framework\Framework.h">
       <Filter>engine\framework</Filter>
@@ -669,18 +657,6 @@
     <ClInclude Include="engine\line\LineCommon.h">
       <Filter>engine\line</Filter>
     </ClInclude>
-    <ClInclude Include="engine\manager\scene\CameraManager.h">
-      <Filter>engine\manager</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\manager\editor\ImGuiManager.h">
-      <Filter>engine\manager</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\manager\system\SrvManager.h">
-      <Filter>engine\manager</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\manager\graphics\TextureManager.h">
-      <Filter>engine\manager</Filter>
-    </ClInclude>
     <ClInclude Include="engine\math\VectorColorCodes.h">
       <Filter>engine\math</Filter>
     </ClInclude>
@@ -709,22 +685,22 @@
       <Filter>engine\math</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\postprocess\base\BasePostEffect.h">
-      <Filter>engine\postprocess</Filter>
+      <Filter>engine\effect\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\postprocess\CRTEffect.h">
-      <Filter>engine\postprocess</Filter>
+      <Filter>engine\effect\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\postprocess\GrayscaleEffect.h">
-      <Filter>engine\postprocess</Filter>
+      <Filter>engine\effect\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\postprocess\IPostEffect.h">
-      <Filter>engine\postprocess</Filter>
+      <Filter>engine\effect\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\postprocess\NoiseEffect.h">
-      <Filter>engine\postprocess</Filter>
+      <Filter>engine\effect\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\postprocess\VignetteEffect.h">
-      <Filter>engine\postprocess</Filter>
+      <Filter>engine\effect\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="engine\scene\MyGame.h">
       <Filter>engine\scene</Filter>
@@ -744,29 +720,53 @@
     <ClInclude Include="engine\scene\manager\SceneManager.h">
       <Filter>engine\scene\manager</Filter>
     </ClInclude>
-    <ClInclude Include="engine\manager\effect\ParticleManager.h">
-      <Filter>engine\manager</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\manager\graphics\LineManager.h">
-      <Filter>engine\manager</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\manager\effect\ParticlePipelineManager.h">
-      <Filter>engine\manager</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\manager\scene\LightManager.h">
-      <Filter>engine\manager</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\manager\editor\JsonEditorManager.h">
-      <Filter>engine\manager</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\manager\effect\PostProcessManager.h">
-      <Filter>engine\manager</Filter>
-    </ClInclude>
     <ClInclude Include="engine\camerawork\debug\DebugCamera.h">
       <Filter>engine\camerawork\debug</Filter>
     </ClInclude>
     <ClInclude Include="engine\camerawork\follow\FollowCamera.h">
       <Filter>engine\camerawork\follow</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\manager\editor\ImGuiManager.h">
+      <Filter>engine\manager\editor</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\manager\editor\JsonEditorManager.h">
+      <Filter>engine\manager\editor</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\manager\effect\ParticleManager.h">
+      <Filter>engine\manager\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\manager\effect\ParticlePipelineManager.h">
+      <Filter>engine\manager\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\manager\effect\PostProcessManager.h">
+      <Filter>engine\manager\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\manager\graphics\LineManager.h">
+      <Filter>engine\manager\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\manager\graphics\TextureManager.h">
+      <Filter>engine\manager\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\manager\graphics\ModelManager.h">
+      <Filter>engine\manager\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\manager\scene\CameraManager.h">
+      <Filter>engine\manager\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\manager\scene\LightManager.h">
+      <Filter>engine\manager\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\manager\system\SrvManager.h">
+      <Filter>engine\manager\system</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\ParticleEmitter.h">
+      <Filter>engine\effect\particle</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\ParticleGroup.h">
+      <Filter>engine\effect\particle</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\ParticleMath.h">
+      <Filter>engine\effect\particle</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -853,12 +853,6 @@
     <Filter Include="externals\ImGui">
       <UniqueIdentifier>{dddd05af-9dfd-42dd-9b76-1e1cdf6bbd1e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="engine\2d">
-      <UniqueIdentifier>{f54a5899-19a1-407d-9dad-83d138def2e4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\3d">
-      <UniqueIdentifier>{92fa9107-58c4-4202-b758-9c71a39d04fe}</UniqueIdentifier>
-    </Filter>
     <Filter Include="engine\audio">
       <UniqueIdentifier>{6d610d75-c96a-4410-b65d-956a143da690}</UniqueIdentifier>
     </Filter>
@@ -873,18 +867,6 @@
     </Filter>
     <Filter Include="engine\effect">
       <UniqueIdentifier>{2e0986fc-f196-4cbe-823c-60d20cac6185}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\effect\component">
-      <UniqueIdentifier>{c40d48e8-9f4a-4ddc-89dc-bdfe1a00278e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\effect\component\group">
-      <UniqueIdentifier>{a45c5600-c53c-4dca-96be-f221d48e7724}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\effect\component\interface">
-      <UniqueIdentifier>{f7552a14-861d-4cf9-b87b-f33ba2afdd73}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\effect\component\single">
-      <UniqueIdentifier>{82406438-6f67-4977-a773-bec16979ceb3}</UniqueIdentifier>
     </Filter>
     <Filter Include="engine\framework">
       <UniqueIdentifier>{ded04d30-5444-4ad2-9e3c-44a2d2673277}</UniqueIdentifier>
@@ -906,9 +888,6 @@
     </Filter>
     <Filter Include="engine\math">
       <UniqueIdentifier>{748c3e5c-d9d5-4c78-99d2-bdedc857d1b7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\postprocess">
-      <UniqueIdentifier>{867e1395-7316-4d3d-ad1f-9ecdef20a841}</UniqueIdentifier>
     </Filter>
     <Filter Include="engine\scene">
       <UniqueIdentifier>{6374dbd3-d006-4e53-a624-f1db6ec0697d}</UniqueIdentifier>
@@ -933,6 +912,48 @@
     </Filter>
     <Filter Include="engine\camerawork\follow">
       <UniqueIdentifier>{ccb04b0b-0f0d-4f22-bddd-df618e94fe8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\manager\editor">
+      <UniqueIdentifier>{e3ba43c4-2d3e-4fb0-940b-1b826519e0d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\manager\effect">
+      <UniqueIdentifier>{d8ce4876-b3f1-48a2-a8a9-e0f9de23bcc5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\manager\graphics">
+      <UniqueIdentifier>{cb2e8a0d-aaf7-4094-af36-c2fc8ce68931}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\manager\scene">
+      <UniqueIdentifier>{dbccec7a-56d5-4ddf-b439-14b5c07169e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\manager\system">
+      <UniqueIdentifier>{c71c7e4d-0a6f-4cb6-be7d-d2ae12a10fdc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\graphics">
+      <UniqueIdentifier>{e8cc1eef-4e28-4d83-ba4d-530a1a358f62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\graphics\3d">
+      <UniqueIdentifier>{92fa9107-58c4-4202-b758-9c71a39d04fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\graphics\2d">
+      <UniqueIdentifier>{f54a5899-19a1-407d-9dad-83d138def2e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effect\particle">
+      <UniqueIdentifier>{8c30a15d-4cdc-4c8a-a2d7-833d33864eec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effect\particle\component">
+      <UniqueIdentifier>{c40d48e8-9f4a-4ddc-89dc-bdfe1a00278e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effect\particle\component\group">
+      <UniqueIdentifier>{a45c5600-c53c-4dca-96be-f221d48e7724}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effect\particle\component\interface">
+      <UniqueIdentifier>{f7552a14-861d-4cf9-b87b-f33ba2afdd73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effect\particle\component\single">
+      <UniqueIdentifier>{82406438-6f67-4977-a773-bec16979ceb3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effect\postprocess">
+      <UniqueIdentifier>{867e1395-7316-4d3d-ad1f-9ecdef20a841}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
