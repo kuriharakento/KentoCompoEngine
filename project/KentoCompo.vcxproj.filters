@@ -199,12 +199,6 @@
     <ClCompile Include="engine\base\WinApp.cpp">
       <Filter>engine\base</Filter>
     </ClCompile>
-    <ClCompile Include="engine\camerawork\debug\DebugCamera.cpp">
-      <Filter>engine\camerawork</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\camerawork\follow\FollowCamera.cpp">
-      <Filter>engine\camerawork</Filter>
-    </ClCompile>
     <ClCompile Include="engine\camerawork\orbit\OrbitCameraWork.cpp">
       <Filter>engine\camerawork</Filter>
     </ClCompile>
@@ -351,6 +345,12 @@
     </ClCompile>
     <ClCompile Include="engine\manager\effect\PostProcessManager.cpp">
       <Filter>engine\manager</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\camerawork\debug\DebugCamera.cpp">
+      <Filter>engine\camerawork\debug</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\camerawork\follow\FollowCamera.cpp">
+      <Filter>engine\camerawork\follow</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -553,12 +553,6 @@
       <Filter>engine\base</Filter>
     </ClInclude>
     <ClInclude Include="engine\camerawork\base\CameraWorkBase.h">
-      <Filter>engine\camerawork</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\camerawork\debug\DebugCamera.h">
-      <Filter>engine\camerawork</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\camerawork\follow\FollowCamera.h">
       <Filter>engine\camerawork</Filter>
     </ClInclude>
     <ClInclude Include="engine\camerawork\orbit\OrbitCameraWork.h">
@@ -768,6 +762,12 @@
     <ClInclude Include="engine\manager\effect\PostProcessManager.h">
       <Filter>engine\manager</Filter>
     </ClInclude>
+    <ClInclude Include="engine\camerawork\debug\DebugCamera.h">
+      <Filter>engine\camerawork\debug</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\camerawork\follow\FollowCamera.h">
+      <Filter>engine\camerawork\follow</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">
@@ -927,6 +927,12 @@
     </Filter>
     <Filter Include="Resources\shader">
       <UniqueIdentifier>{e56d4e11-6c2e-4aca-a0d9-2e05a777e99a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\camerawork\debug">
+      <UniqueIdentifier>{8ca7a937-829b-4030-8b30-e7ab5632238f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\camerawork\follow">
+      <UniqueIdentifier>{ccb04b0b-0f0d-4f22-bddd-df618e94fe8e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

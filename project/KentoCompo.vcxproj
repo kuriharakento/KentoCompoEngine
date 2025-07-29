@@ -116,7 +116,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\GameObject\character\enemy\base\Node\CompositeNode.cpp" />
     <ClCompile Include="application\GameObject\character\enemy\base\Node\ConditionNode.cpp" />
     <ClCompile Include="application\GameObject\character\enemy\base\Node\BehaviorTree\BehaviorTree.cpp" />
-    <ClCompile Include="engine\camerawork\debug\DebugCamera.cpp" />
+    <ClCompile Include="engine\camerawork\debug\DebugCamera.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="engine\effects\particle\component\single\BounceComponent.cpp" />
     <ClCompile Include="engine\effects\postprocess\CRTEffect.cpp" />
     <ClCompile Include="engine\effects\postprocess\base\BasePostEffect.cpp" />
@@ -233,7 +235,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\GameObject\character\enemy\base\Node\CompositeNode.h" />
     <ClInclude Include="application\GameObject\character\enemy\base\Node\ConditionNode.h" />
     <ClInclude Include="application\GameObject\character\enemy\base\Node\BehaviorTree\BehaviorTree.h" />
-    <ClInclude Include="engine\camerawork\debug\DebugCamera.h" />
+    <ClInclude Include="engine\camerawork\debug\DebugCamera.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="engine\effects\particle\component\single\BounceComponent.h" />
     <ClInclude Include="engine\effects\postprocess\CRTEffect.h" />
     <ClInclude Include="engine\effects\postprocess\base\BasePostEffect.h" />
