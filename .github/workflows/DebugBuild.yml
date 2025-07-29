@@ -7,7 +7,7 @@ on:
 
 env:
   # リポジトリのルートディレクトリを起点としたソリューションファイルのパス
-  SOLUTION_FILE_PATH: project/GE3_Sub.sln
+  SOLUTION_FILE_PATH: project/KentoCompo.sln
   # Visual Studioの構成(Debug/Release)
   CONFIGURATION: Debug
 
