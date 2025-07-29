@@ -3,8 +3,8 @@
 **ようこそ私の自作エンジンへ**
 
 ## ビルドステータス
-[![DebugBuild](https://github.com/kuriharakento/GE3_Sub/actions/workflows/DebugBuild.yml/badge.svg)](https://github.com/kuriharakento/GE3_Sub/actions/workflows/DebugBuild.yml)  
-[![ReleaseBuild](https://github.com/kuriharakento/GE3_Sub/actions/workflows/ReleaseBuild.yml/badge.svg)](https://github.com/kuriharakento/GE3_Sub/actions/workflows/ReleaseBuild.yml)
+[![DebugBuild](https://github.com/kuriharakento/KentoCompoEngine/actions/workflows/DebugBuild.yml/badge.svg)](https://github.com/kuriharakento/KentoCompoEngine/actions/workflows/DebugBuild.yml)  
+[![ReleaseBuild](https://github.com/kuriharakento/KentoCompoEngine/actions/workflows/ReleaseBuild.yml/badge.svg)](https://github.com/kuriharakento/KentoCompoEngine/actions/workflows/ReleaseBuild.yml)
 
 > 継続的インテグレーションにより、常にエンジンが動作する状態であることが保証されます。  
 > これらのバッジは、`Debug` と `Release` のビルド設定の最新の状態を示しています。
