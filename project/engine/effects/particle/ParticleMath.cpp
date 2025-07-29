@@ -310,8 +310,8 @@ std::vector<VertexData> ParticleMath::MakeHeartVertexData()
 	{
 		float t = float(i) / float(kDiv) * 2.0f * std::numbers::pi_v<float>;
 		// ハートのパラメトリック方程式
-		float x = 16.0f * std::pow(std::sin(t), 3);
-		float y = 13.0f * std::cos(t) - 5.0f * std::cos(2.0f * t) - 2.0f * std::cos(3.0f * t) - std::cos(4.0f * t);
+		float x = 16.0f * std::powf(std::sin(t), 3);
+		float y = 13.0f * std::cosf(t) - 5.0f * std::cosf(2.0f * t) - 2.0f * std::cosf(3.0f * t) - std::cosf(4.0f * t);
 		// 適切なスケーリング（正規化）
 		x /= 18.0f;
 		y /= 18.0f;

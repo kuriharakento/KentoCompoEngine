@@ -21,7 +21,7 @@ void SplineCamera::Update()
     const auto& points = splineData_->GetControlPoints();
     if (points.size() < 4) return;  // 4つ以上のポイントが必要
 
-    int numSegments = points.size() - 3;  // セグメント数を計算
+    int numSegments = static_cast<int>(points.size()) - 3;  // セグメント数を計算
 
     // time_ に基づいて現在のセグメントと補間の割合を計算
     float segmentTime = time_ * numSegments;
@@ -117,7 +117,7 @@ void SplineCamera::DrawSplineLine()
     const auto& points = splineData_->GetControlPoints();
     if (points.size() < 4) return; // 4つ以上のポイントが必要
 
-    const int numSegments = points.size() - 3; // セグメント数を計算
+    const int numSegments = static_cast<int>(points.size()) - 3; // セグメント数を計算
     const int samplesPerSegment = 20;         // 各セグメントを分割するサンプル数
 
     for (int segment = 0; segment < numSegments; ++segment) {
