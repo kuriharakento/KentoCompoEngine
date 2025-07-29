@@ -1,4 +1,4 @@
-#include "3d/ModelManager.h"
+#include "ModelManager.h"
 
 ModelManager* ModelManager::instance_ = nullptr;
 
