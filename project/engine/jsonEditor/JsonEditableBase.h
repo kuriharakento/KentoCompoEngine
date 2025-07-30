@@ -12,6 +12,11 @@
 #include "JsonEditorImGuiUtils.h"
 #include "base/Logger.h"
 
+/* NOTE:
+ * NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE マクロを使用して、構造体、クラスのシリアライズ・デシリアライズを自動生成する場合
+ * 変数名は必ずJsonで定義した名前と一致させること。
+ */
+
 class JsonEditableBase : public IJsonEditable
 {
 public:
@@ -27,7 +32,6 @@ public:
 protected:
 	template<typename T>
 	// NOTE: 必ず変数は登録すること!! しないとエラーが出る。
-	// NOTE: ここでは変数名と同じキー名で登録する必要がある。
 	void Register(const std::string& name, T* value);
 
 private:

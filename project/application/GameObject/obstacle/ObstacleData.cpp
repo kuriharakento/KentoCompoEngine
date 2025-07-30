@@ -30,6 +30,7 @@ void ObstacleData::DrawImGui()
 			ImGui::Text("Obstacle %zu", i + 1);
 			ImGui::Text("Type: %s", obstacles[i].type.c_str());
 			ImGui::Text("Name: %s", obstacles[i].name.c_str());
+			ImGui::Checkbox("Disabled", &obstacles[i].disabled);
 			DrawImGuiForTransform("Transform", &obstacles[i].transform);
 			if (ImGui::Button("Delete"))
 			{

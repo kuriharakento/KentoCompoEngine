@@ -10,10 +10,11 @@ struct ObstacleInfo
 {
 	std::string type; // 障害物の種類
 	std::string name; // 障害物の名前
+	bool disabled; // 障害物が無効かどうか
 	Transform transform; // 障害物のTransform情報
 };
 // JSONシリアライズ用のマクロ
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ObstacleInfo, type, name, transform)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ObstacleInfo, type, name, disabled, transform)
 
 class ObstacleData : public JsonEditableBase
 {

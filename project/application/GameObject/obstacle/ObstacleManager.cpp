@@ -105,10 +105,17 @@ void ObstacleManager::ApplyObstacleData()
 	auto& obstacleInfo = obstacleData_->GetObstacles();
 	for (size_t i = 0; i < obstacles_.size() && i < obstacleInfo.size(); ++i)
 	{
+		// 障害物が無効化されている場合はスキップ
+		if(obstacleInfo[i].disabled)
+		{
+			continue;
+		}
+
+		// 位置、回転、スケールを設定し更新
 		obstacles_[i]->SetPosition(obstacleInfo[i].transform.translate);
 		obstacles_[i]->SetRotation(obstacleInfo[i].transform.rotate);
 		obstacles_[i]->SetScale(obstacleInfo[i].transform.scale);
-		obstacles_[i]->Update(); // 更新を呼び出して反映
+		obstacles_[i]->Update();
 	}
 }
 
