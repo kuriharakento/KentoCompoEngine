@@ -17,10 +17,15 @@ public:
 	// 描画
 	void Draw(CameraManager* camera);
 
+	void Reset();
 	void LoadObstacleData(const std::string& jsonName);
 	void CreateObstacles(const std::string& modelName);
 	void ApplyObstacleData();
 	void SetCulling(bool culling) { culling_ = culling; } // カリングの設定
+	void AddObstacle(std::unique_ptr<Obstacle> obstacle)
+	{
+		obstacles_.emplace_back(std::move(obstacle));
+	}
 
 private:
 	Object3dCommon* object3dCommon_ = nullptr; // 3Dオブジェクト共通情報

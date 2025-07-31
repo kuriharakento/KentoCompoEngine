@@ -24,25 +24,12 @@ void ObstacleManager::Update()
 
 	ImGui::End();
 #endif
-	// 削除処理
-	auto& transforms = obstacleData_->GetObstacles();
-	while (transforms.size() < obstacles_.size())
+
+	for(auto& obstacle : obstacles_)
 	{
-		// 障害物の数が減っている場合は削除
-		obstacles_.pop_back();
+		obstacle->Update();
 	}
 
-	// 障害物の数が変わったかチェック
-	if (obstacleData_->GetObstacleCount() != obstacles_.size())
-	{
-		// 障害物の数が異なる場合は再生成
-		CreateObstacles("wall.obj");
-	}
-	else
-	{
-		// 同じ数ならTransformだけ反映
-		ApplyObstacleData();
-	}
 }
 
 void ObstacleManager::Draw(CameraManager* camera)
@@ -63,6 +50,14 @@ void ObstacleManager::Draw(CameraManager* camera)
 			obstacle->Draw(camera); // 描画
 		}
 	}
+}
+
+void ObstacleManager::Reset()
+{
+	// 障害物のリストをクリア
+	obstacles_.clear();
+	// カリングを有効化
+	culling_ = true;
 }
 
 void ObstacleManager::LoadObstacleData(const std::string& jsonName)
@@ -105,12 +100,6 @@ void ObstacleManager::ApplyObstacleData()
 	auto& obstacleInfo = obstacleData_->GetObstacles();
 	for (size_t i = 0; i < obstacles_.size() && i < obstacleInfo.size(); ++i)
 	{
-		// 障害物が無効化されている場合はスキップ
-		if(obstacleInfo[i].disabled)
-		{
-			continue;
-		}
-
 		// 位置、回転、スケールを設定し更新
 		obstacles_[i]->SetPosition(obstacleInfo[i].transform.translate);
 		obstacles_[i]->SetRotation(obstacleInfo[i].transform.rotate);

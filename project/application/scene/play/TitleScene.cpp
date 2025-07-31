@@ -62,27 +62,34 @@ void TitleScene::Initialize()
 	//当たり判定マネージャーの初期化
 	CollisionManager::GetInstance()->Initialize();
 
-	//ゲームオブジェクトの生成
-	player = std::make_unique<Player>("Player");
-	player->Initialize(sceneManager_->GetObject3dCommon(), sceneManager_->GetLightManager());
+	////ゲームオブジェクトの生成
+	//player = std::make_unique<Player>("Player");
+	//player->Initialize(sceneManager_->GetObject3dCommon(), sceneManager_->GetLightManager());
 
-	//敵マネージャーの生成
-	enemyManager_ = std::make_unique<EnemyManager>();
-	enemyManager_->Initialize(sceneManager_->GetObject3dCommon(), sceneManager_->GetLightManager(), player.get());
-	enemyManager_->AddAssaultEnemy(3);
+	////敵マネージャーの生成
+	//enemyManager_ = std::make_unique<EnemyManager>();
+	//enemyManager_->Initialize(sceneManager_->GetObject3dCommon(), sceneManager_->GetLightManager(), player.get());
+	//enemyManager_->AddAssaultEnemy(3);
 
-	// 障害物マネージャーの生成
-	obstacleManager_ = std::make_unique<ObstacleManager>();
-	obstacleManager_->Initialize(sceneManager_->GetObject3dCommon(), sceneManager_->GetLightManager());
-	obstacleManager_->LoadObstacleData("object.json");
-	obstacleManager_->SetCulling(false);
+	//// 障害物マネージャーの生成
+	//obstacleManager_ = std::make_unique<ObstacleManager>();
+	//obstacleManager_->Initialize(sceneManager_->GetObject3dCommon(), sceneManager_->GetLightManager());
+	//obstacleManager_->LoadObstacleData("object.json");
+	//obstacleManager_->SetCulling(false);
+
+	stageManager_ = std::make_unique<StageManager>();
+	stageManager_->Initialize(
+		sceneManager_->GetObject3dCommon(),
+		sceneManager_->GetLightManager()
+	);
+	stageManager_->LoadStage("object");
 
 	//スプラインカメラの生成
 	splineCamera_ = std::make_unique<SplineCamera>();
 	splineCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
 	splineCamera_->LoadJson("spline.json");
 	splineCamera_->Start(0.001f, false);
-	splineCamera_->SetTarget(&player->GetPosition());
+	splineCamera_->SetTarget(&stageManager_->GetPlayer()->GetPosition());
 
 	//トップダウンカメラの生成
 	topDownCamera_ = std::make_unique<TopDownCamera>();
@@ -91,7 +98,7 @@ void TitleScene::Initialize()
 	topDownCamera_->SetPitch(0.9f);
 	topDownCamera_->Start(
 		60.0f,
-		&player->GetPosition()
+		&stageManager_->GetPlayer()->GetPosition()
 	);
 
 	// デバッグカメラの生成
@@ -117,30 +124,32 @@ void TitleScene::Update()
 	// 前フレームの位置を更新
 	CollisionManager::GetInstance()->UpdatePreviousPositions();
 
-	// 状態に応じた更新
-	switch (state_)
-	{
-	case TitleSceneState::Cameraintro:
-		// スプラインカメラの更新
-		//splineCamera_->Update();
-		player->UpdateTransform(sceneManager_->GetCameraManager());
-		enemyManager_->UpdateTransform(sceneManager_->GetCameraManager());
-		if (splineCamera_->IsEnd())
-		{
-			state_ = TitleSceneState::Playing;
-			obstacleManager_->SetCulling(true);
-		}
-		break;
-	case TitleSceneState::Playing:
-		//カメラの更新
-		//topDownCamera_->Update();
-		// キャラクターの更新
-		player->Update();
-		enemyManager_->Update();
-		break;
-	case TitleSceneState::NextScene:
-		break;
-	}
+	//// 状態に応じた更新
+	//switch (state_)
+	//{
+	//case TitleSceneState::Cameraintro:
+	//	// スプラインカメラの更新
+	//	//splineCamera_->Update();
+	//	player->UpdateTransform(sceneManager_->GetCameraManager());
+	//	enemyManager_->UpdateTransform(sceneManager_->GetCameraManager());
+	//	if (splineCamera_->IsEnd())
+	//	{
+	//		state_ = TitleSceneState::Playing;
+	//		obstacleManager_->SetCulling(true);
+	//	}
+	//	break;
+	//case TitleSceneState::Playing:
+	//	//カメラの更新
+	//	//topDownCamera_->Update();
+	//	// キャラクターの更新
+	//	player->Update();
+	//	enemyManager_->Update();
+	//	break;
+	//case TitleSceneState::NextScene:
+	//	break;
+	//}
+
+	stageManager_->Update();
 
 	// スカイドームの更新
 	skydome_->Update(sceneManager_->GetCameraManager());
@@ -148,8 +157,6 @@ void TitleScene::Update()
 	// 地面の更新
 	ground_->Update(sceneManager_->GetCameraManager());
 
-	// プレイヤーの更新
-	obstacleManager_->Update();
 
 	// 衝突判定開始
 	CollisionManager::GetInstance()->CheckCollisions();
@@ -163,14 +170,7 @@ void TitleScene::Draw3D()
 	// 地面の描画
 	ground_->Draw();
 
-	// プレイヤーの描画
-	player->Draw(sceneManager_->GetCameraManager());
-
-	// 敵の描画
-	enemyManager_->Draw(sceneManager_->GetCameraManager());
-
-	// 障害物の描画
-	obstacleManager_->Draw(sceneManager_->GetCameraManager());
+	stageManager_->Draw(sceneManager_->GetCameraManager());
 
 	// スプライン曲線の描画
 	splineCamera_->DrawSplineLine();
@@ -189,7 +189,7 @@ void TitleScene::InitializeParticleEmitters()
 	dust_->Initialize("dust", "./Resources/star.png");
 	dust_->SetEmitRange({ -5.0f, -5.0f, -5.0f }, { 5.0f, 5.0f, 5.0f }); // 広めに設定
 	dust_->Start(
-		&player->GetPosition(), // 発生位置
+		&origin, // 発生位置
 		30,   // 30個のパーティクルを一度に生成（バースト）
 		0.1f, // 0.1秒かけて全パーティクルを放出
 		true // ループさせない（一回きりのバースト）
@@ -510,16 +510,6 @@ void TitleScene::DrawImGui()
 		float chromAberrationOffset = sceneManager_->GetPostProcessManager()->crtEffect_->GetChromaticAberrationOffset();
 		ImGui::DragFloat("Chromatic Aberration Offset", &chromAberrationOffset, 0.01f, 0.0f, 10.0f);
 		sceneManager_->GetPostProcessManager()->crtEffect_->SetChromaticAberrationOffset(chromAberrationOffset);
-	}
-#pragma endregion
-
-#pragma region GameObject
-	ImGui::SeparatorText("GameObject");
-	if (ImGui::CollapsingHeader("player"))
-	{
-		Vector3 playerPos = player->GetPosition();
-		ImGui::DragFloat3("position", &playerPos.x, 0.1f);
-		player->SetPosition(playerPos);
 	}
 #pragma endregion
 
