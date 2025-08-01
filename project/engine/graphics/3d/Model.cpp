@@ -171,7 +171,7 @@ void Model::CreateMaterialData()
 	materialData_->enableLighting = true;
 	materialData_->uvTransform = MakeIdentity4x4();
 	materialData_->shininess = 30.0f;
-	materialData_->reflectivity = 0.1f;
+	materialData_->reflectivity = 0.0f;
 }
 
 void Model::InitializeRenderingSettings()
