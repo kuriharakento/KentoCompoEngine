@@ -22,7 +22,6 @@ void StageEditScene::Initialize()
 	// 障害物マネージャーの初期化
 	obstacleManager_ = std::make_unique<ObstacleManager>();
 	obstacleManager_->Initialize(sceneManager_->GetObject3dCommon(), sceneManager_->GetLightManager());
-	obstacleManager_->LoadObstacleData("object.json");
 
 	//デバッグカメラの初期化
 	debugCamera_ = std::make_unique<DebugCamera>();

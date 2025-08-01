@@ -62,7 +62,7 @@ void TitleScene::Initialize()
 	//当たり判定マネージャーの初期化
 	CollisionManager::GetInstance()->Initialize();
 
-	////ゲームオブジェクトの生成
+	//ゲームオブジェクトの生成
 	//player = std::make_unique<Player>("Player");
 	//player->Initialize(sceneManager_->GetObject3dCommon(), sceneManager_->GetLightManager());
 
@@ -124,7 +124,7 @@ void TitleScene::Update()
 	// 前フレームの位置を更新
 	CollisionManager::GetInstance()->UpdatePreviousPositions();
 
-	//// 状態に応じた更新
+	// 状態に応じた更新
 	//switch (state_)
 	//{
 	//case TitleSceneState::Cameraintro:
@@ -157,6 +157,7 @@ void TitleScene::Update()
 	// 地面の更新
 	ground_->Update(sceneManager_->GetCameraManager());
 
+	/*obstacleManager_->Update();*/
 
 	// 衝突判定開始
 	CollisionManager::GetInstance()->CheckCollisions();
@@ -169,6 +170,15 @@ void TitleScene::Draw3D()
 
 	// 地面の描画
 	ground_->Draw();
+
+	//// プレイヤーの描画
+	//player->Draw(sceneManager_->GetCameraManager());
+
+	//// 敵の描画
+	//enemyManager_->Draw(sceneManager_->GetCameraManager());
+
+	//// 障害物の描画
+	//obstacleManager_->Draw(sceneManager_->GetCameraManager());
 
 	stageManager_->Draw(sceneManager_->GetCameraManager());
 

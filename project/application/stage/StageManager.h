@@ -28,8 +28,8 @@ public:
 
 	// ステージデータを読み込み
 	void LoadStage(const std::string& stageName);
-	// ステージデータをもとにゲームオブジェクトを生成
-	void CreateGameObjects();
+	// ステージデータをもとに各ゲームオブジェクトの情報を分ける
+	void CreateInfosFromStageData();
 
 	// ゲームオブジェクト取得
 	Player* GetPlayer() const { return player_.get(); }
@@ -40,7 +40,7 @@ private:
 	Object3dCommon* object3dCommon_; // 3Dオブジェクトの共通情報
 	LightManager* lightManager_; // ライトマネージャー
 
-	std::unique_ptr<StageData> stageData_; // ステージデータ
+	std::shared_ptr<StageData> stageData_; // ステージデータ
 
 	// -------- ゲームオブジェクト -------- //
 

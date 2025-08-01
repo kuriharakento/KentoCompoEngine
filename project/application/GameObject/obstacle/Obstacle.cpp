@@ -10,6 +10,9 @@ void Obstacle::Initialize(Object3dCommon* object3dCommon, LightManager* lightMan
 {
 	// ゲームオブジェクトの初期化
 	GameObject::Initialize(object3dCommon, lightManager);
+
+	// OBBコライダーコンポーネントを追加
+	AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(this));
 }
 
 void Obstacle::Update()

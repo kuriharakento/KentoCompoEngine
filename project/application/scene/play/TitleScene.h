@@ -59,9 +59,9 @@ private: //メンバ変数
 	std::unique_ptr<SplineCamera> splineCamera_;
 	std::unique_ptr<TopDownCamera> topDownCamera_;
 	// ゲームオブジェクト
-	//std::unique_ptr<Player> player;
-	//std::unique_ptr<EnemyManager> enemyManager_;
-	//std::unique_ptr<ObstacleManager> obstacleManager_;
+	std::unique_ptr<Player> player;
+	std::unique_ptr<EnemyManager> enemyManager_;
+	std::unique_ptr<ObstacleManager> obstacleManager_;
 	std::unique_ptr<StageManager> stageManager_;
 	// エミッター
 	std::unique_ptr<ParticleEmitter> dust_;
