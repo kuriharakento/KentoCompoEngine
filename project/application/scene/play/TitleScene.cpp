@@ -82,7 +82,7 @@ void TitleScene::Initialize()
 		sceneManager_->GetObject3dCommon(),
 		sceneManager_->GetLightManager()
 	);
-	stageManager_->LoadStage("object");
+	stageManager_->LoadStage("field");
 
 	//スプラインカメラの生成
 	splineCamera_ = std::make_unique<SplineCamera>();

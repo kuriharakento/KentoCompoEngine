@@ -118,6 +118,7 @@ void StageManager::CreateInfosFromStageData()
 			if (!player_)
 			{
 				player_ = std::make_unique<Player>("Player");
+				enemyManager_->SetTarget(player_.get());
 			}
 			player_->Initialize(object3dCommon_, lightManager_);
 			player_->SetModel(/*objInfo.name*/ "cube.obj");
@@ -125,7 +126,7 @@ void StageManager::CreateInfosFromStageData()
 			player_->SetRotation(objInfo.transform.rotate);
 			player_->SetScale(objInfo.transform.scale);
 		}
-		else if (objInfo.type == "Enemy")
+		else if (objInfo.type == "EnemySpawn")
 		{
 			// 敵の情報を敵マネージャーに追加
 			enemyInfos.push_back(objInfo);
@@ -139,4 +140,5 @@ void StageManager::CreateInfosFromStageData()
 
 	// 各マネージャーにデータを渡す
 	obstacleManager_->SetObstacleData(obstacleInfos);
+	enemyManager_->SetEnemyData(enemyInfos);
 }
