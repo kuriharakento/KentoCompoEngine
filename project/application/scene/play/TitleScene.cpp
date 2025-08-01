@@ -44,7 +44,7 @@ void TitleScene::Initialize()
 	//スカイドームの生成
 	skydome_ = std::make_unique<Object3d>();
 	skydome_->Initialize(sceneManager_->GetObject3dCommon());
-	skydome_->SetModel("skydome.obj");
+	skydome_->SetModel("skydome");
 	skydome_->SetLightManager(sceneManager_->GetLightManager());
 	skydome_->SetEnableLighting(true);
 	skydome_->SetDirectionalLightIntensity(0.5f);
@@ -54,7 +54,7 @@ void TitleScene::Initialize()
 	// 地面の生成
 	ground_ = std::make_unique<Object3d>();
 	ground_->Initialize(sceneManager_->GetObject3dCommon());
-	ground_->SetModel("terrain2.obj");
+	ground_->SetModel("terrain");
 	ground_->SetLightManager(sceneManager_->GetLightManager());
 	ground_->SetEnableLighting(true);
 	ground_->GetModel()->SetUVScale(Vector3(10.0f, 10.0f, 1.0f));

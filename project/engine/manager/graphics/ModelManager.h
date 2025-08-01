@@ -23,7 +23,7 @@ public: /*========[ メンバ関数 ]========*/
 	 * \brief モデルの読み込み
 	 * \param filePath モデルファイルパス
 	 */
-	void LoadModel(const std::string& filePath);
+	void LoadModel(const std::string& filePath, const std::string& modelType = ".obj");
 
 	/**
 	 * \brief モデルの検索

@@ -1,0 +1,234 @@
+{
+    "name": "scene",
+    "objects": [
+        {
+            "type": "MESH",
+            "name": "wall_right",
+            "transform": {
+                "translation": [
+                    150.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    -0.0,
+                    -0.0,
+                    0.0
+                ],
+                "scaling": [
+                    1.0,
+                    30.0,
+                    150.0
+                ]
+            },
+            "disabled": false
+        },
+        {
+            "type": "MESH",
+            "name": "wall_left",
+            "transform": {
+                "translation": [
+                    -150.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    -0.0,
+                    -0.0,
+                    0.0
+                ],
+                "scaling": [
+                    1.0,
+                    30.0,
+                    150.0
+                ]
+            },
+            "disabled": false
+        },
+        {
+            "type": "MESH",
+            "name": "wall_front",
+            "transform": {
+                "translation": [
+                    0.0,
+                    0.0,
+                    150.0
+                ],
+                "rotation": [
+                    -0.0,
+                    -0.0,
+                    0.0
+                ],
+                "scaling": [
+                    150.0,
+                    30.0,
+                    1.0
+                ]
+            },
+            "disabled": false
+        },
+        {
+            "type": "MESH",
+            "name": "wall_back",
+            "transform": {
+                "translation": [
+                    0.0,
+                    0.0,
+                    -150.0
+                ],
+                "rotation": [
+                    -0.0,
+                    -0.0,
+                    0.0
+                ],
+                "scaling": [
+                    150.0,
+                    30.0,
+                    1.0
+                ]
+            },
+            "disabled": false
+        },
+        {
+            "type": "MESH",
+            "name": "stair",
+            "transform": {
+                "translation": [
+                    0.0,
+                    1.2000000476837158,
+                    30.0
+                ],
+                "rotation": [
+                    1.3020575046539307,
+                    -0.0,
+                    -0.0
+                ],
+                "scaling": [
+                    20.78316307067871,
+                    10.224699974060059,
+                    1.220960259437561
+                ]
+            },
+            "file_name": "",
+            "collider": {
+                "type": "BOX",
+                "center": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "size": [
+                    2.0,
+                    2.0,
+                    2.0
+                ]
+            },
+            "disabled": false
+        },
+        {
+            "type": "MESH",
+            "name": "staircase_wall_right",
+            "transform": {
+                "translation": [
+                    21.784128189086914,
+                    1.6200000047683716,
+                    31.53310203552246
+                ],
+                "rotation": [
+                    -0.0,
+                    -0.0,
+                    0.0
+                ],
+                "scaling": [
+                    1.0,
+                    3.4328112602233887,
+                    11.612418174743652
+                ]
+            },
+            "collider": {
+                "type": "BOX",
+                "center": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "size": [
+                    2.0,
+                    2.0,
+                    2.0
+                ]
+            },
+            "disabled": false
+        },
+        {
+            "type": "MESH",
+            "name": "staircase_wall_left",
+            "transform": {
+                "translation": [
+                    -21.775869369506836,
+                    1.6399999856948853,
+                    31.503101348876953
+                ],
+                "rotation": [
+                    -0.0,
+                    -0.0,
+                    0.0
+                ],
+                "scaling": [
+                    1.0,
+                    3.4328112602233887,
+                    11.612418174743652
+                ]
+            },
+            "collider": {
+                "type": "BOX",
+                "center": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "size": [
+                    2.0,
+                    2.0,
+                    2.0
+                ]
+            },
+            "disabled": false
+        },
+        {
+            "type": "MESH",
+            "name": "floor",
+            "transform": {
+                "translation": [
+                    0.3343287706375122,
+                    4.109630107879639,
+                    104.38396453857422
+                ],
+                "rotation": [
+                    -0.0,
+                    -0.0,
+                    0.0
+                ],
+                "scaling": [
+                    165.3158416748047,
+                    1.0,
+                    64.6289291381836
+                ]
+            },
+            "collider": {
+                "type": "BOX",
+                "center": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "size": [
+                    2.0,
+                    2.0,
+                    2.0
+                ]
+            },
+            "disabled": false
+        }
+    ]
+}

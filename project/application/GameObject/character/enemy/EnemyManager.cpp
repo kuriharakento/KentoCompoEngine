@@ -135,6 +135,7 @@ void EnemyManager::CreateAssaultEnemyFromData()
 	{
 		auto enemy = std::make_unique<AssaultEnemy>();
 		enemy->Initialize(object3dCommon_, lightManager_, target_);
+		enemy->SetModel(enemyData_[i].fileName);
 		enemy->SetPosition(enemyData_[i].transform.translate);
 		enemy->SetRotation(enemyData_[i].transform.rotate);
 		enemy->SetScale(enemyData_[i].transform.scale);

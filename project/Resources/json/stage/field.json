@@ -21,6 +21,7 @@
                     150.0
                 ]
             },
+            "fileName": "",
             "disabled": false
         },
         {
@@ -43,6 +44,7 @@
                     150.0
                 ]
             },
+            "fileName": "",
             "disabled": false
         },
         {
@@ -65,6 +67,7 @@
                     1.0
                 ]
             },
+            "fileName": "",
             "disabled": false
         },
         {
@@ -87,6 +90,7 @@
                     1.0
                 ]
             },
+            "fileName": "",
             "disabled": false
         },
         {
@@ -109,7 +113,7 @@
                     1.220960259437561
                 ]
             },
-            "file_name": "",
+            "fileName": "",
             "collider": {
                 "type": "BOX",
                 "center": [
@@ -145,6 +149,7 @@
                     11.612418174743652
                 ]
             },
+            "fileName": "",
             "collider": {
                 "type": "BOX",
                 "center": [
@@ -180,6 +185,7 @@
                     11.612418174743652
                 ]
             },
+            "fileName": "",
             "collider": {
                 "type": "BOX",
                 "center": [
@@ -215,6 +221,7 @@
                     64.6289291381836
                 ]
             },
+            "fileName": "",
             "collider": {
                 "type": "BOX",
                 "center": [
@@ -250,6 +257,7 @@
                     1.0
                 ]
             },
+            "fileName": "player",
             "disabled": false
         },
         {
@@ -257,9 +265,9 @@
             "name": "EnemySpawn",
             "transform": {
                 "translation": [
-                    68.7848129272461,
-                    0.0,
-                    0.0
+                    17.490577697753906,
+                    24.045061111450195,
+                    37.66343307495117
                 ],
                 "rotation": [
                     -0.0,
@@ -272,6 +280,7 @@
                     1.0
                 ]
             },
+            "fileName": "enemy",
             "disabled": false
         },
         {
@@ -279,9 +288,9 @@
             "name": "EnemySpawn.001",
             "transform": {
                 "translation": [
-                    -6.550223350524902,
-                    4.76837158203125e-07,
-                    -34.06362533569336
+                    -22.06806182861328,
+                    19.944622039794922,
+                    42.16666030883789
                 ],
                 "rotation": [
                     -0.0,
@@ -294,6 +303,7 @@
                     1.0
                 ]
             },
+            "fileName": "enemy",
             "disabled": false
         },
         {
@@ -301,9 +311,9 @@
             "name": "EnemySpawn.002",
             "transform": {
                 "translation": [
-                    12.77773666381836,
-                    48.42348098754883,
-                    0.0
+                    -0.6520833969116211,
+                    24.045061111450195,
+                    11.696676254272461
                 ],
                 "rotation": [
                     -0.0,
@@ -316,6 +326,7 @@
                     1.0
                 ]
             },
+            "fileName": "enemy",
             "disabled": false
         },
         {
@@ -323,9 +334,9 @@
             "name": "EnemySpawn.003",
             "transform": {
                 "translation": [
-                    -25.980253219604492,
-                    49.146610260009766,
-                    0.0
+                    10.970259666442871,
+                    24.045061111450195,
+                    -19.1260929107666
                 ],
                 "rotation": [
                     -0.0,
@@ -338,6 +349,30 @@
                     1.0
                 ]
             },
+            "fileName": "enemy",
+            "disabled": false
+        },
+        {
+            "type": "EnemySpawn",
+            "name": "EnemySpawn.004",
+            "transform": {
+                "translation": [
+                    -20.882789611816406,
+                    24.045061111450195,
+                    -19.1260929107666
+                ],
+                "rotation": [
+                    -0.0,
+                    -0.0,
+                    0.0
+                ],
+                "scaling": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "fileName": "enemy",
             "disabled": false
         }
     ]

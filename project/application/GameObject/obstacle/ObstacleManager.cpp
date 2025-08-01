@@ -108,6 +108,6 @@ void ObstacleManager::SetObstacleData(const std::vector<GameObjectInfo>& data)
 	obstacleData_ = data;
 
 	// 障害物の生成
-	CreateObstacles("wall.obj");
+	CreateObstacles("wall");
 }
 

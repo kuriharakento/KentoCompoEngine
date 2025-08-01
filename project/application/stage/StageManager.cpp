@@ -121,7 +121,7 @@ void StageManager::CreateInfosFromStageData()
 				enemyManager_->SetTarget(player_.get());
 			}
 			player_->Initialize(object3dCommon_, lightManager_);
-			player_->SetModel(/*objInfo.name*/ "cube.obj");
+			player_->SetModel("player");
 			player_->SetPosition(objInfo.transform.translate);
 			player_->SetRotation(objInfo.transform.rotate);
 			player_->SetScale(objInfo.transform.scale);
