@@ -27,7 +27,7 @@ void GameObject::Initialize(Object3dCommon* object3dCommon, LightManager* lightM
 	object3d_ = std::make_unique<Object3d>();
 	object3d_->Initialize(object3dCommon, camera);
 	// デフォルトで立方体モデルを設定
-	object3d_->SetModel("cube.obj");
+	object3d_->SetModel("cube");
 	object3d_->SetLightManager(lightManager);
 	// Transformの初期化
 	transform_ = {

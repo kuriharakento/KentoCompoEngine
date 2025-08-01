@@ -18,7 +18,7 @@ public:
 	 * \brief 初期化
 	 * \param modelCommon 
 	 */
-	void Initialize(ModelCommon* modelCommon,const std::string& directoryPath, const std::string& filename);
+	void Initialize(ModelCommon* modelCommon,const std::string& directoryPath, const std::string& filename, const std::string& modelType);
 
 	/**
 	 * \brief 描画

@@ -121,3 +121,24 @@ void EnemyManager::AddShotgunEnemy(uint32_t count)
 		enemies_.push_back(std::move(enemy));
 	}
 }
+
+void EnemyManager::SetEnemyData(const std::vector<GameObjectInfo>& data)
+{
+	enemyData_ = data;
+	enemies_.clear();
+	CreateAssaultEnemyFromData();
+}
+
+void EnemyManager::CreateAssaultEnemyFromData()
+{
+	for(int i = 0;i < enemyData_.size();i++)
+	{
+		auto enemy = std::make_unique<AssaultEnemy>();
+		enemy->Initialize(object3dCommon_, lightManager_, target_);
+		enemy->SetModel(enemyData_[i].fileName);
+		enemy->SetPosition(enemyData_[i].transform.translate);
+		enemy->SetRotation(enemyData_[i].transform.rotate);
+		enemy->SetScale(enemyData_[i].transform.scale);
+		enemies_.push_back(std::move(enemy));
+	}
+}

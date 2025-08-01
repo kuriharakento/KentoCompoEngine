@@ -219,6 +219,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\GameObject\character\enemy\base\Node\SequenceNode.cpp" />
     <ClCompile Include="application\GameObject\character\enemy\base\Node\SelectorNode.cpp" />
     <ClCompile Include="application\scene\play\StageEditScene.cpp" />
+    <ClCompile Include="application\stage\StageManager.cpp" />
+    <ClCompile Include="application\stage\StageData.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\character\enemy\base\Node\ActionNode.h" />
@@ -361,6 +363,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\GameObject\character\enemy\base\Node\SequenceNode.h" />
     <ClInclude Include="application\GameObject\character\enemy\base\Node\SelectorNode.h" />
     <ClInclude Include="application\scene\play\StageEditScene.h" />
+    <ClInclude Include="application\stage\StageManager.h" />
+    <ClInclude Include="application\stage\StageData.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />

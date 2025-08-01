@@ -1,6 +1,7 @@
 #pragma once
 #include "application/effect/EnemyDeathEffect.h"
 #include "application/GameObject/character/enemy/base/EnemyBase.h"
+#include "application/stage/StageData.h"
 #include "math/AABB.h"
 
 class LightManager;
@@ -18,16 +19,22 @@ public:
 	void AddPistolEnemy(uint32_t count);
 	void AddAssaultEnemy(uint32_t count);
 	void AddShotgunEnemy(uint32_t count);
+	void SetEnemyData(const std::vector<GameObjectInfo>& data);
+	void SetTarget(GameObject* target) { target_ = target; }
+
+private:
+	void CreateAssaultEnemyFromData();
 
 private:
 	Object3dCommon* object3dCommon_ = nullptr; // 3Dオブジェクト共通処理
 	LightManager* lightManager_ = nullptr; // ライトマネージャー
 	GameObject* target_ = nullptr; // ターゲット（プレイヤーなど）
 	AABB emitRange_ = {};
-
+	// 敵リスト
 	std::vector<std::unique_ptr<EnemyBase>> enemies_;
-
-	//エフェクト
+	// 敵データ
+	std::vector<GameObjectInfo> enemyData_;
+	// 死亡パーティクル
 	std::unique_ptr<EnemyDeathEffect> deathEffect_;
 };
 

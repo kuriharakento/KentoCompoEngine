@@ -1,0 +1,326 @@
+{
+    "objects": [
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "wall_right",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 30.0,
+                    "z": 150.0
+                },
+                "translate": {
+                    "x": 150.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "wall_left",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 30.0,
+                    "z": 150.0
+                },
+                "translate": {
+                    "x": -150.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "wall_front",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 150.0,
+                    "y": 30.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 150.0
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "wall_back",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 150.0,
+                    "y": 30.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": -150.0
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "stair",
+            "transform": {
+                "rotate": {
+                    "x": 1.3020575046539307,
+                    "y": -0.0,
+                    "z": -0.0
+                },
+                "scale": {
+                    "x": 20.78316307067871,
+                    "y": 10.224699974060059,
+                    "z": 1.220960259437561
+                },
+                "translate": {
+                    "x": 0.0,
+                    "y": 1.2000000476837158,
+                    "z": 30.0
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "staircase_wall_right",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 3.4328112602233887,
+                    "z": 11.612418174743652
+                },
+                "translate": {
+                    "x": 21.784128189086914,
+                    "y": 1.6200000047683716,
+                    "z": 31.53310203552246
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "staircase_wall_left",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 3.4328112602233887,
+                    "z": 11.612418174743652
+                },
+                "translate": {
+                    "x": -21.775869369506836,
+                    "y": 1.6399999856948853,
+                    "z": 31.503101348876953
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "floor",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 165.3158416748047,
+                    "y": 1.0,
+                    "z": 64.6289291381836
+                },
+                "translate": {
+                    "x": 0.3343287706375122,
+                    "y": 4.109630107879639,
+                    "z": 104.38396453857422
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "player",
+            "name": "PlayerSpawn",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "type": "PlayerSpawn"
+        },
+        {
+            "disabled": false,
+            "fileName": "enemy",
+            "name": "EnemySpawn",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": 17.490577697753906,
+                    "y": 24.045061111450195,
+                    "z": 37.66343307495117
+                }
+            },
+            "type": "EnemySpawn"
+        },
+        {
+            "disabled": false,
+            "fileName": "enemy",
+            "name": "EnemySpawn.001",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": -22.06806182861328,
+                    "y": 19.944622039794922,
+                    "z": 42.16666030883789
+                }
+            },
+            "type": "EnemySpawn"
+        },
+        {
+            "disabled": false,
+            "fileName": "enemy",
+            "name": "EnemySpawn.002",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": -0.6520833969116211,
+                    "y": 24.045061111450195,
+                    "z": 11.696676254272461
+                }
+            },
+            "type": "EnemySpawn"
+        },
+        {
+            "disabled": true,
+            "fileName": "enemy",
+            "name": "EnemySpawn.003",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": 10.970259666442871,
+                    "y": 24.045061111450195,
+                    "z": -19.1260929107666
+                }
+            },
+            "type": "EnemySpawn"
+        },
+        {
+            "disabled": false,
+            "fileName": "enemy",
+            "name": "EnemySpawn.004",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": -20.882789611816406,
+                    "y": 24.045061111450195,
+                    "z": -19.1260929107666
+                }
+            },
+            "type": "EnemySpawn"
+        }
+    ]
+}

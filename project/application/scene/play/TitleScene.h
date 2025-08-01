@@ -18,6 +18,7 @@
 #include "graphics/3d/Object3d.h"
 
 // effects
+#include "application/stage/StageManager.h"
 #include "effects/particle/ParticleEmitter.h"
 
 enum class TitleSceneState
@@ -61,6 +62,7 @@ private: //メンバ変数
 	std::unique_ptr<Player> player;
 	std::unique_ptr<EnemyManager> enemyManager_;
 	std::unique_ptr<ObstacleManager> obstacleManager_;
+	std::unique_ptr<StageManager> stageManager_;
 	// エミッター
 	std::unique_ptr<ParticleEmitter> dust_;
 	std::unique_ptr<ParticleEmitter> redEffect_;

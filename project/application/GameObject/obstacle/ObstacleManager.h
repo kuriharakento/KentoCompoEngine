@@ -3,6 +3,7 @@
 
 #include "Obstacle.h"
 #include "ObstacleData.h"
+#include "application/stage/StageData.h"
 class CameraManager;
 class LightManager;
 class Object3dCommon;
@@ -17,19 +18,19 @@ public:
 	// 描画
 	void Draw(CameraManager* camera);
 
-	void LoadObstacleData(const std::string& jsonName);
+	void Reset();
 	void CreateObstacles(const std::string& modelName);
 	void ApplyObstacleData();
 	void SetCulling(bool culling) { culling_ = culling; } // カリングの設定
-
+	void SetObstacleData(const std::vector<GameObjectInfo>& data);
 private:
 	Object3dCommon* object3dCommon_ = nullptr; // 3Dオブジェクト共通情報
 	LightManager* lightManager_ = nullptr; // ライトマネージャー
 	// 障害物配置データ
-	std::shared_ptr<ObstacleData> obstacleData_;
+	std::vector<GameObjectInfo> obstacleData_;
 	// 障害物リスト
 	std::vector<std::unique_ptr<Obstacle>> obstacles_;
 	// カリング
-	bool culling_ = true;
+	bool culling_ = false;
 };
 

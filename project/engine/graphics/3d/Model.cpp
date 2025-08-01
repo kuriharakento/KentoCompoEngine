@@ -12,16 +12,18 @@
 // manager
 #include "manager/graphics/TextureManager.h"
 
-void Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPath, const std::string& filename)
+void Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPath, const std::string& filename, const std::string& modelType)
 {
 	modelCommon_ = modelCommon;
 
+	std::string objFilePath = filename + "/" + filename + modelType;
+
 	//モデルの読み込み
-	modelData_ = LoadModelFile(directoryPath,filename);
+	modelData_ = LoadModelFile(directoryPath,objFilePath);
 
 	//テクスチャの読み込み
 	//.objの参照しているテクスチャファイル読み込み
-	modelData_.material.textureFilePath = modelData_.material.textureFilePath;
+	modelData_.material.textureFilePath = directoryPath + "/" + filename + "/" + modelData_.material.textureFilePath;
 	TextureManager::GetInstance()->LoadTexture(modelData_.material.textureFilePath);
 	//読み込んだテクスチャの番号を取得
 	modelData_.material.textureIndex = TextureManager::GetInstance()->GetTextureIndexByFilePath(modelData_.material.textureFilePath);
@@ -117,7 +119,7 @@ ModelData Model::LoadModelFile(const std::string& directoryPath, const std::stri
 		{
 			aiString textureFilePath;
 			material->GetTexture(aiTextureType_DIFFUSE, 0, &textureFilePath);
-			modelData.material.textureFilePath = directoryPath + "/" + textureFilePath.C_Str();
+			modelData.material.textureFilePath = textureFilePath.C_Str();
 		}
 	}
 
@@ -169,7 +171,7 @@ void Model::CreateMaterialData()
 	materialData_->enableLighting = true;
 	materialData_->uvTransform = MakeIdentity4x4();
 	materialData_->shininess = 30.0f;
-	materialData_->reflectivity = 0.1f;
+	materialData_->reflectivity = 0.0f;
 }
 
 void Model::InitializeRenderingSettings()

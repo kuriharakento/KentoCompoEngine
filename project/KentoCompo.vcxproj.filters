@@ -352,6 +352,8 @@
     <ClCompile Include="engine\effects\particle\ParticleMath.cpp">
       <Filter>engine\effect\particle</Filter>
     </ClCompile>
+    <ClCompile Include="application\stage\StageManager.cpp" />
+    <ClCompile Include="application\stage\StageData.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -768,6 +770,8 @@
     <ClInclude Include="engine\effects\particle\ParticleMath.h">
       <Filter>engine\effect\particle</Filter>
     </ClInclude>
+    <ClInclude Include="application\stage\StageManager.h" />
+    <ClInclude Include="application\stage\StageData.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">
@@ -954,6 +958,9 @@
     </Filter>
     <Filter Include="engine\effect\postprocess">
       <UniqueIdentifier>{867e1395-7316-4d3d-ad1f-9ecdef20a841}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="application\stage">
+      <UniqueIdentifier>{204ade66-d5d8-468f-b428-5c047a17e63b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

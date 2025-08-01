@@ -141,7 +141,7 @@ void AssaultRifleComponent::FireBullet(GameObject* owner)
 
 	// 弾の初期化
 	bullet->Initialize(object3dCommon_, lightManager_, playerPos);
-	bullet->SetModel("bullet.obj");
+	bullet->SetModel("bullet");
 	bullet->SetRotation({ 0.0f, rotationY, 0.0f });
 	bullet->SetScale(Vector3(0.3f, 0.3f, 1.0f));
 	// BulletComponentを追加
@@ -185,7 +185,7 @@ void AssaultRifleComponent::FireBullet(GameObject* owner, const Vector3& targetP
 
 	// 弾の初期化
 	bullet->Initialize(object3dCommon_, lightManager_, startPos);
-	bullet->SetModel("bullet.obj");
+	bullet->SetModel("bullet");
 	bullet->SetRotation({ 0.0f, rotationY, 0.0f });
 	bullet->SetScale(Vector3(0.3f, 0.3f, 1.0f));
 

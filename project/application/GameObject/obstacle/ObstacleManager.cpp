@@ -11,10 +11,7 @@ void ObstacleManager::Initialize(Object3dCommon* object3dCommon, LightManager* l
 
 	// リストの初期化
 	obstacles_.clear();
-
-	// JSONエディタに登録
-	obstacleData_ = std::make_shared<ObstacleData>();
-	JsonEditorManager::GetInstance()->Register("obstacles", obstacleData_);
+	obstacleData_.clear();
 }
 
 void ObstacleManager::Update()
@@ -22,26 +19,36 @@ void ObstacleManager::Update()
 #ifdef _DEBUG
 	ImGui::Begin("Obstacle Manager");
 
-	ImGui::End();
-#endif
-	// 削除処理
-	auto& transforms = obstacleData_->GetObstacles();
-	while (transforms.size() < obstacles_.size())
+	ImGui::Text("Obstacle Count: %zu", obstacles_.size());
+	for (size_t i = 0; i < obstacles_.size(); ++i)
 	{
-		// 障害物の数が減っている場合は削除
-		obstacles_.pop_back();
+		auto& obstacle = obstacles_[i];
+		if (obstacle)
+		{
+			ImGui::Separator();
+			ImGui::Text("Index: %zu", i);
+			ImGui::Text("Tag: %s", obstacle->GetTag().c_str());
+
+			const Vector3& pos = obstacle->GetPosition();
+			ImGui::Text("Position: (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
+
+			const Vector3& rot = obstacle->GetRotation();
+			ImGui::Text("Rotation: (%.2f, %.2f, %.2f)", rot.x, rot.y, rot.z);
+
+			const Vector3& scale = obstacle->GetScale();
+			ImGui::Text("Scale: (%.2f, %.2f, %.2f)", scale.x, scale.y, scale.z);
+		}
 	}
 
-	// 障害物の数が変わったかチェック
-	if (obstacleData_->GetObstacleCount() != obstacles_.size())
+	ImGui::End();
+#endif
+
+	for (auto& obstacle : obstacles_)
 	{
-		// 障害物の数が異なる場合は再生成
-		CreateObstacles("wall.obj");
-	}
-	else
-	{
-		// 同じ数ならTransformだけ反映
-		ApplyObstacleData();
+		if (obstacle)
+		{
+			obstacle->Update(); // 各障害物の更新
+		}
 	}
 }
 
@@ -65,9 +72,12 @@ void ObstacleManager::Draw(CameraManager* camera)
 	}
 }
 
-void ObstacleManager::LoadObstacleData(const std::string& jsonName)
+void ObstacleManager::Reset()
 {
-	obstacleData_->Initialize(jsonName);
+	// 障害物のリストをクリア
+	obstacles_.clear();
+	// カリングを有効化
+	culling_ = true;
 }
 
 void ObstacleManager::CreateObstacles(const std::string& modelName)
@@ -75,21 +85,15 @@ void ObstacleManager::CreateObstacles(const std::string& modelName)
 	// 既存の障害物をクリア
 	obstacles_.clear();
 
-	// 位置、回転、スケールの情報を取得
-	auto& obstacleInfo = obstacleData_->GetObstacles();
-
-
 	// 障害物を生成
-	for (uint32_t i = 0; i < obstacleData_->GetObstacleCount(); ++i)
+	for (uint32_t i = 0; i < obstacleData_.size(); ++i)
 	{
 		auto obstacle = std::make_unique<Obstacle>("Obstacle");
 		obstacle->Initialize(object3dCommon_, lightManager_);
 		obstacle->SetModel(modelName);
-		obstacle->SetPosition(obstacleInfo[i].transform.translate);
-		obstacle->SetRotation(obstacleInfo[i].transform.rotate);
-		obstacle->SetScale(obstacleInfo[i].transform.scale);
-		// 衝突判定コンポーネントを追加
-		obstacle->AddComponent("OBBCollider", std::make_unique<OBBColliderComponent>(obstacle.get()));
+		obstacle->SetPosition(obstacleData_[i].transform.translate);
+		obstacle->SetRotation(obstacleData_[i].transform.rotate);
+		obstacle->SetScale(obstacleData_[i].transform.scale);
 		if (i == 0)
 		{
 			obstacle->GetModel()->SetUVScale(Vector3(10.0f, 10.0f, 1.0f));
@@ -99,23 +103,11 @@ void ObstacleManager::CreateObstacles(const std::string& modelName)
 	}
 }
 
-void ObstacleManager::ApplyObstacleData()
+void ObstacleManager::SetObstacleData(const std::vector<GameObjectInfo>& data)
 {
-	// 障害物の位置、回転、スケールをデータから適用
-	auto& obstacleInfo = obstacleData_->GetObstacles();
-	for (size_t i = 0; i < obstacles_.size() && i < obstacleInfo.size(); ++i)
-	{
-		// 障害物が無効化されている場合はスキップ
-		if(obstacleInfo[i].disabled)
-		{
-			continue;
-		}
+	obstacleData_ = data;
 
-		// 位置、回転、スケールを設定し更新
-		obstacles_[i]->SetPosition(obstacleInfo[i].transform.translate);
-		obstacles_[i]->SetRotation(obstacleInfo[i].transform.rotate);
-		obstacles_[i]->SetScale(obstacleInfo[i].transform.scale);
-		obstacles_[i]->Update();
-	}
+	// 障害物の生成
+	CreateObstacles("wall");
 }
 

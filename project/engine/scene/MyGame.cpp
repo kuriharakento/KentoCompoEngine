@@ -146,11 +146,12 @@ void MyGame::LoadTextures()
 
 void MyGame::LoadModels()
 {
-	ModelManager::GetInstance()->LoadModel("cube.obj");
-	ModelManager::GetInstance()->LoadModel("highPolygonSphere.obj");
-	ModelManager::GetInstance()->LoadModel("terrain2.obj");
-	ModelManager::GetInstance()->LoadModel("plane.gltf");
-	ModelManager::GetInstance()->LoadModel("skydome.obj");
-	ModelManager::GetInstance()->LoadModel("bullet.obj");
-	ModelManager::GetInstance()->LoadModel("wall.obj");
+	ModelManager::GetInstance()->LoadModel("cube");
+	//ModelManager::GetInstance()->LoadModel("plane",".gltf");
+	ModelManager::GetInstance()->LoadModel("terrain");
+	ModelManager::GetInstance()->LoadModel("skydome");
+	ModelManager::GetInstance()->LoadModel("bullet");
+	ModelManager::GetInstance()->LoadModel("wall");
+	ModelManager::GetInstance()->LoadModel("player");
+	ModelManager::GetInstance()->LoadModel("enemy");
 }

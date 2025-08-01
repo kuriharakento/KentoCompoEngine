@@ -6,6 +6,7 @@
 #include "application/GameObject/component/base/ICollisionComponent.h"
 #include "application/GameObject/base/GameObject.h"
 #include "base/Logger.h"
+#include "imgui/imgui.h"
 #include "math/MathUtils.h"
 
 CollisionManager* CollisionManager::instance_ = nullptr; // シングルトンインスタンス
@@ -44,6 +45,27 @@ void CollisionManager::Unregister(ICollisionComponent* collider)
 
 void CollisionManager::CheckCollisions()
 {
+#ifdef _DEBUG
+	ImGui::Begin("CollisionManager Colliders");
+	ImGui::Text("Registered Colliders: %zu", colliders_.size());
+	for (size_t i = 0; i < colliders_.size(); ++i)
+	{
+		ICollisionComponent* collider = colliders_[i];
+		std::string label = std::to_string(i) + ": ";
+		if (collider && collider->GetOwner())
+		{
+			label += collider->GetOwner()->GetTag();
+			label += " (" + GetColliderTypeString(collider->GetColliderType()) + ")";
+		}
+		else
+		{
+			label += "nullptr";
+		}
+		ImGui::Text("%s", label.c_str());
+	}
+	ImGui::End();
+#endif
+
 	std::unordered_set<CollisionPair, CollisionPairHash> newCollisions;
 
 	for (size_t i = 0; i < colliders_.size(); ++i)
