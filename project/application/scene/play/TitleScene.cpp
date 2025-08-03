@@ -62,21 +62,7 @@ void TitleScene::Initialize()
 	//当たり判定マネージャーの初期化
 	CollisionManager::GetInstance()->Initialize();
 
-	//ゲームオブジェクトの生成
-	//player = std::make_unique<Player>("Player");
-	//player->Initialize(sceneManager_->GetObject3dCommon(), sceneManager_->GetLightManager());
-
-	////敵マネージャーの生成
-	//enemyManager_ = std::make_unique<EnemyManager>();
-	//enemyManager_->Initialize(sceneManager_->GetObject3dCommon(), sceneManager_->GetLightManager(), player.get());
-	//enemyManager_->AddAssaultEnemy(3);
-
-	//// 障害物マネージャーの生成
-	//obstacleManager_ = std::make_unique<ObstacleManager>();
-	//obstacleManager_->Initialize(sceneManager_->GetObject3dCommon(), sceneManager_->GetLightManager());
-	//obstacleManager_->LoadObstacleData("object.json");
-	//obstacleManager_->SetCulling(false);
-
+	// ステージマネージャーの生成
 	stageManager_ = std::make_unique<StageManager>();
 	stageManager_->Initialize(
 		sceneManager_->GetObject3dCommon(),
@@ -124,31 +110,10 @@ void TitleScene::Update()
 	// 前フレームの位置を更新
 	CollisionManager::GetInstance()->UpdatePreviousPositions();
 
-	// 状態に応じた更新
-	//switch (state_)
-	//{
-	//case TitleSceneState::Cameraintro:
-	//	// スプラインカメラの更新
-	//	//splineCamera_->Update();
-	//	player->UpdateTransform(sceneManager_->GetCameraManager());
-	//	enemyManager_->UpdateTransform(sceneManager_->GetCameraManager());
-	//	if (splineCamera_->IsEnd())
-	//	{
-	//		state_ = TitleSceneState::Playing;
-	//		obstacleManager_->SetCulling(true);
-	//	}
-	//	break;
-	//case TitleSceneState::Playing:
-	//	//カメラの更新
-	//	//topDownCamera_->Update();
-	//	// キャラクターの更新
-	//	player->Update();
-	//	enemyManager_->Update();
-	//	break;
-	//case TitleSceneState::NextScene:
-	//	break;
-	//}
+	// カメラの更新
+	topDownCamera_->Update();
 
+	// ステージの更新
 	stageManager_->Update();
 
 	// スカイドームの更新
@@ -156,8 +121,6 @@ void TitleScene::Update()
 
 	// 地面の更新
 	ground_->Update(sceneManager_->GetCameraManager());
-
-	/*obstacleManager_->Update();*/
 
 	// 衝突判定開始
 	CollisionManager::GetInstance()->CheckCollisions();
@@ -171,15 +134,7 @@ void TitleScene::Draw3D()
 	// 地面の描画
 	ground_->Draw();
 
-	//// プレイヤーの描画
-	//player->Draw(sceneManager_->GetCameraManager());
-
-	//// 敵の描画
-	//enemyManager_->Draw(sceneManager_->GetCameraManager());
-
-	//// 障害物の描画
-	//obstacleManager_->Draw(sceneManager_->GetCameraManager());
-
+	// ステージの描画
 	stageManager_->Draw(sceneManager_->GetCameraManager());
 
 	// スプライン曲線の描画
@@ -383,7 +338,7 @@ void TitleScene::DrawImGui()
 	ImGui::Begin("TitleScene");
 
 	static bool useDebugCamera = false;
-	static bool useSplineCamera = true;
+	static bool useSplineCamera = false;
 	static bool loopSpline = false;
 	static float speed = 0.001f;
 	static bool useTopDownCamera = false;
