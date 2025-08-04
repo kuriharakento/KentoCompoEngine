@@ -104,6 +104,12 @@ void TitleScene::Finalize()
 
 void TitleScene::Update()
 {
+	if(Input::GetInstance()->TriggerKey(DIK_TAB))
+	{
+		// ステージエディットシーン移動
+		sceneManager_->ChangeScene("STAGEEDIT");
+	}
+
 	// ImGuiの描画
 	DrawImGui();
 

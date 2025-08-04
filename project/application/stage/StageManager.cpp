@@ -88,7 +88,15 @@ void StageManager::DrawImGui()
 		// ステージのロード
 		LoadStage(fileName); // 例として "object" ステージをロード
 	}
+	if(ImGui::Button("Clear Enemies"))
+	{
+		if (enemyManager_)
+		{
+			enemyManager_->Clear(); // 敵マネージャーの敵を全てクリア
+		}
+	}
 	ImGui::End();
+	
 #endif
 }
 
@@ -108,6 +116,11 @@ void StageManager::CreateInfosFromStageData()
 	std::vector<GameObjectInfo> enemyInfos;
 	std::vector<GameObjectInfo> obstacleInfos;
 
+	// 各オブジェクトをクリアする
+	player_.reset(); // プレイヤーは１体だけなのでリセット
+	enemyManager_->Clear();
+	obstacleManager_->Clear();
+
 	for(const auto& objInfo : stageData_->gameObjects)
 	{
 		if (objInfo.disabled) continue; // 無効化されているオブジェクトはスキップ
@@ -118,8 +131,8 @@ void StageManager::CreateInfosFromStageData()
 			if (!player_)
 			{
 				player_ = std::make_unique<Player>("Player");
-				enemyManager_->SetTarget(player_.get());
 			}
+			enemyManager_->SetTarget(player_.get());
 			player_->Initialize(object3dCommon_, lightManager_);
 			player_->SetModel("player");
 			player_->SetPosition(objInfo.transform.translate);

@@ -277,7 +277,7 @@
             "type": "EnemySpawn"
         },
         {
-            "disabled": true,
+            "disabled": false,
             "fileName": "enemy",
             "name": "EnemySpawn.003",
             "transform": {
@@ -321,6 +321,29 @@
                 }
             },
             "type": "EnemySpawn"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "立方体",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 5.574222564697266,
+                    "z": 8.446484565734863
+                },
+                "translate": {
+                    "x": -33.50299835205078,
+                    "y": 1.9092519283294678,
+                    "z": 0.7895398139953613
+                }
+            },
+            "type": "Obstacle"
         }
     ]
 }

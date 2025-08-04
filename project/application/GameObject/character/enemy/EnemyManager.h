@@ -21,6 +21,7 @@ public:
 	void AddShotgunEnemy(uint32_t count);
 	void SetEnemyData(const std::vector<GameObjectInfo>& data);
 	void SetTarget(GameObject* target) { target_ = target; }
+	void Clear();
 
 private:
 	void CreateAssaultEnemyFromData();

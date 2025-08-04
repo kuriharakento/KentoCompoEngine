@@ -72,12 +72,10 @@ void ObstacleManager::Draw(CameraManager* camera)
 	}
 }
 
-void ObstacleManager::Reset()
+void ObstacleManager::Clear()
 {
 	// 障害物のリストをクリア
 	obstacles_.clear();
-	// カリングを有効化
-	culling_ = true;
 }
 
 void ObstacleManager::CreateObstacles(const std::string& modelName)
@@ -100,6 +98,28 @@ void ObstacleManager::CreateObstacles(const std::string& modelName)
 		}
 		obstacles_.push_back(std::move(obstacle));
 
+	}
+}
+
+void ObstacleManager::ApplyObstacleData()
+{
+	for (int i = 0; i < obstacles_.size(); i++)
+	{
+		if (i < obstacleData_.size())
+		{
+			auto& obstacle = obstacles_[i];
+			if (obstacle)
+			{
+				obstacle->SetPosition(obstacleData_[i].transform.translate);
+				obstacle->SetRotation(obstacleData_[i].transform.rotate);
+				obstacle->SetScale(obstacleData_[i].transform.scale);
+				obstacle->Update();
+			}
+		}
+		else
+		{
+			break; // データがない場合はループを抜ける
+		}
 	}
 }
 

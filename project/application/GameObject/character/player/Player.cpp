@@ -22,9 +22,7 @@ void Player::Initialize(Object3dCommon* object3dCommon, LightManager* lightManag
 	// 射撃コンポーネントを追加
 	AddComponent("PistolComponent", std::make_unique<AssaultRifleComponent>(object3dCommon, lightManager));
 	// 衝突判定コンポーネント
-	auto collider = std::make_unique<OBBColliderComponent>(this);
-	collider->SetUseSweep(true); // スイープ判定を有効化
-	AddComponent("OBBColliderComponent", std::move(collider));
+	AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(this));
 }
 
 void Player::Update()

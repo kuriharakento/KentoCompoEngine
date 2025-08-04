@@ -9,19 +9,13 @@
 
 void StageEditScene::Initialize()
 {
-	// スカイドームの初期化
-	skydome_ = std::make_unique<Object3d>();
-	skydome_->Initialize(sceneManager_->GetObject3dCommon());
-	skydome_->SetModel("skydome.obj");
-	skydome_->SetLightManager(sceneManager_->GetLightManager());
-	skydome_->SetEnableLighting(true);
-	skydome_->SetDirectionalLightIntensity(0.5f);
-	//ディレクショナルライトを下から上に照らす
-	skydome_->SetDirectionalLightDirection({ 0.0f, -1.0f, 0.0f });
-
 	// 障害物マネージャーの初期化
-	obstacleManager_ = std::make_unique<ObstacleManager>();
-	obstacleManager_->Initialize(sceneManager_->GetObject3dCommon(), sceneManager_->GetLightManager());
+	stageManager_ = std::make_unique<StageManager>();
+	stageManager_->Initialize(
+		sceneManager_->GetObject3dCommon(),
+		sceneManager_->GetLightManager()
+	);
+	stageManager_->LoadStage("field");
 
 	//デバッグカメラの初期化
 	debugCamera_ = std::make_unique<DebugCamera>();
@@ -33,14 +27,21 @@ void StageEditScene::Initialize()
 
 void StageEditScene::Update()
 {
+#ifdef _DEBUG
+	// ImGuiの描画
+	ImGui::Begin("StageEditScene");
+	if (ImGui::Button("Load Stage"))
+	{
+		stageManager_->LoadStage("field");
+	}
+	ImGui::End();
+#endif
+
 	// デバッグカメラの更新
 	debugCamera_->Update();
 
-	// スカイドームの更新
-	skydome_->Update(sceneManager_->GetCameraManager());
-
-	// 障害物マネージャーの更新
-	obstacleManager_->Update();
+	// ステージマネージャーの更新
+	stageManager_->Update();
 }
 
 void StageEditScene::Draw2D()
@@ -87,11 +88,8 @@ void StageEditScene::Draw3D()
 		VectorColorCodes::Blue
 	);
 
-	// スカイドームの描画
-	skydome_->Draw();
-
-	//　障害物の描画
-	obstacleManager_->Draw(sceneManager_->GetCameraManager());
+	// ステージマネージャーの描画
+	stageManager_->Draw(sceneManager_->GetCameraManager());
 }
 
 void StageEditScene::Finalize()

@@ -129,6 +129,11 @@ void EnemyManager::SetEnemyData(const std::vector<GameObjectInfo>& data)
 	CreateAssaultEnemyFromData();
 }
 
+void EnemyManager::Clear()
+{
+	enemies_.clear(); // 敵キャラクターのリストをクリア
+}
+
 void EnemyManager::CreateAssaultEnemyFromData()
 {
 	for(int i = 0;i < enemyData_.size();i++)

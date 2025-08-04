@@ -7,7 +7,7 @@
 // camera
 #include "camerawork/debug/DebugCamera.h"
 // app
-#include "application/GameObject/obstacle/ObstacleManager.h"
+#include "application/stage/StageManager.h"
 
 class StageEditScene : public  BaseScene
 {
@@ -19,10 +19,8 @@ public:
 	void Finalize() override;
 
 private:
-	//スカイドーム
-	std::unique_ptr<Object3d> skydome_;
-	// 障害物マネージャー
-	std::unique_ptr<ObstacleManager> obstacleManager_;
+	// ステージマネージャー
+	std::unique_ptr<StageManager> stageManager_;
 	// デバッグカメラ
 	std::unique_ptr<DebugCamera> debugCamera_;
 };
