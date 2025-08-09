@@ -229,7 +229,7 @@ void AssaultEnemyBehavior::PatrolBehavior(GameObject* owner)
     }
 
     // 移動
-    direction.Normalize();
+    direction.NormalizeSelf();
     float moveDistance = LimitMovementSpeed(moveSpeed_ * patrolSpeed_, TimeManager::GetInstance().GetDeltaTime());
     owner->SetPosition(owner->GetPosition() + direction * moveDistance);
 
@@ -288,7 +288,7 @@ void AssaultEnemyBehavior::RepositionBehavior(GameObject* owner)
 
             if (lastValidDist > 0.5f)
             {
-                toLastValid.Normalize();
+                toLastValid.NormalizeSelf();
                 float moveDistance = LimitMovementSpeed(moveSpeed_ * 1.2f, TimeManager::GetInstance().GetDeltaTime());
                 owner->SetPosition(owner->GetPosition() + toLastValid * moveDistance * repositionSpeed_);
                 return;
@@ -305,7 +305,7 @@ void AssaultEnemyBehavior::RepositionBehavior(GameObject* owner)
     }
 
     // ターゲットへの移動ベクトル
-    direction.Normalize();
+    direction.NormalizeSelf();
     float moveDistance = LimitMovementSpeed(moveSpeed_, TimeManager::GetInstance().GetDeltaTime());
 
     // 最適距離より遠い場合は接近、近い場合は後退
@@ -406,7 +406,7 @@ void AssaultEnemyBehavior::RetreatBehavior(GameObject* owner)
     }
 
     // ターゲットから離れる方向を計算
-    direction.Normalize();
+    direction.NormalizeSelf();
     Vector3 retreatDirection = -direction;
 
     // 後退移動
@@ -437,7 +437,7 @@ void AssaultEnemyBehavior::AimAtTarget(GameObject* owner)
 
     Vector3 targetPos = target_->GetPosition();
     Vector3 direction = targetPos - owner->GetPosition();
-    direction.Normalize();
+    direction.NormalizeSelf();
 
     float angle = atan2(direction.x, direction.z);
     owner->SetRotation(Vector3(0, angle, 0));
@@ -495,7 +495,7 @@ Vector3 AssaultEnemyBehavior::GetRandomStrafeDirection(GameObject* owner)
     // ターゲットへの方向
     Vector3 toTarget = target_->GetPosition() - owner->GetPosition();
     float distanceToTarget = toTarget.Length();
-    toTarget.Normalize();
+    toTarget.NormalizeSelf();
 
     // 横方向ベクトル
     Vector3 right(toTarget.z, 0, -toTarget.x);
@@ -522,7 +522,7 @@ Vector3 AssaultEnemyBehavior::GetRandomStrafeDirection(GameObject* owner)
         strafeDir = right * randomValue * strafeTendencyFactor_ - toTarget * (1.0f - strafeTendencyFactor_ + distanceFactor * 0.3f);
     }
 
-    strafeDir.Normalize();
+    strafeDir.NormalizeSelf();
     return strafeDir;
 }
 
@@ -554,7 +554,7 @@ Vector3 AssaultEnemyBehavior::CalculateSmoothMovement(const Vector3& currentPos,
         return targetPos;
     }
 
-    direction.Normalize();
+    direction.NormalizeSelf();
     return currentPos + direction * maxDistance;
 }
 
@@ -614,7 +614,7 @@ void AssaultEnemyBehavior::ForceMovement(GameObject* owner)
     // 強制的に少し動かす
     std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
     Vector3 randomDir(dist(rng_), 0, dist(rng_));
-    randomDir.Normalize();
+    randomDir.NormalizeSelf();
 
     // ランダムな方向に少し移動
     float forceMove = moveSpeed_ * 0.5f * (TimeManager::GetInstance().GetDeltaTime());

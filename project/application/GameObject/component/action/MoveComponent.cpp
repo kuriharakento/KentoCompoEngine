@@ -3,6 +3,7 @@
 #include "math/MathUtils.h"
 #include <cmath>
 
+#include "base/Logger.h"
 #include "math/Easing.h"
 #include "time/TimeManager.h"
 
@@ -97,7 +98,7 @@ void MoveComponent::UpdateRotation(GameObject* owner, const Vector3& direction)
     {
         // 正規化された方向ベクトル
         Vector3 normalizedDir = direction;
-        normalizedDir.Normalize();
+        normalizedDir.NormalizeSelf();
 
         // Y軸回りの目標回転角度を計算（atan2を使用）
         float targetRotationY = atan2f(normalizedDir.x, normalizedDir.z);
@@ -135,7 +136,7 @@ void MoveComponent::ProcessMovement(GameObject* owner)
     // 移動処理
     if (hasMovementInput_)
     {
-        moveDirection.Normalize();
+		moveDirection.NormalizeSelf(); // 正規化
         owner->SetPosition(owner->GetPosition() + moveDirection * moveSpeed_ * TimeManager::GetInstance().GetDeltaTime());
 
         // プレイヤーの向きを滑らかに変える
@@ -157,8 +158,7 @@ void MoveComponent::ProcessDodge(GameObject* owner)
         if (moveDirection.Length() > 0.01f)
         {
             // 移動入力がある場合はその方向に回避
-            moveDirection.Normalize();
-            dodgeDirection_ = moveDirection;
+            dodgeDirection_ = moveDirection.Normalize();
         }
         else
         {
@@ -215,7 +215,7 @@ Vector3 MoveComponent::GetMovementDirection() const
     // 長さが0でなければ正規化
     if (direction.Length() > 0.01f)
     {
-        direction.Normalize();
+        direction.NormalizeSelf();
     }
 
     return direction;

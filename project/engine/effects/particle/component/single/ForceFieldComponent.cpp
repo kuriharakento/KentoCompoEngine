@@ -21,7 +21,7 @@ void ForceFieldComponent::Update(Particle& particle)
         float forceMagnitude = strength / distance;
 
         // 力の方向を正規化
-        direction.Normalize();
+        direction.NormalizeSelf();
 
         if (type == ForceType::Repel)
         {

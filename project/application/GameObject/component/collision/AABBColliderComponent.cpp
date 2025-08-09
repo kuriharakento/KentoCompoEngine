@@ -25,8 +25,8 @@ void AABBColliderComponent::Update(GameObject* owner)
 	Vector3 pos = owner->GetPosition();
 	Vector3 size = owner->GetScale();
 	// AABBの更新
-	aabb_.min_ = pos - size;
-	aabb_.max_ = pos + size;
+	aabb_.min_ = pos - (size + sizeOffset_); // サイズオフセットを適用
+	aabb_.max_ = pos + (size + sizeOffset_); // サイズオフセットを適用
 #ifdef _DEBUG
 	//AABBを可視化する
 	LineManager::GetInstance()->DrawAABB(aabb_, VectorColorCodes::Cyan);

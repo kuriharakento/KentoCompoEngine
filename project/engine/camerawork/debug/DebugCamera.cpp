@@ -92,7 +92,7 @@ void DebugCamera::UpdateMovement()
     // 移動方向を正規化して速度を適用
     if (moveDirection.x != 0.0f || moveDirection.y != 0.0f || moveDirection.z != 0.0f)
     {
-        moveDirection.Normalize();
+        moveDirection.NormalizeSelf();
         currentPos = currentPos + moveDirection * currentSpeed;
         camera_->SetTranslate(currentPos);
     }

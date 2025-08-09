@@ -24,6 +24,15 @@ struct Vector3
 		return *this / len;
 	}
 
+	void NormalizeSelf()
+	{
+		float len = Length();
+		if (len == 0.0f) return;
+		x /= len;
+		y /= len;
+		z /= len;
+	}
+
 	bool IsZero(float epsilon = 1e-6f) const
 	{
 		return LengthSquared() < epsilon * epsilon;

@@ -32,6 +32,10 @@ public:
 	void SetCollisionPosition(const Vector3& position) { collisionPosition_ = position; }
 	Vector3 GetCollisionPosition() const { return collisionPosition_; }
 
+	// 判定サイズのオフセットを設定
+	void SetSizeOffset(const Vector3& offset) { sizeOffset_ = offset; }
+	Vector3 GetSizeOffset() const { return sizeOffset_; }
+
 	using CollisionCallback = std::function<void(GameObject* other)>;
 
 	virtual ColliderType GetColliderType() const = 0;
@@ -57,6 +61,8 @@ protected:
 	Vector3 collisionPosition_ = {};
 	// サブステップ判定を行うか
 	bool useSubstep_ = false;
+	// 判定サイズのオフセット
+	Vector3 sizeOffset_ = {};
 
 private:
 	CollisionCallback onEnter_ = nullptr;

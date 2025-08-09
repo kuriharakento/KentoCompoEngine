@@ -101,10 +101,10 @@ namespace MathUtils
 			return Vector3(0.0f, 0.0f, 0.0f);
 		}
 
-		direction.Normalize();
+		Vector3 normDirection = direction.Normalize();
 
-		float yaw = std::atan2(direction.x, direction.z);
-		float pitch = std::atan2(direction.y, std::sqrt(direction.x * direction.x + direction.z * direction.z));
+		float yaw = std::atan2(normDirection.x, normDirection.z);
+		float pitch = std::atan2(normDirection.y, std::sqrt(normDirection.x * normDirection.x + normDirection.z * normDirection.z));
 		return Vector3(-pitch, yaw, 0.0f);
 	}
 

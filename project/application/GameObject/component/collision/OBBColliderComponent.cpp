@@ -37,7 +37,7 @@ void OBBColliderComponent::Update(GameObject* owner)
 	// OBBの更新
 	obb_.center = pos;
 	obb_.rotate = MakeRotateMatrix(rotate);
-	obb_.size = size;
+	obb_.size = size + sizeOffset_;				// サイズオフセットを適用
 	
 #ifdef _DEBUG
 	// OBBを可視化する

@@ -73,7 +73,7 @@ private:
     bool potentiallyStuck_ = false;
 
     // 移動パラメータ
-    float moveSpeed_ = 2.0f;
+    float moveSpeed_ = 5.0f;
     float maxMoveDistancePerFrame_ = 0.3f;
     float attackRange_ = 18.0f;      // 最適射撃距離
     float minRange_ = 10.0f;         // 最小距離
