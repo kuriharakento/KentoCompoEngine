@@ -62,6 +62,9 @@ void Framework::Initialize()
 	// オーディオの初期化
 	Audio::GetInstance()->Initialize();
 
+	// 時間管理クラスの初期化
+	TimeManager::GetInstance();
+
 	// カメラマネージャーの初期化
 	cameraManager_ = std::make_unique<CameraManager>();
 	cameraManager_->AddCamera("main");

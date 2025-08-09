@@ -352,8 +352,15 @@
     <ClCompile Include="engine\effects\particle\ParticleMath.cpp">
       <Filter>engine\effect\particle</Filter>
     </ClCompile>
-    <ClCompile Include="application\stage\StageManager.cpp" />
-    <ClCompile Include="application\stage\StageData.cpp" />
+    <ClCompile Include="application\stage\StageData.cpp">
+      <Filter>application\stage</Filter>
+    </ClCompile>
+    <ClCompile Include="application\stage\StageManager.cpp">
+      <Filter>application\stage</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\time\TimeManager.cpp">
+      <Filter>engine\time</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -770,8 +777,15 @@
     <ClInclude Include="engine\effects\particle\ParticleMath.h">
       <Filter>engine\effect\particle</Filter>
     </ClInclude>
-    <ClInclude Include="application\stage\StageManager.h" />
-    <ClInclude Include="application\stage\StageData.h" />
+    <ClInclude Include="application\stage\StageData.h">
+      <Filter>application\stage</Filter>
+    </ClInclude>
+    <ClInclude Include="application\stage\StageManager.h">
+      <Filter>application\stage</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\time\TimeManager.h">
+      <Filter>engine\time</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">
@@ -961,6 +975,9 @@
     </Filter>
     <Filter Include="application\stage">
       <UniqueIdentifier>{204ade66-d5d8-468f-b428-5c047a17e63b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\time">
+      <UniqueIdentifier>{c35906ac-ffe5-442d-994e-c49f5c841058}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
