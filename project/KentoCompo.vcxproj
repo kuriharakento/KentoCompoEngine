@@ -221,6 +221,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\scene\play\StageEditScene.cpp" />
     <ClCompile Include="application\stage\StageManager.cpp" />
     <ClCompile Include="application\stage\StageData.cpp" />
+    <ClCompile Include="engine\time\TimeManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\character\enemy\base\Node\ActionNode.h" />
@@ -365,6 +366,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\scene\play\StageEditScene.h" />
     <ClInclude Include="application\stage\StageManager.h" />
     <ClInclude Include="application\stage\StageData.h" />
+    <ClInclude Include="engine\time\TimeManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />

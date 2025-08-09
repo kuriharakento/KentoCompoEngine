@@ -15,6 +15,7 @@
 #include "manager/effect/ParticleManager.h"
 #include "manager/graphics/ModelManager.h"
 #include "manager/graphics/LineManager.h"
+#include "time/TimeManager.h"
 
 #ifdef _DEBUG
 #include "ImGui/imgui_internal.h"
@@ -60,6 +61,9 @@ void Framework::Initialize()
 
 	// オーディオの初期化
 	Audio::GetInstance()->Initialize();
+
+	// 時間の初期化(インスタンスを生成しておく)
+	TimeManager::GetInstance();
 
 	// カメラマネージャーの初期化
 	cameraManager_ = std::make_unique<CameraManager>();

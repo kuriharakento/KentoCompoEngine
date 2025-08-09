@@ -8,6 +8,7 @@
 #include "ImGui/imgui_internal.h"
 #include "manager/graphics/TextureManager.h"
 #include "manager/graphics/LineManager.h"
+#include "time/TimeManager.h"
 
 void MyGame::Initialize()
 {
@@ -77,9 +78,11 @@ void MyGame::Update()
 	//パフォーマンス情報の表示
 	Framework::ShowPerformanceInfo();
 
+	// 時間の計測
+	TimeManager::GetInstance().Update();
+
 	//ゲームの更新処理
 	sceneManager_->Update();
-
 
 	// パーティクルマネージャーの更新
 	ParticleManager::GetInstance()->Update(cameraManager_.get());

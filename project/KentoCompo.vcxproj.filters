@@ -354,6 +354,7 @@
     </ClCompile>
     <ClCompile Include="application\stage\StageManager.cpp" />
     <ClCompile Include="application\stage\StageData.cpp" />
+    <ClCompile Include="engine\time\TimeManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -772,6 +773,7 @@
     </ClInclude>
     <ClInclude Include="application\stage\StageManager.h" />
     <ClInclude Include="application\stage\StageData.h" />
+    <ClInclude Include="engine\time\TimeManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">
