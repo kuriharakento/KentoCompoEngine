@@ -12,6 +12,7 @@
 #include "application/GameObject/component/collision/OBBColliderComponent.h"
 // math
 #include "math/MathUtils.h"
+#include "time/TimeManager.h"
 
 AssaultRifleComponent::AssaultRifleComponent(Object3dCommon* object3dCommon, LightManager* lightManager)
     : fireCooldown_(0.1f), fireCooldownTimer_(0.0f)
@@ -30,7 +31,7 @@ AssaultRifleComponent::~AssaultRifleComponent()
 
 void AssaultRifleComponent::Update(GameObject* owner)
 {
-	float deltaTime = 1.0f / 60.0f;
+	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 	fireCooldownTimer_ -= deltaTime;
 
 	// リロード処理
@@ -68,7 +69,7 @@ void AssaultRifleComponent::Update(GameObject* owner)
 	}
 
     for (const auto& bullet : bullets_)
-        if (bullet->IsAlive()) bullet->Update(1.0f / 60.0f);
+        if (bullet->IsAlive()) bullet->Update(TimeManager::GetInstance().GetDeltaTime());
 
     for (auto it = bullets_.begin(); it != bullets_.end();)
 		if (!(*it)->IsAlive())

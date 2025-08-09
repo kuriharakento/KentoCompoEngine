@@ -14,6 +14,8 @@
 #include "math/MathUtils.h"
 #include <random>
 
+#include "time/TimeManager.h"
+
 ShotgunComponent::ShotgunComponent(Object3dCommon* object3dCommon, LightManager* lightManager)
     : fireCooldown_(0.8f), fireCooldownTimer_(0.0f)
 {
@@ -29,7 +31,7 @@ ShotgunComponent::~ShotgunComponent()
 
 void ShotgunComponent::Update(GameObject* owner)
 {
-    float deltaTime = 1.0f / 60.0f;
+    float deltaTime = TimeManager::GetInstance().GetDeltaTime();
     fireCooldownTimer_ -= deltaTime;
 
     // リロード処理

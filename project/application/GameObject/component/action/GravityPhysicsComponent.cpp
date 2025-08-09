@@ -1,6 +1,7 @@
 #include "GravityPhysicsComponent.h"
 #include "application/GameObject/base/GameObject.h"
 #include "application/GameObject/character/base/Character.h"
+#include "time/TimeManager.h"
 
 GravityPhysicsComponent::GravityPhysicsComponent(float gravity)
     : gravity_(gravity)
@@ -16,8 +17,7 @@ void GravityPhysicsComponent::Update(GameObject* owner)
 		return;
 	}
 
-    // 60FPS 想定
-    const float deltaTime = 1.0f / 60.0f;
+    float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 
     // 重力を垂直速度に適用（下方向は負）
     verticalVelocity_ -= gravity_ * deltaTime;

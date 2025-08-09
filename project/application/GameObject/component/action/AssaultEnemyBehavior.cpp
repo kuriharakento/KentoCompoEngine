@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <random>
 
+#include "time/TimeManager.h"
+
 AssaultEnemyBehavior::AssaultEnemyBehavior(GameObject* target) : target_(target)
 {
     // 乱数生成器の初期化
@@ -26,12 +28,13 @@ AssaultEnemyBehavior::AssaultEnemyBehavior(GameObject* target) : target_(target)
 void AssaultEnemyBehavior::Update(GameObject* owner)
 {
     // タイマー更新
-    stateTimer_ += 1.0f / 60.0f;
-    positionCheckTimer_ += 1.0f / 60.0f;
+	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
+    stateTimer_ += deltaTime;
+    positionCheckTimer_ += deltaTime;
 
     if (actionCooldown_ > 0)
     {
-        actionCooldown_ -= 1.0f / 60.0f;
+        actionCooldown_ -= deltaTime;
     }
 
     // 動き停止の検出
@@ -227,7 +230,7 @@ void AssaultEnemyBehavior::PatrolBehavior(GameObject* owner)
 
     // 移動
     direction.Normalize();
-    float moveDistance = LimitMovementSpeed(moveSpeed_ * patrolSpeed_, 1.0f / 60.0f);
+    float moveDistance = LimitMovementSpeed(moveSpeed_ * patrolSpeed_, TimeManager::GetInstance().GetDeltaTime());
     owner->SetPosition(owner->GetPosition() + direction * moveDistance);
 
     // 移動方向を向く
@@ -286,7 +289,7 @@ void AssaultEnemyBehavior::RepositionBehavior(GameObject* owner)
             if (lastValidDist > 0.5f)
             {
                 toLastValid.Normalize();
-                float moveDistance = LimitMovementSpeed(moveSpeed_ * 1.2f, 1.0f / 60.0f);
+                float moveDistance = LimitMovementSpeed(moveSpeed_ * 1.2f, TimeManager::GetInstance().GetDeltaTime());
                 owner->SetPosition(owner->GetPosition() + toLastValid * moveDistance * repositionSpeed_);
                 return;
             }
@@ -303,7 +306,7 @@ void AssaultEnemyBehavior::RepositionBehavior(GameObject* owner)
 
     // ターゲットへの移動ベクトル
     direction.Normalize();
-    float moveDistance = LimitMovementSpeed(moveSpeed_, 1.0f / 60.0f);
+    float moveDistance = LimitMovementSpeed(moveSpeed_, TimeManager::GetInstance().GetDeltaTime());
 
     // 最適距離より遠い場合は接近、近い場合は後退
     if (distance > optimalDistance)
@@ -333,7 +336,7 @@ void AssaultEnemyBehavior::StrafeBehavior(GameObject* owner)
         return;
     }
 
-    strafeTimer_ += 1.0f / 60.0f;
+    strafeTimer_ += TimeManager::GetInstance().GetDeltaTime();
 
     // ターゲットとの距離を計算
     Vector3 targetPos = target_->GetPosition();
@@ -356,7 +359,7 @@ void AssaultEnemyBehavior::StrafeBehavior(GameObject* owner)
     }
 
     // 横移動を適用
-    float moveDistance = LimitMovementSpeed(moveSpeed_ * 0.6f, 1.0f / 60.0f);
+    float moveDistance = LimitMovementSpeed(moveSpeed_ * 0.6f, TimeManager::GetInstance().GetDeltaTime());
     owner->SetPosition(owner->GetPosition() + strafeDirection_ * moveDistance);
 
     // 攻撃可能なら攻撃
@@ -407,7 +410,7 @@ void AssaultEnemyBehavior::RetreatBehavior(GameObject* owner)
     Vector3 retreatDirection = -direction;
 
     // 後退移動
-    float moveDistance = LimitMovementSpeed(moveSpeed_ * 1.2f, 1.0f / 60.0f);
+    float moveDistance = LimitMovementSpeed(moveSpeed_ * 1.2f, TimeManager::GetInstance().GetDeltaTime());
     owner->SetPosition(owner->GetPosition() + retreatDirection * moveDistance);
 
     // 十分な距離が確保できたら戦闘状態へ
@@ -570,7 +573,7 @@ bool AssaultEnemyBehavior::IsStuck(GameObject* owner)
     // 動きがほぼない場合
     if (movement < 0.01f)
     {
-        stuckTimer_ += 1.0f / 60.0f;
+        stuckTimer_ += TimeManager::GetInstance().GetDeltaTime();
 
         // 一定時間動いていなければスタック状態と判定
         if (stuckTimer_ > stuckThreshold_)
@@ -614,6 +617,6 @@ void AssaultEnemyBehavior::ForceMovement(GameObject* owner)
     randomDir.Normalize();
 
     // ランダムな方向に少し移動
-    float forceMove = moveSpeed_ * 0.5f * (1.0f / 60.0f);
+    float forceMove = moveSpeed_ * 0.5f * (TimeManager::GetInstance().GetDeltaTime());
     owner->SetPosition(owner->GetPosition() + randomDir * forceMove);
 }

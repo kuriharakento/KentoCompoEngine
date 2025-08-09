@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "math/Easing.h"
+#include "time/TimeManager.h"
 
 MoveComponent::MoveComponent()
 {
@@ -15,7 +16,7 @@ MoveComponent::MoveComponent()
 void MoveComponent::Update(GameObject* owner)
 {
     // タイマー更新
-    float deltaTime = 1.0f / 60.0f; // フレームレート固定の場合
+    float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 
     // クールダウンタイマー更新
     if (dodgeCooldownTimer_ > 0.0f)
@@ -135,7 +136,7 @@ void MoveComponent::ProcessMovement(GameObject* owner)
     if (hasMovementInput_)
     {
         moveDirection.Normalize();
-        owner->SetPosition(owner->GetPosition() + moveDirection * moveSpeed_ * (1.0f / 60.0f));
+        owner->SetPosition(owner->GetPosition() + moveDirection * moveSpeed_ * TimeManager::GetInstance().GetDeltaTime());
 
         // プレイヤーの向きを滑らかに変える
         UpdateRotation(owner, moveDirection);

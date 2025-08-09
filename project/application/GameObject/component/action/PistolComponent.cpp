@@ -9,6 +9,7 @@
 // component
 #include "application/GameObject/component/collision/OBBColliderComponent.h"
 #include "BulletComponent.h"
+#include "time/TimeManager.h"
 
 PistolComponent::PistolComponent(Object3dCommon* object3dCommon, LightManager* lightManager) : fireCooldown_(0.5f), fireCooldownTimer_(0.0f)
 {
@@ -28,7 +29,7 @@ PistolComponent::~PistolComponent()
 
 void PistolComponent::Update(GameObject* owner)
 {
-	float deltaTime = 1.0f / 60.0f;
+	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 	fireCooldownTimer_ -= deltaTime;
 
 	// リロード処理
