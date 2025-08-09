@@ -15,6 +15,7 @@
 #include "manager/effect/ParticleManager.h"
 #include "manager/graphics/ModelManager.h"
 #include "manager/graphics/LineManager.h"
+#include "time/TimeManager.h"
 
 #ifdef _DEBUG
 #include "ImGui/imgui_internal.h"
