@@ -19,6 +19,8 @@ OBBColliderComponent::OBBColliderComponent(GameObject* owner) : ICollisionCompon
 	obb_.center = owner->GetPosition();
 	obb_.rotate = MakeRotateMatrix(owner->GetRotation());
 	obb_.size = owner->GetScale();
+
+	previousPosition_ = obb_.center; // 前の位置を初期化
 }
 
 OBBColliderComponent::~OBBColliderComponent()
@@ -40,14 +42,14 @@ void OBBColliderComponent::Update(GameObject* owner)
 #ifdef _DEBUG
 	// OBBを可視化する
 	LineManager::GetInstance()->DrawOBB(obb_, VectorColorCodes::Cyan);
-#endif
-
+	// 前の位置を可視化する
 	if (useSubstep_)
 	{
 		OBB previousObb = obb_;
-		obb_.center = previousPosition_;
-		obb_.rotate = MakeRotateMatrix(rotate);
-		obb_.size = size;
-		LineManager::GetInstance()->DrawOBB(obb_, VectorColorCodes::Red);
+		previousObb.center = previousPosition_;
+		previousObb.rotate = obb_.rotate;
+		previousObb.size = obb_.size;
+		LineManager::GetInstance()->DrawOBB(previousObb, VectorColorCodes::Red);
 	}
+#endif
 }

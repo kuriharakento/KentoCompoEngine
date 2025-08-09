@@ -38,7 +38,7 @@ void Player::Draw(CameraManager* camera)
 void Player::CollisionSettings(ICollisionComponent* collider)
 {
 	// スイープ判定を仕様
-	collider->SetUseSweep(true);
+	collider->SetUseSubstep(true);
 
 	// 衝突時の処理を設定
 	collider->SetOnEnter([this](GameObject* other) {

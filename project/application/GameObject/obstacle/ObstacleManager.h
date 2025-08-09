@@ -23,6 +23,7 @@ public:
 	void ApplyObstacleData();
 	void SetCulling(bool culling) { culling_ = culling; } // カリングの設定
 	void SetObstacleData(const std::vector<GameObjectInfo>& data);
+
 private:
 	Object3dCommon* object3dCommon_ = nullptr; // 3Dオブジェクト共通情報
 	LightManager* lightManager_ = nullptr; // ライトマネージャー

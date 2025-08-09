@@ -24,9 +24,9 @@ public:
 	void SetPreviousPosition(const Vector3& position) { previousPosition_ = position; }
 	Vector3 GetPreviousPosition() const { return previousPosition_; }
 
-	// スイープ判定を使用するかどうか
-	void SetUseSweep(bool use) { useSubstep_ = use; }
-	bool UseSweep() const { return useSubstep_; }
+	// サブステップ方式を使用するかどうか
+	void SetUseSubstep(bool use) { useSubstep_ = use; }
+	bool UseSubstep() const { return useSubstep_; }
 
 	// 衝突した位置を設定。衝突が発生した時に呼ばれる
 	void SetCollisionPosition(const Vector3& position) { collisionPosition_ = position; }

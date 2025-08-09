@@ -47,6 +47,29 @@ void CollisionManager::CheckCollisions()
 {
 #ifdef _DEBUG
 	ImGui::Begin("CollisionManager Colliders");
+
+	ImGui::SeparatorText("Colliders");
+	if (ImGui::CollapsingHeader("List"))
+	{
+		for (size_t i = 0; i < colliders_.size(); ++i)
+		{
+			ICollisionComponent* collider = colliders_[i];
+			if (collider && collider->GetOwner())
+			{
+				ImGui::Text("Collider %zu: %s", i, collider->GetOwner()->GetTag().c_str());
+				ImGui::Text("Position: (%.2f, %.2f, %.2f)", collider->GetOwner()->GetPosition().x, collider->GetOwner()->GetPosition().y, collider->GetOwner()->GetPosition().z);
+				ImGui::Text("Previous Position: (%.2f, %.2f, %.2f)", collider->GetPreviousPosition().x, collider->GetPreviousPosition().y, collider->GetPreviousPosition().z);
+			}
+			else
+			{
+				ImGui::Text("Collider %zu: nullptr", i);
+			}
+			ImGui::Separator();
+		}
+	}
+
+	ImGui::SeparatorText("Current Collisions");
+
 	ImGui::Text("Registered Colliders: %zu", colliders_.size());
 	for (size_t i = 0; i < colliders_.size(); ++i)
 	{
@@ -56,6 +79,7 @@ void CollisionManager::CheckCollisions()
 		{
 			label += collider->GetOwner()->GetTag();
 			label += " (" + GetColliderTypeString(collider->GetColliderType()) + ")";
+			label += ",  substep: " + std::to_string(collider->UseSubstep());
 		}
 		else
 		{
@@ -63,6 +87,9 @@ void CollisionManager::CheckCollisions()
 		}
 		ImGui::Text("%s", label.c_str());
 	}
+
+	
+
 	ImGui::End();
 #endif
 
@@ -85,7 +112,7 @@ void CollisionManager::CheckCollisions()
 			/* AABB vs AABB */
 			if (typeA == ColliderType::AABB && typeB == ColliderType::AABB)
 			{
-				if (a->UseSweep() || b->UseSweep())
+				if (a->UseSubstep() || b->UseSubstep())
 				{
 					isHit = CheckSubstepCollision(static_cast<AABBColliderComponent*>(a), static_cast<AABBColliderComponent*>(b));
 				}
@@ -97,7 +124,7 @@ void CollisionManager::CheckCollisions()
 			/* OBB vs OBB */
 			else if (typeA == ColliderType::OBB && typeB == ColliderType::OBB)
 			{
-				if (a->UseSweep() || b->UseSweep())
+				if (a->UseSubstep() || b->UseSubstep())
 				{
 					isHit = CheckSubstepCollision(static_cast<OBBColliderComponent*>(a), static_cast<OBBColliderComponent*>(b));
 				}
@@ -109,7 +136,7 @@ void CollisionManager::CheckCollisions()
 			/* AABB vs OBB */
 			else if (typeA == ColliderType::AABB && typeB == ColliderType::OBB)
 			{
-				if (a->UseSweep() || b->UseSweep())
+				if (a->UseSubstep() || b->UseSubstep())
 				{
 					isHit = CheckSubstepCollision(static_cast<AABBColliderComponent*>(a), static_cast<OBBColliderComponent*>(b));
 				}
@@ -120,7 +147,7 @@ void CollisionManager::CheckCollisions()
 			}
 			else if (typeA == ColliderType::OBB && typeB == ColliderType::AABB)
 			{
-				if (a->UseSweep() || b->UseSweep())
+				if (a->UseSubstep() || b->UseSubstep())
 				{
 					isHit = CheckSubstepCollision(static_cast<AABBColliderComponent*>(b), static_cast<OBBColliderComponent*>(a));
 				}
@@ -140,16 +167,12 @@ void CollisionManager::CheckCollisions()
 				{
 					a->CallOnEnter(b->GetOwner());
 					b->CallOnEnter(a->GetOwner());
-					//ログで確認できるように表示
-					//LogCollision("Enter", a, b);
 				}
 				else
 				{
 					//衝突している間の処理
 					a->CallOnStay(b->GetOwner());
 					b->CallOnStay(a->GetOwner());
-					//ログで確認できるように表示
-					//LogCollision("Stay", a, b);
 				}
 			}
 		}
@@ -163,32 +186,17 @@ void CollisionManager::CheckCollisions()
 			//衝突が離れた場合の処理
 			pair.a->CallOnExit(pair.b->GetOwner());
 			pair.b->CallOnExit(pair.a->GetOwner());
-			//ログで確認できるように表示
-			//LogCollision("Exit", pair.a, pair.b);
 		}
 	}
 
 	currentCollisions_ = std::move(newCollisions);
-
-	//現在登録されている数をログに出力
-	static float time = 0.0f;
-	time += 1.0f / 60.0f; // 60FPS想定
-
-	if (time >= 1.0f) // 1秒ごとにログ出力
-	{
-		Logger::Log("CollisionManager: Current colliders count: " + std::to_string(colliders_.size()) + "\n");
-		time = 0.0f; // リセット
-	}
 }
 
 void CollisionManager::UpdatePreviousPositions()
 {
 	for (auto& collider : colliders_)
 	{
-		if (collider)
-		{
-			collider->SetPreviousPosition(collider->GetOwner()->GetPosition());
-		}
+		collider->SetPreviousPosition(collider->GetOwner()->GetPosition());
 	}
 }
 
@@ -350,40 +358,63 @@ bool CollisionManager::CheckCollision(const AABBColliderComponent* a, const OBBC
 
 bool CollisionManager::CheckSubstepCollision(const AABBColliderComponent* a, const AABBColliderComponent* b)
 {
-	const Vector3& start = a->GetPreviousPosition();
-	const Vector3& end = a->GetOwner()->GetPosition();
+	constexpr float MAX_STEP_DISTANCE = 1.0f; // 1サブステップあたり最大移動量（調整可）
+
+	// 両オブジェクトの移動情報を取得
+	Vector3 startA = a->GetPreviousPosition();
+	Vector3 endA = a->GetOwner()->GetPosition();
+	Vector3 startB = b->GetPreviousPosition();
+	Vector3 endB = b->GetOwner()->GetPosition();
+
 	const AABB& aBox = a->GetAABB();
 	const AABB& bBox = b->GetAABB();
 
 	// 静的判定（今フレームすでに重なってればOK）
 	if (CheckCollision(a, b)) return true;
 
-	Vector3 delta = end - start;
-	float maxStep = 1.0f; // 1ステップあたりの最大移動量（調整可）
-	int steps = (std::max)(1, static_cast<int>(delta.Length() / maxStep));
+	// 両オブジェクトの移動距離を計算
+	float distanceA = (endA - startA).Length();
+	float distanceB = (endB - startB).Length();
 
-	for (int i = 1; i <= steps; ++i)
+	// より大きな移動距離に基づいてサブステップ数を決定
+	float maxDistance = (std::max)(distanceA, distanceB);
+	int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDistance / MAX_STEP_DISTANCE)));
+
+	// constを外して操作を行えるようにする
+	AABBColliderComponent* aNonConst = const_cast<AABBColliderComponent*>(a);
+	AABBColliderComponent* bNonConst = const_cast<AABBColliderComponent*>(b);
+
+	for (int step = 1; step <= subStepCount; ++step)
 	{
-		float t = static_cast<float>(i) / steps;
-		Vector3 interpPos = MathUtils::Lerp(start, end, t);
+		float t = static_cast<float>(step) / subStepCount;
 
-		// 仮のAABBを移動後位置に作る
-		AABB movedAABB(
-			interpPos - aBox.GetHalfSize(),
-			interpPos + aBox.GetHalfSize()
+		// 両オブジェクトのサブステップ位置を計算
+		Vector3 subPosA = MathUtils::Lerp(startA, endA, t);
+		Vector3 subPosB = MathUtils::Lerp(startB, endB, t);
+
+		// サブステップ位置での両AABBを作成
+		AABB movedAABB_A(
+			subPosA - aBox.GetHalfSize(),
+			subPosA + aBox.GetHalfSize()
 		);
 
-		// bBoxをaBoxの半サイズ分膨張
-		AABB expandedBox(
-			bBox.min_ - aBox.GetHalfSize(),
-			bBox.max_ + aBox.GetHalfSize()
+		AABB movedAABB_B(
+			subPosB - bBox.GetHalfSize(),
+			subPosB + bBox.GetHalfSize()
 		);
 
-		// 判定
-		if ((movedAABB.max_.x >= expandedBox.min_.x && movedAABB.min_.x <= expandedBox.max_.x) &&
-			(movedAABB.max_.y >= expandedBox.min_.y && movedAABB.min_.y <= expandedBox.max_.y) &&
-			(movedAABB.max_.z >= expandedBox.min_.z && movedAABB.min_.z <= expandedBox.max_.z))
+		// 一時的なコライダーコンポーネントを作成
+		AABBColliderComponent tempA(nullptr);
+		AABBColliderComponent tempB(nullptr);
+		tempA.SetAABB(movedAABB_A);
+		tempB.SetAABB(movedAABB_B);
+
+		// 衝突判定
+		if (CheckCollision(&tempA, &tempB))
 		{
+			// 衝突が検出された場合、サブステップ位置を記録
+			aNonConst->SetCollisionPosition(subPosA);
+			bNonConst->SetCollisionPosition(subPosB);
 			return true;
 		}
 	}
@@ -393,116 +424,118 @@ bool CollisionManager::CheckSubstepCollision(const AABBColliderComponent* a, con
 
 bool CollisionManager::CheckSubstepCollision(const OBBColliderComponent* a, const OBBColliderComponent* b)
 {
-	constexpr float MAX_STEP_DISTANCE = 1.0f; // 1サブステップあたり最大移動量（調整可）
-	Vector3 start = a->GetPreviousPosition();
-	Vector3 end = a->GetOwner()->GetPosition();
-	OBB aObb = a->GetOBB();
+	constexpr float MAX_STEP_DISTANCE = 1.0f;
 
-	// サブステップ数を動的に決定
-	float distance = (end - start).Length();
-	int subStepCount = (std::max)(1, static_cast<int>(std::ceil(distance / MAX_STEP_DISTANCE)));
+	// 両オブジェクトの移動情報を取得
+	Vector3 startA = a->GetPreviousPosition();
+	Vector3 endA = a->GetOwner()->GetPosition();
+	Vector3 startB = b->GetPreviousPosition();
+	Vector3 endB = b->GetOwner()->GetPosition();
+
+	OBB aObb = a->GetOBB();
+	OBB bObb = b->GetOBB();
+
+	// 両オブジェクトの移動距離を計算
+	float distanceA = (endA - startA).Length();
+	float distanceB = (endB - startB).Length();
+
+	// より大きな移動距離に基づいてサブステップ数を決定
+	float maxDistance = (std::max)(distanceA, distanceB);
+	int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDistance / MAX_STEP_DISTANCE)));
 
 	// constを外して操作を行えるようにする
 	OBBColliderComponent* aNonConst = const_cast<OBBColliderComponent*>(a);
 	OBBColliderComponent* bNonConst = const_cast<OBBColliderComponent*>(b);
 
-
 	for (int step = 0; step < subStepCount; ++step)
 	{
 		float t = static_cast<float>(step + 1) / subStepCount;
-		Vector3 subPos = start + (end - start) * t;
 
-		// aObbをサブステップ位置に仮想移動
-		OBB movedOBB = aObb;
-		movedOBB.center = subPos;
+		// 両オブジェクトのサブステップ位置を計算
+		Vector3 subPosA = startA + (endA - startA) * t;
+		Vector3 subPosB = startB + (endB - startB) * t;
 
+		// 両OBBをサブステップ位置に仮想移動
+		OBB movedOBB_A = aObb;
+		OBB movedOBB_B = bObb;
+		movedOBB_A.center = subPosA;
+		movedOBB_B.center = subPosB;
+
+		// 一時的なコライダーコンポーネントを作成
 		OBBColliderComponent tempA(nullptr);
-		tempA.SetOBB(movedOBB);
-		if (CheckCollision(&tempA, b))
+		OBBColliderComponent tempB(nullptr);
+		tempA.SetOBB(movedOBB_A);
+		tempB.SetOBB(movedOBB_B);
+
+		if (CheckCollision(&tempA, &tempB))
 		{
 			// 衝突が検出された場合、サブステップ位置を記録
-			aNonConst->SetCollisionPosition(subPos);
-			bNonConst->SetCollisionPosition(subPos);
+			aNonConst->SetCollisionPosition(subPosA);
+			bNonConst->SetCollisionPosition(subPosB);
 			return true;
 		}
 	}
+
 	return false;
 }
 
 bool CollisionManager::CheckSubstepCollision(const AABBColliderComponent* a, const OBBColliderComponent* b)
 {
-	// aの移動線分 vs bのOBBの外接AABB（aのAABBサイズ分膨張）で判定
-	Vector3 start = a->GetPreviousPosition();
-	Vector3 end = a->GetOwner()->GetPosition();
-	OBB obb = b->GetOBB();
+	constexpr float MAX_STEP_DISTANCE = 1.0f;
+
+	// 両オブジェクトの移動情報を取得
+	Vector3 startA = a->GetPreviousPosition();
+	Vector3 endA = a->GetOwner()->GetPosition();
+	Vector3 startB = b->GetPreviousPosition();
+	Vector3 endB = b->GetOwner()->GetPosition();
+
 	const AABB& aBox = a->GetAABB();
+	OBB bObb = b->GetOBB();
 
-	// OBBの外接AABBを計算
-	Vector3 corners[8];
-	int idx = 0;
-	for (int x = -1; x <= 1; x += 2)
+	// 両オブジェクトの移動距離を計算
+	float distanceA = (endA - startA).Length();
+	float distanceB = (endB - startB).Length();
+
+	// より大きな移動距離に基づいてサブステップ数を決定
+	float maxDistance = (std::max)(distanceA, distanceB);
+	int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDistance / MAX_STEP_DISTANCE)));
+
+	// constを外して操作を行えるようにする
+	AABBColliderComponent* aNonConst = const_cast<AABBColliderComponent*>(a);
+	OBBColliderComponent* bNonConst = const_cast<OBBColliderComponent*>(b);
+
+	for (int step = 0; step < subStepCount; ++step)
 	{
-		for (int y = -1; y <= 1; y += 2)
+		float t = static_cast<float>(step + 1) / subStepCount;
+
+		// 両オブジェクトのサブステップ位置を計算
+		Vector3 subPosA = startA + (endA - startA) * t;
+		Vector3 subPosB = startB + (endB - startB) * t;
+
+		// サブステップ位置でのOBBを作成
+		OBB movedOBB = bObb;
+		movedOBB.center = subPosB;
+
+		// サブステップ位置でのAABBを作成
+		Vector3 aHalf = aBox.GetHalfSize();
+		AABB movedAABB(subPosA - aHalf, subPosA + aHalf);
+
+		// 一時的なコライダーコンポーネントを作成
+		AABBColliderComponent tempA(nullptr);
+		OBBColliderComponent tempB(nullptr);
+		tempA.SetAABB(movedAABB);
+		tempB.SetOBB(movedOBB);
+
+		if (CheckCollision(&tempA, &tempB))
 		{
-			for (int z = -1; z <= 1; z += 2)
-			{
-				Vector3 local = Vector3((float)x, (float)y, (float)z) * obb.size;
-				Vector4 local4(local.x, local.y, local.z, 1.0f);
-				Vector4 rotated4 = obb.rotate * local4;
-				Vector3 rotated(rotated4.x, rotated4.y, rotated4.z);
-				Vector3 corner = obb.center + rotated;
-				corners[idx++] = corner;
-			}
+			// 衝突が検出された場合、サブステップ位置を記録
+			aNonConst->SetCollisionPosition(subPosA);
+			bNonConst->SetCollisionPosition(subPosB);
+			return true;
 		}
 	}
-	Vector3 minV = corners[0], maxV = corners[0];
-	for (int i = 1; i < 8; ++i)
-	{
-		minV = Vector3::Min(minV, corners[i]);
-		maxV = Vector3::Max(maxV, corners[i]);
-	}
-	Vector3 aHalf = aBox.GetHalfSize();
-	AABB extAABB(minV - aHalf, maxV + aHalf);
 
-	// 静的判定
-	if (CheckCollision(a, b)) return true;
-
-	Vector3 dir = end - start;
-	float tmin = 0.0f, tmax = 1.0f;
-	for (int i = 0; i < 3; ++i)
-	{
-		float dirComp, startComp, minComp, maxComp;
-		switch (i)
-		{
-		case 0:
-			dirComp = dir.x; startComp = start.x; minComp = extAABB.min_.x; maxComp = extAABB.max_.x;
-			break;
-		case 1:
-			dirComp = dir.y; startComp = start.y; minComp = extAABB.min_.y; maxComp = extAABB.max_.y;
-			break;
-		case 2:
-			dirComp = dir.z; startComp = start.z; minComp = extAABB.min_.z; maxComp = extAABB.max_.z;
-			break;
-		default:
-			continue;
-		}
-
-		if (std::abs(dirComp) < 1e-8f)
-		{
-			if (startComp < minComp || startComp > maxComp) return false;
-		}
-		else
-		{
-			float ood = 1.0f / dirComp;
-			float t1 = (minComp - startComp) * ood;
-			float t2 = (maxComp - startComp) * ood;
-			if (t1 > t2) std::swap(t1, t2);
-			tmin = (std::max)(tmin, t1);
-			tmax = std::min(tmax, t2);
-			if (tmin > tmax) return false;
-		}
-	}
-	return true;
+	return false;
 }
 
 std::string CollisionManager::GetColliderTypeString(ColliderType type) const

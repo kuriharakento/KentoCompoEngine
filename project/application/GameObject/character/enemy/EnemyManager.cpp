@@ -40,6 +40,19 @@ void EnemyManager::Update()
 	{
 		AddShotgunEnemy(1); // ショットガン敵を1体追加
 	}
+
+	ImGui::SeparatorText("Enemies Info");
+
+	// 各敵の情報表示
+	for (size_t i = 0; i < enemies_.size(); ++i)
+	{
+		auto& enemy = enemies_[i];
+		ImGui::Separator();
+		ImGui::Text("Enemy #%zu", i);
+		Vector3 pos = enemy->GetPosition();
+		ImGui::Text("Position: (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
+		ImGui::Text("Type: %s", typeid(*enemy).name()); // 型名表示
+	}
 	ImGui::End();
 
 #endif

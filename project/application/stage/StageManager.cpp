@@ -74,25 +74,19 @@ void StageManager::Draw(CameraManager* camera)
 void StageManager::DrawImGui()
 {
 #ifdef _DEBUG
-	static std::string fileName = "object";
-	static char fileNameBuffer[256] = "object"; // バッファを用意
-
 	ImGui::Begin("Stage Manager");
-	if (ImGui::InputText("Stage Name", fileNameBuffer, sizeof(fileNameBuffer)))
-	{
-		// 入力があったら std::string に反映
-		fileName = fileNameBuffer;
-	}
-	if (ImGui::Button("Load Stage"))
-	{
-		// ステージのロード
-		LoadStage(fileName); // 例として "object" ステージをロード
-	}
 	if(ImGui::Button("Clear Enemies"))
 	{
 		if (enemyManager_)
 		{
 			enemyManager_->Clear(); // 敵マネージャーの敵を全てクリア
+		}
+	}
+	if (ImGui::Button("Clear Obstacles"))
+	{
+		if (obstacleManager_)
+		{
+			obstacleManager_->Clear(); // 障害物マネージャーの障害物を全てクリア
 		}
 	}
 	ImGui::End();

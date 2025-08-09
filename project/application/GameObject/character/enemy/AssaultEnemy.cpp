@@ -14,23 +14,8 @@ void AssaultEnemy::Initialize(Object3dCommon* object3dCommon, LightManager* ligh
 	AddComponent("AssaultEnemyBehavior", std::make_unique<AssaultEnemyBehavior>(target_));
 	// 重力演算コンポーネントを追加
 	AddComponent("GravityPhysicsComponent", std::make_unique<GravityPhysicsComponent>());
-	// 衝突判定コンポーネントを追加
-	std::unique_ptr<OBBColliderComponent> collider = std::make_unique<OBBColliderComponent>(this);
-	collider->SetUseSweep(true); // スイープ判定を使用する
-	collider->SetOnEnter([this](GameObject* other) {
-		if (other->GetTag() == "PlayerBullet")
-		{
-			// 体力を減らす
-			hp_ -= 10.0f; //
-		}
-						});
-	collider->SetOnStay([this](GameObject* other) {
-		// 衝突中の処理をここに記述
-						});
-	collider->SetOnExit([this](GameObject* other) {
-		// 衝突終了時の処理をここに記述
-						});
-	AddComponent("OBBCollider",std::move(collider));
+	// OBBコライダーコンポーネントを追加
+	AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(this));
 }
 
 void AssaultEnemy::Update()
@@ -41,4 +26,24 @@ void AssaultEnemy::Update()
 void AssaultEnemy::Draw(CameraManager* camera)
 {
 	EnemyBase::Draw(camera);
+}
+
+void AssaultEnemy::CollisionSettings(ICollisionComponent* collider)
+{
+	// スイープ判定を使用
+	collider->SetUseSubstep(true);
+	// 衝突時の処理を設定
+	collider->SetOnEnter([this](GameObject* other) {
+		// 衝突した瞬間の処理
+		if (other->GetTag() == "PlayerBullet")
+		{
+			hp_ -= 10.0f; // 仮のダメージ処理
+		}
+						 });
+	collider->SetOnStay([this](GameObject* other) {
+		// 衝突中の処理
+						});
+	collider->SetOnExit([this](GameObject* other) {
+		// 衝突が離れた時の処理
+						});
 }

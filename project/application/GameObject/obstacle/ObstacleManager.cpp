@@ -43,13 +43,7 @@ void ObstacleManager::Update()
 	ImGui::End();
 #endif
 
-	for (auto& obstacle : obstacles_)
-	{
-		if (obstacle)
-		{
-			obstacle->Update(); // 各障害物の更新
-		}
-	}
+	ApplyObstacleData();
 }
 
 void ObstacleManager::Draw(CameraManager* camera)
