@@ -1,5 +1,7 @@
 #include "UVTranslateComponent.h"
 
+#include "time/TimeManager.h"
+
 UVTranslateComponent::UVTranslateComponent(const Vector3& translate)
     : translate_(translate)
 {
@@ -7,7 +9,7 @@ UVTranslateComponent::UVTranslateComponent(const Vector3& translate)
 
 void UVTranslateComponent::Update(ParticleGroup& group)
 {
-	const float delta = 1.0f / 60.0f;
+	float delta = TimeManager::GetInstance().GetDeltaTime();
     Vector3 currentTranslate = group.GetUVTranslate();
     currentTranslate += translate_ * delta;
 	if (currentTranslate.x > 1.0f) currentTranslate.x -= 1.0f;

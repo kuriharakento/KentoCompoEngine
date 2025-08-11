@@ -13,6 +13,7 @@
 #include "base/Logger.h"
 #include "manager/graphics/TextureManager.h"
 #include "manager/effect/ParticleManager.h"
+#include "time/TimeManager.h"
 
 
 ParticleGroup::~ParticleGroup()
@@ -89,7 +90,7 @@ void ParticleGroup::Update(CameraManager* camera)
 {
 	if (particles.empty()) { return; } // パーティクルがない場合は更新しない
 
-	const float kDeltaTime = 1.0f / 60.0f;
+	float kDeltaTime = TimeManager::GetInstance().GetDeltaTime();
 
 	// ビルボード用の行列計算
 	Matrix4x4 backToFrontMatrix = MakeRotateYMatrix(std::numbers::pi_v<float>); // Z軸正方向を基準にする
@@ -251,7 +252,7 @@ void ParticleGroup::UpdateInstanceData(Particle& particle, const Matrix4x4& bill
 bool ParticleGroup::UpdateLifeTime(std::list<Particle>::iterator& itr)
 {
 	// 寿命を更新
-	itr->currentTime += 1.0f / 60.0f;
+	itr->currentTime += TimeManager::GetInstance().GetDeltaTime();
 	// 寿命が切れたらtrueを返す
 	if (itr->currentTime >= itr->lifeTime)
 	{
@@ -263,7 +264,7 @@ bool ParticleGroup::UpdateLifeTime(std::list<Particle>::iterator& itr)
 void ParticleGroup::UpdateTranslate(std::list<Particle>::iterator& itr)
 {
 	// 速度を加算
-	itr->transform.translate += itr->velocity * (1.0f / 60.0f); // 1フレーム分の時間を加算
+	itr->transform.translate += itr->velocity * TimeManager::GetInstance().GetDeltaTime(); // 1フレーム分の時間を加算
 }
 
 void ParticleGroup::UpdateVertexBuffer(const std::vector<VertexData>& vertices)
