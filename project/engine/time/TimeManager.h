@@ -24,14 +24,14 @@ public:
 
     // 経過時間取得
     float GetGameTime() const;
-    float GetUnscaledGameTime() const;
+    float GetRealGameTime() const;
 
     // 毎フレーム呼び出す（引数不要）
     void Update();
 
     // deltaTime取得（タイムスケール適用済み/未適用）
     float GetDeltaTime() const;
-    float GetUnscaledDeltaTime() const;
+    float GetRealDeltaTime() const;
 
 private:
     // シングルトンインスタンス
@@ -45,7 +45,7 @@ private:
     float timeScale_ = 1.0f;                                // タイムスケール
     bool paused_ = false;                                   // ゲーム一時停止フラグ
     float gameTime_ = 0.0f;                                 // タイムスケール・ポーズ適用済み累積経過時間（ゲーム用）
-    float unscaledGameTime_ = 0.0f;                         // タイムスケール・ポーズ未適用の累積経過時間（実時間用）
+    float realGameTime_ = 0.0f;                         // タイムスケール・ポーズ未適用の累積経過時間（実時間用）
     float deltaTime_ = 0.0f;                                // タイムスケール・ポーズ適用済み前フレーム経過時間（ゲーム用）
     float realDeltaTime_ = 0.0f;                            // タイムスケール・ポーズ未適用前フレーム経過時間（UIやシステム用）
 

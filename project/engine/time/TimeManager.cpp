@@ -26,7 +26,7 @@ void TimeManager::Update()
 
     // 経過時間表示
     ImGui::Text("GameTime: %.2f", gameTime_);
-    ImGui::Text("UnscaledGameTime: %.2f", unscaledGameTime_);
+    ImGui::Text("UnscaledGameTime: %.2f", realGameTime_);
     ImGui::Text("DeltaTime: %.4f", deltaTime_);
     ImGui::Text("RealDeltaTime: %.4f", realDeltaTime_);
 
@@ -44,7 +44,7 @@ void TimeManager::Update()
     if (!paused_)
     {
         gameTime_ += deltaTime_;
-        unscaledGameTime_ += realDeltaTime_;
+        realGameTime_ += realDeltaTime_;
     }
 }
 
@@ -78,9 +78,9 @@ float TimeManager::GetGameTime() const
 	return gameTime_;
 }
 
-float TimeManager::GetUnscaledGameTime() const
+float TimeManager::GetRealGameTime() const
 {
-	return unscaledGameTime_;
+	return realGameTime_;
 }
 
 float TimeManager::GetDeltaTime() const
@@ -88,7 +88,7 @@ float TimeManager::GetDeltaTime() const
 	return deltaTime_;
 }
 
-float TimeManager::GetUnscaledDeltaTime() const
+float TimeManager::GetRealDeltaTime() const
 {
 	return realDeltaTime_;
 }

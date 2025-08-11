@@ -137,7 +137,7 @@ void MoveComponent::ProcessMovement(GameObject* owner)
     if (hasMovementInput_)
     {
 		moveDirection.NormalizeSelf(); // 正規化
-        owner->SetPosition(owner->GetPosition() + moveDirection * moveSpeed_ * TimeManager::GetInstance().GetDeltaTime());
+        owner->SetPosition(owner->GetPosition() + moveDirection * moveSpeed_ * TimeManager::GetInstance().GetRealDeltaTime());
 
         // プレイヤーの向きを滑らかに変える
         UpdateRotation(owner, moveDirection);

@@ -76,7 +76,7 @@ void TimerManager::Update()
         }
         else
         {
-            it->second->Update(TimeManager::GetInstance().GetUnscaledDeltaTime());
+            it->second->Update(TimeManager::GetInstance().GetRealDeltaTime());
         }
 
         // タイマーが終了したら削除
