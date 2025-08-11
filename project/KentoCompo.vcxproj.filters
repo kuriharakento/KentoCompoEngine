@@ -361,6 +361,12 @@
     <ClCompile Include="engine\time\TimeManager.cpp">
       <Filter>engine\time</Filter>
     </ClCompile>
+    <ClCompile Include="engine\time\TimerManager.cpp">
+      <Filter>engine\time</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\time\Timer.cpp">
+      <Filter>engine\time</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -784,6 +790,12 @@
       <Filter>application\stage</Filter>
     </ClInclude>
     <ClInclude Include="engine\time\TimeManager.h">
+      <Filter>engine\time</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\time\TimerManager.h">
+      <Filter>engine\time</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\time\Timer.h">
       <Filter>engine\time</Filter>
     </ClInclude>
   </ItemGroup>

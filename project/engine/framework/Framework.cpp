@@ -16,6 +16,7 @@
 #include "manager/graphics/ModelManager.h"
 #include "manager/graphics/LineManager.h"
 #include "time/TimeManager.h"
+#include "time/TimerManager.h"
 
 #ifdef _DEBUG
 #include "ImGui/imgui_internal.h"
@@ -64,6 +65,9 @@ void Framework::Initialize()
 
 	// 時間管理クラスの初期化
 	TimeManager::GetInstance();
+
+	// タイマーマネージャーの初期化
+	TimerManager::GetInstance();
 
 	// カメラマネージャーの初期化
 	cameraManager_ = std::make_unique<CameraManager>();
@@ -139,6 +143,12 @@ void Framework::Update()
 
 	//入力の更新
 	Input::GetInstance()->Update();
+
+	// 時間計測
+	TimeManager::GetInstance().Update();
+
+	// タイマーマネージャーの更新
+	TimerManager::GetInstance().Update();
 
 	//カメラの更新
 	cameraManager_->Update();

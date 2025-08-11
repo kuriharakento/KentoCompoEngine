@@ -26,6 +26,8 @@
 #include "effects/particle/component/single/RandomInitialVelocityComponent.h"
 #include "effects/particle/component/single/RotationComponent.h"
 #include "effects/particle/component/single/ScaleOverLifetimeComponent.h"
+#include "time/TimeManager.h"
+#include "time/TimerManager.h"
 
 static Vector3 fallHeartPos = Vector3{ 2.0f, 2.0f, 0.0f };
 static Vector3 glitchPos = Vector3{ -2.0f, 2.0f, 0.0f };
@@ -95,6 +97,14 @@ void TitleScene::Initialize()
 	// パーティクルエミッターの初期化
 	InitializeParticleEmitters();
 
+	auto timer = std::make_unique<Timer>("test", 10.0f, DeltaTimeType::RealDeltaTime);
+	timer->SetOnStart([]() {
+		TimeManager::GetInstance().SetTimeScale(0.2f);
+					  });
+	timer->SetOnFinish([]() {
+		TimeManager::GetInstance().SetTimeScale(1.0f);
+					   });
+	TimerManager::GetInstance().AddTimer(std::move(timer));
 }
 
 void TitleScene::Finalize()
@@ -104,7 +114,7 @@ void TitleScene::Finalize()
 
 void TitleScene::Update()
 {
-	if(Input::GetInstance()->TriggerKey(DIK_TAB))
+	if (Input::GetInstance()->TriggerKey(DIK_TAB))
 	{
 		// ステージエディットシーン移動
 		sceneManager_->ChangeScene("STAGEEDIT");
