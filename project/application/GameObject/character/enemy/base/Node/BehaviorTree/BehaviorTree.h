@@ -8,9 +8,6 @@
  */
 class BehaviorTree
 {
-private:
-    std::unique_ptr<BTNode> root;
-
 public:
     BehaviorTree() = default;
 
@@ -19,24 +16,15 @@ public:
     {
     }
 
-    void SetRoot(std::unique_ptr<BTNode> rootNode)
-    {
-        root = std::move(rootNode);
-    }
+    void SetRoot(std::unique_ptr<BTNode> rootNode);
 
-    void Tick()
-    {
-        if (root)
-        {
-            root->Tick();
-        }
-    }
+    void Tick();
 
-    void Reset()
-    {
-        if (root)
-        {
-            root->Reset();
-        }
-    }
+    void Reset();
+
+	Blackboard& GetBlackboard() { return blackboard; }
+
+private:
+    std::unique_ptr<BTNode> root;
+    Blackboard blackboard; // ノード間で共有する情報を格納する
 };

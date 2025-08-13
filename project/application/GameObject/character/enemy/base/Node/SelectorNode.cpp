@@ -1,10 +1,10 @@
 #include "SelectorNode.h"
 
-NodeStatus SelectorNode::Tick()
+NodeStatus SelectorNode::Tick(Blackboard& blackboard)
 {
     while (currentIndex < children.size())
     {
-        NodeStatus status = children[currentIndex]->Tick();
+        NodeStatus status = children[currentIndex]->Tick(blackboard);
         if (status == NodeStatus::Success)
         {
             Reset();

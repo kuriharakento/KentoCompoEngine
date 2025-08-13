@@ -367,6 +367,9 @@
     <ClCompile Include="engine\time\Timer.cpp">
       <Filter>engine\time</Filter>
     </ClCompile>
+    <ClCompile Include="application\GameObject\character\enemy\base\Node\InverterNode.cpp" />
+    <ClCompile Include="application\GameObject\character\enemy\base\Node\ParallelNode.cpp" />
+    <ClCompile Include="application\GameObject\character\enemy\base\Node\BlackBoard.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -798,6 +801,9 @@
     <ClInclude Include="engine\time\Timer.h">
       <Filter>engine\time</Filter>
     </ClInclude>
+    <ClInclude Include="application\GameObject\character\enemy\base\Node\InverterNode.h" />
+    <ClInclude Include="application\GameObject\character\enemy\base\Node\ParallelNode.h" />
+    <ClInclude Include="application\GameObject\character\enemy\base\Node\BlackBoard.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

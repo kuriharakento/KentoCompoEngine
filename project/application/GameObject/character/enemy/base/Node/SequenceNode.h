@@ -7,5 +7,5 @@
 class SequenceNode : public CompositeNode
 {
 public:
-    NodeStatus Tick() override;
+    NodeStatus Tick(Blackboard& blackboard) override;
 };

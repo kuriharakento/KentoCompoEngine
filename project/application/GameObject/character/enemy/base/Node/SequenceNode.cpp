@@ -1,10 +1,10 @@
 #include "SequenceNode.h"
 
-NodeStatus SequenceNode::Tick()
+NodeStatus SequenceNode::Tick(Blackboard& blackboard)
 {
     while (currentIndex < children.size())
     {
-        NodeStatus status = children[currentIndex]->Tick();
+        NodeStatus status = children[currentIndex]->Tick(blackboard);
         if (status == NodeStatus::Failure)
         {
             Reset();

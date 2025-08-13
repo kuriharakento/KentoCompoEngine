@@ -116,6 +116,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\GameObject\character\enemy\base\Node\CompositeNode.cpp" />
     <ClCompile Include="application\GameObject\character\enemy\base\Node\ConditionNode.cpp" />
     <ClCompile Include="application\GameObject\character\enemy\base\Node\BehaviorTree\BehaviorTree.cpp" />
+    <ClCompile Include="application\GameObject\character\enemy\base\Node\BlackBoard.cpp" />
     <ClCompile Include="engine\camerawork\debug\DebugCamera.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
@@ -182,6 +183,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\GameObject\component\action\GravityPhysicsComponent.cpp" />
     <ClCompile Include="engine\jsonEditor\JsonSerialization.cpp" />
     <ClCompile Include="engine\jsonEditor\JsonEditorImGuiUtils.cpp" />
+    <ClCompile Include="application\GameObject\character\enemy\base\Node\InverterNode.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="engine\manager\system\SrvManager.cpp" />
     <ClCompile Include="engine\manager\effect\ParticleManager.cpp" />
@@ -224,6 +226,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\stage\StageData.cpp" />
     <ClCompile Include="engine\time\Timer.cpp" />
     <ClCompile Include="engine\time\TimerManager.cpp" />
+    <ClCompile Include="application\GameObject\character\enemy\base\Node\ParallelNode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\character\enemy\base\Node\ActionNode.h" />
@@ -240,6 +243,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\GameObject\character\enemy\base\Node\CompositeNode.h" />
     <ClInclude Include="application\GameObject\character\enemy\base\Node\ConditionNode.h" />
     <ClInclude Include="application\GameObject\character\enemy\base\Node\BehaviorTree\BehaviorTree.h" />
+    <ClInclude Include="application\GameObject\character\enemy\base\Node\BlackBoard.h" />
     <ClInclude Include="engine\camerawork\debug\DebugCamera.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
@@ -371,6 +375,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\stage\StageData.h" />
     <ClInclude Include="engine\time\Timer.h" />
     <ClInclude Include="engine\time\TimerManager.h" />
+    <ClInclude Include="application\GameObject\character\enemy\base\Node\InverterNode.h" />
+    <ClInclude Include="application\GameObject\character\enemy\base\Node\ParallelNode.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />

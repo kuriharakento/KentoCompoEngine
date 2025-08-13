@@ -8,16 +8,16 @@
 class ActionNode : public BTNode
 {
 public:
-    using ActionFunction = std::function<NodeStatus()>;
+    using ActionFunction = std::function<NodeStatus(Blackboard&)>;
 
 	ActionNode(ActionFunction func) : action(func) {}
 
-    NodeStatus Tick() override
-    {
-        return action();
-    }
+    NodeStatus Tick(Blackboard& blackboard) override;
 
-    void Reset() override { /* アクションには状態を保持しないので特になし */ }
+    void Reset() override
+    {
+	    /* アクションには状態を保持しないので特になし */
+    }
 
 private:
     ActionFunction action;

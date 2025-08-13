@@ -9,14 +9,11 @@
 class ConditionNode : public BTNode
 {
 public:
-    using ConditionFunction = std::function<bool()>;
+    using ConditionFunction = std::function<bool(Blackboard&)>;
 
     ConditionNode(ConditionFunction func) : condition(func) {}
 
-    NodeStatus Tick() override
-    {
-        return condition() ? NodeStatus::Success : NodeStatus::Failure;
-    }
+    NodeStatus Tick(Blackboard& blackboard) override;
 
     void Reset() override
     {
