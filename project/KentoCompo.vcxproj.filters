@@ -367,9 +367,15 @@
     <ClCompile Include="engine\time\Timer.cpp">
       <Filter>engine\time</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\InverterNode.cpp" />
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\ParallelNode.cpp" />
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\BlackBoard.cpp" />
+    <ClCompile Include="application\GameObject\character\enemy\base\Node\BlackBoard.cpp">
+      <Filter>application\GameObject\character\enemy\base\behaviorTree</Filter>
+    </ClCompile>
+    <ClCompile Include="application\GameObject\character\enemy\base\Node\InverterNode.cpp">
+      <Filter>application\GameObject\character\enemy\base\behaviorTree</Filter>
+    </ClCompile>
+    <ClCompile Include="application\GameObject\character\enemy\base\Node\ParallelNode.cpp">
+      <Filter>application\GameObject\character\enemy\base\behaviorTree</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -801,9 +807,15 @@
     <ClInclude Include="engine\time\Timer.h">
       <Filter>engine\time</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\InverterNode.h" />
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\ParallelNode.h" />
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\BlackBoard.h" />
+    <ClInclude Include="application\GameObject\character\enemy\base\Node\BlackBoard.h">
+      <Filter>application\GameObject\character\enemy\base\behaviorTree</Filter>
+    </ClInclude>
+    <ClInclude Include="application\GameObject\character\enemy\base\Node\InverterNode.h">
+      <Filter>application\GameObject\character\enemy\base\behaviorTree</Filter>
+    </ClInclude>
+    <ClInclude Include="application\GameObject\character\enemy\base\Node\ParallelNode.h">
+      <Filter>application\GameObject\character\enemy\base\behaviorTree</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">
