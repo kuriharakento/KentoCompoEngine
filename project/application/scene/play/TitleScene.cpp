@@ -35,6 +35,18 @@ static Vector3 startPos = Vector3{ 0.0f, 2.0f, 0.0f };
 static Vector3 mordeVFXPos = Vector3{ 0.0f, 0.0f, 0.0f };
 static Vector3 origin = Vector3{ 0.0f, 3.0f, 0.0f };
 
+void CreateTimer()
+{
+	auto timer = std::make_unique<Timer>("test", 10.0f, DeltaTimeType::RealDeltaTime);
+	timer->SetOnStart([]() {
+		TimeManager::GetInstance().SetTimeScale(0.2f);
+					  });
+	timer->SetOnFinish([]() {
+		TimeManager::GetInstance().SetTimeScale(1.0f);
+					   });
+	TimerManager::GetInstance().AddTimer(std::move(timer));
+}
+
 void TitleScene::Initialize()
 {
 	Audio::GetInstance()->LoadWave("fanfare", "game.wav", SoundGroup::BGM);
@@ -97,14 +109,7 @@ void TitleScene::Initialize()
 	// パーティクルエミッターの初期化
 	InitializeParticleEmitters();
 
-	auto timer = std::make_unique<Timer>("test", 10.0f, DeltaTimeType::RealDeltaTime);
-	timer->SetOnStart([]() {
-		TimeManager::GetInstance().SetTimeScale(0.2f);
-					  });
-	timer->SetOnFinish([]() {
-		TimeManager::GetInstance().SetTimeScale(1.0f);
-					   });
-	TimerManager::GetInstance().AddTimer(std::move(timer));
+	
 }
 
 void TitleScene::Finalize()
@@ -352,6 +357,11 @@ void TitleScene::DrawImGui()
 {
 #ifdef _DEBUG
 	ImGui::Begin("TitleScene");
+
+	if (ImGui::Button("create timer"))
+	{
+		CreateTimer();
+	}
 
 	static bool useDebugCamera = false;
 	static bool useSplineCamera = false;
