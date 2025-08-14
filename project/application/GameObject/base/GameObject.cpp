@@ -4,6 +4,7 @@
 #include "application/GameObject/component/base/IActionComponent.h"
 // system
 #include "base/Logger.h"
+#include "imgui/imgui.h"
 
 GameObject::~GameObject()
 {
@@ -42,6 +43,48 @@ void GameObject::Initialize(Object3dCommon* object3dCommon, LightManager* lightM
 
 void GameObject::Update()
 {
+#ifdef _DEBUG
+	// 親のタグ名表示
+	std::string label = tag_ + "##" + std::to_string(reinterpret_cast<uintptr_t>(this));
+	if (ImGui::TreeNode(label.c_str()))
+	{
+		// 親の情報（タグやポジションなど）
+		ImGui::Text("Tag: %s", tag_.c_str());
+		ImGui::Text("Pos: (%.2f, %.2f, %.2f)", transform_.translate.x, transform_.translate.y, transform_.translate.z);
+		ImGui::Text("Scale: (%.2f, %.2f, %.2f)", transform_.scale.x, transform_.scale.y, transform_.scale.z);
+		ImGui::Text("Rotation: (%.2f, %.2f, %.2f)", transform_.rotate.x, transform_.rotate.y, transform_.rotate.z);
+		// 子供も再帰的に表示
+		for (const auto& child : children_)
+		{
+			ImGui::Text("Child: %s", child ? child->GetTag().c_str() : "null");
+			ImGui::Text("Child Pos: (%.2f, %.2f, %.2f)",
+						child ? child->GetPosition().x : 0.0f,
+						child ? child->GetPosition().y : 0.0f,
+						child ? child->GetPosition().z : 0.0f
+			);
+			ImGui::Text("Child Scale: (%.2f, %.2f, %.2f)",
+						child ? child->GetScale().x : 1.0f,
+						child ? child->GetScale().y : 1.0f,
+						child ? child->GetScale().z : 1.0f
+			);
+			ImGui::Text("Child Rotation: (%.2f, %.2f, %.2f)",
+						child ? child->GetRotation().x : 0.0f,
+						child ? child->GetRotation().y : 0.0f,
+						child ? child->GetRotation().z : 0.0f
+			);
+
+			//　ワールド座標を表示
+			if (child && child->object3d_)
+			{
+				Matrix4x4 worldPos = child->object3d_->GetWorldMatrix();
+				ImGui::Text("Child World Pos: (%.2f, %.2f, %.2f)",
+							worldPos.m[3][0], worldPos.m[3][1], worldPos.m[3][2]);
+				
+			}
+		}
+		ImGui::TreePop();
+	}
+#endif
 	// コンポーネントを更新
 	for (auto& [name, comp] : components_)
 	{
@@ -58,6 +101,15 @@ void GameObject::Draw(CameraManager* camera)
 
 	// 3Dオブジェクトの描画
 	object3d_->Draw();
+
+	// 子オブジェクトの描画
+	for (const auto& child : children_)
+	{
+		if (child)
+		{
+			child->Draw(camera); // 子オブジェクトの描画
+		}
+	}
 
 	// コンポーネントを更新
 	for (auto& [name, comp] : components_)
@@ -87,15 +139,45 @@ void GameObject::AddComponent(const std::string& name, std::unique_ptr<IGameObje
 	components_[name] = std::move(comp);
 }
 
+void GameObject::AddChild(std::unique_ptr<GameObject> child)
+{
+	if (child)
+	{
+		child->SetParent(this); // 親を設定
+		// 子オブジェクトを追加
+		children_.push_back(std::move(child));
+	}
+}
+
 void GameObject::ApplyTransformToObject3D(CameraManager* camera)
 {
 	if (!object3d_) { return; }
 
-	// Transform情報をObject3Dに適用
-	object3d_->SetTranslate(transform_.translate);
-	object3d_->SetRotate(transform_.rotate);
-	object3d_->SetScale(transform_.scale);
+	if (parent_)
+	{
+		// 親がある場合の処理
+		// 自分のローカル行列を作成
+		Matrix4x4 localMatrix = MakeAffineMatrix(
+			transform_.scale,
+			transform_.rotate,
+			transform_.translate
+		);
 
-	//行列の更新
-	object3d_->Update(camera);
+		// 親のワールド行列を取得
+		Matrix4x4 parentWorldMatrix = parent_->object3d_->GetWorldMatrix();
+
+		// 正しい順序で行列を掛ける: localMatrix * parentWorldMatrix
+		Matrix4x4 worldMatrix = localMatrix * parentWorldMatrix;
+
+		// Object3Dに計算済みのワールド行列を設定
+		object3d_->UpdateMatrixWithWorld(worldMatrix, camera->GetActiveCamera());
+	}
+	else
+	{
+		// 親がない場合は通常の更新
+		object3d_->SetTranslate(transform_.translate);
+		object3d_->SetRotate(transform_.rotate);
+		object3d_->SetScale(transform_.scale);
+		object3d_->Update(camera);
+	}
 }

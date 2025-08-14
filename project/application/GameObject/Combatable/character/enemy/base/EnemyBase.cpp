@@ -1,5 +1,7 @@
 #include "EnemyBase.h"
 
+#include "time/TimeManager.h"
+
 void EnemyBase::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target)
 {
 	Character::Initialize(object3dCommon, lightManager);
@@ -10,6 +12,9 @@ void EnemyBase::Initialize(Object3dCommon* object3dCommon, LightManager* lightMa
 void EnemyBase::Update()
 {
 	Character::Update();
+
+	// ステータスを更新
+	UpdateStatus(TimeManager::GetInstance().GetDeltaTime());
 
 	//　死亡処理(仮)
 	if (hp_.base <= 0.0f)

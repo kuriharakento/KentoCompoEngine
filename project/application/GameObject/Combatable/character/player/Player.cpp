@@ -8,12 +8,22 @@
 #include "application/GameObject/component/collision/CollisionUtils.h"
 #include "application/GameObject/component/collision/OBBColliderComponent.h"
 #include "base/Logger.h"
+#include "imgui/imgui.h"
 
 void Player::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager)
 {
 	Character::Initialize(object3dCommon, lightManager);
 	//初期位置を設定
 	transform_.translate = { 0.0f, 1.0f, 0.0f };
+
+
+	// 試しに腕を追加
+	auto arm = std::make_unique<GameObject>("Arm");
+	arm->Initialize(object3dCommon, lightManager);
+	arm->SetModel("cube");
+	arm->SetPosition(Vector3(3.0f, 0.0f, 0.0f));
+
+	AddChild(std::move(arm));
 
 	// 移動コンポーネントを追加
 	AddComponent("MoveComponent", std::make_unique<MoveComponent>());

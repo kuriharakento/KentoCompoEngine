@@ -86,6 +86,8 @@ public: /*========[ セッター ]========*/
 	void SetRotate(const Vector3& rotate) { transform_.rotate = rotate; }
 	void SetTranslate(const Vector3& translate) { transform_.translate = translate; }
 
+	Matrix4x4 GetWorldMatrix() const { return transformationMatrixData_ ? transformationMatrixData_->World : MakeIdentity4x4(); }
+
 	//色
 	void SetColor(const Vector4& color) const { model_->SetColor(color); }
 
