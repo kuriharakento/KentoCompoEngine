@@ -43,52 +43,19 @@ void GameObject::Initialize(Object3dCommon* object3dCommon, LightManager* lightM
 
 void GameObject::Update()
 {
-#ifdef _DEBUG
-	// 親のタグ名表示
-	std::string label = tag_ + "##" + std::to_string(reinterpret_cast<uintptr_t>(this));
-	if (ImGui::TreeNode(label.c_str()))
-	{
-		// 親の情報（タグやポジションなど）
-		ImGui::Text("Tag: %s", tag_.c_str());
-		ImGui::Text("Pos: (%.2f, %.2f, %.2f)", transform_.translate.x, transform_.translate.y, transform_.translate.z);
-		ImGui::Text("Scale: (%.2f, %.2f, %.2f)", transform_.scale.x, transform_.scale.y, transform_.scale.z);
-		ImGui::Text("Rotation: (%.2f, %.2f, %.2f)", transform_.rotate.x, transform_.rotate.y, transform_.rotate.z);
-		// 子供も再帰的に表示
-		for (const auto& child : children_)
-		{
-			ImGui::Text("Child: %s", child ? child->GetTag().c_str() : "null");
-			ImGui::Text("Child Pos: (%.2f, %.2f, %.2f)",
-						child ? child->GetPosition().x : 0.0f,
-						child ? child->GetPosition().y : 0.0f,
-						child ? child->GetPosition().z : 0.0f
-			);
-			ImGui::Text("Child Scale: (%.2f, %.2f, %.2f)",
-						child ? child->GetScale().x : 1.0f,
-						child ? child->GetScale().y : 1.0f,
-						child ? child->GetScale().z : 1.0f
-			);
-			ImGui::Text("Child Rotation: (%.2f, %.2f, %.2f)",
-						child ? child->GetRotation().x : 0.0f,
-						child ? child->GetRotation().y : 0.0f,
-						child ? child->GetRotation().z : 0.0f
-			);
-
-			//　ワールド座標を表示
-			if (child && child->object3d_)
-			{
-				Matrix4x4 worldPos = child->object3d_->GetWorldMatrix();
-				ImGui::Text("Child World Pos: (%.2f, %.2f, %.2f)",
-							worldPos.m[3][0], worldPos.m[3][1], worldPos.m[3][2]);
-				
-			}
-		}
-		ImGui::TreePop();
-	}
-#endif
 	// コンポーネントを更新
 	for (auto& [name, comp] : components_)
 	{
 		comp->Update(this); // コンポーネントの更新
+	}
+
+	// 子オブジェクトもコンポーネントを更新
+	for (const auto& child : children_)
+	{
+		if (child)
+		{
+			child->Update(); // 子オブジェクトの更新
+		}
 	}
 }
 
@@ -153,6 +120,10 @@ void GameObject::ApplyTransformToObject3D(CameraManager* camera)
 {
 	if (!object3d_) { return; }
 
+	object3d_->SetTranslate(transform_.translate);
+	object3d_->SetRotate(transform_.rotate);
+	object3d_->SetScale(transform_.scale);
+
 	if (parent_)
 	{
 		// 親がある場合の処理
@@ -175,9 +146,6 @@ void GameObject::ApplyTransformToObject3D(CameraManager* camera)
 	else
 	{
 		// 親がない場合は通常の更新
-		object3d_->SetTranslate(transform_.translate);
-		object3d_->SetRotate(transform_.rotate);
-		object3d_->SetScale(transform_.scale);
 		object3d_->Update(camera);
 	}
 }

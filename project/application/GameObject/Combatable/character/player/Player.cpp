@@ -22,6 +22,7 @@ void Player::Initialize(Object3dCommon* object3dCommon, LightManager* lightManag
 	arm->Initialize(object3dCommon, lightManager);
 	arm->SetModel("cube");
 	arm->SetPosition(Vector3(3.0f, 0.0f, 0.0f));
+	arm->AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(arm.get()));
 
 	AddChild(std::move(arm));
 
