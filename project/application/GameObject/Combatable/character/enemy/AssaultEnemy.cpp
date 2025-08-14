@@ -37,7 +37,8 @@ void AssaultEnemy::CollisionSettings(ICollisionComponent* collider)
 		// 衝突した瞬間の処理
 		if (other->GetTag() == "PlayerBullet")
 		{
-			hp_ -= 10.0f; // 仮のダメージ処理
+			auto combatable = dynamic_cast<CombatableObject*>(other);
+			hp_.base -= combatable->GetAttackPower();
 		}
 						 });
 	collider->SetOnStay([this](GameObject* other) {

@@ -4,8 +4,8 @@
 #include "graphics/3d/Object3dCommon.h"
 // app
 #include <application/GameObject/base/GameObject.h>
-#include "application/GameObject/character/enemy/base/EnemyBase.h"
-#include "application/GameObject/character/player/Player.h"
+#include "application/GameObject/Combatable/character/enemy/base/EnemyBase.h"
+#include "application/GameObject/Combatable/character/player/Player.h"
 // component
 #include "application/GameObject/component/collision/OBBColliderComponent.h"
 #include "BulletComponent.h"
@@ -159,7 +159,7 @@ void PistolComponent::FireBullet(GameObject* owner)
 		// 敵に当たった場合、弾を消す
 		if (other->GetTag() == "PistolEnemy" || other->GetTag() == "AssaultEnemy" || other->GetTag() == "ShotgunEnemy")
 		{
-			ptr->SetActive(false);
+			ptr->SetAlive(false);
 		}
 							 });
 
@@ -203,7 +203,7 @@ void PistolComponent::FireBullet(GameObject* owner, const Vector3& targetPositio
 		// 敵に当たった場合、弾を消す
 		if (other->GetTag() == "Player")
 		{
-			ptr->SetActive(false);
+			ptr->SetAlive(false);
 		}
 							 });
 

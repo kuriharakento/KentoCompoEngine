@@ -1,8 +1,8 @@
 #pragma once
 #include <memory>
 
+#include "application/GameObject/Combatable/weapon/Bullet.h"
 #include "application/GameObject/component/base/IActionComponent.h"
-#include "application/GameObject/weapon/Bullet.h"
 #include "input/Input.h"
 #include "math/MathUtils.h"
 #include "math/Vector3.h"

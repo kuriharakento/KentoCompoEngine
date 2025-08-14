@@ -1,5 +1,5 @@
 #pragma once
-#include "application/GameObject/character/base/Character.h"
+#include "application/GameObject/Combatable/character/base/Character.h"
 #include "application/GameObject/component/base/ICollisionComponent.h"
 
 class Player : public Character

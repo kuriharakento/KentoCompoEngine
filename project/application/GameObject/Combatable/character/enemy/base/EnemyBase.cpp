@@ -12,7 +12,7 @@ void EnemyBase::Update()
 	Character::Update();
 
 	//　死亡処理(仮)
-	if (hp_ <= 0.0f)
+	if (hp_.base <= 0.0f)
 	{
 		isAlive_ = false; // 体力が0以下なら死亡
 	}

@@ -2,8 +2,8 @@
 
 // app
 #include <application/GameObject/base/GameObject.h>
-#include "application/GameObject/character/enemy/base/EnemyBase.h"
-#include "application/GameObject/character/player/Player.h"
+#include "application/GameObject/Combatable/character/player/Player.h"
+#include "application/GameObject/Combatable/character/enemy/base/EnemyBase.h"
 // system
 #include "graphics/3d/Object3dCommon.h"
 #include "input/Input.h"
@@ -156,12 +156,12 @@ void AssaultRifleComponent::FireBullet(GameObject* owner)
 		if (other->GetTag() == "PistolEnemy" || other->GetTag() == "AssaultEnemy" || other->GetTag() == "ShotgunEnemy")
 		{
 			hitEffect->Play(ptr->GetPosition());
-			ptr->SetActive(false);
+			ptr->SetAlive(false);
 		}
 		// 障害物に当たった場合、弾を消す
 		if (other->GetTag() == "Obstacle")
 		{
-			ptr->SetActive(false);
+			ptr->SetAlive(false);
 		}
 							 });
 	bullet->AddComponent("OBBCollider", std::move(colliderComp));
@@ -204,12 +204,12 @@ void AssaultRifleComponent::FireBullet(GameObject* owner, const Vector3& targetP
 		if (other->GetTag() == "Player")
 		{
 			hitEffect->Play(other->GetPosition());
-			ptr->SetActive(false);
+			ptr->SetAlive(false);
 		}
 		// 障害物に当たった場合、弾を消す
 		if (other->GetTag() == "Obstacle")
 		{
-			ptr->SetActive(false);
+			ptr->SetAlive(false);
 		}
 							 });
 

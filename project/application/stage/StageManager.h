@@ -7,8 +7,8 @@
 
 // app
 #include "StageData.h"
-#include "application/GameObject/character/enemy/EnemyManager.h"
-#include "application/GameObject/character/player/Player.h"
+#include "application/GameObject/Combatable/character/enemy/EnemyManager.h"
+#include "application/GameObject/Combatable/character/player/Player.h"
 #include "application/GameObject/obstacle/ObstacleManager.h"
 
 /**

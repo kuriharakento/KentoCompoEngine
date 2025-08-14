@@ -104,34 +104,34 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\ActionNode.cpp" />
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\ActionNode.cpp" />
     <ClCompile Include="application\GameObject\component\action\AssaultRifleComponent.cpp" />
-    <ClCompile Include="application\GameObject\character\enemy\AssaultEnemy.cpp" />
-    <ClCompile Include="application\GameObject\character\enemy\EnemyManager.cpp" />
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\AssaultEnemy.cpp" />
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\EnemyManager.cpp" />
     <ClCompile Include="application\effect\AssaultRifleHitEffect.cpp" />
     <ClCompile Include="application\GameObject\component\action\AssaultEnemyBehavior.cpp" />
     <ClCompile Include="application\effect\DodgeEffectParticle.cpp" />
     <ClCompile Include="application\effect\EnemyDeathEffect.cpp" />
     <ClCompile Include="application\GameObject\component\collision\CollisionUtils.cpp" />
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\CompositeNode.cpp" />
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\ConditionNode.cpp" />
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\BehaviorTree\BehaviorTree.cpp" />
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\BlackBoard.cpp" />
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\CompositeNode.cpp" />
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\ConditionNode.cpp" />
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\BehaviorTree\BehaviorTree.cpp" />
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\BlackBoard.cpp" />
     <ClCompile Include="engine\camerawork\debug\DebugCamera.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\component\single\BounceComponent.cpp" />
     <ClCompile Include="engine\effects\postprocess\CRTEffect.cpp" />
     <ClCompile Include="engine\effects\postprocess\base\BasePostEffect.cpp" />
-    <ClCompile Include="application\GameObject\character\enemy\base\EnemyBase.cpp" />
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\EnemyBase.cpp" />
     <ClCompile Include="engine\effects\particle\component\single\AccelerationComponent.cpp" />
     <ClCompile Include="application\GameObject\component\collision\AABBColliderComponent.cpp" />
     <ClCompile Include="application\animation\Slide.cpp" />
     <ClCompile Include="application\GameObject\base\GameObject.cpp" />
-    <ClCompile Include="application\GameObject\character\base\Character.cpp" />
+    <ClCompile Include="application\GameObject\Combatable\character\base\Character.cpp" />
     <ClCompile Include="application\GameObject\component\action\BulletComponent.cpp" />
     <ClCompile Include="application\GameObject\component\base\ICollisionComponent.cpp" />
-    <ClCompile Include="application\GameObject\weapon\Bullet.cpp" />
+    <ClCompile Include="application\GameObject\Combatable\weapon\Bullet.cpp" />
     <ClCompile Include="application\GameObject\component\collision\CollisionManager.cpp" />
     <ClCompile Include="engine\effects\particle\component\single\ColorFadeOutComponent.cpp" />
     <ClCompile Include="engine\effects\particle\component\single\DragComponent.cpp" />
@@ -179,11 +179,11 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\effects\particle\component\single\GravityComponent.cpp" />
     <ClCompile Include="engine\effects\postprocess\GrayscaleEffect.cpp" />
     <ClCompile Include="engine\effects\particle\component\single\ForceFieldComponent.cpp" />
-    <ClCompile Include="application\GameObject\character\enemy\PistolEnemy.cpp" />
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\PistolEnemy.cpp" />
     <ClCompile Include="application\GameObject\component\action\GravityPhysicsComponent.cpp" />
     <ClCompile Include="engine\jsonEditor\JsonSerialization.cpp" />
     <ClCompile Include="engine\jsonEditor\JsonEditorImGuiUtils.cpp" />
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\InverterNode.cpp" />
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\InverterNode.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="engine\manager\system\SrvManager.cpp" />
     <ClCompile Include="engine\manager\effect\ParticleManager.cpp" />
@@ -207,7 +207,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\effects\particle\component\group\MaterialColorComponent.cpp" />
     <ClCompile Include="engine\effects\particle\ParticleMath.cpp" />
     <ClCompile Include="application\GameObject\component\action\MoveComponent.cpp" />
-    <ClCompile Include="application\GameObject\character\player\Player.cpp" />
+    <ClCompile Include="application\GameObject\Combatable\character\player\Player.cpp" />
     <ClCompile Include="application\GameObject\component\collision\OBBColliderComponent.cpp" />
     <ClCompile Include="engine\manager\effect\PostProcessManager.cpp" />
     <ClCompile Include="engine\effects\postprocess\VignetteEffect.cpp" />
@@ -215,42 +215,44 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\graphics\3d\Skybox.cpp" />
     <ClCompile Include="engine\effects\particle\component\single\MoveToTargetComponent.cpp" />
     <ClCompile Include="application\GameObject\component\action\ShotgunComponent.cpp" />
-    <ClCompile Include="application\GameObject\character\enemy\ShotgunEnemy.cpp" />
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\ShotgunEnemy.cpp" />
     <ClCompile Include="application\GameObject\obstacle\Obstacle.cpp" />
     <ClCompile Include="application\GameObject\obstacle\ObstacleManager.cpp" />
     <ClCompile Include="application\GameObject\obstacle\ObstacleData.cpp" />
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\SequenceNode.cpp" />
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\SelectorNode.cpp" />
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\SequenceNode.cpp" />
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\SelectorNode.cpp" />
     <ClCompile Include="application\scene\play\StageEditScene.cpp" />
     <ClCompile Include="application\stage\StageManager.cpp" />
     <ClCompile Include="application\stage\StageData.cpp" />
     <ClCompile Include="engine\time\Timer.cpp" />
     <ClCompile Include="engine\time\TimerManager.cpp" />
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\ParallelNode.cpp" />
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\ParallelNode.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\ActionNode.h" />
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\BTNode.h" />
+    <ClInclude Include="application\GameObject\Combatable\base\StatusValue.h" />
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\ActionNode.h" />
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\BTNode.h" />
     <ClInclude Include="application\GameObject\component\collision\AABBColliderComponent.h" />
     <ClInclude Include="application\GameObject\component\action\AssaultRifleComponent.h" />
-    <ClInclude Include="application\GameObject\character\enemy\AssaultEnemy.h" />
-    <ClInclude Include="application\GameObject\character\enemy\EnemyManager.h" />
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\AssaultEnemy.h" />
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\EnemyManager.h" />
     <ClInclude Include="application\effect\AssaultRifleHitEffect.h" />
     <ClInclude Include="application\GameObject\component\action\AssaultEnemyBehavior.h" />
     <ClInclude Include="application\effect\DodgeEffectParticle.h" />
     <ClInclude Include="application\effect\EnemyDeathEffect.h" />
     <ClInclude Include="application\GameObject\component\collision\CollisionUtils.h" />
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\CompositeNode.h" />
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\ConditionNode.h" />
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\BehaviorTree\BehaviorTree.h" />
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\BlackBoard.h" />
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\CompositeNode.h" />
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\ConditionNode.h" />
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\BehaviorTree\BehaviorTree.h" />
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\BlackBoard.h" />
+    <ClInclude Include="application\GameObject\Combatable\base\CombatableObject.h" />
     <ClInclude Include="engine\camerawork\debug\DebugCamera.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\component\single\BounceComponent.h" />
     <ClInclude Include="engine\effects\postprocess\CRTEffect.h" />
     <ClInclude Include="engine\effects\postprocess\base\BasePostEffect.h" />
-    <ClInclude Include="application\GameObject\character\enemy\base\EnemyBase.h" />
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\EnemyBase.h" />
     <ClInclude Include="engine\effects\particle\component\single\AccelerationComponent.h" />
     <ClInclude Include="application\animation\Slide.h" />
     <ClInclude Include="engine\effects\particle\component\single\ColorFadeOutComponent.h" />
@@ -262,10 +264,10 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\base\RenderTexture.h" />
     <ClInclude Include="application\GameObject\base\GameObject.h" />
     <ClInclude Include="application\GameObject\component\base\IGameObjectComponent.h" />
-    <ClInclude Include="application\GameObject\character\base\Character.h" />
+    <ClInclude Include="application\GameObject\Combatable\character\base\Character.h" />
     <ClInclude Include="application\GameObject\component\action\BulletComponent.h" />
     <ClInclude Include="application\GameObject\component\base\ICollisionComponent.h" />
-    <ClInclude Include="application\GameObject\weapon\Bullet.h" />
+    <ClInclude Include="application\GameObject\Combatable\weapon\Bullet.h" />
     <ClInclude Include="application\GameObject\component\collision\CollisionManager.h" />
     <ClInclude Include="engine\camerawork\base\CameraWorkBase.h" />
     <ClInclude Include="engine\effects\particle\component\interface\IParticleBehaviorComponent.h" />
@@ -347,7 +349,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\effects\particle\ParticleMath.h" />
     <ClInclude Include="application\GameObject\component\action\MoveComponent.h" />
     <ClInclude Include="engine\camerawork\follow\FollowCamera.h" />
-    <ClInclude Include="application\GameObject\character\player\Player.h" />
+    <ClInclude Include="application\GameObject\Combatable\character\player\Player.h" />
     <ClInclude Include="application\GameObject\component\action\PistolComponent.h" />
     <ClInclude Include="application\GameObject\component\base\IActionComponent.h" />
     <ClInclude Include="application\GameObject\component\collision\OBBColliderComponent.h" />
@@ -359,24 +361,24 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\effects\particle\component\single\ForceFieldComponent.h" />
     <ClInclude Include="engine\graphics\3d\Skybox.h" />
     <ClInclude Include="engine\effects\particle\component\single\MoveToTargetComponent.h" />
-    <ClInclude Include="application\GameObject\character\enemy\PistolEnemy.h" />
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\PistolEnemy.h" />
     <ClInclude Include="application\GameObject\component\action\ShotgunComponent.h" />
-    <ClInclude Include="application\GameObject\character\enemy\ShotgunEnemy.h" />
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\ShotgunEnemy.h" />
     <ClInclude Include="application\GameObject\obstacle\Obstacle.h" />
     <ClInclude Include="application\GameObject\obstacle\ObstacleManager.h" />
     <ClInclude Include="application\GameObject\obstacle\ObstacleData.h" />
     <ClInclude Include="application\GameObject\component\action\GravityPhysicsComponent.h" />
     <ClInclude Include="engine\jsonEditor\JsonSerialization.h" />
     <ClInclude Include="engine\jsonEditor\JsonEditorImGuiUtils.h" />
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\SequenceNode.h" />
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\SelectorNode.h" />
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\SequenceNode.h" />
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\SelectorNode.h" />
     <ClInclude Include="application\scene\play\StageEditScene.h" />
     <ClInclude Include="application\stage\StageManager.h" />
     <ClInclude Include="application\stage\StageData.h" />
     <ClInclude Include="engine\time\Timer.h" />
     <ClInclude Include="engine\time\TimerManager.h" />
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\InverterNode.h" />
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\ParallelNode.h" />
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\InverterNode.h" />
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\ParallelNode.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />

@@ -1,8 +1,8 @@
 #include "EnemyManager.h"
 
-#include "application/GameObject/character/enemy/AssaultEnemy.h"
-#include "application/GameObject/character/enemy/PistolEnemy.h"
-#include "application/GameObject/character/enemy/ShotgunEnemy.h"
+#include "AssaultEnemy.h"
+#include "PistolEnemy.h"
+#include "ShotgunEnemy.h"
 #include "ImGui/imgui_internal.h"
 #include "math/MathUtils.h"
 

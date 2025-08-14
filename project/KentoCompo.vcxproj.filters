@@ -19,44 +19,44 @@
     <ClCompile Include="application\GameObject\base\GameObject.cpp">
       <Filter>application\GameObject\base</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\character\base\Character.cpp">
-      <Filter>application\GameObject\character\base</Filter>
+    <ClCompile Include="application\GameObject\Combatable\character\base\Character.cpp">
+      <Filter>application\GameObject\combatable\character\base</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\character\player\Player.cpp">
-      <Filter>application\GameObject\character\player</Filter>
+    <ClCompile Include="application\GameObject\Combatable\character\player\Player.cpp">
+      <Filter>application\GameObject\combatable\character\player</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\character\enemy\base\EnemyBase.cpp">
-      <Filter>application\GameObject\character\enemy\base</Filter>
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\EnemyBase.cpp">
+      <Filter>application\GameObject\combatable\character\enemy\base</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\ActionNode.cpp">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree\node</Filter>
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\ActionNode.cpp">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\BehaviorTree\BehaviorTree.cpp">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree</Filter>
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\BehaviorTree\BehaviorTree.cpp">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\CompositeNode.cpp">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree\node</Filter>
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\CompositeNode.cpp">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\ConditionNode.cpp">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree\node</Filter>
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\ConditionNode.cpp">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\SequenceNode.cpp">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree\node</Filter>
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\SequenceNode.cpp">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\SelectorNode.cpp">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree\node</Filter>
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\SelectorNode.cpp">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\character\enemy\AssaultEnemy.cpp">
-      <Filter>application\GameObject\character\enemy</Filter>
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\AssaultEnemy.cpp">
+      <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\character\enemy\EnemyManager.cpp">
-      <Filter>application\GameObject\character\enemy</Filter>
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\EnemyManager.cpp">
+      <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\character\enemy\PistolEnemy.cpp">
-      <Filter>application\GameObject\character\enemy</Filter>
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\PistolEnemy.cpp">
+      <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\character\enemy\ShotgunEnemy.cpp">
-      <Filter>application\GameObject\character\enemy</Filter>
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\ShotgunEnemy.cpp">
+      <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClCompile>
     <ClCompile Include="application\GameObject\component\action\AssaultEnemyBehavior.cpp">
       <Filter>application\GameObject\component\action</Filter>
@@ -103,8 +103,8 @@
     <ClCompile Include="application\GameObject\obstacle\ObstacleManager.cpp">
       <Filter>application\GameObject\obstacle</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\weapon\Bullet.cpp">
-      <Filter>application\GameObject\weapon</Filter>
+    <ClCompile Include="application\GameObject\Combatable\weapon\Bullet.cpp">
+      <Filter>application\GameObject\combatable\weapon</Filter>
     </ClCompile>
     <ClCompile Include="application\animation\Slide.cpp">
       <Filter>application\animation</Filter>
@@ -367,61 +367,61 @@
     <ClCompile Include="engine\time\Timer.cpp">
       <Filter>engine\time</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\BlackBoard.cpp">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree</Filter>
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\BlackBoard.cpp">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\InverterNode.cpp">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree</Filter>
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\InverterNode.cpp">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\character\enemy\base\Node\ParallelNode.cpp">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree</Filter>
+    <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\ParallelNode.cpp">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
       <Filter>application\GameObject\base</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\character\base\Character.h">
-      <Filter>application\GameObject\character\base</Filter>
+    <ClInclude Include="application\GameObject\Combatable\character\base\Character.h">
+      <Filter>application\GameObject\combatable\character\base</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\character\player\Player.h">
-      <Filter>application\GameObject\character\player</Filter>
+    <ClInclude Include="application\GameObject\Combatable\character\player\Player.h">
+      <Filter>application\GameObject\combatable\character\player</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\character\enemy\base\EnemyBase.h">
-      <Filter>application\GameObject\character\enemy\base</Filter>
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\EnemyBase.h">
+      <Filter>application\GameObject\combatable\character\enemy\base</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\ActionNode.h">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree\node</Filter>
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\ActionNode.h">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\BehaviorTree\BehaviorTree.h">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree</Filter>
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\BehaviorTree\BehaviorTree.h">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\BTNode.h">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree\node</Filter>
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\BTNode.h">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\CompositeNode.h">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree\node</Filter>
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\CompositeNode.h">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\ConditionNode.h">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree\node</Filter>
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\ConditionNode.h">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\SequenceNode.h">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree\node</Filter>
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\SequenceNode.h">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\SelectorNode.h">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree\node</Filter>
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\SelectorNode.h">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\character\enemy\AssaultEnemy.h">
-      <Filter>application\GameObject\character\enemy</Filter>
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\AssaultEnemy.h">
+      <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\character\enemy\EnemyManager.h">
-      <Filter>application\GameObject\character\enemy</Filter>
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\EnemyManager.h">
+      <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\character\enemy\PistolEnemy.h">
-      <Filter>application\GameObject\character\enemy</Filter>
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\PistolEnemy.h">
+      <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\character\enemy\ShotgunEnemy.h">
-      <Filter>application\GameObject\character\enemy</Filter>
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\ShotgunEnemy.h">
+      <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClInclude>
     <ClInclude Include="application\GameObject\component\action\AssaultEnemyBehavior.h">
       <Filter>application\GameObject\component\action</Filter>
@@ -474,8 +474,8 @@
     <ClInclude Include="application\GameObject\obstacle\ObstacleManager.h">
       <Filter>application\GameObject\obstacle</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\weapon\Bullet.h">
-      <Filter>application\GameObject\weapon</Filter>
+    <ClInclude Include="application\GameObject\Combatable\weapon\Bullet.h">
+      <Filter>application\GameObject\combatable\weapon</Filter>
     </ClInclude>
     <ClInclude Include="application\animation\Slide.h">
       <Filter>application\animation</Filter>
@@ -807,14 +807,20 @@
     <ClInclude Include="engine\time\Timer.h">
       <Filter>engine\time</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\BlackBoard.h">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree</Filter>
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\BlackBoard.h">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\InverterNode.h">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree</Filter>
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\InverterNode.h">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\character\enemy\base\Node\ParallelNode.h">
-      <Filter>application\GameObject\character\enemy\base\behaviorTree</Filter>
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\ParallelNode.h">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree</Filter>
+    </ClInclude>
+    <ClInclude Include="application\GameObject\Combatable\base\CombatableObject.h">
+      <Filter>application\GameObject\combatable\base</Filter>
+    </ClInclude>
+    <ClInclude Include="application\GameObject\Combatable\base\StatusValue.h">
+      <Filter>application\GameObject\combatable\base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -850,27 +856,6 @@
     <Filter Include="application\GameObject\base">
       <UniqueIdentifier>{1801f7e0-18d6-4587-b37f-3bcd425488e4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="application\GameObject\character">
-      <UniqueIdentifier>{909c34c8-750d-4ea0-bd03-c12a18b2f142}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="application\GameObject\character\base">
-      <UniqueIdentifier>{53971722-d24f-4035-a162-85c8304ed7cd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="application\GameObject\character\player">
-      <UniqueIdentifier>{07e8b6d6-bbce-471a-a6e6-b70b05df9378}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="application\GameObject\character\enemy">
-      <UniqueIdentifier>{286dd457-55bb-4783-9a6e-c5c995b7c83a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="application\GameObject\character\enemy\base">
-      <UniqueIdentifier>{7952069b-c213-4292-a3ea-d702679b5357}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="application\GameObject\character\enemy\base\behaviorTree">
-      <UniqueIdentifier>{dae9531c-bffc-49ac-8f4b-b4398da95945}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="application\GameObject\character\enemy\base\behaviorTree\node">
-      <UniqueIdentifier>{0554045e-e14d-4f6b-8324-e06f4098bbb5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="application\GameObject\component">
       <UniqueIdentifier>{68e509e9-798e-437f-83b7-5a4d7f0f2e92}</UniqueIdentifier>
     </Filter>
@@ -885,9 +870,6 @@
     </Filter>
     <Filter Include="application\GameObject\obstacle">
       <UniqueIdentifier>{2eebd1ef-75e7-4b3e-8e11-e447b74e2931}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="application\GameObject\weapon">
-      <UniqueIdentifier>{11402bb0-4e1a-4432-a9f3-9a9951321f57}</UniqueIdentifier>
     </Filter>
     <Filter Include="application\animation">
       <UniqueIdentifier>{8cc5d427-86ca-4995-839a-144fd8eb451c}</UniqueIdentifier>
@@ -1008,6 +990,36 @@
     </Filter>
     <Filter Include="engine\time">
       <UniqueIdentifier>{c35906ac-ffe5-442d-994e-c49f5c841058}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="application\GameObject\combatable">
+      <UniqueIdentifier>{4b93be4b-2a82-4df3-aee9-df8c7d5c674a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="application\GameObject\combatable\character">
+      <UniqueIdentifier>{909c34c8-750d-4ea0-bd03-c12a18b2f142}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="application\GameObject\combatable\character\base">
+      <UniqueIdentifier>{53971722-d24f-4035-a162-85c8304ed7cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="application\GameObject\combatable\character\player">
+      <UniqueIdentifier>{07e8b6d6-bbce-471a-a6e6-b70b05df9378}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="application\GameObject\combatable\character\enemy">
+      <UniqueIdentifier>{286dd457-55bb-4783-9a6e-c5c995b7c83a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="application\GameObject\combatable\character\enemy\base">
+      <UniqueIdentifier>{7952069b-c213-4292-a3ea-d702679b5357}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="application\GameObject\combatable\character\enemy\base\behaviorTree">
+      <UniqueIdentifier>{dae9531c-bffc-49ac-8f4b-b4398da95945}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="application\GameObject\combatable\character\enemy\base\behaviorTree\node">
+      <UniqueIdentifier>{0554045e-e14d-4f6b-8324-e06f4098bbb5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="application\GameObject\combatable\weapon">
+      <UniqueIdentifier>{11402bb0-4e1a-4432-a9f3-9a9951321f57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="application\GameObject\combatable\base">
+      <UniqueIdentifier>{4d0e3eef-61be-4901-ae19-adb5c03c0aaa}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

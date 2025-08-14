@@ -5,7 +5,7 @@
 #include <memory>
 #include <random>
 
-#include "application/GameObject/character/enemy/base/Node/BehaviorTree/BehaviorTree.h"
+#include "application/GameObject/Combatable/character/enemy/base/Node/BehaviorTree/BehaviorTree.h"
 
 class GameObject;
 
@@ -83,6 +83,15 @@ private:
     float stuckTimer_ = 0.0f;
     float stuckThreshold_ = 1.0f;
     bool potentiallyStuck_ = false;
+
+    // 継続的ストレイフ制御用
+    bool isStrafing_ = false;           // ストレイフ状態フラグ
+    float strafeDuration_ = 3.0f;       // ストレイフ継続時間（秒）
+    float strafeProbability_ = 0.25f;   // ストレイフ開始確率
+    float combatStateTimer_ = 0.0f;     // 戦闘状態タイマー
+
+    // 新しいメソッド宣言も追加
+    void ContinuousStrafAction(GameObject* owner);
 
     // 乱数生成
     std::mt19937 rng_;

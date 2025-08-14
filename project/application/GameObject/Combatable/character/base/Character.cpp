@@ -37,25 +37,8 @@ void Character::AddComponent(const std::string& name, std::unique_ptr<IGameObjec
 	GameObject::AddComponent(name, std::move(comp));
 }
 
-void Character::TakeDamage(int damage)
-{
-	if (isInvincible_) return; // 無敵状態ならダメージを受けない
-
-	hp_ -= damage;
-	if (hp_ <= 0)
-	{
-		hp_ = 0;
-		isAlive_ = false; // 死亡フラグを設定
-	}
-}
-
 void Character::SetInvincible(float duration)
 {
 	isInvincible_ = true;
 	invincibleTimer_ = duration; // 無敵時間を設定
-}
-
-bool Character::IsAlive() const
-{
-	return isAlive_;
 }

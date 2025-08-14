@@ -1,7 +1,7 @@
 #pragma once
 
+#include "application/GameObject/Combatable/weapon/Bullet.h"
 #include "application/GameObject/component/base/IActionComponent.h"
-#include "application/GameObject/weapon/Bullet.h"
 
 class ShotgunComponent : public IActionComponent
 {

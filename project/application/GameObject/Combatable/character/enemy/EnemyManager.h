@@ -1,7 +1,7 @@
 #pragma once
 #include "application/effect/EnemyDeathEffect.h"
-#include "application/GameObject/character/enemy/base/EnemyBase.h"
 #include "application/stage/StageData.h"
+#include "base/EnemyBase.h"
 #include "math/AABB.h"
 
 class LightManager;

@@ -1,6 +1,6 @@
 #include "BulletComponent.h"  
 #include "application/GameObject/base/GameObject.h" // GameObject の完全な型を使用するために追加  
-#include "application/GameObject/weapon/Bullet.h"
+#include "application/GameObject/Combatable/weapon/Bullet.h"
 #include "time/TimeManager.h"
 
 BulletComponent::BulletComponent()
@@ -29,6 +29,6 @@ void BulletComponent::Update(GameObject* owner)
 	// ライフタイムを超えたら弾を削除  
 	if (timeAlive_ >= lifetime_)
 	{
-		bullet->SetActive(false);  // 弾を非アクティブにすることで削除処理を行う  
+		bullet->SetAlive(false);  // 弾を非アクティブにすることで削除処理を行う  
 	}
 }

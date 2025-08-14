@@ -7,10 +7,10 @@
 #include <algorithm>
 #include <random>
 
-#include "application/GameObject/character/enemy/base/Node/ActionNode.h"
-#include "application/GameObject/character/enemy/base/Node/ConditionNode.h"
-#include "application/GameObject/character/enemy/base/Node/SelectorNode.h"
-#include "application/GameObject/character/enemy/base/Node/SequenceNode.h"
+#include "application/GameObject/Combatable/character/enemy/base/Node/ActionNode.h"
+#include "application/GameObject/Combatable/character/enemy/base/Node/ConditionNode.h"
+#include "application/GameObject/Combatable/character/enemy/base/Node/SelectorNode.h"
+#include "application/GameObject/Combatable/character/enemy/base/Node/SequenceNode.h"
 
 // --- コンストラクタ ---
 AssaultEnemyBehavior::AssaultEnemyBehavior(GameObject* target) : target_(target)
@@ -27,6 +27,7 @@ void AssaultEnemyBehavior::Update(GameObject* owner)
     stateTimer_ += deltaTime;
     strafeTimer_ += deltaTime;
     positionCheckTimer_ += deltaTime;
+    combatStateTimer_ += deltaTime;  // 追加
     if (actionCooldown_ > 0) actionCooldown_ -= deltaTime;
     lastPosition_ = owner->GetPosition();
 
@@ -55,6 +56,48 @@ void AssaultEnemyBehavior::Update(GameObject* owner)
     behaviorTree_->Tick();
 }
 
+void AssaultEnemyBehavior::ContinuousStrafAction(GameObject* owner)
+{
+    if (!target_)
+    {
+        isStrafing_ = false;
+        return;
+    }
+
+    float deltaTime = TimeManager::GetInstance().GetDeltaTime();
+    strafeTimer_ += deltaTime;
+
+    // ストレイフ継続時間チェック
+    if (strafeTimer_ >= strafeDuration_)
+    {
+        isStrafing_ = false;
+        strafeTimer_ = 0.0f;
+        return;
+    }
+
+    // ストレイフ方向を定期的に変更（継続中も方向転換）
+    if (fmod(strafeTimer_, strafeChangeInterval_) < deltaTime)
+    {
+        strafeDirection_ = GetRandomStrafeDirection(owner);
+    }
+
+    // ストレイフ移動実行
+    float strafeSpeed = moveSpeed_ * 1.3f;
+    float moveDistance = LimitMovementSpeed(strafeSpeed, deltaTime);
+    Vector3 newPosition = owner->GetPosition() + strafeDirection_ * moveDistance;
+    owner->SetPosition(newPosition);
+
+    // ストレイフ中も継続的に射撃
+    if (actionCooldown_ <= 0.0f)
+    {
+        FireWeapon(owner);
+        actionCooldown_ = 0.2f; // 射撃間隔
+    }
+
+    // エイミングも継続
+    AimAtTarget(owner);
+}
+
 // --- BT構築 ---
 void AssaultEnemyBehavior::BuildBehaviorTree()
 {
@@ -73,20 +116,7 @@ void AssaultEnemyBehavior::BuildBehaviorTree()
                                                     }));
     root->AddChild(std::move(stuckSeq));
 
-    // 2. 戦闘：ターゲットが見えて攻撃範囲内
-    auto combatSeq = std::make_unique<SequenceNode>();
-    combatSeq->AddChild(std::make_unique<ConditionNode>([this](Blackboard& bb) {
-        return bb.Get<bool>("IsTargetVisible") && bb.Get<bool>("IsInAttackRange");
-                                                        }));
-    combatSeq->AddChild(std::make_unique<ActionNode>([this](Blackboard& bb) {
-        auto owner = bb.Get<GameObject*>("Owner");
-        FireWeapon(owner);
-        AimAtTarget(owner);
-        return NodeStatus::Success;
-                                                     }));
-    root->AddChild(std::move(combatSeq));
-
-    // 3. 距離による後退
+    // 2. 距離による後退
     auto retreatSeq = std::make_unique<SequenceNode>();
     retreatSeq->AddChild(std::make_unique<ConditionNode>([this](Blackboard& bb) {
         auto owner = bb.Get<GameObject*>("Owner");
@@ -102,7 +132,7 @@ void AssaultEnemyBehavior::BuildBehaviorTree()
                                                       }));
     root->AddChild(std::move(retreatSeq));
 
-    // 4. 距離によるリポジション
+    // 3. 距離によるリポジション
     auto repositionSeq = std::make_unique<SequenceNode>();
     repositionSeq->AddChild(std::make_unique<ConditionNode>([this](Blackboard& bb) {
         auto owner = bb.Get<GameObject*>("Owner");
@@ -117,6 +147,56 @@ void AssaultEnemyBehavior::BuildBehaviorTree()
         return NodeStatus::Success;
                                                          }));
     root->AddChild(std::move(repositionSeq));
+
+    // 4. 戦闘：ターゲットが見えて攻撃範囲内
+    auto combatSeq = std::make_unique<SequenceNode>();
+    combatSeq->AddChild(std::make_unique<ConditionNode>([this](Blackboard& bb) {
+        return bb.Get<bool>("IsTargetVisible") && bb.Get<bool>("IsInAttackRange");
+                                                        }));
+
+    // 戦闘時のセレクター（継続的なストレイフまたは射撃）
+    auto combatSelector = std::make_unique<SelectorNode>();
+
+    // 4a. 継続的ストレイフ（一定期間継続）
+    auto continuousStrafSeq = std::make_unique<SequenceNode>();
+    continuousStrafSeq->AddChild(std::make_unique<ConditionNode>([this](Blackboard& bb) {
+        // ストレイフ状態が継続中、または新たにストレイフを開始する条件
+        if (isStrafing_)
+        {
+            return strafeTimer_ < strafeDuration_; // ストレイフ継続中
+        }
+        else
+        {
+            // 新たにストレイフを開始する条件
+            std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+            if (dist(rng_) < strafeProbability_ && combatStateTimer_ > 1.0f)
+            {
+                isStrafing_ = true;
+                strafeTimer_ = 0.0f;
+                combatStateTimer_ = 0.0f;
+                return true;
+            }
+        }
+        return false;
+                                                                 }));
+    continuousStrafSeq->AddChild(std::make_unique<ActionNode>([this](Blackboard& bb) {
+        auto owner = bb.Get<GameObject*>("Owner");
+        ContinuousStrafAction(owner);
+        return NodeStatus::Running; // 継続実行
+                                                              }));
+    combatSelector->AddChild(std::move(continuousStrafSeq));
+
+    // 4b. 通常射撃（ストレイフしていない時）
+    combatSelector->AddChild(std::make_unique<ActionNode>([this](Blackboard& bb) {
+        auto owner = bb.Get<GameObject*>("Owner");
+        isStrafing_ = false; // ストレイフ状態をリセット
+        FireWeapon(owner);
+        AimAtTarget(owner);
+        return NodeStatus::Success;
+                                                          }));
+
+    combatSeq->AddChild(std::move(combatSelector));
+    root->AddChild(std::move(combatSeq));
 
     // 5. パトロール：ターゲットが見えていなければ
     auto patrolSeq = std::make_unique<SequenceNode>();

@@ -1,5 +1,5 @@
 #pragma once
-#include "application/GameObject/character/base/Character.h"
+#include "application/GameObject/Combatable/character/base/Character.h"
 
 class EnemyBase : virtual public Character
 {

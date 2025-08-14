@@ -5,15 +5,14 @@
 #include "input/Input.h"
 // app
 #include <application/GameObject/base/GameObject.h>
-#include "application/GameObject/character/enemy/base/EnemyBase.h"
-#include "application/GameObject/character/player/Player.h"
+#include "application/GameObject/Combatable/character/enemy/base/EnemyBase.h"
+#include "application/GameObject/Combatable/character/player/Player.h"
 // component
 #include "BulletComponent.h"
 #include "application/GameObject/component/collision/OBBColliderComponent.h"
 // math
 #include "math/MathUtils.h"
 #include <random>
-
 #include "time/TimeManager.h"
 
 ShotgunComponent::ShotgunComponent(Object3dCommon* object3dCommon, LightManager* lightManager)
@@ -152,7 +151,7 @@ void ShotgunComponent::FireBullets(GameObject* owner)
         auto colliderComp = std::make_unique<OBBColliderComponent>(bullet.get());
         colliderComp->SetOnEnter([ptr = bullet.get()](GameObject* other) {
             if (other->GetTag() == "PistolEnemy" || other->GetTag() == "AssaultEnemy" || other->GetTag() == "ShotgunEnemy")
-                ptr->SetActive(false);
+                ptr->SetAlive(false);
                                  });
         bullet->AddComponent("OBBCollider", std::move(colliderComp));
 
@@ -198,7 +197,7 @@ void ShotgunComponent::FireBullets(GameObject* owner, const Vector3& targetPosit
         auto colliderComp = std::make_unique<OBBColliderComponent>(bullet.get());
         colliderComp->SetOnEnter([ptr = bullet.get()](GameObject* other) {
             if (other->GetTag() == "Player")
-                ptr->SetActive(false);
+                ptr->SetAlive(false);
                                  });
         bullet->AddComponent("OBBCollider", std::move(colliderComp));
 

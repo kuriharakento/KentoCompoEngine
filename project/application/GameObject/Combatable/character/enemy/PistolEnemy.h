@@ -1,5 +1,6 @@
 #pragma once
-#include "application/GameObject/character/enemy/base/EnemyBase.h"
+
+#include "base/EnemyBase.h"
 
 class PistolEnemy : public EnemyBase
 {

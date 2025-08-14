@@ -1,24 +1,18 @@
 #pragma once
 
-#include <application/GameObject/base/GameObject.h>
-
+#include "application/GameObject/Combatable/base/CombatableObject.h"
 #include "application/GameObject/component/base/ICollisionComponent.h"
 #include "math/Vector3.h"
 
-class Character : public GameObject
+class Character : public CombatableObject
 {
 public:
 	virtual ~Character() = default;
-	explicit Character(const std::string& tag) : GameObject(tag) {}
+	explicit Character(const std::string& tag): CombatableObject(tag){}
 	virtual void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager);
 	virtual void Update() override;
 	virtual void Draw(CameraManager* camera);
 	void AddComponent(const std::string& name, std::unique_ptr<IGameObjectComponent> comp);
-
-
-	// HP
-	void TakeDamage(int damage);
-	bool IsAlive() const;
 
 	// トランスフォーム
 	const Vector3& GetPosition() const { return transform_.translate; }
@@ -27,10 +21,6 @@ public:
 	void SetRotation(const Vector3& rotation) { transform_.rotate = rotation; }
 	const Vector3& GetScale() const { return transform_.scale; }
 	void SetScale(const Vector3& scale) { transform_.scale = scale; }
-
-	// ステータスの設定
-	void SetHp(float hp) { hp_ = hp; }
-	float GetHp() const { return hp_; }
 
 	// 無敵状態
 	void SetInvincible(float duration); // 無敵状態を設定
@@ -45,12 +35,7 @@ public:
 	bool IsGrounded() const { return isGrounded_; }
 
 protected:
-	// 基本ステータス
-	float hp_ = 100.0f;
-	float maxHp_ = 100.0f;
-
 	// 状態管理
-	bool isAlive_ = true;
 	bool isInvincible_ = false;
 	float invincibleTimer_ = 0.0f; // 無敵時間の残り
 	bool isControllable_ = true;   // 操作可能フラグ
