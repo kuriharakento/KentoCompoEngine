@@ -4,7 +4,7 @@
 class EnemyBase : virtual public Character
 {
 public:
-	EnemyBase() : Character("EnemyBase") {}
+	EnemyBase() : Character(GameObjectTag::Common::EnemyBase) {}
 	virtual ~EnemyBase() = default;
 	virtual void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target);
 	void Update() override;

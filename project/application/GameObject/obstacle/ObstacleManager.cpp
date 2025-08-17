@@ -80,7 +80,7 @@ void ObstacleManager::CreateObstacles(const std::string& modelName)
 	// 障害物を生成
 	for (uint32_t i = 0; i < obstacleData_.size(); ++i)
 	{
-		auto obstacle = std::make_unique<Obstacle>("Obstacle");
+		auto obstacle = std::make_unique<Obstacle>();
 		obstacle->Initialize(object3dCommon_, lightManager_);
 		obstacle->SetModel(modelName);
 		obstacle->SetPosition(obstacleData_[i].transform.translate);

@@ -138,7 +138,7 @@ void ShotgunComponent::FireBullets(GameObject* owner)
         Vector3 dir = { sinf(angle), yOffset, cosf(angle) };
         dir = Vector3::Normalize(dir);
 
-        auto bullet = std::make_unique<Bullet>("Bullet");
+        auto bullet = std::make_unique<Bullet>(GameObjectTag::Weapon::PlayerBullet);
         bullet->Initialize(object3dCommon_, lightManager_, playerPos);
         bullet->SetModel("cube.obj");
         bullet->SetRotation({ 0.0f, angle, 0.0f });
@@ -150,7 +150,7 @@ void ShotgunComponent::FireBullets(GameObject* owner)
 
         auto colliderComp = std::make_unique<OBBColliderComponent>(bullet.get());
         colliderComp->SetOnEnter([ptr = bullet.get()](GameObject* other) {
-            if (other->GetTag() == "PistolEnemy" || other->GetTag() == "AssaultEnemy" || other->GetTag() == "ShotgunEnemy")
+            if (other->GetTag() == GameObjectTag::Character::PistolEnemy || other->GetTag() == GameObjectTag::Character::AssaultEnemy || other->GetTag() == GameObjectTag::Character::ShotgunEnemy)
                 ptr->SetAlive(false);
                                  });
         bullet->AddComponent("OBBCollider", std::move(colliderComp));
@@ -184,7 +184,7 @@ void ShotgunComponent::FireBullets(GameObject* owner, const Vector3& targetPosit
         Vector3 dir = { sinf(angle), yOffset, cosf(angle) };
         dir = Vector3::Normalize(dir);
 
-        auto bullet = std::make_unique<Bullet>("Bullet");
+        auto bullet = std::make_unique<Bullet>(GameObjectTag::Weapon::EnemyBullet);
         bullet->Initialize(object3dCommon_, lightManager_, startPos);
         bullet->SetModel("cube.obj");
         bullet->SetRotation({ 0.0f, angle, 0.0f });
@@ -196,7 +196,7 @@ void ShotgunComponent::FireBullets(GameObject* owner, const Vector3& targetPosit
 
         auto colliderComp = std::make_unique<OBBColliderComponent>(bullet.get());
         colliderComp->SetOnEnter([ptr = bullet.get()](GameObject* other) {
-            if (other->GetTag() == "Player")
+            if (other->GetTag() == GameObjectTag::Character::Player)
                 ptr->SetAlive(false);
                                  });
         bullet->AddComponent("OBBCollider", std::move(colliderComp));

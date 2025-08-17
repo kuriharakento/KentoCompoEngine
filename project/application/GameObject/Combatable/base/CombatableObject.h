@@ -7,7 +7,7 @@ class CombatableObject : public GameObject
 {
 public:
     virtual ~CombatableObject() = default;
-    explicit CombatableObject(const std::string& tag)
+    explicit CombatableObject(const std::string& tag = GameObjectTag::Common::CombatableObject)
         : GameObject(tag)
     {
 		// 初期化しておく

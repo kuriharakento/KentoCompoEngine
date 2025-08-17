@@ -229,6 +229,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\GameObject\Combatable\character\enemy\base\Node\ParallelNode.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="application\GameObject\base\GameObjectTag.h" />
     <ClInclude Include="application\GameObject\Combatable\base\StatusValue.h" />
     <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\ActionNode.h" />
     <ClInclude Include="application\GameObject\Combatable\character\enemy\base\Node\BTNode.h" />

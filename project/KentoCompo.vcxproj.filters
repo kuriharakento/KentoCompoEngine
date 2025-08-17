@@ -822,6 +822,7 @@
     <ClInclude Include="application\GameObject\Combatable\base\StatusValue.h">
       <Filter>application\GameObject\combatable\base</Filter>
     </ClInclude>
+    <ClInclude Include="application\GameObject\base\GameObjectTag.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

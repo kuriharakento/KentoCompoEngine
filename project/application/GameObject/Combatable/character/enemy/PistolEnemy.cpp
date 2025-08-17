@@ -14,7 +14,7 @@ void PistolEnemy::Initialize(Object3dCommon* object3dCommon, LightManager* light
 	// 衝突判定コンポーネントを追加
 	auto collider = std::make_unique<OBBColliderComponent>(this);
 	collider->SetOnEnter([this](GameObject* other) {
-		if (other->GetTag() == "PlayerBullet")
+		if (other->GetTag() == GameObjectTag::Weapon::PlayerBullet)
 		{
 			isAlive_ = false; // プレイヤーの弾に当たったら死亡
 		}

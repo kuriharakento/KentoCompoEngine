@@ -7,7 +7,7 @@ class Obstacle : public GameObject
 {
 public:
 	virtual ~Obstacle() = default;
-	explicit Obstacle(const std::string& tag) : GameObject(tag) {}
+	explicit Obstacle(const std::string& tag = GameObjectTag::Item::Obstacle) : GameObject(tag) {}
 	virtual void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager);
 	virtual void Update();
 	virtual void Draw(CameraManager* camera);

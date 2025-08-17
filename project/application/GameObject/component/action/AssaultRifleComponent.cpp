@@ -103,7 +103,7 @@ void AssaultRifleComponent::Fire()
 void AssaultRifleComponent::FireBullet(GameObject* owner)
 {
 	// 弾の作成
-	auto bullet = std::make_unique<Bullet>("PlayerBullet");
+	auto bullet = std::make_unique<Bullet>(GameObjectTag::Weapon::PlayerBullet);
 	// カメラ取得
 	Camera* camera = object3dCommon_->GetDefaultCamera();
 	if (!camera) return;
@@ -153,13 +153,13 @@ void AssaultRifleComponent::FireBullet(GameObject* owner)
 	auto colliderComp = std::make_unique<OBBColliderComponent>(bullet.get());
 	colliderComp->SetOnEnter([ptr = bullet.get(), hitEffect = hitEffect_.get()](GameObject* other) {
 		// 敵に当たった場合、パーティクルを生成して弾を消す
-		if (other->GetTag() == "PistolEnemy" || other->GetTag() == "AssaultEnemy" || other->GetTag() == "ShotgunEnemy")
+		if (other->GetTag() == GameObjectTag::Character::PistolEnemy || other->GetTag() == GameObjectTag::Character::AssaultEnemy || other->GetTag() == GameObjectTag::Character::ShotgunEnemy)
 		{
 			hitEffect->Play(ptr->GetPosition());
 			ptr->SetAlive(false);
 		}
 		// 障害物に当たった場合、弾を消す
-		if (other->GetTag() == "Obstacle")
+		if (other->GetTag() == GameObjectTag::Item::Obstacle)
 		{
 			ptr->SetAlive(false);
 		}
@@ -172,7 +172,7 @@ void AssaultRifleComponent::FireBullet(GameObject* owner)
 void AssaultRifleComponent::FireBullet(GameObject* owner, const Vector3& targetPosition)
 {
 	// 弾の作成
-	auto bullet = std::make_unique<Bullet>("EnemyBullet");
+	auto bullet = std::make_unique<Bullet>(GameObjectTag::Weapon::EnemyBullet);
 
 	// 発射元の位置
 	Vector3 startPos = owner->GetPosition();
@@ -201,13 +201,13 @@ void AssaultRifleComponent::FireBullet(GameObject* owner, const Vector3& targetP
 	// 衝突したときの処理を設定
 	colliderComp->SetOnEnter([ptr = bullet.get() , hitEffect = hitEffect_.get()](GameObject* other) {
 		// 敵に当たった場合、パーティクルを生成して弾を消す
-		if (other->GetTag() == "Player")
+		if (other->GetTag() == GameObjectTag::Character::Player)
 		{
 			hitEffect->Play(other->GetPosition());
 			ptr->SetAlive(false);
 		}
 		// 障害物に当たった場合、弾を消す
-		if (other->GetTag() == "Obstacle")
+		if (other->GetTag() == GameObjectTag::Item::Obstacle)
 		{
 			ptr->SetAlive(false);
 		}

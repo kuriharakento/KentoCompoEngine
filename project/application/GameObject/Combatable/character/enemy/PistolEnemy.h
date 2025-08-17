@@ -5,7 +5,7 @@
 class PistolEnemy : public EnemyBase
 {
 public:
-	PistolEnemy() : Character("PistolEnemy") {}
+	PistolEnemy() : Character(GameObjectTag::Character::PistolEnemy) {}
 	void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target) override;
 	void Update() override;
 	void Draw(CameraManager* camera) override;

@@ -6,7 +6,7 @@ class Player : public Character
 {
 public:
 	~Player() = default;
-	Player(std::string tag) : Character(tag) {}
+	Player(std::string tag = GameObjectTag::Character::Player) : Character(tag) {}
 	void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager) override;
 	void Update() override;
 	void Draw(CameraManager* camera) override;

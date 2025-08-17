@@ -98,7 +98,7 @@ void PistolComponent::Draw(CameraManager* camera)
 void PistolComponent::FireBullet(GameObject* owner)
 {
 	// 弾の作成
-	auto bullet = std::make_unique<Bullet>("Bullet");
+	auto bullet = std::make_unique<Bullet>(GameObjectTag::Weapon::PlayerBullet);
 
 	// カメラ取得
 	Camera* camera = object3dCommon_->GetDefaultCamera();
@@ -157,7 +157,7 @@ void PistolComponent::FireBullet(GameObject* owner)
 	auto colliderComp = std::make_unique<OBBColliderComponent>(bullet.get());
 	colliderComp->SetOnEnter([ptr = bullet.get()](GameObject* other) {
 		// 敵に当たった場合、弾を消す
-		if (other->GetTag() == "PistolEnemy" || other->GetTag() == "AssaultEnemy" || other->GetTag() == "ShotgunEnemy")
+		if (other->GetTag() == GameObjectTag::Character::PistolEnemy || other->GetTag() == GameObjectTag::Character::AssaultEnemy || other->GetTag() == GameObjectTag::Character::ShotgunEnemy)
 		{
 			ptr->SetAlive(false);
 		}
@@ -172,7 +172,7 @@ void PistolComponent::FireBullet(GameObject* owner)
 void PistolComponent::FireBullet(GameObject* owner, const Vector3& targetPosition)
 {
 	// 弾の作成
-	auto bullet = std::make_unique<Bullet>("Bullet");
+	auto bullet = std::make_unique<Bullet>(GameObjectTag::Weapon::EnemyBullet);
 
 	// 発射元の位置
 	Vector3 startPos = owner->GetPosition();
@@ -201,7 +201,7 @@ void PistolComponent::FireBullet(GameObject* owner, const Vector3& targetPositio
 	// 衝突したときの処理を設定
 	colliderComp->SetOnEnter([ptr = bullet.get()](GameObject* other) {
 		// 敵に当たった場合、弾を消す
-		if (other->GetTag() == "Player")
+		if (other->GetTag() == GameObjectTag::Character::Player)
 		{
 			ptr->SetAlive(false);
 		}

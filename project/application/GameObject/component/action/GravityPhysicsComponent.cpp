@@ -31,6 +31,7 @@ void GravityPhysicsComponent::Update(GameObject* owner)
     {
         pos.y = owner->GetScale().y;
         verticalVelocity_ = 0.0f; // 着地で速度リセット
+		character->SetIsGrounded(true); // 地面に接地
     }
 
     owner->SetPosition(pos);

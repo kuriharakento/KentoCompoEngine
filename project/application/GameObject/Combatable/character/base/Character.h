@@ -8,7 +8,7 @@ class Character : public CombatableObject
 {
 public:
 	virtual ~Character() = default;
-	explicit Character(const std::string& tag): CombatableObject(tag){}
+	explicit Character(const std::string& tag = GameObjectTag::Common::Character): CombatableObject(tag){}
 	virtual void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager);
 	virtual void Update() override;
 	virtual void Draw(CameraManager* camera);

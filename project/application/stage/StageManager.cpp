@@ -89,6 +89,10 @@ void StageManager::DrawImGui()
 			obstacleManager_->Clear(); // 障害物マネージャーの障害物を全てクリア
 		}
 	}
+	if (ImGui::Button("Load Stage"))
+	{
+		LoadStage("field"); // サンプルステージをロード
+	}
 	ImGui::End();
 	
 #endif
@@ -124,7 +128,7 @@ void StageManager::CreateInfosFromStageData()
 			// プレイヤーはゲーム中に１っ体だけなのでここで生成
 			if (!player_)
 			{
-				player_ = std::make_unique<Player>("Player");
+				player_ = std::make_unique<Player>();
 			}
 			enemyManager_->SetTarget(player_.get());
 			player_->Initialize(object3dCommon_, lightManager_);

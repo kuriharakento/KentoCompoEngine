@@ -18,13 +18,12 @@ void Player::Initialize(Object3dCommon* object3dCommon, LightManager* lightManag
 
 
 	// 試しに腕を追加
-	auto arm = std::make_unique<GameObject>("Arm");
+	auto arm = std::make_unique<GameObject>(GameObjectTag::Character::PlayerRightArm);
 	arm->Initialize(object3dCommon, lightManager);
 	arm->SetModel("cube");
 	arm->SetPosition(Vector3(3.0f, 0.0f, 0.0f));
 	arm->AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(arm.get()));
-
-	AddChild(std::move(arm));
+	AddChild(GameObjectTag::Character::PlayerRightArm, std::move(arm));
 
 	// 移動コンポーネントを追加
 	AddComponent("MoveComponent", std::make_unique<MoveComponent>());

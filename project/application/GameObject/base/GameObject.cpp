@@ -50,7 +50,7 @@ void GameObject::Update()
 	}
 
 	// 子オブジェクトもコンポーネントを更新
-	for (const auto& child : children_)
+	for (auto& [name, child] : children_)
 	{
 		if (child)
 		{
@@ -70,7 +70,7 @@ void GameObject::Draw(CameraManager* camera)
 	object3d_->Draw();
 
 	// 子オブジェクトの描画
-	for (const auto& child : children_)
+	for (auto& [name, child] : children_)
 	{
 		if (child)
 		{
@@ -106,15 +106,39 @@ void GameObject::AddComponent(const std::string& name, std::unique_ptr<IGameObje
 	components_[name] = std::move(comp);
 }
 
-void GameObject::AddChild(std::unique_ptr<GameObject> child)
+void GameObject::AddChild(const std::string name, std::unique_ptr<GameObject> child)
 {
+	if (auto it = children_.find(name); it != children_.end())
+	{
+		Logger::Log("Warning: Child with name '" + name + "' already exists. Overwriting.");
+		return;
+	}
+
 	if (child)
 	{
-		child->SetParent(this); // 親を設定
-		// 子オブジェクトを追加
-		children_.push_back(std::move(child));
+		child->SetParent(this); // 親オブジェクトを設定
+		children_[name] = std::move(child); // 子オブジェクトを追加
+	}
+	else
+	{
+		Logger::Log("Error: Attempted to add a null child GameObject.");
 	}
 }
+
+GameObject* GameObject::GetChild(const std::string& name) const
+{
+	auto it = children_.find(name);
+	if (it != children_.end())
+	{
+		return it->second.get(); // 子オブジェクトを返す
+	}
+	else
+	{
+		Logger::Log("Warning: Child with name '" + name + "' not found.");
+		return nullptr; // 見つからなかった場合はnullptrを返す
+	}
+}
+
 
 void GameObject::ApplyTransformToObject3D(CameraManager* camera)
 {
