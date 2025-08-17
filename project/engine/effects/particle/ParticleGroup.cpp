@@ -195,17 +195,17 @@ void ParticleGroup::SetModelType(ParticleType type)
 
 Vector3 ParticleGroup::GetUVTranslate() const
 {
-	return MathUtils::GetMatrixTranslate(materialData_->uvTransform);
+	return MathUtils::GetTranslateFromMatrix(materialData_->uvTransform);
 }
 
 Vector3 ParticleGroup::GetUVScale() const
 {
-	return MathUtils::GetMatrixScale(materialData_->uvTransform);
+	return MathUtils::GetScaleFromMatrix(materialData_->uvTransform);
 }
 
 Vector3 ParticleGroup::GetUVRotate() const
 {
-	return MathUtils::GetMatrixRotate(materialData_->uvTransform);
+	return MathUtils::GetRotateFromMatrix(materialData_->uvTransform);
 }
 
 void ParticleGroup::SetUVTranslate(const Vector3& translate)

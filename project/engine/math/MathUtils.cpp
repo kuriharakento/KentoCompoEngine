@@ -25,12 +25,12 @@ namespace MathUtils
 		return Vector4(RandomFloat(min.x, max.x), RandomFloat(min.y, max.y), RandomFloat(min.z, max.z), RandomFloat(min.w, max.w));
 	}
 
-	Vector3 GetMatrixTranslate(const Matrix4x4& matrix)
+	Vector3 GetTranslateFromMatrix(const Matrix4x4& matrix)
 	{
 		return Vector3(matrix.m[3][0], matrix.m[3][1], matrix.m[3][2]);
 	}
 
-	Vector3 GetMatrixScale(const Matrix4x4& matrix)
+	Vector3 GetScaleFromMatrix(const Matrix4x4& matrix)
 	{
 		return Vector3(
 			std::sqrt(matrix.m[0][0] * matrix.m[0][0] + matrix.m[1][0] * matrix.m[1][0] + matrix.m[2][0] * matrix.m[2][0]),
@@ -39,23 +39,72 @@ namespace MathUtils
 		);
 	}
 
-	Vector3 GetMatrixRotate(const Matrix4x4& matrix)
+	Vector3 GetRotateFromMatrix(const Matrix4x4& matrix)
 	{
-		Vector3 rotate;
-		rotate.y = std::asin(-matrix.m[0][2]);
+		Vector3 scale = GetScaleFromMatrix(matrix);
 
-		if (std::cos(rotate.y) != 0.0f)
+		// スケールが0に近い場合はゼロ回転を返す
+		if (scale.x < 1e-6f || scale.y < 1e-6f || scale.z < 1e-6f)
 		{
-			rotate.x = std::atan2(matrix.m[1][2], matrix.m[2][2]);
-			rotate.z = std::atan2(matrix.m[0][1], matrix.m[0][0]);
+			return Vector3(0.0f, 0.0f, 0.0f);  // Vector3を返す
+		}
+
+		// 正規化された回転成分
+		float rm00 = matrix.m[0][0] / scale.x;
+		float rm01 = matrix.m[0][1] / scale.x;
+		float rm02 = matrix.m[0][2] / scale.x;
+		float rm10 = matrix.m[1][0] / scale.y;
+		float rm11 = matrix.m[1][1] / scale.y;
+		float rm12 = matrix.m[1][2] / scale.y;
+		float rm20 = matrix.m[2][0] / scale.z;
+		float rm21 = matrix.m[2][1] / scale.z;
+		float rm22 = matrix.m[2][2] / scale.z;
+
+		Vector3 rotate;
+		rotate.y = std::asin(Clamp(-rm02, -1.0f, 1.0f));  // 数値安定性のためクランプ
+
+		const float cosY = std::cos(rotate.y);
+		if (cosY > 1e-6f)
+		{
+			rotate.x = std::atan2(rm12, rm22);
+			rotate.z = std::atan2(rm01, rm00);
 		}
 		else
 		{
-			rotate.x = std::atan2(-matrix.m[2][0], matrix.m[1][0]);
+			rotate.x = std::atan2(-rm21, rm11);
 			rotate.z = 0.0f;
 		}
 
 		return rotate;
+	}
+
+	Matrix4x4 GetMatrixRotate(const Matrix4x4& matrix)
+	{
+		Vector3 scale = GetScaleFromMatrix(matrix);
+
+		// スケールが0に近い場合は単位行列を返す
+		if (scale.x < 1e-6f || scale.y < 1e-6f || scale.z < 1e-6f)
+		{
+			return MakeIdentity4x4();  // Matrix4x4を返す
+		}
+
+		Matrix4x4 rotation = {};
+		// 正規化された回転成分を抽出
+		rotation.m[0][0] = matrix.m[0][0] / scale.x;
+		rotation.m[0][1] = matrix.m[0][1] / scale.x;
+		rotation.m[0][2] = matrix.m[0][2] / scale.x;
+
+		rotation.m[1][0] = matrix.m[1][0] / scale.y;
+		rotation.m[1][1] = matrix.m[1][1] / scale.y;
+		rotation.m[1][2] = matrix.m[1][2] / scale.y;
+
+		rotation.m[2][0] = matrix.m[2][0] / scale.z;
+		rotation.m[2][1] = matrix.m[2][1] / scale.z;
+		rotation.m[2][2] = matrix.m[2][2] / scale.z;
+
+		rotation.m[3][3] = 1.0f;
+
+		return rotation;
 	}
 
 	float Clamp(float value, float min, float max)

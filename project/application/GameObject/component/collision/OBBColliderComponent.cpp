@@ -30,14 +30,13 @@ OBBColliderComponent::~OBBColliderComponent()
 
 void OBBColliderComponent::Update(GameObject* owner)
 {
-	// オーナーの位置とスケールを取得
-	Vector3 pos = owner->GetPosition();
-	Vector3 rotate = owner->GetRotation();
-	Vector3 size = owner->GetScale();
-	// OBBの更新
-	obb_.center = pos;
-	obb_.rotate = MakeRotateMatrix(rotate);
-	obb_.size = size + sizeOffset_;				// サイズオフセットを適用
+    // ワールド行列取得
+    const Matrix4x4& m = owner->GetWorldMatrix();
+
+    // OBBの更新
+    obb_.center = MathUtils::GetTranslateFromMatrix(m);
+    obb_.rotate = MathUtils::GetMatrixRotate(m);
+    obb_.size = MathUtils::GetScaleFromMatrix(m) + sizeOffset_; // サイズオフセットを適用
 	
 #ifdef _DEBUG
 	// OBBを可視化する

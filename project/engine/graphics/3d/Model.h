@@ -65,9 +65,9 @@ public: //アクセッサ
 
 	//マテリアルデータ
 	Material* GetMaterialData() { return materialData_; }
-	Vector3 GetUVTranslate() const { return MathUtils::GetMatrixTranslate(materialData_->uvTransform); }
-	Vector3 GetUVScale() const { return MathUtils::GetMatrixScale(materialData_->uvTransform); }
-	Vector3 GetUVRotate() const { return MathUtils::GetMatrixRotate(materialData_->uvTransform); }
+	Vector3 GetUVTranslate() const { return MathUtils::GetTranslateFromMatrix(materialData_->uvTransform); }
+	Vector3 GetUVScale() const { return MathUtils::GetScaleFromMatrix(materialData_->uvTransform); }
+	Vector3 GetUVRotate() const { return MathUtils::GetRotateFromMatrix(materialData_->uvTransform); }
 	void SetUVTranslate(const Vector3& translate) { materialData_->uvTransform = MakeAffineMatrix(GetUVScale(), GetUVRotate(), translate); }
 	void SetUVScale(const Vector3& scale) { materialData_->uvTransform = MakeAffineMatrix(scale, GetUVRotate(), GetUVTranslate()); }
 	void SetUVRotate(const Vector3& rotate) { materialData_->uvTransform = MakeAffineMatrix(GetUVScale(), rotate, GetUVTranslate()); }
