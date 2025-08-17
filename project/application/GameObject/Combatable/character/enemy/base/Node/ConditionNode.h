@@ -11,7 +11,10 @@ class ConditionNode : public BTNode
 public:
     using ConditionFunction = std::function<bool(Blackboard&)>;
 
-    ConditionNode(ConditionFunction func) : condition(func) {}
+    ConditionNode(ConditionFunction func) : condition(func)
+    {
+		nodeName_ = "ConditionNode";
+    }
 
     NodeStatus Tick(Blackboard& blackboard) override;
 

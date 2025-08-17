@@ -10,7 +10,10 @@ class ActionNode : public BTNode
 public:
     using ActionFunction = std::function<NodeStatus(Blackboard&)>;
 
-	ActionNode(ActionFunction func) : action(func) {}
+	ActionNode(const std::string& name, ActionFunction func) : action(func)
+	{
+		nodeName_ = name;
+	}
 
     NodeStatus Tick(Blackboard& blackboard) override;
 

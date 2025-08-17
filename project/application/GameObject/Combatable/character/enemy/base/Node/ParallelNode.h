@@ -12,6 +12,7 @@ public:
     ParallelNode(size_t successThreshold, size_t failureThreshold)
         : successThreshold_(successThreshold), failureThreshold_(failureThreshold)
     {
+		nodeName_ = "ParallelNode";
     }
 
     NodeStatus Tick(Blackboard& blackboard) override;

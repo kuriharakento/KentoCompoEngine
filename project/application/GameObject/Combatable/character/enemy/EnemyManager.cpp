@@ -1,6 +1,7 @@
 #include "EnemyManager.h"
 
 #include "AssaultEnemy.h"
+#include "KnifeEnemy.h"
 #include "PistolEnemy.h"
 #include "ShotgunEnemy.h"
 #include "ImGui/imgui_internal.h"
@@ -39,6 +40,10 @@ void EnemyManager::Update()
 	if (ImGui::Button("Add Shotgun Enemy"))
 	{
 		AddShotgunEnemy(1); // ショットガン敵を1体追加
+	}
+	if (ImGui::Button("Add Knife Enemy"))
+	{
+		AddKnifeEnemy(1); // ナイフ敵を1体追加
 	}
 
 	ImGui::SeparatorText("Enemies Info");
@@ -126,6 +131,20 @@ void EnemyManager::AddShotgunEnemy(uint32_t count)
 	for (uint32_t i = 0; i < count; ++i)
 	{
 		auto enemy = std::make_unique<ShotgunEnemy>();
+		enemy->Initialize(object3dCommon_, lightManager_, target_);
+		//ランダムな位置を設定
+		Vector3 randomPosition = MathUtils::RandomVector3(emitRange_.min_, emitRange_.max_);
+		enemy->SetPosition(randomPosition);
+		// 敵キャラクターを追加
+		enemies_.push_back(std::move(enemy));
+	}
+}
+
+void EnemyManager::AddKnifeEnemy(uint32_t count)
+{
+	for (uint32_t i = 0; i < count; ++i)
+	{
+		auto enemy = std::make_unique<KnifeEnemy>();
 		enemy->Initialize(object3dCommon_, lightManager_, target_);
 		//ランダムな位置を設定
 		Vector3 randomPosition = MathUtils::RandomVector3(emitRange_.min_, emitRange_.max_);

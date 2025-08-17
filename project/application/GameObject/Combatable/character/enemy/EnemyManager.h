@@ -19,6 +19,7 @@ public:
 	void AddPistolEnemy(uint32_t count);
 	void AddAssaultEnemy(uint32_t count);
 	void AddShotgunEnemy(uint32_t count);
+	void AddKnifeEnemy(uint32_t count);
 	void SetEnemyData(const std::vector<GameObjectInfo>& data);
 	void SetTarget(GameObject* target) { target_ = target; }
 	void Clear();

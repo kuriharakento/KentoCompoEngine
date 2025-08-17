@@ -43,6 +43,8 @@ void GameObject::Initialize(Object3dCommon* object3dCommon, LightManager* lightM
 
 void GameObject::Update()
 {
+	ShowImGuiHierarchy(); // ImGuiでの階層表示
+
 	// コンポーネントを更新
 	for (auto& [name, comp] : components_)
 	{
@@ -172,4 +174,34 @@ void GameObject::ApplyTransformToObject3D(CameraManager* camera)
 		// 親がない場合は通常の更新
 		object3d_->Update(camera);
 	}
+}
+
+void GameObject::ShowImGuiHierarchy()
+{
+#ifdef _DEBUG
+	// ツリーノードで親子関係を表示
+	ImGui::PushID(this);
+
+	if (ImGui::TreeNode(tag_.c_str()))
+	{
+		ImGui::Text("Position");
+		ImGui::DragFloat3("Position", &transform_.translate.x, 0.1f);
+		ImGui::Text("Rotation");
+		ImGui::DragFloat3("Rotation", &transform_.rotate.x, 0.1f);
+		ImGui::Text("Scale");
+		ImGui::DragFloat3("Scale", &transform_.scale.x, 0.1f);
+
+		// 子オブジェクトを再帰的に表示
+		for (const auto& [name, child] : children_)
+		{
+			if (child)
+			{
+				child->ShowImGuiHierarchy();
+			}
+		}
+		ImGui::TreePop();
+	}
+
+	ImGui::PopID();
+#endif
 }

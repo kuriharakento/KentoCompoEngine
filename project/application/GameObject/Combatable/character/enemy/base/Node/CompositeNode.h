@@ -14,9 +14,18 @@ protected:
     size_t currentIndex = 0;
 
 public:
+	CompositeNode()
+	{
+		nodeName_ = "CompositeNode";
+	}
     void AddChild(std::unique_ptr<BTNode> child);
 
     void Reset() override;
+
+	const std::vector<std::unique_ptr<BTNode>>& GetChildren() const
+	{
+		return children;
+	}
 };
 
 

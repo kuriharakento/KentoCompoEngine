@@ -7,5 +7,9 @@
 class SequenceNode : public CompositeNode
 {
 public:
+	SequenceNode()
+	{
+		nodeName_ = "SequenceNode";
+	}
     NodeStatus Tick(Blackboard& blackboard) override;
 };

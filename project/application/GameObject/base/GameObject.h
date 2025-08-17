@@ -53,6 +53,8 @@ protected:
 private:
 	void ApplyTransformToObject3D(CameraManager* camera);												// Transform情報をObject3Dに適用
 	void SetParent(GameObject* parent) { parent_ = parent; }											// 親オブジェクトの設定
+	void ShowImGuiHierarchy();
+
 private:
 	std::unordered_map<std::string, std::shared_ptr<IGameObjectComponent>> components_;					// コンポーネントのリスト
 	std::string tag_; 																					// オブジェクトのタグ

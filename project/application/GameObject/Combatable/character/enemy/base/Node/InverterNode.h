@@ -12,6 +12,7 @@ public:
     explicit InverterNode(std::unique_ptr<BTNode> child)
         : child_(std::move(child))
     {
+		nodeName_ = "InverterNode";
     }
 
     NodeStatus Tick(Blackboard& blackboard) override;

@@ -8,5 +8,9 @@
 class SelectorNode : public CompositeNode
 {
 public:
+    SelectorNode()
+    {
+		nodeName_ = "SelectorNode";
+    }
     NodeStatus Tick(Blackboard& blackboard) override;
 };

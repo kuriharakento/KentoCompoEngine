@@ -2,5 +2,6 @@
 
 NodeStatus ActionNode::Tick(Blackboard& blackboard)
 {
-	return action(blackboard);
+	lastStatus_ = action(blackboard);
+	return lastStatus_;
 }

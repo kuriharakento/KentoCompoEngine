@@ -1,6 +1,6 @@
 #pragma once
 
-#include "application/GameObject/Combatable/base/CombatableObject.h"
+#include "application/GameObject/combatable/base/CombatableObject.h"
 #include "application/GameObject/component/base/ICollisionComponent.h"
 #include "math/Vector3.h"
 

@@ -20,12 +20,17 @@ namespace GameObjectTag
 		const std::string AssaultEnemy = "AssaultEnemy";
 		const std::string PistolEnemy = "PistolEnemy";
 		const std::string ShotgunEnemy = "ShotgunEnemy";
+
+		const std::string KnifeEnemy = "KnifeEnemy";
+		const std::string KnifeEnemyRightArm = "KnifeEnemyRightArm";
+		const std::string KnifeEnemyLeftArm = "KnifeEnemyLeftArm";
 	}
 
 	// 武器
 	namespace Weapon {
 		const std::string PlayerBullet = "PlayerBullet";
 		const std::string EnemyBullet = "EnemyBullet";
+		const std::string Knife = "Knife";
 	}
 
 	// アイテム

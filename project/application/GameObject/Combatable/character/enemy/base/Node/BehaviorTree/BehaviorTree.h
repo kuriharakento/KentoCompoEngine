@@ -24,6 +24,9 @@ public:
 
 	Blackboard& GetBlackboard() { return blackboard; }
 
+    BTNode* GetRoot() { return root.get(); }
+    const BTNode* GetRoot() const { return root.get(); }
+
 private:
     std::unique_ptr<BTNode> root;
     Blackboard blackboard; // ノード間で共有する情報を格納する

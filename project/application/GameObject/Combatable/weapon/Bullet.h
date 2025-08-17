@@ -3,8 +3,7 @@
 #include "math/Vector3.h"
 #include <memory>
 
-#include "application/GameObject/base/GameObject.h"
-#include "application/GameObject/Combatable/base/CombatableObject.h"
+#include "application/GameObject/combatable/base/CombatableObject.h"
 
 class Bullet : public CombatableObject
 {
