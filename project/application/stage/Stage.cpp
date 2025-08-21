@@ -5,12 +5,12 @@
 
 Stage::Stage(Object3dCommon* object3dCommon, LightManager* lightManager, EnemyManager* ememyManager, const std::string& filePath)
 {
-	// エディターにエリアウェーブデータを登録
-	JsonEditorManager::GetInstance()->Register("areaWaveData", areaWaveData_);
-
 	// エリアウェーブデータを読み込み
 	areaWaveData_ = std::make_shared<AreaWaveData>();
 	areaWaveData_->LoadJson(filePath);
+
+	// エディターにエリアウェーブデータを登録
+	JsonEditorManager::GetInstance()->Register("areaWaveData", areaWaveData_);
 
 	// エリア情報をもとにエリアを生成
 	std::vector<std::shared_ptr<Area>> areas;
