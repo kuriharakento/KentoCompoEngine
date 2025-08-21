@@ -12,6 +12,7 @@ StageManager::~StageManager()
 	player_.reset();
 	enemyManager_.reset();
 	obstacleManager_.reset();
+	stage_.reset();
 }
 
 void StageManager::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager)
@@ -29,6 +30,11 @@ void StageManager::Initialize(Object3dCommon* object3dCommon, LightManager* ligh
 	// 障害物マネージャー
 	obstacleManager_ = std::make_unique<ObstacleManager>();
 	obstacleManager_->Initialize(object3dCommon_, lightManager);
+
+
+	// ステージの初期化
+	stage_ = std::make_unique<Stage>(object3dCommon_, lightManager_, enemyManager_.get(),	"stage/area_wave_enemy_list.json"); // サンプルステージをロード
+	stage_->Start(); // ステージを開始
 }
 
 void StageManager::Update()
@@ -50,6 +56,8 @@ void StageManager::Update()
 	{
 		obstacleManager_->Update();
 	}
+
+	stage_->Update(); // ステージの更新
 }
 
 void StageManager::Draw(CameraManager* camera)
@@ -151,5 +159,5 @@ void StageManager::CreateInfosFromStageData()
 
 	// 各マネージャーにデータを渡す
 	obstacleManager_->SetObstacleData(obstacleInfos);
-	enemyManager_->SetEnemyData(enemyInfos);
+	//enemyManager_->SetEnemyData(enemyInfos);
 }

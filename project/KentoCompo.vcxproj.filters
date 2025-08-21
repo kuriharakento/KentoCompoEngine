@@ -387,6 +387,8 @@
     <ClCompile Include="application\stage\Area.cpp" />
     <ClCompile Include="application\stage\Wave.cpp" />
     <ClCompile Include="application\stage\WaveManager.cpp" />
+    <ClCompile Include="application\stage\AreaManager.cpp" />
+    <ClCompile Include="application\stage\AreaWaveData.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -849,6 +851,10 @@
     <ClInclude Include="application\stage\Wave.h" />
     <ClInclude Include="application\stage\GameObjectInfo.h" />
     <ClInclude Include="application\stage\WaveManager.h" />
+    <ClInclude Include="application\stage\AreaManager.h" />
+    <ClInclude Include="application\stage\WaveInfo.h" />
+    <ClInclude Include="application\stage\AreaInfo.h" />
+    <ClInclude Include="application\stage\AreaWaveData.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

@@ -6,6 +6,7 @@
 #include "manager/scene/LightManager.h"
 
 // app
+#include "Stage.h"
 #include "StageData.h"
 #include "application/GameObject/Combatable/character/enemy/EnemyManager.h"
 #include "application/GameObject/Combatable/character/player/Player.h"
@@ -31,6 +32,8 @@ public:
 	// ステージデータをもとに各ゲームオブジェクトの情報を分ける
 	void CreateInfosFromStageData();
 
+	bool IsStageCleared() const { return stage_ ? stage_->IsCleared() : false; }
+
 	// ゲームオブジェクト取得
 	Player* GetPlayer() const { return player_.get(); }
 	EnemyManager* GetEnemyManager() const { return enemyManager_.get(); }
@@ -50,5 +53,7 @@ private:
 	std::unique_ptr<EnemyManager> enemyManager_;
 	// 障害物マネージャー
 	std::unique_ptr<ObstacleManager> obstacleManager_;
+	// ステージ
+	std::unique_ptr<Stage> stage_;
 };
 

@@ -118,6 +118,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\BehaviorTree\BehaviorTree.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\BlackBoard.cpp" />
     <ClCompile Include="application\stage\Area.cpp" />
+    <ClCompile Include="application\stage\AreaManager.cpp" />
+    <ClCompile Include="application\stage\AreaWaveData.cpp" />
     <ClCompile Include="engine\camerawork\debug\DebugCamera.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
@@ -256,7 +258,11 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\BlackBoard.h" />
     <ClInclude Include="application\GameObject\combatable\base\CombatableObject.h" />
     <ClInclude Include="application\stage\Area.h" />
+    <ClInclude Include="application\stage\AreaInfo.h" />
     <ClInclude Include="application\stage\GameObjectInfo.h" />
+    <ClInclude Include="application\stage\AreaManager.h" />
+    <ClInclude Include="application\stage\WaveInfo.h" />
+    <ClInclude Include="application\stage\AreaWaveData.h" />
     <ClInclude Include="engine\camerawork\debug\DebugCamera.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>

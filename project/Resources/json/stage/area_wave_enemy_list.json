@@ -1,0 +1,132 @@
+{
+  "areas": [
+    {
+      "areaIndex": 0,
+      "waves": [
+        {
+          "enemies": [
+            {
+              "type": "EnemySpawn",
+              "name": "EnemySpawn",
+              "disabled": false,
+              "fileName": "enemy",
+              "transform": {
+                "rotate": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0,
+                  "z": 1.0
+                },
+                "translate": {
+                  "x": 10.0,
+                  "y": 0.0,
+                  "z": 10.0
+                }
+              }
+            },
+            {
+              "type": "EnemySpawn",
+              "name": "EnemySpawn.001",
+              "disabled": false,
+              "fileName": "enemy",
+              "transform": {
+                "rotate": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0,
+                  "z": 1.0
+                },
+                "translate": {
+                  "x": 20.0,
+                  "y": 0.0,
+                  "z": 10.0
+                }
+              }
+            }
+          ]
+        },
+        {
+          "enemies": [
+            {
+              "type": "EnemySpawn",
+              "name": "EnemySpawn.002",
+              "disabled": false,
+              "fileName": "enemy",
+              "transform": {
+                "rotate": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0,
+                  "z": 1.0
+                },
+                "translate": {
+                  "x": -10.0,
+                  "y": 0.0,
+                  "z": -10.0
+                }
+              }
+            },
+            {
+              "type": "EnemySpawn",
+              "name": "EnemySpawn.003",
+              "disabled": false,
+              "fileName": "enemy",
+              "transform": {
+                "rotate": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0,
+                  "z": 1.0
+                },
+                "translate": {
+                  "x": -20.0,
+                  "y": 0.0,
+                  "z": -10.0
+                }
+              }
+            },
+            {
+              "type": "EnemySpawn",
+              "name": "EnemySpawn.004",
+              "disabled": false,
+              "fileName": "enemy",
+              "transform": {
+                "rotate": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0,
+                  "z": 1.0
+                },
+                "translate": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

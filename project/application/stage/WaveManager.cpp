@@ -21,6 +21,7 @@ void WaveManager::Update()
 		if (waitTimer_ <= 0.0f)
 		{
 			waitForNextWave_ = false;
+			++currentWaveIndex_;
 			StartCurrentWave();
 		}
 	}
@@ -45,8 +46,6 @@ void WaveManager::StartCurrentWave()
 	waves_[currentWaveIndex_].SetOnClearCallback([this]() {
 		waitForNextWave_ = true; // 次のウェーブを待つフラグを立てる
 		waitTimer_ = 2.0f; // ウェイトタイマーを設定（例: 2秒）
-		++currentWaveIndex_;
-		StartCurrentWave();
 												 });
 	waves_[currentWaveIndex_].Start(enemyManager_);
 }
