@@ -80,6 +80,12 @@ void EnemyManager::Update()
 			++it; // 次の敵へ
 		}
 	}
+	// 全滅判定
+	if (enemies_.empty() && onAllEnemiesDefeatedCallback_)
+	{
+		onAllEnemiesDefeatedCallback_();
+		onAllEnemiesDefeatedCallback_ = nullptr; // コールバックを一度だけ呼び出すためにクリア
+	}
 }
 
 void EnemyManager::UpdateTransform(CameraManager* camera)
@@ -159,6 +165,20 @@ void EnemyManager::SetEnemyData(const std::vector<GameObjectInfo>& data)
 	enemyData_ = data;
 	enemies_.clear();
 	CreateAssaultEnemyFromData();
+}
+
+void EnemyManager::AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo>& data)
+{
+	for (int i = 0; i < data.size(); i++)
+	{
+		auto enemy = std::make_unique<AssaultEnemy>();
+		enemy->Initialize(object3dCommon_, lightManager_, target_);
+		enemy->SetModel(data[i].fileName);
+		enemy->SetPosition(data[i].transform.translate);
+		enemy->SetRotation(data[i].transform.rotate);
+		enemy->SetScale(data[i].transform.scale);
+		enemies_.push_back(std::move(enemy));
+	}
 }
 
 void EnemyManager::Clear()

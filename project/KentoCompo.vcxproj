@@ -117,6 +117,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\ConditionNode.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\BehaviorTree\BehaviorTree.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\BlackBoard.cpp" />
+    <ClCompile Include="application\stage\Area.cpp" />
     <ClCompile Include="engine\camerawork\debug\DebugCamera.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
@@ -230,6 +231,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\time\Timer.cpp" />
     <ClCompile Include="engine\time\TimerManager.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\ParallelNode.cpp" />
+    <ClCompile Include="application\stage\Stage.cpp" />
+    <ClCompile Include="application\stage\Wave.cpp" />
+    <ClCompile Include="application\stage\WaveManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObjectTag.h" />
@@ -251,6 +255,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\BehaviorTree\BehaviorTree.h" />
     <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\BlackBoard.h" />
     <ClInclude Include="application\GameObject\combatable\base\CombatableObject.h" />
+    <ClInclude Include="application\stage\Area.h" />
+    <ClInclude Include="application\stage\GameObjectInfo.h" />
     <ClInclude Include="engine\camerawork\debug\DebugCamera.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
@@ -387,6 +393,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\GameObject\combatable\character\enemy\KnifeEnemy.h" />
     <ClInclude Include="application\GameObject\combatable\weapon\Knife.h" />
     <ClInclude Include="application\GameObject\component\action\KnifeEnemyBehavior.h" />
+    <ClInclude Include="application\stage\Stage.h" />
+    <ClInclude Include="application\stage\Wave.h" />
+    <ClInclude Include="application\stage\WaveManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />

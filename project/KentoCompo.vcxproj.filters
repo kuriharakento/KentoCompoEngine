@@ -383,6 +383,10 @@
       <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClCompile>
     <ClCompile Include="application\GameObject\component\action\KnifeEnemyBehavior.cpp" />
+    <ClCompile Include="application\stage\Stage.cpp" />
+    <ClCompile Include="application\stage\Area.cpp" />
+    <ClCompile Include="application\stage\Wave.cpp" />
+    <ClCompile Include="application\stage\WaveManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -840,6 +844,11 @@
     </ClInclude>
     <ClInclude Include="application\GameObject\component\action\KnifeEnemyBehavior.h" />
     <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\NodeUtils.h" />
+    <ClInclude Include="application\stage\Stage.h" />
+    <ClInclude Include="application\stage\Area.h" />
+    <ClInclude Include="application\stage\Wave.h" />
+    <ClInclude Include="application\stage\GameObjectInfo.h" />
+    <ClInclude Include="application\stage\WaveManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

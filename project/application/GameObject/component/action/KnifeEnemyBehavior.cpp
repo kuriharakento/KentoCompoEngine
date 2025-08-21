@@ -162,60 +162,7 @@ bool KnifeEnemyBehavior::ChaseAction(GameObject* owner)
 
 bool KnifeEnemyBehavior::AttackAction(GameObject* owner)
 {
-	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
-	if (!target_ || !knife_) return true;
-	Vector3 ownerPos = owner->GetPosition();
-	if ((target_->GetPosition() - ownerPos).Length() > attackRange_ * 1.5f)
-		return true;
-	if (attackCooldown_ > 0) { attackCooldown_ -= deltaTime; return false; }
-
-	static float elapsed = 0.0f;
-	static bool attacking = false;
-	static Vector3 swingCenter;
-	static Vector3 facingDir;
-	static Vector3 right;
-	static Vector3 knifeBaseOffset;
-	const float animTime = 0.2f;
-	const float forwardOffset = 2.0f;   // 前方への距離
-	const float swingWidth = 4.0f;      // 横幅（矩形範囲）
-
-	if (!attacking)
-	{
-		swingCenter = ownerPos;
-		Vector3 rotation = owner->GetRotation();
-		float yaw = rotation.y;
-		facingDir = Vector3(std::sinf(yaw * (std::numbers::pi / 180.0f)), 0, std::cosf(yaw * (std::numbers::pi / 180.0f)));
-		if (facingDir.Length() < 0.1f) facingDir = Vector3(0, 0, 1);
-		facingDir.NormalizeSelf();
-		Vector3 up(0, 1, 0);
-		right = up.Cross(facingDir, up); right.NormalizeSelf();
-		knifeBaseOffset = knife_->GetPosition() - (swingCenter + facingDir * forwardOffset);
-		attacking = true;
-		elapsed = 0.0f;
-	}
-	elapsed += deltaTime;
-	float t = std::min(elapsed / animTime, 1.0f);
-
-	// ownerを少しだけ前進（演出用、不要なら削除）
-	float dashDistance = 0.6f;
-	owner->SetPosition(swingCenter + facingDir * dashDistance * t);
-
-	// ナイフを前方＋左右に移動（ヨネWの矩形範囲をなぞる）
-	float swingStart = -swingWidth / 2.0f;
-	float swingEnd = swingWidth / 2.0f;
-	float swingX = swingStart + (swingEnd - swingStart) * t;
-	Vector3 swingPos = swingCenter + facingDir * forwardOffset + right * swingX + knifeBaseOffset;
-	knife_->SetPosition(swingPos);
-
-	if (t >= 1.0f)
-	{
-		knife_->SetPosition(swingCenter + facingDir * forwardOffset + knifeBaseOffset);
-		attacking = false;
-		elapsed = 0.0f;
-		attackCooldown_ = attackInterval_;
-		return true;
-	}
-	return false;
+	return true;
 }
 
 bool KnifeEnemyBehavior::IsTargetVisible(GameObject* owner)

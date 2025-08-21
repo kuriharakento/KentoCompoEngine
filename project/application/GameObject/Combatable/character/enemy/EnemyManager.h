@@ -21,11 +21,16 @@ public:
 	void AddShotgunEnemy(uint32_t count);
 	void AddKnifeEnemy(uint32_t count);
 	void SetEnemyData(const std::vector<GameObjectInfo>& data);
+	void AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo>& data);
 	void SetTarget(GameObject* target) { target_ = target; }
+	void SetOnAllEnemiesDefeatedCallback(std::function<void()> callback) { onAllEnemiesDefeatedCallback_ = std::move(callback); }
 	void Clear();
 
 private:
 	void CreateAssaultEnemyFromData();
+
+	// 敵全滅時のコールバック関数
+	std::function<void()> onAllEnemiesDefeatedCallback_ = nullptr;
 
 private:
 	Object3dCommon* object3dCommon_ = nullptr; // 3Dオブジェクト共通処理
