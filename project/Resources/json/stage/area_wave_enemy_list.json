@@ -2,6 +2,23 @@
   "areas": [
     {
       "areaIndex": 0,
+      "areaTransform": {
+        "translate": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "rotate": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scale": {
+          "x": 20.0,
+          "y": 10.0,
+          "z": 20.0
+        }
+      },
       "waves": [
         {
           "enemies": [

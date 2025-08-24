@@ -1,5 +1,6 @@
 #include "Stage.h"
 
+#include "graphics/3d/Object3dCommon.h"
 #include "manager/editor/JsonEditorManager.h"
 
 
@@ -24,6 +25,9 @@ Stage::Stage(Object3dCommon* object3dCommon, LightManager* lightManager, EnemyMa
 		}
 		auto area = std::make_shared<Area>(object3dCommon, lightManager, ememyManager, waves); // ここではnullptrを仮置き
 		area->SetActive(false); // 初期状態では非アクティブ
+		area->GetAreaObject()->SetPosition(areaInfo.areaTransform.translate);
+		area->GetAreaObject()->SetRotation(areaInfo.areaTransform.rotate);
+		area->GetAreaObject()->SetScale(areaInfo.areaTransform.scale);
 		areas.push_back(area);
 	}
 
