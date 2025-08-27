@@ -4,12 +4,13 @@
 #include "math/Vector3.h"
 #include "input/Input.h"
 
+class EnemyManager;
 class GameObject;
 
 class MoveComponent : public IGameObjectComponent
 {
 public:
-    MoveComponent();
+    MoveComponent(EnemyManager* enemyManager);
     void Update(GameObject* owner) override;
 
     // 移動パラメータ設定
@@ -34,8 +35,11 @@ private:
     Vector3 GetMovementDirection() const;
     void PlayDodgeEffect(GameObject* owner);
     void UpdateRotation(GameObject* owner, const Vector3& direction);  // 向き補間処理
+	void ProcessBulletTime(GameObject* owner);
 
 private:
+	EnemyManager* enemyManager_ = nullptr;
+
     // 基本移動
     float moveSpeed_ = 9.0f;
 
@@ -57,6 +61,10 @@ private:
     Vector3 dodgeTargetPosition_;           // 回避目標位置
     bool hasMovementInput_ = false;         // 移動入力があるか
     bool isDodging_ = false;                // 回避中か
+	float bulletTimeRadius_ = 5.0f;         // バレットタイム範囲
+	bool isInBulletTime_ = false;           // バレットタイム中か
+	float bulletTimeScale_ = 0.3f;     // バレットタイムのスローモーション倍率
+	float bulletTimeDuration_ = 0.5f;       // バレットタイムの持続時間
 
     // エフェクト関連
     float effectTimer_ = 0.0f;              // エフェクトタイマー

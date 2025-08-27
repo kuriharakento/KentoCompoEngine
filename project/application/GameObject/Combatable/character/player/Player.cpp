@@ -7,10 +7,8 @@
 #include "application/GameObject/component/base/ICollisionComponent.h"
 #include "application/GameObject/component/collision/CollisionUtils.h"
 #include "application/GameObject/component/collision/OBBColliderComponent.h"
-#include "base/Logger.h"
-#include "imgui/imgui.h"
 
-void Player::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager)
+void Player::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, EnemyManager* enemyManager)
 {
 	Character::Initialize(object3dCommon, lightManager);
 	//初期位置を設定
@@ -26,7 +24,7 @@ void Player::Initialize(Object3dCommon* object3dCommon, LightManager* lightManag
 	AddChild(GameObjectTag::Character::PlayerRightArm, std::move(arm));
 
 	// 移動コンポーネントを追加
-	AddComponent("MoveComponent", std::make_unique<MoveComponent>());
+	AddComponent("MoveComponent", std::make_unique<MoveComponent>(enemyManager));
 	// 重力演算コンポーネントを追加
 	AddComponent("GravityPhysicsComponent", std::make_unique<GravityPhysicsComponent>());
 	// 射撃コンポーネントを追加

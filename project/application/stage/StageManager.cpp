@@ -141,7 +141,7 @@ void StageManager::CreateInfosFromStageData()
 				player_ = std::make_unique<Player>();
 			}
 			enemyManager_->SetTarget(player_.get());
-			player_->Initialize(object3dCommon_, lightManager_);
+			player_->Initialize(object3dCommon_, lightManager_, enemyManager_.get());
 			player_->SetModel("player");
 			player_->SetPosition(objInfo.transform.translate);
 			player_->SetRotation(objInfo.transform.rotate);

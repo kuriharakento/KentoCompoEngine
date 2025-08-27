@@ -16,6 +16,8 @@ public:
 
 	// 敵クラスから呼び出すためのメソッド
 	void Fire();
+	// 弾の数を取得
+	std::vector< std::unique_ptr<Bullet>>& GetBullets() { return bullets_; }
 
 private:
 	

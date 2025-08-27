@@ -3,21 +3,27 @@
 #include "math/MathUtils.h"
 #include <cmath>
 
+#include "AssaultRifleComponent.h"
 #include "base/Logger.h"
 #include "math/Easing.h"
 #include "time/TimeManager.h"
+#include "application/GameObject/Combatable/character/enemy/EnemyManager.h"
+#include "time/Timer.h"
+#include "time/TimerManager.h"
 
-MoveComponent::MoveComponent()
+MoveComponent::MoveComponent(EnemyManager* enemyManager)
 {
     // 回避エフェクトの初期化
 	dodgeEffect_ = std::make_unique<DodgeEffectParticle>();
 	dodgeEffect_->Initialize();
+
+	enemyManager_ = enemyManager;
 }
 
 void MoveComponent::Update(GameObject* owner)
 {
     // タイマー更新
-    float deltaTime = TimeManager::GetInstance().GetDeltaTime();
+    float deltaTime = TimeManager::GetInstance().GetRealDeltaTime();
 
     // クールダウンタイマー更新
     if (dodgeCooldownTimer_ > 0.0f)
@@ -116,6 +122,39 @@ void MoveComponent::UpdateRotation(GameObject* owner, const Vector3& direction)
         // 回転を更新
         owner->SetRotation({ currentRotation.x, easedRotationY, currentRotation.z });
     }
+}
+
+void MoveComponent::ProcessBulletTime(GameObject* owner)
+{
+    if (isInBulletTime_) { return; }
+
+    auto enemies = enemyManager_->GetEnemies();
+	for (auto& enemy : enemies)
+	{
+		auto assaultRifle = enemy->GetComponent<AssaultRifleComponent>();
+		auto bullets = assaultRifle->GetBullets();
+		for (auto& bullet : bullets)
+		{
+			Vector3 toBullet = bullet->GetPosition() - owner->GetPosition();
+			float distance = toBullet.Length();
+			if (distance < bulletTimeRadius_)
+			{
+				isInBulletTime_ = true;
+                auto bulletTime = std::make_unique<Timer>("bulletTime", bulletTimeDuration_,DeltaTimeType::RealDeltaTime);
+				bulletTime->SetOnStart([this]() {
+					TimeManager::GetInstance().SetTimeScale(bulletTimeScale_);
+									   });
+				bulletTime->SetOnFinish([this]() {
+					TimeManager::GetInstance().SetTimeScale(1.0f);
+					isInBulletTime_ = false;
+										});
+                TimerManager::GetInstance().AddTimer(std::move(bulletTime));
+				return;
+			}
+		}
+
+	}
+
 }
 
 float MoveComponent::GetDodgeProgress() const
