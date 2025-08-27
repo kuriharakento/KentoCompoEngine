@@ -129,6 +129,12 @@ void TitleScene::Update()
 		sceneManager_->ChangeScene("STAGEEDIT");
 	}
 
+	// ゲームクリア
+	if (stageManager_->IsStageCleared())
+	{
+		sceneManager_->ChangeScene("GAMEPLAY");
+	}
+
 	// ImGuiの描画
 	DrawImGui();
 

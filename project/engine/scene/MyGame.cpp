@@ -58,7 +58,7 @@ void MyGame::Initialize()
 	sceneManager_->Initialize(context);
 
 	// Skyboxの初期化
-	skybox_->Initialize(dxCommon_.get(), "./Resources/rostock_laage_airport_4k.dds");
+	skybox_->Initialize(dxCommon_.get(), "./Resources/skybox.dds");
 }
 
 void MyGame::Finalize()
@@ -134,13 +134,14 @@ void MyGame::LoadTextures()
 {
 	TextureManager::GetInstance()->LoadTexture("./Resources/uvChecker.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/black.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/red.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/testSprite.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/monsterBall.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/gradationLine.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/circle2.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/flowerfun.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/star.png");
-	TextureManager::GetInstance()->LoadTexture("./Resources/rostock_laage_airport_4k.dds");
+	TextureManager::GetInstance()->LoadTexture("./Resources/skybox.dds");
 	TextureManager::GetInstance()->LoadTexture("./Resources/minimap_frame.png");
 }
 

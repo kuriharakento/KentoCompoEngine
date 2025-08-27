@@ -14,11 +14,15 @@ void Minimap::Initialize(SpriteCommon* spriteCommon, StageManager* stageManager)
 	// 敵のスプライトを作成
 	enemyIcons_.clear();
 
+	// エリアアイコンのスプライトを作成
+	areaIcon_.clear();
+
 	// プレイヤーアイコンを作成
 	playerIcon_ = std::make_unique<Sprite>();
-	playerIcon_->Initialize(spriteCommon_, "./Resources/black.png");
+	playerIcon_->Initialize(spriteCommon_, "./Resources/red.png");
 	playerIcon_->SetSize({ 18.0f, 18.0f });
 	playerIcon_->SetAnchorPoint({ 0.5f, 0.5f });
+	playerIcon_->SetColor(VectorColorCodes::Cyan);
 }
 
 void Minimap::Update()
@@ -43,7 +47,7 @@ void Minimap::Update()
 
 	frame_->Update();
 
-	 // プレイヤーの回転角度を取得
+	// プレイヤーの回転角度を取得
 	float playerYaw = stageManager_->GetPlayer()->GetRotation().y; // Yaw（Y軸回転）
 
 	// ミニマップ上のプレイヤーアイコンに反映
@@ -61,7 +65,7 @@ void Minimap::Update()
 		for (size_t i = enemyIcons_.size(); i < enemies.size(); ++i)
 		{
 			auto icon = std::make_unique<Sprite>();
-			icon->Initialize(spriteCommon_, "./Resources/black.png");
+			icon->Initialize(spriteCommon_, "./Resources/red.png");
 			icon->SetSize({ 10.0f, 10.0f });
 			icon->SetAnchorPoint({ 0.5f, 0.5f });
 			enemyIcons_.push_back(std::move(icon));
@@ -83,6 +87,38 @@ void Minimap::Update()
 		enemyIcons_[i]->SetRotation(enemyYaw);
 		enemyIcons_[i]->Update();
 	}
+
+	// エリアの取得
+	auto areaManager = stageManager_->GetStage()->GetAreaManager();
+	const auto& areas = areaManager->GetAreas();
+	if (areaIcon_.size() < areas.size())
+	{
+		for (size_t i = areaIcon_.size(); i < areas.size(); ++i)
+		{
+			auto icon = std::make_unique<Sprite>();
+			icon->Initialize(spriteCommon_, "./Resources/black.png");
+			icon->SetSize({ 20.0f, 20.0f });
+			icon->SetAnchorPoint({ 0.5f, 0.5f });
+			areaIcon_.push_back(std::move(icon));
+			areaActiveFlags_.push_back(false);
+		}
+	}
+	else if (areaIcon_.size() > areas.size())
+	{
+		// 余分なアイコンを削除
+		areaIcon_.resize(areas.size());
+	}
+
+	for (size_t i = 0; i < areas.size(); ++i)
+	{
+		Vector3 areaPos = areas[i]->GetAreaObject()->GetPosition();
+		float areaYaw = areas[i]->GetAreaObject()->GetRotation().y;
+		Vector2 miniMapPos = WorldToMinimap(areaPos);
+		areaIcon_[i]->SetPosition(miniMapPos);
+		areaIcon_[i]->SetRotation(areaYaw);
+		areaIcon_[i]->Update();
+		areaActiveFlags_[i] = areas[i]->IsActive();
+	}
 }
 
 void Minimap::Draw()
@@ -95,6 +131,13 @@ void Minimap::Draw()
 	for (auto& icon : enemyIcons_)
 	{
 		icon->Draw();
+	}
+
+	// アクティブなエリアのみ描画
+	for (int i = 0; i < areaIcon_.size(); ++i)
+	{
+		if (!areaActiveFlags_[i]) { continue; }
+		areaIcon_[i]->Draw();
 	}
 }
 

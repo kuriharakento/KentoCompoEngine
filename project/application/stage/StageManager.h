@@ -38,6 +38,7 @@ public:
 	Player* GetPlayer() const { return player_.get(); }
 	EnemyManager* GetEnemyManager() const { return enemyManager_.get(); }
 	ObstacleManager* GetObstacleManager() const { return obstacleManager_.get(); }
+	Stage* GetStage() const { return stage_.get(); }
 
 private:
 	Object3dCommon* object3dCommon_; // 3Dオブジェクトの共通情報
