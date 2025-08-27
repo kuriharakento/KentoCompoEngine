@@ -1,5 +1,6 @@
 #include "ObstacleManager.h"
 
+#include "BarrierBlock.h"
 #include "application/GameObject/component/collision/OBBColliderComponent.h"
 #include "manager/editor/JsonEditorManager.h"
 
@@ -72,7 +73,7 @@ void ObstacleManager::Clear()
 	obstacles_.clear();
 }
 
-void ObstacleManager::CreateObstacles(const std::string& modelName)
+void ObstacleManager::CreateObstacles()
 {
 	// 既存の障害物をクリア
 	obstacles_.clear();
@@ -80,18 +81,19 @@ void ObstacleManager::CreateObstacles(const std::string& modelName)
 	// 障害物を生成
 	for (uint32_t i = 0; i < obstacleData_.size(); ++i)
 	{
-		auto obstacle = std::make_unique<Obstacle>();
-		obstacle->Initialize(object3dCommon_, lightManager_);
-		obstacle->SetModel(modelName);
-		obstacle->SetPosition(obstacleData_[i].transform.translate);
-		obstacle->SetRotation(obstacleData_[i].transform.rotate);
-		obstacle->SetScale(obstacleData_[i].transform.scale);
-		if (i == 0)
+		if (obstacleData_[i].type == GameObjectTag::Item::Obstacle)
 		{
-			obstacle->GetModel()->SetUVScale(Vector3(10.0f, 10.0f, 1.0f));
+			CreateObstacle(obstacleData_[i]);
 		}
-		obstacles_.push_back(std::move(obstacle));
-
+		else if (obstacleData_[i].type == GameObjectTag::Item::BarrierBlock)
+		{
+			CreateBarrierBlock(obstacleData_[i]);
+		}
+		else
+		{
+			// 未知のタイプの場合はスキップ
+			continue;
+		}
 	}
 }
 
@@ -122,6 +124,28 @@ void ObstacleManager::SetObstacleData(const std::vector<GameObjectInfo>& data)
 	obstacleData_ = data;
 
 	// 障害物の生成
-	CreateObstacles("wall");
+	CreateObstacles();
+}
+
+void ObstacleManager::CreateObstacle(GameObjectInfo& info)
+{
+	auto obstacle = std::make_unique<Obstacle>();
+	obstacle->Initialize(object3dCommon_, lightManager_);
+	obstacle->SetModel("wall");
+	obstacle->SetPosition(info.transform.translate);
+	obstacle->SetRotation(info.transform.rotate);
+	obstacle->SetScale(info.transform.scale);
+	obstacles_.push_back(std::move(obstacle));
+}
+
+void ObstacleManager::CreateBarrierBlock(GameObjectInfo& info)
+{
+	auto obstacle = std::make_unique<BarrierBlock>();
+	obstacle->Initialize(object3dCommon_, lightManager_);
+	obstacle->SetModel("wall");
+	obstacle->SetPosition(info.transform.translate);
+	obstacle->SetRotation(info.transform.rotate);
+	obstacle->SetScale(info.transform.scale);
+	obstacles_.push_back(std::move(obstacle));
 }
 

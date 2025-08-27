@@ -14,7 +14,7 @@ public:
 	void AddComponent(const std::string& name, std::unique_ptr<IGameObjectComponent> comp);
 
 protected:
-	void CollisionSettings(ICollisionComponent* collider);
+	virtual void CollisionSettings(ICollisionComponent* collider);
 	void ResolvePenetration(GameObject* other);
 	bool CheckOBBvsOBBMTV(const OBB& obbA, const OBB& obbB, Vector3& mtv) const;
 };

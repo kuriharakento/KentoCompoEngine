@@ -36,5 +36,6 @@ namespace GameObjectTag
 	// アイテム
 	namespace Item {
 		const std::string Obstacle = "Obstacle";
+		const std::string BarrierBlock = "BarrierBlock";
 	}
 }

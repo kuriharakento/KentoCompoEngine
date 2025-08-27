@@ -389,6 +389,7 @@
     <ClCompile Include="application\stage\WaveManager.cpp" />
     <ClCompile Include="application\stage\AreaManager.cpp" />
     <ClCompile Include="application\stage\AreaWaveData.cpp" />
+    <ClCompile Include="application\GameObject\obstacle\BarrierBlock.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -855,6 +856,7 @@
     <ClInclude Include="application\stage\WaveInfo.h" />
     <ClInclude Include="application\stage\AreaInfo.h" />
     <ClInclude Include="application\stage\AreaWaveData.h" />
+    <ClInclude Include="application\GameObject\obstacle\BarrierBlock.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

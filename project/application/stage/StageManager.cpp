@@ -152,7 +152,7 @@ void StageManager::CreateInfosFromStageData()
 			// 敵の情報を敵マネージャーに追加
 			enemyInfos.push_back(objInfo);
 		}
-		else if (objInfo.type == "Obstacle")
+		else if (objInfo.type == "Obstacle" || objInfo.type == "BarrierBlock")
 		{
 			// 障害物の情報を障害物マネージャーに追加
 			obstacleInfos.push_back(objInfo);
