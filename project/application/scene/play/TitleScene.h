@@ -18,6 +18,7 @@
 #include "graphics/3d/Object3d.h"
 
 // effects
+#include "application/minimap/Minimap.h"
 #include "effects/particle/ParticleEmitter.h"
 
 enum class TitleSceneState
@@ -49,6 +50,8 @@ private:
 private: //メンバ変数
 	// シーンの状態
 	TitleSceneState state_ = TitleSceneState::Cameraintro;
+	// ミニマップ
+	std::unique_ptr<Minimap> minimap_;
 	// スカイドーム
 	std::unique_ptr<Object3d> skydome_;
 	// 地面

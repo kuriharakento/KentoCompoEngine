@@ -85,6 +85,9 @@ void TitleScene::Initialize()
 	);
 	stageManager_->LoadStage("field");
 
+	minimap_ = std::make_unique<Minimap>();
+	minimap_->Initialize(sceneManager_->GetSpriteCommon(), stageManager_.get());
+
 	//スプラインカメラの生成
 	splineCamera_ = std::make_unique<SplineCamera>();
 	splineCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
@@ -135,6 +138,8 @@ void TitleScene::Update()
 	// カメラの更新
 	topDownCamera_->Update();
 
+	minimap_->Update();
+
 	// ステージの更新
 	stageManager_->Update();
 
@@ -165,7 +170,7 @@ void TitleScene::Draw3D()
 
 void TitleScene::Draw2D()
 {
-
+	minimap_->Draw();
 }
 
 void TitleScene::InitializeParticleEmitters()

@@ -237,6 +237,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\stage\Stage.cpp" />
     <ClCompile Include="application\stage\Wave.cpp" />
     <ClCompile Include="application\stage\WaveManager.cpp" />
+    <ClCompile Include="application\minimap\Minimap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObjectTag.h" />
@@ -404,6 +405,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\stage\Stage.h" />
     <ClInclude Include="application\stage\Wave.h" />
     <ClInclude Include="application\stage\WaveManager.h" />
+    <ClInclude Include="application\minimap\Minimap.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />

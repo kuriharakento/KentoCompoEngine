@@ -23,6 +23,7 @@ public:
 	void ApplyObstacleData();
 	void SetCulling(bool culling) { culling_ = culling; } // カリングの設定
 	void SetObstacleData(const std::vector<GameObjectInfo>& data);
+	const std::vector<std::unique_ptr<Obstacle>>& GetObstacles() const { return obstacles_; }
 
 private:
 	void CreateObstacle(GameObjectInfo& info);

@@ -141,6 +141,7 @@ void MyGame::LoadTextures()
 	TextureManager::GetInstance()->LoadTexture("./Resources/flowerfun.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/star.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/rostock_laage_airport_4k.dds");
+	TextureManager::GetInstance()->LoadTexture("./Resources/minimap_frame.png");
 }
 
 void MyGame::LoadModels()
