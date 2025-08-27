@@ -94,6 +94,9 @@ void MoveComponent::Update(GameObject* owner)
             ProcessMovement(owner); // 通常移動
         }
     }
+
+	// バレットタイム処理
+	ProcessBulletTime(owner);
 }
 
 // 向きを滑らかに補間する処理
@@ -126,13 +129,13 @@ void MoveComponent::UpdateRotation(GameObject* owner, const Vector3& direction)
 
 void MoveComponent::ProcessBulletTime(GameObject* owner)
 {
-    if (isInBulletTime_) { return; }
+    if (isInBulletTime_ || !isDodging_) { return; }
 
-    auto enemies = enemyManager_->GetEnemies();
-	for (auto& enemy : enemies)
+    const auto& enemies = enemyManager_->GetEnemies();
+	for (const auto& enemy : enemies)
 	{
 		auto assaultRifle = enemy->GetComponent<AssaultRifleComponent>();
-		auto bullets = assaultRifle->GetBullets();
+		const auto& bullets = assaultRifle->GetBullets();
 		for (auto& bullet : bullets)
 		{
 			Vector3 toBullet = bullet->GetPosition() - owner->GetPosition();
@@ -146,7 +149,11 @@ void MoveComponent::ProcessBulletTime(GameObject* owner)
 									   });
 				bulletTime->SetOnFinish([this]() {
 					TimeManager::GetInstance().SetTimeScale(1.0f);
-					isInBulletTime_ = false;
+					auto timer = std::make_unique<Timer>("bulletTimeCooldown", bulletTimeCooldown_, DeltaTimeType::RealDeltaTime);
+					timer->SetOnFinish([this]() {
+						isInBulletTime_ = false;
+									   });
+					TimerManager::GetInstance().AddTimer(std::move(timer));
 										});
                 TimerManager::GetInstance().AddTimer(std::move(bulletTime));
 				return;

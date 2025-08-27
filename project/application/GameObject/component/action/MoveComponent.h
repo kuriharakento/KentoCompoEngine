@@ -64,7 +64,8 @@ private:
 	float bulletTimeRadius_ = 5.0f;         // バレットタイム範囲
 	bool isInBulletTime_ = false;           // バレットタイム中か
 	float bulletTimeScale_ = 0.3f;     // バレットタイムのスローモーション倍率
-	float bulletTimeDuration_ = 0.5f;       // バレットタイムの持続時間
+	float bulletTimeDuration_ = 3.0f;       // バレットタイムの持続時間
+	float bulletTimeCooldown_ = 5.0f;       // バレットタイムのクールダウン時間
 
     // エフェクト関連
     float effectTimer_ = 0.0f;              // エフェクトタイマー

@@ -1,10 +1,5 @@
 #include "Timer.h"
 
-Timer::Timer(const std::string& name, float duration, DeltaTimeType deltaType)
-	: name_(name), duration_(duration), elapsed_(0.0f), running_(false), finished_(false), deltaTimeType_(deltaType)
-{
-}
-
 void Timer::Start()
 {
     running_ = true;

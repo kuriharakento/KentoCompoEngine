@@ -12,7 +12,13 @@ class Timer
 {
 public:
     // コンストラクタ
-    Timer(const std::string& name, float duration, DeltaTimeType deltaType = DeltaTimeType::DeltaTime);
+    Timer(const std::string& name, float duration, DeltaTimeType deltaType = DeltaTimeType::DeltaTime)
+		: name_(name), duration_(duration), elapsed_(0.0f), running_(false), finished_(false), deltaTimeType_(deltaType)
+	{
+    	onStart = []() {};
+		onTick_ = [](float) {};
+    	onFinish_ = []() {};
+	}
 
     // タイマー操作
     void Start();
