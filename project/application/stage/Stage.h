@@ -9,7 +9,7 @@ public:
     Stage(Object3dCommon* object3dCommon, LightManager* lightManager, EnemyManager* ememyManager, const std::string& filePath);
 
     void Start();
-    void Update();
+    void Update(CameraManager* camera);
 
     // ステージクリア時のコールバック
     void SetOnClearCallback(std::function<void()> cb) { onClearCallback_ = std::move(cb); }

@@ -15,10 +15,12 @@ StageManager::~StageManager()
 	stage_.reset();
 }
 
-void StageManager::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager)
+void StageManager::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, CameraManager* camera)
 {
 	object3dCommon_ = object3dCommon;
 	lightManager_ = lightManager;
+	cameraManager_ = camera;
+
 	// ステージデータの初期化
 	stageData_ = std::make_unique<StageData>();
 	JsonEditorManager::GetInstance()->Register("stageData", stageData_);
@@ -57,25 +59,25 @@ void StageManager::Update()
 		obstacleManager_->Update();
 	}
 
-	stage_->Update(); // ステージの更新
+	stage_->Update(cameraManager_); // ステージの更新
 }
 
-void StageManager::Draw(CameraManager* camera)
+void StageManager::Draw()
 {
 	// プレイヤーの描画
 	if (player_)
 	{
-		player_->Draw(camera);
+		player_->Draw(cameraManager_);
 	}
 	// 敵マネージャーの描画
 	if (enemyManager_)
 	{
-		enemyManager_->Draw(camera);
+		enemyManager_->Draw(cameraManager_);
 	}
 	// 障害物の描画
 	if (obstacleManager_)
 	{
-		obstacleManager_->Draw(camera);
+		obstacleManager_->Draw(cameraManager_);
 	}
 }
 

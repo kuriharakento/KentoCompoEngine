@@ -45,10 +45,10 @@ void Stage::Start()
     areaManager_->Start();
 }
 
-void Stage::Update()
+void Stage::Update(CameraManager* camera)
 {
     if (!isCleared_)
     {
-        areaManager_->Update();
+        areaManager_->Update(camera);
     }
 }

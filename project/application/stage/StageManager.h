@@ -22,9 +22,9 @@ public:
 	StageManager();
 	~StageManager();
 
-	void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager);
+	void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, CameraManager* camera);
 	void Update();
-	void Draw(CameraManager* camera);
+	void Draw();
 	void DrawImGui();
 
 	// ステージデータを読み込み
@@ -42,6 +42,7 @@ public:
 private:
 	Object3dCommon* object3dCommon_; // 3Dオブジェクトの共通情報
 	LightManager* lightManager_; // ライトマネージャー
+	CameraManager* cameraManager_; // カメラマネージャー
 
 	std::shared_ptr<StageData> stageData_; // ステージデータ
 

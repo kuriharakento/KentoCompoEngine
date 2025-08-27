@@ -80,7 +80,8 @@ void TitleScene::Initialize()
 	stageManager_ = std::make_unique<StageManager>();
 	stageManager_->Initialize(
 		sceneManager_->GetObject3dCommon(),
-		sceneManager_->GetLightManager()
+		sceneManager_->GetLightManager(),
+		sceneManager_->GetCameraManager()
 	);
 	stageManager_->LoadStage("field");
 
@@ -156,7 +157,7 @@ void TitleScene::Draw3D()
 	ground_->Draw();
 
 	// ステージの描画
-	stageManager_->Draw(sceneManager_->GetCameraManager());
+	stageManager_->Draw();
 
 	// スプライン曲線の描画
 	splineCamera_->DrawSplineLine();

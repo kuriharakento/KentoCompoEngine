@@ -13,7 +13,8 @@ void StageEditScene::Initialize()
 	stageManager_ = std::make_unique<StageManager>();
 	stageManager_->Initialize(
 		sceneManager_->GetObject3dCommon(),
-		sceneManager_->GetLightManager()
+		sceneManager_->GetLightManager(),
+		sceneManager_->GetCameraManager()
 	);
 	stageManager_->LoadStage("field");
 
@@ -89,7 +90,7 @@ void StageEditScene::Draw3D()
 	);
 
 	// ステージマネージャーの描画
-	stageManager_->Draw(sceneManager_->GetCameraManager());
+	stageManager_->Draw();
 }
 
 void StageEditScene::Finalize()

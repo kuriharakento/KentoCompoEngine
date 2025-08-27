@@ -30,11 +30,12 @@ public: //アクセッサ
 	virtual const Vector3& GetPosition() const { return transform_.translate; }
 	virtual const Vector3& GetRotation() const { return transform_.rotate; }
 	virtual const Vector3& GetScale() const { return transform_.scale; }
-	const Matrix4x4& GetWorldMatrix() const { return object3d_->GetWorldMatrix(); }						// ワールド行列の取得
+	Matrix4x4 GetWorldMatrix() const { return object3d_->GetWorldMatrix(); }						// ワールド行列の取得
 
 	//オブジェクト3D
 	void SetModel(const std::string& modelName) { object3d_->SetModel(modelName); }						// モデルの設定
 	Model* GetModel() const { return object3d_ ? object3d_->GetModel() : nullptr; }						// モデルの取得
+	Object3d* GetObject3d() const { return object3d_.get(); }											// Object3Dの取得
 
 	//タグ
 	std::string GetTag() const { return tag_; }	// タグの取得

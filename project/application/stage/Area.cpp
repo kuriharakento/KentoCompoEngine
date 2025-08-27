@@ -2,9 +2,10 @@
 
 #include "application/GameObject/Combatable/character/base/Character.h"
 #include "application/GameObject/component/collision/OBBColliderComponent.h"
+#include "base/Logger.h"
 
 Area::Area(Object3dCommon* objCommon, LightManager* lightManager, EnemyManager* enemyManager,
-		   const std::vector<Wave>& waves) : waveManager_(enemyManager, waves)
+           const std::vector<Wave>& waves) : waveManager_(enemyManager, waves)
 {
 	// エリアの判定用ゲームオブジェクトを作成
 	areaObject_ = std::make_unique<GameObject>("Area");
@@ -13,7 +14,7 @@ Area::Area(Object3dCommon* objCommon, LightManager* lightManager, EnemyManager* 
 	auto collider = std::make_unique<OBBColliderComponent>(areaObject_.get());
 	collider->SetOnEnter([this](GameObject* other) {
 		// エリアに入った時の処理
-		if (!isStarted_)
+		if (!isStarted_ && other->GetTag() == GameObjectTag::Character::Player)
 		{
 			Start(); // エリアに入ったらスタート
 		}
@@ -31,7 +32,6 @@ Area::Area(Object3dCommon* objCommon, LightManager* lightManager, EnemyManager* 
 		}
 
 						});
-	collider->SetSizeOffset(Vector3(10.0f, 10.0f, 10.0f));
 	areaObject_->AddComponent("OBBCollider", std::move(collider));
 
 	// 初期状態を設定
@@ -56,7 +56,7 @@ void Area::Start()
 	waveManager_.Start();
 }
 
-void Area::Update()
+void Area::Update(CameraManager* camera)
 {
 	if (isStarted_ && !isCleared_)
 	{
@@ -66,5 +66,6 @@ void Area::Update()
 	{
 		// エリアオブジェクトの更新
 		areaObject_->Update();
+		areaObject_->UpdateTransform(camera);
 	}
 }

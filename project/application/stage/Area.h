@@ -13,7 +13,7 @@ public:
 
     void Start();
 
-    void Update();
+    void Update(CameraManager* camera);
 
     void SetOnClearCallback(std::function<void()> cb) { onClearCallback_ = std::move(cb); }
     bool IsCleared() const { return isCleared_; }

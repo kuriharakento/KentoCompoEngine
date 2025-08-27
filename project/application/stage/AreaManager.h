@@ -10,7 +10,7 @@ public:
 
     void Start();
 
-    void Update();
+    void Update(CameraManager* camera);
 
     void SetOnAllAreasCleared(std::function<void()> cb) { onAllAreasCleared_ = std::move(cb); }
     bool IsAllCleared() const { return isAllCleared_; }

@@ -11,12 +11,12 @@ void AreaManager::Start()
 	StartCurrentArea();
 }
 
-void AreaManager::Update()
+void AreaManager::Update(CameraManager* camera)
 {
 	if (isAllCleared_) { return; }
 	if (currentAreaIndex_ < areas_.size())
 	{
-		areas_[currentAreaIndex_]->Update();
+		areas_[currentAreaIndex_]->Update(camera);
 	}
 }
 
