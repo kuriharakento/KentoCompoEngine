@@ -114,6 +114,7 @@ void SplineCamera::LoadJson(const std::string& filePath)
 
 void SplineCamera::DrawSplineLine()
 {
+#ifdef _DEBUG
     const auto& points = splineData_->GetControlPoints();
     if (points.size() < 4) return; // 4つ以上のポイントが必要
 
@@ -138,4 +139,5 @@ void SplineCamera::DrawSplineLine()
             prevPoint = currentPoint; // 現在の点を次の始点に設定
         }
     }
+#endif
 }
