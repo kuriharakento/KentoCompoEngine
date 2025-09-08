@@ -1,10 +1,16 @@
 #pragma once
 #include <unordered_set>
 
+#include "AABBColliderComponent.h"
+#include "CollisionAlgorithm.h"
 #include "OBBColliderComponent.h"
 #include "application/GameObject/component/base/ICollisionComponent.h"
 
-class AABBColliderComponent;
+enum class CollisionDimension
+{
+	Mode2D,
+	Mode3D
+};
 
 class CollisionManager
 {
@@ -17,6 +23,12 @@ public:
 	void Unregister(ICollisionComponent* collider);
 	void CheckCollisions();
 	void UpdatePreviousPositions();
+
+	// 衝突判定の次元を設定
+	void SetCollisionDimension(CollisionDimension dimension) { dimension_ = dimension; }
+
+	// 2Dモード時の衝突判定面を設定
+	void SetCollisionPlane(CollisionPlane plane) { collisionPlane_ = plane; }
 
 private:
 	static CollisionManager* instance_; // シングルトンインスタンス
@@ -65,5 +77,10 @@ private:
 	// 現在接触しているペア
 	std::unordered_set<CollisionPair, CollisionPairHash> currentCollisions_;
 
+	// 衝突判定の次元
+	CollisionDimension dimension_ = CollisionDimension::Mode3D;
+
+	// 2Dモード時の衝突判定面
+	CollisionPlane collisionPlane_ = CollisionPlane::XY;
 };
 

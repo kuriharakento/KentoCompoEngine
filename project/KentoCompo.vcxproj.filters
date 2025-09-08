@@ -391,6 +391,8 @@
     <ClCompile Include="application\stage\AreaWaveData.cpp" />
     <ClCompile Include="application\GameObject\obstacle\BarrierBlock.cpp" />
     <ClCompile Include="application\minimap\Minimap.cpp" />
+    <ClCompile Include="application\GameObject\component\collision\CollisionAlgorithm.cpp" />
+    <ClCompile Include="application\GameObject\component\collision\SphereColliderComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -859,6 +861,9 @@
     <ClInclude Include="application\stage\AreaWaveData.h" />
     <ClInclude Include="application\GameObject\obstacle\BarrierBlock.h" />
     <ClInclude Include="application\minimap\Minimap.h" />
+    <ClInclude Include="application\GameObject\component\collision\CollisionAlgorithm.h" />
+    <ClInclude Include="application\GameObject\component\collision\SphereColliderComponent.h" />
+    <ClInclude Include="engine\math\Sphere.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

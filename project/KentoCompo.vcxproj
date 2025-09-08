@@ -112,11 +112,13 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\GameObject\component\action\AssaultEnemyBehavior.cpp" />
     <ClCompile Include="application\effect\DodgeEffectParticle.cpp" />
     <ClCompile Include="application\effect\EnemyDeathEffect.cpp" />
+    <ClCompile Include="application\GameObject\component\collision\CollisionAlgorithm.cpp" />
     <ClCompile Include="application\GameObject\component\collision\CollisionUtils.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\CompositeNode.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\ConditionNode.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\BehaviorTree\BehaviorTree.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\BlackBoard.cpp" />
+    <ClCompile Include="application\GameObject\component\collision\SphereColliderComponent.cpp" />
     <ClCompile Include="application\stage\Area.cpp" />
     <ClCompile Include="application\stage\AreaManager.cpp" />
     <ClCompile Include="application\stage\AreaWaveData.cpp" />
@@ -253,12 +255,14 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\GameObject\component\action\AssaultEnemyBehavior.h" />
     <ClInclude Include="application\effect\DodgeEffectParticle.h" />
     <ClInclude Include="application\effect\EnemyDeathEffect.h" />
+    <ClInclude Include="application\GameObject\component\collision\CollisionAlgorithm.h" />
     <ClInclude Include="application\GameObject\component\collision\CollisionUtils.h" />
     <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\CompositeNode.h" />
     <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\ConditionNode.h" />
     <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\BehaviorTree\BehaviorTree.h" />
     <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\BlackBoard.h" />
     <ClInclude Include="application\GameObject\combatable\base\CombatableObject.h" />
+    <ClInclude Include="application\GameObject\component\collision\SphereColliderComponent.h" />
     <ClInclude Include="application\stage\Area.h" />
     <ClInclude Include="application\stage\AreaInfo.h" />
     <ClInclude Include="application\stage\GameObjectInfo.h" />
@@ -297,6 +301,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\light\LightConstants.h" />
     <ClInclude Include="engine\light\PointLight.h" />
     <ClInclude Include="engine\light\SpotLight.h" />
+    <ClInclude Include="engine\math\Sphere.h" />
     <ClInclude Include="engine\math\VectorColorCodes.h" />
     <ClInclude Include="engine\math\AABB.h" />
     <ClInclude Include="engine\math\Easing.h" />
