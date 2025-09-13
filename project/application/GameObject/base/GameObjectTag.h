@@ -15,6 +15,7 @@ namespace GameObjectTag
 		// プレイヤー
 		const std::string Player = "Player";
 		const std::string PlayerRightArm = "PlayerRightArm";
+		const std::string PlayerLeftArm = "PlayerLeftArm";
 
 		// 敵キャラクター
 		const std::string AssaultEnemy = "AssaultEnemy";

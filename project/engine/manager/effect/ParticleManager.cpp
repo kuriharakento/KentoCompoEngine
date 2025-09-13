@@ -30,8 +30,6 @@ void ParticleManager::Finalize()
 	{
 		// パイプラインマネージャーの解放
 		instance_->pipelineManager_.reset();
-
-
 		
 		delete instance_;
 		instance_ = nullptr;
