@@ -87,6 +87,31 @@ void ParticleEmitter::DrawImGui()
 #ifdef _DEBUG
 	ImGui::SeparatorText("ParticleEmitter Info");
 
+	// --- BlendMode切り替えUI ---
+	static const char* blendModeNames[] = {
+		"Alpha",
+		"Additive",
+		"Subtractive",
+		"Multiply",
+		"Screen",
+		"Darken",
+		"Lighten",
+		"ColorBurn",
+		"ColorDodge"
+	};
+	int blendModeIdx = static_cast<int>(blendMode_);
+	if (ImGui::Combo("Blend Mode", &blendModeIdx, blendModeNames, IM_ARRAYSIZE(blendModeNames)))
+	{
+		blendMode_ = static_cast<BlendMode>(blendModeIdx);
+	}
+
+	// --- 現在の生成パーティクル数を表示 ---
+	if (particleGroup_)
+	{
+		size_t particleCount = particleGroup_->GetParticles().size();
+		ImGui::Text("Current Particle Count: %zu", particleCount);
+	}
+
 	// 再生・停止ボタン
 	if (ImGui::Button(isPlaying_ ? "Stop" : "Play"))
 	{

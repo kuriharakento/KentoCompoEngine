@@ -8,6 +8,9 @@ namespace MathUtils
 
 	float RandomFloat(float min, float max)
 	{
+		// min/maxを正しい順序に修正
+		if (min > max) std::swap(min, max);
+
 		static std::random_device rd;  // シード生成器（staticで初期化は1回だけ）
 		static std::mt19937 gen(rd()); // メルセンヌ・ツイスタの乱数生成器
 
@@ -17,11 +20,20 @@ namespace MathUtils
 
 	Vector3 RandomVector3(Vector3 min, Vector3 max)
 	{
+		// 順序がおかしい場合は正しい順序に修正
+		if (min.x > max.x) std::swap(min.x, max.x);
+		if (min.y > max.y) std::swap(min.y, max.y);
+		if (min.z > max.z) std::swap(min.z, max.z);
 		return Vector3(RandomFloat(min.x, max.x), RandomFloat(min.y, max.y), RandomFloat(min.z, max.z));
 	}
 
 	Vector4 RandomVector4(Vector4 min, Vector4 max)
 	{
+		// 順序がおかしい場合は正しい順序に修正
+		if (min.x > max.x) std::swap(min.x, max.x);
+		if (min.y > max.y) std::swap(min.y, max.y);
+		if (min.z > max.z) std::swap(min.z, max.z);
+		if (min.w > max.w) std::swap(min.w, max.w);
 		return Vector4(RandomFloat(min.x, max.x), RandomFloat(min.y, max.y), RandomFloat(min.z, max.z), RandomFloat(min.w, max.w));
 	}
 

@@ -363,6 +363,29 @@ void TitleScene::InitializeParticleEmitters()
 	mordeVFXGround_->StopEmit();
 	mordeVFXFragment_->StopEmit();
 
+	playerParticle_ = std::make_unique<ParticleEmitter>();
+	playerParticle_->Initialize("titlePlayerParticle", "./Resources/circle2.png");
+	playerParticle_->SetInitialColor(VectorColorCodes::Salmon);
+	playerParticle_->SetRandomColor(true);
+	playerParticle_->SetRandomColorRange(VectorColorCodes::Blue, VectorColorCodes::Red);
+	playerParticle_->SetInitialScale(Vector3(0.01f, 0.01f, 0.01f));
+	playerParticle_->SetEmitRate(0.2f);
+	playerParticle_->SetEmitRange(Vector3(-30.0f, 0.0f, -30.0f), Vector3(30.0f, 1.0f, 30.0f));
+	playerParticle_->SetRandomScale(true);
+	playerParticle_->SetRandomScaleRange(AABB(Vector3(0.001f, 0.001f, 0.001f), Vector3(0.2f, 0.2f, 0.2f)));
+	playerParticle_->SetInitialLifeTime(1.0f);
+	playerParticle_->SetBillborad(true);
+	// コンポーネントの追加
+	playerParticle_->AddComponent(std::make_shared<DragComponent>(0.95f));
+	playerParticle_->AddComponent(std::make_shared<ColorFadeOutComponent>());
+	playerParticle_->AddComponent(std::make_shared<AccelerationComponent>(Vector3(0.0f, 0.3f, 0.0f)));
+	playerParticle_->Start(
+		Vector3(),
+		15,
+		0.0f,
+		true
+	);
+
 }
 
 void TitleScene::DrawImGui()

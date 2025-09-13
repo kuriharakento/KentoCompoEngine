@@ -82,9 +82,6 @@ void ParticleManager::Draw()
 
 	dxCommon_->GetCommandList()->SetGraphicsRootSignature(pipelineManager_->GetRootSignature());
 
-	/*--------------[ パイプラインステートの設定 ]-----------------*/
-
-	dxCommon_->GetCommandList()->SetPipelineState(pipelineManager_->GetPipelineState());
 
 	/*--------------[ プリミティブトポロジーの設定 ]-----------------*/
 
@@ -96,6 +93,9 @@ void ParticleManager::Draw()
 	{
 		//NULLチェック
 		if (!emitter.second) { continue; }
+
+		// エミッターごとのブレンドモードに応じたパイプラインステートを設定
+		dxCommon_->GetCommandList()->SetPipelineState(pipelineManager_->GetPipelineState(emitter.second->GetBlendMode()));
 		emitter.second->Draw(dxCommon_, srvManager_);
 	}
 	
