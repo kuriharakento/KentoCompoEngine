@@ -37,6 +37,7 @@ public:
 	void SetTexture(const std::string& textureFilePath);
 	void SetModelType(ParticleType type);
 	std::list<Particle>& GetParticles() { return particles; }
+	bool IsBillboard() const { return isBillboard_; }
 	void SetBillboard(bool isBillboard) { isBillboard_ = isBillboard; }
 	Vector3 GetUVTranslate() const;
 	Vector3 GetUVScale() const;

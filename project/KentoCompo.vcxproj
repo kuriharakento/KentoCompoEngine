@@ -230,7 +230,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\GameObject\obstacle\ObstacleData.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\SequenceNode.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\SelectorNode.cpp" />
-    <ClCompile Include="application\scene\play\StageEditScene.cpp" />
+    <ClCompile Include="application\scene\debug\StageEditScene.cpp" />
     <ClCompile Include="application\stage\StageManager.cpp" />
     <ClCompile Include="application\stage\StageData.cpp" />
     <ClCompile Include="engine\time\Timer.cpp" />
@@ -240,6 +240,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\stage\Wave.cpp" />
     <ClCompile Include="application\stage\WaveManager.cpp" />
     <ClCompile Include="application\minimap\Minimap.cpp" />
+    <ClCompile Include="application\scene\debug\ParticleTestScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObjectTag.h" />
@@ -398,7 +399,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\jsonEditor\JsonEditorImGuiUtils.h" />
     <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\SequenceNode.h" />
     <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\SelectorNode.h" />
-    <ClInclude Include="application\scene\play\StageEditScene.h" />
+    <ClInclude Include="application\scene\debug\StageEditScene.h" />
     <ClInclude Include="application\stage\StageManager.h" />
     <ClInclude Include="application\stage\StageData.h" />
     <ClInclude Include="engine\time\Timer.h" />
@@ -412,6 +413,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\stage\Wave.h" />
     <ClInclude Include="application\stage\WaveManager.h" />
     <ClInclude Include="application\minimap\Minimap.h" />
+    <ClInclude Include="application\scene\debug\ParticleTestScene.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />

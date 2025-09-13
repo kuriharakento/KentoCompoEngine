@@ -124,7 +124,7 @@
     <ClCompile Include="application\scene\play\GamePlayScene.cpp">
       <Filter>application\scene</Filter>
     </ClCompile>
-    <ClCompile Include="application\scene\play\StageEditScene.cpp">
+    <ClCompile Include="application\scene\debug\StageEditScene.cpp">
       <Filter>application\scene</Filter>
     </ClCompile>
     <ClCompile Include="externals\imgui\imgui.cpp">
@@ -397,6 +397,7 @@
     <ClCompile Include="application\GameObject\component\collision\CollisionAlgorithm.cpp">
       <Filter>application\GameObject\component\collision</Filter>
     </ClCompile>
+    <ClCompile Include="application\scene\debug\ParticleTestScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -513,7 +514,7 @@
     <ClInclude Include="application\scene\play\GamePlayScene.h">
       <Filter>application\scene</Filter>
     </ClInclude>
-    <ClInclude Include="application\scene\play\StageEditScene.h">
+    <ClInclude Include="application\scene\debug\StageEditScene.h">
       <Filter>application\scene</Filter>
     </ClInclude>
     <ClInclude Include="application\scene\play\TitleScene.h">
@@ -875,6 +876,7 @@
     <ClInclude Include="engine\math\Sphere.h">
       <Filter>engine\math</Filter>
     </ClInclude>
+    <ClInclude Include="application\scene\debug\ParticleTestScene.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

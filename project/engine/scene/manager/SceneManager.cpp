@@ -40,9 +40,14 @@ void SceneManager::Update()
 	{
 		ChangeScene("GAMEPLAY");
 	}
+	// Debug用シーン
 	if(ImGui::Button("StageEdit"))
 	{
 		ChangeScene("STAGEEDIT");
+	}
+	if (ImGui::Button("ParticleTest"))
+	{
+		ChangeScene("PARTICLETEST");
 	}
 	ImGui::End();
 #endif

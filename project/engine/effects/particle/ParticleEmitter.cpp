@@ -158,6 +158,13 @@ void ParticleEmitter::DrawImGui()
 	}
 	ImGui::DragFloat("Duration", &duration_, 0.01f, 0.0f, 100.0f);
 
+	// ビルボード
+	bool isBillboard = particleGroup_->IsBillboard();
+	if (ImGui::Checkbox("Billboard", &isBillboard))
+	{
+		particleGroup_->SetBillboard(isBillboard);
+	}
+
 	// 初期値
 	float life = initialLifeTime_;
 	if (ImGui::DragFloat("Initial LifeTime", &life, 0.01f, 0.0f, 100.0f))
