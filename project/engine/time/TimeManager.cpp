@@ -4,58 +4,69 @@
 
 TimeManager& TimeManager::GetInstance()
 {
-    static TimeManager instance;
-    return instance;
+	static TimeManager instance;
+	return instance;
 }
 
 TimeManager::TimeManager()
 {
-    lastUpdate_ = std::chrono::steady_clock::now();
+	lastUpdate_ = std::chrono::steady_clock::now();
+	// 各コンテキストの初期化
+	gameContext_ = { 0.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+	uiContext_ = { 0.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+}
+
+void TimeManager::UpdateTimeContext(TimeContext& context, float realDelta, bool isPaused)
+{
+	// 実時間の設定
+	context.realDeltaTime = realDelta;
+
+	// ポーズ時はスケール適用時間を0にする
+	context.deltaTime = isPaused ? 0.0f : realDelta * context.timeScale;
+
+	// 累積時間の更新
+	context.gameTime += context.deltaTime;
+	context.realGameTime += context.realDeltaTime;
 }
 
 void TimeManager::Update()
 {
 #ifdef _DEBUG
-    ImGui::Begin("Time Manager");
+	ImGui::Begin("Time Manager");
 
-    // タイムスケールの操作
-    ImGui::SliderFloat("Time Scale", &timeScale_, 0.0f, 3.0f, "%.2f");
+	// 全体のポーズ設定
+	ImGui::Checkbox("Paused", &paused_);
+	ImGui::Separator();
 
-    // ポーズのON/OFF
-    ImGui::Checkbox("Paused", &paused_);
+	// ゲーム
+	ImGui::Text("Game Context:");
+	ImGui::SliderFloat("Game Time Scale", &gameContext_.timeScale, 0.0f, 3.0f, "%.2f");
+	ImGui::Text("  GameTime: %.2f", gameContext_.gameTime);
+	ImGui::Text("  RealGameTime: %.2f", gameContext_.realGameTime);
+	ImGui::Text("  DeltaTime: %.4f", gameContext_.deltaTime);
+	ImGui::Text("  RealDeltaTime: %.4f", gameContext_.realDeltaTime);
 
-    // 経過時間表示
-    ImGui::Text("GameTime: %.2f", gameTime_);
-    ImGui::Text("UnscaledGameTime: %.2f", realGameTime_);
-    ImGui::Text("DeltaTime: %.4f", deltaTime_);
-    ImGui::Text("RealDeltaTime: %.4f", realDeltaTime_);
+	ImGui::Separator();
 
-    ImGui::End();
+	// UI
+	ImGui::Text("UI Context:");
+	ImGui::SliderFloat("UI Time Scale", &uiContext_.timeScale, 0.0f, 3.0f, "%.2f");
+	ImGui::Text("  GameTime: %.2f", uiContext_.gameTime);
+	ImGui::Text("  RealGameTime: %.2f", uiContext_.realGameTime);
+	ImGui::Text("  DeltaTime: %.4f", uiContext_.deltaTime);
+	ImGui::Text("  RealDeltaTime: %.4f", uiContext_.realDeltaTime);
+
+	ImGui::End();
 #endif
 
-    auto now = std::chrono::steady_clock::now();
-    realDeltaTime_ = std::chrono::duration<float>(now - lastUpdate_).count();
-    lastUpdate_ = now;
+	// 実時間の計測
+	auto now = std::chrono::steady_clock::now();
+	float realDelta = std::chrono::duration<float>(now - lastUpdate_).count();
+	lastUpdate_ = now;
 
-    // ポーズ時はdeltaTime_を0にする
-    deltaTime_ = paused_ ? 0.0f : realDeltaTime_ * timeScale_;
-
-    // 経過時間も加算
-    if (!paused_)
-    {
-        gameTime_ += deltaTime_;
-        realGameTime_ += realDeltaTime_;
-    }
-}
-
-void TimeManager::SetTimeScale(float scale)
-{
-	timeScale_ = scale;
-}
-
-float TimeManager::GetTimeScale() const
-{
-	return timeScale_;
+	// 各コンテキストの更新
+	UpdateTimeContext(gameContext_, realDelta, paused_);
+	UpdateTimeContext(uiContext_, realDelta, false);      // UIは通常ポーズの影響を受けない
 }
 
 void TimeManager::Pause()
@@ -71,24 +82,4 @@ void TimeManager::Resume()
 bool TimeManager::IsPaused() const
 {
 	return paused_;
-}
-
-float TimeManager::GetGameTime() const
-{
-	return gameTime_;
-}
-
-float TimeManager::GetRealGameTime() const
-{
-	return realGameTime_;
-}
-
-float TimeManager::GetDeltaTime() const
-{
-	return deltaTime_;
-}
-
-float TimeManager::GetRealDeltaTime() const
-{
-	return realDeltaTime_;
 }

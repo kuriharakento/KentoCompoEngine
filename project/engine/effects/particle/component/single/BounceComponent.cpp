@@ -9,7 +9,7 @@ BounceComponent::BounceComponent(float groundHeight, float restitution, float mi
 void BounceComponent::Update(Particle& particle)
 {
 	// 次のフレームでのY座標を予測
-	float nextY = particle.transform.translate.y + particle.velocity.y * (TimeManager::GetInstance().GetDeltaTime());
+	float nextY = particle.transform.translate.y + particle.velocity.y * (TimeManager::GetInstance().GetGameContext().deltaTime);
 
 	// 地面に到達
 	if (particle.transform.translate.y >= groundHeight_ && nextY < groundHeight_)

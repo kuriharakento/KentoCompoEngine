@@ -39,10 +39,10 @@ void CreateTimer()
 {
 	auto timer = std::make_unique<Timer>("test", 10.0f, DeltaTimeType::RealDeltaTime);
 	timer->SetOnStart([]() {
-		TimeManager::GetInstance().SetTimeScale(0.2f);
+		TimeManager::GetInstance().SetGameTimeScale(0.2f);
 					  });
 	timer->SetOnFinish([]() {
-		TimeManager::GetInstance().SetTimeScale(1.0f);
+		TimeManager::GetInstance().SetGameTimeScale(1.0f);
 					   });
 	TimerManager::GetInstance().AddTimer(std::move(timer));
 }

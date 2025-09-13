@@ -23,7 +23,7 @@ MoveComponent::MoveComponent(EnemyManager* enemyManager)
 void MoveComponent::Update(GameObject* owner)
 {
     // タイマー更新
-    float deltaTime = TimeManager::GetInstance().GetRealDeltaTime();
+    float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
 
     // クールダウンタイマー更新
     if (dodgeCooldownTimer_ > 0.0f)
@@ -145,10 +145,10 @@ void MoveComponent::ProcessBulletTime(GameObject* owner)
 				isInBulletTime_ = true;
                 auto bulletTime = std::make_unique<Timer>("bulletTime", bulletTimeDuration_,DeltaTimeType::RealDeltaTime);
 				bulletTime->SetOnStart([this]() {
-					TimeManager::GetInstance().SetTimeScale(bulletTimeScale_);
+					TimeManager::GetInstance().SetGameTimeScale(bulletTimeScale_);
 									   });
 				bulletTime->SetOnFinish([this]() {
-					TimeManager::GetInstance().SetTimeScale(1.0f);
+					TimeManager::GetInstance().SetGameTimeScale(1.0f);
 					auto timer = std::make_unique<Timer>("bulletTimeCooldown", bulletTimeCooldown_, DeltaTimeType::RealDeltaTime);
 					timer->SetOnFinish([this]() {
 						isInBulletTime_ = false;
@@ -183,7 +183,7 @@ void MoveComponent::ProcessMovement(GameObject* owner)
     if (hasMovementInput_)
     {
 		moveDirection.NormalizeSelf(); // 正規化
-        owner->SetPosition(owner->GetPosition() + moveDirection * moveSpeed_ * TimeManager::GetInstance().GetRealDeltaTime());
+        owner->SetPosition(owner->GetPosition() + moveDirection * moveSpeed_ * TimeManager::GetInstance().GetGameContext().deltaTime);
 
         // プレイヤーの向きを滑らかに変える
         UpdateRotation(owner, moveDirection);

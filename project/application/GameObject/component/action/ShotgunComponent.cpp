@@ -30,7 +30,7 @@ ShotgunComponent::~ShotgunComponent()
 
 void ShotgunComponent::Update(GameObject* owner)
 {
-    float deltaTime = TimeManager::GetInstance().GetDeltaTime();
+    float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
     fireCooldownTimer_ -= deltaTime;
 
     // リロード処理

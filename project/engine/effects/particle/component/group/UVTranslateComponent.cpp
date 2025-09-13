@@ -9,7 +9,7 @@ UVTranslateComponent::UVTranslateComponent(const Vector3& translate)
 
 void UVTranslateComponent::Update(ParticleGroup& group)
 {
-	float delta = TimeManager::GetInstance().GetDeltaTime();
+	float delta = TimeManager::GetInstance().GetGameContext().deltaTime;
     Vector3 currentTranslate = group.GetUVTranslate();
     currentTranslate += translate_ * delta;
 	if (currentTranslate.x > 1.0f) currentTranslate.x -= 1.0f;
