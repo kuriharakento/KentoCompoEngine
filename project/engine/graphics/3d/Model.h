@@ -13,7 +13,8 @@
 class Model
 {
 public:
-
+	Model() = default;
+	Model(const Model& other);
 	/**
 	 * \brief 初期化
 	 * \param modelCommon 

@@ -7,6 +7,7 @@
 #include "application/GameObject/component/base/ICollisionComponent.h"
 #include "application/GameObject/component/collision/CollisionUtils.h"
 #include "application/GameObject/component/collision/OBBColliderComponent.h"
+#include "math/VectorColorCodes.h"
 
 void Player::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, EnemyManager* enemyManager)
 {
@@ -15,13 +16,23 @@ void Player::Initialize(Object3dCommon* object3dCommon, LightManager* lightManag
 	transform_.translate = { 0.0f, 1.0f, 0.0f };
 
 
-	// 試しに腕を追加
-	auto arm = std::make_unique<GameObject>(GameObjectTag::Character::PlayerRightArm);
-	arm->Initialize(object3dCommon, lightManager);
-	arm->SetModel("cube");
-	arm->SetPosition(Vector3(3.0f, 0.0f, 0.0f));
-	arm->AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(arm.get()));
-	AddChild(GameObjectTag::Character::PlayerRightArm, std::move(arm));
+	// 試しに右腕を追加
+	auto armR = std::make_unique<GameObject>(GameObjectTag::Character::PlayerRightArm);
+	armR->Initialize(object3dCommon, lightManager);
+	armR->SetModel("cube");
+	armR->SetPosition(Vector3(3.0f, 0.0f, 0.0f));
+	armR->AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(armR.get()));
+	armR->GetModel()->SetColor(VectorColorCodes::Red);
+	AddChild(GameObjectTag::Character::PlayerRightArm, std::move(armR));
+
+	// 左腕も追加してみる
+	auto armL = std::make_unique<GameObject>(GameObjectTag::Character::PlayerLeftArm);
+	armL->Initialize(object3dCommon, lightManager);
+	armL->SetModel("cube");
+	armL->SetPosition(Vector3(-3.0f, 0.0f, 0.0f));
+	armL->GetModel()->SetColor(VectorColorCodes::Blue);
+	armL->AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(armL.get()));
+	AddChild(GameObjectTag::Character::PlayerLeftArm, std::move(armL));
 
 	// 移動コンポーネントを追加
 	AddComponent("MoveComponent", std::make_unique<MoveComponent>(enemyManager));

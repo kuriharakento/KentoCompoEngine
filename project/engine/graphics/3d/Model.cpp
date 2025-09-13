@@ -12,6 +12,21 @@
 // manager
 #include "manager/graphics/TextureManager.h"
 
+Model::Model(const Model& other)
+{
+	// ModelCommonは同じものを使う（通常共有でOK）
+	modelCommon_ = other.modelCommon_;
+
+	// modelData_は単純コピーでOK（頂点・マテリアル情報など）
+	modelData_ = other.modelData_;
+
+	// 頂点データをもう一度Create
+	CreateVertexData();
+
+	// マテリアルデータももう一度Create
+	CreateMaterialData();
+}
+
 void Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPath, const std::string& filename, const std::string& modelType)
 {
 	modelCommon_ = modelCommon;

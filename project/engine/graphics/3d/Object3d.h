@@ -74,9 +74,13 @@ public: /*========[ ゲッター ]========*/
 
 public: /*========[ セッター ]========*/
 	//モデルの設定
-	void SetModel(Model* model) { model_ = model; }
-	void SetModel(const std::string& filePath) { model_ = ModelManager::GetInstance()->FindModel(filePath); }
-	Model* GetModel() const { return model_; }
+	void SetModel(std::unique_ptr<Model> model) { model_ = std::move(model); }
+	void SetModel(const std::string& filePath)
+	{
+		Model* model = ModelManager::GetInstance()->FindModel(filePath);
+		model_ = model ? std::make_unique<Model>(*model) : nullptr;
+	}
+	Model* GetModel() const { return model_.get(); }
 
 	//カメラの設定
 	void SetCamera(Camera* camera) { camera_ = camera; }
@@ -157,7 +161,7 @@ private: /*========[ メンバ変数 ]========*/
 	Camera* camera_ = nullptr;
 
 	//モデル
-	Model* model_ = nullptr;
+	std::unique_ptr<Model> model_ = nullptr;
 
 	//ライトマネージャー
 	LightManager* lightManager_ = nullptr;
