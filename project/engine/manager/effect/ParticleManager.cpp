@@ -92,6 +92,9 @@ void ParticleManager::Draw()
 		//NULLチェック
 		if (!emitter.second) { continue; }
 
+		// パーティクルが無ければ描画しない
+		if (emitter.second->GetParticleGroup()->GetParticles().size() == 0) { continue; }
+
 		// エミッターごとのブレンドモードに応じたパイプラインステートを設定
 		dxCommon_->GetCommandList()->SetPipelineState(pipelineManager_->GetPipelineState(emitter.second->GetBlendMode()));
 		emitter.second->Draw(dxCommon_, srvManager_);
