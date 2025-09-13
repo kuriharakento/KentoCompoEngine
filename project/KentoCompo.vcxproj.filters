@@ -864,6 +864,7 @@
     <ClInclude Include="application\GameObject\component\collision\CollisionAlgorithm.h" />
     <ClInclude Include="application\GameObject\component\collision\SphereColliderComponent.h" />
     <ClInclude Include="engine\math\Sphere.h" />
+    <ClInclude Include="engine\math\BlendMode.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

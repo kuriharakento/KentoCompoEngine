@@ -72,4 +72,5 @@ private: //メンバ変数
 	std::unique_ptr<ParticleEmitter> glitch_;
 	std::unique_ptr<ParticleEmitter> mordeVFXGround_;
 	std::unique_ptr<ParticleEmitter> mordeVFXFragment_;
+	std::unique_ptr<ParticleEmitter> playerParticle_;
 };

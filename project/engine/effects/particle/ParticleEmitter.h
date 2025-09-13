@@ -5,6 +5,7 @@
 #include "ParticleGroup.h"
 #include "component/interface/IParticleComponent.h"
 #include "math/AABB.h"
+#include "math/BlendMode.h"
 
 class ParticleEmitter
 {
@@ -21,6 +22,8 @@ public:
 	void Start(const Vector3* target, uint32_t count, float duration, bool isLoop = false);
 	void StopEmit();
 
+	BlendMode GetBlendMode() const { return blendMode_; }
+	void SetBlendMode(BlendMode mode) { blendMode_ = mode; }
 	void SetPosition(const Vector3& position) { position_ = position; }
 	const Vector3& GetPosition() const { return position_; }
     void SetEmitRange(const Vector3& min, const Vector3& max);
@@ -77,6 +80,7 @@ private:
 	std::unique_ptr<ParticleGroup> particleGroup_ = nullptr;
 	std::list<std::shared_ptr<IParticleComponent>> behaviorComponents_;
 
+	BlendMode blendMode_ = BlendMode::Alpha;
 	Vector3 position_ = {};
 	const Vector3* target_ = nullptr;
 	Vector3 emitRangeMin_ = {};
