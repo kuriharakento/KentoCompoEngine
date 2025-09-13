@@ -54,7 +54,7 @@ void WinApp::Initialize()
 	//ウィンドウの設定
 	hwnd_ = CreateWindow(
 		wc_.lpszClassName,		//利用するクラス名
-		L"myEngine",			//タイトルバーの文字
+		L"KentoCompo",			//タイトルバーの文字
 		WS_OVERLAPPEDWINDOW,	//よく見るウィンドウスタイル
 		CW_USEDEFAULT,			//表示X座標(WindowsOSに任せる)
 		CW_USEDEFAULT,			//表示Y座標(WindowsOSに任せる)
