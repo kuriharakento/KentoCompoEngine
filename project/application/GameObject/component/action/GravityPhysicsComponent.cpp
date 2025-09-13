@@ -17,7 +17,7 @@ void GravityPhysicsComponent::Update(GameObject* owner)
 		return;
 	}
 
-    float deltaTime = TimeManager::GetInstance().GetDeltaTime();
+    float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
 
     // 重力を垂直速度に適用（下方向は負）
     verticalVelocity_ -= gravity_ * deltaTime;

@@ -14,7 +14,7 @@ void EnemyBase::Update()
 	Character::Update();
 
 	// ステータスを更新
-	UpdateStatus(TimeManager::GetInstance().GetDeltaTime());
+	UpdateStatus(TimeManager::GetInstance().GetGameContext().deltaTime);
 
 	//　死亡処理(仮)
 	if (hp_.base <= 0.0f)

@@ -17,7 +17,7 @@ void WaveManager::Update()
 	// ウェーブ間ウェイト演出処理例
 	if (waitForNextWave_)
 	{
-		waitTimer_ -= TimeManager::GetInstance().GetDeltaTime();
+		waitTimer_ -= TimeManager::GetInstance().GetGameContext().deltaTime;
 		if (waitTimer_ <= 0.0f)
 		{
 			waitForNextWave_ = false;

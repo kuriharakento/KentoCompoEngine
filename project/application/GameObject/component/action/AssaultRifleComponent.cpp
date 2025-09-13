@@ -31,7 +31,7 @@ AssaultRifleComponent::~AssaultRifleComponent()
 
 void AssaultRifleComponent::Update(GameObject* owner)
 {
-	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
+	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
 	fireCooldownTimer_ -= deltaTime;
 
 	// リロード処理
@@ -69,7 +69,7 @@ void AssaultRifleComponent::Update(GameObject* owner)
 	}
 
     for (const auto& bullet : bullets_)
-        if (bullet->IsAlive()) bullet->Update(TimeManager::GetInstance().GetDeltaTime());
+        if (bullet->IsAlive()) bullet->Update(TimeManager::GetInstance().GetGameContext().deltaTime);
 
     for (auto it = bullets_.begin(); it != bullets_.end();)
 		if (!(*it)->IsAlive())

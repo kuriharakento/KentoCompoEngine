@@ -72,11 +72,11 @@ void TimerManager::Update()
         // 時間経過のタイプに応じて更新
         if (it->second->GetDeltaTimeType() == DeltaTimeType::DeltaTime)
         {
-            it->second->Update(TimeManager::GetInstance().GetDeltaTime());
+            it->second->Update(TimeManager::GetInstance().GetGameContext().deltaTime);
         }
         else
         {
-            it->second->Update(TimeManager::GetInstance().GetRealDeltaTime());
+            it->second->Update(TimeManager::GetInstance().GetGameContext().realDeltaTime);
         }
 
         // タイマーが終了したら削除

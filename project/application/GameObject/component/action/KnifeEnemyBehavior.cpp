@@ -22,7 +22,7 @@ KnifeEnemyBehavior::KnifeEnemyBehavior(GameObject* target, GameObject* knife)
 
 void KnifeEnemyBehavior::Update(GameObject* owner)
 {
-	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
+	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
 	if (attackCooldown_ > 0) attackCooldown_ -= deltaTime;
 
 	ImGui::Begin("KnifeBehavior");
@@ -135,7 +135,7 @@ bool KnifeEnemyBehavior::PatrolAction(GameObject* owner)
 		return true; // 到達したらSuccess
 	}
 	dir.NormalizeSelf();
-	float moveDistance = LimitMovementSpeed(moveSpeed_ * patrolSpeed_, TimeManager::GetInstance().GetDeltaTime());
+	float moveDistance = LimitMovementSpeed(moveSpeed_ * patrolSpeed_, TimeManager::GetInstance().GetGameContext().deltaTime);
 	owner->SetPosition(owner->GetPosition() + dir * moveDistance);
 	float angle = atan2(dir.x, dir.z);
 	owner->SetRotation(Vector3(0, angle, 0));
@@ -153,7 +153,7 @@ bool KnifeEnemyBehavior::ChaseAction(GameObject* owner)
 		return true; // 攻撃レンジに入ったらSuccess
 	}
 	dir.NormalizeSelf();
-	float moveDistance = LimitMovementSpeed(moveSpeed_, TimeManager::GetInstance().GetDeltaTime());
+	float moveDistance = LimitMovementSpeed(moveSpeed_, TimeManager::GetInstance().GetGameContext().deltaTime);
 	owner->SetPosition(owner->GetPosition() + dir * moveDistance);
 	float angle = atan2(dir.x, dir.z);
 	owner->SetRotation(Vector3(0, angle, 0));

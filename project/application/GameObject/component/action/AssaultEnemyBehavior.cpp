@@ -23,7 +23,7 @@ AssaultEnemyBehavior::AssaultEnemyBehavior(GameObject* target) : target_(target)
 // --- Update ---
 void AssaultEnemyBehavior::Update(GameObject* owner)
 {
-	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
+	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
 	stateTimer_ += deltaTime;
 	strafeTimer_ += deltaTime;
 	positionCheckTimer_ += deltaTime;
@@ -64,7 +64,7 @@ void AssaultEnemyBehavior::ContinuousStrafAction(GameObject* owner)
 		return;
 	}
 
-	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
+	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
 	strafeTimer_ += deltaTime;
 
 	// ストレイフ継続時間チェック
@@ -257,7 +257,7 @@ void AssaultEnemyBehavior::PatrolAction(GameObject* owner)
 		return;
 	}
 	dir.NormalizeSelf();
-	float moveDistance = LimitMovementSpeed(moveSpeed_ * patrolSpeed_, TimeManager::GetInstance().GetDeltaTime());
+	float moveDistance = LimitMovementSpeed(moveSpeed_ * patrolSpeed_, TimeManager::GetInstance().GetGameContext().deltaTime);
 	owner->SetPosition(owner->GetPosition() + dir * moveDistance);
 	float angle = atan2(dir.x, dir.z);
 	owner->SetRotation(Vector3(0, angle, 0));
@@ -272,7 +272,7 @@ void AssaultEnemyBehavior::RepositionAction(GameObject* owner)
 	float optimalDistance = (attackRange_ + minRange_) / 2.0f;
 	repositionSpeed_ = std::min(repositionSpeed_ + 0.05f, maxRepositionSpeed_);
 	dir.NormalizeSelf();
-	float moveDistance = LimitMovementSpeed(moveSpeed_, TimeManager::GetInstance().GetDeltaTime());
+	float moveDistance = LimitMovementSpeed(moveSpeed_, TimeManager::GetInstance().GetGameContext().deltaTime);
 	if (dist > optimalDistance)
 	{
 		owner->SetPosition(owner->GetPosition() + dir * moveDistance * repositionSpeed_);
@@ -286,13 +286,13 @@ void AssaultEnemyBehavior::RepositionAction(GameObject* owner)
 void AssaultEnemyBehavior::StrafeAction(GameObject* owner)
 {
 	if (!target_) return;
-	strafeTimer_ += TimeManager::GetInstance().GetDeltaTime();
+	strafeTimer_ += TimeManager::GetInstance().GetGameContext().deltaTime;
 	if (strafeTimer_ > strafeChangeInterval_)
 	{
 		strafeDirection_ = GetRandomStrafeDirection(owner);
 		strafeTimer_ = 0.0f;
 	}
-	float moveDistance = LimitMovementSpeed(moveSpeed_ * 0.6f, TimeManager::GetInstance().GetDeltaTime());
+	float moveDistance = LimitMovementSpeed(moveSpeed_ * 0.6f, TimeManager::GetInstance().GetGameContext().deltaTime);
 	owner->SetPosition(owner->GetPosition() + strafeDirection_ * moveDistance);
 	if (IsInAttackRange(owner))
 	{
@@ -307,7 +307,7 @@ void AssaultEnemyBehavior::RetreatAction(GameObject* owner)
 	Vector3 dir = targetPos - owner->GetPosition();
 	dir.NormalizeSelf();
 	Vector3 retreatDir = -dir;
-	float moveDistance = LimitMovementSpeed(moveSpeed_ * 1.2f, TimeManager::GetInstance().GetDeltaTime());
+	float moveDistance = LimitMovementSpeed(moveSpeed_ * 1.2f, TimeManager::GetInstance().GetGameContext().deltaTime);
 	owner->SetPosition(owner->GetPosition() + retreatDir * moveDistance);
 }
 
@@ -445,7 +445,7 @@ bool AssaultEnemyBehavior::IsStuck(GameObject* owner)
 
 	if (movement < 0.01f)
 	{
-		stuckTimer_ += TimeManager::GetInstance().GetDeltaTime();
+		stuckTimer_ += TimeManager::GetInstance().GetGameContext().deltaTime;
 
 		if (stuckTimer_ > stuckThreshold_)
 		{
@@ -473,6 +473,6 @@ void AssaultEnemyBehavior::ForceMovement(GameObject* owner)
 	Vector3 randomDir(dist(rng_), 0, dist(rng_));
 	randomDir.NormalizeSelf();
 
-	float forceMove = moveSpeed_ * 0.5f * (TimeManager::GetInstance().GetDeltaTime());
+	float forceMove = moveSpeed_ * 0.5f * (TimeManager::GetInstance().GetGameContext().deltaTime);
 	owner->SetPosition(owner->GetPosition() + randomDir * forceMove);
 }
