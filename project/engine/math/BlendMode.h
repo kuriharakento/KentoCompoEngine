@@ -6,4 +6,9 @@ enum class BlendMode
 	Additive,
 	Subtractive,
 	Multiply,
+	Screen,
+	Darken,
+	Lighten,
+	ColorBurn,
+	ColorDodge
 };

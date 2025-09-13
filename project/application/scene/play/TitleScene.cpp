@@ -366,6 +366,8 @@ void TitleScene::InitializeParticleEmitters()
 	playerParticle_ = std::make_unique<ParticleEmitter>();
 	playerParticle_->Initialize("titlePlayerParticle", "./Resources/circle2.png");
 	playerParticle_->SetInitialColor(VectorColorCodes::Salmon);
+	playerParticle_->SetRandomColor(true);
+	playerParticle_->SetRandomColorRange(VectorColorCodes::Blue, VectorColorCodes::Red);
 	playerParticle_->SetInitialScale(Vector3(0.01f, 0.01f, 0.01f));
 	playerParticle_->SetEmitRate(0.2f);
 	playerParticle_->SetEmitRange(Vector3(-30.0f, 0.0f, -30.0f), Vector3(30.0f, 1.0f, 30.0f));

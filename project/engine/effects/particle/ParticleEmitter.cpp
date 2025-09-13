@@ -88,7 +88,17 @@ void ParticleEmitter::DrawImGui()
 	ImGui::SeparatorText("ParticleEmitter Info");
 
 	// --- BlendMode切り替えUI ---
-	static const char* blendModeNames[] = { "Alpha", "Additive", "Subtractive", "Multiply",  };
+	static const char* blendModeNames[] = {
+		"Alpha",
+		"Additive",
+		"Subtractive",
+		"Multiply",
+		"Screen",
+		"Darken",
+		"Lighten",
+		"ColorBurn",
+		"ColorDodge"
+	};
 	int blendModeIdx = static_cast<int>(blendMode_);
 	if (ImGui::Combo("Blend Mode", &blendModeIdx, blendModeNames, IM_ARRAYSIZE(blendModeNames)))
 	{

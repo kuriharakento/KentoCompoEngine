@@ -17,6 +17,11 @@ void ParticlePipelineManager::Initialize(DirectXCommon* dxCommon)
 	CreateGraphicsPipelineState(BlendMode::Additive);
 	CreateGraphicsPipelineState(BlendMode::Multiply);
 	CreateGraphicsPipelineState(BlendMode::Subtractive);
+	CreateGraphicsPipelineState(BlendMode::Screen);
+	CreateGraphicsPipelineState(BlendMode::Darken);
+	CreateGraphicsPipelineState(BlendMode::Lighten);
+	CreateGraphicsPipelineState(BlendMode::ColorBurn);
+	CreateGraphicsPipelineState(BlendMode::ColorDodge);
 }
 
 ID3D12PipelineState* ParticlePipelineManager::GetPipelineState(BlendMode mode) const
@@ -163,15 +168,40 @@ void ParticlePipelineManager::CreateGraphicsPipelineState(BlendMode mode)
 		blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
 		blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 		break;
+	case BlendMode::Subtractive:
+		blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+		blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
+		blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_REV_SUBTRACT;
+		break;
 	case BlendMode::Multiply:
 		blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_DEST_COLOR;
 		blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_ZERO;
 		blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 		break;
-	case BlendMode::Subtractive:
-		blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+	case BlendMode::Screen:
+		blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
+		blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_COLOR;
+		blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+		break;
+	case BlendMode::Darken:
+		blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
 		blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
-		blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_REV_SUBTRACT;
+		blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_MIN;
+		break;
+	case BlendMode::Lighten:
+		blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
+		blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
+		blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_MAX;
+		break;
+	case BlendMode::ColorBurn:
+		blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_ZERO;
+		blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_COLOR;
+		blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+		break;
+	case BlendMode::ColorDodge:
+		blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
+		blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_COLOR;
+		blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 		break;
 	}
 	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
