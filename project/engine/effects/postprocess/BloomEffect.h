@@ -17,6 +17,13 @@ public:
     void SetRadius(float radius);
     float GetRadius() const { return params_.radius; }
     void SetEnabled(bool enabled) override;
+	Vector2 GetInvScreenSize() const { return params_.invScreenSize; }
+	void SetInvScreenSize(const Vector2& invScreenSize);
+	float GetThresholdKnee() const { return params_.thresholdKnee; }
+	void SetThresholdKnee(float thresholdKnee);
+	float GetBloomMix() const { return params_.bloomMix; }
+	void SetBloomMix(float bloomMix);
+
 
 private:
     struct Parameters
@@ -26,7 +33,9 @@ private:
         float threshold;   // 明るさ抽出のしきい値
         float radius;      // ぼかし半径
         float padding[3];  // 16バイトアラインメント
+        Vector2 invScreenSize; // 画面サイズの逆数
+		float thresholdKnee;  // しきい値の緩やかさ
+		float bloomMix;      // オリジナル画像とBloom画像の合成比率
     };
     Parameters params_;
 };
-

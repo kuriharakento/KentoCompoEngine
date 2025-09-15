@@ -8,6 +8,9 @@ BloomEffect::BloomEffect()
     params_.threshold = 0.78f;
     params_.radius = 2.0f;
     params_.enabled = 0;
+	params_.invScreenSize = { 1.0f / WinApp::kClientWidth, 1.0f / WinApp::kClientHeight };
+	params_.thresholdKnee = 0.5f;
+	params_.bloomMix = 1.0f;
     isDirty_ = true;
 }
 
@@ -21,6 +24,9 @@ void BloomEffect::ApplyEffect(PostEffectParams& params)
         params.bloomIntensity = params_.intensity;
         params.bloomThreshold = params_.threshold;
         params.bloomRadius = params_.radius;
+		params.invScreenSize = params_.invScreenSize;
+		params.bloomThresholdKnee = params_.thresholdKnee;
+		params.bloomMix = params_.bloomMix;
     }
     else
     {
@@ -62,4 +68,31 @@ void BloomEffect::SetEnabled(bool enabled)
         enabled_ = enabled;
         isDirty_ = true;
     }
+}
+
+void BloomEffect::SetInvScreenSize(const Vector2& invScreenSize)
+{
+	if (params_.invScreenSize.x != invScreenSize.x || params_.invScreenSize.y != invScreenSize.y)
+	{
+		params_.invScreenSize = invScreenSize;
+		isDirty_ = true;
+	}
+}
+
+void BloomEffect::SetThresholdKnee(float thresholdKnee)
+{
+	if (params_.thresholdKnee != thresholdKnee)
+	{
+		params_.thresholdKnee = thresholdKnee;
+		isDirty_ = true;
+	}
+}
+
+void BloomEffect::SetBloomMix(float bloomMix)
+{
+	if (params_.bloomMix != bloomMix)
+	{
+		params_.bloomMix = bloomMix;
+		isDirty_ = true;
+	}
 }

@@ -554,6 +554,12 @@ void TitleScene::DrawImGui()
 		float radius = sceneManager_->GetPostProcessManager()->bloomEffect_->GetRadius();
 		ImGui::DragFloat("Bloom Radius", &radius, 0.01f, 0.0f, 10.0f);
 		sceneManager_->GetPostProcessManager()->bloomEffect_->SetRadius(radius);
+		float thresholdknee = sceneManager_->GetPostProcessManager()->bloomEffect_->GetThresholdKnee();
+		ImGui::DragFloat("Bloom ThresholdKnee", &thresholdknee, 0.01f, 0.0f, 1.0f);
+		sceneManager_->GetPostProcessManager()->bloomEffect_->SetThresholdKnee(thresholdknee);
+		float mix = sceneManager_->GetPostProcessManager()->bloomEffect_->GetBloomMix();
+		ImGui::DragFloat("Bloom Mix", &mix, 0.01f, 0.0f, 1.0f);
+		sceneManager_->GetPostProcessManager()->bloomEffect_->SetBloomMix(mix);
 	}
 #pragma endregion
 

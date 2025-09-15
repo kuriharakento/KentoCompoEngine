@@ -5,105 +5,123 @@ SamplerState gSampler : register(s0);
 
 cbuffer PostEffectParams : register(b0)
 {
+    // Grayscale
     float grayscaleIntensity;
     int grayscaleEnabled;
     float2 pad0;
+
+    // Vignette
     int vignetteEnabled;
     float vignetteIntensity;
     float vignetteRadius;
     float vignetteSoftness;
+
     float3 vignetteColor;
     float pad1;
+
+    // Noise
     int noiseEnabled;
     float noiseIntensity;
     float noiseTime;
     float grainSize;
+
     float luminanceAffect;
     float3 pad2;
+
+    // CRT
     int crtEnabled;
     int scanlineEnabled;
     float scanlineIntensity;
     float scanlineCount;
+
     int distortionEnabled;
     float distortionStrength;
     int chromAberrationEnabled;
     float chromAberrationOffset;
+
     float4 pad3;
+
+    // Bloom base
     int bloomEnabled;
     float bloomIntensity;
     float bloomThreshold;
     float bloomRadius;
     float3 pad4;
-}
 
-// 最適化されたランダム関数
+    // Bloom extended
+    float2 invScreenSize;
+    float bloomThresholdKnee;
+    float bloomMix;
+};
+
+static const float3 LUMA = float3(0.299, 0.587, 0.114);
+
 float fastRandom(float2 uv)
 {
     return frac(dot(uv, float2(12.9898, 78.233)) * 43758.5453 + noiseTime * 0.1);
 }
 
-// 歪み適用（常に計算、係数で制御）
 float2 applyDistortion(float2 uv, float strength)
 {
-    float2 offset = uv - 0.5;
-    return uv + offset * strength * dot(offset, offset);
+    float2 d = uv - 0.5;
+    return uv + d * strength * dot(d, d);
 }
 
-// Bloomサンプル
+// Soft threshold (knee)
+float SoftThresholdFactor(float lum, float threshold, float knee)
+{
+    float k = max(knee, 1e-5);
+    float lower = threshold - k;
+    if (lum <= lower)
+        return 0.0;
+    if (lum >= threshold)
+        return (lum - threshold) / max(1.0 - threshold, 1e-5);
+    float x = (lum - lower) / (threshold - lower);
+    return saturate(x * x * (3 - 2 * x));
+}
+
 float3 ApplyBloom(float2 uv)
 {
-    float3 bloomColor = float3(0, 0, 0);
-    float pixelSize = 1.0 / 1920.0;
-    float sampleRadius = bloomRadius * pixelSize;
-    
-    // Gaussian-likeな配置でより自然なぼかし
-    float2 offsets[13] =
+    if (bloomRadius <= 0.0)
+        return 0;
+
+    const int SAMPLE_COUNT = 13;
+    float2 dirs[SAMPLE_COUNT] =
     {
-        float2(0, 0), // 中心
-        float2(-sampleRadius, 0), // 4方向
-        float2(sampleRadius, 0),
-        float2(0, -sampleRadius),
-        float2(0, sampleRadius),
-        float2(-sampleRadius, -sampleRadius), // 対角線
-        float2(-sampleRadius, sampleRadius),
-        float2(sampleRadius, -sampleRadius),
-        float2(sampleRadius, sampleRadius),
-        float2(-sampleRadius * 0.5, 0), // 中間距離
-        float2(sampleRadius * 0.5, 0),
-        float2(0, -sampleRadius * 0.5),
-        float2(0, sampleRadius * 0.5)
+        float2(0, 0),
+        float2(1, 0), float2(-1, 0), float2(0, 1), float2(0, -1),
+        float2(1, 1), float2(-1, 1), float2(1, -1), float2(-1, -1),
+        float2(0.5, 0), float2(-0.5, 0), float2(0, 0.5), float2(0, -0.5)
     };
-    
-    // Gaussian風の重み分布
-    float weights[13] =
+
+    float weights[SAMPLE_COUNT] =
     {
-        0.25, // 中心（強）
-        0.12, 0.12, 0.12, 0.12, // 4方向（中）
-        0.06, 0.06, 0.06, 0.06, // 対角線（弱）
-        0.08, 0.08, 0.08, 0.08 // 中間（中弱）
+        0.24,
+        0.12, 0.12, 0.12, 0.12,
+        0.06, 0.06, 0.06, 0.06,
+        0.05, 0.05, 0.05, 0.05
     };
-    // 合計 = 1.0
-    
-    for (int i = 0; i < 13; ++i)
+
+    float wsum = 0;
+    [unroll]
+    for (int i = 0; i < SAMPLE_COUNT; ++i)
+        wsum += weights[i];
+    float invW = 1.0 / wsum;
+
+    float2 scale = bloomRadius * invScreenSize;
+    float3 accum = 0;
+
+    [unroll]
+    for (int i = 0; i < SAMPLE_COUNT; ++i)
     {
-        float2 sampleUV = saturate(uv + offsets[i]);
-        float3 sampleColor = gTexture.Sample(gSampler, sampleUV).rgb;
-        float luminance = dot(sampleColor, float3(0.299, 0.587, 0.114));
-        
-        if (luminance > bloomThreshold)
-        {
-            float overThreshold = luminance - bloomThreshold;
-            float maxOver = 1.0 - bloomThreshold;
-            float bloomFactor = maxOver > 0 ? (overThreshold / maxOver) : 0;
-            
-            // より滑らかなfalloff
-            bloomFactor = smoothstep(0.0, 1.0, bloomFactor);
-            
-            bloomColor += sampleColor * weights[i] * bloomFactor;
-        }
+        float2 suv = uv + dirs[i] * scale;
+        float3 c = gTexture.Sample(gSampler, saturate(suv)).rgb;
+        float lum = dot(c, LUMA);
+        float f = SoftThresholdFactor(lum, bloomThreshold, bloomThresholdKnee);
+        accum += c * (f * weights[i] * invW);
     }
-    
-    return bloomColor * saturate(bloomIntensity);
+
+    return accum * bloomIntensity;
 }
 
 struct PixelShaderOutput
@@ -113,79 +131,64 @@ struct PixelShaderOutput
 
 PixelShaderOutput main(VertexShaderOutput input)
 {
+    PixelShaderOutput o;
     float2 uv = input.texcoord;
-    
-    // フラグを正規化（0.0 or 1.0）しておくのはそのまま
-    float crtFactor = saturate((float) crtEnabled);
-    
-    // 変数を宣言（初期値はベースカラー取得までやる）
     float4 baseColor = gTexture.Sample(gSampler, uv);
     float3 color = baseColor.rgb;
-    
-    // 歪み（重いので条件付き）
+
+    // Distortion
     if (crtEnabled != 0 && distortionEnabled != 0)
     {
-        float2 distortedUV = applyDistortion(uv, distortionStrength);
-        uv = lerp(uv, distortedUV, 1.0);
+        uv = applyDistortion(uv, distortionStrength);
         baseColor = gTexture.Sample(gSampler, uv);
         color = baseColor.rgb;
     }
-    
-    // 色収差（条件付き）
+    // Chromatic Aberration
     if (crtEnabled != 0 && chromAberrationEnabled != 0)
     {
-        float2 chromOffset = chromAberrationOffset * 0.001;
-        float r = gTexture.Sample(gSampler, uv + chromOffset).r;
-        float b = gTexture.Sample(gSampler, uv - chromOffset).b;
-        float3 chromColor = float3(r, baseColor.g, b);
-        color = lerp(color, chromColor, 1.0);
+        float2 ofs = chromAberrationOffset * 0.001;
+        float r = gTexture.Sample(gSampler, uv + ofs).r;
+        float b = gTexture.Sample(gSampler, uv - ofs).b;
+        color = float3(r, baseColor.g, b);
     }
-    
-    // 走査線（条件付き）
+    // Scanline
     if (crtEnabled != 0 && scanlineEnabled != 0)
     {
-        float scanlinePattern = 1.0 - scanlineIntensity * 0.5 * (1.0 + sin(uv.y * scanlineCount * 6.283185));
-        color *= scanlinePattern;
+        float pat = 1.0 - scanlineIntensity * 0.5 * (1.0 + sin(uv.y * scanlineCount * 6.283185));
+        color *= pat;
     }
-    
-    // ノイズ（条件付き）
+    // Noise
     if (noiseEnabled != 0)
     {
         float2 grainUV = uv * grainSize + noiseTime;
-        float noiseValue = fastRandom(grainUV);
-        float luminance = dot(color, float3(0.299, 0.587, 0.114));
-        float luminanceFactor = lerp(1.0, luminance, luminanceAffect);
-        float finalNoise = (noiseValue - 0.5) * noiseIntensity * luminanceFactor;
-        color += finalNoise;
+        float n = fastRandom(grainUV);
+        float lum = dot(color, LUMA);
+        float lf = lerp(1.0, lum, luminanceAffect);
+        color += (n - 0.5) * noiseIntensity * lf;
     }
-    
-    // ビネット（条件付き）
+    // Vignette
     if (vignetteEnabled != 0)
     {
-        float2 vignetteOffset = uv - 0.5;
-        float dist = length(vignetteOffset);
-        float vignetteEdge = vignetteRadius - vignetteSoftness;
-        float vignetteStrength = saturate((dist - vignetteEdge) / vignetteSoftness);
-        float3 vignetteResult = lerp(color, vignetteColor, vignetteStrength * vignetteIntensity);
-        color = lerp(color, vignetteResult, 1.0);
+        float2 d = uv - 0.5;
+        float dist = length(d);
+        float edge = vignetteRadius - vignetteSoftness;
+        float t = saturate((dist - edge) / max(vignetteSoftness, 1e-5));
+        color = lerp(color, vignetteColor, t * vignetteIntensity);
     }
-    
-    // グレースケール（条件付き）
+    // Grayscale
     if (grayscaleEnabled != 0)
     {
-        float finalLuminance = dot(color, float3(0.2126, 0.7152, 0.0722));
-        float3 grayscaleResult = lerp(color, finalLuminance.xxx, grayscaleIntensity);
-        color = lerp(color, grayscaleResult, 1.0);
+        float lum = dot(color, float3(0.2126, 0.7152, 0.0722));
+        color = lerp(color, lum.xxx, grayscaleIntensity);
     }
-    
-    // Bloom（条件付き）
+    // Bloom
     if (bloomEnabled != 0)
     {
         float3 bloom = ApplyBloom(input.texcoord);
-        color += bloom;
+        float3 composite = color + bloom;
+        color = lerp(color, composite, bloomMix);
     }
-    
-    PixelShaderOutput output;
-    output.color = float4(saturate(color), baseColor.a);
-    return output;
+
+    o.color = float4(saturate(color), baseColor.a);
+    return o;
 }
