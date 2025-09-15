@@ -23,6 +23,7 @@ void PostProcessManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvMana
 	vignetteEffect_ = std::make_unique<VignetteEffect>();
 	noiseEffect_ = std::make_unique<NoiseEffect>();
 	crtEffect_ = std::make_unique<CRTEffect>();
+	bloomEffect_ = std::make_unique<BloomEffect>();
 
 	preParams_ = {};
 }
@@ -94,6 +95,7 @@ void PostProcessManager::Draw(D3D12_GPU_DESCRIPTOR_HANDLE inputTexture)
 	vignetteEffect_->ApplyEffect(params_);
 	noiseEffect_->ApplyEffect(params_);
 	crtEffect_->ApplyEffect(params_);
+	bloomEffect_->ApplyEffect(params_);
 	// 定数バッファを更新
 	UpdateConstantBuffer();
 	// 定数バッファビューを設定

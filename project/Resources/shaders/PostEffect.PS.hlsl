@@ -29,6 +29,11 @@ cbuffer PostEffectParams : register(b0)
     int chromAberrationEnabled;
     float chromAberrationOffset;
     float4 pad3;
+    int bloomEnabled;
+    float bloomIntensity;
+    float bloomThreshold;
+    float bloomRadius;
+    float3 pad4;
 }
 
 // 最適化されたランダム関数
@@ -42,6 +47,63 @@ float2 applyDistortion(float2 uv, float strength)
 {
     float2 offset = uv - 0.5;
     return uv + offset * strength * dot(offset, offset);
+}
+
+// Bloomサンプル
+float3 ApplyBloom(float2 uv)
+{
+    float3 bloomColor = float3(0, 0, 0);
+    float pixelSize = 1.0 / 1920.0;
+    float sampleRadius = bloomRadius * pixelSize;
+    
+    // Gaussian-likeな配置でより自然なぼかし
+    float2 offsets[13] =
+    {
+        float2(0, 0), // 中心
+        float2(-sampleRadius, 0), // 4方向
+        float2(sampleRadius, 0),
+        float2(0, -sampleRadius),
+        float2(0, sampleRadius),
+        float2(-sampleRadius, -sampleRadius), // 対角線
+        float2(-sampleRadius, sampleRadius),
+        float2(sampleRadius, -sampleRadius),
+        float2(sampleRadius, sampleRadius),
+        float2(-sampleRadius * 0.5, 0), // 中間距離
+        float2(sampleRadius * 0.5, 0),
+        float2(0, -sampleRadius * 0.5),
+        float2(0, sampleRadius * 0.5)
+    };
+    
+    // Gaussian風の重み分布
+    float weights[13] =
+    {
+        0.25, // 中心（強）
+        0.12, 0.12, 0.12, 0.12, // 4方向（中）
+        0.06, 0.06, 0.06, 0.06, // 対角線（弱）
+        0.08, 0.08, 0.08, 0.08 // 中間（中弱）
+    };
+    // 合計 = 1.0
+    
+    for (int i = 0; i < 13; ++i)
+    {
+        float2 sampleUV = saturate(uv + offsets[i]);
+        float3 sampleColor = gTexture.Sample(gSampler, sampleUV).rgb;
+        float luminance = dot(sampleColor, float3(0.299, 0.587, 0.114));
+        
+        if (luminance > bloomThreshold)
+        {
+            float overThreshold = luminance - bloomThreshold;
+            float maxOver = 1.0 - bloomThreshold;
+            float bloomFactor = maxOver > 0 ? (overThreshold / maxOver) : 0;
+            
+            // より滑らかなfalloff
+            bloomFactor = smoothstep(0.0, 1.0, bloomFactor);
+            
+            bloomColor += sampleColor * weights[i] * bloomFactor;
+        }
+    }
+    
+    return bloomColor * saturate(bloomIntensity);
 }
 
 struct PixelShaderOutput
@@ -114,6 +176,13 @@ PixelShaderOutput main(VertexShaderOutput input)
         float finalLuminance = dot(color, float3(0.2126, 0.7152, 0.0722));
         float3 grayscaleResult = lerp(color, finalLuminance.xxx, grayscaleIntensity);
         color = lerp(color, grayscaleResult, 1.0);
+    }
+    
+    // Bloom（条件付き）
+    if (bloomEnabled != 0)
+    {
+        float3 bloom = ApplyBloom(input.texcoord);
+        color += bloom;
     }
     
     PixelShaderOutput output;

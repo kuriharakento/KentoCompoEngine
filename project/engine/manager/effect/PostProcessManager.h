@@ -5,6 +5,7 @@
 #include <string>
 
 // effects
+#include "effects/postprocess/BloomEffect.h"
 #include "effects/postprocess/CRTEffect.h"
 #include "effects/postprocess/GrayscaleEffect.h"
 #include "effects/postprocess/NoiseEffect.h"
@@ -26,6 +27,7 @@ public:
 	std::unique_ptr<VignetteEffect> vignetteEffect_;
 	std::unique_ptr<NoiseEffect> noiseEffect_;
 	std::unique_ptr<CRTEffect> crtEffect_;
+	std::unique_ptr<BloomEffect> bloomEffect_;
 
 private:
 	void CreateConstantBuffer();

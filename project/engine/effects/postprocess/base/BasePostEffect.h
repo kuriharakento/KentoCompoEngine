@@ -1,5 +1,6 @@
 #pragma once
 #include "effects/postprocess/IPostEffect.h"
+#include "math/Vector2.h"
 #include "math/Vector3.h"
 
 struct alignas(16) PostEffectParams
@@ -40,6 +41,13 @@ struct alignas(16) PostEffectParams
 
     float pad3[4];
 
+	/// --- bloom ---
+	int bloomEnabled;
+	float bloomIntensity;
+    float bloomThreshold;
+	float bloomRadius;
+	float pad4[3];
+
     bool operator==(const PostEffectParams& other) const
     {
         return grayscaleIntensity == other.grayscaleIntensity &&
@@ -61,7 +69,11 @@ struct alignas(16) PostEffectParams
             distortionEnabled == other.distortionEnabled &&
             distortionStrength == other.distortionStrength &&
             chromAberrationEnabled == other.chromAberrationEnabled &&
-            chromAberrationOffset == other.chromAberrationOffset;
+            chromAberrationOffset == other.chromAberrationOffset &&
+            bloomEnabled == other.bloomEnabled &&
+            bloomIntensity == other.bloomIntensity &&
+            bloomThreshold == other.bloomThreshold &&
+            bloomRadius == other.bloomRadius;
     }
 
     bool operator!=(const PostEffectParams& other) const

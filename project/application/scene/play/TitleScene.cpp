@@ -537,6 +537,24 @@ void TitleScene::DrawImGui()
 		ImGui::DragFloat("Chromatic Aberration Offset", &chromAberrationOffset, 0.01f, 0.0f, 10.0f);
 		sceneManager_->GetPostProcessManager()->crtEffect_->SetChromaticAberrationOffset(chromAberrationOffset);
 	}
+	// bloom
+	if (ImGui::CollapsingHeader("Bloom"))
+	{
+		static bool isBloom = false;
+		if (ImGui::Checkbox("enable", &isBloom))
+		{
+			sceneManager_->GetPostProcessManager()->bloomEffect_->SetEnabled(isBloom);
+		}
+		float threshold = sceneManager_->GetPostProcessManager()->bloomEffect_->GetThreshold();
+		ImGui::DragFloat("Bloom Threshold", &threshold, 0.01f, 0.0f, 1.0f);
+		sceneManager_->GetPostProcessManager()->bloomEffect_->SetThreshold(threshold);
+		float intensity = sceneManager_->GetPostProcessManager()->bloomEffect_->GetIntensity();
+		ImGui::DragFloat("Bloom Intensity", &intensity, 0.01f, 0.0f, 10.0f);
+		sceneManager_->GetPostProcessManager()->bloomEffect_->SetIntensity(intensity);
+		float radius = sceneManager_->GetPostProcessManager()->bloomEffect_->GetRadius();
+		ImGui::DragFloat("Bloom Radius", &radius, 0.01f, 0.0f, 10.0f);
+		sceneManager_->GetPostProcessManager()->bloomEffect_->SetRadius(radius);
+	}
 #pragma endregion
 
 	ImGui::End();
