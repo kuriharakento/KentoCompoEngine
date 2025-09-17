@@ -561,6 +561,23 @@ void TitleScene::DrawImGui()
 		ImGui::DragFloat("Bloom Mix", &mix, 0.01f, 0.0f, 1.0f);
 		sceneManager_->GetPostProcessManager()->bloomEffect_->SetBloomMix(mix);
 	}
+	// --- BrightPass ---
+	if (ImGui::CollapsingHeader("BrightPass"))
+	{
+		auto* ppm = sceneManager_->GetPostProcessManager();
+		ImGui::DragFloat("Threshold", &ppm->brightPassParams_.threshold, 0.01f, 0.0f, 1.0f);
+		ImGui::DragFloat("Intensity", &ppm->brightPassParams_.intensity, 0.01f, 0.0f, 10.0f);
+		ImGui::DragFloat("Knee", &ppm->brightPassParams_.knee, 0.01f, 0.0f, 1.0f);
+	}
+
+	// --- Blur ---
+	if (ImGui::CollapsingHeader("Blur"))
+	{
+		auto* ppm = sceneManager_->GetPostProcessManager();
+		ImGui::DragFloat2("Texel Size", &ppm->blurParams_.texelSize.x, 0.0001f, 0.0f, 0.01f);
+		ImGui::DragFloat2("Blur Direction", &ppm->blurParams_.blurDirection.x, 0.01f, -1.0f, 1.0f);
+		ImGui::DragFloat("Radius", &ppm->blurParams_.radius, 0.01f, 0.0f, 10.0f);
+	}
 #pragma endregion
 
 	ImGui::End();

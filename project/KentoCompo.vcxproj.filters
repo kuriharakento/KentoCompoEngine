@@ -13,6 +13,8 @@
     <FxCompile Include="Resources\shaders\Skybox.VS.hlsl">
       <Filter>Resources\shader</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\shaders\GaussianBlur.PS.hlsl" />
+    <FxCompile Include="Resources\shaders\BrightPass.PS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

@@ -123,11 +123,10 @@ void MyGame::Draw()
 
 	renderTexture_->EndRender();
 	dxCommon_->PreDraw();
-	postProcessManager_->Draw(renderTexture_->GetGPUHandle());
+	postProcessManager_->Draw(renderTexture_.get());
 	imguiManager_->End();
 	imguiManager_->Draw();
 	dxCommon_->PostDraw();
-
 }
 
 void MyGame::LoadTextures()

@@ -152,3 +152,8 @@ void RenderTexture::PostDrawForImGui()
 D3D12_GPU_DESCRIPTOR_HANDLE RenderTexture::GetGPUHandle() const {
     return srvManager_->GetGPUDescriptorHandle(srvIndex_);
 }
+
+D3D12_CPU_DESCRIPTOR_HANDLE RenderTexture::GetCPUHandle() const
+{
+	return srvManager_->GetCPUDescriptorHandle(srvIndex_);
+}

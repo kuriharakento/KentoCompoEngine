@@ -13,6 +13,7 @@
 
 class DirectXCommon;
 class SrvManager;
+class RenderTexture;
 
 class PostProcessManager
 {
@@ -21,28 +22,70 @@ public:
     ~PostProcessManager();
 
     void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, const std::wstring& vsPath, const std::wstring& psPath);
-    void Draw(D3D12_GPU_DESCRIPTOR_HANDLE inputTexture);
+    void Draw(RenderTexture* inputTexture);
 
-	std::unique_ptr<GrayscaleEffect> grayscaleEffect_;
-	std::unique_ptr<VignetteEffect> vignetteEffect_;
-	std::unique_ptr<NoiseEffect> noiseEffect_;
-	std::unique_ptr<CRTEffect> crtEffect_;
-	std::unique_ptr<BloomEffect> bloomEffect_;
+    void RenderBrightPass(RenderTexture* inputTexture, RenderTexture* outputRT);
+    void RenderBlurPass(RenderTexture* inputTexture, RenderTexture* outputRT, bool horizontal);
+    void RenderFinalComposite(RenderTexture* sceneTexture, RenderTexture* bloomTexture);
+
+    void SetBloomRenderTargets(RenderTexture* brightPassRT, RenderTexture* blurRT0, RenderTexture* blurRT1);
+
+    std::unique_ptr<GrayscaleEffect> grayscaleEffect_;
+    std::unique_ptr<VignetteEffect> vignetteEffect_;
+    std::unique_ptr<NoiseEffect> noiseEffect_;
+    std::unique_ptr<CRTEffect> crtEffect_;
+    std::unique_ptr<BloomEffect> bloomEffect_;
+
+	struct BrightPassParams
+    {
+        float threshold = 0.8f;
+        float intensity = 3.0f;
+        float knee = 0.5f;
+        float padding = 0.0f;
+    } brightPassParams_;
+
+    struct BlurParams
+    {
+        Vector2 texelSize;
+        Vector2 blurDirection;
+        float radius = 4.0f;
+        float padding[3] = {};
+    } blurParams_;
 
 private:
-	void CreateConstantBuffer();
-	void UpdateConstantBuffer();
+    void CreateConstantBuffer();
+    void UpdateConstantBuffer();
+    void SetupPipeline(const std::wstring& vsPath, const std::wstring& psPath);
+    void CreateBloomPipelines();
+    void RenderSinglePass(RenderTexture* inputTexture);
+    void RenderWithBloom(RenderTexture* inputTexture);
+    bool HasBloomRenderTargets() const;
 
 private:
     DirectXCommon* dxCommon_ = nullptr;
     SrvManager* srvManager_ = nullptr;
 
+    // ビューポートとシザー矩形の設定
+    D3D12_VIEWPORT viewport_ = {};
+	D3D12_RECT scissorRect_ = {};
+
+    // パイプライン
     Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
     Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState_;
-    //定数バッファ
-	Microsoft::WRL::ComPtr<ID3D12Resource> constantBuffer_;
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> singlePassRootSignature_;
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> singlePassPSO_;
+    Microsoft::WRL::ComPtr<ID3D12Resource> constantBuffer_;
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> brightPassPSO_;
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> bloomRootSignature_;
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> blurPSO_;
+    Microsoft::WRL::ComPtr<ID3D12Resource> brightPassConstantBuffer_;
+    Microsoft::WRL::ComPtr<ID3D12Resource> blurConstantBuffer_;
 
-    void SetupPipeline(const std::wstring& vsPath, const std::wstring& psPath);
-	PostEffectParams params_;
-	PostEffectParams preParams_; // 前フレームのパラメータを保持
+    RenderTexture* brightPassRT_ = nullptr;
+    RenderTexture* blurRT_[2] = { nullptr, nullptr };
+
+    PostEffectParams params_;
+    PostEffectParams preParams_;
+
+    
 };

@@ -22,6 +22,7 @@ public: // ゲッター
 
     ID3D12Resource* GetResource() const { return texture_.Get(); }
     D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle() const;
+    D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle() const;
     uint32_t GetSRVIndex() const { return srvIndex_; }
 
 private:

@@ -85,6 +85,7 @@ public://アクセッサ
 
 	//バックバッファの取得
 	size_t GetBackBufferCount() { return swapChainResources_.size(); }
+	UINT GetCurrentBackBufferIndex() { return swapChain_->GetCurrentBackBufferIndex(); }
 
 	/// \brief CPUのDescriptorHandleを取得
 	/// \param descriptorHeap 

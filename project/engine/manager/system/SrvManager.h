@@ -9,6 +9,7 @@ public:
 
 	//確保
 	uint32_t Allocate();
+	uint32_t AllocateRange(uint32_t count);
 
 	//SRV生成（テクスチャ用）
 	void CreateSRVforTexture2D(uint32_t srvIndex, ID3D12Resource* pResource, DXGI_FORMAT format,UINT mipLevels);
@@ -21,6 +22,7 @@ public:
 
 	//
 	void SetGraphicsRootDescriptorTable(UINT RootParameterIndex, uint32_t srvIndex);
+	void SetGraphicsRootDescriptorTableRange(UINT RootParameterIndex, uint32_t startSrvIndex);
 
 	//最大枚数なのか
 	bool IsMaxSRVCount();
