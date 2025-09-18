@@ -237,7 +237,7 @@ void PostProcessManager::RenderBlurPass(RenderTexture* inputTexture, RenderTextu
 	cmdList->SetGraphicsRootDescriptorTable(1, dxCommon_->GetSamplerDescriptorHandle());
 
 	// ブラー方向設定
-	blurParams_.texelSize = { 1.0f / 1280.0f, 1.0f / 720.0f };  // 画面サイズに応じて調整
+	blurParams_.texelSize = { 1.0f / WinApp::kClientWidth, 1.0f / WinApp::kClientHeight };
 	blurParams_.blurDirection = horizontal ? Vector2{ 1.0f, 0.0f } : Vector2{ 0.0f, 1.0f };
 
 	void* mappedData = nullptr;

@@ -16,7 +16,6 @@ cbuffer PostEffectParams : register(b0)
     float vignetteIntensity;
     float vignetteRadius;
     float vignetteSoftness;
-
     float3 vignetteColor;
     float pad1;
 
@@ -25,7 +24,6 @@ cbuffer PostEffectParams : register(b0)
     float noiseIntensity;
     float noiseTime;
     float grainSize;
-
     float luminanceAffect;
     float3 pad2;
 
@@ -34,22 +32,18 @@ cbuffer PostEffectParams : register(b0)
     int scanlineEnabled;
     float scanlineIntensity;
     float scanlineCount;
-
     int distortionEnabled;
     float distortionStrength;
     int chromAberrationEnabled;
     float chromAberrationOffset;
-
     float4 pad3;
 
-    // Bloom（追加）
+    // Bloom
     int bloomEnabled;
     float bloomIntensity;
     float bloomThreshold;
     float bloomRadius;
     float3 pad4;
-
-    // Bloom extended（追加）
     float2 invScreenSize;
     float bloomThresholdKnee;
     float bloomMix;
@@ -144,10 +138,10 @@ PixelShaderOutput main(VertexShaderOutput input)
     if (bloomEnabled != 0)
     {
         float3 bloom = gBloomTexture.Sample(gSampler, uv).rgb;
-        color += bloom * bloomIntensity * bloomMix;
+        color += bloom * bloomIntensity;
     }
     
     PixelShaderOutput output;
-    output.color = float4(saturate(color), baseColor.a);
+    output.color = float4(color, baseColor.a);
     return output;
 }

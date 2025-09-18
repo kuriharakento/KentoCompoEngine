@@ -110,8 +110,8 @@ void Framework::Initialize()
 	brightPassRT_->Initialize(
 		dxCommon_.get(),
 		srvManager_.get(),
-		WinApp::kClientWidth / 2,  // 半分のサイズ
-		WinApp::kClientHeight / 2,
+		WinApp::kClientWidth,  // 半分のサイズ
+		WinApp::kClientHeight,
 		DXGI_FORMAT_R16G16B16A16_FLOAT,
 		clearColor
 	);
@@ -123,8 +123,8 @@ void Framework::Initialize()
 		blurRT_[i]->Initialize(
 			dxCommon_.get(),
 			srvManager_.get(),
-			WinApp::kClientWidth / 2,
-			WinApp::kClientHeight / 2,
+			WinApp::kClientWidth,
+			WinApp::kClientHeight,
 			DXGI_FORMAT_R16G16B16A16_FLOAT,
 			clearColor
 		);
