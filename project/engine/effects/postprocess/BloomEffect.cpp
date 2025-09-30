@@ -4,13 +4,14 @@
 
 BloomEffect::BloomEffect()
 {
-    params_.intensity = 4.0f;
+    params_.intensity = 0.7f;
     params_.threshold = 0.78f;
     params_.radius = 2.0f;
     params_.enabled = 1;
 	params_.invScreenSize = { 1.0f / WinApp::kClientWidth, 1.0f / WinApp::kClientHeight };
 	params_.thresholdKnee = 0.5f;
 	params_.bloomMix = 1.0f;
+	enabled_ = true;
     isDirty_ = true;
 }
 

@@ -540,7 +540,7 @@ void TitleScene::DrawImGui()
 	// bloom
 	if (ImGui::CollapsingHeader("Bloom"))
 	{
-		static bool isBloom = false;
+		static bool isBloom = true;
 		if (ImGui::Checkbox("enable", &isBloom))
 		{
 			sceneManager_->GetPostProcessManager()->bloomEffect_->SetEnabled(isBloom);
@@ -574,7 +574,6 @@ void TitleScene::DrawImGui()
 	if (ImGui::CollapsingHeader("Blur"))
 	{
 		auto* ppm = sceneManager_->GetPostProcessManager();
-		ImGui::DragFloat2("Texel Size", &ppm->blurParams_.texelSize.x, 0.0001f, 0.0f, 0.01f);
 		ImGui::DragFloat2("Blur Direction", &ppm->blurParams_.blurDirection.x, 0.01f, -1.0f, 1.0f);
 		ImGui::DragFloat("Radius", &ppm->blurParams_.radius, 0.01f, 0.0f, 10.0f);
 	}

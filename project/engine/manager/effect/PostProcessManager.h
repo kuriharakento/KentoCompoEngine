@@ -39,7 +39,7 @@ public:
 	struct BrightPassParams
     {
         float threshold = 0.8f;
-        float intensity = 3.0f;
+        float intensity = 2.0f;
         float knee = 0.5f;
         float padding = 0.0f;
     } brightPassParams_;
@@ -48,7 +48,7 @@ public:
     {
         Vector2 texelSize;
         Vector2 blurDirection;
-        float radius = 4.0f;
+        float radius = 8.0f;
         float padding[3] = {};
     } blurParams_;
 
