@@ -427,6 +427,7 @@
     <ClCompile Include="application\scene\debug\ParticleTestScene.cpp">
       <Filter>application\scene</Filter>
     </ClCompile>
+    <ClCompile Include="ComboManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -939,6 +940,7 @@
     <ClInclude Include="application\stage\GameObjectInfo.h">
       <Filter>application\stage</Filter>
     </ClInclude>
+    <ClInclude Include="ComboManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

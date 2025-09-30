@@ -20,10 +20,11 @@ void DodgeEffectParticle::Initialize()
     // 残像エミッタの初期化
     afterImageEmitter_ = std::make_unique<ParticleEmitter>();
     afterImageEmitter_->Initialize("dodge_afterimage", afterImageTexturePath_);
+    afterImageEmitter_->SetBlendMode(BlendMode::Additive);
     afterImageEmitter_->SetEmitRate(0.03f);  // 残像の生成間隔（短く）
     afterImageEmitter_->SetEmitCount(1);     // 1回に1つの残像
     afterImageEmitter_->SetInitialLifeTime(0.2f); // 短いライフタイム
-    afterImageEmitter_->SetInitialScale({ 1.5f, 2.5f, 1.0f }); // キャラクターに合わせたスケール
+    afterImageEmitter_->SetInitialScale({ 0.5f, 0.5f, 0.5f }); // キャラクターに合わせたスケール
     afterImageEmitter_->SetInitialColor(VectorColorCodes::White);
     afterImageEmitter_->SetBillborad(false); // 回転を固定（キャラクターの向きに合わせる）
 
@@ -35,6 +36,7 @@ void DodgeEffectParticle::Initialize()
     // 軌跡エミッタの初期化
     trailEmitter_ = std::make_unique<ParticleEmitter>();
     trailEmitter_->Initialize("dodge_trail", trailTexturePath_);
+    trailEmitter_->SetBlendMode(BlendMode::Additive);
     trailEmitter_->SetEmitRate(0.01f);  // 頻繁に放出
     trailEmitter_->SetEmitCount(3);     // 一度に複数のパーティクル
     trailEmitter_->SetInitialLifeTime(0.2f);
@@ -62,6 +64,7 @@ void DodgeEffectParticle::Initialize()
     burstEmitter_->SetEmitCount(15);    // 一度にたくさん放出
     burstEmitter_->SetInitialLifeTime(0.5f);
     burstEmitter_->SetInitialScale({ 0.6f, 0.6f, 0.6f });
+    burstEmitter_->SetBlendMode(BlendMode::Additive);
     burstEmitter_->SetInitialColor(VectorColorCodes::White);
     burstEmitter_->SetBillborad(true);
 
