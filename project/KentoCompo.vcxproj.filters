@@ -13,8 +13,12 @@
     <FxCompile Include="Resources\shaders\Skybox.VS.hlsl">
       <Filter>Resources\shader</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\shaders\GaussianBlur.PS.hlsl" />
-    <FxCompile Include="Resources\shaders\BrightPass.PS.hlsl" />
+    <FxCompile Include="Resources\shaders\BrightPass.PS.hlsl">
+      <Filter>Resources\shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\shaders\GaussianBlur.PS.hlsl">
+      <Filter>Resources\shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -384,23 +388,45 @@
     <ClCompile Include="application\GameObject\combatable\character\enemy\KnifeEnemy.cpp">
       <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\action\KnifeEnemyBehavior.cpp" />
-    <ClCompile Include="application\stage\Stage.cpp" />
-    <ClCompile Include="application\stage\Area.cpp" />
-    <ClCompile Include="application\stage\Wave.cpp" />
-    <ClCompile Include="application\stage\WaveManager.cpp" />
-    <ClCompile Include="application\stage\AreaManager.cpp" />
-    <ClCompile Include="application\stage\AreaWaveData.cpp" />
-    <ClCompile Include="application\GameObject\obstacle\BarrierBlock.cpp" />
-    <ClCompile Include="application\minimap\Minimap.cpp" />
     <ClCompile Include="application\GameObject\component\collision\SphereColliderComponent.cpp">
       <Filter>application\GameObject\component\collision</Filter>
     </ClCompile>
     <ClCompile Include="application\GameObject\component\collision\CollisionAlgorithm.cpp">
       <Filter>application\GameObject\component\collision</Filter>
     </ClCompile>
-    <ClCompile Include="application\scene\debug\ParticleTestScene.cpp" />
-    <ClCompile Include="engine\effects\postprocess\BloomEffect.cpp" />
+    <ClCompile Include="application\stage\Area.cpp">
+      <Filter>application\stage</Filter>
+    </ClCompile>
+    <ClCompile Include="application\stage\AreaManager.cpp">
+      <Filter>application\stage</Filter>
+    </ClCompile>
+    <ClCompile Include="application\stage\AreaWaveData.cpp">
+      <Filter>application\stage</Filter>
+    </ClCompile>
+    <ClCompile Include="application\GameObject\obstacle\BarrierBlock.cpp">
+      <Filter>application\GameObject\obstacle</Filter>
+    </ClCompile>
+    <ClCompile Include="application\minimap\Minimap.cpp">
+      <Filter>application\minimap</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\effects\postprocess\BloomEffect.cpp">
+      <Filter>engine\effect\postprocess</Filter>
+    </ClCompile>
+    <ClCompile Include="application\stage\WaveManager.cpp">
+      <Filter>application\stage</Filter>
+    </ClCompile>
+    <ClCompile Include="application\stage\Wave.cpp">
+      <Filter>application\stage</Filter>
+    </ClCompile>
+    <ClCompile Include="application\stage\Stage.cpp">
+      <Filter>application\stage</Filter>
+    </ClCompile>
+    <ClCompile Include="application\GameObject\component\action\KnifeEnemyBehavior.cpp">
+      <Filter>application\GameObject\component\action</Filter>
+    </ClCompile>
+    <ClCompile Include="application\scene\debug\ParticleTestScene.cpp">
+      <Filter>application\scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -856,20 +882,6 @@
     <ClInclude Include="application\GameObject\combatable\character\enemy\KnifeEnemy.h">
       <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\action\KnifeEnemyBehavior.h" />
-    <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\NodeUtils.h" />
-    <ClInclude Include="application\stage\Stage.h" />
-    <ClInclude Include="application\stage\Area.h" />
-    <ClInclude Include="application\stage\Wave.h" />
-    <ClInclude Include="application\stage\GameObjectInfo.h" />
-    <ClInclude Include="application\stage\WaveManager.h" />
-    <ClInclude Include="application\stage\AreaManager.h" />
-    <ClInclude Include="application\stage\WaveInfo.h" />
-    <ClInclude Include="application\stage\AreaInfo.h" />
-    <ClInclude Include="application\stage\AreaWaveData.h" />
-    <ClInclude Include="application\GameObject\obstacle\BarrierBlock.h" />
-    <ClInclude Include="application\minimap\Minimap.h" />
-    <ClInclude Include="engine\math\BlendMode.h" />
     <ClInclude Include="application\GameObject\component\collision\SphereColliderComponent.h">
       <Filter>application\GameObject\component\collision</Filter>
     </ClInclude>
@@ -879,8 +891,54 @@
     <ClInclude Include="engine\math\Sphere.h">
       <Filter>engine\math</Filter>
     </ClInclude>
-    <ClInclude Include="application\scene\debug\ParticleTestScene.h" />
-    <ClInclude Include="engine\effects\postprocess\BloomEffect.h" />
+    <ClInclude Include="application\stage\Area.h">
+      <Filter>application\stage</Filter>
+    </ClInclude>
+    <ClInclude Include="application\stage\AreaInfo.h">
+      <Filter>application\stage</Filter>
+    </ClInclude>
+    <ClInclude Include="application\stage\AreaManager.h">
+      <Filter>application\stage</Filter>
+    </ClInclude>
+    <ClInclude Include="application\stage\AreaWaveData.h">
+      <Filter>application\stage</Filter>
+    </ClInclude>
+    <ClInclude Include="application\GameObject\obstacle\BarrierBlock.h">
+      <Filter>application\GameObject\obstacle</Filter>
+    </ClInclude>
+    <ClInclude Include="application\minimap\Minimap.h">
+      <Filter>application\minimap</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\BlendMode.h">
+      <Filter>engine\math</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\postprocess\BloomEffect.h">
+      <Filter>engine\effect\postprocess</Filter>
+    </ClInclude>
+    <ClInclude Include="application\stage\Wave.h">
+      <Filter>application\stage</Filter>
+    </ClInclude>
+    <ClInclude Include="application\stage\WaveInfo.h">
+      <Filter>application\stage</Filter>
+    </ClInclude>
+    <ClInclude Include="application\stage\Stage.h">
+      <Filter>application\stage</Filter>
+    </ClInclude>
+    <ClInclude Include="application\stage\WaveManager.h">
+      <Filter>application\stage</Filter>
+    </ClInclude>
+    <ClInclude Include="application\GameObject\component\action\KnifeEnemyBehavior.h">
+      <Filter>application\GameObject\component\action</Filter>
+    </ClInclude>
+    <ClInclude Include="application\scene\debug\ParticleTestScene.h">
+      <Filter>application\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\NodeUtils.h">
+      <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree</Filter>
+    </ClInclude>
+    <ClInclude Include="application\stage\GameObjectInfo.h">
+      <Filter>application\stage</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">
@@ -1079,6 +1137,9 @@
     </Filter>
     <Filter Include="application\GameObject\combatable\base">
       <UniqueIdentifier>{4d0e3eef-61be-4901-ae19-adb5c03c0aaa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="application\minimap">
+      <UniqueIdentifier>{efab8e88-f8e3-49f5-af6f-d098cdf0ee5f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
