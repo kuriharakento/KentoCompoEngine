@@ -91,6 +91,12 @@ template<class T> T EaseInExpo(T x) { return x == 0 ? 0 : static_cast<T>(pow(2, 
 
 template<class T> T EaseOutExpo(T x) { return x == 1 ? 1 : static_cast<T>(1 - powf(2, -10 * x)); }
 
+template <class T> T EaseInOutExpo(T x)
+{
+	if (x == 0) return 0;
+	if (x == 1) return 1;
+	return x < 0.5 ? static_cast<T>(pow(2, 20 * x - 10) / 2) : static_cast<T>((2 - pow(2, -20 * x + 10)) / 2);
+}
 
 //============================================
 // Quad

@@ -1,8 +1,6 @@
 #include "KnifeEnemy.h"
 
 #include "application/GameObject/Combatable/weapon/Knife.h"
-#include "application/GameObject/component/action/AssaultEnemyBehavior.h"
-#include "application/GameObject/component/action/AssaultRifleComponent.h"
 #include "application/GameObject/component/action/GravityPhysicsComponent.h"
 #include "application/GameObject/component/action/KnifeEnemyBehavior.h"
 #include "application/GameObject/component/collision/OBBColliderComponent.h"
@@ -40,7 +38,7 @@ void KnifeEnemy::Initialize(Object3dCommon* object3dCommon, LightManager* lightM
 
 
 	// ビヘイビアコンポーネントを追加
-	AddComponent("KnifeEnemyBehavior", std::make_unique<KnifeEnemyBehavior>(target, knife.get()));
+	AddComponent("KnifeEnemyBehavior", std::make_unique<KnifeEnemyBehavior>(target, rightArm.get(), leftArm.get(), knife.get()));
 	// 重力演算コンポーネントを追加
 	AddComponent("GravityPhysicsComponent", std::make_unique<GravityPhysicsComponent>());
 	// OBBコライダーコンポーネントを追加

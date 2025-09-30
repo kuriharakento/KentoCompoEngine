@@ -135,6 +135,7 @@ void MoveComponent::ProcessBulletTime(GameObject* owner)
 	for (const auto& enemy : enemies)
 	{
 		auto assaultRifle = enemy->GetComponent<AssaultRifleComponent>();
+		if (!assaultRifle) continue;
 		const auto& bullets = assaultRifle->GetBullets();
 		for (auto& bullet : bullets)
 		{

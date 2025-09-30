@@ -44,7 +44,7 @@ void AssaultRifleComponent::Update(GameObject* owner)
     {
 		if (Input::GetInstance()->IsMouseButtonPressed(0) && fireCooldownTimer_ <= 0.0f && currentAmmo_ > 0)
 		{
-			FireBullet(owner);
+			//FireBullet(owner);
 			fireCooldownTimer_ = fireCooldown_;
 			currentAmmo_--;
 			if (currentAmmo_ <= 0) StartReload();
