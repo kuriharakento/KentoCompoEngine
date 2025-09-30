@@ -584,7 +584,7 @@ void DirectXCommon::CreateSamplerHeap()
 	samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
 	samplerDesc.MipLODBias = 0.0f;
 	samplerDesc.MaxAnisotropy = 1;
-	samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+	samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
 
 	device_->CreateSampler(&samplerDesc, samplerHeap_->GetCPUDescriptorHandleForHeapStart());
 

@@ -537,6 +537,46 @@ void TitleScene::DrawImGui()
 		ImGui::DragFloat("Chromatic Aberration Offset", &chromAberrationOffset, 0.01f, 0.0f, 10.0f);
 		sceneManager_->GetPostProcessManager()->crtEffect_->SetChromaticAberrationOffset(chromAberrationOffset);
 	}
+	// bloom
+	if (ImGui::CollapsingHeader("Bloom"))
+	{
+		static bool isBloom = true;
+		if (ImGui::Checkbox("enable", &isBloom))
+		{
+			sceneManager_->GetPostProcessManager()->bloomEffect_->SetEnabled(isBloom);
+		}
+		float threshold = sceneManager_->GetPostProcessManager()->bloomEffect_->GetThreshold();
+		ImGui::DragFloat("Bloom Threshold", &threshold, 0.01f, 0.0f, 1.0f);
+		sceneManager_->GetPostProcessManager()->bloomEffect_->SetThreshold(threshold);
+		float intensity = sceneManager_->GetPostProcessManager()->bloomEffect_->GetIntensity();
+		ImGui::DragFloat("Bloom Intensity", &intensity, 0.01f, 0.0f, 10.0f);
+		sceneManager_->GetPostProcessManager()->bloomEffect_->SetIntensity(intensity);
+		float radius = sceneManager_->GetPostProcessManager()->bloomEffect_->GetRadius();
+		ImGui::DragFloat("Bloom Radius", &radius, 0.01f, 0.0f, 10.0f);
+		sceneManager_->GetPostProcessManager()->bloomEffect_->SetRadius(radius);
+		float thresholdknee = sceneManager_->GetPostProcessManager()->bloomEffect_->GetThresholdKnee();
+		ImGui::DragFloat("Bloom ThresholdKnee", &thresholdknee, 0.01f, 0.0f, 1.0f);
+		sceneManager_->GetPostProcessManager()->bloomEffect_->SetThresholdKnee(thresholdknee);
+		float mix = sceneManager_->GetPostProcessManager()->bloomEffect_->GetBloomMix();
+		ImGui::DragFloat("Bloom Mix", &mix, 0.01f, 0.0f, 1.0f);
+		sceneManager_->GetPostProcessManager()->bloomEffect_->SetBloomMix(mix);
+	}
+	// --- BrightPass ---
+	if (ImGui::CollapsingHeader("BrightPass"))
+	{
+		auto* ppm = sceneManager_->GetPostProcessManager();
+		ImGui::DragFloat("Threshold", &ppm->brightPassParams_.threshold, 0.01f, 0.0f, 1.0f);
+		ImGui::DragFloat("Intensity", &ppm->brightPassParams_.intensity, 0.01f, 0.0f, 10.0f);
+		ImGui::DragFloat("Knee", &ppm->brightPassParams_.knee, 0.01f, 0.0f, 1.0f);
+	}
+
+	// --- Blur ---
+	if (ImGui::CollapsingHeader("Blur"))
+	{
+		auto* ppm = sceneManager_->GetPostProcessManager();
+		ImGui::DragFloat2("Blur Direction", &ppm->blurParams_.blurDirection.x, 0.01f, -1.0f, 1.0f);
+		ImGui::DragFloat("Radius", &ppm->blurParams_.radius, 0.01f, 0.0f, 10.0f);
+	}
 #pragma endregion
 
 	ImGui::End();

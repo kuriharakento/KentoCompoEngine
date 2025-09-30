@@ -11,7 +11,7 @@ void BasePostEffect::SetEnabled(bool enabled)
 {
 	if (enabled_ != enabled)
 	{
-		enabled_ =
+		enabled_ = enabled;
 		isDirty_ = true; // パラメータが変更されたことを示す
 	}
 }

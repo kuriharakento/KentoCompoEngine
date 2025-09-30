@@ -27,6 +27,19 @@ uint32_t SrvManager::Allocate()
 	return index;
 }
 
+uint32_t SrvManager::AllocateRange(uint32_t count)
+{
+	// 上限に達していないか確認
+	assert(useIndex_ + count <= kMaxSRVCount);
+
+	// 開始インデックスを記録
+	uint32_t startIndex = useIndex_;
+	// 指定した数だけインデックスを進める
+	useIndex_ += count;
+
+	return startIndex;
+}
+
 void SrvManager::CreateSRVforTexture2D(uint32_t srvIndex, ID3D12Resource* pResource, DXGI_FORMAT format, UINT mipLevels)
 {
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
@@ -89,6 +102,12 @@ void SrvManager::SetGraphicsRootDescriptorTable(UINT RootParameterIndex, uint32_
 {
 	//RootSignatureの設定
 	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(RootParameterIndex, GetGPUDescriptorHandle(srvIndex));
+}
+
+void SrvManager::SetGraphicsRootDescriptorTableRange(UINT RootParameterIndex, uint32_t startSrvIndex)
+{
+	// 連続するSRVの開始位置を設定
+	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(RootParameterIndex, GetGPUDescriptorHandle(startSrvIndex));
 }
 
 bool SrvManager::IsMaxSRVCount()

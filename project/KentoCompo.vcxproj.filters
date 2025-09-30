@@ -13,6 +13,8 @@
     <FxCompile Include="Resources\shaders\Skybox.VS.hlsl">
       <Filter>Resources\shader</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\shaders\GaussianBlur.PS.hlsl" />
+    <FxCompile Include="Resources\shaders\BrightPass.PS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -398,6 +400,7 @@
       <Filter>application\GameObject\component\collision</Filter>
     </ClCompile>
     <ClCompile Include="application\scene\debug\ParticleTestScene.cpp" />
+    <ClCompile Include="engine\effects\postprocess\BloomEffect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -877,6 +880,7 @@
       <Filter>engine\math</Filter>
     </ClInclude>
     <ClInclude Include="application\scene\debug\ParticleTestScene.h" />
+    <ClInclude Include="engine\effects\postprocess\BloomEffect.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

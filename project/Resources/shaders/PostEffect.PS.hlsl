@@ -1,25 +1,33 @@
 #include "PostEffect.hlsli"
 
-Texture2D<float4> gTexture : register(t0);
+Texture2D<float4> gTexture : register(t0); // メインシーン
+Texture2D<float4> gBloomTexture : register(t1); // ブルーム
 SamplerState gSampler : register(s0);
 
 cbuffer PostEffectParams : register(b0)
 {
+    // Grayscale
     float grayscaleIntensity;
     int grayscaleEnabled;
     float2 pad0;
+
+    // Vignette
     int vignetteEnabled;
     float vignetteIntensity;
     float vignetteRadius;
     float vignetteSoftness;
     float3 vignetteColor;
     float pad1;
+
+    // Noise
     int noiseEnabled;
     float noiseIntensity;
     float noiseTime;
     float grainSize;
     float luminanceAffect;
     float3 pad2;
+
+    // CRT
     int crtEnabled;
     int scanlineEnabled;
     float scanlineIntensity;
@@ -29,7 +37,17 @@ cbuffer PostEffectParams : register(b0)
     int chromAberrationEnabled;
     float chromAberrationOffset;
     float4 pad3;
-}
+
+    // Bloom
+    int bloomEnabled;
+    float bloomIntensity;
+    float bloomThreshold;
+    float bloomRadius;
+    float3 pad4;
+    float2 invScreenSize;
+    float bloomThresholdKnee;
+    float bloomMix;
+};
 
 // 最適化されたランダム関数
 float fastRandom(float2 uv)
@@ -116,7 +134,14 @@ PixelShaderOutput main(VertexShaderOutput input)
         color = lerp(color, grayscaleResult, 1.0);
     }
     
+    // Bloom処理部分
+    if (bloomEnabled != 0)
+    {
+        float3 bloom = gBloomTexture.Sample(gSampler, uv).rgb;
+        color += bloom * bloomIntensity;
+    }
+    
     PixelShaderOutput output;
-    output.color = float4(saturate(color), baseColor.a);
+    output.color = float4(color, baseColor.a);
     return output;
 }

@@ -72,5 +72,9 @@ protected: //メンバ変数
 	std::unique_ptr<PostProcessManager> postProcessManager_;
 	// Skybox
 	std::unique_ptr<Skybox> skybox_;
+	// ブルーム用
+	std::unique_ptr<RenderTexture> brightPassRT_;
+	// ブラー用のレンダーターゲット
+	std::unique_ptr<RenderTexture> blurRT_[2];  
 };
 

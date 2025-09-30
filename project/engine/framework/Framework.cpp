@@ -94,11 +94,50 @@ void Framework::Initialize()
 
 	// レンダーテクスチャの初期化
 	renderTexture_ = std::make_unique<RenderTexture>();
-	renderTexture_->Initialize(dxCommon_.get(), srvManager_.get(), WinApp::kClientWidth, WinApp::kClientHeight, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, /*Vector4(1.0f, 0.0f, 0.0f, 1.0f)*/Vector4(0.1f, 0.25f, 0.5f, 1.0f));
+	// HDRレンダーターゲットの作成
+	Vector4 clearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
+	renderTexture_->Initialize(
+		dxCommon_.get(),
+		srvManager_.get(),
+		WinApp::kClientWidth,
+		WinApp::kClientHeight,
+		DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,  // HDRフォーマットに変更
+		clearColor
+	);
+
+	// ブライトパス用のレンダーターゲットを追加
+	brightPassRT_ = std::make_unique<RenderTexture>();
+	brightPassRT_->Initialize(
+		dxCommon_.get(),
+		srvManager_.get(),
+		WinApp::kClientWidth,  // 半分のサイズ
+		WinApp::kClientHeight,
+		DXGI_FORMAT_R16G16B16A16_FLOAT,
+		clearColor
+	);
+
+	// ブラー用のレンダーターゲット
+	for (int i = 0; i < 2; i++)
+	{
+		blurRT_[i] = std::make_unique<RenderTexture>();
+		blurRT_[i]->Initialize(
+			dxCommon_.get(),
+			srvManager_.get(),
+			WinApp::kClientWidth,
+			WinApp::kClientHeight,
+			DXGI_FORMAT_R16G16B16A16_FLOAT,
+			clearColor
+		);
+	}
 
 	// ポストプロセスマネージャーの初期化
 	postProcessManager_ = std::make_unique<PostProcessManager>();
 	postProcessManager_->Initialize(dxCommon_.get(), srvManager_.get(), L"Resources/shaders/PostEffect.VS.hlsl", L"Resources/shaders/PostEffect.PS.hlsl");
+	postProcessManager_->SetBloomRenderTargets(
+		brightPassRT_.get(),
+		blurRT_[0].get(),
+		blurRT_[1].get()
+	);
 
 	// JSONエディターの初期化
 	JsonEditorManager::GetInstance()->Initialize();
@@ -127,6 +166,11 @@ void Framework::Finalize()
 	LineManager::GetInstance()->Finalize();			// ラインマネージャーの解放
 	renderTexture_.reset();							// レンダーテクスチャの解放
 	postProcessManager_.reset();					// ポストプロセスマネージャーの解放
+	brightPassRT_.reset();							// ブライトパス用レンダーターゲットの解放
+	for (int i = 0; i < 2; i++)
+	{
+		blurRT_[i].reset();							// ブラー用レンダーターゲットの解放
+	}
 	JsonEditorManager::GetInstance()->Finalize();	// JSONエディターの終了処理
 }
 
