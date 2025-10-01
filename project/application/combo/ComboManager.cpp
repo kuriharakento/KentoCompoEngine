@@ -41,7 +41,7 @@ void ComboManager::Draw()
 		return;
 	}
 	// 画面中央の上くらいに描画
-	comboNumberSprite_.DrawNumber(comboCount_, Vector2(600.0f, 100.0f));
+	comboNumberSprite_.DrawNumber(comboCount_, Vector2(580.0f, 100.0f), -20.0f);
 }
 
 void ComboManager::Reset()

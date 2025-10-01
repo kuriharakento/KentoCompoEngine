@@ -15,7 +15,7 @@ public:
 	void DrawDigit(int number, const Vector2& position);
 
 	// 数値を描画
-	void DrawNumber(int number, const Vector2& position);
+	void DrawNumber(int number, const Vector2& position, float spacing);
 
 private:
 	// 10桁分のスプライト(intの桁数は最大10桁までなので)

@@ -14,7 +14,7 @@ public:
     void Initialize(SpriteCommon* spriteCommon);
 
     // --- コンボパラメータ ---
-    static constexpr float kComboTimeout = 5.0f; // コンボの猶予時間（秒）
+    static constexpr float kComboTimeout = 10.0f; // コンボの猶予時間（秒）
 
     // 敵を撃破したときに呼ぶ
     void OnEnemyDefeated(int count = 1);

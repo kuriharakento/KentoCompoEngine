@@ -14,6 +14,7 @@ void NumberSprite::Initialize(SpriteCommon* spriteCommon, std::string textureFil
 		sprite->SetTextureLeftTop(Vector2(0.0f, 0.0f));
 		sprite->SetTextureSize(digit_);
 		sprite->SetSize(digit_);
+		sprite->SetAnchorPoint(Vector2(0.5f, 0.5f)); // 中心を基準に
 	}
 }
 
@@ -38,7 +39,7 @@ void NumberSprite::DrawDigit(int number, const Vector2& position)
 	sprite->Draw();
 }
 
-void NumberSprite::DrawNumber(int number, const Vector2& position)
+void NumberSprite::DrawNumber(int number, const Vector2& position, float spacing)
 {
 	// 桁ごとに分解（最大10桁）
 	std::vector<int> digitValues;
@@ -61,6 +62,6 @@ void NumberSprite::DrawNumber(int number, const Vector2& position)
 		digits_[i]->SetTextureLeftTop(Vector2(srcX, srcY));
 		digits_[i]->SetPosition(pos);
 		digits_[i]->Draw();
-		pos.x += digit_.x; // 次の桁へ
+		pos.x += digit_.x + spacing; // 次の桁へ
 	}
 }
