@@ -20,6 +20,7 @@
 // effects
 #include "application/minimap/Minimap.h"
 #include "effects/particle/ParticleEmitter.h"
+#include "graphics/2d/NumberSprite.h"
 
 enum class TitleSceneState
 {

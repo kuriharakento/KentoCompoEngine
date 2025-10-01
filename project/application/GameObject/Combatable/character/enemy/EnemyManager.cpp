@@ -4,6 +4,7 @@
 #include "KnifeEnemy.h"
 #include "PistolEnemy.h"
 #include "ShotgunEnemy.h"
+#include "application/combo/ComboManager.h"
 #include "ImGui/imgui_internal.h"
 #include "math/MathUtils.h"
 
@@ -73,7 +74,11 @@ void EnemyManager::Update()
 		if (!(*it)->IsAlive())
 		{
 			deathEffect_->PlayDeathEffect((*it)->GetPosition(),EnemyDeathEffect::EffectType::Electric); // 死亡エフェクトを再生
-			it = enemies_.erase(it); // 死亡した敵を削除
+			// コンボの加算
+			ComboManager::GetInstance().OnEnemyDefeated();
+
+			// 死亡した敵を削除
+			it = enemies_.erase(it);
 		}
 		else
 		{

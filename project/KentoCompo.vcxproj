@@ -123,7 +123,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\stage\AreaManager.cpp" />
     <ClCompile Include="application\stage\AreaWaveData.cpp" />
     <ClCompile Include="application\GameObject\obstacle\BarrierBlock.cpp" />
-    <ClCompile Include="ComboManager.cpp" />
+    <ClCompile Include="application\combo\ComboManager.cpp" />
     <ClCompile Include="engine\effects\postprocess\BloomEffect.cpp" />
     <ClCompile Include="engine\camerawork\debug\DebugCamera.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
@@ -243,6 +243,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\stage\WaveManager.cpp" />
     <ClCompile Include="application\minimap\Minimap.cpp" />
     <ClCompile Include="application\scene\debug\ParticleTestScene.cpp" />
+    <ClCompile Include="engine\graphics\2d\NumberSprite.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObjectTag.h" />
@@ -273,7 +274,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\stage\WaveInfo.h" />
     <ClInclude Include="application\stage\AreaWaveData.h" />
     <ClInclude Include="application\GameObject\obstacle\BarrierBlock.h" />
-    <ClInclude Include="ComboManager.h" />
+    <ClInclude Include="application\combo\ComboManager.h" />
     <ClInclude Include="engine\effects\postprocess\BloomEffect.h" />
     <ClInclude Include="engine\camerawork\debug\DebugCamera.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -418,6 +419,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\stage\WaveManager.h" />
     <ClInclude Include="application\minimap\Minimap.h" />
     <ClInclude Include="application\scene\debug\ParticleTestScene.h" />
+    <ClInclude Include="engine\graphics\2d\NumberSprite.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />
