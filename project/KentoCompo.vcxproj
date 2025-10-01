@@ -104,6 +104,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="application\GameObject\Combatable\base\StatusSystem.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\ActionNode.cpp" />
     <ClCompile Include="application\GameObject\component\action\AssaultRifleComponent.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\AssaultEnemy.cpp" />
@@ -247,7 +248,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObjectTag.h" />
-    <ClInclude Include="application\GameObject\combatable\base\StatusValue.h" />
+    <ClInclude Include="application\GameObject\combatable\base\StatusSystem.h" />
     <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\ActionNode.h" />
     <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\BTNode.h" />
     <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\NodeUtils.h" />

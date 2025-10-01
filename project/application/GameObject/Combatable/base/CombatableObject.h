@@ -1,6 +1,6 @@
 #pragma once
 
-#include "StatusValue.h"
+#include "StatusSystem.h"
 #include "application/GameObject/base/GameObject.h"
 
 class CombatableObject : public GameObject
