@@ -143,6 +143,7 @@ void MyGame::LoadTextures()
 	TextureManager::GetInstance()->LoadTexture("./Resources/star.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/skybox.dds");
 	TextureManager::GetInstance()->LoadTexture("./Resources/minimap_frame.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/numbers.png");
 }
 
 void MyGame::LoadModels()

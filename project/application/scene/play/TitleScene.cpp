@@ -14,6 +14,7 @@
 // app
 #include "application/GameObject/component/collision/CollisionManager.h"
 // components
+#include "application/combo/ComboManager.h"
 #include "application/GameObject/component/action/PistolComponent.h"
 #include "effects/particle/component/group/MaterialColorComponent.h"
 #include "effects/particle/component/group/UVTranslateComponent.h"
@@ -76,6 +77,10 @@ void TitleScene::Initialize()
 	//当たり判定マネージャーの初期化
 	CollisionManager::GetInstance()->Initialize();
 
+	// Comboマネージャーの初期化
+	ComboManager::GetInstance().Initialize(sceneManager_->GetSpriteCommon());
+	ComboManager::GetInstance().Reset();
+
 	// ステージマネージャーの生成
 	stageManager_ = std::make_unique<StageManager>();
 	stageManager_->Initialize(
@@ -112,8 +117,6 @@ void TitleScene::Initialize()
 
 	// パーティクルエミッターの初期化
 	InitializeParticleEmitters();
-
-	
 }
 
 void TitleScene::Finalize()
@@ -144,6 +147,7 @@ void TitleScene::Update()
 	// カメラの更新
 	topDownCamera_->Update();
 
+	// ミニマップの更新
 	minimap_->Update();
 
 	// ステージの更新
@@ -157,6 +161,9 @@ void TitleScene::Update()
 
 	// 衝突判定開始
 	CollisionManager::GetInstance()->CheckCollisions();
+
+	// コンボマネージャーの更新
+	ComboManager::GetInstance().Update();
 }
 
 void TitleScene::Draw3D()
@@ -176,7 +183,11 @@ void TitleScene::Draw3D()
 
 void TitleScene::Draw2D()
 {
+	// ミニマップの描画
 	minimap_->Draw();
+
+	// コンボUIの描画
+	ComboManager::GetInstance().Draw();
 }
 
 void TitleScene::InitializeParticleEmitters()
