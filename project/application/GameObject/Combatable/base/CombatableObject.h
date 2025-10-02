@@ -2,7 +2,9 @@
 
 #include "StatusSystem.h"
 #include "application/GameObject/base/GameObject.h"
+#include "application/GameObject/component/action/StatusComponent.h"
 
+// 攻撃を受けることができるオブジェクトの基底クラス
 class CombatableObject : public GameObject
 {
 public:
@@ -10,38 +12,72 @@ public:
     explicit CombatableObject(const std::string& tag = GameObjectTag::Common::CombatableObject)
         : GameObject(tag)
     {
-		// 初期化しておく
-        hp_.base = 100.0f;
-        maxHp_.base = 100.0f;
-        attackPower_.base = 10.0f;
-        isAlive_ = true;
+		// ステータスコンポーネントを追加
+		AddComponent("StatusComponent", std::make_unique<StatusComponent>());
     }
+
+    // ダメージを受ける
+	virtual void TakeDamage(float damage)
+	{
+		auto status = GetComponent<StatusComponent>();
+		if (status && status->isAlive)
+		{
+			float newHp = status->hp.GetValue() - damage;
+			status->hp.SetBase(newHp);
+			if (newHp <= 0.0f)
+			{
+				status->isAlive = false;
+				status->hp.SetBase(0.0f);
+			}
+		}
+	}
+
+	//======================================
+	// ステータスのGetter/Setter
+	//======================================
 
     // HP
-    virtual void SetHp(float v) { hp_.base = v; }
-    virtual float GetHp() const { return hp_.Calc(); }
-    virtual void SetMaxHp(float v) { maxHp_.base = v; }
-    virtual float GetMaxHp() const { return maxHp_.Calc(); }
-
-    // 攻撃力
-    virtual void SetAttackPower(float v) { attackPower_.base = v; }
-    virtual float GetAttackPower() const { return attackPower_.Calc(); }
-
-    // 生存状態
-    virtual bool IsAlive() const { return isAlive_; }
-    virtual void SetAlive(bool alive) { isAlive_ = alive; }
-
-    // ステータス更新（毎フレーム呼ぶ）
-    virtual void UpdateStatus(float deltaTime)
+    float GetHp() const
     {
-        hp_.Update(deltaTime);
-        maxHp_.Update(deltaTime);
-        attackPower_.Update(deltaTime);
+        auto status = GetComponent<StatusComponent>();
+        return status ? status->hp.GetValue() : 0.0f;
+    }
+    void SetHp(float v)
+    {
+        auto status = GetComponent<StatusComponent>();
+        if (status)
+        {
+            status->hp.SetBase(v);
+        }
     }
 
-protected:
-	StatusValue hp_;                // 体力
-	StatusValue maxHp_;             // 最大体力
-	StatusValue attackPower_;       // 攻撃力
-	bool isAlive_;                  // 生存状態
+    // 攻撃力
+    float GetAttackPower() const
+    {
+        auto status = GetComponent<StatusComponent>();
+        return status ? status->attackPower.GetValue() : 0.0f;
+    }
+    void SetAttackPower(float v)
+    {
+        auto status = GetComponent<StatusComponent>();
+        if (status)
+        {
+            status->attackPower.SetBase(v);
+        }
+    }
+
+    // 生存状態
+    bool IsAlive() const
+    {
+        auto status = GetComponent<StatusComponent>();
+        return status ? status->isAlive : false;
+    }
+    void SetAlive(bool alive)
+    {
+        auto status = GetComponent<StatusComponent>();
+        if (status)
+        {
+            status->isAlive = alive;
+        }
+    }
 };

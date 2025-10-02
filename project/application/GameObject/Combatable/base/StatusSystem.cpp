@@ -1,10 +1,7 @@
 #include "StatusSystem.h"
 #include <algorithm>
 
- // ===============================================
  // BuffConfig
- // ===============================================
-
 BuffConfig::BuffConfig(std::string id, float val, BuffType t, std::optional<float> dur)
     : id(std::move(id))
     , value(val)
@@ -27,10 +24,7 @@ bool BuffConfig::HasTag(const std::string& tag) const
     return std::find(tags.begin(), tags.end(), tag) != tags.end();
 }
 
-// ===============================================
 // BuffInstance
-// ===============================================
-
 BuffInstance::BuffInstance(const BuffConfig& config)
     : config_(config)
     , remainingTime_(config.duration)  // durationがnulloptなら永続バフ
@@ -121,10 +115,7 @@ void BuffInstance::RefreshDuration()
     }
 }
 
-// ===============================================
 // StatusValue 
-// ===============================================
-
 StatusValue::StatusValue(float baseValue)
     : base_(baseValue)
     , cachedValue_(baseValue)  // 初期状態ではキャッシュ = 基礎値

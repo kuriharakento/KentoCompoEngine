@@ -16,7 +16,7 @@ void PistolEnemy::Initialize(Object3dCommon* object3dCommon, LightManager* light
 	collider->SetOnEnter([this](GameObject* other) {
 		if (other->GetTag() == GameObjectTag::Weapon::PlayerBullet)
 		{
-			isAlive_ = false; // プレイヤーの弾に当たったら死亡
+			SetAlive(false); // 弾に当たったら消える
 		}
 						});
 	collider->SetOnStay([this](GameObject* other) {
