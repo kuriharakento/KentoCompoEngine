@@ -429,6 +429,8 @@
     </ClCompile>
     <ClCompile Include="application\combo\ComboManager.cpp" />
     <ClCompile Include="engine\graphics\2d\NumberSprite.cpp" />
+    <ClCompile Include="application\GameObject\Combatable\base\StatusSystem.cpp" />
+    <ClCompile Include="application\GameObject\component\action\StatusComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -872,7 +874,7 @@
     <ClInclude Include="application\GameObject\combatable\base\CombatableObject.h">
       <Filter>application\GameObject\combatable\base</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\base\StatusValue.h">
+    <ClInclude Include="application\GameObject\combatable\base\StatusSystem.h">
       <Filter>application\GameObject\combatable\base</Filter>
     </ClInclude>
     <ClInclude Include="application\GameObject\base\GameObjectTag.h">
@@ -943,6 +945,7 @@
     </ClInclude>
     <ClInclude Include="application\combo\ComboManager.h" />
     <ClInclude Include="engine\graphics\2d\NumberSprite.h" />
+    <ClInclude Include="application\GameObject\component\action\StatusComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

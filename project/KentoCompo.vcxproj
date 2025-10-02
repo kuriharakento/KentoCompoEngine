@@ -104,6 +104,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="application\GameObject\Combatable\base\StatusSystem.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\ActionNode.cpp" />
     <ClCompile Include="application\GameObject\component\action\AssaultRifleComponent.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\AssaultEnemy.cpp" />
@@ -244,10 +245,11 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\minimap\Minimap.cpp" />
     <ClCompile Include="application\scene\debug\ParticleTestScene.cpp" />
     <ClCompile Include="engine\graphics\2d\NumberSprite.cpp" />
+    <ClCompile Include="application\GameObject\component\action\StatusComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObjectTag.h" />
-    <ClInclude Include="application\GameObject\combatable\base\StatusValue.h" />
+    <ClInclude Include="application\GameObject\combatable\base\StatusSystem.h" />
     <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\ActionNode.h" />
     <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\BTNode.h" />
     <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\NodeUtils.h" />
@@ -420,6 +422,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\minimap\Minimap.h" />
     <ClInclude Include="application\scene\debug\ParticleTestScene.h" />
     <ClInclude Include="engine\graphics\2d\NumberSprite.h" />
+    <ClInclude Include="application\GameObject\component\action\StatusComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />

@@ -38,7 +38,10 @@ void AssaultEnemy::CollisionSettings(ICollisionComponent* collider)
 		if (other->GetTag() == GameObjectTag::Weapon::PlayerBullet)
 		{
 			auto combatable = dynamic_cast<CombatableObject*>(other);
-			hp_.base -= combatable->GetAttackPower();
+			if (combatable)
+			{
+				TakeDamage(combatable->GetAttackPower());
+			}
 		}
 						 });
 	collider->SetOnStay([this](GameObject* other) {

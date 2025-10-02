@@ -12,15 +12,6 @@ void EnemyBase::Initialize(Object3dCommon* object3dCommon, LightManager* lightMa
 void EnemyBase::Update()
 {
 	Character::Update();
-
-	// ステータスを更新
-	UpdateStatus(TimeManager::GetInstance().GetGameContext().deltaTime);
-
-	//　死亡処理(仮)
-	if (hp_.base <= 0.0f)
-	{
-		isAlive_ = false; // 体力が0以下なら死亡
-	}
 }
 
 void EnemyBase::Draw(CameraManager* camera)
