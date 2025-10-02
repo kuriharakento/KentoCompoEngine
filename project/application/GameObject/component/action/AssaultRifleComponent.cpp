@@ -15,18 +15,18 @@
 #include "time/TimeManager.h"
 
 AssaultRifleComponent::AssaultRifleComponent(Object3dCommon* object3dCommon, LightManager* lightManager)
-    : fireCooldown_(0.1f), fireCooldownTimer_(0.0f)
+	: fireCooldown_(0.1f), fireCooldownTimer_(0.0f)
 {
-    object3dCommon_ = object3dCommon;
-    lightManager_ = lightManager;
+	object3dCommon_ = object3dCommon;
+	lightManager_ = lightManager;
 	hitEffect_ = std::make_unique<AssaultRifleHitEffect>();
 	hitEffect_->Initialize();
 }
 
 AssaultRifleComponent::~AssaultRifleComponent()
 {
-    for (auto& bullet : bullets_) bullet.reset();
-    bullets_.clear();
+	for (auto& bullet : bullets_) bullet.reset();
+	bullets_.clear();
 }
 
 void AssaultRifleComponent::Update(GameObject* owner)
@@ -40,8 +40,8 @@ void AssaultRifleComponent::Update(GameObject* owner)
 		Reload(deltaTime);
 	}
 
-    if (auto player = dynamic_cast<Player*>(owner))
-    {
+	if (auto player = dynamic_cast<Player*>(owner))
+	{
 		if (Input::GetInstance()->IsMouseButtonPressed(0) && fireCooldownTimer_ <= 0.0f && currentAmmo_ > 0)
 		{
 			FireBullet(owner);
@@ -56,7 +56,7 @@ void AssaultRifleComponent::Update(GameObject* owner)
 			StartReload();
 		}
 
-    }
+	}
 	else if (auto enemy = dynamic_cast<EnemyBase*>(owner))
 	{
 		// 敵が任意のタイミングで発射するために敵のポインタを保持
@@ -68,25 +68,26 @@ void AssaultRifleComponent::Update(GameObject* owner)
 		}
 	}
 
-    for (const auto& bullet : bullets_)
-        if (bullet->IsAlive()) bullet->Update(TimeManager::GetInstance().GetGameContext().deltaTime);
+	for (const auto& bullet : bullets_)
+		if (bullet->IsAlive()) bullet->Update(TimeManager::GetInstance().GetGameContext().deltaTime);
 
-    for (auto it = bullets_.begin(); it != bullets_.end();)
+	for (auto it = bullets_.begin(); it != bullets_.end();)
 		if (!(*it)->IsAlive())
 		{
 			it = bullets_.erase(it);
 		}
-        else ++it;
+		else ++it;
 }
 
 void AssaultRifleComponent::Draw(CameraManager* camera)
 {
-    for (const auto& bullet : bullets_)
-        if (bullet->IsAlive()) bullet->Draw(camera);
+	for (const auto& bullet : bullets_)
+		if (bullet->IsAlive()) bullet->Draw(camera);
 }
 
 void AssaultRifleComponent::Fire()
 {
+	if (enemy_ == nullptr) { return; }	// enemyがNullなら処理しない
 	Vector3 myPos = enemy_->GetPosition();
 	Vector3 playerPos = enemy_->GetTarget()->GetPosition();
 	float distance = (playerPos - myPos).Length();
@@ -153,7 +154,11 @@ void AssaultRifleComponent::FireBullet(GameObject* owner)
 	auto colliderComp = std::make_unique<OBBColliderComponent>(bullet.get());
 	colliderComp->SetOnEnter([ptr = bullet.get(), hitEffect = hitEffect_.get()](GameObject* other) {
 		// 敵に当たった場合、パーティクルを生成して弾を消す
-		if (other->GetTag() == GameObjectTag::Character::PistolEnemy || other->GetTag() == GameObjectTag::Character::AssaultEnemy || other->GetTag() == GameObjectTag::Character::ShotgunEnemy)
+		if (other->GetTag() == GameObjectTag::Character::PistolEnemy ||
+			other->GetTag() == GameObjectTag::Character::AssaultEnemy ||
+			other->GetTag() == GameObjectTag::Character::ShotgunEnemy ||
+			other->GetTag() == GameObjectTag::Character::KnifeEnemy
+			)
 		{
 			hitEffect->Play(ptr->GetPosition());
 			ptr->SetAlive(false);
@@ -199,7 +204,7 @@ void AssaultRifleComponent::FireBullet(GameObject* owner, const Vector3& targetP
 	auto colliderComp = std::make_unique<OBBColliderComponent>(bullet.get());
 
 	// 衝突したときの処理を設定
-	colliderComp->SetOnEnter([ptr = bullet.get() , hitEffect = hitEffect_.get()](GameObject* other) {
+	colliderComp->SetOnEnter([ptr = bullet.get(), hitEffect = hitEffect_.get()](GameObject* other) {
 		// 敵に当たった場合、パーティクルを生成して弾を消す
 		if (other->GetTag() == GameObjectTag::Character::Player)
 		{

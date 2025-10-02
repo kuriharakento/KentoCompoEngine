@@ -36,9 +36,6 @@ void GameObject::Initialize(Object3dCommon* object3dCommon, LightManager* lightM
 		{ 0.0f, 0.0f, 0.0f }, // rotate
 		{ 0.0f, 0.0f, 0.0f }  // translate
 	};
-	// コンポーネントの初期化
-	components_.clear();
-	// GameObjectManagerに登録
 }
 
 void GameObject::Update()
