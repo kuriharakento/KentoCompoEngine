@@ -8,6 +8,7 @@
 #include "math/Easing.h"
 #include "time/TimeManager.h"
 #include "application/GameObject/Combatable/character/enemy/EnemyManager.h"
+#include "application/GameObject/Combatable/character/player/Player.h"
 #include "time/Timer.h"
 #include "time/TimerManager.h"
 
@@ -17,13 +18,39 @@ MoveComponent::MoveComponent(EnemyManager* enemyManager)
 	dodgeEffect_ = std::make_unique<DodgeEffectParticle>();
 	dodgeEffect_->Initialize();
 
+	// 敵マネージャーのポインタを保存
 	enemyManager_ = enemyManager;
 }
 
 void MoveComponent::Update(GameObject* owner)
 {
-    // タイマー更新
-    float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
+	// 移動速度取得
+	auto status = owner->GetComponent<StatusComponent>();
+	if (status)
+	{
+		moveSpeed_ = status->moveSpeed.GetValue();
+	}
+	else
+	{
+		// 取得できない場合は処理を中断
+		moveSpeed_ = 0.0f;
+		Logger::Log("MoveComponent::Update: StatusComponent not found!\n");
+		return;
+	}
+
+    // タイマー取得
+    float deltaTime = 0.0f;
+	auto player = dynamic_cast<Player*>(owner);
+
+	// プレイヤーの場合はリアルタイムで更新
+	if (player)
+	{
+		deltaTime = TimeManager::GetInstance().GetGameContext().realDeltaTime;
+	}
+	else
+	{
+		deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
+	}
 
     // クールダウンタイマー更新
     if (dodgeCooldownTimer_ > 0.0f)
@@ -91,7 +118,7 @@ void MoveComponent::Update(GameObject* owner)
         ProcessDodge(owner);  // 回避を最優先
         if (!isDodging_)
         {    // 回避が始まらなかったら他の処理
-            ProcessMovement(owner); // 通常移動
+            ProcessMovement(owner, deltaTime); // 通常移動
         }
     }
 
@@ -171,7 +198,7 @@ float MoveComponent::GetDodgeProgress() const
     return 1.0f - (dodgeTimer_ / dodgeDuration_);
 }
 
-void MoveComponent::ProcessMovement(GameObject* owner)
+void MoveComponent::ProcessMovement(GameObject* owner, float deltaTime)
 {
     // 回避中は通常移動しない
     if (IsDodging()) return;
@@ -184,7 +211,7 @@ void MoveComponent::ProcessMovement(GameObject* owner)
     if (hasMovementInput_)
     {
 		moveDirection.NormalizeSelf(); // 正規化
-        owner->SetPosition(owner->GetPosition() + moveDirection * moveSpeed_ * TimeManager::GetInstance().GetGameContext().deltaTime);
+        owner->SetPosition(owner->GetPosition() + moveDirection * moveSpeed_ * deltaTime);
 
         // プレイヤーの向きを滑らかに変える
         UpdateRotation(owner, moveDirection);

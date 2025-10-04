@@ -13,9 +13,6 @@ public:
     MoveComponent(EnemyManager* enemyManager);
     void Update(GameObject* owner) override;
 
-    // 移動パラメータ設定
-    void SetMoveSpeed(float speed) { moveSpeed_ = speed; }
-
     // 回避パラメータ設定
     void SetDodgeSpeed(float speed) { dodgeSpeed_ = speed; }
     void SetDodgeDuration(float duration) { dodgeDuration_ = duration; }
@@ -30,7 +27,7 @@ public:
     float GetDodgeProgress() const;  // 回避動作の進行度（0.0～1.0）
 
 private:
-    void ProcessMovement(GameObject* owner);
+    void ProcessMovement(GameObject* owner, float deltaTime);
     void ProcessDodge(GameObject* owner);
     Vector3 GetMovementDirection() const;
     void PlayDodgeEffect(GameObject* owner);
@@ -40,8 +37,8 @@ private:
 private:
 	EnemyManager* enemyManager_ = nullptr;
 
-    // 基本移動
-    float moveSpeed_ = 9.0f;
+    // 移動速度
+    float moveSpeed_ = 0.0f;
 
     // 回転補間
     float rotationSpeed_ = 0.1f;  // 回転補間速度

@@ -18,6 +18,7 @@
 #include "graphics/3d/Object3d.h"
 
 // effects
+#include "application/carnage/CarnageMode.h"
 #include "application/minimap/Minimap.h"
 #include "effects/particle/ParticleEmitter.h"
 #include "graphics/2d/NumberSprite.h"
@@ -57,6 +58,8 @@ private: //メンバ変数
 	std::unique_ptr<Object3d> skydome_;
 	// 地面
 	std::unique_ptr<Object3d> ground_;
+	// カーネージモード
+	std::unique_ptr<CarnageMode> carnageMode_;
 	// カメラワーク
 	std::unique_ptr<DebugCamera> debugCamera_;
 	std::unique_ptr<SplineCamera> splineCamera_;

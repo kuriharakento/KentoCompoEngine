@@ -117,6 +117,9 @@ void TitleScene::Initialize()
 
 	// パーティクルエミッターの初期化
 	InitializeParticleEmitters();
+
+	// カーネージモードの初期化
+	carnageMode_ = std::make_unique<CarnageMode>(stageManager_->GetPlayer());
 }
 
 void TitleScene::Finalize()
@@ -164,6 +167,9 @@ void TitleScene::Update()
 
 	// コンボマネージャーの更新
 	ComboManager::GetInstance().Update();
+
+	// カーネージモードの更新
+	carnageMode_->Update();
 }
 
 void TitleScene::Draw3D()

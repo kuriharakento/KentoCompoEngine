@@ -33,6 +33,9 @@ public:
     void SetOnTick(std::function<void(float)> callback);      // 毎フレーム（残り時間通知など）
     void SetOnFinish(std::function<void()> callback);         // 終了時
 
+	// パラメータ設定
+	void SetDuration(float duration) { duration_ = duration; } // 時間設定
+
     // 状態取得
     bool IsRunning() const;
     bool IsFinished() const;

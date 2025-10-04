@@ -11,5 +11,6 @@ public:
 	StatusValue hp{ 100.0f };
     StatusValue maxHp{ 100.0f };
     StatusValue attackPower{ 10.0f };
+	StatusValue moveSpeed{ 9.0f };
 	bool isAlive = true;
 };
