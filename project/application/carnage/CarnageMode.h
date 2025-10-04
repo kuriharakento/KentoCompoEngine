@@ -1,41 +1,48 @@
 #pragma once
+#include <memory>
+#include "time/Timer.h"
 
 class Player;
 
 class CarnageMode
 {
 public:
-	CarnageMode() = default;
-	// 初期化
-	void Initialize(Player* player);
+    // 初期化
+    CarnageMode(Player* player);
+
     // 更新
-    void Update(float deltaTime);
-    // 描画
-	void Draw();
+    void Update();
 
-    // 開始・終了
-    void Start();
-    void End();
+    // コンボ数監視して条件達成なら開始
+    void TryStart();
 
-    // 状態参照
-    bool IsActive() const { return isActive_; }
-    float GetTimeLeft() const { return carnageTimer_; }
-    int GetComboThreshold() const { return comboThreshold_; }
+    // タイマー延長
+    void ExtendTimer();
 
-private:
-    Player* player_;            // 管理対象プレイヤー
-    bool isActive_ = false;     // カーネージモード中か
-    float carnageTimer_ = 0.0f; // 残り時間
-    int prevComboCount_ = 0;    // 前フレームのコンボ数
+    bool IsActive() const;
+    float GetTimeLeft() const;
 
-    // 設定値
-    const float initialTime_ = 8.0f;      // 初期時間
-    const float extensionTime_ = 1.0f;    // コンボ増加ごとの延長秒数
-    const int comboThreshold_ = 10;       // 発動コンボ数
-
-    // バフ・演出
+private: // メンバ関数
     void ApplyBuffs();
     void RemoveBuffs();
     void ShowUI();
     void HideUI();
+    void ImGui();
+
+private: // メンバ変数
+    // プレイヤーのポインタ
+    Player* player_;
+
+    // カーネージモード用タイマー
+    std::unique_ptr<Timer> timer_;
+
+    // カーネージモード発動に必要なコンボ数
+    const int comboThreshold_ = 10;
+    // カーネージモード初期時間
+    const float initialTime_ = 8.0f;
+    // コンボ増加ごとのタイマー延長時間
+    const float extensionTime_ = 1.0f;
+
+    // 攻撃力上昇率（例：0.5f → 50%アップ）
+    float attackUpRate_ = 0.5f;
 };
