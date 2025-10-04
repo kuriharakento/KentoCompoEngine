@@ -7,10 +7,13 @@
 CarnageMode::CarnageMode(Player* player)
     : player_(player)
 {
+	effect_ = std::make_unique<CarnageModeEffect>();
+	effect_->Initialize();
     timer_ = std::make_unique<Timer>("CarnageTimer", initialTime_);
     timer_->SetOnFinish([this]() {
         RemoveBuffs();
         HideUI();
+		effect_->PlayEndEffect(player_->GetPosition());
                         });
 }
 
@@ -23,6 +26,7 @@ void CarnageMode::TryStart()
         timer_->Start();
         ApplyBuffs();
         ShowUI();
+		effect_->PlayAuraEffect(player_->GetPosition());
     }
 }
 
@@ -70,6 +74,8 @@ void CarnageMode::ApplyBuffs()
 
     // 攻撃力上昇
     status->attackPower.AddBuff(BuffConfig("CarnageAttackUp", attackUpRate_, BuffType::Percentage));
+	// 移動速度上昇
+	status->moveSpeed.AddBuff(BuffConfig("CarnageSpeedUp", speedUpRate_, BuffType::Percentage));
 }
 
 void CarnageMode::RemoveBuffs()
@@ -78,6 +84,7 @@ void CarnageMode::RemoveBuffs()
     if (!status) return;
 
     status->attackPower.RemoveBuff("CarnageAttackUp");
+	status->moveSpeed.RemoveBuff("CarnageSpeedUp");
 }
 
 void CarnageMode::ShowUI()

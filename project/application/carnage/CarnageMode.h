@@ -1,5 +1,7 @@
 #pragma once
 #include <memory>
+
+#include "application/effect/CarnageModeEffect.h"
 #include "time/Timer.h"
 
 class Player;
@@ -23,8 +25,10 @@ public:
     float GetTimeLeft() const;
 
 private: // メンバ関数
+	// バフ適用/解除
     void ApplyBuffs();
     void RemoveBuffs();
+	// UI表示
     void ShowUI();
     void HideUI();
     void ImGui();
@@ -32,6 +36,9 @@ private: // メンバ関数
 private: // メンバ変数
     // プレイヤーのポインタ
     Player* player_;
+
+    // エフェクト
+	std::unique_ptr<CarnageModeEffect> effect_;
 
     // カーネージモード用タイマー
     std::unique_ptr<Timer> timer_;
@@ -45,4 +52,6 @@ private: // メンバ変数
 
     // 攻撃力上昇率（例：0.5f → 50%アップ）
     float attackUpRate_ = 0.5f;
+	// 移動速度上昇率
+	float speedUpRate_ = 1.0f;
 };
