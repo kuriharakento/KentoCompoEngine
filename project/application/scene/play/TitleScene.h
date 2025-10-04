@@ -23,13 +23,6 @@
 #include "effects/particle/ParticleEmitter.h"
 #include "graphics/2d/NumberSprite.h"
 
-enum class TitleSceneState
-{
-	Cameraintro,
-	Playing,
-	NextScene,
-};
-
 class TitleScene : public BaseScene
 {
 public:
@@ -44,37 +37,8 @@ public:
 	void Draw2D() override;
 
 private:
-	// パーティクルエミッターの初期化
-	void InitializeParticleEmitters();
 	// ImGuiの描画
 	void DrawImGui();
 
 private: //メンバ変数
-	// シーンの状態
-	TitleSceneState state_ = TitleSceneState::Cameraintro;
-	// ミニマップ
-	std::unique_ptr<Minimap> minimap_;
-	// スカイドーム
-	std::unique_ptr<Object3d> skydome_;
-	// 地面
-	std::unique_ptr<Object3d> ground_;
-	// カーネージモード
-	std::unique_ptr<CarnageMode> carnageMode_;
-	// カメラワーク
-	std::unique_ptr<DebugCamera> debugCamera_;
-	std::unique_ptr<SplineCamera> splineCamera_;
-	std::unique_ptr<TopDownCamera> topDownCamera_;
-	// ゲームオブジェクト
-	std::unique_ptr<Player> player;
-	std::unique_ptr<EnemyManager> enemyManager_;
-	std::unique_ptr<ObstacleManager> obstacleManager_;
-	std::unique_ptr<StageManager> stageManager_;
-	// エミッター
-	std::unique_ptr<ParticleEmitter> dust_;
-	std::unique_ptr<ParticleEmitter> redEffect_;
-	std::unique_ptr<ParticleEmitter> fallHeart_;
-	std::unique_ptr<ParticleEmitter> glitch_;
-	std::unique_ptr<ParticleEmitter> mordeVFXGround_;
-	std::unique_ptr<ParticleEmitter> mordeVFXFragment_;
-	std::unique_ptr<ParticleEmitter> playerParticle_;
 };
