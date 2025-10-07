@@ -248,6 +248,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\scene\debug\ParticleTestScene.cpp" />
     <ClCompile Include="engine\graphics\2d\NumberSprite.cpp" />
     <ClCompile Include="application\GameObject\component\action\StatusComponent.cpp" />
+    <ClCompile Include="application\effect\TitleFireEffect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObjectTag.h" />
@@ -427,6 +428,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\scene\debug\ParticleTestScene.h" />
     <ClInclude Include="engine\graphics\2d\NumberSprite.h" />
     <ClInclude Include="application\GameObject\component\action\StatusComponent.h" />
+    <ClInclude Include="application\effect\TitleFireEffect.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />

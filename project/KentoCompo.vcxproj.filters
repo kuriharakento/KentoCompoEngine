@@ -443,6 +443,7 @@
       <Filter>application\carmage</Filter>
     </ClCompile>
     <ClCompile Include="application\effect\CarnageModeEffect.cpp" />
+    <ClCompile Include="application\effect\TitleFireEffect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -968,6 +969,7 @@
       <Filter>application\carmage</Filter>
     </ClInclude>
     <ClInclude Include="application\effect\CarnageModeEffect.h" />
+    <ClInclude Include="application\effect\TitleFireEffect.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

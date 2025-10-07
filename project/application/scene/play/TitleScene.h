@@ -19,6 +19,7 @@
 
 // effects
 #include "application/carnage/CarnageMode.h"
+#include "application/effect/TitleFireEffect.h"
 #include "application/minimap/Minimap.h"
 #include "effects/particle/ParticleEmitter.h"
 #include "graphics/2d/NumberSprite.h"
@@ -41,4 +42,14 @@ private:
 	void DrawImGui();
 
 private: //メンバ変数
+	// タイトルロゴ
+	std::unique_ptr<Sprite> titleLogo_;
+	// スカイドーム
+	std::unique_ptr<Object3d> skydome_;
+	// 炎エフェクト
+	std::unique_ptr<TitleFireEffect> fireEffect_;
+	// キューブ
+	OBB cube_{};
+	float cubeRotateY = 0.0f;
+	float cubeWaveTime = 0.0f;
 };
