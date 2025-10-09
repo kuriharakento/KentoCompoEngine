@@ -442,8 +442,12 @@
     <ClCompile Include="application\carnage\CarnageMode.cpp">
       <Filter>application\carmage</Filter>
     </ClCompile>
-    <ClCompile Include="application\effect\CarnageModeEffect.cpp" />
-    <ClCompile Include="application\effect\TitleFireEffect.cpp" />
+    <ClCompile Include="application\effect\TitleFireEffect.cpp">
+      <Filter>application\effect</Filter>
+    </ClCompile>
+    <ClCompile Include="application\effect\CarnageModeEffect.cpp">
+      <Filter>application\effect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -968,8 +972,12 @@
     <ClInclude Include="application\carnage\CarnageMode.h">
       <Filter>application\carmage</Filter>
     </ClInclude>
-    <ClInclude Include="application\effect\CarnageModeEffect.h" />
-    <ClInclude Include="application\effect\TitleFireEffect.h" />
+    <ClInclude Include="application\effect\TitleFireEffect.h">
+      <Filter>application\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="application\effect\CarnageModeEffect.h">
+      <Filter>application\effect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

@@ -22,8 +22,8 @@ public:
 	void AddComponent(const std::string& name, std::unique_ptr<IGameObjectComponent> comp);				// コンポーネントの追加
 	template<typename T>
 	std::shared_ptr<T> GetComponent() const;
-public: //アクセッサ
-	//トランスフォーム
+public: // アクセッサ
+	// トランスフォーム
 	virtual void SetPosition(const Vector3& pos) { transform_.translate = pos; }
 	virtual void SetRotation(const Vector3& rot) { transform_.rotate = rot; }
 	virtual void SetScale(const Vector3& scale) { transform_.scale = scale; }
@@ -32,17 +32,22 @@ public: //アクセッサ
 	virtual const Vector3& GetScale() const { return transform_.scale; }
 	Matrix4x4 GetWorldMatrix() const { return object3d_->GetWorldMatrix(); }						// ワールド行列の取得
 
-	//オブジェクト3D
+	// オブジェクト3D
 	void SetModel(const std::string& modelName) { object3d_->SetModel(modelName); }						// モデルの設定
 	Model* GetModel() const { return object3d_ ? object3d_->GetModel() : nullptr; }						// モデルの取得
 	Object3d* GetObject3d() const { return object3d_.get(); }											// Object3Dの取得
 
-	//タグ
+	// タグ
 	std::string GetTag() const { return tag_; }	// タグの取得
 	void SetTag(const std::string& tag) { tag_ = tag; }	// タグの設定
-	//アクティブ状態
-	bool IsActive() const { return isActive_; }	// アクティブ状態の取得
 
+	// 名前
+	void SetName(const std::string& name) { name_ = name; }	// 名前の設定
+	std::string GetName() const { return name_; }	// 名前の取得
+
+	// アクティブ状態
+	void SetActive(bool isActive) { isActive_ = isActive; }	// アクティブ状態の設定
+	bool IsActive() const { return isActive_; }	// アクティブ状態の取得
 	// 親子関係
 	void AddChild(const std::string name, std::unique_ptr<GameObject> child);							// 子オブジェクトの追加
 	GameObject* GetChild(const std::string& name) const;												// 子オブジェクトの取得
@@ -59,6 +64,7 @@ private:
 private:
 	std::unordered_map<std::string, std::shared_ptr<IGameObjectComponent>> components_;					// コンポーネントのリスト
 	std::string tag_; 																					// オブジェクトのタグ
+	std::string name_ = "";																				// オブジェクトの名前
 	bool isActive_;																						// アクティブ状態
 	std::unordered_map<std::string, std::unique_ptr<GameObject>> children_;								// 子オブジェクトのリスト
 	GameObject* parent_ = nullptr;  // 親オブジェクト

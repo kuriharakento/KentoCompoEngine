@@ -46,6 +46,8 @@ private:
 	CameraManager* cameraManager_; // カメラマネージャー
 
 	std::shared_ptr<StageData> stageData_; // ステージデータ
+	// 障害物データ
+	std::shared_ptr<ObstacleData> obstacleData_;
 
 	// -------- ゲームオブジェクト -------- //
 

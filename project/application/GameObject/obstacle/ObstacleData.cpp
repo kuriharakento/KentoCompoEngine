@@ -44,7 +44,7 @@ void ObstacleData::DrawImGui()
 		}
 		if (ImGui::Button("Add Obstacle"))
 		{
-			ObstacleInfo newObstacle;
+			GameObjectInfo newObstacle;
 			newObstacle.type = "DefaultType"; // デフォルトの種類
 			newObstacle.name = "NewObstacle"; // デフォルトの名前
 			newObstacle.transform.translate = Vector3(0.0f, 0.0f, 0.0f); // デフォルトの位置

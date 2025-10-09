@@ -1,0 +1,832 @@
+{
+    "objects": [
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "BarrierBlock_00",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 100.0,
+                    "y": 45.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": 0.0,
+                    "y": 40.0,
+                    "z": -100.0
+                }
+            },
+            "type": "BarrierBlock"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "BarrierBlock_00.001",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -1.5707964897155762,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 100.0,
+                    "y": 45.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": 100.0,
+                    "y": 40.0,
+                    "z": 0.0
+                }
+            },
+            "type": "BarrierBlock"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "BarrierBlock_00.002",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -1.5707964897155762,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 100.0,
+                    "y": 45.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": -100.0,
+                    "y": 40.0,
+                    "z": 0.0
+                }
+            },
+            "type": "BarrierBlock"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "BarrierBlock_00.003",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 100.0,
+                    "y": 45.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": 0.0,
+                    "y": 40.0,
+                    "z": 100.0
+                }
+            },
+            "type": "BarrierBlock"
+        },
+        {
+            "disabled": false,
+            "fileName": "wall",
+            "name": "Obstacle_00",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": 0.8978593349456787,
+                    "z": -0.0
+                },
+                "scale": {
+                    "x": 15.569406509399414,
+                    "y": 3.7189598083496094,
+                    "z": 1.988088846206665
+                },
+                "translate": {
+                    "x": -24.10988998413086,
+                    "y": 2.3578007221221924,
+                    "z": -19.11994171142578
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "wall",
+            "name": "Obstacle_01",
+            "transform": {
+                "rotate": {
+                    "x": 0.8100438117980957,
+                    "y": -1.3133336305618286,
+                    "z": -0.11814199388027191
+                },
+                "scale": {
+                    "x": 0.9999999403953552,
+                    "y": 14.446474075317383,
+                    "z": 0.9145710468292236
+                },
+                "translate": {
+                    "x": -50.476829528808594,
+                    "y": 0.0,
+                    "z": -58.04887771606445
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "wall",
+            "name": "Obstacle_01.001",
+            "transform": {
+                "rotate": {
+                    "x": -0.747760534286499,
+                    "y": 0.015136181376874447,
+                    "z": 0.06164184585213661
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 14.446474075317383,
+                    "z": 0.9145710468292236
+                },
+                "translate": {
+                    "x": -56.455902099609375,
+                    "y": 0.0,
+                    "z": -55.54446792602539
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "wall",
+            "name": "Obstacle_01.002",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": -1.1962209939956665
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 14.446474075317383,
+                    "z": 0.9145709872245789
+                },
+                "translate": {
+                    "x": -56.33084487915039,
+                    "y": 0.0,
+                    "z": -61.12085723876953
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "wall",
+            "name": "Obstacle_04.001",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": -0.20046482980251312
+                },
+                "scale": {
+                    "x": 14.038543701171875,
+                    "y": 1.2735083103179932,
+                    "z": 5.537133693695068
+                },
+                "translate": {
+                    "x": -40.339874267578125,
+                    "y": 1.191483736038208,
+                    "z": 60.47205352783203
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "wall",
+            "name": "Obstacle_04.002",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 29.539241790771484,
+                    "y": 1.0,
+                    "z": 48.59617233276367
+                },
+                "translate": {
+                    "x": -83.41767120361328,
+                    "y": 4.244220733642578,
+                    "z": 53.06407928466797
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "wall",
+            "name": "Obstacle_07",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 5.706035137176514,
+                    "z": 5.706035137176514
+                },
+                "translate": {
+                    "x": -74.57596588134766,
+                    "y": 3.3524303436279297,
+                    "z": 37.53693389892578
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "wall",
+            "name": "Obstacle_07.001",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": 0.4601774215698242,
+                    "z": -0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 5.706035137176514,
+                    "z": 5.706035137176514
+                },
+                "translate": {
+                    "x": -74.57596588134766,
+                    "y": 3.225010871887207,
+                    "z": 37.53693389892578
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "wall",
+            "name": "Obstacle_07.002",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": 0.9735619425773621,
+                    "z": -0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 5.706035137176514,
+                    "z": 5.706035137176514
+                },
+                "translate": {
+                    "x": -74.57596588134766,
+                    "y": 3.3524303436279297,
+                    "z": 37.53693389892578
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "wall",
+            "name": "Obstacle_07.003",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": 2.073378324508667,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 0.9999999403953552,
+                    "y": 5.706035137176514,
+                    "z": 5.7060346603393555
+                },
+                "translate": {
+                    "x": -74.57596588134766,
+                    "y": 3.3524303436279297,
+                    "z": 37.53693389892578
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "wall",
+            "name": "Obstacle_04.003",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.3889152705669403
+                },
+                "scale": {
+                    "x": 14.038543701171875,
+                    "y": 1.2735081911087036,
+                    "z": 5.537133693695068
+                },
+                "translate": {
+                    "x": 34.015785217285156,
+                    "y": 1.191483736038208,
+                    "z": 60.47205352783203
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "wall",
+            "name": "Obstacle_04.004",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.3889152705669403
+                },
+                "scale": {
+                    "x": 14.038543701171875,
+                    "y": 1.2735081911087036,
+                    "z": 5.537133693695068
+                },
+                "translate": {
+                    "x": 59.676631927490234,
+                    "y": 11.669722557067871,
+                    "z": 60.47205352783203
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "wall",
+            "name": "Obstacle_04.005",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 10.18349838256836,
+                    "y": 1.0,
+                    "z": 13.477089881896973
+                },
+                "translate": {
+                    "x": 82.4760513305664,
+                    "y": 17.1285457611084,
+                    "z": 63.24712371826172
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "wall",
+            "name": "Obstacle_04.006",
+            "transform": {
+                "rotate": {
+                    "x": 4.468989445172156e-08,
+                    "y": 1.5707964897155762,
+                    "z": 0.3889152705669403
+                },
+                "scale": {
+                    "x": 14.038543701171875,
+                    "y": 1.2735081911087036,
+                    "z": 5.537133693695068
+                },
+                "translate": {
+                    "x": 84.86199951171875,
+                    "y": 0.0,
+                    "z": 36.39463806152344
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "wall",
+            "name": "Obstacle_04.007",
+            "transform": {
+                "rotate": {
+                    "x": 4.468989445172156e-08,
+                    "y": 1.5707964897155762,
+                    "z": 0.3889152705669403
+                },
+                "scale": {
+                    "x": 14.038543701171875,
+                    "y": 1.2735081911087036,
+                    "z": 5.537133693695068
+                },
+                "translate": {
+                    "x": 84.16182708740234,
+                    "y": 32.79413604736328,
+                    "z": 10.521450996398926
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "wall",
+            "name": "Obstacle_04.008",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 10.18349838256836,
+                    "y": 1.0,
+                    "z": 39.65038299560547
+                },
+                "translate": {
+                    "x": 82.4760513305664,
+                    "y": 38.203372955322266,
+                    "z": -41.673831939697266
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "wall",
+            "name": "Obstacle_04.009",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 10.18349838256836,
+                    "y": 1.0,
+                    "z": 40.8520622253418
+                },
+                "translate": {
+                    "x": 61.94822692871094,
+                    "y": 38.203372955322266,
+                    "z": -40.734275817871094
+                }
+            },
+            "type": "Obstacle"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "BarrierBlock_04",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 12.586775779724121,
+                    "z": 42.597923278808594
+                },
+                "translate": {
+                    "x": 51.03221893310547,
+                    "y": 37.746036529541016,
+                    "z": -41.59397888183594
+                }
+            },
+            "type": "BarrierBlock"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "BarrierBlock_04.001",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 12.586775779724121,
+                    "z": 42.597923278808594
+                },
+                "translate": {
+                    "x": 93.67426300048828,
+                    "y": 37.746036529541016,
+                    "z": -41.59397888183594
+                }
+            },
+            "type": "BarrierBlock"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "BarrierBlock_04.002",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 22.39289093017578,
+                    "y": 12.586775779724121,
+                    "z": 0.6760053634643555
+                },
+                "translate": {
+                    "x": 72.37800598144531,
+                    "y": 37.746036529541016,
+                    "z": -83.38232421875
+                }
+            },
+            "type": "BarrierBlock"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "BarrierBlock_04.003",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 12.188173294067383,
+                    "y": 12.586775779724121,
+                    "z": 0.6760053634643555
+                },
+                "translate": {
+                    "x": 63.82020568847656,
+                    "y": 37.746036529541016,
+                    "z": 0.5977249145507813
+                }
+            },
+            "type": "BarrierBlock"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "Area_00",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 42.205345153808594,
+                    "y": 5.0,
+                    "z": 42.205345153808594
+                },
+                "translate": {
+                    "x": -52.30531311035156,
+                    "y": 3.5450634956359863,
+                    "z": -45.385276794433594
+                }
+            },
+            "type": "Area"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "Wave_01.001",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "type": "Wave"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "Wave_01.002",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "type": "Wave"
+        },
+        {
+            "disabled": false,
+            "fileName": "player",
+            "name": "PlayerSpawn",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "type": "PlayerSpawn"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "Wave_00.001",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "type": "Wave"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "Wave_01.003",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "type": "Wave"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "Wave_02.001",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "type": "Wave"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "Wave_00.002",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "type": "Wave"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "Wave_01.004",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "type": "Wave"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "Wave_02.002",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "translate": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "type": "Wave"
+        },
+        {
+            "disabled": false,
+            "fileName": "",
+            "name": "Area_01",
+            "transform": {
+                "rotate": {
+                    "x": -0.0,
+                    "y": -0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 22.69054412841797,
+                    "y": 5.0,
+                    "z": 52.02360916137695
+                },
+                "translate": {
+                    "x": -77.55386352539063,
+                    "y": 9.957231521606445,
+                    "z": 56.87118911743164
+                }
+            },
+            "type": "Area"
+        }
+    ]
+}

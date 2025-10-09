@@ -23,7 +23,13 @@ void StageManager::Initialize(Object3dCommon* object3dCommon, LightManager* ligh
 
 	// ステージデータの初期化
 	stageData_ = std::make_unique<StageData>();
+
+	// 障害物データの初期化
+	obstacleData_ = std::make_shared<ObstacleData>();
+
+	// Jsonエディターに登録
 	JsonEditorManager::GetInstance()->Register("stageData", stageData_);
+	JsonEditorManager::GetInstance()->Register("obstacleData", obstacleData_);
 
 	// --- マネージャーの初期化 --- //
 	// 敵マネージャー
@@ -33,9 +39,13 @@ void StageManager::Initialize(Object3dCommon* object3dCommon, LightManager* ligh
 	obstacleManager_ = std::make_unique<ObstacleManager>();
 	obstacleManager_->Initialize(object3dCommon_, lightManager);
 
-
 	// ステージの初期化
-	stage_ = std::make_unique<Stage>(object3dCommon_, lightManager_, enemyManager_.get(),	"stage/area_wave_enemy_list.json"); // サンプルステージをロード
+	stage_ = std::make_unique<Stage>(
+		object3dCommon_, 
+		lightManager_, 
+		enemyManager_.get(),	
+		"stage/area_wave_enemy_list.json"
+	); // サンプルステージをロード
 	stage_->Start(); // ステージを開始
 }
 
@@ -112,22 +122,23 @@ void StageManager::LoadStage(const std::string& stageName)
 {
 	// フルパスを作成
 	std::string fullpath = "stage/" + stageName + ".json";
+
+	// 各オブジェクトをクリアする
+	player_.reset(); // プレイヤーは１体だけなのでリセット
+	enemyManager_->Clear();
+	obstacleManager_->Clear();
+
 	// ステージデータをロード
 	stageData_->LoadJson(fullpath);
+
 	// ステージデータからゲームオブジェクトの情報を生成
 	CreateInfosFromStageData();
 }
 
 void StageManager::CreateInfosFromStageData()
 {
-	// 各マネージャーに渡すデータ
-	std::vector<GameObjectInfo> enemyInfos;
+	// 個別のゲームオブジェクト情報を格納するリスト
 	std::vector<GameObjectInfo> obstacleInfos;
-
-	// 各オブジェクトをクリアする
-	player_.reset(); // プレイヤーは１体だけなのでリセット
-	enemyManager_->Clear();
-	obstacleManager_->Clear();
 
 	for(const auto& objInfo : stageData_->gameObjects)
 	{
@@ -150,7 +161,6 @@ void StageManager::CreateInfosFromStageData()
 		else if (objInfo.type == "EnemySpawn")
 		{
 			// 敵の情報を敵マネージャーに追加
-			enemyInfos.push_back(objInfo);
 		}
 		else if (objInfo.type == "Obstacle" || objInfo.type == "BarrierBlock")
 		{
@@ -159,7 +169,7 @@ void StageManager::CreateInfosFromStageData()
 		}
 	}
 
-	// 各マネージャーにデータを渡す
-	obstacleManager_->SetObstacleData(obstacleInfos);
-	//enemyManager_->SetEnemyData(enemyInfos);
+	
+	obstacleData_->SetObstacles(obstacleInfos);
+	obstacleManager_->SetObstacleData(obstacleData_.get());
 }
