@@ -19,6 +19,7 @@
 
 // effects
 #include "application/carnage/CarnageMode.h"
+#include "application/effect/SceneTransitionEffect.h"
 #include "application/effect/TitleFireEffect.h"
 #include "application/minimap/Minimap.h"
 #include "effects/particle/ParticleEmitter.h"
@@ -52,4 +53,6 @@ private: //メンバ変数
 	OBB cube_{};
 	float cubeRotateY = 0.0f;
 	float cubeWaveTime = 0.0f;
+	//
+	SceneTransitionEffect transitionEffect_;
 };

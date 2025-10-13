@@ -444,6 +444,7 @@
     </ClCompile>
     <ClCompile Include="application\effect\CarnageModeEffect.cpp" />
     <ClCompile Include="application\effect\TitleFireEffect.cpp" />
+    <ClCompile Include="application\effect\SceneTransitionEffect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -970,6 +971,7 @@
     </ClInclude>
     <ClInclude Include="application\effect\CarnageModeEffect.h" />
     <ClInclude Include="application\effect\TitleFireEffect.h" />
+    <ClInclude Include="application\effect\SceneTransitionEffect.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">
