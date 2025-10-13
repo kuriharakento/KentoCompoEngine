@@ -64,7 +64,19 @@ void TitleScene::Finalize()
 
 void TitleScene::Update()
 {
-	if (Input::GetInstance()->TriggerKey(DIK_SPACE))
+	if (Input::GetInstance()->TriggerKey(DIK_SPACE) && !start_)
+	{
+		start_ = true;
+		transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
+		transitionEffect_.SetFadeType(FadeType::FadeIn);
+		transitionEffect_.SetMode(TransitionMode::LeftTopToRightBottom);
+		transitionEffect_.Start(
+			1.0f,
+			VectorColorCodes::Red,
+			VectorColorCodes::Black
+		);
+	}
+	if (start_ && transitionEffect_.GetState() == TransitionState::Done && start_)
 	{
 		sceneManager_->ChangeScene("GAMEPLAY");
 	}

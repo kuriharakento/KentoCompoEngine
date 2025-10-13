@@ -55,4 +55,6 @@ private: //メンバ変数
 	float cubeWaveTime = 0.0f;
 	//
 	SceneTransitionEffect transitionEffect_;
+	//
+	bool start_ = false;
 };
