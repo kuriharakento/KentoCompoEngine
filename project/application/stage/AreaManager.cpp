@@ -22,21 +22,27 @@ void AreaManager::Update(CameraManager* camera)
 
 void AreaManager::StartCurrentArea()
 {
-    if (currentAreaIndex_ >= areas_.size())
-    {
-        isAllCleared_ = true;
-        if (onAllAreasCleared_) onAllAreasCleared_();
-        return;
-    }
-    areas_[currentAreaIndex_]->SetOnClearCallback([this]() {
-        ++currentAreaIndex_;
-        StartCurrentArea();
-                                                  });
+	if (currentAreaIndex_ >= areas_.size())
+	{
+		isAllCleared_ = true;
+		if (onAllAreasCleared_) onAllAreasCleared_();
+		return;
+	}
+
+	areas_[currentAreaIndex_]->SetOnClearCallback([this]() {
+		++currentAreaIndex_;
+		StartCurrentArea();
+												  });
 	areas_[currentAreaIndex_]->SetActive(true); // エリアをアクティブにする
-    if (currentAreaIndex_ > 0)
-    {
+	// エリア開始のコールバックを呼び出す
+	if (onAreaStarted_)
+	{
+		onAreaStarted_(currentAreaIndex_, areas_[currentAreaIndex_].get());
+	}
+	if (currentAreaIndex_ > 0)
+	{
 		// 前のエリアを非アクティブにする
-        areas_[currentAreaIndex_ - 1]->SetActive(false);
-    }
+		areas_[currentAreaIndex_ - 1]->SetActive(false);
+	}
 }
 

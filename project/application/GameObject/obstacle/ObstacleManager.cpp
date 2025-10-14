@@ -108,9 +108,12 @@ void ObstacleManager::ApplyObstacleData()
 		{
 			if (obstacle->GetName() == info.name)
 			{
+				// Jsonの配置情報を適用
 				obstacle->SetPosition(info.transform.translate);
 				obstacle->SetRotation(info.transform.rotate);
 				obstacle->SetScale(info.transform.scale);
+				// コンポーネントの更新
+				obstacle->Update();
 				break;
 			}
 		}

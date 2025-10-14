@@ -28,6 +28,7 @@ public:
 	virtual void DrawOptions();
 
 	void SetValue(const std::string& key, const nlohmann::json& value);
+	void SetFileName(const std::string& name) { fileName = name; }
 
 protected:
 	template<typename T>

@@ -17,12 +17,20 @@ public:
     int CurrentAreaIndex() const { return currentAreaIndex_; }
     Area* GetCurrentArea() const { return (currentAreaIndex_ < areas_.size()) ? areas_[currentAreaIndex_].get() : nullptr; }
     const std::vector<std::shared_ptr<Area>>& GetAreas() const { return areas_; }
+    void SetOnAreaStarted(std::function<void(int, Area*)> cb) { onAreaStarted_ = std::move(cb); }
 
 private:
     void StartCurrentArea();
 
+private:
+	// エリアリスト
     std::vector<std::shared_ptr<Area>> areas_;
-    int currentAreaIndex_;
+	// 現在のエリアインデックス
+	int currentAreaIndex_;
+	// 全エリアクリアフラグ
     bool isAllCleared_;
+	// 全エリアクリア時のコールバック
     std::function<void()> onAllAreasCleared_;
+	// エリア開始時のコールバック
+    std::function<void(int, Area*)> onAreaStarted_;
 };

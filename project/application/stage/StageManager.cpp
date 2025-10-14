@@ -70,6 +70,19 @@ void StageManager::Update()
 	}
 
 	stage_->Update(cameraManager_); // ステージの更新
+
+#ifdef _DEBUG
+	// デバッグの時のみステージの障害物データを常に同期
+	std::vector< GameObjectInfo> obstacleInfos;
+	for (const auto& data : stageData_->gameObjects)
+	{
+		if (data.type == "Obstacle" || data.type == "BarrierBlock")
+		{
+			obstacleInfos.push_back(data);
+		}
+	}
+	obstacleData_->SetObstacles(obstacleInfos);
+#endif
 }
 
 void StageManager::Draw()
