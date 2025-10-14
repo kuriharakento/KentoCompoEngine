@@ -48,6 +48,13 @@ void TitleScene::Initialize()
 	cube_.center = Vector3(0.0f, 1.0f, 10.0f);
 	cube_.size = Vector3(1.0f, 1.0f, 1.0f);
 	cube_.rotate = MakeRotateYMatrix(0.0f);
+
+	transitionEffect_.Initialize(
+		sceneManager_->GetSpriteCommon(),
+		"./Resources/black.png",
+		18, 12,
+		1280.0f, 720.0f
+	);
 }
 
 void TitleScene::Finalize()
@@ -57,7 +64,19 @@ void TitleScene::Finalize()
 
 void TitleScene::Update()
 {
-	if (Input::GetInstance()->TriggerKey(DIK_SPACE))
+	if (Input::GetInstance()->TriggerKey(DIK_SPACE) && !start_)
+	{
+		start_ = true;
+		transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
+		transitionEffect_.SetFadeType(FadeType::FadeIn);
+		transitionEffect_.SetMode(TransitionMode::LeftTopToRightBottom);
+		transitionEffect_.Start(
+			1.0f,
+			VectorColorCodes::Red,
+			VectorColorCodes::Black
+		);
+	}
+	if (start_ && transitionEffect_.GetState() == TransitionState::Done && start_)
 	{
 		sceneManager_->ChangeScene("GAMEPLAY");
 	}
@@ -69,6 +88,9 @@ void TitleScene::Update()
 	{
 		camera->SetTranslate({ 0.0f, 1.5f, -15.0f });
 	}
+
+	// シーン遷移エフェクトの更新
+	transitionEffect_.Update();
 
 	// 炎エフェクトの更新
 	fireEffect_->Update(camera->GetTranslate());
@@ -118,6 +140,8 @@ void TitleScene::Draw3D()
 void TitleScene::Draw2D()
 {
 	titleLogo_->Draw();
+
+	transitionEffect_.Draw();
 }
 
 void TitleScene::DrawImGui()

@@ -99,6 +99,22 @@ void GamePlayScene::Initialize()
 
     // カーネージモードの初期化
     carnageMode_ = std::make_unique<CarnageMode>(stageManager_->GetPlayer());
+
+	// シーン遷移エフェクトの初期化
+	transitionEffect_.Initialize(
+		sceneManager_->GetSpriteCommon(),
+		"./Resources/black.png",
+		18, 12,
+		1280.0f, 720.0f
+	);
+	transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
+	transitionEffect_.SetFadeType(FadeType::FadeOut);
+	transitionEffect_.SetMode(TransitionMode::RightBottomToLeftTop);
+	transitionEffect_.Start(
+		1.0f,
+		VectorColorCodes::Red,
+		VectorColorCodes::Black
+	);
 }
 
 // --------- 終了処理 ---------
@@ -123,6 +139,8 @@ void GamePlayScene::Update()
 
     // ImGuiの描画
     DrawImGui();
+
+	transitionEffect_.Update();
 
     // 前フレームの位置を更新
     CollisionManager::GetInstance()->UpdatePreviousPositions();
@@ -174,6 +192,9 @@ void GamePlayScene::Draw2D()
 
     // コンボUIの描画
     ComboManager::GetInstance().Draw();
+
+	// シーン遷移エフェクトの描画
+	transitionEffect_.Draw();
 }
 
 void GamePlayScene::DrawImGui()

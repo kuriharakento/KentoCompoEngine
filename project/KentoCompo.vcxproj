@@ -249,6 +249,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\graphics\2d\NumberSprite.cpp" />
     <ClCompile Include="application\GameObject\component\action\StatusComponent.cpp" />
     <ClCompile Include="application\effect\TitleFireEffect.cpp" />
+    <ClCompile Include="application\effect\SceneTransitionEffect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObjectTag.h" />
@@ -429,6 +430,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\graphics\2d\NumberSprite.h" />
     <ClInclude Include="application\GameObject\component\action\StatusComponent.h" />
     <ClInclude Include="application\effect\TitleFireEffect.h" />
+    <ClInclude Include="application\effect\SceneTransitionEffect.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />

@@ -19,6 +19,7 @@
 
 // effects
 #include "application/carnage/CarnageMode.h"
+#include "application/effect/SceneTransitionEffect.h"
 #include "application/minimap/Minimap.h"
 #include "effects/particle/ParticleEmitter.h"
 #include "graphics/2d/NumberSprite.h"
@@ -58,4 +59,8 @@ private: //メンバ変数
     std::unique_ptr<EnemyManager> enemyManager_;
     std::unique_ptr<ObstacleManager> obstacleManager_;
     std::unique_ptr<StageManager> stageManager_;
+	// シーン遷移エフェクト
+	SceneTransitionEffect transitionEffect_;
+	// ゲーム終了フラグ
+	bool gameEnd_ = false;
 };
