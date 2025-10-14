@@ -21,19 +21,21 @@ public:
 	void Clear();
 	void CreateObstacles();
 	void ApplyObstacleData();
+	void LoadObstacleData(const std::string& path);
 	void SetCulling(bool culling) { culling_ = culling; } // カリングの設定
-	void SetObstacleData(const std::vector<GameObjectInfo>& data);
+	void SetObstacleData(ObstacleData* data);
 	const std::vector<std::unique_ptr<Obstacle>>& GetObstacles() const { return obstacles_; }
 
 private:
-	void CreateObstacle(GameObjectInfo& info);
-	void CreateBarrierBlock(GameObjectInfo& info);
+	void CreateObstacle(const GameObjectInfo& info);
+	void CreateBarrierBlock(const GameObjectInfo& info);
+	void SyncNewObstacleData();
 
 private:
 	Object3dCommon* object3dCommon_ = nullptr; // 3Dオブジェクト共通情報
 	LightManager* lightManager_ = nullptr; // ライトマネージャー
 	// 障害物配置データ
-	std::vector<GameObjectInfo> obstacleData_;
+	ObstacleData* obstacleData_ = nullptr;
 	// 障害物リスト
 	std::vector<std::unique_ptr<Obstacle>> obstacles_;
 	// カリング

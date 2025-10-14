@@ -70,7 +70,7 @@ void GamePlayScene::Initialize()
         sceneManager_->GetLightManager(),
         sceneManager_->GetCameraManager()
     );
-    stageManager_->LoadStage("field");
+    stageManager_->LoadStage("field1");
 
     minimap_ = std::make_unique<Minimap>();
     minimap_->Initialize(sceneManager_->GetSpriteCommon(), stageManager_.get());

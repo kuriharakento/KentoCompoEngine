@@ -31,9 +31,16 @@ void StageEditScene::Update()
 #ifdef _DEBUG
 	// ImGuiの描画
 	ImGui::Begin("StageEditScene");
+	static std::string stageName = "field";
+	static char stageNameBuffer[128] = "field";
+	// ステージ読み込み
+	if (ImGui::InputText("S", stageNameBuffer, sizeof(stageNameBuffer)))
+	{
+		stageName = stageNameBuffer;
+	}
 	if (ImGui::Button("Load Stage"))
 	{
-		stageManager_->LoadStage("field");
+		stageManager_->LoadStage(stageName);
 	}
 	ImGui::End();
 #endif

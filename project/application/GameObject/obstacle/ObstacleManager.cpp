@@ -1,5 +1,7 @@
 #include "ObstacleManager.h"
 
+#include <unordered_set>
+
 #include "BarrierBlock.h"
 #include "application/GameObject/component/collision/OBBColliderComponent.h"
 #include "manager/editor/JsonEditorManager.h"
@@ -12,7 +14,6 @@ void ObstacleManager::Initialize(Object3dCommon* object3dCommon, LightManager* l
 
 	// リストの初期化
 	obstacles_.clear();
-	obstacleData_.clear();
 }
 
 void ObstacleManager::Update()
@@ -44,6 +45,10 @@ void ObstacleManager::Update()
 	ImGui::End();
 #endif
 
+	// 新しい障害物データの同期
+	SyncNewObstacleData();
+
+	// 障害物の更新
 	ApplyObstacleData();
 }
 
@@ -79,55 +84,56 @@ void ObstacleManager::CreateObstacles()
 	obstacles_.clear();
 
 	// 障害物を生成
-	for (uint32_t i = 0; i < obstacleData_.size(); ++i)
+	auto obstacles = obstacleData_->GetObstacles();
+	for (const auto& obstacle : obstacles)
 	{
-		if (obstacleData_[i].type == GameObjectTag::Item::Obstacle)
+		if (obstacle.type == "BarrierBlock")
 		{
-			CreateObstacle(obstacleData_[i]);
+			CreateBarrierBlock(obstacle);
 		}
-		else if (obstacleData_[i].type == GameObjectTag::Item::BarrierBlock)
+		else // デフォルトは通常の障害物
 		{
-			CreateBarrierBlock(obstacleData_[i]);
-		}
-		else
-		{
-			// 未知のタイプの場合はスキップ
-			continue;
+			CreateObstacle(obstacle);
 		}
 	}
 }
 
 void ObstacleManager::ApplyObstacleData()
 {
-	for (int i = 0; i < obstacles_.size(); i++)
+	if (!obstacleData_) return;
+	auto data = obstacleData_->GetObstacles();
+	for (auto& obstacle : obstacles_)
 	{
-		if (i < obstacleData_.size())
+		for (auto& info : data)
 		{
-			auto& obstacle = obstacles_[i];
-			if (obstacle)
+			if (obstacle->GetName() == info.name)
 			{
-				obstacle->SetPosition(obstacleData_[i].transform.translate);
-				obstacle->SetRotation(obstacleData_[i].transform.rotate);
-				obstacle->SetScale(obstacleData_[i].transform.scale);
-				obstacle->Update();
+				obstacle->SetPosition(info.transform.translate);
+				obstacle->SetRotation(info.transform.rotate);
+				obstacle->SetScale(info.transform.scale);
+				break;
 			}
-		}
-		else
-		{
-			break; // データがない場合はループを抜ける
 		}
 	}
 }
 
-void ObstacleManager::SetObstacleData(const std::vector<GameObjectInfo>& data)
+void ObstacleManager::LoadObstacleData(const std::string& path)
 {
-	obstacleData_ = data;
+	// 障害物データの読み込み
+	obstacleData_->Initialize(path);
+	// 生成
+	CreateObstacles();
+}
 
+void ObstacleManager::SetObstacleData(ObstacleData* data)
+{
+	// 障害物データの設定
+	obstacleData_ = data;
 	// 障害物の生成
 	CreateObstacles();
 }
 
-void ObstacleManager::CreateObstacle(GameObjectInfo& info)
+void ObstacleManager::CreateObstacle(const GameObjectInfo& info)
 {
 	auto obstacle = std::make_unique<Obstacle>();
 	obstacle->Initialize(object3dCommon_, lightManager_);
@@ -135,10 +141,11 @@ void ObstacleManager::CreateObstacle(GameObjectInfo& info)
 	obstacle->SetPosition(info.transform.translate);
 	obstacle->SetRotation(info.transform.rotate);
 	obstacle->SetScale(info.transform.scale);
+	obstacle->SetName(info.name);
 	obstacles_.push_back(std::move(obstacle));
 }
 
-void ObstacleManager::CreateBarrierBlock(GameObjectInfo& info)
+void ObstacleManager::CreateBarrierBlock(const GameObjectInfo& info)
 {
 	auto obstacle = std::make_unique<BarrierBlock>();
 	obstacle->Initialize(object3dCommon_, lightManager_);
@@ -146,6 +153,32 @@ void ObstacleManager::CreateBarrierBlock(GameObjectInfo& info)
 	obstacle->SetPosition(info.transform.translate);
 	obstacle->SetRotation(info.transform.rotate);
 	obstacle->SetScale(info.transform.scale);
+	obstacle->SetName(info.name);
 	obstacles_.push_back(std::move(obstacle));
+}
+
+void ObstacleManager::SyncNewObstacleData()
+{
+	if (!obstacleData_) return;
+	auto data = obstacleData_->GetObstacles();
+
+	// 既存障害物の名前リストを作成
+	std::unordered_set<std::string> existingNames;
+	for (const auto& obj : obstacles_)
+	{
+		if (obj) existingNames.insert(obj->GetName());
+	}
+
+	// データ側でまだ存在しないものだけ生成
+	for (const auto& info : data)
+	{
+		if (existingNames.count(info.name) == 0)
+		{
+			if (info.type == "BarrierBlock")
+				CreateBarrierBlock(info);
+			else
+				CreateObstacle(info);
+		}
+	}
 }
 
