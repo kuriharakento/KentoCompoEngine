@@ -33,8 +33,9 @@
 void GamePlayScene::Initialize()
 {
     // 音声のロード・再生
-    Audio::GetInstance()->LoadWave("fanfare", "game.wav", SoundGroup::BGM);
-    Audio::GetInstance()->PlayWave("fanfare", true);
+    Audio::GetInstance()->LoadWave("game_bgm", "bgm/game.wav", SoundGroup::BGM);
+    Audio::GetInstance()->PlayWave("game_bgm", true);
+	Audio::GetInstance()->SetVolume("game_bgm", 0.2f);
 
     sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate(Vector3(0.0f, 1.5f, -15.0f));
 
@@ -112,14 +113,17 @@ void GamePlayScene::Initialize()
 	transitionEffect_.SetMode(TransitionMode::RightBottomToLeftTop);
 	transitionEffect_.Start(
 		1.0f,
-		VectorColorCodes::Red,
-		VectorColorCodes::Black
+		VectorColorCodes::Black,
+		VectorColorCodes::Red
 	);
 }
 
 // --------- 終了処理 ---------
 void GamePlayScene::Finalize()
 {
+	// bgm停止
+	Audio::GetInstance()->StopWave("game_bgm");
+
     CollisionManager::GetInstance()->Finalize();
 }
 

@@ -9,6 +9,7 @@
 // math
 
 // graphics
+#include "audio/Audio.h"
 #include "input/Input.h"
 #include "manager/effect/PostProcessManager.h"
 #include "manager/graphics/LineManager.h"
@@ -19,6 +20,14 @@
 
 void TitleScene::Initialize()
 {
+	// BGM再生
+	Audio::GetInstance()->LoadWave("title_bgm", "bgm/title.wav", SoundGroup::BGM);
+	Audio::GetInstance()->PlayWave("title_bgm", true);
+	Audio::GetInstance()->SetVolume("title_bgm", 0.2f);
+
+	// スペースを押したときの効果音
+	Audio::GetInstance()->LoadWave("start_se", "se/tap.wav", SoundGroup::SE);
+
 	// カメラ設定
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate(Vector3(0.0f, 1.5f, -15.0f));
 
@@ -68,6 +77,9 @@ void TitleScene::Finalize()
 {
 	// 色収差を無効化
 	sceneManager_->GetPostProcessManager()->crtEffect_->SetEnabled(false);
+
+	// BGM停止
+	Audio::GetInstance()->StopWave("title_bgm");
 }
 
 void TitleScene::Update()
@@ -77,6 +89,9 @@ void TitleScene::Update()
 
 	if (Input::GetInstance()->TriggerKey(DIK_SPACE) && !start_)
 	{
+		// スタート音再生
+		Audio::GetInstance()->PlayWave("start_se", false);
+		// 遷移時の演出スタート
 		start_ = true;
 		transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
 		transitionEffect_.SetFadeType(FadeType::FadeIn);
@@ -89,6 +104,7 @@ void TitleScene::Update()
 	}
 	if (start_ && transitionEffect_.GetState() == TransitionState::Done && start_)
 	{
+		// ゲームシーンへ移動
 		sceneManager_->ChangeScene("GAMEPLAY");
 	}
 
