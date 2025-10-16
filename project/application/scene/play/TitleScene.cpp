@@ -62,7 +62,7 @@ void TitleScene::Initialize()
 	transitionEffect_.Initialize(
 		sceneManager_->GetSpriteCommon(),
 		"./Resources/black.png",
-		18, 12,
+		22, 16,
 		1280.0f, 720.0f
 	);
 

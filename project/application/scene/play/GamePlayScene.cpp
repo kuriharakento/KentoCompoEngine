@@ -105,14 +105,14 @@ void GamePlayScene::Initialize()
 	transitionEffect_.Initialize(
 		sceneManager_->GetSpriteCommon(),
 		"./Resources/black.png",
-		18, 12,
+		22, 16,
 		1280.0f, 720.0f
 	);
 	transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
 	transitionEffect_.SetFadeType(FadeType::FadeOut);
 	transitionEffect_.SetMode(TransitionMode::RightBottomToLeftTop);
 	transitionEffect_.Start(
-		1.0f,
+		1.5f,
 		VectorColorCodes::Black,
 		VectorColorCodes::Red
 	);

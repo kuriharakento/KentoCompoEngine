@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include "imgui/imgui.h"
+#include "time/TimeManager.h"
 
 SceneTransitionEffect::SceneTransitionEffect() {}
 SceneTransitionEffect::~SceneTransitionEffect() {}
@@ -57,11 +58,13 @@ void SceneTransitionEffect::Start(float duration, const Vector4& startColor, con
 	}
 }
 
-void SceneTransitionEffect::Update(float deltaTime)
+void SceneTransitionEffect::Update()
 {
 #ifdef _DEBUG
 	ShowImGui();
 #endif
+	float deltaTime = TimeManager::GetInstance().GetUIContext().deltaTime;
+
 	if (state_ == TransitionState::Playing)
 	{
 		elapsed_ += deltaTime;
@@ -93,11 +96,21 @@ void SceneTransitionEffect::Update(float deltaTime)
 
 void SceneTransitionEffect::Draw()
 {
-	if (state_ == TransitionState::Idle) return;
+	// 待機中は描画しない
+	if (state_ == TransitionState::Idle)
+	{
+		return;
+	}
+	// 描画
 	for (int y = 0; y < gridY_; ++y)
 	{
 		for (int x = 0; x < gridX_; ++x)
 		{
+			float alpha = gridSprites_[y][x]->GetColor().w;
+			if (alpha <= 0.0f)
+			{
+				continue; // 透明なら描画しない
+			}
 			gridSprites_[y][x]->Draw();
 		}
 	}

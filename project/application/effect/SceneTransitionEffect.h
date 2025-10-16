@@ -65,7 +65,7 @@ public:
     // グラデーションカラー付き演出開始
     void Start(float duration, const Vector4& startColor, const Vector4& endColor);
 
-    void Update(float deltaTime = 0.016f);
+    void Update();
     void Draw();
 
     TransitionState GetState() const;
