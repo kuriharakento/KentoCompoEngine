@@ -9,14 +9,17 @@
 // app
 #include "application/stage/StageManager.h"
 
-class StageEditScene : public  BaseScene
+class StageEditScene : public BaseScene
 {
 public:
 	void Initialize() override;
-	void Update() override;
+	void Finalize() override;
 	void Draw2D() override;
 	void Draw3D() override;
-	void Finalize() override;
+
+protected:
+	// 状態フック
+	void OnUpdatePlaying() override;
 
 private:
 	// ステージマネージャー
@@ -24,4 +27,3 @@ private:
 	// デバッグカメラ
 	std::unique_ptr<DebugCamera> debugCamera_;
 };
-

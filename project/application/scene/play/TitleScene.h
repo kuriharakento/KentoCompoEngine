@@ -32,15 +32,23 @@ public:
 	void Initialize() override;
 	//終了
 	void Finalize() override;
-	//更新
-	void Update() override;
 	//描画
 	void Draw3D() override;
 	void Draw2D() override;
-
-private:
 	// ImGuiの描画
-	void DrawImGui();
+	void DrawImGui() override;
+
+protected:
+	/* ---- 状態ごとの関数のオーバーライド --- */
+	// Playing状態
+	void OnEnterPlaying() override;
+	void OnUpdatePlaying() override;
+	void OnExitPlaying() override;
+
+	// Exit状態
+	void OnEnterExit() override;
+	void OnUpdateExit() override;
+	void OnExitExit() override;
 
 private: //メンバ変数
 	// タイトルロゴ
