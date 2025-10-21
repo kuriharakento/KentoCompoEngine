@@ -39,7 +39,6 @@ void TitleScene::Initialize()
 	titleLogo_->SetSize({ 300.0f, 200.0f });
 
 	// スカイドームの生成
-	//スカイドームの生成
 	skydome_ = std::make_unique<Object3d>();
 	skydome_->Initialize(sceneManager_->GetObject3dCommon());
 	skydome_->SetModel("skydome");
