@@ -194,16 +194,16 @@ void Framework::Update()
 	// タイマーマネージャーの更新
 	TimerManager::GetInstance().Update();
 
-	//カメラの更新
+	// カメラの更新
 	cameraManager_->Update();
 
-	//オーディオの更新
+	// オーディオの更新
 	Audio::GetInstance()->Update();
 
-	//ライトマネージャーの更新
+	// ライトマネージャーの更新
 	lightManager_->Update();
 
-	//Skyboxの更新
+	// Skyboxの更新
 	skybox_->Update(cameraManager_->GetActiveCamera());
 
 	// JSONエディターの更新

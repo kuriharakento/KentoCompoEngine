@@ -39,7 +39,9 @@ void GamePlayScene::Initialize()
     Audio::GetInstance()->PlayWave("game_bgm", true);
     Audio::GetInstance()->SetVolume("game_bgm", 0.2f);
 
-    sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate(Vector3(0.0f, 1.5f, -15.0f));
+	// カメラ設定
+    sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate(cameraInitialPosition_);
+    sceneManager_->GetCameraManager()->GetActiveCamera()->SetRotate(cameraInitialRotation_);
 
     // スカイドームの生成
     skydome_ = std::make_unique<Object3d>();
@@ -89,15 +91,6 @@ void GamePlayScene::Initialize()
     topDownCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
     topDownCamera_->SetOffset({ 0.0f, 0.0f, -5.0f });
     topDownCamera_->SetPitch(0.9f);
-    topDownCamera_->Start(
-        60.0f,
-        &stageManager_->GetPlayer()->GetPosition()
-    );
-
-    // デバッグカメラの生成
-    debugCamera_ = std::make_unique<DebugCamera>();
-    debugCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
-    debugCamera_->Start();
 
     // カーネージモードの初期化
     carnageMode_ = std::make_unique<CarnageMode>(stageManager_->GetPlayer());
@@ -150,7 +143,7 @@ void GamePlayScene::OnUpdateEnter()
     // フェード完了で Playing に遷移
     if (transitionEffect_.GetState() == TransitionState::Done)
     {
-        ChangeState(SceneState::Playing);
+        ChangeState(SceneState::Intro);
     }
 }
 
@@ -159,10 +152,58 @@ void GamePlayScene::OnExitEnter()
     // 特になし（必要ならクリーンアップ）
 }
 
+void GamePlayScene::OnEnterIntro()
+{
+    // タイマーのリセット
+    introElapsed_ = 0.0f;
+}
+
+void GamePlayScene::OnUpdateIntro()
+{
+    // dt を取得（TimeManager の API を使用）
+	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
+
+    introElapsed_ += deltaTime;
+	float t = introElapsed_ / introDuration_;
+	if (t > 1.0f) t = 1.0f;
+    float eased = EaseInOutCirc(t);
+
+	auto activeCamera = sceneManager_->GetCameraManager()->GetActiveCamera();
+
+    // --- 目標を取得する ---
+	Vector3 targetPos = stageManager_->GetPlayer()->GetPosition() + topDownCamera_->GetOffset();
+	targetPos.y += topDownCamera_->GetHeight();
+	Vector3 targetRot = { topDownCamera_->GetPitch(), topDownCamera_->GetYaw(), 0.0f };
+
+    // --- 補間 ---
+    Vector3 nextPos = MathUtils::Lerp(cameraInitialPosition_, targetPos, eased);
+    Vector3 nextRot = {
+        LerpAngle(cameraInitialRotation_.x, targetRot.x, eased),
+        LerpAngle(cameraInitialRotation_.y, targetRot.y, eased),
+        LerpAngle(cameraInitialRotation_.z, targetRot.z, eased)
+    };
+
+	activeCamera->SetTranslate(nextPos);
+	activeCamera->SetRotate(nextRot);
+
+    // --- 完了判定 ---
+    if (t >= 1.0f)
+    {
+        // 最終合わせ
+		activeCamera->SetTranslate(targetPos);
+		activeCamera->SetRotate(targetRot);
+        ChangeState(SceneState::Playing);
+    }
+}
+
 // Playing（メインの更新ロジックをここに移動）
 void GamePlayScene::OnEnterPlaying()
 {
-    // 初期化やフラグリセット（必要なら）
+	// トップダウンカメラを開始
+    topDownCamera_->Start(
+        60.0f,
+        &stageManager_->GetPlayer()->GetPosition()
+    );
 }
 
 void GamePlayScene::OnUpdatePlaying()
@@ -267,6 +308,13 @@ void GamePlayScene::OnExitExit()
     // Exit 状態を抜ける際のクリーンアップ
 }
 
+void GamePlayScene::CommonUpdate()
+{
+	skydome_->Update(sceneManager_->GetCameraManager());
+	ground_->Update(sceneManager_->GetCameraManager());
+    stageManager_->UpdateTransforms(sceneManager_->GetCameraManager());
+}
+
 // ----------------------------------------------------------------
 // 描画
 // ----------------------------------------------------------------
@@ -321,10 +369,6 @@ void GamePlayScene::DrawImGui()
         ImGui::Checkbox("Use Spline Camera", &useSplineCamera);
         ImGui::SeparatorText("Top Down Camera");
         ImGui::Checkbox("Use Top Down Camera", &useTopDownCamera);
-    }
-    if (useDebugCamera)
-    {
-        debugCamera_->Update();
     }
     if (useSplineCamera)
     {

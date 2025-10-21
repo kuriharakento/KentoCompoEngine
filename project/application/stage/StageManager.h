@@ -24,6 +24,7 @@ public:
 
 	void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, CameraManager* camera);
 	void Update();
+	void UpdateTransforms(CameraManager* camera);
 	void Draw();
 	void DrawImGui();
 

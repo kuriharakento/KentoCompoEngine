@@ -40,12 +40,16 @@ public:
 
 protected:
     // 状態フックのオーバーライド
-    // Enter: シーン開始（フェードインなど）
+    // Enter: シーン開始（フェードイン）
     void OnEnterEnter() override;
     void OnUpdateEnter() override;
     void OnExitEnter() override;
 
-    // Playing: 実プレイ（既存 Update のロジックをここに移動）
+	// Intro: イントロ演出（ゲームのスタート演出)
+	void OnEnterIntro() override;
+	void OnUpdateIntro() override;
+
+    // Playing: 実プレイ（ゲームプレイ)
     void OnEnterPlaying() override;
     void OnUpdatePlaying() override;
     void OnExitPlaying() override;
@@ -60,7 +64,14 @@ protected:
     void OnUpdateExit() override;
     void OnExitExit() override;
 
+	// 共通更新処理
+	void CommonUpdate() override;
+
 private: //メンバ変数
+	// =========================
+    //  ゲームプレイ
+	// =========================
+    
     // ミニマップ
     std::unique_ptr<Minimap> minimap_;
     // スカイドーム
@@ -70,11 +81,9 @@ private: //メンバ変数
     // カーネージモード
     std::unique_ptr<CarnageMode> carnageMode_;
     // カメラワーク
-    std::unique_ptr<DebugCamera> debugCamera_;
     std::unique_ptr<SplineCamera> splineCamera_;
     std::unique_ptr<TopDownCamera> topDownCamera_;
     // ゲームオブジェクト
-    std::unique_ptr<Player> player;
     std::unique_ptr<EnemyManager> enemyManager_;
     std::unique_ptr<ObstacleManager> obstacleManager_;
     std::unique_ptr<StageManager> stageManager_;
@@ -82,4 +91,16 @@ private: //メンバ変数
     SceneTransitionEffect transitionEffect_;
     // ゲーム終了フラグ
     bool gameEnd_ = false;
+
+	// ========================
+	//  イントロ演出
+	// ========================
+
+    // イントロ演出の経過時間
+	float introElapsed_ = 0.0f;
+	// イントロ演出の所要時間
+	float introDuration_ = 2.0f;
+    // カメラの初期値
+    Vector3 cameraInitialPosition_ = { 0.0f, 1.5f, 50.0f };
+	Vector3 cameraInitialRotation_ = { 00.0f, 0.0f, 0.0f };
 };

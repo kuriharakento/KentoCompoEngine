@@ -22,6 +22,7 @@ void TitleScene::Initialize()
 
 	// カメラ設定
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate(Vector3(0.0f, 1.5f, -15.0f));
+	sceneManager_->GetCameraManager()->GetActiveCamera()->SetRotate(Vector3());
 
 	// タイトルロゴの生成
 	titleLogo_ = std::make_unique<Sprite>();

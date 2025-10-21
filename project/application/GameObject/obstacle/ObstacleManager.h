@@ -15,6 +15,8 @@ public:
 	void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager);
 	// 更新
 	void Update();
+	// 行列更新
+	void UpdateTransforms(CameraManager* camera);
 	// 描画
 	void Draw(CameraManager* camera);
 

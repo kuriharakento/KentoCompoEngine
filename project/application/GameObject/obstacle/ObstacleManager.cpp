@@ -52,6 +52,17 @@ void ObstacleManager::Update()
 	ApplyObstacleData();
 }
 
+void ObstacleManager::UpdateTransforms(CameraManager* camera)
+{
+	for (auto& obstacle : obstacles_)
+	{
+		if (obstacle)
+		{
+			obstacle->UpdateTransform(camera);
+		}
+	}
+}
+
 void ObstacleManager::Draw(CameraManager* camera)
 {
 	for (auto& obstacle : obstacles_)

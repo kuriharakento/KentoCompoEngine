@@ -85,6 +85,25 @@ void StageManager::Update()
 #endif
 }
 
+void StageManager::UpdateTransforms(CameraManager* camera)
+{
+	// プレイヤーの行列更新
+	if (player_)
+	{
+		player_->UpdateTransform(camera);
+	}
+	// 敵マネージャーの行列更新
+	if (enemyManager_)
+	{
+		enemyManager_->UpdateTransform(cameraManager_);
+	}
+	// 障害物マネージャーの行列更新
+	if (obstacleManager_)
+	{
+		obstacleManager_->UpdateTransforms(cameraManager_);
+	}
+}
+
 void StageManager::Draw()
 {
 	// プレイヤーの描画
