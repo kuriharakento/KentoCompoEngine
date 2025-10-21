@@ -20,6 +20,9 @@
 
 void TitleScene::Initialize()
 {
+	// シーンの状態
+	currentState_ = SceneState::Playing;
+
 	// BGM再生
 	Audio::GetInstance()->LoadWave("title_bgm", "bgm/title.wav", SoundGroup::BGM);
 	Audio::GetInstance()->PlayWave("title_bgm", true);

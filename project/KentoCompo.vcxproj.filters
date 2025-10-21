@@ -448,7 +448,9 @@
     <ClCompile Include="application\effect\CarnageModeEffect.cpp">
       <Filter>application\effect</Filter>
     </ClCompile>
-    <ClCompile Include="application\effect\SceneTransitionEffect.cpp" />
+    <ClCompile Include="application\effect\SceneTransitionEffect.cpp">
+      <Filter>application\effect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -979,7 +981,9 @@
     <ClInclude Include="application\effect\CarnageModeEffect.h">
       <Filter>application\effect</Filter>
     </ClInclude>
-    <ClInclude Include="application\effect\SceneTransitionEffect.h" />
+    <ClInclude Include="application\effect\SceneTransitionEffect.h">
+      <Filter>application\effect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">
