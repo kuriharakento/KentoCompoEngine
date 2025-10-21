@@ -27,19 +27,38 @@
 class GamePlayScene : public BaseScene
 {
 public:
-    //初期化
+    // 初期化 / 終了
     void Initialize() override;
-    //終了
     void Finalize() override;
-    //更新
-    void Update() override;
-    //描画
+
+    // 描画
     void Draw3D() override;
     void Draw2D() override;
 
-private:
-    // ImGuiの描画
-    void DrawImGui();
+    // ImGui の描画（BaseScene::DrawImGui をオーバーライド）
+    void DrawImGui() override;
+
+protected:
+    // 状態フックのオーバーライド
+    // Enter: シーン開始（フェードインなど）
+    void OnEnterEnter() override;
+    void OnUpdateEnter() override;
+    void OnExitEnter() override;
+
+    // Playing: 実プレイ（既存 Update のロジックをここに移動）
+    void OnEnterPlaying() override;
+    void OnUpdatePlaying() override;
+    void OnExitPlaying() override;
+
+    // End: ステージクリア等の終了演出（必要に応じて拡張）
+    void OnEnterEnd() override;
+    void OnUpdateEnd() override;
+    void OnExitEnd() override;
+
+    // Exit: シーン退場（フェードアウト → シーン遷移）
+    void OnEnterExit() override;
+    void OnUpdateExit() override;
+    void OnExitExit() override;
 
 private: //メンバ変数
     // ミニマップ
@@ -59,8 +78,8 @@ private: //メンバ変数
     std::unique_ptr<EnemyManager> enemyManager_;
     std::unique_ptr<ObstacleManager> obstacleManager_;
     std::unique_ptr<StageManager> stageManager_;
-	// シーン遷移エフェクト
-	SceneTransitionEffect transitionEffect_;
-	// ゲーム終了フラグ
-	bool gameEnd_ = false;
+    // シーン遷移エフェクト
+    SceneTransitionEffect transitionEffect_;
+    // ゲーム終了フラグ
+    bool gameEnd_ = false;
 };

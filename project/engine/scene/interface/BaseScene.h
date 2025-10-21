@@ -8,6 +8,7 @@
  /// シーンの状態（ライフサイクル）
 enum class SceneState
 {
+	None,       ///< 未初期化／無効
     Enter,      ///< シーン開始（フェードイン等）
     Intro,      ///< イントロ／スタート演出
     Playing,    ///< プレイ中
@@ -96,6 +97,29 @@ public:
 
 protected:
     /**
+     * @brief 初期状態をセットする
+	 * Warning: Initialize内の一番下で呼ぶこと（Enter内で使う変数などの初期化が終わってないとエラーが出るので）
+     */
+    void StartState(SceneState start)
+    {
+        SceneState prev = currentState_;
+        currentState_ = start;
+
+        // start に応じた Enter を呼ぶ
+        switch (currentState_)
+        {
+        case SceneState::Enter:      OnEnterEnter(); break;
+        case SceneState::Intro:      OnEnterIntro(); break;
+        case SceneState::Playing:    OnEnterPlaying(); break;
+        case SceneState::Paused:     OnEnterPaused(); break;
+        case SceneState::Cutscene:   OnEnterCutscene(); break;
+        case SceneState::End:        OnEnterEnd(); break;
+        case SceneState::Exit:       OnEnterExit(); break;
+        default: break;
+        }
+    }
+
+    /**
 	 * \brief 状態の変更
 	 * \param next つぎの状態
      */
@@ -172,11 +196,12 @@ protected:
     virtual void OnUpdateExit() {}
     virtual void OnExitExit() {}
 
-protected:
 	// シーンマネージャー（非所有ポインタ）
     SceneManager* sceneManager_ = nullptr;
+
+private:
 	// 現在のシーン状態
-    SceneState currentState_ = SceneState::Enter; // 初期状態は Enter
+	SceneState currentState_ = SceneState::None;
 	// 前のシーン状態（Pause 復帰用）
-    SceneState previousState_ = SceneState::Playing;
+    SceneState previousState_ = SceneState::None;
 };

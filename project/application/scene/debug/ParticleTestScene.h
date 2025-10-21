@@ -10,11 +10,14 @@ public:
 	void Initialize() override;
 	//終了
 	void Finalize() override;
-	//更新
-	void Update() override;
 	//描画
 	void Draw3D() override;
 	void Draw2D() override;
+
+protected:
+	// 状態フック
+	void OnEnterPlaying() override;
+	void OnUpdatePlaying() override;
 
 private:
 	// デバッグカメラ
@@ -30,4 +33,3 @@ private:
 	// 円柱から漏れる粒
 	std::unique_ptr<ParticleEmitter> auraLeak_;
 };
-
