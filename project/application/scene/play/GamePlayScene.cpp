@@ -89,8 +89,9 @@ void GamePlayScene::Initialize()
 	// トップダウンカメラの生成
 	topDownCamera_ = std::make_unique<TopDownCamera>();
 	topDownCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
-	topDownCamera_->SetOffset({ 0.0f, 0.0f, -5.0f });
+	topDownCamera_->SetOffset({ 0.0f, 0.0f, -50.0f });
 	topDownCamera_->SetPitch(0.9f);
+	topDownCamera_->SetHeight(60.0f);
 
 	// カーネージモードの初期化
 	carnageMode_ = std::make_unique<CarnageMode>(stageManager_->GetPlayer());
@@ -172,8 +173,7 @@ void GamePlayScene::OnUpdateIntro()
 	auto activeCamera = sceneManager_->GetCameraManager()->GetActiveCamera();
 
 	// --- 目標を取得する ---
-	Vector3 targetPos = stageManager_->GetPlayer()->GetPosition() + topDownCamera_->GetOffset();
-	targetPos.y += topDownCamera_->GetHeight();
+	Vector3 targetPos = stageManager_->GetPlayer()->GetPosition() + Vector3{ 0.0f, topDownCamera_->GetHeight(), 0.0f };
 	Vector3 targetRot = { topDownCamera_->GetPitch(), topDownCamera_->GetYaw(), 0.0f };
 
 	// --- 補間 ---
@@ -184,14 +184,14 @@ void GamePlayScene::OnUpdateIntro()
 		LerpAngle(cameraInitialRotation_.z, targetRot.z, eased)
 	};
 
-	activeCamera->SetTranslate(nextPos);
+	activeCamera->SetTranslate(nextPos + topDownCamera_->GetOffset());
 	activeCamera->SetRotate(nextRot);
 
 	// --- 完了判定 ---
 	if (t >= 1.0f)
 	{
 		// 最終合わせ
-		activeCamera->SetTranslate(targetPos);
+		activeCamera->SetTranslate(targetPos + topDownCamera_->GetOffset());
 		activeCamera->SetRotate(targetRot);
 		ChangeState(SceneState::Playing);
 	}
@@ -286,15 +286,25 @@ void GamePlayScene::OnUpdateEnd()
 	// 時間経過
 	gameOverEffectElapsed_ += TimeManager::GetInstance().GetGameContext().deltaTime;
 
-	float startValue = 0.0f;
-	float endValue = 10.0f;
+	// 色収差を振幅で揺らす
+	const float frequencyHz = 4.0f;  // 1秒間に4回揺れる
+	const float maxOscAmp = 35.0f;   // 初期最大振幅
+	const float decayRate = 2.8f;    // 大きいほど速く収束
 
-	// 0～1に正規化
-	float t = std::clamp(gameOverEffectElapsed_ / gameOverEffectDuration_, 0.0f, 1.0f);
-	// 線形補間
-	float value = MathUtils::Lerp(startValue, endValue, EaseInOutElastic(t));
+	// 指数減衰で自然に収束させる
+	float envelope = maxOscAmp * std::exp(-decayRate * gameOverEffectElapsed_);
+	if (envelope < 0.001f) 
+	{
+		// 微小値切り捨て
+		envelope = 0.0f;
+	}
+
+	const float twoPi = std::numbers::pi_v<float> *2.0f;
+	float oscill = std::sinf(gameOverEffectElapsed_ * frequencyHz * twoPi) * envelope;
+
+	// 純粋な振幅をセット（ベース値は加えない）
 	auto* ppm = sceneManager_->GetPostProcessManager();
-	ppm->crtEffect_->SetChromaticAberrationOffset(value);
+	ppm->crtEffect_->SetChromaticAberrationOffset(oscill);
 
 	if (playerDeathEffect_.IsFinished())
 	{
@@ -304,21 +314,16 @@ void GamePlayScene::OnUpdateEnd()
 
 void GamePlayScene::OnExitEnd()
 {
-	// 色収差エフェクト無効化
-	auto* ppm = sceneManager_->GetPostProcessManager();
-	ppm->crtEffect_->SetEnabled(false);
-	ppm->crtEffect_->SetCrtEnabled(false);
-	ppm->crtEffect_->SetChromaticAberrationEnabled(false);
 }
 
 void GamePlayScene::OnEnterExit()
 {
 	// 終了演出の開始
-	transitionEffect_.SetEaseType(SceneTransitionEase::OutSine);
+	transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
 	transitionEffect_.SetFadeType(FadeType::FadeIn);
 	transitionEffect_.SetMode(TransitionMode::EdgesToCenter);
 	transitionEffect_.Start(
-		1.5f,
+		2.0f,
 		VectorColorCodes::Black,
 		VectorColorCodes::Red
 	);
@@ -343,6 +348,11 @@ void GamePlayScene::OnUpdateExit()
 
 void GamePlayScene::OnExitExit()
 {
+	// 色収差エフェクト無効化
+	auto* ppm = sceneManager_->GetPostProcessManager();
+	ppm->crtEffect_->SetEnabled(false);
+	ppm->crtEffect_->SetCrtEnabled(false);
+	ppm->crtEffect_->SetChromaticAberrationEnabled(false);
 }
 
 void GamePlayScene::CommonUpdate()

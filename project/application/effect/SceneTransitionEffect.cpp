@@ -117,6 +117,7 @@ void SceneTransitionEffect::Draw()
 }
 
 TransitionState SceneTransitionEffect::GetState() const { return state_; }
+void SceneTransitionEffect::SetState(TransitionState state) { state_ = state; }
 void SceneTransitionEffect::SetEaseType(SceneTransitionEase type) { easeType_ = type; }
 void SceneTransitionEffect::SetMode(TransitionMode mode) { mode_ = mode; }
 void SceneTransitionEffect::SetFadeType(FadeType type) { fadeType_ = type; }

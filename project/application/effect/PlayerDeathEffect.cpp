@@ -21,8 +21,8 @@ void PlayerDeathEffect::Initialize(Player* player)
 		"./Resources/circle2.png"
 	);
 	// エミッターの設定を追加
-	debrisEmitter_->SetInitialLifeTime(1.5f);
-	debrisEmitter_->SetEmitRate(0.2f);
+	debrisEmitter_->SetInitialLifeTime(1.0f);
+	debrisEmitter_->SetEmitRate(0.1f);
 	debrisEmitter_->SetRandomScale(true);
 	debrisEmitter_->SetRandomScaleRange(AABB({ 0.1f, 0.1f, 0.1f }, { 0.5f, 0.5f, 0.5f }));
 	debrisEmitter_->SetRandomVelocity(true);
@@ -58,22 +58,20 @@ void PlayerDeathEffect::Update()
 	// スケールを適用
 	player_->SetScale(newScale);
 
-	//　現在のスケールが0.5以下になったらエフェクト開始フラグを立てる
-	if (newScale.x <= 0.5f && newScale.y <= 0.5f && newScale.z <= 0.5f)
-	{
-		isParticleStarted_ = true;
-	}
-
 	// エフェクト開始
-	if (isParticleStarted_)
+	if(t > 0.5f && !isParticleStarted_)
 	{
+		// エミッターを開始
 		debrisEmitter_->Start(
 			&player_->GetPosition(),
 			10,
 			1.0f,
 			false
 		);
+
+		isParticleStarted_ = true;
 	}
+	
 }
 
 void PlayerDeathEffect::Play(float duration)
@@ -84,5 +82,5 @@ void PlayerDeathEffect::Play(float duration)
 
 bool PlayerDeathEffect::IsFinished() const
 {
-	return !debrisEmitter_->IsPlaying() && isParticleStarted_;
+	return elapsed_ >= duration_;
 }

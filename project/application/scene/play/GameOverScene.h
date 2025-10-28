@@ -1,5 +1,6 @@
 #pragma once
 #include "scene/interface/BaseScene.h"
+#include <application/effect/SceneTransitionEffect.h>
 
 class GameOverScene : public BaseScene
 {
@@ -30,5 +31,10 @@ protected:
 	void OnEnterExit() override;
 	void OnUpdateExit() override;
 	void OnExitExit() override;
+
+private:
+	//メンバ変数
+	// シーン遷移エフェクト
+	SceneTransitionEffect transitionEffect_;
 };
 

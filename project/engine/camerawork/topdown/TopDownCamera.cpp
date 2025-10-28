@@ -28,17 +28,20 @@ void TopDownCamera::Update()
 
     if (!camera_ || !target_ || !isActive_) return;
 
-    // ターゲットの位置を基準にカメラの位置を計算
+    // ターゲットの位置を基準にカメラの位置を計算（高さのみ加える）
     Vector3 targetPos = *target_;
     Vector3 targetCameraPos = targetPos + Vector3(0.0f, height_, 0.0f);
 
-	//イージングを使用してカメラの位置を滑らかに移動
-	Vector3 currentPosition = MathUtils::Lerp(camera_->GetTranslate(), targetCameraPos, 0.1f);
+    // 現在のカメラ位置は offset が既に加わっている場合がある -> 一度差し引いて「生の位置」を取得
+    Vector3 currentWorld = camera_->GetTranslate() - offset_;
 
-    // カメラの位置を設定
-    camera_->SetTranslate(currentPosition + offset_);
+	// イージングを使用してカメラの位置を滑らかに移動（生の位置同士で補間）
+	Vector3 newWorld = MathUtils::Lerp(currentWorld, targetCameraPos, 0.1f);
 
-	//カメラの向きを真下に向ける
+    // 最終的にオフセットを一度だけ加えてセット
+    camera_->SetTranslate(newWorld + offset_);
+
+	// カメラの向きを真下に向ける
 	camera_->SetRotate(Vector3(pitch_, yaw_, 0.0f));
 }
 

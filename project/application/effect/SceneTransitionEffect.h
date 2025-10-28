@@ -69,6 +69,7 @@ public:
     void Draw();
 
     TransitionState GetState() const;
+	void SetState(TransitionState state);
     void SetEaseType(SceneTransitionEase type);
     void SetMode(TransitionMode mode);
     void SetFadeType(FadeType type);
