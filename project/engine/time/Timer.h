@@ -40,6 +40,7 @@ public:
     bool IsRunning() const;
     bool IsFinished() const;
     float GetRemainingTime() const;
+    float GetDuration() const;
     std::string GetName() const;
 	DeltaTimeType GetDeltaTimeType() const { return deltaTimeType_; }
 

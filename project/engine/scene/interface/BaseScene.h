@@ -1,9 +1,5 @@
 #pragma once
-
-/**
- * @file BaseScene.h
- * @brief シーン共通基底クラス
- */
+#include "engine/scene/factory/SceneNames.h"
 
  /// シーンの状態（ライフサイクル）
 enum class SceneState
@@ -50,6 +46,9 @@ public:
      */
     void Update()
     {
+        // ImGuiの表示
+        DrawImGui();
+
 		// 共通更新処理
 		CommonUpdate();
 

@@ -62,7 +62,14 @@ void Player::CollisionSettings(ICollisionComponent* collider)
 	// 衝突時の処理を設定
 	collider->SetOnEnter([this](GameObject* other) {
 		// 衝突した瞬間の処理
-		
+		if (other->GetTag() == GameObjectTag::Weapon::EnemyBullet)
+		{
+			auto combatable = dynamic_cast<CombatableObject*>(other);
+			if(combatable)
+			{
+				TakeDamage(combatable->GetAttackPower());
+			}
+		}
 						 });
 	collider->SetOnStay([this](GameObject* other) {
 		// 衝突中の処理

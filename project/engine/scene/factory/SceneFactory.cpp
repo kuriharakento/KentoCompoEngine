@@ -2,6 +2,8 @@
 
 #include "application/scene/debug/ParticleTestScene.h"
 #include "application/scene/debug/StageEditScene.h"
+#include "application/scene/play/GameClearScene.h"
+#include "application/scene/play/GameOverScene.h"
 #include "application/scene/play/GamePlayScene.h"
 #include "application/scene/play/TitleScene.h"
 #include "base/Logger.h"
@@ -18,6 +20,14 @@ BaseScene* SceneFactory::CreateScene(const std::string& sceneName)
 	else if (sceneName == "GAMEPLAY")
 	{
 		newScene = new GamePlayScene();
+	}
+	else if (sceneName == "GAMEOVER")
+	{
+		newScene = new GameOverScene();
+	}
+	else if (sceneName == "GAMECLEAR")
+	{
+		newScene = new GameClearScene();
 	}
 	// デバッグ用シーン
 	else if(sceneName == "STAGEEDIT")

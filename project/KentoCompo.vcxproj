@@ -198,6 +198,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\GameObject\combatable\character\enemy\KnifeEnemy.cpp" />
     <ClCompile Include="application\GameObject\combatable\weapon\Knife.cpp" />
     <ClCompile Include="application\GameObject\component\action\KnifeEnemyBehavior.cpp" />
+    <ClCompile Include="application\scene\play\GameClearScene.cpp" />
+    <ClCompile Include="application\scene\play\GameOverScene.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="engine\manager\system\SrvManager.cpp" />
     <ClCompile Include="engine\manager\effect\ParticleManager.cpp" />
@@ -250,6 +252,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\GameObject\component\action\StatusComponent.cpp" />
     <ClCompile Include="application\effect\TitleFireEffect.cpp" />
     <ClCompile Include="application\effect\SceneTransitionEffect.cpp" />
+    <ClCompile Include="application\effect\PlayerDeathEffect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObjectTag.h" />
@@ -325,6 +328,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\math\Vector2.h" />
     <ClInclude Include="engine\math\Vector3.h" />
     <ClInclude Include="engine\math\Vector4.h" />
+    <ClInclude Include="engine\scene\factory\SceneNames.h" />
     <ClInclude Include="engine\scene\SceneContext.h" />
     <ClInclude Include="engine\scene\interface\AbstractSceneFactory.h" />
     <ClInclude Include="engine\audio\Audio.h" />
@@ -431,6 +435,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\GameObject\component\action\StatusComponent.h" />
     <ClInclude Include="application\effect\TitleFireEffect.h" />
     <ClInclude Include="application\effect\SceneTransitionEffect.h" />
+    <ClInclude Include="application\scene\play\GameClearScene.h" />
+    <ClInclude Include="application\scene\play\GameOverScene.h" />
+    <ClInclude Include="application\effect\PlayerDeathEffect.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />

@@ -34,20 +34,28 @@ void SceneManager::Update()
 	ImGui::Text("CurrentScene: %s", currentSceneName_.c_str());
 	if (ImGui::Button("Title"))
 	{
-		ChangeScene("TITLE");
+		ChangeScene(SceneNames::Title);
 	}
 	if (ImGui::Button("GamePlay"))
 	{
-		ChangeScene("GAMEPLAY");
+		ChangeScene(SceneNames::GamePlay);
+	}
+	if (ImGui::Button("GameOver"))
+	{
+		ChangeScene(SceneNames::GameOver);
+	}
+	if (ImGui::Button("GameClear"))
+	{
+		ChangeScene(SceneNames::GameClear);
 	}
 	// Debug用シーン
 	if(ImGui::Button("StageEdit"))
 	{
-		ChangeScene("STAGEEDIT");
+		ChangeScene(SceneNames::StageEdit);
 	}
 	if (ImGui::Button("ParticleTest"))
 	{
-		ChangeScene("PARTICLETEST");
+		ChangeScene(SceneNames::ParticleTest);
 	}
 	ImGui::End();
 #endif

@@ -66,7 +66,6 @@ void TitleScene::Initialize()
 
 	// 初期状態は Enter（シーン開始時のフェード等を行う）
 	StartState(SceneState::Playing);
-	start_ = false;
 }
 
 void TitleScene::Finalize()
@@ -81,8 +80,6 @@ void TitleScene::Finalize()
 // Playing（タイトル待機状態。ボタン入力で遷移）
 void TitleScene::OnEnterPlaying()
 {
-	// タイトル待機に入る直前の初期化
-	start_ = false;
 }
 
 void TitleScene::OnUpdatePlaying()
@@ -91,13 +88,12 @@ void TitleScene::OnUpdatePlaying()
 	DrawImGui();
 
 	// スタート入力処理（スペース）
-	if (Input::GetInstance()->TriggerKey(DIK_SPACE) && !start_)
+	if (Input::GetInstance()->TriggerKey(DIK_SPACE))
 	{
 		// スタート音再生
 		Audio::GetInstance()->PlayWave("start_se", false);
 
 		// 遷移時の演出スタート
-		start_ = true;
 		transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
 		transitionEffect_.SetFadeType(FadeType::FadeIn);
 		transitionEffect_.SetMode(TransitionMode::LeftTopToRightBottom);
@@ -145,15 +141,11 @@ void TitleScene::OnUpdatePlaying()
 
 void TitleScene::OnExitPlaying()
 {
-	// プレイ待機を抜けるときの処理（必要なら）
 }
 
 // Exit（遷移フェード）
 void TitleScene::OnEnterExit()
 {
-	// Exit 状態に入った時点で遷移用フェードが既に開始されていることが多いが、
-	// ここで確実に開始したい場合は設定を行う。
-	// （今回は OnUpdatePlaying で Start() を呼んでから遷移しているので特に何もしない）
 }
 
 void TitleScene::OnUpdateExit()
@@ -163,14 +155,13 @@ void TitleScene::OnUpdateExit()
 
 	if (transitionEffect_.GetState() == TransitionState::Done)
 	{
-		// シーン遷移
-		if (sceneManager_) sceneManager_->ChangeScene("GAMEPLAY");
+		// ゲームプレイシーンへ切り替え
+		if (sceneManager_) sceneManager_->ChangeScene(SceneNames::GamePlay);
 	}
 }
 
 void TitleScene::OnExitExit()
 {
-	// Exit 状態を抜けるときのクリーンアップ（必要なら）
 }
 
 // ----------------------------------------------------------------
@@ -207,8 +198,8 @@ void TitleScene::DrawImGui()
 #ifdef _DEBUG
 	ImGui::Begin("Title Scene");
 #pragma region PostProcess
-	// （元の ImGui ブロックをここにそのまま入れてください）
-#pragma endregion
+
+	#pragma endregion
 	ImGui::End();
 #endif
 }

@@ -451,6 +451,9 @@
     <ClCompile Include="application\effect\SceneTransitionEffect.cpp">
       <Filter>application\effect</Filter>
     </ClCompile>
+    <ClCompile Include="application\scene\play\GameClearScene.cpp" />
+    <ClCompile Include="application\scene\play\GameOverScene.cpp" />
+    <ClCompile Include="application\effect\PlayerDeathEffect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -984,6 +987,10 @@
     <ClInclude Include="application\effect\SceneTransitionEffect.h">
       <Filter>application\effect</Filter>
     </ClInclude>
+    <ClInclude Include="application\scene\play\GameClearScene.h" />
+    <ClInclude Include="application\scene\play\GameOverScene.h" />
+    <ClInclude Include="engine\scene\factory\SceneNames.h" />
+    <ClInclude Include="application\effect\PlayerDeathEffect.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

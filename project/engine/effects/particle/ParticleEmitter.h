@@ -22,6 +22,7 @@ public:
 	void Start(const Vector3* target, uint32_t count, float duration, bool isLoop = false);
 	void StopEmit();
 
+	bool IsPlaying() const { return isPlaying_; }
 	BlendMode GetBlendMode() const { return blendMode_; }
 	void SetBlendMode(BlendMode mode) { blendMode_ = mode; }
 	void SetPosition(const Vector3& position) { position_ = position; }

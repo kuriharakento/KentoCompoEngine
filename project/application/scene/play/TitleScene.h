@@ -61,8 +61,6 @@ private: //メンバ変数
 	OBB cube_{};
 	float cubeRotateY = 0.0f;
 	float cubeWaveTime = 0.0f;
-	//
+	// シーン遷移演出
 	SceneTransitionEffect transitionEffect_;
-	//
-	bool start_ = false;
 };

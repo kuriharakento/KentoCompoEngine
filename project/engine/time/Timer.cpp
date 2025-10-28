@@ -75,6 +75,11 @@ float Timer::GetRemainingTime() const
     return duration_ - elapsed_;
 }
 
+float Timer::GetDuration() const
+{
+	return duration_;
+}
+
 std::string Timer::GetName() const
 {
     return name_;

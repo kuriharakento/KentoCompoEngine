@@ -19,6 +19,7 @@
 
 // effects
 #include "application/carnage/CarnageMode.h"
+#include "application/effect/PlayerDeathEffect.h"
 #include "application/effect/SceneTransitionEffect.h"
 #include "application/minimap/Minimap.h"
 #include "effects/particle/ParticleEmitter.h"
@@ -89,8 +90,16 @@ private: //メンバ変数
     std::unique_ptr<StageManager> stageManager_;
     // シーン遷移エフェクト
     SceneTransitionEffect transitionEffect_;
+	// プレイヤー死亡エフェクト
+	PlayerDeathEffect playerDeathEffect_;
+    // ゲームオーバー演出持続時間
+	float gameOverEffectDuration_ = 3.0f;
+	// ゲームオーバー演出経過時間
+	float gameOverEffectElapsed_ = 0.0f;
+
     // ゲーム終了フラグ
-    bool gameEnd_ = false;
+    bool gameClear_ = false;
+	bool gameOver_ = false;
 
 	// ========================
 	//  イントロ演出
