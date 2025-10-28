@@ -81,6 +81,7 @@ void GameOverScene::OnUpdatePlaying()
 			VectorColorCodes::Black,
 			VectorColorCodes::Red
 		);
+		// シーン終了
 		ChangeState(SceneState::Exit);
 	}
 }
