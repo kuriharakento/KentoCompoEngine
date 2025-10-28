@@ -226,6 +226,13 @@ void GamePlayScene::OnUpdatePlaying()
 		return;
 	}
 
+	// プレイ会用
+	if(Input::GetInstance()->TriggerKey(DIK_SPACE))
+	{
+		// ゲームオーバー演出へ
+		ChangeState(SceneState::End);
+	}
+
 
 	// 遷移エフェクト更新（安定化のため常に Update）
 	transitionEffect_.Update();
