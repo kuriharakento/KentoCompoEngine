@@ -38,7 +38,7 @@ void PlayerDeathEffect::Initialize(Player* player)
 void PlayerDeathEffect::Update()
 {
 	// プレイヤーが存在しないか、生存している、非アクティブ状態の場合は処理しない
-	if (!player_ || player_->IsAlive() || !isActive_)
+	if (!player_ || !isActive_)
 	{
 		return;
 	}

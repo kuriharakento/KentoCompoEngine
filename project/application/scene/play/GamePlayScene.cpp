@@ -231,6 +231,7 @@ void GamePlayScene::OnUpdatePlaying()
 	{
 		// ゲームオーバー演出へ
 		ChangeState(SceneState::End);
+		gameOver_ = true;
 	}
 
 
