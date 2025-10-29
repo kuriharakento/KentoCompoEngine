@@ -8,6 +8,7 @@
 #include "math/Easing.h"
 // editor
 #include "externals/imgui/imgui.h"
+#include "time/TimeManager.h"
 
 LightManager::LightManager()
 {
@@ -48,7 +49,7 @@ void LightManager::Update()
 	ImGuiUpdate();
 
 	// フレーム間の経過時間を取得（例として固定値を使用）
-	float deltaTime = 1.0f / 60.0f;  // 60FPSの場合
+	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
 
 	// ポイントライトの更新
 	for (auto& [name, light] : pointLights_) {
