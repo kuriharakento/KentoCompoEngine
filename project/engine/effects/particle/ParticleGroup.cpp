@@ -186,6 +186,9 @@ void ParticleGroup::SetModelType(ParticleType type)
 	case ParticleType::Cone:
 		MakeConeVertexData();
 		break;
+	case ParticleType::Cube:
+		MakeCubeVertexData();
+		break;
 	default:
 		Logger::Log("Invalid particle type.");
 		assert(false);
@@ -364,4 +367,12 @@ void ParticleGroup::MakeConeVertexData()
 	std::vector<VertexData> coneVertices = ParticleMath::MakeConeVertexData();
 	// 頂点データを更新
 	UpdateVertexBuffer(coneVertices);
+}
+
+void ParticleGroup::MakeCubeVertexData()
+{
+	// 頂点データを立方体で初期化
+	std::vector<VertexData> cubeVertices = ParticleMath::MakeCubeVertexData();
+	// 頂点データを更新
+	UpdateVertexBuffer(cubeVertices);
 }

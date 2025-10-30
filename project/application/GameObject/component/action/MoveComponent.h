@@ -6,11 +6,12 @@
 
 class EnemyManager;
 class GameObject;
+class Camera;
 
 class MoveComponent : public IGameObjectComponent
 {
 public:
-    MoveComponent(EnemyManager* enemyManager);
+    MoveComponent(EnemyManager* enemyManager, CameraManager* camera);
     void Update(GameObject* owner) override;
 
     // 回避パラメータ設定
@@ -30,12 +31,14 @@ private:
     void ProcessMovement(GameObject* owner, float deltaTime);
     void ProcessDodge(GameObject* owner);
     Vector3 GetMovementDirection() const;
+    Vector3 GetCameraRelativeDirection(const Vector3& inputDirection) const;
     void PlayDodgeEffect(GameObject* owner);
     void UpdateRotation(GameObject* owner, const Vector3& direction);  // 向き補間処理
-	void ProcessBulletTime(GameObject* owner);
+    void ProcessBulletTime(GameObject* owner);
 
 private:
-	EnemyManager* enemyManager_ = nullptr;
+    EnemyManager* enemyManager_ = nullptr;
+    Camera* camera_ = nullptr;
 
     // 移動速度
     float moveSpeed_ = 0.0f;
@@ -58,11 +61,11 @@ private:
     Vector3 dodgeTargetPosition_;           // 回避目標位置
     bool hasMovementInput_ = false;         // 移動入力があるか
     bool isDodging_ = false;                // 回避中か
-	float bulletTimeRadius_ = 5.0f;         // バレットタイム範囲
-	bool isInBulletTime_ = false;           // バレットタイム中か
-	float bulletTimeScale_ = 0.3f;     // バレットタイムのスローモーション倍率
-	float bulletTimeDuration_ = 3.0f;       // バレットタイムの持続時間
-	float bulletTimeCooldown_ = 5.0f;       // バレットタイムのクールダウン時間
+    float bulletTimeRadius_ = 5.0f;         // バレットタイム範囲
+    bool isInBulletTime_ = false;           // バレットタイム中か
+    float bulletTimeScale_ = 0.3f;     // バレットタイムのスローモーション倍率
+    float bulletTimeDuration_ = 3.0f;       // バレットタイムの持続時間
+    float bulletTimeCooldown_ = 5.0f;       // バレットタイムのクールダウン時間
 
     // エフェクト関連
     float effectTimer_ = 0.0f;              // エフェクトタイマー

@@ -24,6 +24,7 @@ public:
 		Heart,
 		Spiral,
 		Cone,
+		Cube,
 	};
 
 	ParticleGroup() = default;
@@ -63,6 +64,7 @@ private:
 	void MakeHeartVertexData();
 	void MakeSpiralVertexData();
 	void MakeConeVertexData();
+	void MakeCubeVertexData();
 
 private:
 	//===========================[ 描画設定用変数 ]===========================//

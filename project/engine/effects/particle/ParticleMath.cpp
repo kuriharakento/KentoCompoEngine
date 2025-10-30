@@ -553,3 +553,65 @@ std::vector<VertexData> ParticleMath::MakeConeVertexData()
 
 	return vertices;
 }
+
+std::vector<VertexData> ParticleMath::MakeCubeVertexData()
+{
+	std::vector<VertexData> vertices;
+	const float size = 1.0f;
+
+	// Front face (Z+)
+	Vector3 frontNormal = { 0.0f, 0.0f, 1.0f };
+	vertices.push_back({ { -size,  size,  size, 1.0f }, { 0.0f, 0.0f }, frontNormal }); // Top-left
+	vertices.push_back({ {  size,  size,  size, 1.0f }, { 1.0f, 0.0f }, frontNormal }); // Top-right
+	vertices.push_back({ { -size, -size,  size, 1.0f }, { 0.0f, 1.0f }, frontNormal }); // Bottom-left
+	vertices.push_back({ {  size,  size,  size, 1.0f }, { 1.0f, 0.0f }, frontNormal }); // Top-right
+	vertices.push_back({ {  size, -size,  size, 1.0f }, { 1.0f, 1.0f }, frontNormal }); // Bottom-right
+	vertices.push_back({ { -size, -size,  size, 1.0f }, { 0.0f, 1.0f }, frontNormal }); // Bottom-left
+
+	// Back face (Z-)
+	Vector3 backNormal = { 0.0f, 0.0f, -1.0f };
+	vertices.push_back({ {  size,  size, -size, 1.0f }, { 0.0f, 0.0f }, backNormal }); // Top-right
+	vertices.push_back({ { -size,  size, -size, 1.0f }, { 1.0f, 0.0f }, backNormal }); // Top-left
+	vertices.push_back({ {  size, -size, -size, 1.0f }, { 0.0f, 1.0f }, backNormal }); // Bottom-right
+	vertices.push_back({ { -size,  size, -size, 1.0f }, { 1.0f, 0.0f }, backNormal }); // Top-left
+	vertices.push_back({ { -size, -size, -size, 1.0f }, { 1.0f, 1.0f }, backNormal }); // Bottom-left
+	vertices.push_back({ {  size, -size, -size, 1.0f }, { 0.0f, 1.0f }, backNormal }); // Bottom-right
+
+	// Left face (X-)
+	Vector3 leftNormal = { -1.0f, 0.0f, 0.0f };
+	vertices.push_back({ { -size,  size, -size, 1.0f }, { 0.0f, 0.0f }, leftNormal }); // Top-back
+	vertices.push_back({ { -size,  size,  size, 1.0f }, { 1.0f, 0.0f }, leftNormal }); // Top-front
+	vertices.push_back({ { -size, -size, -size, 1.0f }, { 0.0f, 1.0f }, leftNormal }); // Bottom-back
+	vertices.push_back({ { -size,  size,  size, 1.0f }, { 1.0f, 0.0f }, leftNormal }); // Top-front
+	vertices.push_back({ { -size, -size,  size, 1.0f }, { 1.0f, 1.0f }, leftNormal }); // Bottom-front
+	vertices.push_back({ { -size, -size, -size, 1.0f }, { 0.0f, 1.0f }, leftNormal }); // Bottom-back
+
+	// Right face (X+)
+	Vector3 rightNormal = { 1.0f, 0.0f, 0.0f };
+	vertices.push_back({ { size,  size,  size, 1.0f }, { 0.0f, 0.0f }, rightNormal }); // Top-front
+	vertices.push_back({ { size,  size, -size, 1.0f }, { 1.0f, 0.0f }, rightNormal }); // Top-back
+	vertices.push_back({ { size, -size,  size, 1.0f }, { 0.0f, 1.0f }, rightNormal }); // Bottom-front
+	vertices.push_back({ { size,  size, -size, 1.0f }, { 1.0f, 0.0f }, rightNormal }); // Top-back
+	vertices.push_back({ { size, -size, -size, 1.0f }, { 1.0f, 1.0f }, rightNormal }); // Bottom-back
+	vertices.push_back({ { size, -size,  size, 1.0f }, { 0.0f, 1.0f }, rightNormal }); // Bottom-front
+
+	// Top face (Y+)
+	Vector3 topNormal = { 0.0f, 1.0f, 0.0f };
+	vertices.push_back({ { -size, size, -size, 1.0f }, { 0.0f, 0.0f }, topNormal }); // Back-left
+	vertices.push_back({ {  size, size, -size, 1.0f }, { 1.0f, 0.0f }, topNormal }); // Back-right
+	vertices.push_back({ { -size, size,  size, 1.0f }, { 0.0f, 1.0f }, topNormal }); // Front-left
+	vertices.push_back({ {  size, size, -size, 1.0f }, { 1.0f, 0.0f }, topNormal }); // Back-right
+	vertices.push_back({ {  size, size,  size, 1.0f }, { 1.0f, 1.0f }, topNormal }); // Front-right
+	vertices.push_back({ { -size, size,  size, 1.0f }, { 0.0f, 1.0f }, topNormal }); // Front-left
+
+	// Bottom face (Y-)
+	Vector3 bottomNormal = { 0.0f, -1.0f, 0.0f };
+	vertices.push_back({ { -size, -size,  size, 1.0f }, { 0.0f, 0.0f }, bottomNormal }); // Front-left
+	vertices.push_back({ {  size, -size,  size, 1.0f }, { 1.0f, 0.0f }, bottomNormal }); // Front-right
+	vertices.push_back({ { -size, -size, -size, 1.0f }, { 0.0f, 1.0f }, bottomNormal }); // Back-left
+	vertices.push_back({ {  size, -size,  size, 1.0f }, { 1.0f, 0.0f }, bottomNormal }); // Front-right
+	vertices.push_back({ {  size, -size, -size, 1.0f }, { 1.0f, 1.0f }, bottomNormal }); // Back-right
+	vertices.push_back({ { -size, -size, -size, 1.0f }, { 0.0f, 1.0f }, bottomNormal }); // Back-left
+
+	return vertices;
+}

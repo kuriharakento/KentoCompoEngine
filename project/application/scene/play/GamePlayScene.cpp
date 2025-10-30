@@ -107,6 +107,11 @@ void GamePlayScene::Initialize()
 	transitionEffect_.SetFadeType(FadeType::FadeOut);
 	transitionEffect_.SetMode(TransitionMode::RightBottomToLeftTop);
 
+	// プレイヤー死亡エフェクト初期化
+	playerDeathEffect_.Initialize(
+		stageManager_->GetPlayer()
+	);
+
 	// 初期状態はEnter
 	StartState(SceneState::Enter);
 	gameClear_ = false;
@@ -226,18 +231,6 @@ void GamePlayScene::OnUpdatePlaying()
 		return;
 	}
 
-	// プレイ会用
-	if(Input::GetInstance()->TriggerKey(DIK_SPACE))
-	{
-		// ゲームオーバー演出へ
-		ChangeState(SceneState::End);
-		gameOver_ = true;
-	}
-
-
-	// 遷移エフェクト更新（安定化のため常に Update）
-	transitionEffect_.Update();
-
 	// 前フレームの位置を更新
 	CollisionManager::GetInstance()->UpdatePreviousPositions();
 
@@ -279,10 +272,7 @@ void GamePlayScene::OnEnterEnd()
 	ppm->crtEffect_->SetCrtEnabled(true);
 	ppm->crtEffect_->SetChromaticAberrationEnabled(true);
 
-	// プレイヤー死亡エフェクト初期化
-	playerDeathEffect_.Initialize(
-		stageManager_->GetPlayer()
-	);
+	// プレイヤー死亡エフェクト開始
 	playerDeathEffect_.Play(1.5f);
 }
 

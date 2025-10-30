@@ -2,6 +2,7 @@
 
 #include "application/GameObject/Combatable/character/player/Player.h"
 #include "effects/particle/component/single/ColorFadeOutComponent.h"
+#include "effects/particle/component/single/RotationComponent.h"
 #include "math/Easing.h"
 #include "math/VectorColorCodes.h"
 #include "time/TimeManager.h"
@@ -18,7 +19,7 @@ void PlayerDeathEffect::Initialize(Player* player)
 	debrisEmitter_ = std::make_unique<ParticleEmitter>();
 	debrisEmitter_->Initialize(
 		"player_death_debris",
-		"./Resources/circle2.png"
+		"./Resources/black.png"
 	);
 	// エミッターの設定を追加
 	debrisEmitter_->SetInitialLifeTime(1.0f);
@@ -27,12 +28,15 @@ void PlayerDeathEffect::Initialize(Player* player)
 	debrisEmitter_->SetRandomScaleRange(AABB({ 0.1f, 0.1f, 0.1f }, { 0.5f, 0.5f, 0.5f }));
 	debrisEmitter_->SetRandomVelocity(true);
 	debrisEmitter_->SetRandomVelocityRange(AABB({ -2.0f, 2.0f, -2.0f }, { 2.0f, 2.0f, 2.0f }));
+	debrisEmitter_->SetRandomRotation(true);
+	debrisEmitter_->SetRandomRotationRange(AABB({ 0.0f, 0.0f, 0.0f }, { 3.14f, 3.14f, 3.14f }));
+	debrisEmitter_->SetModelType(ParticleGroup::ParticleType::Cube);
 	debrisEmitter_->SetBlendMode(BlendMode::Additive);
-	debrisEmitter_->SetBillborad(true);
 	debrisEmitter_->SetRandomColor(true);
 	debrisEmitter_->SetRandomColorRange(VectorColorCodes::Cyan, VectorColorCodes::Red);
 	// コンポーネントを追加
 	debrisEmitter_->AddComponent(std::make_unique<ColorFadeOutComponent>());
+	debrisEmitter_->AddComponent(std::make_unique<RotationComponent>(Vector3(0.0f, 0.15f, 0.0f)));
 }
 
 void PlayerDeathEffect::Update()

@@ -12,45 +12,47 @@
 #include "time/Timer.h"
 #include "time/TimerManager.h"
 
-MoveComponent::MoveComponent(EnemyManager* enemyManager)
+MoveComponent::MoveComponent(EnemyManager* enemyManager, CameraManager* camera)
 {
     // 回避エフェクトの初期化
-	dodgeEffect_ = std::make_unique<DodgeEffectParticle>();
-	dodgeEffect_->Initialize();
+    dodgeEffect_ = std::make_unique<DodgeEffectParticle>();
+    dodgeEffect_->Initialize();
 
-	// 敵マネージャーのポインタを保存
-	enemyManager_ = enemyManager;
+    // 敵マネージャーのポインタを保存
+    enemyManager_ = enemyManager;
+	// カメラのポインタを保存
+	camera_ = camera->GetActiveCamera();
 }
 
 void MoveComponent::Update(GameObject* owner)
 {
-	// 移動速度取得
-	auto status = owner->GetComponent<StatusComponent>();
-	if (status)
-	{
-		moveSpeed_ = status->moveSpeed.GetValue();
-	}
-	else
-	{
-		// 取得できない場合は処理を中断
-		moveSpeed_ = 0.0f;
-		Logger::Log("MoveComponent::Update: StatusComponent not found!\n");
-		return;
-	}
+    // 移動速度取得
+    auto status = owner->GetComponent<StatusComponent>();
+    if (status)
+    {
+        moveSpeed_ = status->moveSpeed.GetValue();
+    }
+    else
+    {
+        // 取得できない場合は処理を中断
+        moveSpeed_ = 0.0f;
+        Logger::Log("MoveComponent::Update: StatusComponent not found!\n");
+        return;
+    }
 
     // タイマー取得
     float deltaTime = 0.0f;
-	auto player = dynamic_cast<Player*>(owner);
+    auto player = dynamic_cast<Player*>(owner);
 
-	// プレイヤーの場合はリアルタイムで更新
-	if (player)
-	{
-		deltaTime = TimeManager::GetInstance().GetGameContext().realDeltaTime;
-	}
-	else
-	{
-		deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
-	}
+    // プレイヤーの場合はリアルタイムで更新
+    if (player)
+    {
+        deltaTime = TimeManager::GetInstance().GetGameContext().realDeltaTime;
+    }
+    else
+    {
+        deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
+    }
 
     // クールダウンタイマー更新
     if (dodgeCooldownTimer_ > 0.0f)
@@ -122,8 +124,8 @@ void MoveComponent::Update(GameObject* owner)
         }
     }
 
-	// バレットタイム処理
-	ProcessBulletTime(owner);
+    // バレットタイム処理
+    ProcessBulletTime(owner);
 }
 
 // 向きを滑らかに補間する処理
@@ -159,36 +161,36 @@ void MoveComponent::ProcessBulletTime(GameObject* owner)
     if (isInBulletTime_ || !isDodging_) { return; }
 
     const auto& enemies = enemyManager_->GetEnemies();
-	for (const auto& enemy : enemies)
-	{
-		auto assaultRifle = enemy->GetComponent<AssaultRifleComponent>();
-		if (!assaultRifle) continue;
-		const auto& bullets = assaultRifle->GetBullets();
-		for (auto& bullet : bullets)
-		{
-			Vector3 toBullet = bullet->GetPosition() - owner->GetPosition();
-			float distance = toBullet.Length();
-			if (distance < bulletTimeRadius_)
-			{
-				isInBulletTime_ = true;
-                auto bulletTime = std::make_unique<Timer>("bulletTime", bulletTimeDuration_,DeltaTimeType::RealDeltaTime);
-				bulletTime->SetOnStart([this]() {
-					TimeManager::GetInstance().SetGameTimeScale(bulletTimeScale_);
-									   });
-				bulletTime->SetOnFinish([this]() {
-					TimeManager::GetInstance().SetGameTimeScale(1.0f);
-					auto timer = std::make_unique<Timer>("bulletTimeCooldown", bulletTimeCooldown_, DeltaTimeType::RealDeltaTime);
-					timer->SetOnFinish([this]() {
-						isInBulletTime_ = false;
-									   });
-					TimerManager::GetInstance().AddTimer(std::move(timer));
-										});
+    for (const auto& enemy : enemies)
+    {
+        auto assaultRifle = enemy->GetComponent<AssaultRifleComponent>();
+        if (!assaultRifle) continue;
+        const auto& bullets = assaultRifle->GetBullets();
+        for (auto& bullet : bullets)
+        {
+            Vector3 toBullet = bullet->GetPosition() - owner->GetPosition();
+            float distance = toBullet.Length();
+            if (distance < bulletTimeRadius_)
+            {
+                isInBulletTime_ = true;
+                auto bulletTime = std::make_unique<Timer>("bulletTime", bulletTimeDuration_, DeltaTimeType::RealDeltaTime);
+                bulletTime->SetOnStart([this]() {
+                    TimeManager::GetInstance().SetGameTimeScale(bulletTimeScale_);
+                                       });
+                bulletTime->SetOnFinish([this]() {
+                    TimeManager::GetInstance().SetGameTimeScale(1.0f);
+                    auto timer = std::make_unique<Timer>("bulletTimeCooldown", bulletTimeCooldown_, DeltaTimeType::RealDeltaTime);
+                    timer->SetOnFinish([this]() {
+                        isInBulletTime_ = false;
+                                       });
+                    TimerManager::GetInstance().AddTimer(std::move(timer));
+                                        });
                 TimerManager::GetInstance().AddTimer(std::move(bulletTime));
-				return;
-			}
-		}
+                return;
+            }
+        }
 
-	}
+    }
 
 }
 
@@ -210,7 +212,7 @@ void MoveComponent::ProcessMovement(GameObject* owner, float deltaTime)
     // 移動処理
     if (hasMovementInput_)
     {
-		moveDirection.NormalizeSelf(); // 正規化
+        moveDirection.NormalizeSelf(); // 正規化
         owner->SetPosition(owner->GetPosition() + moveDirection * moveSpeed_ * deltaTime);
 
         // プレイヤーの向きを滑らかに変える
@@ -221,7 +223,7 @@ void MoveComponent::ProcessMovement(GameObject* owner, float deltaTime)
 void MoveComponent::ProcessDodge(GameObject* owner)
 {
     // すでに回避中なら処理しない
-	if (isDodging_) return;
+    if (isDodging_) return;
 
     // スペースキーで回避
     if (Input::GetInstance()->TriggerKey(DIK_SPACE) && dodgeCooldownTimer_ <= 0.0f)
@@ -278,19 +280,56 @@ void MoveComponent::PlayDodgeEffect(GameObject* owner)
 
 Vector3 MoveComponent::GetMovementDirection() const
 {
-    Vector3 direction(0, 0, 0);
+    Vector3 inputDirection(0, 0, 0);
 
     // WASDキーの入力を取得
-    if (Input::GetInstance()->PushKey(DIK_W)) direction.z += 1.0f;
-    if (Input::GetInstance()->PushKey(DIK_S)) direction.z -= 1.0f;
-    if (Input::GetInstance()->PushKey(DIK_D)) direction.x += 1.0f;
-    if (Input::GetInstance()->PushKey(DIK_A)) direction.x -= 1.0f;
+    if (Input::GetInstance()->PushKey(DIK_W)) inputDirection.z += 1.0f;
+    if (Input::GetInstance()->PushKey(DIK_S)) inputDirection.z -= 1.0f;
+    if (Input::GetInstance()->PushKey(DIK_D)) inputDirection.x += 1.0f;
+    if (Input::GetInstance()->PushKey(DIK_A)) inputDirection.x -= 1.0f;
 
-    // 長さが0でなければ正規化
-    if (direction.Length() > 0.01f)
+    // 入力がない場合は早期リターン
+    if (inputDirection.Length() <= 0.01f)
     {
-        direction.NormalizeSelf();
+        return Vector3(0, 0, 0);
     }
 
-    return direction;
+    // カメラが設定されている場合はカメラ基準の方向に変換
+    if (camera_ != nullptr)
+    {
+        return GetCameraRelativeDirection(inputDirection);
+    }
+
+    // カメラが設定されていない場合はワールド座標系での移動
+    inputDirection.NormalizeSelf();
+    return inputDirection;
+}
+
+Vector3 MoveComponent::GetCameraRelativeDirection(const Vector3& inputDirection) const
+{
+    if (camera_ == nullptr) return inputDirection;
+
+    // カメラの回転を取得
+    Vector3 cameraRotation = camera_->GetRotate();
+    float cameraYaw = cameraRotation.y;
+
+    // カメラのY軸回転に基づいて前方向と右方向を計算
+    Vector3 cameraForward(std::sin(cameraYaw), 0.0f, std::cos(cameraYaw));
+    Vector3 cameraRight(std::cos(cameraYaw), 0.0f, -std::sin(cameraYaw));
+
+    // 入力方向をカメラ基準に変換
+    Vector3 moveDirection =
+        cameraForward * inputDirection.z +  // 前後入力
+        cameraRight * inputDirection.x;     // 左右入力
+
+    // Y軸は常に0に保つ（地面に沿って移動）
+    moveDirection.y = 0.0f;
+
+    // 正規化
+    if (moveDirection.Length() > 0.01f)
+    {
+        moveDirection.NormalizeSelf();
+    }
+
+    return moveDirection;
 }

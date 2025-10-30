@@ -14,4 +14,5 @@ namespace ParticleMath
 	std::vector<VertexData> MakeHeartVertexData();
 	std::vector<VertexData> MakeSpiralVertexData();
 	std::vector<VertexData> MakeConeVertexData();
+	std::vector<VertexData> MakeCubeVertexData();
 }

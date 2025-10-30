@@ -9,7 +9,7 @@
 #include "application/GameObject/component/collision/OBBColliderComponent.h"
 #include "math/VectorColorCodes.h"
 
-void Player::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, EnemyManager* enemyManager)
+void Player::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, EnemyManager* enemyManager, CameraManager* camera)
 {
 	Character::Initialize(object3dCommon, lightManager);
 	//初期位置を設定
@@ -35,7 +35,7 @@ void Player::Initialize(Object3dCommon* object3dCommon, LightManager* lightManag
 	AddChild(GameObjectTag::Character::PlayerLeftArm, std::move(armL));
 
 	// 移動コンポーネントを追加
-	AddComponent("MoveComponent", std::make_unique<MoveComponent>(enemyManager));
+	AddComponent("MoveComponent", std::make_unique<MoveComponent>(enemyManager, camera));
 	// 重力演算コンポーネントを追加
 	AddComponent("GravityPhysicsComponent", std::make_unique<GravityPhysicsComponent>());
 	// 射撃コンポーネントを追加
