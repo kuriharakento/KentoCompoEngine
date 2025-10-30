@@ -451,9 +451,18 @@
     <ClCompile Include="application\effect\SceneTransitionEffect.cpp">
       <Filter>application\effect</Filter>
     </ClCompile>
-    <ClCompile Include="application\scene\play\GameClearScene.cpp" />
-    <ClCompile Include="application\scene\play\GameOverScene.cpp" />
-    <ClCompile Include="application\effect\PlayerDeathEffect.cpp" />
+    <ClCompile Include="application\effect\CinematicLetterbox.cpp">
+      <Filter>application\effect</Filter>
+    </ClCompile>
+    <ClCompile Include="application\scene\play\GameClearScene.cpp">
+      <Filter>application\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="application\scene\play\GameOverScene.cpp">
+      <Filter>application\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="application\effect\PlayerDeathEffect.cpp">
+      <Filter>application\effect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -987,10 +996,21 @@
     <ClInclude Include="application\effect\SceneTransitionEffect.h">
       <Filter>application\effect</Filter>
     </ClInclude>
-    <ClInclude Include="application\scene\play\GameClearScene.h" />
-    <ClInclude Include="application\scene\play\GameOverScene.h" />
-    <ClInclude Include="engine\scene\factory\SceneNames.h" />
-    <ClInclude Include="application\effect\PlayerDeathEffect.h" />
+    <ClInclude Include="application\effect\CinematicLetterbox.h">
+      <Filter>application\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="application\scene\play\GameClearScene.h">
+      <Filter>application\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="application\scene\play\GameOverScene.h">
+      <Filter>application\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="application\effect\PlayerDeathEffect.h">
+      <Filter>application\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\scene\factory\SceneNames.h">
+      <Filter>engine\scene\factory</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">
