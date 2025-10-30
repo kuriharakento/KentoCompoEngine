@@ -101,7 +101,7 @@ void GamePlayScene::Initialize()
 		sceneManager_->GetSpriteCommon(),
 		"./Resources/black.png",
 		22, 16,
-		1280.0f, 720.0f
+		WinApp::kClientWidth, WinApp::kClientHeight
 	);
 	transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
 	transitionEffect_.SetFadeType(FadeType::FadeOut);
@@ -110,6 +110,13 @@ void GamePlayScene::Initialize()
 	// プレイヤー死亡エフェクト初期化
 	playerDeathEffect_.Initialize(
 		stageManager_->GetPlayer()
+	);
+
+	// レターボックスエフェクト初期化
+	cinematicLetterbox_.Initialize(
+		sceneManager_->GetSpriteCommon(),
+		"./Resources/black.png",
+		WinApp::kClientWidth, WinApp::kClientHeight
 	);
 
 	// 初期状態はEnter
@@ -291,7 +298,7 @@ void GamePlayScene::OnUpdateEnd()
 
 	// 指数減衰で自然に収束させる
 	float envelope = maxOscAmp * std::exp(-decayRate * gameOverEffectElapsed_);
-	if (envelope < 0.001f) 
+	if (envelope < 0.001f)
 	{
 		// 微小値切り捨て
 		envelope = 0.0f;
@@ -355,6 +362,7 @@ void GamePlayScene::OnExitExit()
 
 void GamePlayScene::CommonUpdate()
 {
+	cinematicLetterbox_.Update();
 	skydome_->Update(sceneManager_->GetCameraManager());
 	ground_->Update(sceneManager_->GetCameraManager());
 	stageManager_->UpdateTransforms(sceneManager_->GetCameraManager());
@@ -386,6 +394,9 @@ void GamePlayScene::Draw2D()
 
 	// コンボUIの描画
 	ComboManager::GetInstance().Draw();
+
+	// レターボックスエフェクトの描画
+	cinematicLetterbox_.Draw();
 
 	// シーン遷移エフェクトの描画
 	transitionEffect_.Draw();

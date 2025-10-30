@@ -19,6 +19,7 @@
 
 // effects
 #include "application/carnage/CarnageMode.h"
+#include "application/effect/CinematicLetterbox.h"
 #include "application/effect/PlayerDeathEffect.h"
 #include "application/effect/SceneTransitionEffect.h"
 #include "application/minimap/Minimap.h"
@@ -90,6 +91,8 @@ private: //メンバ変数
     std::unique_ptr<StageManager> stageManager_;
     // シーン遷移エフェクト
     SceneTransitionEffect transitionEffect_;
+	// レターボックスエフェクト
+	CinematicLetterbox cinematicLetterbox_;
 	// プレイヤー死亡エフェクト
 	PlayerDeathEffect playerDeathEffect_;
     // ゲームオーバー演出持続時間

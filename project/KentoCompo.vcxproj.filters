@@ -454,6 +454,7 @@
     <ClCompile Include="application\scene\play\GameClearScene.cpp" />
     <ClCompile Include="application\scene\play\GameOverScene.cpp" />
     <ClCompile Include="application\effect\PlayerDeathEffect.cpp" />
+    <ClCompile Include="application\effect\CinematicLetterbox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -991,6 +992,7 @@
     <ClInclude Include="application\scene\play\GameOverScene.h" />
     <ClInclude Include="engine\scene\factory\SceneNames.h" />
     <ClInclude Include="application\effect\PlayerDeathEffect.h" />
+    <ClInclude Include="application\effect\CinematicLetterbox.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">
