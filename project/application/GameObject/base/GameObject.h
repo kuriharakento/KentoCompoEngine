@@ -46,7 +46,7 @@ public:
 	 *
 	 * 3Dオブジェクトの初期化とデフォルトトランスフォームの設定を行う
 	 */
-	virtual void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, Camera* camera = nullptr);
+	virtual void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, const Transform& initialTransform = Transform());
 
 	/**
 	 * @brief 毎フレームの更新処理

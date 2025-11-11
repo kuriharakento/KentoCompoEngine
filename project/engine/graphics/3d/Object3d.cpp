@@ -56,7 +56,6 @@ void Object3d::Initialize(Object3dCommon* object3dCommon,Camera* camera)
 		{ 0.0f,0.0f,0.0f },
 		{ 0.0f,0.0f,0.0f },
 	};
-
 }
 
 void Object3d::Update(CameraManager* camera)
@@ -94,24 +93,42 @@ void Object3d::Draw()
 
 void Object3d::UpdateMatrix(Camera* camera)
 {
-	//引数が指定されていれば引数のカメラを使う。指定されていなければデフォルトのカメラを使う
+	// 安全チェック
+	if (!transformationMatrixData_) return;
+	// 引数が指定されていれば引数のカメラを使う。指定されていなければデフォルトのカメラを使う
 	camera_ = camera ? camera : object3dCommon_->GetDefaultCamera();
 
 	Matrix4x4 worldMatrix = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
 	Matrix4x4 worldViewProjectionMatrix;
 	Matrix4x4 worldInverseTransposeMatrix = MathUtils::Transpose(Inverse(worldMatrix));
 
-	if(camera)
+	if (camera)
 	{
 		const Matrix4x4& viewProjectionMatrix = camera->GetViewProjectionMatrix();
 		worldViewProjectionMatrix = worldMatrix * viewProjectionMatrix;
-		cameraData_->worldPos = { camera->GetWorldMatrix().m[3][0],camera->GetWorldMatrix().m[3][1],camera->GetWorldMatrix().m[3][2]};
-	} else {
+		if (cameraData_)
+		{
+			cameraData_->worldPos = { camera->GetWorldMatrix().m[3][0], camera->GetWorldMatrix().m[3][1], camera->GetWorldMatrix().m[3][2] };
+		}
+	}
+	else
+	{
 		worldViewProjectionMatrix = worldMatrix;
 	}
 
-	transformationMatrixData_->WVP = model_->GetModelData().rootNode.localMatrix * worldViewProjectionMatrix;
-	transformationMatrixData_->World = model_->GetModelData().rootNode.localMatrix * worldMatrix;
+	// model_ がある場合は model のローカル行列を乗算、ない場合はそのままセットしてクラッシュを防ぐ
+	if (model_)
+	{
+		const Matrix4x4& local = model_->GetModelData().rootNode.localMatrix;
+		transformationMatrixData_->WVP = local * worldViewProjectionMatrix;
+		transformationMatrixData_->World = local * worldMatrix;
+	}
+	else
+	{
+		transformationMatrixData_->WVP = worldViewProjectionMatrix;
+		transformationMatrixData_->World = worldMatrix;
+	}
+
 	transformationMatrixData_->WorldInverseTranspose = worldInverseTransposeMatrix;
 }
 
@@ -137,8 +154,10 @@ void Object3d::UpdateWorldMatrix()
 
 void Object3d::UpdateMatrixWithWorld(const Matrix4x4& worldMatrix, Camera* camera)
 {
+	if (!transformationMatrixData_) return;
+
 	camera_ = camera ? camera : object3dCommon_->GetDefaultCamera();
-	// ここでworldMatrixを使ってWVPなどを計算
+
 	Matrix4x4 worldViewProjectionMatrix;
 	Matrix4x4 worldInverseTransposeMatrix = MathUtils::Transpose(Inverse(worldMatrix));
 
@@ -146,15 +165,28 @@ void Object3d::UpdateMatrixWithWorld(const Matrix4x4& worldMatrix, Camera* camer
 	{
 		const Matrix4x4& viewProjectionMatrix = camera_->GetViewProjectionMatrix();
 		worldViewProjectionMatrix = worldMatrix * viewProjectionMatrix;
-		cameraData_->worldPos = { camera_->GetWorldMatrix().m[3][0],camera_->GetWorldMatrix().m[3][1],camera_->GetWorldMatrix().m[3][2] };
+		if (cameraData_)
+		{
+			cameraData_->worldPos = { camera_->GetWorldMatrix().m[3][0], camera_->GetWorldMatrix().m[3][1], camera_->GetWorldMatrix().m[3][2] };
+		}
 	}
 	else
 	{
 		worldViewProjectionMatrix = worldMatrix;
 	}
 
-	transformationMatrixData_->WVP = model_->GetModelData().rootNode.localMatrix * worldViewProjectionMatrix;
-	transformationMatrixData_->World = model_->GetModelData().rootNode.localMatrix * worldMatrix;
+	if (model_)
+	{
+		const Matrix4x4& local = model_->GetModelData().rootNode.localMatrix;
+		transformationMatrixData_->WVP = local * worldViewProjectionMatrix;
+		transformationMatrixData_->World = local * worldMatrix;
+	}
+	else
+	{
+		transformationMatrixData_->WVP = worldViewProjectionMatrix;
+		transformationMatrixData_->World = worldMatrix;
+	}
+
 	transformationMatrixData_->WorldInverseTranspose = worldInverseTransposeMatrix;
 }
 

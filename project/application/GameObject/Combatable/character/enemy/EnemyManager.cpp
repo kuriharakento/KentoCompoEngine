@@ -67,28 +67,30 @@ void EnemyManager::Update()
 		enemy->Update(); // 各敵キャラクターの更新
 	}
 
-	// 敵キャラクターのリストから死亡した敵を削除
+	// 死亡した敵を enemies_ から取り除き、実際の破棄は pendingRemovals_ に移動して遅延させる
 	for (auto it = enemies_.begin(); it != enemies_.end();)
 	{
 		if (!(*it)->IsAlive())
 		{
-			deathEffect_->PlayDeathEffect((*it)->GetPosition(),EnemyDeathEffect::EffectType::Electric); // 死亡エフェクトを再生
-			// コンボの加算
+			// 死亡時処理（エフェクトやコンボ）はここで行う
+			deathEffect_->PlayDeathEffect((*it)->GetPosition(), EnemyDeathEffect::EffectType::Electric);
 			ComboManager::GetInstance().OnEnemyDefeated();
 
-			// 死亡した敵を削除
+			// 移動して破棄を遅延
+			pendingRemovals_.push_back(std::move(*it));
 			it = enemies_.erase(it);
 		}
 		else
 		{
-			++it; // 次の敵へ
+			++it;
 		}
 	}
-	// 全滅判定
+
+	// 全滅判定（enemies_ が空になった時点で発火させる）
 	if (enemies_.empty() && onAllEnemiesDefeatedCallback_)
 	{
 		onAllEnemiesDefeatedCallback_();
-		onAllEnemiesDefeatedCallback_ = nullptr; // コールバックを一度だけ呼び出すためにクリア
+		onAllEnemiesDefeatedCallback_ = nullptr; // 一度だけ呼ぶ
 	}
 }
 
@@ -106,6 +108,9 @@ void EnemyManager::Draw(CameraManager* camera)
 	{
 		enemy->Draw(camera); // 各敵キャラクターの描画
 	}
+
+	// Draw が終わったら pendingRemovals_ をクリアして実際にデストラクトさせる
+	CleanupPendingRemovals();
 }
 
 void EnemyManager::AddPistolEnemy(uint32_t count)
@@ -175,13 +180,30 @@ void EnemyManager::AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo
 {
 	for (int i = 0; i < data.size(); i++)
 	{
-		auto enemy = std::make_unique<AssaultEnemy>();
-		enemy->Initialize(object3dCommon_, lightManager_, target_);
-		enemy->SetModel(data[i].fileName);
-		enemy->SetPosition(data[i].transform.translate);
-		enemy->SetRotation(data[i].transform.rotate);
-		enemy->SetScale(data[i].transform.scale);
-		enemies_.push_back(std::move(enemy));
+		// NOTE:今は無理やりやっているがファクトリーパターンなどで拡張性を持たせるべき
+		// NOTE:処理がかぶっているのはKnifeのモデル用意していないからそれのせいです
+		// 敵キャラクターの種類に応じて生成
+		// アサルトの生成
+		if (data[i].fileName == "enemy" || data[i].fileName == "assault")
+		{
+			auto enemy = std::make_unique<AssaultEnemy>();
+			enemy->Initialize(object3dCommon_, lightManager_, target_);
+			enemy->SetModel(data[i].fileName);
+			enemy->UpdateWorldMatrix();
+			enemies_.push_back(std::move(enemy));
+			continue;
+		}
+		// ナイフの生成
+		else if (data[i].fileName == "knife")
+		{
+			auto enemy = std::make_unique<KnifeEnemy>();
+			enemy->Initialize(object3dCommon_, lightManager_, target_, Transform(data[i].transform.scale, data[i].transform.rotate, data[i].transform.translate));
+			// NOTE:ここのせいで処理が増えている。本来はもっと簡潔になります。
+			enemy->SetModel("cube");
+			enemy->UpdateWorldMatrix();
+			enemies_.push_back(std::move(enemy));
+			continue;
+		}
 	}
 }
 
@@ -201,5 +223,14 @@ void EnemyManager::CreateAssaultEnemyFromData()
 		enemy->SetRotation(enemyData_[i].transform.rotate);
 		enemy->SetScale(enemyData_[i].transform.scale);
 		enemies_.push_back(std::move(enemy));
+	}
+}
+
+void EnemyManager::CleanupPendingRemovals()
+{
+	if (!pendingRemovals_.empty())
+	{
+		// ここで unique_ptr をスコープ外にして破棄される
+		pendingRemovals_.clear();
 	}
 }

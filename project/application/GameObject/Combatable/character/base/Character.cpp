@@ -1,10 +1,5 @@
 #include "Character.h"
 
-void Character::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager)
-{
-	GameObject::Initialize(object3dCommon, lightManager);
-}
-
 void Character::Update()
 {
 	GameObject::Update();

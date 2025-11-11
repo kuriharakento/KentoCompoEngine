@@ -9,7 +9,6 @@ class Character : public CombatableObject
 public:
 	virtual ~Character() = default;
 	explicit Character(const std::string& tag = GameObjectTag::Common::Character): CombatableObject(tag){}
-	virtual void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager);
 	virtual void Update() override;
 	virtual void Draw(CameraManager* camera);
 	void AddComponent(const std::string& name, std::unique_ptr<IGameObjectComponent> comp);

@@ -62,6 +62,19 @@ struct Transform
     Vector3 scale;                               // スケール
     Vector3 rotate;                              // 回転
     Vector3 translate;                           // 平行移動
+
+    Transform()
+        : scale({ 1.0f, 1.0f, 1.0f })
+        , rotate({ 0.0f, 0.0f, 0.0f })
+        , translate({ 0.0f, 0.0f, 0.0f })
+    {
+    }
+    Transform(const Vector3& s, const Vector3& r, const Vector3& t)
+        : scale(s)
+        , rotate(r)
+        , translate(t)
+    {
+	}
 };
 
 /**
