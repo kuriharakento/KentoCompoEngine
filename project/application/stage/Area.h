@@ -3,6 +3,7 @@
 #include <functional>
 #include "WaveManager.h"
 #include "application/GameObject/base/GameObject.h"
+#include "application/effect/AreaEffect.h"
 
 class EnemyManager;
 
@@ -19,7 +20,7 @@ public:
     bool IsCleared() const { return isCleared_; }
     bool IsStarted() const { return isStarted_; }
 	bool IsActive() const { return isActive_; }
-	void SetActive(bool active) { isActive_ = active; }
+    void SetActive(bool active);
 	// エリアの判定用ゲームオブジェクトを取得
 	GameObject* GetAreaObject() const { return areaObject_.get(); }
 
@@ -31,4 +32,5 @@ private:
     bool isCleared_;
     bool isActive_;
     std::function<void()> onClearCallback_;
+    
 };

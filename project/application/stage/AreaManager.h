@@ -33,4 +33,6 @@ private:
     std::function<void()> onAllAreasCleared_;
 	// エリア開始時のコールバック
     std::function<void(int, Area*)> onAreaStarted_;
+    // エリアのエフェクト
+    AreaEffect areaEffect_;
 };

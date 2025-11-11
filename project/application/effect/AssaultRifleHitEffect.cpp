@@ -5,6 +5,7 @@
 #include "effects/particle/component/single/ColorFadeOutComponent.h"
 #include "effects/particle/component/single/RotationComponent.h"
 #include "effects/particle/component/single/ScaleOverLifetimeComponent.h"
+#include "AreaEffect.h"
 
 static uint32_t effectCount = 0; // エフェクトの識別子として使用
 

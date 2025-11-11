@@ -2,7 +2,6 @@
 
 AreaManager::AreaManager(const std::vector<std::shared_ptr<Area>>& areas) : areas_(areas), currentAreaIndex_(0), isAllCleared_(false)
 {
-
 }
 
 void AreaManager::Start()
@@ -25,6 +24,8 @@ void AreaManager::StartCurrentArea()
 	if (currentAreaIndex_ >= areas_.size())
 	{
 		isAllCleared_ = true;
+		// エフェクトの停止
+		areaEffect_.Stop();
 		if (onAllAreasCleared_) onAllAreasCleared_();
 		return;
 	}
@@ -34,6 +35,17 @@ void AreaManager::StartCurrentArea()
 		StartCurrentArea();
 												  });
 	areas_[currentAreaIndex_]->SetActive(true); // エリアをアクティブにする
+	// エリアエフェクトを再生
+	Area* currentArea = GetCurrentArea();
+	if (currentArea)
+	{
+		GameObject* areaObj = currentArea->GetAreaObject();
+		if (areaObj)
+		{
+			areaEffect_.Initialize(areaObj->GetRotation(), areaObj->GetScale());
+		}
+	}
+	areaEffect_.Play(areas_[currentAreaIndex_]->GetAreaObject()->GetPosition());
 	// エリア開始のコールバックを呼び出す
 	if (onAreaStarted_)
 	{

@@ -557,61 +557,73 @@ std::vector<VertexData> ParticleMath::MakeConeVertexData()
 std::vector<VertexData> ParticleMath::MakeCubeVertexData()
 {
 	std::vector<VertexData> vertices;
-	const float size = 1.0f;
+	const float size = 1.0f;      // 辺長
+	const float h = size * 0.5f;   // 半幅（中心からの距離）
 
-	// Front face (Z+)
-	Vector3 frontNormal = { 0.0f, 0.0f, 1.0f };
-	vertices.push_back({ { -size,  size,  size, 1.0f }, { 0.0f, 0.0f }, frontNormal }); // Top-left
-	vertices.push_back({ {  size,  size,  size, 1.0f }, { 1.0f, 0.0f }, frontNormal }); // Top-right
-	vertices.push_back({ { -size, -size,  size, 1.0f }, { 0.0f, 1.0f }, frontNormal }); // Bottom-left
-	vertices.push_back({ {  size,  size,  size, 1.0f }, { 1.0f, 0.0f }, frontNormal }); // Top-right
-	vertices.push_back({ {  size, -size,  size, 1.0f }, { 1.0f, 1.0f }, frontNormal }); // Bottom-right
-	vertices.push_back({ { -size, -size,  size, 1.0f }, { 0.0f, 1.0f }, frontNormal }); // Bottom-left
+	auto addFace = [&](const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d, const Vector3& normal) {
+		// a = top-left, b = bottom-left, c = top-right, d = bottom-right (外側から見た順)
+		vertices.push_back({ { a.x, a.y, a.z, 1.0f }, { 0.0f, 0.0f }, normal });
+		vertices.push_back({ { b.x, b.y, b.z, 1.0f }, { 0.0f, 1.0f }, normal });
+		vertices.push_back({ { c.x, c.y, c.z, 1.0f }, { 1.0f, 0.0f }, normal });
 
-	// Back face (Z-)
-	Vector3 backNormal = { 0.0f, 0.0f, -1.0f };
-	vertices.push_back({ {  size,  size, -size, 1.0f }, { 0.0f, 0.0f }, backNormal }); // Top-right
-	vertices.push_back({ { -size,  size, -size, 1.0f }, { 1.0f, 0.0f }, backNormal }); // Top-left
-	vertices.push_back({ {  size, -size, -size, 1.0f }, { 0.0f, 1.0f }, backNormal }); // Bottom-right
-	vertices.push_back({ { -size,  size, -size, 1.0f }, { 1.0f, 0.0f }, backNormal }); // Top-left
-	vertices.push_back({ { -size, -size, -size, 1.0f }, { 1.0f, 1.0f }, backNormal }); // Bottom-left
-	vertices.push_back({ {  size, -size, -size, 1.0f }, { 0.0f, 1.0f }, backNormal }); // Bottom-right
+		vertices.push_back({ { c.x, c.y, c.z, 1.0f }, { 1.0f, 0.0f }, normal });
+		vertices.push_back({ { b.x, b.y, b.z, 1.0f }, { 0.0f, 1.0f }, normal });
+		vertices.push_back({ { d.x, d.y, d.z, 1.0f }, { 1.0f, 1.0f }, normal });
+		};
 
-	// Left face (X-)
-	Vector3 leftNormal = { -1.0f, 0.0f, 0.0f };
-	vertices.push_back({ { -size,  size, -size, 1.0f }, { 0.0f, 0.0f }, leftNormal }); // Top-back
-	vertices.push_back({ { -size,  size,  size, 1.0f }, { 1.0f, 0.0f }, leftNormal }); // Top-front
-	vertices.push_back({ { -size, -size, -size, 1.0f }, { 0.0f, 1.0f }, leftNormal }); // Bottom-back
-	vertices.push_back({ { -size,  size,  size, 1.0f }, { 1.0f, 0.0f }, leftNormal }); // Top-front
-	vertices.push_back({ { -size, -size,  size, 1.0f }, { 1.0f, 1.0f }, leftNormal }); // Bottom-front
-	vertices.push_back({ { -size, -size, -size, 1.0f }, { 0.0f, 1.0f }, leftNormal }); // Bottom-back
+	// Front (+Z)
+	addFace(
+		Vector3{ -h,  h,  h }, // top-left
+		Vector3{ -h, -h,  h }, // bottom-left
+		Vector3{ h,  h,  h }, // top-right
+		Vector3{ h, -h,  h }, // bottom-right
+		Vector3{ 0.0f, 0.0f, 1.0f }
+	);
 
-	// Right face (X+)
-	Vector3 rightNormal = { 1.0f, 0.0f, 0.0f };
-	vertices.push_back({ { size,  size,  size, 1.0f }, { 0.0f, 0.0f }, rightNormal }); // Top-front
-	vertices.push_back({ { size,  size, -size, 1.0f }, { 1.0f, 0.0f }, rightNormal }); // Top-back
-	vertices.push_back({ { size, -size,  size, 1.0f }, { 0.0f, 1.0f }, rightNormal }); // Bottom-front
-	vertices.push_back({ { size,  size, -size, 1.0f }, { 1.0f, 0.0f }, rightNormal }); // Top-back
-	vertices.push_back({ { size, -size, -size, 1.0f }, { 1.0f, 1.0f }, rightNormal }); // Bottom-back
-	vertices.push_back({ { size, -size,  size, 1.0f }, { 0.0f, 1.0f }, rightNormal }); // Bottom-front
+	// Back (-Z)
+	addFace(
+		Vector3{ h,  h, -h }, // top-left (外側から見たとき)
+		Vector3{ h, -h, -h }, // bottom-left
+		Vector3{ -h,  h, -h }, // top-right
+		Vector3{ -h, -h, -h }, // bottom-right
+		Vector3{ 0.0f, 0.0f, -1.0f }
+	);
 
-	// Top face (Y+)
-	Vector3 topNormal = { 0.0f, 1.0f, 0.0f };
-	vertices.push_back({ { -size, size, -size, 1.0f }, { 0.0f, 0.0f }, topNormal }); // Back-left
-	vertices.push_back({ {  size, size, -size, 1.0f }, { 1.0f, 0.0f }, topNormal }); // Back-right
-	vertices.push_back({ { -size, size,  size, 1.0f }, { 0.0f, 1.0f }, topNormal }); // Front-left
-	vertices.push_back({ {  size, size, -size, 1.0f }, { 1.0f, 0.0f }, topNormal }); // Back-right
-	vertices.push_back({ {  size, size,  size, 1.0f }, { 1.0f, 1.0f }, topNormal }); // Front-right
-	vertices.push_back({ { -size, size,  size, 1.0f }, { 0.0f, 1.0f }, topNormal }); // Front-left
+	// Left (-X)
+	addFace(
+		Vector3{ -h,  h, -h }, // top-left
+		Vector3{ -h, -h, -h }, // bottom-left
+		Vector3{ -h,  h,  h }, // top-right
+		Vector3{ -h, -h,  h }, // bottom-right
+		Vector3{ -1.0f, 0.0f, 0.0f }
+	);
 
-	// Bottom face (Y-)
-	Vector3 bottomNormal = { 0.0f, -1.0f, 0.0f };
-	vertices.push_back({ { -size, -size,  size, 1.0f }, { 0.0f, 0.0f }, bottomNormal }); // Front-left
-	vertices.push_back({ {  size, -size,  size, 1.0f }, { 1.0f, 0.0f }, bottomNormal }); // Front-right
-	vertices.push_back({ { -size, -size, -size, 1.0f }, { 0.0f, 1.0f }, bottomNormal }); // Back-left
-	vertices.push_back({ {  size, -size,  size, 1.0f }, { 1.0f, 0.0f }, bottomNormal }); // Front-right
-	vertices.push_back({ {  size, -size, -size, 1.0f }, { 1.0f, 1.0f }, bottomNormal }); // Back-right
-	vertices.push_back({ { -size, -size, -size, 1.0f }, { 0.0f, 1.0f }, bottomNormal }); // Back-left
+	// Right (+X)
+	addFace(
+		Vector3{ h,  h,  h }, // top-left
+		Vector3{ h, -h,  h }, // bottom-left
+		Vector3{ h,  h, -h }, // top-right
+		Vector3{ h, -h, -h }, // bottom-right
+		Vector3{ 1.0f, 0.0f, 0.0f }
+	);
+
+	// Top (+Y)
+	//addFace(
+	//	Vector3{ -h,  h, -h }, // top-left
+	//	Vector3{ -h,  h,  h }, // bottom-left
+	//	Vector3{ h,  h, -h }, // top-right
+	//	Vector3{ h,  h,  h }, // bottom-right
+	//	Vector3{ 0.0f, 1.0f, 0.0f }
+	//);
+
+	// Bottom (-Y)
+	//addFace(
+	//	Vector3{ -h, -h,  h }, // top-left
+	//	Vector3{ -h, -h, -h }, // bottom-left
+	//	Vector3{ h, -h,  h }, // top-right
+	//	Vector3{ h, -h, -h }, // bottom-right
+	//	Vector3{ 0.0f, -1.0f, 0.0f }
+	//);
 
 	return vertices;
 }

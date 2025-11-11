@@ -69,3 +69,8 @@ void Area::Update(CameraManager* camera)
 		areaObject_->UpdateTransform(camera);
 	}
 }
+
+void Area::SetActive(bool active)
+{
+	isActive_ = active;
+}

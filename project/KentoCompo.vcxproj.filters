@@ -463,6 +463,9 @@
     <ClCompile Include="application\effect\PlayerDeathEffect.cpp">
       <Filter>application\effect</Filter>
     </ClCompile>
+    <ClCompile Include="application\effect\AreaEffect.cpp">
+      <Filter>application\effect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -1010,6 +1013,9 @@
     </ClInclude>
     <ClInclude Include="engine\scene\factory\SceneNames.h">
       <Filter>engine\scene\factory</Filter>
+    </ClInclude>
+    <ClInclude Include="application\effect\AreaEffect.h">
+      <Filter>application\effect</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

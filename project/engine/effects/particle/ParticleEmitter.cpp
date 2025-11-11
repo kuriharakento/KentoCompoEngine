@@ -172,7 +172,7 @@ void ParticleEmitter::DrawImGui()
 		SetInitialLifeTime(life);
 	}
 	Vector3 vel = initialVelocity_;
-	if (ImGui::InputFloat3("Initial Velocity", &vel.x))
+	if (ImGui::DragFloat3("Initial Velocity", &vel.x))
 	{
 		SetInitialVelocity(vel);
 	}
@@ -182,12 +182,12 @@ void ParticleEmitter::DrawImGui()
 		SetInitialColor(col);
 	}
 	Vector3 scale = initialScale_;
-	if (ImGui::InputFloat3("Initial Scale", &scale.x))
+	if (ImGui::DragFloat3("Initial Scale", &scale.x))
 	{
 		SetInitialScale(scale);
 	}
 	Vector3 rot = initialRotation_;
-	if (ImGui::InputFloat3("Initial Rotation", &rot.x))
+	if (ImGui::DragFloat3("Initial Rotation", &rot.x))
 	{
 		SetInitialRotation(rot);
 	}
@@ -203,12 +203,12 @@ void ParticleEmitter::DrawImGui()
 	{
 		Vector3 minV = randomVelocityRange_.min_;
 		Vector3 maxV = randomVelocityRange_.max_;
-		if (ImGui::InputFloat3("Random Velocity Min", &minV.x))
+		if (ImGui::DragFloat3("Random Velocity Min", &minV.x))
 		{
 			randomVelocityRange_.min_ = minV;
 			SetRandomVelocityRange(randomVelocityRange_);
 		}
-		if (ImGui::InputFloat3("Random Velocity Max", &maxV.x))
+		if (ImGui::DragFloat3("Random Velocity Max", &maxV.x))
 		{
 			randomVelocityRange_.max_ = maxV;
 			SetRandomVelocityRange(randomVelocityRange_);
@@ -223,12 +223,12 @@ void ParticleEmitter::DrawImGui()
 	{
 		Vector3 minS = randomScaleRange_.min_;
 		Vector3 maxS = randomScaleRange_.max_;
-		if (ImGui::InputFloat3("Random Scale Min", &minS.x))
+		if (ImGui::DragFloat3("Random Scale Min", &minS.x))
 		{
 			randomScaleRange_.min_ = minS;
 			SetRandomScaleRange(randomScaleRange_);
 		}
-		if (ImGui::InputFloat3("Random Scale Max", &maxS.x))
+		if (ImGui::DragFloat3("Random Scale Max", &maxS.x))
 		{
 			randomScaleRange_.max_ = maxS;
 			SetRandomScaleRange(randomScaleRange_);
@@ -261,12 +261,12 @@ void ParticleEmitter::DrawImGui()
 	{
 		Vector3 minR = randomRotationRange_.min_;
 		Vector3 maxR = randomRotationRange_.max_;
-		if (ImGui::InputFloat3("Random Rotation Min", &minR.x))
+		if (ImGui::DragFloat3("Random Rotation Min", &minR.x))
 		{
 			randomRotationRange_.min_ = minR;
 			SetRandomRotationRange(randomRotationRange_);
 		}
-		if (ImGui::InputFloat3("Random Rotation Max", &maxR.x))
+		if (ImGui::DragFloat3("Random Rotation Max", &maxR.x))
 		{
 			randomRotationRange_.max_ = maxR;
 			SetRandomRotationRange(randomRotationRange_);

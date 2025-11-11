@@ -13,5 +13,11 @@ public:
 	void Draw2D() override;
 	// ImGui の描画（BaseScene::DrawImGui をオーバーライド）
 	void DrawImGui() override;
+
+protected:
+	// Playing: 実プレイ（ゲームプレイ)
+	void OnEnterPlaying() override;
+	void OnUpdatePlaying() override;
+	void OnExitPlaying() override;
 };
 
