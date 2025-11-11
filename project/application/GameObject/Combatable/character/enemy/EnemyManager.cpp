@@ -187,9 +187,9 @@ void EnemyManager::AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo
 		if (data[i].fileName == "enemy" || data[i].fileName == "assault")
 		{
 			auto enemy = std::make_unique<AssaultEnemy>();
-			enemy->Initialize(object3dCommon_, lightManager_, target_);
+			enemy->Initialize(object3dCommon_, lightManager_, target_, Transform(data[i].transform.scale, data[i].transform.rotate, data[i].transform.translate));
 			enemy->SetModel(data[i].fileName);
-			enemy->UpdateWorldMatrix();
+			
 			enemies_.push_back(std::move(enemy));
 			continue;
 		}
@@ -200,7 +200,7 @@ void EnemyManager::AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo
 			enemy->Initialize(object3dCommon_, lightManager_, target_, Transform(data[i].transform.scale, data[i].transform.rotate, data[i].transform.translate));
 			// NOTE:ここのせいで処理が増えている。本来はもっと簡潔になります。
 			enemy->SetModel("cube");
-			enemy->UpdateWorldMatrix();
+			//enemy->UpdateWorldMatrix();
 			enemies_.push_back(std::move(enemy));
 			continue;
 		}

@@ -37,6 +37,8 @@ void GameObject::Initialize(Object3dCommon* object3dCommon, LightManager* lightM
 	object3d_->SetModel("cube");
 	object3d_->SetLightManager(lightManager);
 
+	// 初期トランスフォームの設定
+	transform_ = initialTransform;
 }
 
 
