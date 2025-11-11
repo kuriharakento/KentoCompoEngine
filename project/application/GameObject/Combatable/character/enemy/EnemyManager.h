@@ -3,6 +3,8 @@
 #include "application/stage/StageData.h"
 #include "base/EnemyBase.h"
 #include "math/AABB.h"
+#include <vector>
+#include <memory>
 
 class LightManager;
 class Object3dCommon;
@@ -29,6 +31,9 @@ public:
 private:
 	void CreateAssaultEnemyFromData();
 
+	// フレーム末クリーンアップ（外部から呼ぶ必要はありません。Draw 内で呼び出します）
+	void CleanupPendingRemovals();
+
 	// 敵全滅時のコールバック関数
 	std::function<void()> onAllEnemiesDefeatedCallback_ = nullptr;
 
@@ -39,6 +44,8 @@ private:
 	AABB emitRange_ = {};
 	// 敵リスト
 	std::vector<std::unique_ptr<EnemyBase>> enemies_;
+	// フレーム末に破棄するために一時的に保持するコンテナ
+	std::vector<std::unique_ptr<EnemyBase>> pendingRemovals_;
 	// 敵データ
 	std::vector<GameObjectInfo> enemyData_;
 	// 死亡パーティクル

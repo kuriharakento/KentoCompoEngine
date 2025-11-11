@@ -1,5 +1,6 @@
 #include "GameObject.h"
 
+#include "engine/graphics/3d/Object3dCommon.h"
 // system
 #include "base/Logger.h"
 #ifdef USE_IMGUI
@@ -16,7 +17,6 @@ GameObject::~GameObject()
 	object3d_.reset();						// Object3Dのリセット（スマートポインタの自動削除）
 }
 
-
 GameObject::GameObject(std::string tag)
 {
 	// アクティブ状態で初期化
@@ -27,22 +27,18 @@ GameObject::GameObject(std::string tag)
 	tag_ = tag;
 }
 
-void GameObject::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, Camera* camera)
+void GameObject::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, const Transform& initialTransform)
 {
 	// 3Dオブジェクトの初期化
 	object3d_ = std::make_unique<Object3d>();
-	object3d_->Initialize(object3dCommon, camera);
+	object3d_->Initialize(object3dCommon, object3dCommon->GetDefaultCamera());
 
 	// デフォルトで立方体モデルを設定
 	object3d_->SetModel("cube");
 	object3d_->SetLightManager(lightManager);
 
-	// Transformの初期化（単位スケール、回転なし、原点位置）
-	transform_ = {
-		{ 1.0f, 1.0f, 1.0f }, // scale: 単位スケール
-		{ 0.0f, 0.0f, 0.0f }, // rotate: 回転なし
-		{ 0.0f, 0.0f, 0.0f }  // translate: 原点位置
-	};
+	// 初期トランスフォームの設定
+	transform_ = initialTransform;
 }
 
 

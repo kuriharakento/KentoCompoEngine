@@ -5,9 +5,9 @@
 #include "application/GameObject/component/action/GravityPhysicsComponent.h"
 #include "application/GameObject/component/collision/OBBColliderComponent.h"
 
-void AssaultEnemy::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target)
+void AssaultEnemy::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target, const Transform& initialTransform)
 {
-	EnemyBase::Initialize(object3dCommon, lightManager, target);
+	EnemyBase::Initialize(object3dCommon, lightManager, target, initialTransform);
 	// AssaultRifleのコンポーネントを追加
 	AddComponent("AssaultRifleComponent", std::make_unique<AssaultRifleComponent>(object3dCommon, lightManager));
 	// ビヘイビアコンポーネントを追加

@@ -2,9 +2,9 @@
 
 #include "time/TimeManager.h"
 
-void EnemyBase::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target)
+void EnemyBase::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target, const Transform& initialTransform)
 {
-	Character::Initialize(object3dCommon, lightManager);
+	Character::Initialize(object3dCommon, lightManager, initialTransform);
 
 	target_ = target; // ターゲットを設定
 }

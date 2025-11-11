@@ -5,9 +5,9 @@
 #include "application/GameObject/component/action/KnifeEnemyBehavior.h"
 #include "application/GameObject/component/collision/OBBColliderComponent.h"
 
-void KnifeEnemy::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target)
+void KnifeEnemy::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target, const Transform& inintialTransform)
 {
-	EnemyBase::Initialize(object3dCommon, lightManager, target);
+	EnemyBase::Initialize(object3dCommon, lightManager, target, inintialTransform);
 
 	// 腕、ナイフのゲームオブジェクトを作成
 	// 右腕

@@ -6,7 +6,7 @@ class EnemyBase : virtual public Character
 public:
 	EnemyBase() : Character(GameObjectTag::Common::EnemyBase) {}
 	virtual ~EnemyBase() = default;
-	virtual void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target);
+	virtual void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target, const Transform& initialTransform = Transform());
 	void Update() override;
 	void Draw(CameraManager* camera) override;
 
