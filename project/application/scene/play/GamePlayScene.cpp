@@ -89,9 +89,10 @@ void GamePlayScene::Initialize()
 	// トップダウンカメラの生成
 	topDownCamera_ = std::make_unique<TopDownCamera>();
 	topDownCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
-	topDownCamera_->SetOffset({ 0.0f, 0.0f, -50.0f });
-	topDownCamera_->SetPitch(0.9f);
-	topDownCamera_->SetHeight(60.0f);
+	topDownCamera_->SetOffset({ -45.0f, 0.0f, -28.0f });
+	topDownCamera_->SetPitch(0.7f);
+	topDownCamera_->SetYaw(1.0f);
+	topDownCamera_->SetHeight(43.0f);
 
 	// カーネージモードの初期化
 	carnageMode_ = std::make_unique<CarnageMode>(stageManager_->GetPlayer());
@@ -214,7 +215,7 @@ void GamePlayScene::OnEnterPlaying()
 {
 	// トップダウンカメラを開始
 	topDownCamera_->Start(
-		60.0f,
+		43.0f,
 		&stageManager_->GetPlayer()->GetPosition()
 	);
 }
