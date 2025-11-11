@@ -38,15 +38,6 @@ void StageManager::Initialize(Object3dCommon* object3dCommon, LightManager* ligh
 	// 障害物マネージャー
 	obstacleManager_ = std::make_unique<ObstacleManager>();
 	obstacleManager_->Initialize(object3dCommon_, lightManager);
-
-	// ステージの初期化
-	stage_ = std::make_unique<Stage>(
-		object3dCommon_, 
-		lightManager_, 
-		enemyManager_.get(),	
-		"stage/area_wave_enemy_list.json"
-	); // サンプルステージをロード
-	stage_->Start(); // ステージを開始
 }
 
 void StageManager::Update()
@@ -152,8 +143,10 @@ void StageManager::DrawImGui()
 
 void StageManager::LoadStage(const std::string& stageName)
 {
-	// フルパスを作成
-	std::string fullpath = "stage/" + stageName + ".json";
+	// ディレクトリパスを作成
+	std::string dirpath = "stage/" + stageName;
+	std::string json = ".json";
+	std::string areaJson = "_area" + json;
 
 	// 各オブジェクトをクリアする
 	player_.reset(); // プレイヤーは１体だけなのでリセット
@@ -161,10 +154,19 @@ void StageManager::LoadStage(const std::string& stageName)
 	obstacleManager_->Clear();
 
 	// ステージデータをロード
-	stageData_->LoadJson(fullpath);
+	stageData_->LoadJson(dirpath + json);
 
 	// ステージデータからゲームオブジェクトの情報を生成
 	CreateInfosFromStageData();
+
+	// ステージの初期化
+	stage_ = std::make_unique<Stage>(
+		object3dCommon_,
+		lightManager_,
+		enemyManager_.get(),
+		dirpath + areaJson
+	); // サンプルステージをロード
+	stage_->Start(); // ステージを開始
 }
 
 void StageManager::CreateInfosFromStageData()

@@ -23,7 +23,13 @@ void AreaWaveData::DrawImGui()
                     for (auto& enemy : wave.enemies)
                     {
                         ImGui::PushID(enemyIdx);
-                        ImGui::Text("Enemy Name: %s, File: %s", enemy.name.c_str(), enemy.fileName.c_str());
+                        ImGui::Text("Enemy Name: %s", enemy.name.c_str());
+						ImGui::Text("Type: %s", enemy.type.c_str());
+						ImGui::Text("FileName: %s", enemy.fileName.c_str());
+						// Transform 情報の表示
+						ImGui::Text("translate: (%.2f, %.2f, %.2f)", enemy.transform.translate.x, enemy.transform.translate.y, enemy.transform.translate.z);
+						ImGui::Text("rotate: (%.2f, %.2f, %.2f)", enemy.transform.rotate.x, enemy.transform.rotate.y, enemy.transform.rotate.z);
+						ImGui::Text("scale: (%.2f, %.2f, %.2f)", enemy.transform.scale.x, enemy.transform.scale.y, enemy.transform.scale.z);
                         ImGui::PopID();
                         enemyIdx++;
                     }
