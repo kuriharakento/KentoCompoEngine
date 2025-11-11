@@ -9,7 +9,7 @@
 #include "base/DirectXCommon.h"
 #include "manager/system/SrvManager.h"
 
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
 #endif
 
@@ -52,7 +52,7 @@ void ParticleManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager
 
 void ParticleManager::Update(CameraManager* camera)
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	/*--------------[ ImGui ]-----------------*/
 	ImGui::Begin("ParticleManager");
 

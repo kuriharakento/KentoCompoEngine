@@ -11,7 +11,7 @@ void TopDownCamera::Initialize(Camera* camera)
 
 void TopDownCamera::Update()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	ImGui::Begin("TopDownCamera Settings");
 	Vector3 cameraPos = camera_->GetTranslate();
 	ImGui::DragFloat3("Camera Position", &cameraPos.x, 0.1f);

@@ -84,7 +84,7 @@ void ParticleEmitter::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 
 void ParticleEmitter::DrawImGui()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	ImGui::SeparatorText("ParticleEmitter Info");
 
 	// --- BlendMode切り替えUI ---

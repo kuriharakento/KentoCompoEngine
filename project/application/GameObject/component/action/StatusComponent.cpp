@@ -6,7 +6,7 @@
 
 void StatusComponent::Update(GameObject* owner)
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	ImGui::Begin("Status Component");
 	std::string headerTitle = "Status: " + owner->GetTag();
 	ImGui::SeparatorText(headerTitle.c_str());

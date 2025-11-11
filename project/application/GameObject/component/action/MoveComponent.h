@@ -1,6 +1,6 @@
 #pragma once
 #include "application/effect/DodgeEffectParticle.h"
-#include "application/GameObject/component/base/IGameObjectComponent.h"
+#include "application/GameObject/component/base/IActionComponent.h"
 #include "math/Vector3.h"
 #include "input/Input.h"
 
@@ -8,11 +8,12 @@ class EnemyManager;
 class GameObject;
 class Camera;
 
-class MoveComponent : public IGameObjectComponent
+class MoveComponent : public IActionComponent
 {
 public:
     MoveComponent(EnemyManager* enemyManager, CameraManager* camera);
     void Update(GameObject* owner) override;
+	void Draw(CameraManager* camera) override {}
 
     // 回避パラメータ設定
     void SetDodgeSpeed(float speed) { dodgeSpeed_ = speed; }

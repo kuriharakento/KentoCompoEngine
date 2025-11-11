@@ -76,7 +76,7 @@ void PistolComponent::Update(GameObject* owner)
 
 	// 弾の更新・削除は常に行う
 	for (const auto& bullet : bullets_)
-		if (bullet->IsAlive()) bullet->Update(deltaTime);
+		if (bullet->IsAlive()) bullet->Update();
 
 	for (auto it = bullets_.begin(); it != bullets_.end();)
 		if (!(*it)->IsAlive()) it = bullets_.erase(it);

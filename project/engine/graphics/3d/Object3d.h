@@ -42,6 +42,11 @@ public:	/*========[ メンバ関数 ]========*/
 	void UpdateMatrix(Camera* camera = nullptr);
 
 	/**
+	 * \brief ワールド行列の更新
+	 */
+	void UpdateWorldMatrix();
+
+	/**
 	 * \brief 行列の更新
 	 * \param worldMatrix 
 	 * \param camera 
@@ -90,6 +95,7 @@ public: /*========[ セッター ]========*/
 	void SetRotate(const Vector3& rotate) { transform_.rotate = rotate; }
 	void SetTranslate(const Vector3& translate) { transform_.translate = translate; }
 
+	// ワールド行列の取得
 	Matrix4x4 GetWorldMatrix() const { return transformationMatrixData_ ? transformationMatrixData_->World : MakeIdentity4x4(); }
 
 	//色

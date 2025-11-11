@@ -7,7 +7,7 @@ StageData::StageData()
 
 void StageData::DrawImGui()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	for (auto& obj : gameObjects)
 	{
 		ImGui::PushID(obj.name.c_str());

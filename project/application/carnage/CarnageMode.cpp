@@ -99,7 +99,7 @@ void CarnageMode::HideUI()
 
 void CarnageMode::ImGui()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
     ImGui::Begin("CarnageMode");
     ImGui::Text("Is Active: %s", IsActive() ? "Active" : "No Active");
     ImGui::Text("Time Left: %.2f", GetTimeLeft());

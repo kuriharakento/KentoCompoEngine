@@ -1,5 +1,5 @@
 #pragma once
-#include "application/GameObject/base/GameObject.h"
+#include "IGameObjectComponent.h"
 
 class IActionComponent : public virtual IGameObjectComponent
 {

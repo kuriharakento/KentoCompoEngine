@@ -1,20 +1,21 @@
 #pragma once
-#include "application/GameObject/component/base/IGameObjectComponent.h"
 #include "math/Vector3.h"
 #include <vector>
 #include <memory>
 #include <random>
 
 #include "application/GameObject/Combatable/character/enemy/base/Node/BehaviorTree/BehaviorTree.h"
+#include "application/GameObject/component/base/IActionComponent.h"
 
 class GameObject;
 
-class AssaultEnemyBehavior : public IGameObjectComponent
+class AssaultEnemyBehavior : public IActionComponent
 {
 public:
     AssaultEnemyBehavior(GameObject* target);
 
     void Update(GameObject* owner) override;
+    void Draw(CameraManager* camera) override {}
 
     void SetTarget(GameObject* target) { target_ = target; }
     void SetMoveSpeed(float speed) { moveSpeed_ = speed; }

@@ -12,6 +12,6 @@ public:
 	Bullet(std::string tag) : CombatableObject(tag){}
 
 	void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, const Vector3& position);
-	void Update(float deltaTime);
+	void Update();
 	void Draw(CameraManager* camera);
 };

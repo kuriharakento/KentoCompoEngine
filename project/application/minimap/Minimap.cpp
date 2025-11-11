@@ -27,7 +27,7 @@ void Minimap::Initialize(SpriteCommon* spriteCommon, StageManager* stageManager)
 
 void Minimap::Update()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	ImGui::Begin("Minimap");
 
 	static Vector2 framePos = frame_->GetPosition();

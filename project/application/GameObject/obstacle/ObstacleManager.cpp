@@ -18,7 +18,7 @@ void ObstacleManager::Initialize(Object3dCommon* object3dCommon, LightManager* l
 
 void ObstacleManager::Update()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	ImGui::Begin("Obstacle Manager");
 
 	ImGui::Text("Obstacle Count: %zu", obstacles_.size());

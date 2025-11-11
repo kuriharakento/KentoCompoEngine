@@ -45,7 +45,7 @@ void CollisionManager::Unregister(ICollisionComponent* collider)
 
 void CollisionManager::CheckCollisions()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	ImGui::Begin("CollisionManager Colliders");
 
 	ImGui::SeparatorText("Colliders");
@@ -93,6 +93,7 @@ void CollisionManager::CheckCollisions()
 	ImGui::End();
 #endif
 
+	// 新しい衝突ペアを格納するセット
 	std::unordered_set<CollisionPair, CollisionPairHash> newCollisions;
 
 	for (size_t i = 0; i < colliders_.size(); ++i)

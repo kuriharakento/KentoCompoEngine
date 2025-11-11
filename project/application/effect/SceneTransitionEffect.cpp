@@ -60,9 +60,9 @@ void SceneTransitionEffect::Start(float duration, const Vector4& startColor, con
 
 void SceneTransitionEffect::Update()
 {
-#ifdef _DEBUG
+	// ImGuiの表示
 	ShowImGui();
-#endif
+
 	float deltaTime = TimeManager::GetInstance().GetUIContext().deltaTime;
 
 	if (state_ == TransitionState::Playing)
@@ -203,7 +203,7 @@ float SceneTransitionEffect::CalcGridProgress(int x, int y) const
 
 void SceneTransitionEffect::ShowImGui()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	if (ImGui::Begin("SceneTransitionEffect"))
 	{
 		ImGui::Text("State: %s", state_ == TransitionState::Idle ? "Idle" : state_ == TransitionState::Playing ? "Playing" : "Done");

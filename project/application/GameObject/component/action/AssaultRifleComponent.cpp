@@ -69,7 +69,7 @@ void AssaultRifleComponent::Update(GameObject* owner)
 	}
 
 	for (const auto& bullet : bullets_)
-		if (bullet->IsAlive()) bullet->Update(TimeManager::GetInstance().GetGameContext().deltaTime);
+		if (bullet->IsAlive()) bullet->Update();
 
 	for (auto it = bullets_.begin(); it != bullets_.end();)
 		if (!(*it)->IsAlive())
@@ -144,8 +144,10 @@ void AssaultRifleComponent::FireBullet(GameObject* owner)
 	// 弾の初期化
 	bullet->Initialize(object3dCommon_, lightManager_, playerPos);
 	bullet->SetModel("bullet");
+	bullet->SetPosition(playerPos);
 	bullet->SetRotation({ 0.0f, rotationY, 0.0f });
 	bullet->SetScale(Vector3(0.3f, 0.3f, 1.0f));
+	bullet->GetObject3d()->UpdateWorldMatrix();
 	// BulletComponentを追加
 	auto bulletComp = std::make_unique<BulletComponent>();
 	bulletComp->Initialize(direction, speed_, lifetime_);
@@ -217,7 +219,7 @@ void AssaultRifleComponent::FireBullet(GameObject* owner, const Vector3& targetP
 			ptr->SetAlive(false);
 		}
 							 });
-
+	// 当たり判定を登録
 	bullet->AddComponent("OBBCollider", std::move(colliderComp));
 
 	// 弾を管理リストに追加

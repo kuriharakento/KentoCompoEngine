@@ -4,7 +4,7 @@
 // system
 #include "base/Logger.h"
 
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
 #endif
 
@@ -45,7 +45,7 @@ void CameraManager::Update() {
         return;
     }
 
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	ImGui::Begin("CameraManager");
 	// アクティブカメラの名前
 	ImGui::Text("Active Camera: %s", activeCameraName_.c_str());

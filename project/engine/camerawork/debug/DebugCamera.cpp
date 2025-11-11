@@ -6,7 +6,7 @@
 // system
 #include "input/Input.h"
 
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 #include "imgui/imgui.h"
 #endif
 
@@ -37,12 +37,12 @@ void DebugCamera::Update()
     UpdateMovement();
     UpdateMouseLook();
 
-#ifdef _DEBUG
     if (showDebugUI_)
     {
         DrawDebugUI();
     }
 
+	#ifdef _DEBUG
     // Tabキーでデバッグ画面の表示切り替え
     bool currentTabPressed = Input::GetInstance()->TriggerKey(DIK_TAB);
     if (currentTabPressed && !prevTabPressed_)
@@ -186,9 +186,10 @@ Vector3 DebugCamera::GetUpVector() const
     return { 0.0f, 1.0f, 0.0f }; // 固定で上方向
 }
 
-#ifdef _DEBUG
+
 void DebugCamera::DrawDebugUI()
 {
+#ifdef USE_IMGUI
     ImGui::Begin("Debug Camera", &showDebugUI_);
 
     // 現在の位置・回転情報
@@ -225,5 +226,5 @@ void DebugCamera::DrawDebugUI()
     }
 
     ImGui::End();
-}
 #endif
+}

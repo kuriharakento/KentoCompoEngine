@@ -41,7 +41,7 @@ void StageEditScene::Finalize()
 
 void StageEditScene::OnUpdatePlaying()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	// ImGuiの描画
 	ImGui::Begin("StageEditScene");
 	static std::string stageName = "field";

@@ -125,7 +125,7 @@ void StageManager::Draw()
 
 void StageManager::DrawImGui()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	ImGui::Begin("Stage Manager");
 	if(ImGui::Button("Clear Enemies"))
 	{

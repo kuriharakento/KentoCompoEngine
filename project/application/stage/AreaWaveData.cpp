@@ -7,7 +7,7 @@ AreaWaveData::AreaWaveData()
 
 void AreaWaveData::DrawImGui()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
     for (auto& area : areas)
     {
         ImGui::PushID(area.areaIndex);

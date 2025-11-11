@@ -6,7 +6,7 @@ void Bullet::Initialize(Object3dCommon* object3dCommon, LightManager* lightManag
 	SetPosition(position); // 弾の初期位置を設定
 }
 
-void Bullet::Update(float deltaTime)
+void Bullet::Update()
 {
 	GameObject::Update(); // GameObjectの更新
 }

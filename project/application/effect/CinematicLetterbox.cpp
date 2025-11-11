@@ -50,9 +50,8 @@ void CinematicLetterbox::Hide(float duration)
 
 void CinematicLetterbox::Update()
 {
-#ifdef _DEBUG
+	// ImGui表示
     ShowImGui();
-#endif
 
     float deltaTime = TimeManager::GetInstance().GetUIContext().deltaTime;
 
@@ -196,6 +195,7 @@ float CinematicLetterbox::ApplyEasing(float t) const
 
 void CinematicLetterbox::ShowImGui()
 {
+#ifdef USE_IMGUI
     if (ImGui::Begin("Cinematic Letterbox"))
     {
         // 状態表示
@@ -279,4 +279,5 @@ void CinematicLetterbox::ShowImGui()
         }
     }
     ImGui::End();
+#endif
 }

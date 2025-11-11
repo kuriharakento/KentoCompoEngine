@@ -50,7 +50,7 @@ Timer* TimerManager::GetTimer(const std::string& name)
 
 void TimerManager::Update()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
     if (ImGui::Begin("TimerManager"))
     {
         ImGui::SeparatorText("List");

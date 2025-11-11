@@ -273,7 +273,7 @@ void LightManager::CreateConstantBuffer()
 
 void LightManager::ImGuiUpdate()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	ImGui::Begin("LightManager");
 
 	if (ImGui::BeginTabBar("LightTabs"))

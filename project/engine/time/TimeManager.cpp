@@ -31,7 +31,7 @@ void TimeManager::UpdateTimeContext(TimeContext& context, float realDelta, bool 
 
 void TimeManager::Update()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	ImGui::Begin("Time Manager");
 
 	// 全体のポーズ設定

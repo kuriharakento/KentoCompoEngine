@@ -1,6 +1,8 @@
 #include "ComboManager.h"
 
+#ifdef USE_IMGUI
 #include "imgui/imgui.h"
+#endif 
 #include "time/TimeManager.h"
 
 void ComboManager::Initialize(SpriteCommon* spriteCommon)
@@ -52,7 +54,7 @@ void ComboManager::Reset()
 
 void ComboManager::DrawImGUi()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	ImGui::Begin("ComboManager");
 	ImGui::Text("Combo Count: %d", comboCount_);
 	ImGui::Text("Combo Timer: %.2f", comboTimer_);

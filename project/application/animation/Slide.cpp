@@ -3,7 +3,7 @@
 // graphics
 #include "manager/graphics/TextureManager.h"
 
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
 #endif
 
@@ -88,7 +88,7 @@ void Slide::Update() {
 	}
 
 	/*----------------[ ImGui ]------------------*/
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	// イージング関数の選択肢
 	const char* easingOptions[] = {
 		"EaseInSine",

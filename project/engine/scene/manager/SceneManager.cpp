@@ -29,7 +29,7 @@ void SceneManager::Update()
 {
 #pragma region ImGui
 
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	ImGui::Begin("SceneManager");
 	ImGui::Text("CurrentScene: %s", currentSceneName_.c_str());
 	if (ImGui::Button("Title"))

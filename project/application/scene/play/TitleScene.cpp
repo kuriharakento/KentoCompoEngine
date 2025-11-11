@@ -195,7 +195,7 @@ void TitleScene::Draw2D()
 
 void TitleScene::DrawImGui()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	ImGui::Begin("Title Scene");
 #pragma region PostProcess
 

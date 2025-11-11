@@ -18,7 +18,7 @@
 #include "time/TimeManager.h"
 #include "time/TimerManager.h"
 
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 #include "ImGui/imgui_internal.h"
 #endif
 
@@ -252,7 +252,7 @@ void Framework::Run()
 
 void Framework::ShowPerformanceInfo()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	// ウィンドウの位置を左上に固定
 	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
 	// ウィンドウのサイズを固定

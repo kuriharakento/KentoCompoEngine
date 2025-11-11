@@ -115,6 +115,26 @@ void Object3d::UpdateMatrix(Camera* camera)
 	transformationMatrixData_->WorldInverseTranspose = worldInverseTransposeMatrix;
 }
 
+void Object3d::UpdateWorldMatrix()
+{
+	// ワールド行列のみを更新する
+	Matrix4x4 worldMatrix = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
+
+	// 法線変換用の逆転置行列を計算
+	Matrix4x4 worldInverseTransposeMatrix = MathUtils::Transpose(Inverse(worldMatrix));
+
+	// transformationMatrixData_ がなければ何もしない
+	if (!transformationMatrixData_) return;
+
+	// モデルのローカル行列があれば乗算して World を構築
+	if (model_)
+	{
+		const Matrix4x4& local = model_->GetModelData().rootNode.localMatrix;
+		transformationMatrixData_->World = local * worldMatrix;
+	}
+	
+}
+
 void Object3d::UpdateMatrixWithWorld(const Matrix4x4& worldMatrix, Camera* camera)
 {
 	camera_ = camera ? camera : object3dCommon_->GetDefaultCamera();

@@ -74,7 +74,7 @@ void GamePlayScene::Initialize()
 		sceneManager_->GetLightManager(),
 		sceneManager_->GetCameraManager()
 	);
-	stageManager_->LoadStage("field1");
+	stageManager_->LoadStage("stage_1");
 
 	minimap_ = std::make_unique<Minimap>();
 	minimap_->Initialize(sceneManager_->GetSpriteCommon(), stageManager_.get());
@@ -405,7 +405,7 @@ void GamePlayScene::Draw2D()
 
 void GamePlayScene::DrawImGui()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	ImGui::Begin("GameScene");
 
 	static bool useDebugCamera = false;

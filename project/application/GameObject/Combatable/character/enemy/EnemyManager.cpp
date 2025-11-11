@@ -5,7 +5,6 @@
 #include "PistolEnemy.h"
 #include "ShotgunEnemy.h"
 #include "application/combo/ComboManager.h"
-#include "ImGui/imgui_internal.h"
 #include "math/MathUtils.h"
 
 void EnemyManager::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target)
@@ -27,7 +26,7 @@ void EnemyManager::Initialize(Object3dCommon* object3dCommon, LightManager* ligh
 
 void EnemyManager::Update()
 {
-#ifdef _DEBUG
+#ifdef USE_IMGUI
 	ImGui::Begin("Enemy Manager");
 	ImGui::Text("Enemy Count: %d", static_cast<int>(enemies_.size()));
 	if (ImGui::Button("Add Pistol Enemy"))
