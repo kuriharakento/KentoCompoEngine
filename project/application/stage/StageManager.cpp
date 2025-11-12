@@ -35,6 +35,7 @@ void StageManager::Initialize(Object3dCommon* object3dCommon, LightManager* ligh
 	// 敵マネージャー
 	enemyManager_ = std::make_unique<EnemyManager>();
 	enemyManager_->Initialize(object3dCommon_, lightManager, nullptr); // ターゲットは後で設定
+	enemyManager_->SetCameraManager(cameraManager_);
 	// 障害物マネージャー
 	obstacleManager_ = std::make_unique<ObstacleManager>();
 	obstacleManager_->Initialize(object3dCommon_, lightManager);

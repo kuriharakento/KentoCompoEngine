@@ -25,6 +25,7 @@ public:
 	void SetEnemyData(const std::vector<GameObjectInfo>& data);
 	void AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo>& data);
 	void SetTarget(GameObject* target) { target_ = target; }
+	void SetCameraManager(CameraManager* camera) { camera_ = camera; }
 	void SetOnAllEnemiesDefeatedCallback(std::function<void()> callback) { onAllEnemiesDefeatedCallback_ = std::move(callback); }
 	void Clear();
 
@@ -41,6 +42,7 @@ private:
 	Object3dCommon* object3dCommon_ = nullptr; // 3Dオブジェクト共通処理
 	LightManager* lightManager_ = nullptr; // ライトマネージャー
 	GameObject* target_ = nullptr; // ターゲット（プレイヤーなど）
+	CameraManager* camera_ = nullptr; // カメラマネージャー
 	AABB emitRange_ = {};
 	// 敵リスト
 	std::vector<std::unique_ptr<EnemyBase>> enemies_;

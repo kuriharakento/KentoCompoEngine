@@ -75,6 +75,10 @@ void EnemyManager::Update()
 			// 死亡時処理（エフェクトやコンボ）はここで行う
 			deathEffect_->PlayDeathEffect((*it)->GetPosition(), EnemyDeathEffect::EffectType::Electric);
 			ComboManager::GetInstance().OnEnemyDefeated();
+			if(camera_)
+			{
+				camera_->GetActiveCamera()->StartShake(0.45f, 0.3f); // カメラを揺らす
+			}
 
 			// 移動して破棄を遅延
 			pendingRemovals_.push_back(std::move(*it));
@@ -191,7 +195,6 @@ void EnemyManager::AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo
 			enemy->SetModel(data[i].fileName);
 			
 			enemies_.push_back(std::move(enemy));
-			continue;
 		}
 		// ナイフの生成
 		else if (data[i].fileName == "knife")
@@ -200,9 +203,7 @@ void EnemyManager::AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo
 			enemy->Initialize(object3dCommon_, lightManager_, target_, Transform(data[i].transform.scale, data[i].transform.rotate, data[i].transform.translate));
 			// NOTE:ここのせいで処理が増えている。本来はもっと簡潔になります。
 			enemy->SetModel("cube");
-			//enemy->UpdateWorldMatrix();
 			enemies_.push_back(std::move(enemy));
-			continue;
 		}
 	}
 }
