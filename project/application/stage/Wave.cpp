@@ -3,33 +3,36 @@
 
 Wave::Wave(const std::vector<GameObjectInfo>& enemies)
 {
-	enemies_ = enemies; // ウェーブ中にスポーンする敵の情報を設定
-	isStart_ = false; // ウェーブは初期状態では開始されていない
-	isClear_ = false; // ウェーブは初期状態ではクリアされていない
-	onClearCallback_ = nullptr; // クリア時のコールバックは初期状態では設定されていない
+	enemies_ = enemies;           // ウェーブでスポーンする敵情報を保存
+	isStart_ = false;             // 未開始状態
+	isClear_ = false;             // 未クリア状態
+	onClearCallback_ = nullptr;   // コールバック未設定
 }
 
 void Wave::Start(EnemyManager* enemyManager)
 {
-	if (isStart_) { return; } // 既に開始されている場合は何もしない
+	// 冪等性の保証：既に開始されている場合は何もしない
+	if (isStart_) { return; }
 
-	// 開始
+	// ウェーブを開始状態にする
 	isStart_ = true;
 
-	// クリア時のコールバック関数をエネミーマネージャーの敵全滅コールバックに設定
+	// 敵全滅時のコールバックをEnemyManagerに設定
+	// 全ての敵が倒されたらこのウェーブをクリアとする
 	enemyManager->SetOnAllEnemiesDefeatedCallback([this]() {
 		if (!isClear_)
 		{
 			isClear_ = true;
 			if (onClearCallback_)
 			{
-				// ウェーブクリア時のコールバックを呼び出す
+				// ウェーブクリア時のコールバックを実行
 				onClearCallback_(); 
+				// コールバックは一度だけ実行されるようにnullptrに設定
 				onClearCallback_ = nullptr;
 			}
 		}
 												  });
 
-	// 敵をエネミーマネージャーに追加
+	// 敵情報をもとにEnemyManagerに敵を追加（スポーン）
 	enemyManager->AddEnemiesFromGameObjectInfo(enemies_);
 }

@@ -8,6 +8,7 @@ StageManager::StageManager()
 
 StageManager::~StageManager()
 {
+	// 各ゲームオブジェクトを明示的に解放
 	stageData_.reset();
 	player_.reset();
 	enemyManager_.reset();
@@ -27,28 +28,33 @@ void StageManager::Initialize(Object3dCommon* object3dCommon, LightManager* ligh
 	// 障害物データの初期化
 	obstacleData_ = std::make_shared<ObstacleData>();
 
-	// Jsonエディターに登録
+	// デバッグエディターに登録（実行時編集を可能にする）
 	JsonEditorManager::GetInstance()->Register("stageData", stageData_);
 	JsonEditorManager::GetInstance()->Register("obstacleData", obstacleData_);
 
-	// --- マネージャーの初期化 --- //
-	// 敵マネージャー
+	// --- 各マネージャーの初期化 --- //
+
+	// 敵マネージャーの初期化
 	enemyManager_ = std::make_unique<EnemyManager>();
 	enemyManager_->Initialize(object3dCommon_, lightManager, nullptr); // ターゲットは後で設定
 	enemyManager_->SetCameraManager(cameraManager_);
-	// 障害物マネージャー
+
+	// 障害物マネージャーの初期化
 	obstacleManager_ = std::make_unique<ObstacleManager>();
 	obstacleManager_->Initialize(object3dCommon_, lightManager);
 }
 
 void StageManager::Update()
 {
+	// デバッグUIの更新
 	DrawImGui();
+
 	// プレイヤーの更新
 	if (player_)
 	{
 		player_->Update();
 	}
+
 	// 敵マネージャーの更新
 	if (enemyManager_)
 	{
@@ -61,10 +67,12 @@ void StageManager::Update()
 		obstacleManager_->Update();
 	}
 
-	stage_->Update(cameraManager_); // ステージの更新
+	// ステージの更新（エリア・ウェーブ進行）
+	stage_->Update(cameraManager_);
 
 #ifdef _DEBUG
-	// デバッグの時のみステージの障害物データを常に同期
+	// デバッグモード：ステージデータと障害物データを同期
+	// JSONエディターでの編集内容を即座に反映するため
 	std::vector< GameObjectInfo> obstacleInfos;
 	for (const auto& data : stageData_->gameObjects)
 	{
@@ -84,11 +92,13 @@ void StageManager::UpdateTransforms(CameraManager* camera)
 	{
 		player_->UpdateTransform(camera);
 	}
+
 	// 敵マネージャーの行列更新
 	if (enemyManager_)
 	{
 		enemyManager_->UpdateTransform(cameraManager_);
 	}
+
 	// 障害物マネージャーの行列更新
 	if (obstacleManager_)
 	{
@@ -103,11 +113,13 @@ void StageManager::Draw()
 	{
 		player_->Draw(cameraManager_);
 	}
+
 	// 敵マネージャーの描画
 	if (enemyManager_)
 	{
 		enemyManager_->Draw(cameraManager_);
 	}
+
 	// 障害物の描画
 	if (obstacleManager_)
 	{
@@ -119,24 +131,31 @@ void StageManager::DrawImGui()
 {
 #ifdef USE_IMGUI
 	ImGui::Begin("Stage Manager");
+
+	// 敵を全クリアするボタン（デバッグ用）
 	if(ImGui::Button("Clear Enemies"))
 	{
 		if (enemyManager_)
 		{
-			enemyManager_->Clear(); // 敵マネージャーの敵を全てクリア
+			enemyManager_->Clear();
 		}
 	}
+
+	// 障害物を全クリアするボタン（デバッグ用）
 	if (ImGui::Button("Clear Obstacles"))
 	{
 		if (obstacleManager_)
 		{
-			obstacleManager_->Clear(); // 障害物マネージャーの障害物を全てクリア
+			obstacleManager_->Clear();
 		}
 	}
+
+	// ステージをロードするボタン（デバッグ用）
 	if (ImGui::Button("Load Stage"))
 	{
 		LoadStage("field"); // サンプルステージをロード
 	}
+
 	ImGui::End();
 	
 #endif
@@ -144,49 +163,58 @@ void StageManager::DrawImGui()
 
 void StageManager::LoadStage(const std::string& stageName)
 {
-	// ディレクトリパスを作成
+	// ステージファイルのパスを構築
 	std::string dirpath = "stage/" + stageName;
 	std::string json = ".json";
 	std::string areaJson = "_area" + json;
 
-	// 各オブジェクトをクリアする
-	player_.reset(); // プレイヤーは１体だけなのでリセット
-	enemyManager_->Clear();
-	obstacleManager_->Clear();
+	// 既存のゲームオブジェクトをクリア
+	player_.reset();              // プレイヤーは1体のみなのでリセット
+	enemyManager_->Clear();       // 敵を全削除
+	obstacleManager_->Clear();    // 障害物を全削除
 
-	// ステージデータをロード
+	// ステージデータ（固定オブジェクト配置）をロード
 	stageData_->LoadJson(dirpath + json);
 
-	// ステージデータからゲームオブジェクトの情報を生成
+	// ステージデータから各ゲームオブジェクトを生成
 	CreateInfosFromStageData();
 
-	// ステージの初期化
+	// ステージ（エリア・ウェーブ管理）を初期化
 	stage_ = std::make_unique<Stage>(
 		object3dCommon_,
 		lightManager_,
 		enemyManager_.get(),
-		dirpath + areaJson
-	); // サンプルステージをロード
-	stage_->Start(); // ステージを開始
+		dirpath + areaJson  // エリア・ウェーブ定義ファイル
+	);
+
+	// ステージを開始
+	stage_->Start();
 }
 
 void StageManager::CreateInfosFromStageData()
 {
-	// 個別のゲームオブジェクト情報を格納するリスト
+	// 障害物情報を格納するリスト
 	std::vector<GameObjectInfo> obstacleInfos;
 
+	// ステージデータの各オブジェクトをタイプごとに分類
 	for(const auto& objInfo : stageData_->gameObjects)
 	{
-		if (objInfo.disabled) continue; // 無効化されているオブジェクトはスキップ
-		// プレイヤーや敵などの特定のタイプに応じて追加処理
+		// 無効化されているオブジェクトはスキップ
+		if (objInfo.disabled) continue;
+
+		// タイプに応じて処理を分岐
 		if (objInfo.type == "PlayerSpawn")
 		{
-			// プレイヤーはゲーム中に１っ体だけなのでここで生成
+			// プレイヤーのスポーン処理
+			// ゲーム中に1体のみなのでここで生成
 			if (!player_)
 			{
 				player_ = std::make_unique<Player>();
 			}
+			// 敵マネージャーにプレイヤーをターゲットとして設定
 			enemyManager_->SetTarget(player_.get());
+
+			// プレイヤーの初期化と配置
 			player_->Initialize(object3dCommon_, lightManager_, enemyManager_.get(), cameraManager_);
 			player_->SetModel("player");
 			player_->SetPosition(objInfo.transform.translate);
@@ -195,16 +223,17 @@ void StageManager::CreateInfosFromStageData()
 		}
 		else if (objInfo.type == "EnemySpawn")
 		{
-			// 敵の情報を敵マネージャーに追加
+			// 敵のスポーン処理
+			// 注: 現在は未使用（敵はウェーブ管理システムで生成される）
 		}
 		else if (objInfo.type == "Obstacle" || objInfo.type == "BarrierBlock")
 		{
-			// 障害物の情報を障害物マネージャーに追加
+			// 障害物の情報を収集
 			obstacleInfos.push_back(objInfo);
 		}
 	}
 
-	
+	// 障害物データを設定
 	obstacleData_->SetObstacles(obstacleInfos);
 	obstacleManager_->SetObstacleData(obstacleData_.get());
 }
