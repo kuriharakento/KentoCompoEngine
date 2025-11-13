@@ -34,16 +34,16 @@
 
 void GamePlayScene::Initialize()
 {
-	// 音声のロード・再生
+	// ゲームBGMをループ再生で開始
 	Audio::GetInstance()->LoadWave("game_bgm", "bgm/game.wav", SoundGroup::BGM);
 	Audio::GetInstance()->PlayWave("game_bgm", true);
 	Audio::GetInstance()->SetVolume("game_bgm", 0.2f);
 
-	// カメラ設定
+	// イントロ演出用の初期カメラ位置を設定
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate(cameraInitialPosition_);
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetRotate(cameraInitialRotation_);
 
-	// スカイドームの生成
+	// スカイドームの生成（背景天球）
 	skydome_ = std::make_unique<Object3d>();
 	skydome_->Initialize(sceneManager_->GetObject3dCommon());
 	skydome_->SetModel("skydome");
@@ -52,7 +52,7 @@ void GamePlayScene::Initialize()
 	skydome_->SetDirectionalLightIntensity(0.5f);
 	skydome_->SetDirectionalLightDirection({ 0.0f, -1.0f, 0.0f });
 
-	// 地面の生成
+	// 地面の生成（UVスケールで地形テクスチャをタイル状に繰り返し）
 	ground_ = std::make_unique<Object3d>();
 	ground_->Initialize(sceneManager_->GetObject3dCommon());
 	ground_->SetModel("terrain");
@@ -60,14 +60,14 @@ void GamePlayScene::Initialize()
 	ground_->SetEnableLighting(true);
 	ground_->GetModel()->SetUVScale(Vector3(10.0f, 10.0f, 1.0f));
 
-	// 当たり判定マネージャーの初期化
+	// 当たり判定システムの初期化
 	CollisionManager::GetInstance()->Initialize();
 
-	// Comboマネージャーの初期化
+	// コンボシステムの初期化とリセット
 	ComboManager::GetInstance().Initialize(sceneManager_->GetSpriteCommon());
 	ComboManager::GetInstance().Reset();
 
-	// ステージマネージャーの生成
+	// ステージデータのロード（敵配置、エリア設定等）
 	stageManager_ = std::make_unique<StageManager>();
 	stageManager_->Initialize(
 		sceneManager_->GetObject3dCommon(),
@@ -76,17 +76,18 @@ void GamePlayScene::Initialize()
 	);
 	stageManager_->LoadStage("stage_2");
 
+	// ミニマップの初期化（ステージ情報を渡す）
 	minimap_ = std::make_unique<Minimap>();
 	minimap_->Initialize(sceneManager_->GetSpriteCommon(), stageManager_.get());
 
-	// スプラインカメラの生成
+	// スプラインカメラの生成（演出用の滑らかなカメラパス）
 	splineCamera_ = std::make_unique<SplineCamera>();
 	splineCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
 	splineCamera_->LoadJson("spline.json");
 	splineCamera_->Start(0.001f, false);
 	splineCamera_->SetTarget(&stageManager_->GetPlayer()->GetPosition());
 
-	// トップダウンカメラの生成
+	// トップダウンカメラの生成（ゲームプレイ用の俯瞰視点）
 	topDownCamera_ = std::make_unique<TopDownCamera>();
 	topDownCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
 	topDownCamera_->SetOffset({ -45.0f, 0.0f, -28.0f });
@@ -94,10 +95,10 @@ void GamePlayScene::Initialize()
 	topDownCamera_->SetYaw(1.0f);
 	topDownCamera_->SetHeight(43.0f);
 
-	// カーネージモードの初期化
+	// カーネージモードの初期化（コンボ達成時の強化システム）
 	carnageMode_ = std::make_unique<CarnageMode>(stageManager_->GetPlayer());
 
-	// シーン遷移エフェクトの初期化（フェードの開始は Enter フックで行う）
+	// シーン遷移エフェクトの設定（右下から左上へのフェードアウト）
 	transitionEffect_.Initialize(
 		sceneManager_->GetSpriteCommon(),
 		"./Resources/black.png",
@@ -108,19 +109,19 @@ void GamePlayScene::Initialize()
 	transitionEffect_.SetFadeType(FadeType::FadeOut);
 	transitionEffect_.SetMode(TransitionMode::RightBottomToLeftTop);
 
-	// プレイヤー死亡エフェクト初期化
+	// プレイヤー死亡時の画面エフェクト初期化
 	playerDeathEffect_.Initialize(
 		stageManager_->GetPlayer()
 	);
 
-	// レターボックスエフェクト初期化
+	// 映画的演出用のレターボックスエフェクト初期化
 	cinematicLetterbox_.Initialize(
 		sceneManager_->GetSpriteCommon(),
 		"./Resources/black.png",
 		WinApp::kClientWidth, WinApp::kClientHeight
 	);
 
-	// 初期状態はEnter
+	// シーンのライフサイクルをEnter状態から開始
 	StartState(SceneState::Enter);
 	gameClear_ = false;
 	gameOver_ = false;
@@ -129,20 +130,23 @@ void GamePlayScene::Initialize()
 // --------- 終了処理 ---------
 void GamePlayScene::Finalize()
 {
-	// bgm停止
+	// BGMの停止
 	Audio::GetInstance()->StopWave("game_bgm");
 
+	// 当たり判定システムのクリーンアップ
 	CollisionManager::GetInstance()->Finalize();
 }
 
-// ----------------------------------------------------------------
+// ================================================================
 // 状態フック実装
-// ----------------------------------------------------------------
+// ================================================================
 
-// Enter（シーン開始 / フェードイン）
+// ==================================================
+// Enter状態（シーン開始・フェードイン演出）
+// ==================================================
 void GamePlayScene::OnEnterEnter()
 {
-	// 開始時のフェード
+	// 黒から赤へのフェードイン演出を開始
 	transitionEffect_.Start(
 		1.5f,
 		VectorColorCodes::Black,
@@ -152,10 +156,9 @@ void GamePlayScene::OnEnterEnter()
 
 void GamePlayScene::OnUpdateEnter()
 {
-	// フェード更新
 	transitionEffect_.Update();
 
-	// フェード完了で Playing に遷移
+	// フェード演出が完了したらイントロ状態へ遷移
 	if (transitionEffect_.GetState() == TransitionState::Done)
 	{
 		ChangeState(SceneState::Intro);
@@ -164,32 +167,36 @@ void GamePlayScene::OnUpdateEnter()
 
 void GamePlayScene::OnExitEnter()
 {
-	// 特になし（必要ならクリーンアップ）
+	// Enter状態の退場処理（現状は特になし）
 }
 
+// ==================================================
+// Intro状態（ゲーム開始前のイントロ演出）
+// ==================================================
 void GamePlayScene::OnEnterIntro()
 {
-	// タイマーのリセット
+	// イントロ演出用タイマーのリセット
 	introElapsed_ = 0.0f;
 }
 
 void GamePlayScene::OnUpdateIntro()
 {
-	// dt を取得（TimeManager の API を使用）
+	// デルタタイムの取得
 	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
 
 	introElapsed_ += deltaTime;
 	float t = introElapsed_ / introDuration_;
 	if (t > 1.0f) t = 1.0f;
+	// イージング関数で自然な加減速を実現
 	float eased = EaseInOutCirc(t);
 
 	auto activeCamera = sceneManager_->GetCameraManager()->GetActiveCamera();
 
-	// --- 目標を取得する ---
+	// イントロ演出：カメラをプレイヤー位置へ滑らかに移動
 	Vector3 targetPos = stageManager_->GetPlayer()->GetPosition() + Vector3{ 0.0f, topDownCamera_->GetHeight(), 0.0f };
 	Vector3 targetRot = { topDownCamera_->GetPitch(), topDownCamera_->GetYaw(), 0.0f };
 
-	// --- 補間 ---
+	// 初期位置から目標位置への補間
 	Vector3 nextPos = MathUtils::Lerp(cameraInitialPosition_, targetPos, eased);
 	Vector3 nextRot = {
 		LerpAngle(cameraInitialRotation_.x, targetRot.x, eased),
@@ -200,20 +207,22 @@ void GamePlayScene::OnUpdateIntro()
 	activeCamera->SetTranslate(nextPos + topDownCamera_->GetOffset());
 	activeCamera->SetRotate(nextRot);
 
-	// --- 完了判定 ---
+	// イントロ演出完了判定
 	if (t >= 1.0f)
 	{
-		// 最終合わせ
+		// 最終位置を確実に設定してPlaying状態へ遷移
 		activeCamera->SetTranslate(targetPos + topDownCamera_->GetOffset());
 		activeCamera->SetRotate(targetRot);
 		ChangeState(SceneState::Playing);
 	}
 }
 
-// Playing（メインの更新ロジックをここに移動）
+// ==================================================
+// Playing状態（メインゲームプレイ）
+// ==================================================
 void GamePlayScene::OnEnterPlaying()
 {
-	// トップダウンカメラを開始
+	// トップダウンカメラをプレイヤー追従で開始
 	topDownCamera_->Start(
 		43.0f,
 		&stageManager_->GetPlayer()->GetPosition()
@@ -222,8 +231,9 @@ void GamePlayScene::OnEnterPlaying()
 
 void GamePlayScene::OnUpdatePlaying()
 {
-	// ゲーム終了判定
-	// クリア
+	// ゲーム終了条件の判定（早期リターンでパフォーマンス向上）
+	
+	// ステージクリア判定
 	if (stageManager_->IsStageCleared())
 	{
 		ChangeState(SceneState::End);
@@ -231,7 +241,7 @@ void GamePlayScene::OnUpdatePlaying()
 		return;
 	}
 
-	// ゲームオーバー
+	// ゲームオーバー判定（プレイヤー死亡）
 	if (!stageManager_->GetPlayer()->IsAlive())
 	{
 		ChangeState(SceneState::End);
@@ -239,79 +249,82 @@ void GamePlayScene::OnUpdatePlaying()
 		return;
 	}
 
-	// 前フレームの位置を更新
+	// 当たり判定用の前フレーム位置を保存
 	CollisionManager::GetInstance()->UpdatePreviousPositions();
 
-	// カメラの更新
+	// カメラをプレイヤーに追従
 	topDownCamera_->Update();
 
-	// ミニマップの更新
+	// ミニマップの表示更新
 	minimap_->Update();
 
-	// ステージの更新
+	// ステージ内の全オブジェクト更新（プレイヤー、敵、エリア等）
 	stageManager_->Update();
 
-	// スカイドームの更新
+	// 背景要素の更新
 	skydome_->Update(sceneManager_->GetCameraManager());
-
-	// 地面の更新
 	ground_->Update(sceneManager_->GetCameraManager());
 
-	// 衝突判定開始
+	// 全オブジェクト間の当たり判定を実行
 	CollisionManager::GetInstance()->CheckCollisions();
 
-	// コンボマネージャーの更新
+	// コンボシステムの更新（タイマー管理）
 	ComboManager::GetInstance().Update();
 
-	// カーネージモードの更新
+	// カーネージモードの更新（タイマー、エフェクト、発動条件チェック）
 	carnageMode_->Update();
 }
 
 void GamePlayScene::OnExitPlaying()
 {
+	// Playing状態の退場処理（現状は特になし）
 }
 
-// End（終了演出）
+// ==================================================
+// End状態（ゲーム終了演出：クリア/ゲームオーバー）
+// ==================================================
 void GamePlayScene::OnEnterEnd()
 {
-	// 色収差エフェクト有効化
+	// ゲームオーバー演出：色収差エフェクトで視覚的インパクトを演出
 	auto* ppm = sceneManager_->GetPostProcessManager();
 	ppm->crtEffect_->SetEnabled(true);
 	ppm->crtEffect_->SetCrtEnabled(true);
 	ppm->crtEffect_->SetChromaticAberrationEnabled(true);
 
-	// プレイヤー死亡エフェクト開始
+	// プレイヤー死亡時の画面エフェクト開始
 	playerDeathEffect_.Play(1.5f);
 }
 
 void GamePlayScene::OnUpdateEnd()
 {
-	// プレイヤー死亡エフェクト更新
+	// プレイヤー死亡エフェクトの更新
 	playerDeathEffect_.Update();
 
-	// 時間経過
+	// 経過時間を記録
 	gameOverEffectElapsed_ += TimeManager::GetInstance().GetGameContext().deltaTime;
 
-	// 色収差を振幅で揺らす
-	const float frequencyHz = 4.0f;  // 1秒間に4回揺れる
-	const float maxOscAmp = 35.0f;   // 初期最大振幅
-	const float decayRate = 2.8f;    // 大きいほど速く収束
+	// 色収差エフェクトを減衰振動させて臨場感を演出
+	const float frequencyHz = 4.0f;  // 振動周波数（Hz）
+	const float maxOscAmp = 35.0f;   // 初期振幅
+	const float decayRate = 2.8f;    // 減衰率（高いほど早く収束）
 
-	// 指数減衰で自然に収束させる
+	// 指数減衰エンベロープで振動を自然に収束
 	float envelope = maxOscAmp * std::exp(-decayRate * gameOverEffectElapsed_);
 	if (envelope < 0.001f)
 	{
-		// 微小値切り捨て
+		// 微小値は0にして計算コスト削減
 		envelope = 0.0f;
 	}
 
+	// 正弦波による振動
 	const float twoPi = std::numbers::pi_v<float> *2.0f;
 	float oscill = std::sinf(gameOverEffectElapsed_ * frequencyHz * twoPi) * envelope;
 
-	// 純粋な振幅をセット（ベース値は加えない）
+	// 色収差オフセットに振動値を適用
 	auto* ppm = sceneManager_->GetPostProcessManager();
 	ppm->crtEffect_->SetChromaticAberrationOffset(oscill);
 
+	// 死亡エフェクト完了でExit状態へ遷移
 	if (playerDeathEffect_.IsFinished())
 	{
 		ChangeState(SceneState::Exit);
@@ -320,11 +333,15 @@ void GamePlayScene::OnUpdateEnd()
 
 void GamePlayScene::OnExitEnd()
 {
+	// End状態の退場処理（現状は特になし）
 }
 
+// ==================================================
+// Exit状態（シーン退場・次シーンへの遷移）
+// ==================================================
 void GamePlayScene::OnEnterExit()
 {
-	// 終了演出の開始
+	// エッジから中心へのフェードイン演出を開始
 	transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
 	transitionEffect_.SetFadeType(FadeType::FadeIn);
 	transitionEffect_.SetMode(TransitionMode::EdgesToCenter);
@@ -339,8 +356,10 @@ void GamePlayScene::OnUpdateExit()
 {
 	transitionEffect_.Update();
 
+	// フェード演出完了で次のシーンへ遷移
 	if (transitionEffect_.GetState() == TransitionState::Done)
 	{
+		// ゲーム終了状態に応じて適切なシーンへ遷移
 		if (gameClear_)
 		{
 			sceneManager_->ChangeScene(SceneNames::GameClear);
@@ -354,31 +373,32 @@ void GamePlayScene::OnUpdateExit()
 
 void GamePlayScene::OnExitExit()
 {
-	// 色収差エフェクト無効化
+	// 色収差エフェクトを無効化してクリーンな状態で次シーンへ
 	auto* ppm = sceneManager_->GetPostProcessManager();
 	ppm->crtEffect_->SetEnabled(false);
 	ppm->crtEffect_->SetCrtEnabled(false);
 	ppm->crtEffect_->SetChromaticAberrationEnabled(false);
 }
 
+// ==================================================
+// 全状態共通の更新処理
+// ==================================================
 void GamePlayScene::CommonUpdate()
 {
+	// 状態に関わらず常に更新が必要な要素
 	cinematicLetterbox_.Update();
 	skydome_->Update(sceneManager_->GetCameraManager());
 	ground_->Update(sceneManager_->GetCameraManager());
 	stageManager_->UpdateTransforms(sceneManager_->GetCameraManager());
 }
 
-// ----------------------------------------------------------------
-// 描画
-// ----------------------------------------------------------------
+// ================================================================
+// 描画処理
+// ================================================================
 
 void GamePlayScene::Draw3D()
 {
-	// スカイドームの描画
 	skydome_->Draw();
-
-	// 地面の描画
 	ground_->Draw();
 
 	// ステージの描画

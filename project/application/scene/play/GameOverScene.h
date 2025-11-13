@@ -2,39 +2,122 @@
 #include "scene/interface/BaseScene.h"
 #include <application/effect/SceneTransitionEffect.h>
 
+/**
+ * @brief ゲームオーバーシーン
+ * 
+ * プレイヤーが倒された際に表示されるシーンです。
+ * ゲームオーバー画面の表示、次のアクション（リトライ、タイトルへ戻る等）を提供します。
+ * 
+ * シーン状態遷移: Enter(開始演出) → Playing(ゲームオーバー表示・入力待ち) → Exit(退場演出)
+ */
 class GameOverScene : public BaseScene
 {
 public:
-	// 初期化
+	/**
+	 * @brief シーンの初期化処理
+	 * 
+	 * ゲームオーバー画面のUI要素を初期化します。
+	 */
 	void Initialize() override;
-	// 狩猟
+	
+	/**
+	 * @brief シーンの終了処理
+	 * 
+	 * 各種リソースの解放を行います。
+	 */
 	void Finalize() override;
-	// 描画
+	
+	/**
+	 * @brief 3D描画処理
+	 * 
+	 * 3D要素を描画します（必要に応じて）。
+	 */
 	void Draw3D() override;
+	
+	/**
+	 * @brief 2D描画処理
+	 * 
+	 * ゲームオーバー画面のUI要素を描画します。
+	 */
 	void Draw2D() override;
-	// ImGui の描画（BaseScene::DrawImGui をオーバーライド）
+	
+	/**
+	 * @brief ImGuiデバッグUI描画
+	 * 
+	 * 開発用のデバッグ情報を表示します。
+	 */
 	void DrawImGui() override;
 
 protected:
+	// ==================================================
 	// 状態フックのオーバーライド
-	// シーン開始
+	// ==================================================
+	
+	/**
+	 * @brief Enter状態開始時の処理
+	 * 
+	 * シーン開始時の演出を開始します。
+	 */
 	void OnEnterEnter() override;
+	
+	/**
+	 * @brief Enter状態の更新処理
+	 * 
+	 * 開始演出を進行させ、完了後にPlaying状態へ遷移します。
+	 */
 	void OnUpdateEnter() override;
+	
+	/**
+	 * @brief Enter状態終了時の処理
+	 * 
+	 * Enter状態からの退場処理を行います。
+	 */
 	void OnExitEnter() override;
 
-	// プレイ
+	/**
+	 * @brief Playing状態開始時の処理
+	 * 
+	 * ゲームオーバー画面の表示を開始します。
+	 */
 	void OnEnterPlaying() override;
+	
+	/**
+	 * @brief Playing状態の更新処理
+	 * 
+	 * プレイヤーの入力を監視し、次のアクションに応じてシーン遷移を行います。
+	 */
 	void OnUpdatePlaying() override;
+	
+	/**
+	 * @brief Playing状態終了時の処理
+	 * 
+	 * Playing状態からの退場処理を行います。
+	 */
 	void OnExitPlaying() override;
 
-	// 終了
+	/**
+	 * @brief Exit状態開始時の処理
+	 * 
+	 * シーン退場時の演出を開始します。
+	 */
 	void OnEnterExit() override;
+	
+	/**
+	 * @brief Exit状態の更新処理
+	 * 
+	 * 退場演出を進行させ、完了後に次のシーンへ遷移します。
+	 */
 	void OnUpdateExit() override;
+	
+	/**
+	 * @brief Exit状態終了時の処理
+	 * 
+	 * Exit状態からの退場処理を行います。
+	 */
 	void OnExitExit() override;
 
 private:
 	//メンバ変数
-	// シーン遷移エフェクト
-	SceneTransitionEffect transitionEffect_;
+	SceneTransitionEffect transitionEffect_; ///< シーン遷移エフェクト（フェードイン/アウト）
 };
 

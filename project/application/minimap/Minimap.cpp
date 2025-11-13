@@ -4,20 +4,21 @@ void Minimap::Initialize(SpriteCommon* spriteCommon, StageManager* stageManager)
 {
 	spriteCommon_ = spriteCommon;
 	stageManager_ = stageManager;
-	// フレームのスプライトを作成
+	
+	// ミニマップフレーム（枠）の初期化
 	frame_ = std::make_unique<Sprite>();
 	frame_->Initialize(spriteCommon_, "./Resources/minimap_frame.png");
-	frame_->SetPosition(Vector2(1080.0f, 90.0f));	// 右上に配置
+	frame_->SetPosition(Vector2(1080.0f, 90.0f));	// 画面右上に配置
 	frame_->SetSize({ 300.0f, 300.0f });
 	frame_->SetAnchorPoint({ 0.5f, 0.5f });
 
-	// 敵のスプライトを作成
+	// 敵アイコン配列を初期化（動的に追加される）
 	enemyIcons_.clear();
 
-	// エリアアイコンのスプライトを作成
+	// エリアアイコン配列を初期化（動的に追加される）
 	areaIcon_.clear();
 
-	// プレイヤーアイコンを作成
+	// プレイヤーアイコンの初期化
 	playerIcon_ = std::make_unique<Sprite>();
 	playerIcon_->Initialize(spriteCommon_, "./Resources/red.png");
 	playerIcon_->SetSize({ 18.0f, 18.0f });
@@ -28,6 +29,7 @@ void Minimap::Initialize(SpriteCommon* spriteCommon, StageManager* stageManager)
 void Minimap::Update()
 {
 #ifdef USE_IMGUI
+	// デバッグ用：ミニマップの位置とサイズをImGuiで調整可能
 	ImGui::Begin("Minimap");
 
 	static Vector2 framePos = frame_->GetPosition();
@@ -47,21 +49,20 @@ void Minimap::Update()
 
 	frame_->Update();
 
-	// プレイヤーの回転角度を取得
-	float playerYaw = stageManager_->GetPlayer()->GetRotation().y; // Yaw（Y軸回転）
-
-	// ミニマップ上のプレイヤーアイコンに反映
+	// プレイヤーアイコンの更新（中心に固定、向きはプレイヤーの回転に追従）
+	float playerYaw = stageManager_->GetPlayer()->GetRotation().y;
 	playerIcon_->SetPosition(frame_->GetPosition());
-	playerIcon_->SetRotation(playerYaw); // ミニマップ上で回転方向が逆ならマイナスを付ける
+	playerIcon_->SetRotation(playerYaw);
 	playerIcon_->Update();
 
-	// 敵の取得
+	// 敵アイコンの動的管理
 	auto enemyManager = stageManager_->GetEnemyManager();
 	const auto& enemies = enemyManager->GetEnemies();
 
-	// 敵の数に合わせてアイコンスプライト配列を調整
+	// 敵の数に合わせてアイコンを動的に追加/削除
 	if (enemyIcons_.size() < enemies.size())
 	{
+		// 不足分のアイコンを追加
 		for (size_t i = enemyIcons_.size(); i < enemies.size(); ++i)
 		{
 			auto icon = std::make_unique<Sprite>();
@@ -73,11 +74,11 @@ void Minimap::Update()
 	}
 	else if (enemyIcons_.size() > enemies.size())
 	{
-		// 余分なアイコンを削除
+		// 余分なアイコンを削除（敵が倒された場合）
 		enemyIcons_.resize(enemies.size());
 	}
 
-	// 各敵座標をミニマップ座標へ
+	// 各敵の位置をミニマップ座標に変換して更新
 	for (size_t i = 0; i < enemies.size(); ++i)
 	{
 		Vector3 enemyPos = enemies[i]->GetPosition();
@@ -88,11 +89,13 @@ void Minimap::Update()
 		enemyIcons_[i]->Update();
 	}
 
-	// エリアの取得
+	// エリアアイコンの動的管理
 	auto areaManager = stageManager_->GetStage()->GetAreaManager();
 	const auto& areas = areaManager->GetAreas();
+	
 	if (areaIcon_.size() < areas.size())
 	{
+		// 不足分のエリアアイコンを追加
 		for (size_t i = areaIcon_.size(); i < areas.size(); ++i)
 		{
 			auto icon = std::make_unique<Sprite>();
@@ -109,6 +112,7 @@ void Minimap::Update()
 		areaIcon_.resize(areas.size());
 	}
 
+	// 各エリアの位置をミニマップ座標に変換して更新
 	for (size_t i = 0; i < areas.size(); ++i)
 	{
 		Vector3 areaPos = areas[i]->GetAreaObject()->GetPosition();
@@ -123,11 +127,13 @@ void Minimap::Update()
 
 void Minimap::Draw()
 {
+	// ミニマップフレームを最初に描画
 	frame_->Draw();
 
+	// プレイヤーアイコンを描画
 	playerIcon_->Draw();
 
-	// 敵の数だけ描画
+	// 全ての敵アイコンを描画
 	for (auto& icon : enemyIcons_)
 	{
 		icon->Draw();
@@ -143,6 +149,7 @@ void Minimap::Draw()
 
 Vector2 Minimap::WorldToMinimap(const Vector3& worldPos) const
 {
+	// プレイヤーを中心としたミニマップ座標系への変換
 	Vector3 playerPos = stageManager_->GetPlayer()->GetPosition();
 
 	Vector2 frameCenter = frame_->GetPosition();
@@ -150,19 +157,20 @@ Vector2 Minimap::WorldToMinimap(const Vector3& worldPos) const
 	float halfWidth = mapWidth_ * 0.5f;
 	float halfHeight = mapHeight_ * 0.5f;
 
-	// プレイヤー中心の相対座標をミニマップ上に変換
+	// プレイヤーからの相対座標を計算し、ミニマップスケールに変換
+	// X軸はそのまま、Z軸は反転（上が北になるように）
 	float nx = ((worldPos.x - playerPos.x) / halfWidth) * (frameSize.x * 0.5f);
 	float ny = -((worldPos.z - playerPos.z) / halfHeight) * (frameSize.y * 0.5f);
 
-	// 表示位置（まだclampしていない）
+	// ミニマップ上の絶対座標を計算
 	float x = frameCenter.x + nx;
 	float y = frameCenter.y + ny;
 
-	frameSize.x /= 2.0f; // 半分のサイズにする
+	frameSize.x /= 2.0f;
 	frameSize.y /= 2.0f;
 
-	// 半径（アイコンサイズ分だけ内側にする場合は調整）
-	float iconHalfSize = 5.0f; // アイコンサイズが10x10の場合
+	// ミニマップの円形範囲外の場合は円周上にクランプ
+	float iconHalfSize = 5.0f;
 	float radius = (frameSize.x < frameSize.y ? frameSize.x : frameSize.y) * 0.5f - iconHalfSize;
 
 	float dx = x - frameCenter.x;
@@ -171,7 +179,7 @@ Vector2 Minimap::WorldToMinimap(const Vector3& worldPos) const
 
 	if (dist > radius)
 	{
-		// 枠外なら円周上に
+		// 範囲外のオブジェクトは円周上に配置
 		float angle = std::atan2(dy, dx);
 		x = frameCenter.x + radius * std::cos(angle);
 		y = frameCenter.y + radius * std::sin(angle);

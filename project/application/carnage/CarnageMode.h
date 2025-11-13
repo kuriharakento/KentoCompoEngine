@@ -6,52 +6,125 @@
 
 class Player;
 
+/**
+ * @brief カーネージモード（特殊能力強化システム）
+ * 
+ * 一定数のコンボを達成することで発動する、プレイヤーの能力を一時的に強化するバフシステムです。
+ * 発動中は攻撃力と移動速度が上昇し、専用のビジュアルエフェクトが表示されます。
+ * 敵を倒し続けることでタイマーを延長できます。
+ * 
+ * @note コンボ数がcomboThreshold_（デフォルト10）に達すると自動的に発動します
+ * @note タイマーが切れると通常状態に戻ります
+ * 
+ * @code
+ * // 毎フレーム更新
+ * carnageMode_->Update();
+ * 
+ * // 発動チェック（コンボ監視）
+ * carnageMode_->TryStart();
+ * 
+ * // タイマー延長（敵撃破時など）
+ * if (carnageMode_->IsActive()) {
+ *     carnageMode_->ExtendTimer();
+ * }
+ * @endcode
+ */
 class CarnageMode
 {
 public:
-    // 初期化
+    /**
+     * @brief コンストラクタ
+     * 
+     * カーネージモードシステムを初期化します。
+     * 
+     * @param player 対象となるプレイヤーへのポインタ（非所有）
+     */
     CarnageMode(Player* player);
 
-    // 更新
+    /**
+     * @brief 毎フレームの更新処理
+     * 
+     * タイマー更新、エフェクト更新、ImGuiデバッグ表示を行います。
+     * タイムアウト時には自動的にバフを解除します。
+     */
     void Update();
 
-    // コンボ数監視して条件達成なら開始
+    /**
+     * @brief カーネージモードの発動試行
+     * 
+     * 現在のコンボ数を監視し、条件を満たしていればカーネージモードを開始します。
+     * 既に発動中の場合は何もしません。
+     */
     void TryStart();
 
-    // タイマー延長
+    /**
+     * @brief タイマーの延長
+     * 
+     * カーネージモード中に敵を倒した際に呼び出され、タイマーを延長します。
+     * 延長時間はextensionTime_（デフォルト1秒）で設定されます。
+     */
     void ExtendTimer();
 
+    /**
+     * @brief カーネージモードがアクティブかどうかを判定
+     * 
+     * @return bool カーネージモード発動中の場合true
+     */
     bool IsActive() const;
+    
+    /**
+     * @brief 残り時間の取得
+     * 
+     * @return float カーネージモードの残り時間（秒）、非アクティブ時は0.0f
+     */
     float GetTimeLeft() const;
 
 private: // メンバ関数
-	// バフ適用/解除
+	/**
+	 * @brief バフの適用
+	 * 
+	 * プレイヤーに攻撃力・移動速度上昇バフを適用します。
+	 * カーネージモード開始時に呼び出されます。
+	 */
     void ApplyBuffs();
+    
+    /**
+     * @brief バフの解除
+     * 
+     * プレイヤーから攻撃力・移動速度上昇バフを解除します。
+     * カーネージモード終了時に呼び出されます。
+     */
     void RemoveBuffs();
-	// UI表示
+    
+	/**
+	 * @brief UIの表示
+	 * 
+	 * カーネージモード専用のUI要素を表示します。
+	 */
     void ShowUI();
+    
+    /**
+     * @brief UIの非表示
+     * 
+     * カーネージモード専用のUI要素を非表示にします。
+     */
     void HideUI();
+    
+    /**
+     * @brief ImGuiデバッグ表示
+     * 
+     * カーネージモードの状態をImGuiウィンドウに表示します。
+     */
     void ImGui();
 
 private: // メンバ変数
-    // プレイヤーのポインタ
-    Player* player_;
+    Player* player_; ///< 対象プレイヤーへのポインタ（非所有）
+	std::unique_ptr<CarnageModeEffect> effect_; ///< カーネージモード専用ビジュアルエフェクト
+    std::unique_ptr<Timer> timer_; ///< カーネージモード持続時間管理タイマー
 
-    // エフェクト
-	std::unique_ptr<CarnageModeEffect> effect_;
-
-    // カーネージモード用タイマー
-    std::unique_ptr<Timer> timer_;
-
-    // カーネージモード発動に必要なコンボ数
-    const int comboThreshold_ = 10;
-    // カーネージモード初期時間
-    const float initialTime_ = 8.0f;
-    // コンボ増加ごとのタイマー延長時間
-    const float extensionTime_ = 1.0f;
-
-    // 攻撃力上昇率（例：0.5f → 50%アップ）
-    float attackUpRate_ = 0.5f;
-	// 移動速度上昇率
-	float speedUpRate_ = 1.0f;
+    const int comboThreshold_ = 10; ///< カーネージモード発動に必要なコンボ数
+    const float initialTime_ = 8.0f; ///< カーネージモード初期持続時間（秒）
+    const float extensionTime_ = 1.0f; ///< 敵撃破時のタイマー延長時間（秒）
+    float attackUpRate_ = 0.5f; ///< 攻撃力上昇率（0.5 = 50%アップ）
+	float speedUpRate_ = 1.0f; ///< 移動速度上昇率（1.0 = 100%アップ、つまり2倍速）
 };

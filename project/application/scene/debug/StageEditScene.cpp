@@ -10,19 +10,20 @@
 
 void StageEditScene::Initialize()
 {
-	// 初期状態は Enter（必要な初期化は OnEnterEnter で行う／またはここで行う）
+	// Playing状態から開始
 	StartState(SceneState::Playing);
 
-	// 障害物マネージャーの初期化（生成と基本設定）
+	// ステージマネージャーの初期化
 	stageManager_ = std::make_unique<StageManager>();
 	stageManager_->Initialize(
 		sceneManager_->GetObject3dCommon(),
 		sceneManager_->GetLightManager(),
 		sceneManager_->GetCameraManager()
 	);
+	// デフォルトステージをロード
 	stageManager_->LoadStage("field");
 
-	// デバッグカメラの初期化（Start は OnEnterEnter で行っても良い）
+	// デバッグカメラの初期化（自由視点での編集を可能にする）
 	debugCamera_ = std::make_unique<DebugCamera>();
 	debugCamera_->Initialize(
 		sceneManager_->GetCameraManager()->GetActiveCamera()
@@ -32,25 +33,28 @@ void StageEditScene::Initialize()
 
 void StageEditScene::Finalize()
 {
-	// 必要なら解放処理
+	// リソース解放処理（現状は特になし）
 }
 
-// ----------------------------------------------------------------
-// フック実装
-// ----------------------------------------------------------------
+// ==================================================
+// 状態フック
+// ==================================================
 
 void StageEditScene::OnUpdatePlaying()
 {
 #ifdef USE_IMGUI
-	// ImGuiの描画
+	// ステージ編集用のImGuiインターフェース
 	ImGui::Begin("StageEditScene");
 	static std::string stageName = "field";
 	static char stageNameBuffer[128] = "field";
-	// ステージ読み込み
-	if (ImGui::InputText("S", stageNameBuffer, sizeof(stageNameBuffer)))
+	
+	// ステージ名入力フィールド
+	if (ImGui::InputText("Stage Name", stageNameBuffer, sizeof(stageNameBuffer)))
 	{
 		stageName = stageNameBuffer;
 	}
+	
+	// ステージロードボタン
 	if (ImGui::Button("Load Stage"))
 	{
 		stageManager_->LoadStage(stageName);
@@ -58,60 +62,61 @@ void StageEditScene::OnUpdatePlaying()
 	ImGui::End();
 #endif
 
-	// デバッグカメラの更新
+	// デバッグカメラの更新（WASD移動、マウス視点変更）
 	if (debugCamera_) debugCamera_->Update();
 
-	// ステージマネージャーの更新
+	// ステージ内オブジェクトの更新
 	if (stageManager_) stageManager_->Update();
 }
 
-// ----------------------------------------------------------------
-// 描画
-// ----------------------------------------------------------------
+// ==================================================
+// 描画処理
+// ==================================================
 
 void StageEditScene::Draw2D()
 {
+	// 2D要素の描画（現状は特になし）
 }
 
 void StageEditScene::Draw3D()
 {
 	float fieldSize = 300.0f;
 
-	// グリッドの描画
+	// グリッド描画（空間の把握を補助）
 	LineManager::GetInstance()->DrawGrid(
 		fieldSize,
 		3.0f,
 		VectorColorCodes::White
 	);
 
-	// 原点がわかるように球を描画
+	// 原点の可視化（赤い球）
 	LineManager::GetInstance()->DrawSphere(
 		Vector3(),
 		0.3f,
 		VectorColorCodes::Red
 	);
 
-	// X軸の線、少し浮かして見やすくする
+	// X軸の可視化（赤線）
 	LineManager::GetInstance()->DrawLine(
 		Vector3(-fieldSize, 0.05f, 0.0f),
 		Vector3(fieldSize, 0.05f, 0.0f),
 		VectorColorCodes::Red
 	);
 
-	// Y軸の線
+	// Y軸の可視化（緑線）
 	LineManager::GetInstance()->DrawLine(
 		Vector3(0.0f, -fieldSize, 0.0f),
 		Vector3(0.0f, fieldSize, 0.0f),
 		VectorColorCodes::Green
 	);
 
-	// Z軸の線、少し浮かして見やすくする
+	// Z軸の可視化（青線）
 	LineManager::GetInstance()->DrawLine(
 		Vector3(0.0f, 0.05f, -fieldSize),
 		Vector3(0.0f, 0.05f, fieldSize),
 		VectorColorCodes::Blue
 	);
 
-	// ステージマネージャーの描画
+	// ステージオブジェクトの描画
 	if (stageManager_) stageManager_->Draw();
 }
