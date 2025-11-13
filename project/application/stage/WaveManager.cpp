@@ -4,22 +4,24 @@
 
 WaveManager::WaveManager(EnemyManager* enemyManager, const std::vector<Wave>& waves)
 {
-	enemyManager_ = enemyManager; // 敵マネージャーのポインタを設定
-	waves_ = waves; // ウェーブのリストを設定
-	currentWaveIndex_ = 0; // 現在のウェーブインデックスを初期化
-	onAllWavesCleared_ = nullptr; // すべてのウェーブクリア時のコールバックを初期化
-	waitForNextWave_ = false; // 次のウェーブを待つフラグを初期化
-	waitTimer_ = 0.0f; // ウェイトタイマーを初期化
+	enemyManager_ = enemyManager;  // 敵マネージャーのポインタを保存
+	waves_ = waves;                // ウェーブリストをコピー
+	currentWaveIndex_ = 0;         // 最初のウェーブから開始
+	onAllWavesCleared_ = nullptr;  // コールバック未設定
+	waitForNextWave_ = false;      // 待機状態ではない
+	waitTimer_ = 0.0f;             // タイマー初期化
 }
 
 void WaveManager::Update()
 {
-	// ウェーブ間ウェイト演出処理例
+	// ウェーブ間の待機処理
 	if (waitForNextWave_)
 	{
+		// デルタタイムを減算してタイマーを進める
 		waitTimer_ -= TimeManager::GetInstance().GetGameContext().deltaTime;
 		if (waitTimer_ <= 0.0f)
 		{
+			// 待機時間終了：次のウェーブを開始
 			waitForNextWave_ = false;
 			++currentWaveIndex_;
 			StartCurrentWave();
@@ -30,6 +32,7 @@ void WaveManager::Update()
 
 void WaveManager::SkipToNextWave()
 {
+	// 待機をキャンセルして次のウェーブを即座に開始（デバッグ用）
 	waitForNextWave_ = false;
 	waitTimer_ = 0.0f;
 	++currentWaveIndex_;
@@ -38,22 +41,31 @@ void WaveManager::SkipToNextWave()
 
 void WaveManager::StartCurrentWave()
 {
+	// 全ウェーブ終了チェック
 	if (currentWaveIndex_ >= waves_.size())
 	{
+		// 全ウェーブクリア時のコールバックを実行
 		if (onAllWavesCleared_) onAllWavesCleared_();
 		return;
 	}
+
+	// 現在のウェーブにクリアコールバックを設定
+	// ウェーブクリア時に待機状態に入る
 	waves_[currentWaveIndex_].SetOnClearCallback([this]() {
-		waitForNextWave_ = true; // 次のウェーブを待つフラグを立てる
-		waitTimer_ = 2.0f; // ウェイトタイマーを設定（例: 2秒）
+		waitForNextWave_ = true;  // 次のウェーブまで待機
+		waitTimer_ = 2.0f;        // 2秒間の待機時間を設定
 												 });
+
+	// ウェーブを開始（敵をスポーン）
 	waves_[currentWaveIndex_].Start(enemyManager_);
 }
 
 void WaveManager::Start()
 {
-	if (waves_.empty()) { return; } // ウェーブがない場合は何もしない
+	// ウェーブが存在しない場合は早期リターン
+	if (waves_.empty()) { return; }
 
-	StartCurrentWave(); // 現在のウェーブを開始
+	// 最初のウェーブを開始
+	StartCurrentWave();
 }
 
