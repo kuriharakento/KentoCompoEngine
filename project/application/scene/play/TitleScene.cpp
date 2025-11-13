@@ -12,45 +12,45 @@
 
 void TitleScene::Initialize()
 {
-	// BGM再生
+	// タイトルBGMをループ再生で開始
 	Audio::GetInstance()->LoadWave("title_bgm", "bgm/title.wav", SoundGroup::BGM);
 	Audio::GetInstance()->PlayWave("title_bgm", true);
 	Audio::GetInstance()->SetVolume("title_bgm", 0.2f);
 
-	// スペースを押したときの効果音
+	// スタートボタン押下時の効果音をロード
 	Audio::GetInstance()->LoadWave("start_se", "se/tap.wav", SoundGroup::SE);
 
-	// カメラ設定
+	// カメラ初期位置の設定
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate(Vector3(0.0f, 1.5f, -15.0f));
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetRotate(Vector3());
 
-	// タイトルロゴの生成
+	// タイトルロゴの生成と配置
 	titleLogo_ = std::make_unique<Sprite>();
 	titleLogo_->Initialize(sceneManager_->GetSpriteCommon(), "./Resources/title_logo.png");
 	titleLogo_->SetPosition({ 640.0f, 100.0f });
 	titleLogo_->SetAnchorPoint({ 0.5f, 0.5f });
 	titleLogo_->SetSize({ 300.0f, 200.0f });
 
-	// スカイドームの生成
+	// スカイドーム（背景天球）の生成
 	skydome_ = std::make_unique<Object3d>();
 	skydome_->Initialize(sceneManager_->GetObject3dCommon());
 	skydome_->SetModel("skydome");
 	skydome_->SetLightManager(sceneManager_->GetLightManager());
 	skydome_->SetEnableLighting(true);
 	skydome_->SetDirectionalLightIntensity(0.5f);
-	// ディレクショナルライトを下から上に照らす
 	skydome_->SetDirectionalLightDirection({ 0.0f, -1.0f, 0.0f });
 	skydome_->SetScale({ 0.8f, 0.8f, 0.8f });
 
-	// 炎エフェクトの生成
+	// 炎エフェクトの初期化（タイトル演出用）
 	fireEffect_ = std::make_unique<TitleFireEffect>();
 	fireEffect_->Initialize();
 
-	// キューブの初期化
+	// 装飾用キューブの初期化
 	cube_.center = Vector3(0.0f, 1.0f, 10.0f);
 	cube_.size = Vector3(1.0f, 1.0f, 1.0f);
 	cube_.rotate = MakeRotateYMatrix(0.0f);
 
+	// シーン遷移エフェクトの初期化
 	transitionEffect_.Initialize(
 		sceneManager_->GetSpriteCommon(),
 		"./Resources/black.png",
@@ -58,26 +58,28 @@ void TitleScene::Initialize()
 		1280.0f, 720.0f
 	);
 
-	// 色収差を有効化
+	// 色収差エフェクトを有効化してレトロ風の雰囲気を演出
 	sceneManager_->GetPostProcessManager()->crtEffect_->SetEnabled(true);
 	sceneManager_->GetPostProcessManager()->crtEffect_->SetCrtEnabled(true);
 	sceneManager_->GetPostProcessManager()->crtEffect_->SetChromaticAberrationEnabled(true);
 	sceneManager_->GetPostProcessManager()->crtEffect_->SetChromaticAberrationOffset(10.0f);
 
-	// 初期状態は Enter（シーン開始時のフェード等を行う）
+	// Playing状態から開始
 	StartState(SceneState::Playing);
 }
 
 void TitleScene::Finalize()
 {
-	// 色収差を無効化
+	// 色収差エフェクトを無効化
 	sceneManager_->GetPostProcessManager()->crtEffect_->SetEnabled(false);
 
 	// BGM停止
 	Audio::GetInstance()->StopWave("title_bgm");
 }
 
-// Playing（タイトル待機状態。ボタン入力で遷移）
+// ==================================================
+// Playing状態（タイトル表示・入力待ち）
+// ==================================================
 void TitleScene::OnEnterPlaying()
 {
 }
