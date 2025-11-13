@@ -85,22 +85,21 @@ void CarnageModeEffect::Initialize()
 
 void CarnageModeEffect::PlayAuraEffect(const Vector3& position)
 {
-    // 爆発的な赤黒炎オーラ＋黒煙
-    auraEmitter_->Start(&position, 32, 0.0f, false); // 32個・超大型
+    // 周囲を包む赤黒いオーラと黒煙を大量発生（32個と24個の大型パーティクル）
+    auraEmitter_->Start(&position, 32, 0.0f, false);
     smokeEmitter_->Start(&position, 24, 0.0f, false);
 }
 
 void CarnageModeEffect::PlayTrailEffect(const Vector3& position, const Vector3& direction)
 {
-    // 炎の軌跡
-    trailEmitter_->Start(&position, 12, 0.01f, true); // 多め
-    // 稲妻の閃光も同時に
+    // 移動時の炎の軌跡と稲妻を連続発生
+    trailEmitter_->Start(&position, 12, 0.01f, true);
     lightningEmitter_->Start(&position, 6, 0.02f, true);
 }
 
 void CarnageModeEffect::PlayEndEffect(const Vector3& position)
 {
-    // 爆発的大型バースト
+    // 終了時の爆発的な演出（バースト、煙、稲妻を同時に大量発生）
     burstEmitter_->Start(&position, 32, 0.07f, false);
     smokeEmitter_->Start(&position, 24, 0.07f, false);
     lightningEmitter_->Start(&position, 12, 0.05f, false);

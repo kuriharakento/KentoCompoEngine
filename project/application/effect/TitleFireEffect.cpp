@@ -73,14 +73,18 @@ void TitleFireEffect::Initialize()
 
 void TitleFireEffect::Update(const Vector3& cameraPos)
 {
+	// 床面エフェクトをカメラ位置に追従
 	floorPos = cameraPos;
 	floorPos.y = groundY_;
+	
+	// タイマー更新と炎発生判定
     if (time >= 0.0f)
     {
         time -= TimeManager::GetInstance().GetGameContext().deltaTime;
 	}
 	else
 	{
+		// インターバル経過後、新たな炎柱を発生
         time = interval_;
         
         EmitFire(cameraPos);
@@ -90,18 +94,10 @@ void TitleFireEffect::Update(const Vector3& cameraPos)
 
 void TitleFireEffect::EmitFire(const Vector3& position)
 {
+	// カメラ前方の左右位置に炎柱を配置
 	Vector3 leftPos = position + Vector3(-laneOffset_, groundY_, 10.0f);
 	Vector3 rightPos = position + Vector3(laneOffset_, groundY_, 10.0f);
-	fireEmitterRight_->Start(
-		rightPos,
-		7,
-		0.5f,
-		false
-	);
-	fireEmitterLeft_->Start(
-		leftPos,
-		7,
-		0.5f,
-		false
-	);
+	
+	fireEmitterRight_->Start(rightPos, 7, 0.5f, false);
+	fireEmitterLeft_->Start(leftPos, 7, 0.5f, false);
 }

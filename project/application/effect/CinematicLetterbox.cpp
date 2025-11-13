@@ -11,25 +11,26 @@ void CinematicLetterbox::Initialize(SpriteCommon* spriteCommon, const std::strin
     screenWidth_ = screenWidth;
     screenHeight_ = screenHeight;
 
-    // 上部のバー（オーバーシュート分も含めて大きめに作成）
+    // 上部のバー作成（オーバーシュート対応のため余白を含めて大きめに作成）
     topBar_ = std::make_unique<Sprite>();
     topBar_->Initialize(spriteCommon, texturePath);
     topBar_->SetSize({ screenWidth_, letterboxHeight_ + overshootMargin_ });
-    topBar_->SetAnchorPoint({ 0.0f, 1.0f }); // 下端を基準にする
+    topBar_->SetAnchorPoint({ 0.0f, 1.0f }); // 下端を基準にすることで、画面上部から降りてくる動きを実現
     topBar_->SetColor(color_);
-    topBar_->SetPosition({ 0.0f, 0.0f }); // 初期位置は画面上端
+    topBar_->SetPosition({ 0.0f, 0.0f });
 
-    // 下部のバー（オーバーシュート分も含めて大きめに作成）
+    // 下部のバー作成（オーバーシュート対応のため余白を含めて大きめに作成）
     bottomBar_ = std::make_unique<Sprite>();
     bottomBar_->Initialize(spriteCommon, texturePath);
     bottomBar_->SetSize({ screenWidth_, letterboxHeight_ + overshootMargin_ });
-    bottomBar_->SetAnchorPoint({ 0.0f, 0.0f }); // 上端を基準にする
+    bottomBar_->SetAnchorPoint({ 0.0f, 0.0f }); // 上端を基準にすることで、画面下部から上がってくる動きを実現
     bottomBar_->SetColor(color_);
-    bottomBar_->SetPosition({ 0.0f, screenHeight_ }); // 初期位置は画面下端
+    bottomBar_->SetPosition({ 0.0f, screenHeight_ });
 }
 
 void CinematicLetterbox::Show(float duration)
 {
+    // 既に表示中または表示済みの場合は早期リターン
     if (state_ == LetterboxState::Visible || state_ == LetterboxState::Showing)
         return;
 
@@ -40,6 +41,7 @@ void CinematicLetterbox::Show(float duration)
 
 void CinematicLetterbox::Hide(float duration)
 {
+    // 既に非表示中または非表示済みの場合は早期リターン
     if (state_ == LetterboxState::Hidden || state_ == LetterboxState::Hiding)
         return;
 
@@ -55,13 +57,14 @@ void CinematicLetterbox::Update()
 
     float deltaTime = TimeManager::GetInstance().GetUIContext().deltaTime;
 
-    // アニメーション処理
+    // 表示アニメーション処理
     if (state_ == LetterboxState::Showing)
     {
         elapsed_ += deltaTime;
         float t = std::clamp(elapsed_ / duration_, 0.0f, 1.0f);
         progress_ = ApplyEasing(t);
 
+        // アニメーション完了判定
         if (t >= 1.0f)
         {
             state_ = LetterboxState::Visible;
@@ -70,12 +73,14 @@ void CinematicLetterbox::Update()
 
         UpdateBarPositions();
     }
+    // 非表示アニメーション処理
     else if (state_ == LetterboxState::Hiding)
     {
         elapsed_ += deltaTime;
         float t = std::clamp(elapsed_ / duration_, 0.0f, 1.0f);
-        progress_ = 1.0f - ApplyEasing(t);
+        progress_ = 1.0f - ApplyEasing(t); // 逆方向のイージング適用
 
+        // アニメーション完了判定
         if (t >= 1.0f)
         {
             state_ = LetterboxState::Hidden;
@@ -88,7 +93,7 @@ void CinematicLetterbox::Update()
 
 void CinematicLetterbox::Draw()
 {
-    // 完全に非表示の場合は描画しない
+    // 完全に非表示の場合は描画コストを削減するため早期リターン
     if (state_ == LetterboxState::Hidden && progress_ <= 0.0f)
         return;
 
@@ -123,21 +128,22 @@ void CinematicLetterbox::UpdateBarPositions()
 {
     if (!topBar_ || !bottomBar_) return;
 
-    // 上部のバーの位置
+    // 上部のバー位置を計算（画面上端から進行度に応じて降りてくる）
     float topY = letterboxHeight_ * progress_;
     topBar_->SetPosition({ 0.0f, topY });
 
-    // 下部のバーの位置
+    // 下部のバー位置を計算（画面下端から進行度に応じて上がってくる）
     float bottomY = screenHeight_ - (letterboxHeight_ * progress_);
     bottomBar_->SetPosition({ 0.0f, bottomY });
 
-    // 更新
+    // スプライトの変換行列を更新
 	topBar_->Update();
 	bottomBar_->Update();
 }
 
 float CinematicLetterbox::ApplyEasing(float t) const
 {
+    // 設定されたイージングタイプに応じた補間関数を適用
     switch (easeType_)
     {
     case LetterboxEase::Linear:

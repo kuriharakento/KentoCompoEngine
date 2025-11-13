@@ -18,7 +18,7 @@ void SceneTransitionEffect::Initialize(SpriteCommon* spriteCommon, const std::st
 	float cellWidth = screenWidth_ / gridX_;
 	float cellHeight = screenHeight_ / gridY_;
 
-	// 初期化時
+	// グリッド状にスプライトを配置
 	for (int y = 0; y < gridY_; ++y)
 	{
 		gridSprites_[y].resize(gridX_);
@@ -29,9 +29,11 @@ void SceneTransitionEffect::Initialize(SpriteCommon* spriteCommon, const std::st
 			gridSprites_[y][x]->SetSize({ cellWidth, cellHeight });
 			gridSprites_[y][x]->SetPosition({ x * cellWidth, y * cellHeight });
 			gridSprites_[y][x]->SetAnchorPoint({ 0.0f, 0.0f });
+			
+			// 各グリッドにグラデーションカラーを適用
 			float gridProgress = CalcGridProgress(x, y);
-			Vector4 color = LerpColor(startColor_, endColor_, gridProgress); // RGB, A=1.0
-			color.w = 1.0f; // 初期は不透明
+			Vector4 color = LerpColor(startColor_, endColor_, gridProgress);
+			color.w = 1.0f;
 			gridSprites_[y][x]->SetColor(color);
 		}
 	}
@@ -45,14 +47,15 @@ void SceneTransitionEffect::Start(float duration, const Vector4& startColor, con
 	state_ = TransitionState::Playing;
 	startColor_ = startColor;
 	endColor_ = endColor;
-	// グラデーション再設定（必要なら再設定）
+	
+	// 新しい色設定でグラデーションを再適用
 	for (int y = 0; y < gridY_; ++y)
 	{
 		for (int x = 0; x < gridX_; ++x)
 		{
 			float gridProgress = CalcGridProgress(x, y);
 			Vector4 color = LerpColor(startColor_, endColor_, gridProgress);
-			color.w = (fadeType_ == FadeType::FadeOut) ? 1.0f : 0.0f; // フェードインは初期透明
+			color.w = (fadeType_ == FadeType::FadeOut) ? 1.0f : 0.0f;  // フェードタイプに応じた初期透明度
 			gridSprites_[y][x]->SetColor(color);
 		}
 	}
@@ -60,11 +63,11 @@ void SceneTransitionEffect::Start(float duration, const Vector4& startColor, con
 
 void SceneTransitionEffect::Update()
 {
-	// ImGuiの表示
 	ShowImGui();
 
 	float deltaTime = TimeManager::GetInstance().GetUIContext().deltaTime;
 
+	// 再生中の場合、進行度を更新
 	if (state_ == TransitionState::Playing)
 	{
 		elapsed_ += deltaTime;
@@ -75,15 +78,20 @@ void SceneTransitionEffect::Update()
 		}
 	}
 
+	// 各グリッドセルの透明度を計算して更新
 	for (int y = 0; y < gridY_; ++y)
 	{
 		for (int x = 0; x < gridX_; ++x)
 		{
+			// このグリッドの開始タイミングを取得
 			float gridProgress = CalcGridProgress(x, y);
+			// グリッド固有の進行度を計算（全体進行度からグリッド開始点を差し引く）
 			float fadeProgress = (transitionRate_ - gridProgress) / (1.0f - gridProgress);
 			fadeProgress = std::clamp(fadeProgress, 0.0f, 1.0f);
 
+			// イージングを適用
 			float baseAlpha = ApplyEasing(fadeProgress);
+			// フェードタイプに応じて透明度を反転
 			float alpha = (fadeType_ == FadeType::FadeOut) ? 1.0f - baseAlpha : baseAlpha;
 
 			Vector4 color = gridSprites_[y][x]->GetColor();
