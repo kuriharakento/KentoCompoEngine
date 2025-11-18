@@ -12,6 +12,7 @@
 // system
 #include "manager/graphics/LineManager.h"
 #include "manager/effect/ParticleManager.h"
+#include <time/TimeManager.h>
 
 
 ParticleEmitter::~ParticleEmitter()
@@ -341,7 +342,7 @@ void ParticleEmitter::Emit()
 {
 	if (!isPlaying_) return;
 
-	emitTime_ += 1.0f / 60.0f;
+	emitTime_ += TimeManager::GetInstance().GetGameContext().deltaTime;
 	timeSinceLastEmit_ += 1.0f / 60.0f;
 
 	if (emitTime_ >= duration_)

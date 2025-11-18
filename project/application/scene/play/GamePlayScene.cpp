@@ -285,47 +285,62 @@ void GamePlayScene::OnExitPlaying()
 // ==================================================
 void GamePlayScene::OnEnterEnd()
 {
-	// ゲームオーバー演出：色収差エフェクトで視覚的インパクトを演出
-	auto* ppm = sceneManager_->GetPostProcessManager();
-	ppm->crtEffect_->SetEnabled(true);
-	ppm->crtEffect_->SetCrtEnabled(true);
-	ppm->crtEffect_->SetChromaticAberrationEnabled(true);
+	// ゲームオーバー演出初期化
+	if (gameOver_)
+	{
+		// 色収差エフェクト有効化
+		auto* ppm = sceneManager_->GetPostProcessManager();
+		ppm->crtEffect_->SetEnabled(true);
+		ppm->crtEffect_->SetCrtEnabled(true);
+		ppm->crtEffect_->SetChromaticAberrationEnabled(true);
 
-	// プレイヤー死亡時の画面エフェクト開始
-	playerDeathEffect_.Play(1.5f);
+		// プレイヤー死亡エフェクト開始
+		playerDeathEffect_.Play(1.5f);
+	}
+	// ゲームクリア演出初期化
+	else if (gameClear_)
+	{
+		// レターボックス開始
+		cinematicLetterbox_.Show(1.0f);
+	}
 }
 
 void GamePlayScene::OnUpdateEnd()
 {
-	// プレイヤー死亡エフェクトの更新
-	playerDeathEffect_.Update();
-
-	// 経過時間を記録
-	gameOverEffectElapsed_ += TimeManager::GetInstance().GetGameContext().deltaTime;
-
-	// 色収差エフェクトを減衰振動させて臨場感を演出
-	const float frequencyHz = 4.0f;  // 振動周波数（Hz）
-	const float maxOscAmp = 35.0f;   // 初期振幅
-	const float decayRate = 2.8f;    // 減衰率（高いほど早く収束）
-
-	// 指数減衰エンベロープで振動を自然に収束
-	float envelope = maxOscAmp * std::exp(-decayRate * gameOverEffectElapsed_);
-	if (envelope < 0.001f)
+	if (gameOver_)
 	{
-		// 微小値は0にして計算コスト削減
-		envelope = 0.0f;
+		// プレイヤー死亡エフェクト更新
+		playerDeathEffect_.Update();
+
+		// 時間経過
+		gameOverEffectElapsed_ += TimeManager::GetInstance().GetGameContext().deltaTime;
+
+		// 色収差を振幅で揺らす
+		const float frequencyHz = 4.0f;  // 1秒間に4回揺れる
+		const float maxOscAmp = 35.0f;   // 初期最大振幅
+		const float decayRate = 2.8f;    // 大きいほど速く収束
+
+		// 指数減衰で自然に収束させる
+		float envelope = maxOscAmp * std::exp(-decayRate * gameOverEffectElapsed_);
+		if (envelope < 0.001f)
+		{
+			// 微小値切り捨て
+			envelope = 0.0f;
+		}
+
+		const float twoPi = std::numbers::pi_v<float> *2.0f;
+		float oscill = std::sinf(gameOverEffectElapsed_ * frequencyHz * twoPi) * envelope;
+
+		// 純粋な振幅をセット（ベース値は加えない）
+		auto* ppm = sceneManager_->GetPostProcessManager();
+		ppm->crtEffect_->SetChromaticAberrationOffset(oscill);
+
+		if (playerDeathEffect_.IsFinished())
+		{
+			ChangeState(SceneState::Exit);
+		}
 	}
-
-	// 正弦波による振動
-	const float twoPi = std::numbers::pi_v<float> *2.0f;
-	float oscill = std::sinf(gameOverEffectElapsed_ * frequencyHz * twoPi) * envelope;
-
-	// 色収差オフセットに振動値を適用
-	auto* ppm = sceneManager_->GetPostProcessManager();
-	ppm->crtEffect_->SetChromaticAberrationOffset(oscill);
-
-	// 死亡エフェクト完了でExit状態へ遷移
-	if (playerDeathEffect_.IsFinished())
+	else if (gameClear_)
 	{
 		ChangeState(SceneState::Exit);
 	}
