@@ -2,6 +2,7 @@
 
 // math
 #include "math/MathUtils.h"
+#include <time/TimeManager.h>
 
 void OrbitCameraWork::Initialize(Camera* camera)
 {
@@ -24,21 +25,28 @@ void OrbitCameraWork::Update()
 	Vector3 rotation = MathUtils::CalculateYawPitchFromDirection(toTarget);
     camera_->SetRotate(rotation);
 	//時間経過
-    time_ += speed_ * 0.016f;
+	float deltaTime = (deltaType_ == DeltaTimeType::DeltaTime) ?
+		TimeManager::GetInstance().GetGameContext().deltaTime :
+		TimeManager::GetInstance().GetGameContext().realDeltaTime;
+	time_ += speed_ * deltaTime;
 }
 
-void OrbitCameraWork::Start(Vector3 target, float radius, float speed)
+void OrbitCameraWork::Start(Vector3 target, float radius, float speed, float initialAngle, DeltaTimeType deltaType)
 {
 	targetValue_ = target;
 	radius_ = radius;
 	speed_ = speed;
+	time_ = MathUtils::NormalizeAngleRad(initialAngle);
 	isActive_ = true;
+	deltaType_ = deltaType;
 }
 
-void OrbitCameraWork::Start(const Vector3* target, float radius, float speed)
+void OrbitCameraWork::Start(const Vector3* target, float radius, float speed, float initialAngle, DeltaTimeType deltaType)
 {
 	targetPtr_ = target;
 	radius_ = radius;
 	speed_ = speed;
+	time_ = MathUtils::NormalizeAngleRad(initialAngle);
 	isActive_ = true;
+	deltaType_ = deltaType;
 }

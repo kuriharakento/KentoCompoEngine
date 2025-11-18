@@ -240,16 +240,16 @@ void GamePlayScene::OnUpdatePlaying()
 	// ステージクリア判定
 	if (stageManager_->IsStageCleared())
 	{
-		ChangeState(SceneState::End);
 		gameClear_ = true;
+		ChangeState(SceneState::End);
 		return;
 	}
 
 	// ゲームオーバー判定（プレイヤー死亡）
 	if (!stageManager_->GetPlayer()->IsAlive())
 	{
-		ChangeState(SceneState::End);
 		gameOver_ = true;
+		ChangeState(SceneState::End);
 		return;
 	}
 
@@ -308,20 +308,37 @@ void GamePlayScene::OnEnterEnd()
 		cinematicLetterbox_.Show(1.0f);
 
 		// タイマーを作成
-		auto timer = std::make_unique<Timer>("GameClearToExitTimer", 1.5f, DeltaTimeType::RealDeltaTime);
-		timer->SetDuration(1.5f);
+		auto timer = std::make_unique<Timer>("GameClearToExitTimer", 2.0f, DeltaTimeType::RealDeltaTime);
 
 		timer->SetOnFinish([this]() {
 			ChangeState(SceneState::Exit);
 						   });
 
-		TimerManager::GetInstance().AddTimer(std::move(timer));
+		TimerManager::GetInstance().AddTimer(std::move(timer));	
 
-		// カメラをオービットモードに切り替え
+		// プレイヤーの yaw（ラジアン）を取得
+		float playerYaw = stageManager_->GetPlayer()->GetRotation().y;
+
+		// プレイヤーの前方ベクトル
+		Vector3 forward = { std::sin(playerYaw), 0.0f, std::cos(playerYaw) };
+
+		// orbit の角度は (cos, sin) = (x, z) の順なので atan2(z, x) を使う
+		float baseOrbitAngle = std::atan2(forward.z, forward.x); // = π/2 - playerYaw
+
+		// オフセット（度→ラジアン）
+		const float offsetDeg = -30.0f; // 右寄りなら正/負は見た目で調整
+		float offsetRad = offsetDeg * std::numbers::pi_v<float> / 180.0f;
+
+		// 初期角度（正規化）
+		float initialAngle = MathUtils::NormalizeAngleRad(baseOrbitAngle + offsetRad);
+
+		// オービット開始（演出はリアル時間）
 		orbitCamera_->Start(
 			&stageManager_->GetPlayer()->GetPosition(),
-			15.0f,   // 半径
-			0.5f     // 速度
+			15.0f,                        // 半径
+			0.5f,                         // 速度（ラジアン/秒）
+			initialAngle,                 // 初期角（ラジアン）
+			DeltaTimeType::RealDeltaTime  // 時間種別
 		);
 	}
 }

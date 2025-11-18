@@ -46,6 +46,12 @@ void EnemyManager::Update()
 		AddKnifeEnemy(1); // ナイフ敵を1体追加
 	}
 
+	// 敵の削除
+	if(ImGui::Button("Clear All Enemies"))
+	{
+		enemies_.clear();
+	}
+
 	ImGui::SeparatorText("Enemies Info");
 
 	// 各敵の情報表示

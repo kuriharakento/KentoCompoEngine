@@ -1,6 +1,7 @@
 #pragma once
 // camerawork
 #include "camerawork/base/CameraWorkBase.h"
+#include <time/Timer.h>
 
 class OrbitCameraWork : public CameraWorkBase
 {
@@ -9,10 +10,10 @@ public: //メンバ関数
 	void Initialize(Camera* camera) override;
 	//更新
 	void Update() override;
-	//ターゲットを指定して開始
-	void Start(Vector3 target, float radius, float speed);
-	//ターゲットのポインタを指定して開始
-	void Start(const Vector3* target, float radius, float speed);
+	//ターゲットを指定して開始（initialAngle はラジアン。既定は 0）
+	void Start(Vector3 target, float radius, float speed, float initialAngle = 0.0f, DeltaTimeType deltaType = DeltaTimeType::DeltaTime);
+	//ターゲットのポインタを指定して開始（initialAngle はラジアン。既定は 0）
+	void Start(const Vector3* target, float radius, float speed, float initialAngle = 0.0f, DeltaTimeType deltaType = DeltaTimeType::DeltaTime);
 	//終了
 	void Stop() { isActive_ = false; }
 public:	//アクセッサ
@@ -34,5 +35,8 @@ private:
 	float speed_;							//回転速度
 	float time_ = 0.0f;						//時間経過
 	bool isActive_ = false;					//動作フラグ
+
+	// 時間タイプ（DeltaTime or RealDeltaTime）
+	DeltaTimeType deltaType_ = DeltaTimeType::DeltaTime;
 };
 
