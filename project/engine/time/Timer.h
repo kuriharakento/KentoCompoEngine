@@ -11,6 +11,15 @@ enum class DeltaTimeType
 class Timer
 {
 public:
+    // 既定コンストラクタ（安全な初期化）
+    Timer()
+        : name_(""), duration_(0.0f), elapsed_(0.0f), running_(false), finished_(false), deltaTimeType_(DeltaTimeType::DeltaTime)
+    {
+        onStart = []() {};
+        onTick_ = [](float) {};
+        onFinish_ = []() {};
+    }
+
     // コンストラクタ
     Timer(const std::string& name, float duration, DeltaTimeType deltaType = DeltaTimeType::DeltaTime)
 		: name_(name), duration_(duration), elapsed_(0.0f), running_(false), finished_(false), deltaTimeType_(deltaType)

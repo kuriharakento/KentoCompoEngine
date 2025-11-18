@@ -57,6 +57,20 @@ void SceneManager::Update()
 	{
 		ChangeScene(SceneNames::ParticleTest);
 	}
+	// --- シーンのステートを直接変更するデバッグ UI ---
+	if (currentScene_)
+	{
+		ImGui::SeparatorText("Scene State");
+		const char* stateNames[] = { "None", "Enter", "Intro", "Playing", "Paused", "Cutscene", "End", "Exit" };
+		int current = static_cast<int>(currentScene_->GetCurrentState());
+		static int selectedState = current;
+		// UI と内部状態を常に同期しておく
+		if (selectedState != current) selectedState = current;
+		if (ImGui::Combo("State", &selectedState, stateNames, IM_ARRAYSIZE(stateNames)))
+		{
+			currentScene_->DebugSetState(static_cast<SceneState>(selectedState));
+		}
+	}
 	ImGui::End();
 #endif
 

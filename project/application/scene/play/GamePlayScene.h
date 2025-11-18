@@ -25,6 +25,7 @@
 #include "application/minimap/Minimap.h"
 #include "effects/particle/ParticleEmitter.h"
 #include "graphics/2d/NumberSprite.h"
+#include <camerawork/orbit/OrbitCameraWork.h>
 
 /**
  * @brief メインゲームプレイシーン
@@ -201,6 +202,7 @@ private: //メンバ変数
     std::unique_ptr<CarnageMode> carnageMode_; ///< カーネージモード（コンボ達成時の強化システム）
     std::unique_ptr<SplineCamera> splineCamera_; ///< スプラインカメラ（演出用）
     std::unique_ptr<TopDownCamera> topDownCamera_; ///< トップダウンカメラ（ゲームプレイ用）
+	std::unique_ptr<OrbitCameraWork> orbitCamera_; ///< オービットカメラワーク（デバッグ用）
     std::unique_ptr<EnemyManager> enemyManager_; ///< 敵管理
     std::unique_ptr<ObstacleManager> obstacleManager_; ///< 障害物管理
     std::unique_ptr<StageManager> stageManager_; ///< ステージ・プレイヤー管理

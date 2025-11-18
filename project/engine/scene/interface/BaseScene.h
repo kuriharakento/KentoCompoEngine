@@ -94,6 +94,11 @@ public:
         ChangeState(previousState_ == SceneState::Paused ? SceneState::Playing : previousState_);
     }
 
+#ifdef USE_IMGUI
+    // デバッグ用: 外部から強制的に状態を変更する（ImGui用）
+    void DebugSetState(SceneState next) { ChangeState(next); }
+#endif
+
 protected:
     /**
      * @brief 初期状態をセットする

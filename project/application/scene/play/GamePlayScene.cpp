@@ -95,6 +95,10 @@ void GamePlayScene::Initialize()
 	topDownCamera_->SetYaw(1.0f);
 	topDownCamera_->SetHeight(43.0f);
 
+	// オービットカメラの生成（特定オブジェクトを中心に回転するカメラ）
+	orbitCamera_ = std::make_unique<OrbitCameraWork>();
+	orbitCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
+
 	// カーネージモードの初期化（コンボ達成時の強化システム）
 	carnageMode_ = std::make_unique<CarnageMode>(stageManager_->GetPlayer());
 
@@ -232,7 +236,7 @@ void GamePlayScene::OnEnterPlaying()
 void GamePlayScene::OnUpdatePlaying()
 {
 	// ゲーム終了条件の判定（早期リターンでパフォーマンス向上）
-	
+
 	// ステージクリア判定
 	if (stageManager_->IsStageCleared())
 	{
@@ -302,6 +306,23 @@ void GamePlayScene::OnEnterEnd()
 	{
 		// レターボックス開始
 		cinematicLetterbox_.Show(1.0f);
+
+		// タイマーを作成
+		auto timer = std::make_unique<Timer>("GameClearToExitTimer", 1.5f, DeltaTimeType::RealDeltaTime);
+		timer->SetDuration(1.5f);
+
+		timer->SetOnFinish([this]() {
+			ChangeState(SceneState::Exit);
+						   });
+
+		TimerManager::GetInstance().AddTimer(std::move(timer));
+
+		// カメラをオービットモードに切り替え
+		orbitCamera_->Start(
+			&stageManager_->GetPlayer()->GetPosition(),
+			15.0f,   // 半径
+			0.5f     // 速度
+		);
 	}
 }
 
@@ -342,7 +363,8 @@ void GamePlayScene::OnUpdateEnd()
 	}
 	else if (gameClear_)
 	{
-		ChangeState(SceneState::Exit);
+		cinematicLetterbox_.Update();
+		orbitCamera_->Update();
 	}
 }
 
@@ -442,6 +464,17 @@ void GamePlayScene::DrawImGui()
 {
 #ifdef USE_IMGUI
 	ImGui::Begin("GameScene");
+
+	if (ImGui::Button("Clear"))
+	{
+		gameClear_ = true;
+		ChangeState(SceneState::End);
+	}
+	if (ImGui::Button("GameOver"))
+	{
+		gameOver_ = true;
+		ChangeState(SceneState::End);
+	}
 
 	static bool useDebugCamera = false;
 	static bool useSplineCamera = false;
