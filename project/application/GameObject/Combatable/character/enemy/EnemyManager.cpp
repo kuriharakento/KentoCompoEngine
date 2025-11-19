@@ -9,17 +9,18 @@
 
 void EnemyManager::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target)
 {
-	object3dCommon_ = object3dCommon; // 3Dオブジェクト共通処理
-	lightManager_ = lightManager; // ライトマネージャー
-	target_ = target; // ターゲット（プレイヤーなど）
-	enemies_.clear(); // 敵キャラクターのリストをクリア
-	// 敵キャラクターの出現範囲を設定
+	object3dCommon_ = object3dCommon;
+	lightManager_ = lightManager;
+	target_ = target;
+	enemies_.clear();
+	
+	// 敵の出現範囲を設定
 	emitRange_ = {
-		{ -10.0f, 1.0f, -10.0f }, // 最小座標
-		{ 10.0f, 1.0f, 10.0f }   // 最大座標
+		{ -10.0f, 1.0f, -10.0f },
+		{ 10.0f, 1.0f, 10.0f }
 	};
 
-	// エフェクトの初期化
+	// 死亡エフェクトの初期化
 	deathEffect_ = std::make_unique<EnemyDeathEffect>();
 	deathEffect_->Initialize();
 }
@@ -31,22 +32,21 @@ void EnemyManager::Update()
 	ImGui::Text("Enemy Count: %d", static_cast<int>(enemies_.size()));
 	if (ImGui::Button("Add Pistol Enemy"))
 	{
-		AddPistolEnemy(1); // ピストル敵を1体追加
+		AddPistolEnemy(1);
 	}
 	if (ImGui::Button("Add Assault Enemy"))
 	{
-		AddAssaultEnemy(1); // アサルト敵を1体追加
+		AddAssaultEnemy(1);
 	}
 	if (ImGui::Button("Add Shotgun Enemy"))
 	{
-		AddShotgunEnemy(1); // ショットガン敵を1体追加
+		AddShotgunEnemy(1);
 	}
 	if (ImGui::Button("Add Knife Enemy"))
 	{
-		AddKnifeEnemy(1); // ナイフ敵を1体追加
+		AddKnifeEnemy(1);
 	}
 
-	// 敵の削除
 	if(ImGui::Button("Clear All Enemies"))
 	{
 		enemies_.clear();
@@ -54,7 +54,6 @@ void EnemyManager::Update()
 
 	ImGui::SeparatorText("Enemies Info");
 
-	// 各敵の情報表示
 	for (size_t i = 0; i < enemies_.size(); ++i)
 	{
 		auto& enemy = enemies_[i];
@@ -62,7 +61,7 @@ void EnemyManager::Update()
 		ImGui::Text("Enemy #%zu", i);
 		Vector3 pos = enemy->GetPosition();
 		ImGui::Text("Position: (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
-		ImGui::Text("Type: %s", typeid(*enemy).name()); // 型名表示
+		ImGui::Text("Type: %s", typeid(*enemy).name());
 	}
 	ImGui::End();
 
@@ -70,23 +69,25 @@ void EnemyManager::Update()
 
 	for (auto& enemy : enemies_)
 	{
-		enemy->Update(); // 各敵キャラクターの更新
+		enemy->Update();
 	}
 
-	// 死亡した敵を enemies_ から取り除き、実際の破棄は pendingRemovals_ に移動して遅延させる
+	// 死亡した敵の処理と遅延破棄
 	for (auto it = enemies_.begin(); it != enemies_.end();)
 	{
 		if (!(*it)->IsAlive())
 		{
-			// 死亡時処理（エフェクトやコンボ）はここで行う
+			// 死亡エフェクトとコンボ加算
 			deathEffect_->PlayDeathEffect((*it)->GetPosition(), EnemyDeathEffect::EffectType::Electric);
 			ComboManager::GetInstance().OnEnemyDefeated();
+			
+			// カメラシェイク演出
 			if(camera_)
 			{
-				camera_->GetActiveCamera()->StartShake(0.45f, 0.3f); // カメラを揺らす
+				camera_->GetActiveCamera()->StartShake(0.45f, 0.3f);
 			}
 
-			// 移動して破棄を遅延
+			// 即座に破棄せず遅延破棄リストに移動（描画中の不正アクセス防止）
 			pendingRemovals_.push_back(std::move(*it));
 			it = enemies_.erase(it);
 		}
@@ -96,11 +97,11 @@ void EnemyManager::Update()
 		}
 	}
 
-	// 全滅判定（enemies_ が空になった時点で発火させる）
+	// 全滅判定（ウェーブシステムへの通知）
 	if (enemies_.empty() && onAllEnemiesDefeatedCallback_)
 	{
 		onAllEnemiesDefeatedCallback_();
-		onAllEnemiesDefeatedCallback_ = nullptr; // 一度だけ呼ぶ
+		onAllEnemiesDefeatedCallback_ = nullptr;  // 一度だけ実行
 	}
 }
 
@@ -108,7 +109,7 @@ void EnemyManager::UpdateTransform(CameraManager* camera)
 {
 	for (auto& enemy : enemies_)
 	{
-		enemy->UpdateTransform(camera); // 各敵キャラクターのTransform情報を更新
+		enemy->UpdateTransform(camera);
 	}
 }
 
@@ -116,10 +117,10 @@ void EnemyManager::Draw(CameraManager* camera)
 {
 	for (auto& enemy : enemies_)
 	{
-		enemy->Draw(camera); // 各敵キャラクターの描画
+		enemy->Draw(camera);
 	}
 
-	// Draw が終わったら pendingRemovals_ をクリアして実際にデストラクトさせる
+	// Draw終了後にデストラクタを呼び出して安全に破棄
 	CleanupPendingRemovals();
 }
 
@@ -129,10 +130,8 @@ void EnemyManager::AddPistolEnemy(uint32_t count)
 	{
 		auto enemy = std::make_unique<PistolEnemy>();
 		enemy->Initialize(object3dCommon_, lightManager_, target_);
-		//ランダムな位置を設定
 		Vector3 randomPosition = MathUtils::RandomVector3(emitRange_.min_, emitRange_.max_);
 		enemy->SetPosition(randomPosition);
-		// 敵キャラクターを追加
 		enemies_.push_back(std::move(enemy));
 	}
 }
@@ -143,10 +142,8 @@ void EnemyManager::AddAssaultEnemy(uint32_t count)
 	{
 		auto enemy = std::make_unique<AssaultEnemy>();
 		enemy->Initialize(object3dCommon_, lightManager_, target_);
-		//ランダムな位置を設定
 		Vector3 randomPosition = MathUtils::RandomVector3(emitRange_.min_, emitRange_.max_);
 		enemy->SetPosition(randomPosition);
-		// 敵キャラクターを追加
 		enemies_.push_back(std::move(enemy));
 	}
 }
@@ -157,10 +154,8 @@ void EnemyManager::AddShotgunEnemy(uint32_t count)
 	{
 		auto enemy = std::make_unique<ShotgunEnemy>();
 		enemy->Initialize(object3dCommon_, lightManager_, target_);
-		//ランダムな位置を設定
 		Vector3 randomPosition = MathUtils::RandomVector3(emitRange_.min_, emitRange_.max_);
 		enemy->SetPosition(randomPosition);
-		// 敵キャラクターを追加
 		enemies_.push_back(std::move(enemy));
 	}
 }
@@ -171,10 +166,8 @@ void EnemyManager::AddKnifeEnemy(uint32_t count)
 	{
 		auto enemy = std::make_unique<KnifeEnemy>();
 		enemy->Initialize(object3dCommon_, lightManager_, target_);
-		//ランダムな位置を設定
 		Vector3 randomPosition = MathUtils::RandomVector3(emitRange_.min_, emitRange_.max_);
 		enemy->SetPosition(randomPosition);
-		// 敵キャラクターを追加
 		enemies_.push_back(std::move(enemy));
 	}
 }
@@ -190,24 +183,18 @@ void EnemyManager::AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo
 {
 	for (int i = 0; i < data.size(); i++)
 	{
-		// NOTE:今は無理やりやっているがファクトリーパターンなどで拡張性を持たせるべき
-		// NOTE:処理がかぶっているのはKnifeのモデル用意していないからそれのせいです
 		// 敵キャラクターの種類に応じて生成
-		// アサルトの生成
 		if (data[i].fileName == "enemy" || data[i].fileName == "assault")
 		{
 			auto enemy = std::make_unique<AssaultEnemy>();
 			enemy->Initialize(object3dCommon_, lightManager_, target_, Transform(data[i].transform.scale, data[i].transform.rotate, data[i].transform.translate));
 			enemy->SetModel(data[i].fileName);
-			
 			enemies_.push_back(std::move(enemy));
 		}
-		// ナイフの生成
 		else if (data[i].fileName == "knife")
 		{
 			auto enemy = std::make_unique<KnifeEnemy>();
 			enemy->Initialize(object3dCommon_, lightManager_, target_, Transform(data[i].transform.scale, data[i].transform.rotate, data[i].transform.translate));
-			// NOTE:ここのせいで処理が増えている。本来はもっと簡潔になります。
 			enemy->SetModel("cube");
 			enemies_.push_back(std::move(enemy));
 		}
@@ -216,7 +203,7 @@ void EnemyManager::AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo
 
 void EnemyManager::Clear()
 {
-	enemies_.clear(); // 敵キャラクターのリストをクリア
+	enemies_.clear();
 }
 
 void EnemyManager::CreateAssaultEnemyFromData()
@@ -237,7 +224,6 @@ void EnemyManager::CleanupPendingRemovals()
 {
 	if (!pendingRemovals_.empty())
 	{
-		// ここで unique_ptr をスコープ外にして破棄される
 		pendingRemovals_.clear();
 	}
 }

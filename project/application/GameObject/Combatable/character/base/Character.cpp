@@ -4,14 +4,14 @@ void Character::Update()
 {
 	GameObject::Update();
 
-	// 無敵時間の更新
+	// 無敵時間の更新処理
 	if (isInvincible_)
 	{
-		invincibleTimer_ -= 1.0f / 60.0f; // フレームレートに応じて減少
+		invincibleTimer_ -= 1.0f / 60.0f;
 		if (invincibleTimer_ <= 0.0f)
 		{
 			invincibleTimer_ = 0.0f;
-			isInvincible_ = false; // 無敵状態解除
+			isInvincible_ = false;
 		}
 	}
 }
@@ -25,15 +25,14 @@ void Character::AddComponent(const std::string& name, std::unique_ptr<IGameObjec
 {
 	if (auto collider = dynamic_cast<ICollisionComponent*>(comp.get()))
 	{
-		// 衝突判定コンポーネントの場合は、衝突時の処理を設定
+		// 衝突判定コンポーネントの場合、サブクラス固有の衝突設定を適用
 		CollisionSettings(collider);
 	}
-	// コンポーネントを追加
 	GameObject::AddComponent(name, std::move(comp));
 }
 
 void Character::SetInvincible(float duration)
 {
 	isInvincible_ = true;
-	invincibleTimer_ = duration; // 無敵時間を設定
+	invincibleTimer_ = duration;
 }

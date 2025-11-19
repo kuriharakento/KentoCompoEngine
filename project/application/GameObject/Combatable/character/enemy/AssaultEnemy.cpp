@@ -8,13 +8,11 @@
 void AssaultEnemy::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target, const Transform& initialTransform)
 {
 	EnemyBase::Initialize(object3dCommon, lightManager, target, initialTransform);
-	// AssaultRifleのコンポーネントを追加
+	
+	// コンポーネントの追加
 	AddComponent("AssaultRifleComponent", std::make_unique<AssaultRifleComponent>(object3dCommon, lightManager));
-	// ビヘイビアコンポーネントを追加
 	AddComponent("AssaultEnemyBehavior", std::make_unique<AssaultEnemyBehavior>(target_));
-	// 重力演算コンポーネントを追加
 	AddComponent("GravityPhysicsComponent", std::make_unique<GravityPhysicsComponent>());
-	// OBBコライダーコンポーネントを追加
 	AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(this));
 }
 
@@ -30,11 +28,10 @@ void AssaultEnemy::Draw(CameraManager* camera)
 
 void AssaultEnemy::CollisionSettings(ICollisionComponent* collider)
 {
-	// スイープ判定を使用
+	// スイープ判定を使用（高速移動時の衝突漏れ防止）
 	collider->SetUseSubstep(true);
-	// 衝突時の処理を設定
+	
 	collider->SetOnEnter([this](GameObject* other) {
-		// 衝突した瞬間の処理
 		if (other->GetTag() == GameObjectTag::Weapon::PlayerBullet)
 		{
 			auto combatable = dynamic_cast<CombatableObject*>(other);
@@ -45,9 +42,7 @@ void AssaultEnemy::CollisionSettings(ICollisionComponent* collider)
 		}
 						 });
 	collider->SetOnStay([this](GameObject* other) {
-		// 衝突中の処理
 						});
 	collider->SetOnExit([this](GameObject* other) {
-		// 衝突が離れた時の処理
 						});
 }

@@ -12,11 +12,9 @@
 void Player::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, EnemyManager* enemyManager, CameraManager* camera)
 {
 	Character::Initialize(object3dCommon, lightManager);
-	//初期位置を設定
 	transform_.translate = { 0.0f, 1.0f, 0.0f };
 
-
-	// 試しに右腕を追加
+	// 右腕オブジェクトの生成（武器の親オブジェクト）
 	auto armR = std::make_unique<GameObject>(GameObjectTag::Character::PlayerRightArm);
 	armR->Initialize(object3dCommon, lightManager);
 	armR->SetModel("cube");
@@ -25,7 +23,7 @@ void Player::Initialize(Object3dCommon* object3dCommon, LightManager* lightManag
 	armR->GetModel()->SetColor(VectorColorCodes::Red);
 	AddChild(GameObjectTag::Character::PlayerRightArm, std::move(armR));
 
-	// 左腕も追加してみる
+	// 左腕オブジェクトの生成
 	auto armL = std::make_unique<GameObject>(GameObjectTag::Character::PlayerLeftArm);
 	armL->Initialize(object3dCommon, lightManager);
 	armL->SetModel("cube");
@@ -34,13 +32,10 @@ void Player::Initialize(Object3dCommon* object3dCommon, LightManager* lightManag
 	armL->AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(armL.get()));
 	AddChild(GameObjectTag::Character::PlayerLeftArm, std::move(armL));
 
-	// 移動コンポーネントを追加
+	// コンポーネントの追加
 	AddComponent("MoveComponent", std::make_unique<MoveComponent>(enemyManager, camera));
-	// 重力演算コンポーネントを追加
 	AddComponent("GravityPhysicsComponent", std::make_unique<GravityPhysicsComponent>());
-	// 射撃コンポーネントを追加
 	AddComponent("PistolComponent", std::make_unique<AssaultRifleComponent>(object3dCommon, lightManager));
-	// 衝突判定コンポーネント
 	AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(this));
 }
 
@@ -56,12 +51,11 @@ void Player::Draw(CameraManager* camera)
 
 void Player::CollisionSettings(ICollisionComponent* collider)
 {
-	// スイープ判定を仕様
+	// スイープ判定を使用（高速移動時の衝突漏れ防止）
 	collider->SetUseSubstep(true);
 
 	// 衝突時の処理を設定
 	collider->SetOnEnter([this](GameObject* other) {
-		// 衝突した瞬間の処理
 		if (other->GetTag() == GameObjectTag::Weapon::EnemyBullet)
 		{
 			auto combatable = dynamic_cast<CombatableObject*>(other);
