@@ -22,18 +22,18 @@ void SphereColliderComponent::Update(GameObject* owner)
 {
 	if (owner)
 	{
+		// GameObjectの位置に合わせて球の中心を更新
 		sphere_.center = owner->GetPosition();
 	}
 
-	// デバッグ描画
 #ifdef _DEBUG
+	// デバッグモードで球を可視化
 	LineManager::GetInstance()->DrawSphere(
 		sphere_.center, 
 		sphere_.radius,
 		VectorColorCodes::Yellow
 	);
 #endif
-
 }
 
 ColliderType SphereColliderComponent::GetColliderType() const
