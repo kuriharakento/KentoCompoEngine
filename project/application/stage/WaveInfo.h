@@ -14,7 +14,8 @@
  */
 struct WaveInfo
 {
-	std::vector<GameObjectInfo> enemies; ///< ウェーブに含まれる敵の情報リスト
+	// ウェーブに含まれる敵の情報リスト
+	std::vector<GameObjectInfo> enemies;
 };
 
 /**

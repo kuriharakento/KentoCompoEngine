@@ -123,11 +123,22 @@ public:
 	GameObject* GetAreaObject() const { return areaObject_.get(); }
 
 private:
-    WaveManager waveManager_;    ///< ウェーブシーケンスを管理するマネージャー
-    std::unique_ptr<GameObject> areaObject_; ///< エリアの判定用ゲームオブジェクト（OBBコライダー付き）
-    bool isStarted_;             ///< エリアが開始されているか
-    bool isCleared_;             ///< エリアがクリアされているか
-    bool isActive_;              ///< エリアがアクティブか（更新・判定が有効）
-    std::function<void()> onClearCallback_; ///< クリア時のコールバック関数
+    // ウェーブシーケンス管理
+    WaveManager waveManager_;
+    
+    // エリア判定用オブジェクト（OBBコライダー付き）
+    std::unique_ptr<GameObject> areaObject_;
+    
+    // エリアが開始されているか
+    bool isStarted_;
+    
+    // エリアがクリア済みか
+    bool isCleared_;
+    
+    // エリアがアクティブか
+    bool isActive_;
+    
+    // エリアクリア時のコールバック関数
+    std::function<void()> onClearCallback_;
     
 };

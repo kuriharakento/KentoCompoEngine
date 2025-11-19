@@ -74,6 +74,7 @@ public:
 	 */
 	void DrawImGui() override;
 
-	std::vector<GameObjectInfo> gameObjects; ///< ステージ上のゲームオブジェクトのリスト（JSONから読み込まれる）
+	// ステージ上のゲームオブジェクトのリスト（JSONから読み込まれる）
+	std::vector<GameObjectInfo> gameObjects;
 };
 

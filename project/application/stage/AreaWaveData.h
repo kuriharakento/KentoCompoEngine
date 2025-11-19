@@ -60,6 +60,7 @@ public:
      */
     void DrawImGui() override;
 
-	std::vector<AreaInfo> areas; ///< 全エリアの情報リスト（JSONから読み込まれる）
+	// 全エリアの情報リスト（JSONから読み込まれる）
+	std::vector<AreaInfo> areas;
 };
 

@@ -23,11 +23,20 @@
  */
 struct GameObjectInfo
 {
-	std::string type;		///< ゲームオブジェクトのタイプ（"Player", "Enemy", "Obstacle"など）
-	std::string name;		///< モデル名（識別用の名前）
-	bool disabled;			///< 無効化フラグ（trueの場合、このオブジェクトは生成されない）
-	std::string fileName;	///< モデルファイル名（読み込むモデルのファイルパス）
-	Transform transform;	///< トランスフォーム情報（位置、回転、スケール）
+	// ゲームオブジェクトのタイプ（"Player", "Enemy", "Obstacle"など）
+	std::string type;
+	
+	// モデル名（識別用の名前）
+	std::string name;
+	
+	// 無効化フラグ（trueの場合、このオブジェクトは生成されない）
+	bool disabled;
+	
+	// モデルファイル名（読み込むモデルのファイルパス）
+	std::string fileName;
+	
+	// トランスフォーム情報（位置、回転、スケール）
+	Transform transform;
 };
 
 /**

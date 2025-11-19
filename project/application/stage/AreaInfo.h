@@ -21,9 +21,14 @@
  */
 struct AreaInfo
 {
-    int areaIndex;              ///< エリアのインデックス（エリアの識別番号）
-    Transform areaTransform;    ///< エリアのトランスフォーム（ワールド座標での位置、回転、スケール）
-    std::vector<WaveInfo> waves;///< このエリアで発生するウェーブ情報のリスト
+    // エリアのインデックス（エリアの識別番号）
+    int areaIndex;
+    
+    // エリアのトランスフォーム（ワールド座標での位置、回転、スケール）
+    Transform areaTransform;
+    
+    // このエリアで発生するウェーブ情報のリスト
+    std::vector<WaveInfo> waves;
 };
 
 /**

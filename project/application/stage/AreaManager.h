@@ -124,10 +124,21 @@ private:
     void StartCurrentArea();
 
 private:
-	std::vector<std::shared_ptr<Area>> areas_; ///< 管理するエリアのリスト
-	int currentAreaIndex_;                     ///< 現在アクティブなエリアのインデックス
-	bool isAllCleared_;                        ///< 全エリアがクリアされているか
-	std::function<void()> onAllAreasCleared_;  ///< 全エリアクリア時のコールバック
-	std::function<void(int, Area*)> onAreaStarted_; ///< エリア開始時のコールバック
-    AreaEffect areaEffect_;                    ///< エリア演出用のエフェクト
+	// 管理するエリアのリスト
+	std::vector<std::shared_ptr<Area>> areas_;
+	
+	// 現在アクティブなエリアのインデックス
+	int currentAreaIndex_;
+	
+	// 全エリアがクリアされているか
+	bool isAllCleared_;
+	
+	// 全エリアクリア時のコールバック
+	std::function<void()> onAllAreasCleared_;
+	
+	// エリア開始時のコールバック
+	std::function<void(int, Area*)> onAreaStarted_;
+	
+	// エリア演出用のエフェクト
+    AreaEffect areaEffect_;
 };

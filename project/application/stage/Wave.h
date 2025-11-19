@@ -77,11 +77,16 @@ public:
 	void SetOnClearCallback(std::function<void()> callback) { onClearCallback_ = std::move(callback); }
 
 private:
-	std::vector<GameObjectInfo> enemies_;	///< ウェーブ中にスポーンする敵の情報リスト
+	// ウェーブ中にスポーンする敵の情報リスト
+	std::vector<GameObjectInfo> enemies_;
 
-	bool isStart_ = false;	///< ウェーブが開始されているかどうか
-	bool isClear_ = false;	///< ウェーブがクリアされているかどうか（全敵撃破）
+	// ウェーブが開始されているかどうか
+	bool isStart_ = false;
+	
+	// ウェーブがクリアされているかどうか（全敵撃破）
+	bool isClear_ = false;
 
-	std::function<void()> onClearCallback_ = nullptr; ///< クリア時のコールバック関数
+	// クリア時のコールバック関数
+	std::function<void()> onClearCallback_ = nullptr;
 };
 

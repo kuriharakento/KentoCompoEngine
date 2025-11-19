@@ -93,8 +93,15 @@ public:
     AreaManager* GetAreaManager() const { return areaManager_.get(); }
 
 private:
-    std::unique_ptr<AreaManager> areaManager_;  ///< エリアマネージャー（複数エリアの進行を制御）
-    bool isCleared_ = false;                    ///< ステージがクリアされているか
-    std::function<void()> onClearCallback_;     ///< ステージクリア時のコールバック
-	std::shared_ptr<AreaWaveData> areaWaveData_; ///< エリアとウェーブの情報（JSONから読み込み）
+    // エリアマネージャー（複数エリアの進行を制御）
+    std::unique_ptr<AreaManager> areaManager_;
+    
+    // ステージがクリアされているか
+    bool isCleared_ = false;
+    
+    // ステージクリア時のコールバック
+    std::function<void()> onClearCallback_;
+    
+	// エリアとウェーブの情報（JSONから読み込み）
+	std::shared_ptr<AreaWaveData> areaWaveData_;
 };

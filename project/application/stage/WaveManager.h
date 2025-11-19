@@ -98,13 +98,24 @@ private:
 	void StartCurrentWave();
 
 private:
-	EnemyManager* enemyManager_;     ///< 敵マネージャーへのポインタ
-	std::vector<Wave> waves_;        ///< ウェーブのリスト
-	int currentWaveIndex_;           ///< 現在実行中のウェーブのインデックス
-	std::function<void()> onAllWavesCleared_; ///< すべてのウェーブクリア時のコールバック
+	// 敵マネージャーへのポインタ
+	EnemyManager* enemyManager_;
+	
+	// ウェーブのリスト
+	std::vector<Wave> waves_;
+	
+	// 現在実行中のウェーブのインデックス
+	int currentWaveIndex_;
+	
+	// すべてのウェーブクリア時のコールバック
+	std::function<void()> onAllWavesCleared_;
 
 	// ウェーブ間ウェイト用
-	bool waitForNextWave_;           ///< 次のウェーブ開始を待機中かどうか
-	float waitTimer_;                ///< ウェーブ間の待機タイマー（秒単位）
+	
+	// 次のウェーブ開始を待機中かどうか
+	bool waitForNextWave_;
+	
+	// ウェーブ間の待機タイマー（秒単位）
+	float waitTimer_;
 };
 

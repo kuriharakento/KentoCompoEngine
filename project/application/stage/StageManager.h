@@ -172,18 +172,33 @@ public:
 	Stage* GetStage() const { return stage_.get(); }
 
 private:
-	Object3dCommon* object3dCommon_;  ///< 3Dオブジェクトの共通データへのポインタ
-	LightManager* lightManager_;      ///< ライトマネージャーへのポインタ
-	CameraManager* cameraManager_;    ///< カメラマネージャーへのポインタ
+	// 3Dオブジェクトの共通データへのポインタ
+	Object3dCommon* object3dCommon_;
+	
+	// ライトマネージャーへのポインタ
+	LightManager* lightManager_;
+	
+	// カメラマネージャーへのポインタ
+	CameraManager* cameraManager_;
 
-	std::shared_ptr<StageData> stageData_;      ///< ステージデータ（固定オブジェクト配置）
-	std::shared_ptr<ObstacleData> obstacleData_; ///< 障害物データ
+	// ステージデータ（固定オブジェクト配置）
+	std::shared_ptr<StageData> stageData_;
+	
+	// 障害物データ
+	std::shared_ptr<ObstacleData> obstacleData_;
 
 	// -------- ゲームオブジェクト -------- //
 
-	std::unique_ptr<Player> player_;               ///< プレイヤー（1体のみ）
-	std::unique_ptr<EnemyManager> enemyManager_;   ///< 敵マネージャー
-	std::unique_ptr<ObstacleManager> obstacleManager_; ///< 障害物マネージャー
-	std::unique_ptr<Stage> stage_;                 ///< ステージ（エリア・ウェーブ管理）
+	// プレイヤー（1体のみ）
+	std::unique_ptr<Player> player_;
+	
+	// 敵マネージャー
+	std::unique_ptr<EnemyManager> enemyManager_;
+	
+	// 障害物マネージャー
+	std::unique_ptr<ObstacleManager> obstacleManager_;
+	
+	// ステージ（エリア・ウェーブ管理）
+	std::unique_ptr<Stage> stage_;
 };
 
