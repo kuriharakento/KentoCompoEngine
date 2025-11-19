@@ -10,6 +10,7 @@ bool CollisionAlgorithm::CheckAABBvsAABB3D(const AABBColliderComponent* a, const
 	const AABB& aBox = a->GetAABB();
 	const AABB& bBox = b->GetAABB();
 
+	// 各軸で重なりをチェック
 	return (aBox.max_.x >= bBox.min_.x && aBox.min_.x <= bBox.max_.x) &&
 		(aBox.max_.y >= bBox.min_.y && aBox.min_.y <= bBox.max_.y) &&
 		(aBox.max_.z >= bBox.min_.z && aBox.min_.z <= bBox.max_.z);
@@ -20,10 +21,10 @@ bool CollisionAlgorithm::CheckOBBvsOBB3D(const OBBColliderComponent* a, const OB
 	const OBB& obbA = a->GetOBB();
 	const OBB& obbB = b->GetOBB();
 
-	// OBBの回転行列（各軸ベクトル）
 	Matrix4x4 rotA = obbA.rotate;
 	Matrix4x4 rotB = obbB.rotate;
 
+	// 各OBBのワールド軸ベクトルを取得
 	Vector3 axesA[3] =
 	{
 		Vector3::Normalize(Vector3(rotA.m[0][0], rotA.m[0][1], rotA.m[0][2])),
@@ -38,7 +39,7 @@ bool CollisionAlgorithm::CheckOBBvsOBB3D(const OBBColliderComponent* a, const OB
 		Vector3::Normalize(Vector3(rotB.m[2][0], rotB.m[2][1], rotB.m[2][2]))
 	};
 
-	// 15の分離軸
+	// 15の分離軸（Aの3軸 + Bの3軸 + 外積9軸）
 	Vector3 testAxes[15];
 	int axisCount = 0;
 
@@ -55,11 +56,13 @@ bool CollisionAlgorithm::CheckOBBvsOBB3D(const OBBColliderComponent* a, const OB
 
 	Vector3 toCenter = obbB.center - obbA.center;
 
+	// 分離軸定理（SAT）で判定
 	for (int i = 0; i < 15; ++i)
 	{
 		const Vector3& axis = testAxes[i];
 		if (axis.x == 0 && axis.y == 0 && axis.z == 0) continue;
 
+		// 各OBBの軸への投影サイズを計算
 		float aProj =
 			std::abs(Vector3::Dot(axesA[0] * obbA.size.x, axis)) +
 			std::abs(Vector3::Dot(axesA[1] * obbA.size.y, axis)) +
@@ -72,11 +75,14 @@ bool CollisionAlgorithm::CheckOBBvsOBB3D(const OBBColliderComponent* a, const OB
 
 		float distance = std::abs(Vector3::Dot(toCenter, axis));
 
+		// 分離軸が見つかった場合は衝突していない
 		if (distance > aProj + bProj)
 		{
 			return false;
 		}
 	}
+	
+	// 衝突位置を記録
 	ICollisionComponent* aNonConst = const_cast<OBBColliderComponent*>(a);
 	ICollisionComponent* bNonConst = const_cast<OBBColliderComponent*>(b);
 	aNonConst->SetCollisionPosition(obbA.center);
@@ -189,9 +195,9 @@ bool CollisionAlgorithm::CheckSpherevsOBB3D(const SphereColliderComponent* a, co
 	Vector3 d = s.center - obb.center;
 	Vector3 closest = obb.center;
 
-	// 各軸ごとにサイズを取得
 	const float sizes[3] = { obb.size.x, obb.size.y, obb.size.z };
 
+	// OBB上の最近点を計算
 	for (int i = 0; i < 3; ++i)
 	{
 		Vector3 axis(obb.rotate.m[i][0], obb.rotate.m[i][1], obb.rotate.m[i][2]);
@@ -226,12 +232,14 @@ bool CollisionAlgorithm::CheckAABBvsAABBSubstep3D(const AABBColliderComponent* a
 	const AABB& aBox = a->GetAABB();
 	const AABB& bBox = b->GetAABB();
 
+	// まず現在位置での判定を試行
 	if (CheckAABBvsAABB3D(a, b)) return true;
 
 	float distanceA = (endA - startA).Length();
 	float distanceB = (endB - startB).Length();
 
 	float maxDistance = (std::max)(distanceA, distanceB);
+	// 移動距離に応じてサブステップ数を決定（すり抜け防止）
 	int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDistance / MAX_STEP_DISTANCE)));
 
 	AABBColliderComponent* aNonConst = const_cast<AABBColliderComponent*>(a);
@@ -240,6 +248,7 @@ bool CollisionAlgorithm::CheckAABBvsAABBSubstep3D(const AABBColliderComponent* a
 	AABBColliderComponent tempA(nullptr);
 	AABBColliderComponent tempB(nullptr);
 
+	// 前フレームから現在位置までを線分補間して判定
 	for (int step = 0; step <= subStepCount; ++step)
 	{
 		float t = static_cast<float>(step) / subStepCount;
