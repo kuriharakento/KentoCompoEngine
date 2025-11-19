@@ -5,9 +5,17 @@
 #include "CompositeNode.h"
 #include "imgui/imgui.h"
 
+/**
+ * @namespace NodeUtils
+ * @brief ビヘイビアツリーのノード操作用ユーティリティ関数群
+ */
 namespace NodeUtils
 {
-	// NodeStatusを文字列に変換
+	/**
+	 * @brief NodeStatusを文字列に変換
+	 * @param status 変換するノードの状態
+	 * @return 状態を表す文字列
+	 */
 	const std::string NodeStatusToString(NodeStatus status)
 	{
 		switch (status)
@@ -23,7 +31,14 @@ namespace NodeUtils
 		}
 	}
 
-    // 再帰的にノードを描画
+	/**
+	 * @brief ビヘイビアツリーのノードをImGuiで再帰的に描画
+	 * 
+	 * ノードの状態に応じて色分けされたツリービューを表示します。
+	 * デバッグ時のAI動作確認に使用します。
+	 * 
+	 * @param node 描画するノード
+	 */
     void DrawBTNodeImGui(const BTNode* node)
     {
         if (!node) return;
@@ -31,6 +46,7 @@ namespace NodeUtils
         // ノード名 + アドレスによるユニークラベル
         std::string label = node->GetNodeName() + "##" + std::to_string(reinterpret_cast<uintptr_t>(node));
 
+        // ノードの状態に応じて色を設定
         ImVec4 color;
         switch (node->GetLastStatus())
         {
@@ -41,13 +57,13 @@ namespace NodeUtils
         }
         ImGui::PushStyleColor(ImGuiCol_Text, color);
 
-        // TreeNodeの第1引数はユニークラベル
         bool open = ImGui::TreeNode(label.c_str(), "%s [%s]", node->GetNodeName().c_str(), NodeStatusToString(node->GetLastStatus()).c_str());
 
         ImGui::PopStyleColor();
 
         if (open)
         {
+            // 子ノードを再帰的に描画
             if (auto comp = dynamic_cast<const CompositeNode*>(node))
             {
                 for (const auto& child : comp->GetChildren())

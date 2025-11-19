@@ -10,26 +10,24 @@
 
 GameObject::~GameObject()
 {
-	actionComponents_.clear();				// アクションコンポーネントのクリア
-	collisionComponents_.clear();			// コリジョンコンポーネントのクリア
-	components_.clear();					// 全コンポーネントのクリア
-	isActive_ = false;						// 非アクティブ状態に設定
-	object3d_.reset();						// Object3Dのリセット（スマートポインタの自動削除）
+	actionComponents_.clear();
+	collisionComponents_.clear();
+	components_.clear();
+	isActive_ = false;
+	object3d_.reset();
 }
 
 GameObject::GameObject(std::string tag)
 {
-	// アクティブ状態で初期化
 	isActive_ = true;
 
-	// タグの初期化（空文字列チェック）
+	// タグの空文字列チェック
 	assert(!tag.empty() && "ERROR: GameObject::GameObject() - Tag should not be empty. Ensure that you provide a valid tag.");
 	tag_ = tag;
 }
 
 void GameObject::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, const Transform& initialTransform)
 {
-	// 3Dオブジェクトの初期化
 	object3d_ = std::make_unique<Object3d>();
 	object3d_->Initialize(object3dCommon, object3dCommon->GetDefaultCamera());
 
@@ -37,14 +35,13 @@ void GameObject::Initialize(Object3dCommon* object3dCommon, LightManager* lightM
 	object3d_->SetModel("cube");
 	object3d_->SetLightManager(lightManager);
 
-	// 初期トランスフォームの設定
 	transform_ = initialTransform;
 }
 
 
 void GameObject::Update()
 {
-	ShowImGuiHierarchy(); // ImGuiでの階層表示（デバッグ用）
+	ShowImGuiHierarchy();
 
 	// 更新中フラグを立てる（コンポーネントの追加・削除を保留するため）
 	isUpdating_ = true;
@@ -54,7 +51,7 @@ void GameObject::Update()
 	{
 		if (actionComp)
 		{
-			actionComp->Update(this); // アクションコンポーネントの更新
+			actionComp->Update(this);
 		}
 	}
 
@@ -66,7 +63,7 @@ void GameObject::Update()
 	{
 		if (collisionComp)
 		{
-			collisionComp->Update(this); // コリジョンコンポーネントの更新
+			collisionComp->Update(this);
 		}
 	}
 
@@ -75,11 +72,10 @@ void GameObject::Update()
 	{
 		if (child)
 		{
-			child->Update(); // 子オブジェクトの更新
+			child->Update();
 		}
 	}
 
-	// 更新終了フラグを下ろす
 	isUpdating_ = false;
 
 	// 保留中のコンポーネント変更を処理
@@ -88,47 +84,41 @@ void GameObject::Update()
 
 void GameObject::Draw(CameraManager* camera)
 {
-	// Object3Dが存在しない場合は早期リターン
 	if (!object3d_) { return; }
 
 	// Transform情報をObject3Dに適用（親子関係を考慮）
 	ApplyTransformToObject3D(camera);
 
-	// 3Dオブジェクトの描画
 	object3d_->Draw();
 
-	// 子オブジェクトの描画（階層順に描画）
+	// 子オブジェクトの描画
 	for (auto& [name, child] : children_)
 	{
 		if (child)
 		{
-			child->Draw(camera); // 子オブジェクトの描画
+			child->Draw(camera);
 		}
 	}
 
-	// アクションコンポーネントの描画処理
-	// （エフェクト、UI、デバッグ表示などを含む）
+	// アクションコンポーネントの描画（エフェクト、UI、デバッグ表示など）
 	for (auto& actionComp : actionComponents_)
 	{
 		if (actionComp)
 		{
-			actionComp->Draw(camera); // アクションコンポーネントの描画
+			actionComp->Draw(camera);
 		}
 	}
 }
 
 void GameObject::UpdateTransform(CameraManager* camera)
 {
-	// Transform情報をObject3Dに適用
 	ApplyTransformToObject3D(camera);
 }
 
 void GameObject::UpdateWorldMatrix()
 {
-	// Object3Dがなければ処理しない
 	if (!object3d_) return;
 
-	// Object3Dにローカルトランスフォームを設定
 	object3d_->SetTranslate(transform_.translate);
 	object3d_->SetRotate(transform_.rotate);
 	object3d_->SetScale(transform_.scale);
@@ -136,21 +126,18 @@ void GameObject::UpdateWorldMatrix()
 	// 親がいる場合は親のワールド行列と合成
 	if (parent_)
 	{
-		// 自身のローカル行列を作成
 		Matrix4x4 localMatrix = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
 
-		// 親のワールド行列を取得
 		if (parent_->GetObject3d())
 		{
 			Matrix4x4 parentWorld = parent_->GetObject3d()->GetWorldMatrix();
-			Matrix4x4 worldMatrix = localMatrix * parentWorld;	// 行列の合成
+			Matrix4x4 worldMatrix = localMatrix * parentWorld;
 
 			// 計算済みのワールド行列をObject3Dに適用（WVPは更新しない）
 			object3d_->UpdateMatrixWithWorld(worldMatrix, nullptr);
 		}
 		else
 		{
-			// 親にObject3Dが無ければ通常のワールド更新
 			object3d_->UpdateWorldMatrix();
 		}
 	}
@@ -186,7 +173,6 @@ void GameObject::AddComponent(const std::string& name, std::unique_ptr<IGameObje
 		return;
 	}
 
-	// unique_ptrからshared_ptrに変換
 	auto sharedComp = std::shared_ptr<IGameObjectComponent>(std::move(comp));
 
 	// Update実行中は保留リストに追加
@@ -196,7 +182,6 @@ void GameObject::AddComponent(const std::string& name, std::unique_ptr<IGameObje
 	}
 	else
 	{
-		// 通常時は即座に追加
 		AddComponentImmediate(name, sharedComp);
 	}
 }
@@ -214,7 +199,6 @@ void GameObject::RemoveComponent(const std::string& name)
 		return;
 	}
 
-	// 通常時は即座に削除
 	RemoveComponentImmediate(name);
 }
 
@@ -227,11 +211,10 @@ void GameObject::AddChild(const std::string name, std::unique_ptr<GameObject> ch
 		return;
 	}
 
-	// 有効な子オブジェクトの場合
 	if (child)
 	{
-		child->SetParent(this); // 親オブジェクトを設定
-		children_[name] = std::move(child); // 子オブジェクトを追加
+		child->SetParent(this);
+		children_[name] = std::move(child);
 	}
 	else
 	{
@@ -244,21 +227,19 @@ GameObject* GameObject::GetChild(const std::string& name) const
 	auto it = children_.find(name);
 	if (it != children_.end())
 	{
-		return it->second.get(); // 子オブジェクトを返す
+		return it->second.get();
 	}
 	else
 	{
 		Logger::Log("Warning: Child with name '" + name + "' not found.");
-		return nullptr; // 見つからなかった場合はnullptrを返す
+		return nullptr;
 	}
 }
 
 void GameObject::ApplyTransformToObject3D(CameraManager* camera)
 {
-	// Object3Dが存在しない場合は早期リターン
 	if (!object3d_) { return; }
 
-	// ローカルトランスフォームをObject3Dに設定
 	object3d_->SetTranslate(transform_.translate);
 	object3d_->SetRotate(transform_.rotate);
 	object3d_->SetScale(transform_.scale);
@@ -267,21 +248,15 @@ void GameObject::ApplyTransformToObject3D(CameraManager* camera)
 	if (parent_)
 	{
 		// 親がある場合：親のワールド行列と合成
-
-		// 自分のローカル行列を作成
 		Matrix4x4 localMatrix = MakeAffineMatrix(
 			transform_.scale,
 			transform_.rotate,
 			transform_.translate
 		);
 
-		// 親のワールド行列を取得
 		Matrix4x4 parentWorldMatrix = parent_->object3d_->GetWorldMatrix();
-
-		// 正しい順序で行列を合成: localMatrix * parentWorldMatrix
 		Matrix4x4 worldMatrix = localMatrix * parentWorldMatrix;
 
-		// Object3Dに計算済みのワールド行列を設定
 		object3d_->UpdateMatrixWithWorld(worldMatrix, camera->GetActiveCamera());
 	}
 	else
@@ -297,18 +272,14 @@ void GameObject::ShowImGuiHierarchy()
 	// ユニークIDを設定（同名オブジェクトの区別のため）
 	ImGui::PushID(this);
 
-	// ツリーノードで親子関係を表示
 	if (ImGui::TreeNode(tag_.c_str()))
 	{
-		// Position（位置）の編集
 		ImGui::Text("Position");
 		ImGui::DragFloat3("Position", &transform_.translate.x, 0.1f);
 
-		// Rotation（回転）の編集
 		ImGui::Text("Rotation");
 		ImGui::DragFloat3("Rotation", &transform_.rotate.x, 0.1f);
 
-		// Scale（スケール）の編集
 		ImGui::Text("Scale");
 		ImGui::DragFloat3("Scale", &transform_.scale.x, 0.1f);
 
@@ -329,7 +300,6 @@ void GameObject::ShowImGuiHierarchy()
 
 void GameObject::AddComponentImmediate(const std::string& name, std::shared_ptr<IGameObjectComponent> comp)
 {
-	// nullポインタチェック
 	if (!comp) return;
 
 	// 重複チェック（安全のため再確認）
@@ -339,7 +309,6 @@ void GameObject::AddComponentImmediate(const std::string& name, std::shared_ptr<
 		return;
 	}
 
-	// コンポーネントマップに追加
 	components_[name] = comp;
 
 	// 型ごとにカテゴリ配列へ登録（高速アクセス用）
@@ -357,7 +326,6 @@ void GameObject::RemoveComponentImmediate(const std::string& name)
 {
 	auto it = components_.find(name);
 
-	// 指定された名前のコンポーネントが存在しない場合は早期リターン
 	if (it == components_.end())
 	{
 		Logger::Log("Warning: Component not found: " + name);
@@ -369,13 +337,11 @@ void GameObject::RemoveComponentImmediate(const std::string& name)
 	// カテゴリ配列から削除
 	RemoveFromCategoryLists(comp);
 
-	// コンポーネントマップから完全に削除
 	components_.erase(it);
 }
 
 void GameObject::RemoveFromCategoryLists(const std::shared_ptr<IGameObjectComponent>& comp)
 {
-	// nullポインタチェック
 	if (!comp) return;
 
 	// アクションコンポーネント配列から削除
@@ -404,10 +370,9 @@ void GameObject::ProcessPendingChanges()
 	{
 		for (const auto& name : pendingRemoves_)
 		{
-			// 即時削除処理を実行（この時点では更新中ではない）
 			RemoveComponentImmediate(name);
 		}
-		pendingRemoves_.clear(); // 保留リストをクリア
+		pendingRemoves_.clear();
 	}
 
 	// 追加処理を実行
@@ -419,7 +384,6 @@ void GameObject::ProcessPendingChanges()
 			const auto& comp = p.second;
 
 			// 既に存在する場合は追加をスキップ
-			// （必要に応じてReplaceComponent機能を実装）
 			if (components_.find(name) != components_.end())
 			{
 				Logger::Log("Warning: Component already exists when processing pending add: " + name + " - Skipped.");
@@ -428,6 +392,6 @@ void GameObject::ProcessPendingChanges()
 
 			AddComponentImmediate(name, comp);
 		}
-		pendingAdds_.clear(); // 保留リストをクリア
+		pendingAdds_.clear();
 	}
 }

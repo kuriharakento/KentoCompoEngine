@@ -7,16 +7,16 @@ BuffConfig::BuffConfig(std::string id, float val, BuffType t, std::optional<floa
     , value(val)
     , type(t)
     , duration(dur)
-    , priority(BuffPriority::Normal)  // デフォルトは通常優先度
-    , maxStacks(1)                     // デフォルトはスタック不可
-    , refreshable(true)                // デフォルトは持続時間リフレッシュ可能
+    , priority(BuffPriority::Normal)
+    , maxStacks(1)
+    , refreshable(true)
 {
 }
 
 BuffConfig& BuffConfig::AddTag(const std::string& tag)
 {
     tags.push_back(tag);
-    return *this;  // メソッドチェーン用に自身の参照を返す
+    return *this;
 }
 
 bool BuffConfig::HasTag(const std::string& tag) const
@@ -27,8 +27,8 @@ bool BuffConfig::HasTag(const std::string& tag) const
 // BuffInstance
 BuffInstance::BuffInstance(const BuffConfig& config)
     : config_(config)
-    , remainingTime_(config.duration)  // durationがnulloptなら永続バフ
-    , stackCount_(1)                    // 初期スタック数は1
+    , remainingTime_(config.duration)
+    , stackCount_(1)
 {
 }
 
@@ -39,7 +39,6 @@ const std::string& BuffInstance::GetId() const
 
 float BuffInstance::GetValue() const
 {
-    // スタック数を考慮した効果値を返す
     return config_.value * stackCount_;
 }
 
@@ -60,19 +59,16 @@ int BuffInstance::GetStackCount() const
 
 bool BuffInstance::IsExpired() const
 {
-    // 時限バフで、かつ残り時間が0以下なら期限切れ
     return remainingTime_.has_value() && *remainingTime_ <= 0.0f;
 }
 
 bool BuffInstance::IsPermanent() const
 {
-    // durationがnulloptなら永続バフ
     return !remainingTime_.has_value();
 }
 
 float BuffInstance::GetRemainingTime() const
 {
-    // 永続バフの場合は-1.0fを返す
     return remainingTime_.value_or(-1.0f);
 }
 
@@ -101,9 +97,9 @@ bool BuffInstance::TryAddStack()
     if (config_.maxStacks == 0 || stackCount_ < config_.maxStacks)
     {
         stackCount_++;
-        return true;  // スタック追加成功
+        return true;
     }
-    return false;  // スタック上限に達している
+    return false;
 }
 
 void BuffInstance::RefreshDuration()
@@ -118,9 +114,9 @@ void BuffInstance::RefreshDuration()
 // StatusValue 
 StatusValue::StatusValue(float baseValue)
     : base_(baseValue)
-    , cachedValue_(baseValue)  // 初期状態ではキャッシュ = 基礎値
-    , isDirty_(false)          // 初期状態はクリーン
-    , changeCallback_(nullptr) // コールバックは未設定
+    , cachedValue_(baseValue)
+    , isDirty_(false)
+    , changeCallback_(nullptr)
 {
 }
 
@@ -134,9 +130,9 @@ void StatusValue::SetBase(float value)
     // 値が実際に変更された場合のみ処理
     if (base_ != value)
     {
-        float oldValue = GetValue();  // 変更前の最終値を記録
+        float oldValue = GetValue();
         base_ = value;
-        MarkDirty();  // キャッシュを無効化
+        MarkDirty();
 
         // コールバックが設定されていれば呼び出す
         if (changeCallback_)
@@ -160,19 +156,17 @@ float StatusValue::GetValue() const
 
 bool StatusValue::AddBuff(const BuffConfig& config)
 {
-    // 既存のバフを検索（同じIDのバフが既に存在するか？）
+    // 既存のバフを検索
     auto it = std::find_if(buffs_.begin(), buffs_.end(),
                            [&config](const auto& buff) { return buff->GetId() == config.id; });
 
     if (it != buffs_.end())
     {
         // 同じIDのバフが既に存在する場合
-        // スタック追加を試みる
         if ((*it)->TryAddStack())
         {
-            // スタック追加成功
-            (*it)->RefreshDuration();  // 持続時間をリフレッシュ
-            MarkDirty();               // キャッシュを無効化
+            (*it)->RefreshDuration();
+            MarkDirty();
 
             // コールバック通知
             if (changeCallback_)
@@ -183,13 +177,12 @@ bool StatusValue::AddBuff(const BuffConfig& config)
             }
             return true;
         }
-        // スタック上限に達している場合はfalseを返す
         return false;
     }
 
     // 新規バフの追加
     buffs_.push_back(std::make_unique<BuffInstance>(config));
-    MarkDirty();  // キャッシュを無効化
+    MarkDirty();
 
     // コールバック通知
     if (changeCallback_)
@@ -204,16 +197,14 @@ bool StatusValue::AddBuff(const BuffConfig& config)
 
 bool StatusValue::RemoveBuff(const std::string& buffId)
 {
-    // 指定されたIDのバフを検索
     auto it = std::find_if(buffs_.begin(), buffs_.end(),
                            [&buffId](const auto& buff) { return buff->GetId() == buffId; });
 
     if (it != buffs_.end())
     {
-        // バフが見つかった場合
-        float oldValue = GetValue();  // 削除前の値を記録
-        buffs_.erase(it);            // バフを削除
-        MarkDirty();                  // キャッシュを無効化
+        float oldValue = GetValue();
+        buffs_.erase(it);
+        MarkDirty();
 
         // コールバック通知
         if (changeCallback_)
@@ -224,23 +215,20 @@ bool StatusValue::RemoveBuff(const std::string& buffId)
         return true;
     }
 
-    // バフが見つからなかった
     return false;
 }
 
 void StatusValue::ClearAllBuffs()
 {
-    // バフが1つでも存在する場合のみ処理
     if (!buffs_.empty())
     {
-        float oldValue = GetValue();  // クリア前の値を記録
-        buffs_.clear();              // 全バフを削除
-        MarkDirty();                  // キャッシュを無効化
+        float oldValue = GetValue();
+        buffs_.clear();
+        MarkDirty();
 
         // コールバック通知
         if (changeCallback_)
         {
-            // 原因バフIDは空文字列（複数のバフが削除されたため）
             StatusChangeEvent event{ oldValue, GetValue(), "" };
             changeCallback_(event);
         }
@@ -250,9 +238,8 @@ void StatusValue::ClearAllBuffs()
 int StatusValue::ClearBuffsByType(BuffType type)
 {
     auto oldSize = buffs_.size();
-    float oldValue = GetValue();  // クリア前の値を記録
+    float oldValue = GetValue();
 
-    // 指定された種類のバフを削除
     buffs_.erase(
         std::remove_if(buffs_.begin(), buffs_.end(),
                        [type](const auto& buff) { return buff->GetType() == type; }),
@@ -261,12 +248,10 @@ int StatusValue::ClearBuffsByType(BuffType type)
 
     int removedCount = static_cast<int>(oldSize - buffs_.size());
 
-    // 実際にバフが削除された場合のみ処理
     if (removedCount > 0)
     {
-        MarkDirty();  // キャッシュを無効化
+        MarkDirty();
 
-        // コールバック通知
         if (changeCallback_)
         {
             StatusChangeEvent event{ oldValue, GetValue(), "" };
@@ -281,13 +266,12 @@ int StatusValue::RemoveBuffIf(std::function<bool(const BuffInstance*)> predicate
 {
     if (!predicate)
     {
-        return 0; // predicateがnullptrの場合は何もしない
+        return 0;
     }
 
     float oldValue = GetValue();
     auto oldSize = buffs_.size();
 
-    // 条件に一致するバフを削除
     buffs_.erase(
         std::remove_if(buffs_.begin(), buffs_.end(),
                        [&predicate](const auto& buff) { return predicate(buff.get()); }),
@@ -296,7 +280,6 @@ int StatusValue::RemoveBuffIf(std::function<bool(const BuffInstance*)> predicate
 
     int removedCount = static_cast<int>(oldSize - buffs_.size());
 
-    // バフが削除された場合のみ処理
     if (removedCount > 0)
     {
         MarkDirty();
@@ -349,19 +332,16 @@ void StatusValue::Update(float deltaTime)
     float oldValue = GetValue();
     auto oldSize = buffs_.size();
 
-    // 期限切れのバフを削除
     buffs_.erase(
         std::remove_if(buffs_.begin(), buffs_.end(),
                        [](const auto& buff) { return buff->IsExpired(); }),
         buffs_.end()
     );
 
-    // 実際にバフが削除された場合のみ処理
     if (buffs_.size() != oldSize)
     {
-        MarkDirty();  // キャッシュを無効化
+        MarkDirty();
 
-        // コールバック通知
         if (changeCallback_)
         {
             StatusChangeEvent event{ oldValue, GetValue(), "" };
@@ -372,33 +352,28 @@ void StatusValue::Update(float deltaTime)
 
 bool StatusValue::HasBuff(const std::string& buffId) const
 {
-    // 指定されたIDのバフが存在するか確認
     return std::any_of(buffs_.begin(), buffs_.end(),
                        [&buffId](const auto& buff) { return buff->GetId() == buffId; });
 }
 
 std::optional<float> StatusValue::GetBuffRemainingTime(const std::string& buffId) const
 {
-    // 指定されたIDのバフを検索
     auto it = std::find_if(buffs_.begin(), buffs_.end(),
                            [&buffId](const auto& buff) { return buff->GetId() == buffId; });
 
     if (it != buffs_.end())
     {
         float time = (*it)->GetRemainingTime();
-        // -1.0f（永続バフ）の場合はnulloptを返す
         return time < 0.0f ? std::nullopt : std::optional<float>(time);
     }
 
-    // バフが見つからなかった場合もnullopt
     return std::nullopt;
 }
 
 std::vector<std::string> StatusValue::GetBuffIds() const
 {
-    // 全てのバフのIDをvectorで返す（デバッグやUI表示用）
     std::vector<std::string> ids;
-    ids.reserve(buffs_.size());  // メモリ確保を最適化
+    ids.reserve(buffs_.size());
 
     for (const auto& buff : buffs_)
     {
@@ -420,7 +395,6 @@ void StatusValue::SetChangeCallback(ChangeCallback callback)
 
 void StatusValue::MarkDirty()
 {
-    // 次回GetValue()が呼ばれた時に再計算される
     isDirty_ = true;
 }
 
@@ -440,13 +414,13 @@ float StatusValue::CalculateValue() const
                   return static_cast<int>(a->GetPriority()) < static_cast<int>(b->GetPriority());
               });
 
-    // 各バフタイプの値を集計するための変数
-    float result = base_;                // 基礎値から開始
+    // 各バフタイプの値を集計
+    float result = base_;
     float additiveSum = 0.0f;            // 加算バフの合計
-    float percentageMultiplier = 1.0f;   // 割合バフの乗数（1.0 + パーセンテージの合計）
+    float percentageMultiplier = 1.0f;   // 割合バフの乗数
     float multiplicativeValue = 1.0f;    // 乗算バフの積
     float maxOverride = result;          // 上書きバフの最大値
-    bool hasOverride = false;            // 上書きバフが存在するか
+    bool hasOverride = false;
 
     // バフを種類ごとに処理
     for (const auto* buff : sortedBuffs)
@@ -455,25 +429,21 @@ float StatusValue::CalculateValue() const
         {
         case BuffType::Additive:
             // 加算バフ: 値をそのまま加算
-            // 例: +10, +20 → additiveSum = 30
             additiveSum += buff->GetValue();
             break;
 
         case BuffType::Multiplicative:
             // 乗算バフ: 値を乗算
-            // 例: ×1.5, ×2.0 → multiplicativeValue = 3.0
             multiplicativeValue *= buff->GetValue();
             break;
 
         case BuffType::Percentage:
             // 割合バフ: パーセンテージを加算
-            // 例: +50% (+0.5), +30% (+0.3) → percentageMultiplier = 1.8
             percentageMultiplier += buff->GetValue();
             break;
 
         case BuffType::Override:
-            // 上書きバフ: 最大値を記録
-            // 複数のOverrideバフがある場合、最も大きい値が使われる
+            // 上書きバフ: 最大値を記録（石化などの強制効果）
             hasOverride = true;
             maxOverride = std::max(maxOverride, buff->GetValue());
             break;
@@ -488,8 +458,7 @@ float StatusValue::CalculateValue() const
     }
     else
     {
-        // 上書きバフがある場合: 他のバフを無視して上書き値を使用
-        // 例: 石化状態で移動速度を強制的に0にする場合など
+        // 上書きバフがある場合は他のバフを無視
         result = maxOverride;
     }
 
