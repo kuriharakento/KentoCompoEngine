@@ -9,7 +9,7 @@ namespace CollisionUtils
 {
 	bool CollisionUtils::CheckOBBvsOBBMTV(const OBB& obbA, const OBB& obbB, Vector3& mtv)
 	{
-		// 各 OBB のワールド軸ベクトルを取得
+		// 各OBBのワールド軸ベクトルを取得
 		Matrix4x4 rotA = obbA.rotate;
 		Matrix4x4 rotB = obbB.rotate;
 		Vector3 axesA[3] = {
@@ -23,7 +23,7 @@ namespace CollisionUtils
 			Vector3::Normalize({rotB.m[2][0], rotB.m[2][1], rotB.m[2][2]})
 		};
 
-		// 分離軸リスト（Aの軸、Bの軸、クロス積軸）
+		// 15の分離軸（Aの3軸 + Bの3軸 + 外積9軸）
 		std::vector<Vector3> testAxes;
 		testAxes.reserve(15);
 		for (int i = 0; i < 3; ++i) testAxes.push_back(axesA[i]);
@@ -35,6 +35,7 @@ namespace CollisionUtils
 		Vector3 toCenter = obbB.center - obbA.center;
 		CollisionInfo info;
 
+		// 各分離軸でのめり込み深度を計算
 		for (auto& axis : testAxes)
 		{
 			if (axis.LengthSquared() < 1e-6f) continue;
@@ -48,10 +49,13 @@ namespace CollisionUtils
 			float dist = std::abs(Vector3::Dot(toCenter, axis));
 			float overlap = (projA + projB) - dist;
 
+			// 分離軸が見つかった場合は衝突していない
 			if (overlap < 0)
 			{
 				return false;
 			}
+			
+			// 最小のめり込み深度を記録（MTV計算用）
 			if (overlap < info.mtvDepth)
 			{
 				info.isColliding = true;
@@ -60,9 +64,10 @@ namespace CollisionUtils
 			}
 		}
 
-		// 衝突時に MTV を算出
+		// 衝突時にMTV（最小変位ベクトル）を算出
 		if (info.isColliding)
 		{
+			// MTVの方向を調整（押し出す方向に統一）
 			if (Vector3::Dot(info.mtvAxis, toCenter) < 0.0f)
 				info.mtvAxis = info.mtvAxis * -1.0f;
 			mtv = info.mtvAxis * info.mtvDepth;
@@ -82,7 +87,7 @@ namespace CollisionUtils
 		Vector3 mtv;
 		if (CheckOBBvsOBBMTV(obbA, obbB, mtv))
 		{
-			// 自分を押し戻す
+			// MTVに沿って自分を押し戻す
 			self->SetPosition(self->GetPosition() + mtv);
 		}
 	}

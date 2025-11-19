@@ -9,18 +9,17 @@
 
 OBBColliderComponent::OBBColliderComponent(GameObject* owner) : ICollisionComponent(owner)
 {
-	// オーナーがセットされていない場合は何もしない
 	if(!owner)
 	{
 		return;
 	}
 
-	// OBBの初期化
+	// GameObjectの位置、回転、スケールからOBBを初期化
 	obb_.center = owner->GetPosition();
 	obb_.rotate = MakeRotateMatrix(owner->GetRotation());
 	obb_.size = owner->GetScale();
 
-	previousPosition_ = obb_.center; // 前の位置を初期化
+	previousPosition_ = obb_.center;
 }
 
 OBBColliderComponent::~OBBColliderComponent()
@@ -30,18 +29,18 @@ OBBColliderComponent::~OBBColliderComponent()
 
 void OBBColliderComponent::Update(GameObject* owner)
 {
-    // ワールド行列取得
-    const Matrix4x4& m = owner->GetWorldMatrix();
+	const Matrix4x4& m = owner->GetWorldMatrix();
 
-    // OBBの更新
-    obb_.center = MathUtils::GetTranslateFromMatrix(m);
-    obb_.rotate = MathUtils::GetMatrixRotate(m);
-    obb_.size = MathUtils::GetScaleFromMatrix(m) + sizeOffset_; // サイズオフセットを適用
+	// ワールド行列から位置、回転、スケールを取得してOBBを更新
+	obb_.center = MathUtils::GetTranslateFromMatrix(m);
+	obb_.rotate = MathUtils::GetMatrixRotate(m);
+	obb_.size = MathUtils::GetScaleFromMatrix(m) + sizeOffset_;
 	
 #ifdef _DEBUG
-	// OBBを可視化する
+	// デバッグモードでOBBを可視化
 	LineManager::GetInstance()->DrawOBB(obb_, VectorColorCodes::Cyan);
-	// 前の位置を可視化する
+	
+	// サブステップ判定使用時は前フレーム位置も可視化
 	if (useSubstep_)
 	{
 		OBB previousObb = obb_;
