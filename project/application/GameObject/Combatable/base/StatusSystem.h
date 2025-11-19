@@ -13,10 +13,10 @@
   */
 enum class BuffType
 {
-    Additive,        // 加算バフ
-    Multiplicative,  // 乗算バフ
-    Percentage,      // 割合バフ
-    Override         // 上書きバフ
+    Additive,        // 加算バフ（+10など）
+    Multiplicative,  // 乗算バフ（×1.5など）
+    Percentage,      // 割合バフ（+50%など）
+    Override         // 上書きバフ（石化で移動速度を0にするなど）
 };
 
 /**
@@ -36,14 +36,22 @@ enum class BuffPriority
  */
 struct BuffConfig
 {
-    std::string id;                    // バフの一意識別子（例: "fire_buff", "speed_boost"）
-    float value;                       // バフの効果値（種類により意味が異なる）
-    BuffType type;                     // バフの種類（加算、乗算、割合、上書き）
-    std::optional<float> duration;     // 持続時間（秒）。nulloptの場合は永続バフ
-    BuffPriority priority;             // 計算優先度（デフォルト: Normal）
-    int maxStacks;                     // 最大スタック数（0=無制限、デフォルト: 1）
-    bool refreshable;                  // 同じバフを再度付与した時に持続時間をリセットするか
-    std::vector<std::string> tags;     // バフのタグ（カテゴリ分類用）
+    // バフの一意識別子（例: "fire_buff", "speed_boost"）
+    std::string id;
+    // バフの効果値（種類により意味が異なる）
+    float value;
+    // バフの種類（加算、乗算、割合、上書き）
+    BuffType type;
+    // 持続時間（秒）。nulloptの場合は永続バフ
+    std::optional<float> duration;
+    // 計算優先度（デフォルト: Normal）
+    BuffPriority priority;
+    // 最大スタック数（0=無制限、デフォルト: 1）
+    int maxStacks;
+    // 同じバフを再度付与した時に持続時間をリセットするか
+    bool refreshable;
+    // バフのタグ（カテゴリ分類用）
+    std::vector<std::string> tags;
 
     /**
      * @brief BuffConfigのコンストラクタ
@@ -93,7 +101,8 @@ public:
     const std::string& GetId() const;
 
     /**
-     * @brief バフの現在の効果値を取得（スタック数を考慮）
+     * @brief バフの現在の効果値を取得
+     * 
      * @return 効果値 × スタック数
      * @note スタック数が3、効果値が5なら、15を返します
      */
@@ -120,7 +129,6 @@ public:
     /**
      * @brief バフが期限切れかどうかを判定
      * @return 期限切れならtrue、まだ有効ならfalse
-     * @note 永続バフは常にfalseを返します
      */
     bool IsExpired() const;
 
@@ -152,27 +160,27 @@ public:
     /**
      * @brief バフの残り時間を更新
      * @param deltaTime 経過時間（秒）
-     * @note 永続バフの場合は何もしません
      */
     void Update(float deltaTime);
 
     /**
      * @brief スタック数を1増やす
      * @return 成功したらtrue、スタック上限に達していたらfalse
-     * @note maxStacks=0の場合は無制限にスタック可能
      */
     bool TryAddStack();
 
     /**
      * @brief バフの持続時間をリセット
-     * @note refreshable=trueの時限バフの場合のみ有効
      */
     void RefreshDuration();
 
 private:
-    BuffConfig config_;                      ///< バフの設定情報
-    std::optional<float> remainingTime_;     ///< 残り時間（永続バフの場合はnullopt）
-    int stackCount_;                         ///< 現在のスタック数
+    // バフの設定情報
+    BuffConfig config_;
+    // 残り時間（永続バフの場合はnullopt）
+    std::optional<float> remainingTime_;
+    // 現在のスタック数
+    int stackCount_;
 };
 
 /**
@@ -181,19 +189,32 @@ private:
  */
 struct StatusChangeEvent
 {
-    float oldValue;          // 変更前の値
-    float newValue;          // 変更後の値
-    std::string causeBuffId; // 変更の原因となったバフID（複数の場合は空文字列）
+    // 変更前の値
+    float oldValue;
+    // 変更後の値
+    float newValue;
+    // 変更の原因となったバフID（複数の場合は空文字列）
+    std::string causeBuffId;
 };
 
 /**
- * @class StatusValue
- * @brief 単一のステータス値とそれに適用されるバフを管理するクラス
+ * @brief ステータス値とバフシステムを管理するクラス
+ * 
+ * RPGなどのゲームでよく使われる、ステータス値（HP、攻撃力など）と
+ * それに適用されるバフ・デバフを管理します。
+ * 
+ * バフの種類:
+ * - Additive: 加算バフ（+10など）
+ * - Multiplicative: 乗算バフ（×1.5など）
+ * - Percentage: 割合バフ（+50%など）
+ * - Override: 上書きバフ（石化で移動速度を0にするなど）
+ * 
+ * @note キャッシュシステムにより、バフが変更されない限り計算結果を再利用します
  */
 class StatusValue
 {
 public:
-    /// @brief ステータス変更時のコールバック関数型
+    // ステータス変更時のコールバック関数型
     using ChangeCallback = std::function<void(const StatusChangeEvent&)>;
 
     /**
@@ -206,69 +227,141 @@ public:
     // 基礎値の取得・設定
     // ===============================================
 
-	// 基礎値を取得
+    /**
+     * @brief 基礎値を取得
+     * @return 現在の基礎値
+     */
     float GetBase() const;
 
-	// 基礎値を設定
+    /**
+     * @brief 基礎値を設定
+     * @param value 設定する基礎値
+     */
     void SetBase(float value);
 
-	// 最終的なステータス値を取得
+    /**
+     * @brief 最終的なステータス値を取得
+     * 
+     * キャッシュが有効な場合は即座に返し、無効な場合は再計算します。
+     * 
+     * @return 基礎値 + 全てのバフを適用した最終値
+     */
     float GetValue() const;
 
     // ===============================================
     // バフの管理
     // ===============================================
 
-	// 新しいバフを追加
+    /**
+     * @brief 新しいバフを追加
+     * 
+     * 同じIDのバフが既に存在する場合、スタック数を増やすか、
+     * 持続時間をリフレッシュします（設定による）。
+     * 
+     * @param config バフの設定情報
+     * @return 追加成功でtrue、スタック上限で失敗した場合false
+     */
     bool AddBuff(const BuffConfig& config);
 
-	// 特定のバフを削除
+    /**
+     * @brief 特定のバフを削除
+     * @param buffId 削除するバフのID
+     * @return 削除成功でtrue、バフが見つからなかった場合false
+     */
     bool RemoveBuff(const std::string& buffId);
 
-	// 全てのバフを削除
+    /**
+     * @brief 全てのバフを削除
+     */
     void ClearAllBuffs();
 
-	// 特定の種類のバフを全て削除
+    /**
+     * @brief 特定の種類のバフを全て削除
+     * @param type 削除するバフの種類
+     * @return 削除したバフの数
+     */
     int ClearBuffsByType(BuffType type);
 
-	// 条件に合致するバフを削除
+    /**
+     * @brief 条件に合致するバフを削除
+     * @param predicate 削除条件を判定する関数
+     * @return 削除したバフの数
+     */
     int RemoveBuffIf(std::function<bool(const BuffInstance*)> predicate);
 
-	// 特定のタグを持つバフを全て削除
+    /**
+     * @brief 特定のタグを持つバフを全て削除
+     * @param tag 削除するバフのタグ
+     * @return 削除したバフの数
+     */
     int RemoveBuffsByTag(const std::string& tag);
 
-	/// 特定の優先度のバフを全て削除
+    /**
+     * @brief 特定の優先度のバフを全て削除
+     * @param priority 削除するバフの優先度
+     * @return 削除したバフの数
+     */
     int RemoveBuffsByPriority(BuffPriority priority);
 
-	// 更新
+    /**
+     * @brief バフの更新処理
+     * @param deltaTime 経過時間（秒）
+     */
     void Update(float deltaTime);
 
-	// バフの存在確認
+    /**
+     * @brief バフの存在確認
+     * @param buffId 確認するバフのID
+     * @return バフが存在すればtrue
+     */
 	bool HasBuff(const std::string& buffId) const;
 
-	// 特定のバフの残り時間を取得
+    /**
+     * @brief 特定のバフの残り時間を取得
+     * @param buffId バフのID
+     * @return 残り時間（永続バフの場合はnullopt）
+     */
 	std::optional<float> GetBuffRemainingTime(const std::string& buffId) const;
 
-	// 全てのバフIDを取得
+    /**
+     * @brief 全てのバフIDを取得
+     * @return バフIDのvector
+     */
     std::vector<std::string> GetBuffIds() const;
 
-	// 適用中のバフ数を取得
+    /**
+     * @brief 適用中のバフ数を取得
+     * @return バフの数
+     */
     size_t GetBuffCount() const;
 
-	// ステータス変更時のコールバックを設定
+    /**
+     * @brief ステータス変更時のコールバックを設定
+     * @param callback ステータス変更時に呼び出される関数
+     */
     void SetChangeCallback(ChangeCallback callback);
 
 private: // メンバ関数
-	// キャッシュを無効化
+    /**
+     * @brief キャッシュを無効化
+     */
     void MarkDirty();
 
-	// キャッシュが無効な場合に値を再計算
+    /**
+     * @brief キャッシュが無効な場合に値を再計算
+     * @return 計算されたステータス値
+     */
     float CalculateValue() const;
 
 private: // メンバ変数
-    float base_;                                         // 基礎値
-    mutable float cachedValue_;                          // キャッシュされた計算結果（const関数内で更新するためmutable）
-    mutable bool isDirty_;                               // キャッシュが無効かどうか（const関数内で更新するためmutable）
-    std::vector<std::unique_ptr<BuffInstance>> buffs_;   // 適用中のバフリスト
-    ChangeCallback changeCallback_;                      // 値変更時のコールバック
+    // 基礎値
+    float base_;
+    // キャッシュされた計算結果（const関数内で更新するためmutable）
+    mutable float cachedValue_;
+    // キャッシュが無効かどうか（const関数内で更新するためmutable）
+    mutable bool isDirty_;
+    // 適用中のバフリスト
+    std::vector<std::unique_ptr<BuffInstance>> buffs_;
+    // 値変更時のコールバック
+    ChangeCallback changeCallback_;
 };

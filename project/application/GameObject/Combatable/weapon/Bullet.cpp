@@ -2,18 +2,17 @@
 
 void Bullet::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, const Vector3& position)
 {
-	GameObject::Initialize(object3dCommon, lightManager); // GameObjectの初期化
-	SetPosition(position); // 弾の初期位置を設定
+	GameObject::Initialize(object3dCommon, lightManager);
+	SetPosition(position);
 }
 
 void Bullet::Update()
 {
-	GameObject::Update(); // GameObjectの更新
+	GameObject::Update();
 }
 
 void Bullet::Draw(CameraManager* camera)
 {
-	// 弾の描画処理
-	if (!IsAlive()) return; // 生存していない場合は描画しない
+	if (!IsAlive()) return;
 	GameObject::Draw(camera);
 }

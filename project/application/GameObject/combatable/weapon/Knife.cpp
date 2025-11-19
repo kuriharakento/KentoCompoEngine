@@ -2,7 +2,7 @@
 
 void Knife::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager)
 {
-	GameObject::Initialize(object3dCommon, lightManager); // GameObjectの初期化
+	GameObject::Initialize(object3dCommon, lightManager);
 }
 
 void Knife::Update()
@@ -12,6 +12,6 @@ void Knife::Update()
 
 void Knife::Draw(CameraManager* camera)
 {
-	if (!IsAlive()) return; // 生存していない場合は描画しない
-	GameObject::Draw(camera); // GameObjectの描画
+	if (!IsAlive()) return;
+	GameObject::Draw(camera);
 }

@@ -4,19 +4,31 @@
 #include "application/GameObject/base/GameObject.h"
 #include "application/GameObject/component/action/StatusComponent.h"
 
-// 攻撃を受けることができるオブジェクトの基底クラス
+/**
+ * @brief 戦闘可能なオブジェクトの基底クラス
+ * 
+ * HP、攻撃力などのステータスを持ち、ダメージを受けることができます。
+ * StatusComponentを自動的に追加し、ステータス管理機能を提供します。
+ */
 class CombatableObject : public GameObject
 {
 public:
     virtual ~CombatableObject() = default;
+    
+    /**
+     * @brief コンストラクタ
+     * @param tag オブジェクトのタグ
+     */
     explicit CombatableObject(const std::string& tag = GameObjectTag::Common::CombatableObject)
         : GameObject(tag)
     {
-		// ステータスコンポーネントを追加
 		AddComponent("StatusComponent", std::make_unique<StatusComponent>());
     }
 
-    // ダメージを受ける
+    /**
+     * @brief ダメージを受ける
+     * @param damage 受けるダメージ量
+     */
 	virtual void TakeDamage(float damage)
 	{
 		auto status = GetComponent<StatusComponent>();
@@ -36,12 +48,20 @@ public:
 	// ステータスのGetter/Setter
 	//======================================
 
-    // HP
+    /**
+     * @brief HPの取得
+     * @return 現在のHP値
+     */
     float GetHp() const
     {
         auto status = GetComponent<StatusComponent>();
         return status ? status->hp.GetValue() : 0.0f;
     }
+    
+    /**
+     * @brief HPの設定
+     * @param v 設定するHP値
+     */
     void SetHp(float v)
     {
         auto status = GetComponent<StatusComponent>();
@@ -51,12 +71,20 @@ public:
         }
     }
 
-    // 攻撃力
+    /**
+     * @brief 攻撃力の取得
+     * @return 現在の攻撃力
+     */
     float GetAttackPower() const
     {
         auto status = GetComponent<StatusComponent>();
         return status ? status->attackPower.GetValue() : 0.0f;
     }
+    
+    /**
+     * @brief 攻撃力の設定
+     * @param v 設定する攻撃力
+     */
     void SetAttackPower(float v)
     {
         auto status = GetComponent<StatusComponent>();
@@ -66,12 +94,20 @@ public:
         }
     }
 
-    // 生存状態
+    /**
+     * @brief 生存状態の取得
+     * @return 生存している場合true
+     */
     bool IsAlive() const
     {
         auto status = GetComponent<StatusComponent>();
         return status ? status->isAlive : false;
     }
+    
+    /**
+     * @brief 生存状態の設定
+     * @param alive 設定する生存状態
+     */
     void SetAlive(bool alive)
     {
         auto status = GetComponent<StatusComponent>();

@@ -1,8 +1,19 @@
 #pragma once
 
+/**
+ * @file GameObjectTag.h
+ * @brief ゲームオブジェクトのタグ定義
+ * 
+ * ゲーム内の全てのオブジェクトに付けられるタグの定数を定義します。
+ * タグはオブジェクトの識別や衝突判定の分類に使用されます。
+ */
+
 namespace GameObjectTag
 {
-	// 共通タグ
+	/**
+	 * @namespace Common
+	 * @brief 共通のベースタグ定義
+	 */
 	namespace Common {
 		const std::string GameObject = "GameObject";
 		const std::string Character = "Character";
@@ -10,31 +21,41 @@ namespace GameObjectTag
 		const std::string EnemyBase = "EnemyBase";
 	}
 
-	// キャラクター
+	/**
+	 * @namespace Character
+	 * @brief キャラクター関連のタグ定義
+	 */
 	namespace Character {
-		// プレイヤー
+		// プレイヤー関連
 		const std::string Player = "Player";
 		const std::string PlayerRightArm = "PlayerRightArm";
 		const std::string PlayerLeftArm = "PlayerLeftArm";
 
-		// 敵キャラクター
+		// 敵キャラクター（銃器使用）
 		const std::string AssaultEnemy = "AssaultEnemy";
 		const std::string PistolEnemy = "PistolEnemy";
 		const std::string ShotgunEnemy = "ShotgunEnemy";
 
+		// 敵キャラクター（近接攻撃）
 		const std::string KnifeEnemy = "KnifeEnemy";
 		const std::string KnifeEnemyRightArm = "KnifeEnemyRightArm";
 		const std::string KnifeEnemyLeftArm = "KnifeEnemyLeftArm";
 	}
 
-	// 武器
+	/**
+	 * @namespace Weapon
+	 * @brief 武器関連のタグ定義
+	 */
 	namespace Weapon {
 		const std::string PlayerBullet = "PlayerBullet";
 		const std::string EnemyBullet = "EnemyBullet";
 		const std::string Knife = "Knife";
 	}
 
-	// アイテム
+	/**
+	 * @namespace Item
+	 * @brief アイテム・障害物関連のタグ定義
+	 */
 	namespace Item {
 		const std::string Obstacle = "Obstacle";
 		const std::string BarrierBlock = "BarrierBlock";
