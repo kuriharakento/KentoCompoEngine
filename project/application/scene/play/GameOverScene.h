@@ -118,6 +118,7 @@ protected:
 
 private:
 	//メンバ変数
-	SceneTransitionEffect transitionEffect_; ///< シーン遷移エフェクト（フェードイン/アウト）
+	// シーン遷移エフェクト（フェードイン/アウト）
+	SceneTransitionEffect transitionEffect_;
 };
 

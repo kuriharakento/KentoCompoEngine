@@ -61,11 +61,16 @@ protected:
 	void OnUpdatePlaying() override;
 
 private:
-	std::unique_ptr<DebugCamera> debugCamera_; ///< デバッグ用フリーカメラ
+	// デバッグ用フリーカメラ
+	std::unique_ptr<DebugCamera> debugCamera_;
 
 	// オーラエフェクトのテスト用パーティクルエミッター
-	std::unique_ptr<ParticleEmitter> auraCylinder_; ///< 白い円柱状のオーラ
-	std::unique_ptr<ParticleEmitter> auraMist_; ///< モヤモヤとした煙のようなオーラ
-	std::unique_ptr<ParticleEmitter> auraFloor_; ///< 床に広がる光の効果
-	std::unique_ptr<ParticleEmitter> auraLeak_; ///< 円柱から漏れる粒子
+	// 白い円柱状のオーラ
+	std::unique_ptr<ParticleEmitter> auraCylinder_;
+	// モヤモヤとした煙のようなオーラ
+	std::unique_ptr<ParticleEmitter> auraMist_;
+	// 床に広がる光の効果
+	std::unique_ptr<ParticleEmitter> auraFloor_;
+	// 円柱から漏れる粒子
+	std::unique_ptr<ParticleEmitter> auraLeak_;
 };

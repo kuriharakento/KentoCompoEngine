@@ -8,7 +8,6 @@
 
 void GameOverScene::Initialize()
 {
-	// シーン遷移エフェクトの初期化
 	transitionEffect_.Initialize(
 		sceneManager_->GetSpriteCommon(),
 		"./Resources/black.png",
@@ -16,29 +15,24 @@ void GameOverScene::Initialize()
 		1280.0f, 720.0f
 	);
 	
-	// Enter状態から開始（フェードイン演出）
 	StartState(SceneState::Enter);
 }
 
 void GameOverScene::Finalize()
 {
-	// リソース解放処理（現状は特になし）
 }
 
 void GameOverScene::Draw3D()
 {
-	// 3D要素の描画（現状は特になし）
 }
 
 void GameOverScene::Draw2D()
 {
-	// シーン遷移エフェクトの描画
 	transitionEffect_.Draw();
 }
 
 void GameOverScene::DrawImGui()
 {
-	// デバッグ情報表示（現状は特になし）
 }
 
 // ==================================================
@@ -61,7 +55,6 @@ void GameOverScene::OnUpdateEnter()
 {
 	transitionEffect_.Update();
 	
-	// フェードイン完了でPlaying状態へ遷移
 	if(transitionEffect_.GetState() == TransitionState::Done)
 	{
 		ChangeState(SceneState::Playing);
@@ -70,7 +63,6 @@ void GameOverScene::OnUpdateEnter()
 
 void GameOverScene::OnExitEnter()
 {
-	// Enter状態の退場処理（現状は特になし）
 }
 
 // ==================================================
@@ -78,15 +70,12 @@ void GameOverScene::OnExitEnter()
 // ==================================================
 void GameOverScene::OnEnterPlaying()
 {
-	// Playing状態の初期化処理（現状は特になし）
 }
 
 void GameOverScene::OnUpdatePlaying()
 {
-	// スペースキーでタイトルへ戻る
 	if(Input::GetInstance()->TriggerKey(DIK_SPACE))
 	{
-		// 終了演出（フェードアウト）の開始
 		transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
 		transitionEffect_.SetFadeType(FadeType::FadeIn);
 		transitionEffect_.SetMode(TransitionMode::EdgesToCenter);
@@ -95,14 +84,12 @@ void GameOverScene::OnUpdatePlaying()
 			VectorColorCodes::Black,
 			VectorColorCodes::Red
 		);
-		// Exit状態へ遷移
 		ChangeState(SceneState::Exit);
 	}
 }
 
 void GameOverScene::OnExitPlaying()
 {
-	// Playing状態の退場処理（現状は特になし）
 }
 
 // ==================================================
@@ -110,14 +97,12 @@ void GameOverScene::OnExitPlaying()
 // ==================================================
 void GameOverScene::OnEnterExit()
 {
-	// Exit状態の初期化処理（現状は特になし）
 }
 
 void GameOverScene::OnUpdateExit()
 {
 	transitionEffect_.Update();
 	
-	// フェードアウト完了でタイトルシーンへ遷移
 	if (transitionEffect_.GetState() == TransitionState::Done)
 	{
 		sceneManager_->ChangeScene(SceneNames::Title);
@@ -126,5 +111,4 @@ void GameOverScene::OnUpdateExit()
 
 void GameOverScene::OnExitExit()
 {
-	// Exit状態の退場処理（現状は特になし）
 }

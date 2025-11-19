@@ -196,31 +196,52 @@ private: //メンバ変数
     //  ゲームプレイ
 	// =========================
     
-    std::unique_ptr<Minimap> minimap_; ///< ミニマップUI（敵・エリアの位置表示）
-    std::unique_ptr<Object3d> skydome_; ///< スカイドーム（背景天球）
-    std::unique_ptr<Object3d> ground_; ///< 地面オブジェクト
-    std::unique_ptr<CarnageMode> carnageMode_; ///< カーネージモード（コンボ達成時の強化システム）
-    std::unique_ptr<SplineCamera> splineCamera_; ///< スプラインカメラ（演出用）
-    std::unique_ptr<TopDownCamera> topDownCamera_; ///< トップダウンカメラ（ゲームプレイ用）
-	std::unique_ptr<OrbitCameraWork> orbitCamera_; ///< オービットカメラワーク（デバッグ用）
-    std::unique_ptr<EnemyManager> enemyManager_; ///< 敵管理
-    std::unique_ptr<ObstacleManager> obstacleManager_; ///< 障害物管理
-    std::unique_ptr<StageManager> stageManager_; ///< ステージ・プレイヤー管理
-    SceneTransitionEffect transitionEffect_; ///< シーン遷移エフェクト（フェードイン/アウト）
-	CinematicLetterbox cinematicLetterbox_; ///< レターボックスエフェクト（映画的演出）
-	PlayerDeathEffect playerDeathEffect_; ///< プレイヤー死亡時の画面エフェクト
-    float gameOverEffectDuration_ = 3.0f; ///< ゲームオーバー演出の持続時間（秒）
-	float gameOverEffectElapsed_ = 0.0f; ///< ゲームオーバー演出の経過時間（秒）
+    // ミニマップUI（敵・エリアの位置表示）
+    std::unique_ptr<Minimap> minimap_;
+    // スカイドーム（背景天球）
+    std::unique_ptr<Object3d> skydome_;
+    // 地面オブジェクト
+    std::unique_ptr<Object3d> ground_;
+    // カーネージモード（コンボ達成時の強化システム）
+    std::unique_ptr<CarnageMode> carnageMode_;
+    // スプラインカメラ（演出用）
+    std::unique_ptr<SplineCamera> splineCamera_;
+    // トップダウンカメラ（ゲームプレイ用）
+    std::unique_ptr<TopDownCamera> topDownCamera_;
+    // オービットカメラワーク（デバッグ用）
+	std::unique_ptr<OrbitCameraWork> orbitCamera_;
+    // 敵管理
+    std::unique_ptr<EnemyManager> enemyManager_;
+    // 障害物管理
+    std::unique_ptr<ObstacleManager> obstacleManager_;
+    // ステージ・プレイヤー管理
+    std::unique_ptr<StageManager> stageManager_;
+    // シーン遷移エフェクト（フェードイン/アウト）
+    SceneTransitionEffect transitionEffect_;
+    // レターボックスエフェクト（映画的演出）
+	CinematicLetterbox cinematicLetterbox_;
+    // プレイヤー死亡時の画面エフェクト
+	PlayerDeathEffect playerDeathEffect_;
+    // ゲームオーバー演出の持続時間（秒）
+    float gameOverEffectDuration_ = 3.0f;
+    // ゲームオーバー演出の経過時間（秒）
+	float gameOverEffectElapsed_ = 0.0f;
 
-    bool gameClear_ = false; ///< ゲームクリアフラグ
-	bool gameOver_ = false; ///< ゲームオーバーフラグ
+    // ゲームクリアフラグ
+    bool gameClear_ = false;
+    // ゲームオーバーフラグ
+	bool gameOver_ = false;
 
 	// ========================
 	//  イントロ演出
 	// ========================
 
-    float introElapsed_ = 0.0f; ///< イントロ演出の経過時間（秒）
-	float introDuration_ = 2.0f; ///< イントロ演出の所要時間（秒）
-    Vector3 cameraInitialPosition_ = { 0.0f, 1.5f, 50.0f }; ///< カメラ初期位置
-	Vector3 cameraInitialRotation_ = { 00.0f, 0.0f, 0.0f }; ///< カメラ初期回転
+    // イントロ演出の経過時間（秒）
+    float introElapsed_ = 0.0f;
+    // イントロ演出の所要時間（秒）
+	float introDuration_ = 2.0f;
+    // カメラ初期位置
+    Vector3 cameraInitialPosition_ = { 0.0f, 1.5f, 50.0f };
+    // カメラ初期回転
+	Vector3 cameraInitialRotation_ = { 00.0f, 0.0f, 0.0f };
 };

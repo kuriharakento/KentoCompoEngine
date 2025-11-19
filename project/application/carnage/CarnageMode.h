@@ -118,13 +118,21 @@ private: // メンバ関数
     void ImGui();
 
 private: // メンバ変数
-    Player* player_; ///< 対象プレイヤーへのポインタ（非所有）
-	std::unique_ptr<CarnageModeEffect> effect_; ///< カーネージモード専用ビジュアルエフェクト
-    std::unique_ptr<Timer> timer_; ///< カーネージモード持続時間管理タイマー
+    // 対象プレイヤーへのポインタ（非所有）
+    Player* player_;
+    // カーネージモード専用ビジュアルエフェクト
+	std::unique_ptr<CarnageModeEffect> effect_;
+    // カーネージモード持続時間管理タイマー
+    std::unique_ptr<Timer> timer_;
 
-    const int comboThreshold_ = 10; ///< カーネージモード発動に必要なコンボ数
-    const float initialTime_ = 8.0f; ///< カーネージモード初期持続時間（秒）
-    const float extensionTime_ = 1.0f; ///< 敵撃破時のタイマー延長時間（秒）
-    float attackUpRate_ = 0.5f; ///< 攻撃力上昇率（0.5 = 50%アップ）
-	float speedUpRate_ = 1.0f; ///< 移動速度上昇率（1.0 = 100%アップ、つまり2倍速）
+    // カーネージモード発動に必要なコンボ数
+    const int comboThreshold_ = 10;
+    // カーネージモード初期持続時間（秒）
+    const float initialTime_ = 8.0f;
+    // 敵撃破時のタイマー延長時間（秒）
+    const float extensionTime_ = 1.0f;
+    // 攻撃力上昇率（0.5 = 50%アップ）
+    float attackUpRate_ = 0.5f;
+    // 移動速度上昇率（1.0 = 100%アップ、つまり2倍速）
+	float speedUpRate_ = 1.0f;
 };

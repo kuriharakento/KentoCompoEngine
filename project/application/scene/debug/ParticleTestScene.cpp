@@ -13,19 +13,15 @@
 
 void ParticleTestScene::Initialize()
 {
-	// Playing状態から開始
 	StartState(SceneState::Playing);
 
-	// デバッグカメラの初期化（自由視点で観察可能）
 	debugCamera_ = std::make_unique<DebugCamera>();
 	debugCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
 	debugCamera_->Start();
 
-	// カメラの初期位置と向きを設定
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate({ 0.0f, 5.0f, -20.0f });
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetRotate({ 0.0f, 0.0f, 0.0f });
 
-	// パーティクルエミッターの生成と初期化
 	auraCylinder_ = std::make_unique<ParticleEmitter>();
 	auraMist_ = std::make_unique<ParticleEmitter>();
 	auraFloor_ = std::make_unique<ParticleEmitter>();
@@ -69,7 +65,6 @@ void ParticleTestScene::Initialize()
 
 void ParticleTestScene::Finalize()
 {
-	// リソース解放処理（現状は特になし）
 }
 
 // ==================================================
@@ -78,7 +73,6 @@ void ParticleTestScene::Finalize()
 
 void ParticleTestScene::OnEnterPlaying()
 {
-	// 各パーティクルエミッターを開始（ループ再生）
 	auraCylinder_->Start(
 		Vector3(0.0f, 10.0f, 0.0f),
 		1,
@@ -103,14 +97,12 @@ void ParticleTestScene::OnEnterPlaying()
 
 void ParticleTestScene::OnUpdatePlaying()
 {
-	// デバッグカメラの更新（WASD移動、マウス視点変更）
 	if (debugCamera_) debugCamera_->Update();
 }
 
 
 void ParticleTestScene::Draw3D()
 {
-	// グリッド描画で空間の把握を補助
 	LineManager::GetInstance()->DrawGrid(
 		30.0f,
 		5.0f,
@@ -120,5 +112,4 @@ void ParticleTestScene::Draw3D()
 
 void ParticleTestScene::Draw2D()
 {
-	// 2D要素の描画（現状は特になし）
 }

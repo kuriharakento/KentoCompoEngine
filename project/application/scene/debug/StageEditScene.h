@@ -60,6 +60,8 @@ protected:
 	void OnUpdatePlaying() override;
 
 private:
-	std::unique_ptr<StageManager> stageManager_; ///< ステージデータ管理
-	std::unique_ptr<DebugCamera> debugCamera_; ///< デバッグ用フリーカメラ
+	// ステージデータ管理
+	std::unique_ptr<StageManager> stageManager_;
+	// デバッグ用フリーカメラ
+	std::unique_ptr<DebugCamera> debugCamera_;
 };

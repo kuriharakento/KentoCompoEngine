@@ -52,15 +52,24 @@ private:
 	Vector2 WorldToMinimap(const Vector3& worldPos)const;
 
 private:
-	SpriteCommon* spriteCommon_ = nullptr; ///< スプライト共通設定（非所有ポインタ）
-	StageManager* stageManager_ = nullptr; ///< ステージ管理クラス（非所有ポインタ）
+	// スプライト共通設定（非所有ポインタ）
+	SpriteCommon* spriteCommon_ = nullptr;
+	// ステージ管理クラス（非所有ポインタ）
+	StageManager* stageManager_ = nullptr;
 
-	std::unique_ptr<Sprite> frame_; ///< ミニマップのフレーム（枠）
-	std::vector<std::unique_ptr<Sprite>> enemyIcons_; ///< 敵アイコン（敵の数だけ動的生成）
-	std::unique_ptr< Sprite> playerIcon_; ///< プレイヤーアイコン
-	std::vector<std::unique_ptr<Sprite>> areaIcon_; ///< エリアアイコン（エリアの数だけ動的生成）
-	std::vector<bool> areaActiveFlags_; ///< 各エリアのアクティブ状態フラグ
-	float mapWidth_ = 200.0f; ///< ミニマップが表すワールド空間の幅
-	float mapHeight_ = 200.0f; ///< ミニマップが表すワールド空間の高さ
+	// ミニマップのフレーム（枠）
+	std::unique_ptr<Sprite> frame_;
+	// 敵アイコン（敵の数だけ動的生成）
+	std::vector<std::unique_ptr<Sprite>> enemyIcons_;
+	// プレイヤーアイコン
+	std::unique_ptr< Sprite> playerIcon_;
+	// エリアアイコン（エリアの数だけ動的生成）
+	std::vector<std::unique_ptr<Sprite>> areaIcon_;
+	// 各エリアのアクティブ状態フラグ
+	std::vector<bool> areaActiveFlags_;
+	// ミニマップが表すワールド空間の幅
+	float mapWidth_ = 200.0f;
+	// ミニマップが表すワールド空間の高さ
+	float mapHeight_ = 200.0f;
 };
 
