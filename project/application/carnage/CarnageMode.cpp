@@ -7,45 +7,40 @@
 CarnageMode::CarnageMode(Player* player)
     : player_(player)
 {
-	// カーネージモード専用エフェクトの初期化
 	effect_ = std::make_unique<CarnageModeEffect>();
 	effect_->Initialize();
 	
-	// タイマーの設定（終了時のコールバックを登録）
     timer_ = std::make_unique<Timer>("CarnageTimer", initialTime_);
     timer_->SetOnFinish([this]() {
-        RemoveBuffs();      // バフを解除
-        HideUI();           // UIを非表示
-		effect_->PlayEndEffect(player_->GetPosition()); // 終了エフェクト再生
+        RemoveBuffs();
+        HideUI();
+		effect_->PlayEndEffect(player_->GetPosition());
     });
 }
 
 void CarnageMode::TryStart()
 {
-	// コンボ条件を満たした場合にカーネージモードを発動
     int comboCount = ComboManager::GetInstance().GetComboCount();
     if (!IsActive() && comboCount >= comboThreshold_)
     {
         timer_->Reset();
         timer_->Start();
-        ApplyBuffs();  // プレイヤーにバフを適用
-        ShowUI();      // カーネージモードUIを表示
-		effect_->PlayAuraEffect(player_->GetPosition()); // オーラエフェクト開始
+        ApplyBuffs();
+        ShowUI();
+		effect_->PlayAuraEffect(player_->GetPosition());
     }
 }
 
 void CarnageMode::Update()
 {
-	// デバッグ情報表示
     ImGui();
     
-    // タイマー更新（リアルタイム基準）
     timer_->Update(TimeManager::GetInstance().GetGameContext().realDeltaTime);
 
-	// 毎フレーム発動条件をチェック
     TryStart();
 
-	// コンボが途切れた場合は強制終了
+	// コンボが途切れた場合は強制終了（時間が残っていても）
+	// ゲームデザイン上、連続撃破の報酬としての位置づけのため
     if (IsActive() && ComboManager::GetInstance().GetComboCount() <= 0)
     {
         timer_->Stop();
@@ -56,7 +51,6 @@ void CarnageMode::Update()
 
 void CarnageMode::ExtendTimer()
 {
-	// カーネージモード中に敵を倒した場合、タイマーを延長
     if (IsActive())
     {
         float remain = timer_->GetRemainingTime();
@@ -79,34 +73,28 @@ float CarnageMode::GetTimeLeft() const
 
 void CarnageMode::ApplyBuffs()
 {
-	// プレイヤーのステータスコンポーネントを取得
 	auto status = player_->GetComponent<StatusComponent>();
     if (!status) return;
 
-    // 攻撃力と移動速度にパーセンテージバフを適用
     status->attackPower.AddBuff(BuffConfig("CarnageAttackUp", attackUpRate_, BuffType::Percentage));
 	status->moveSpeed.AddBuff(BuffConfig("CarnageSpeedUp", speedUpRate_, BuffType::Percentage));
 }
 
 void CarnageMode::RemoveBuffs()
 {
-	// プレイヤーのステータスコンポーネントを取得
 	auto status = player_->GetComponent<StatusComponent>();
     if (!status) return;
 
-	// カーネージモードのバフを削除
     status->attackPower.RemoveBuff("CarnageAttackUp");
 	status->moveSpeed.RemoveBuff("CarnageSpeedUp");
 }
 
 void CarnageMode::ShowUI()
 {
-    // カーネージモードUI表示処理（将来実装）
 }
 
 void CarnageMode::HideUI()
 {
-    // カーネージモードUI非表示処理（将来実装）
 }
 
 void CarnageMode::ImGui()
@@ -121,11 +109,9 @@ void CarnageMode::ImGui()
         ExtendTimer();
     }
 
-	// プレイヤーのステータス表示
     auto status = player_->GetComponent<StatusComponent>();
     if (status)
     {
-	    // hp
         if (ImGui::CollapsingHeader("palyer status"))
         {
             ImGui::Text("HP: %.2f / %.2f", status->hp.GetValue(), status->maxHp.GetValue());

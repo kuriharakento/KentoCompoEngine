@@ -45,8 +45,6 @@ public:
      */
     void Initialize(SpriteCommon* spriteCommon);
 
-    static constexpr float kComboTimeout = 10.0f; ///< コンボの猶予時間（秒）
-
     /**
      * @brief 敵撃破時の処理
      * 
@@ -104,6 +102,9 @@ public:
      */
     bool IsActive() const { return comboCount_ > 0; }
 
+    // コンボの猶予時間（秒）
+    static constexpr float kComboTimeout = 10.0f;
+
 private:
     /**
      * @brief ImGuiデバッグ表示
@@ -113,10 +114,14 @@ private:
     void DrawImGUi();
 
 private:
-    int maxComboCount_ = 0; ///< 最大コンボ数（統計用）
-    int comboCount_ = 0; ///< 現在のコンボ数
-    float comboTimer_ = 0.0f; ///< コンボ猶予タイマー（秒）
-	NumberSprite comboNumberSprite_; ///< コンボ数表示用スプライト
+    // 最大コンボ数（統計用）
+    int maxComboCount_ = 0;
+    // 現在のコンボ数
+    int comboCount_ = 0;
+    // コンボ猶予タイマー（秒）
+    float comboTimer_ = 0.0f;
+    // コンボ数表示用スプライト
+	NumberSprite comboNumberSprite_;
 
 private: // シングルトン
     ComboManager() = default;

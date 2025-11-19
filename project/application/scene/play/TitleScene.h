@@ -121,11 +121,18 @@ protected:
 	void OnExitExit() override;
 
 private: //メンバ変数
-	std::unique_ptr<Sprite> titleLogo_; ///< タイトルロゴ画像
-	std::unique_ptr<Object3d> skydome_; ///< スカイドーム（背景天球）
-	std::unique_ptr<TitleFireEffect> fireEffect_; ///< 炎エフェクト（タイトル演出用）
-	OBB cube_{}; ///< 装飾用キューブ
-	float cubeRotateY = 0.0f; ///< キューブのY軸回転角度
-	float cubeWaveTime = 0.0f; ///< キューブの波動アニメーション用タイマー
-	SceneTransitionEffect transitionEffect_; ///< シーン遷移エフェクト（フェードイン/アウト）
+	// タイトルロゴ画像
+	std::unique_ptr<Sprite> titleLogo_;
+	// スカイドーム（背景天球）
+	std::unique_ptr<Object3d> skydome_;
+	// 炎エフェクト（タイトル演出用）
+	std::unique_ptr<TitleFireEffect> fireEffect_;
+	// 装飾用キューブ
+	OBB cube_{};
+	// キューブのY軸回転角度
+	float cubeRotateY = 0.0f;
+	// キューブの波動アニメーション用タイマー
+	float cubeWaveTime = 0.0f;
+	// シーン遷移エフェクト（フェードイン/アウト）
+	SceneTransitionEffect transitionEffect_;
 };
