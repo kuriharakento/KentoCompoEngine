@@ -9,7 +9,7 @@
 #include "imgui/imgui.h"
 #include "math/MathUtils.h"
 
-CollisionManager* CollisionManager::instance_ = nullptr; // シングルトンインスタンス
+CollisionManager* CollisionManager::instance_ = nullptr;
 
 CollisionManager* CollisionManager::GetInstance()
 {
@@ -27,7 +27,7 @@ void CollisionManager::Register(ICollisionComponent* collider)
 
 void CollisionManager::Unregister(ICollisionComponent* collider)
 {
-	// currentCollisions_ から該当コライダーを含むペアを削除
+	// このコライダーを含む衝突ペアを全て削除
 	for (auto it = currentCollisions_.begin(); it != currentCollisions_.end(); )
 	{
 		if (it->a == collider || it->b == collider)
@@ -96,6 +96,7 @@ void CollisionManager::CheckCollisions()
 	// 新しい衝突ペアを格納するセット
 	std::unordered_set<CollisionPair, CollisionPairHash> newCollisions;
 
+	// 全コライダーの組み合わせで判定
 	for (size_t i = 0; i < colliders_.size(); ++i)
 	{
 		for (size_t j = i + 1; j < colliders_.size(); ++j)
@@ -105,17 +106,16 @@ void CollisionManager::CheckCollisions()
 
 			bool isHit = false;
 
-			// 衝突判定のディスパッチ
 			ColliderType typeA = a->GetColliderType();
 			ColliderType typeB = b->GetColliderType();
 
-			// 判定次元モード判定
-			//====== 3Dモード ======
+			// 3Dモードの判定
 			if (dimension_ == CollisionDimension::Mode3D)
 			{
 				// AABB同士の衝突判定
 				if (typeA == ColliderType::AABB && typeB == ColliderType::AABB)
 				{
+					// サブステップ判定の使用チェック（高速移動体のすり抜け防止）
 					if (a->UseSubstep() || b->UseSubstep())
 						isHit = CollisionAlgorithm::CheckAABBvsAABBSubstep3D(static_cast<AABBColliderComponent*>(a), static_cast<AABBColliderComponent*>(b));
 					else
@@ -183,7 +183,7 @@ void CollisionManager::CheckCollisions()
 						isHit = CollisionAlgorithm::CheckSpherevsOBB3D(static_cast<SphereColliderComponent*>(b), static_cast<OBBColliderComponent*>(a));
 				}
 			}
-			//===== 2Dモード =====
+			// 2Dモードの判定
 			else if (dimension_ == CollisionDimension::Mode2D)
 			{
 				
@@ -263,7 +263,8 @@ void CollisionManager::CheckCollisions()
 			{
 				CollisionPair pair{ a, b };
 				newCollisions.insert(pair);
-				//衝突した瞬間の処理
+				
+				// 衝突した瞬間の処理
 				if (!currentCollisions_.contains(pair))
 				{
 					a->CallOnEnter(b->GetOwner());
@@ -271,7 +272,7 @@ void CollisionManager::CheckCollisions()
 				}
 				else
 				{
-					//衝突している間の処理
+					// 衝突している間の処理
 					a->CallOnStay(b->GetOwner());
 					b->CallOnStay(a->GetOwner());
 				}
@@ -284,7 +285,7 @@ void CollisionManager::CheckCollisions()
 	{
 		if (!newCollisions.contains(pair))
 		{
-			//衝突が離れた場合の処理
+			// 衝突が離れた時の処理
 			pair.a->CallOnExit(pair.b->GetOwner());
 			pair.b->CallOnExit(pair.a->GetOwner());
 		}
@@ -317,7 +318,7 @@ std::string CollisionManager::GetColliderTypeString(ColliderType type) const
 
 void CollisionManager::LogCollision(const std::string& phase, const ICollisionComponent* a, const ICollisionComponent* b)
 {
-#ifdef _DEBUG   // デバッグビルド時のみログを出力
+#ifdef _DEBUG
 	std::string tagA = a->GetOwner()->GetTag();
 	std::string tagB = b->GetOwner()->GetTag();
 	std::string typeAString = GetColliderTypeString(a->GetColliderType());
