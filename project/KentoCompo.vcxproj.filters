@@ -466,6 +466,7 @@
     <ClCompile Include="application\effect\AreaEffect.cpp">
       <Filter>application\effect</Filter>
     </ClCompile>
+    <ClCompile Include="application\UI\GameUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -1017,6 +1018,7 @@
     <ClInclude Include="application\effect\AreaEffect.h">
       <Filter>application\effect</Filter>
     </ClInclude>
+    <ClInclude Include="application\UI\GameUI.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

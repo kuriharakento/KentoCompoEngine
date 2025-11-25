@@ -111,6 +111,14 @@ void GamePlayScene::Initialize()
 		WinApp::kClientWidth, WinApp::kClientHeight
 	);
 
+	hpBarUI_ = std::make_unique<GameUI>();
+	hpBarUI_->Initialize(
+		sceneManager_->GetSpriteCommon(),
+		"./Resources/black.png"
+	);
+	hpBarUI_->SetSize({ 300.0f, 30.0f });
+	hpBarUI_->SetScreenPosition({ 150.0f, 50.0f });
+
 	StartState(SceneState::Enter);
 	gameClear_ = false;
 	gameOver_ = false;
@@ -228,6 +236,21 @@ void GamePlayScene::OnUpdatePlaying()
 	topDownCamera_->Update();
 
 	minimap_->Update();
+
+	// HPバーUIの更新
+	auto status = stageManager_->GetPlayer()->GetComponent<StatusComponent>();
+	float hpRatio = 0.0f;
+	float maxHpVal = status->maxHp.GetValue();
+	if (maxHpVal > 0.0f)
+	{
+		hpRatio = status->hp.GetValue() / maxHpVal;
+	}
+	// 比率を 0..1 の範囲にクランプ
+	if (hpRatio < 0.0f) hpRatio = 0.0f;
+	if (hpRatio > 1.0f) hpRatio = 1.0f;
+
+	hpBarUI_->SetSize({ 300.0f * hpRatio, 30.0f });
+	hpBarUI_->Update();
 
 	stageManager_->Update();
 
@@ -402,6 +425,8 @@ void GamePlayScene::Draw3D()
 void GamePlayScene::Draw2D()
 {
 	minimap_->Draw();
+
+	hpBarUI_->Draw();
 
 	ComboManager::GetInstance().Draw();
 
