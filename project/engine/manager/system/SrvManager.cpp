@@ -1,40 +1,46 @@
 #include "SrvManager.h"
 
+// === 定数定義 ===
+constexpr UINT kCubemapMostDetailedMip = 0;        // キューブマップの最詳細Mipレベル
+constexpr float kCubemapMinLODClamp = 0.0f;        // キューブマップの最小LODクランプ値
+constexpr UINT kDescriptorHeapCount = 1;           // セットするディスクリプタヒープ数
+
+// 最大SRV数（512個：一般的なゲームで十分な数、GPUメモリ効率のバランス）
 const uint32_t SrvManager::kMaxSRVCount = 512;
 
 void SrvManager::Initialize(DirectXCommon* dxCommon)
 {
-	//引数で受け取ってメンバ変数に記録する
+	// DirectXCommonへのポインタを保存
 	dxCommon_ = dxCommon;
 
-	//ディスクリプタヒープの生成
+	// SRV用ディスクリプタヒープの生成（シェーダーからアクセス可能）
 	descriptorHeap_ = dxCommon->CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, kMaxSRVCount, true);
-	//ディスクリプタ１個分のサイズを取得して記録
+	// ディスクリプタ1個分のサイズを取得（GPU依存のため実行時に取得）
 	descriptorSize_ = dxCommon->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 }
 
 uint32_t SrvManager::Allocate()
 {
-	//上限に達していないか確認
+	// 最大SRV数を超えていないかチェック（オーバーフロー防止）
 	assert(useIndex_ < kMaxSRVCount);
 
-	//returnする番号を一旦記録しておく
+	// 返却用にインデックスを保存
 	int index = useIndex_;
-	//今回のために番号を1進める
+	// 次回確保用にインデックスを進める
 	useIndex_++;
-	//上で記録した番号を返す
+	// 確保したインデックスを返す
 	return index;
 }
 
 uint32_t SrvManager::AllocateRange(uint32_t count)
 {
-	// 上限に達していないか確認
+	// 連続確保後も最大SRV数を超えないかチェック
 	assert(useIndex_ + count <= kMaxSRVCount);
 
-	// 開始インデックスを記録
+	// 連続するSRVの開始インデックスを保存
 	uint32_t startIndex = useIndex_;
-	// 指定した数だけインデックスを進める
+	// 指定数だけインデックスを進める
 	useIndex_ += count;
 
 	return startIndex;
@@ -42,13 +48,15 @@ uint32_t SrvManager::AllocateRange(uint32_t count)
 
 void SrvManager::CreateSRVforTexture2D(uint32_t srvIndex, ID3D12Resource* pResource, DXGI_FORMAT format, UINT mipLevels)
 {
+	// SRV記述子の設定
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 	srvDesc.Format = format;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	// 2Dテクスチャとして設定
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = UINT(mipLevels);
 
-	//SRVの生成
+	// 指定インデックスにSRVを作成
 	dxCommon_->GetDevice()->CreateShaderResourceView(
 		pResource,
 		&srvDesc,
@@ -58,14 +66,16 @@ void SrvManager::CreateSRVforTexture2D(uint32_t srvIndex, ID3D12Resource* pResou
 
 void SrvManager::CreateSRVforTexture2DCubeMap(uint32_t srvIndex, ID3D12Resource* pResource, DXGI_FORMAT format,UINT mipLevels)
 {
+	// SRV記述子の設定
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 	srvDesc.Format = format;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	// キューブマップテクスチャとして設定（6面の環境マップ用）
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-	srvDesc.TextureCube.MostDetailedMip = 0;	//unionがTextureCubeになったが内部パラメーターの意味はTexture2Dと同じ
-	srvDesc.TextureCube.MipLevels = UINT_MAX;
-	srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
-	//SRVの生成
+	srvDesc.TextureCube.MostDetailedMip = kCubemapMostDetailedMip;	// 最も詳細なMipレベルから使用
+	srvDesc.TextureCube.MipLevels = UINT_MAX;	// 全てのMipレベルを使用
+	srvDesc.TextureCube.ResourceMinLODClamp = kCubemapMinLODClamp;	// LODクランプなし
+	// 指定インデックスにSRVを作成
 	dxCommon_->GetDevice()->CreateShaderResourceView(
 		pResource,
 		&srvDesc,
@@ -76,14 +86,16 @@ void SrvManager::CreateSRVforTexture2DCubeMap(uint32_t srvIndex, ID3D12Resource*
 void SrvManager::CreateSRVforStructuredBuffer(uint32_t srvIndex, ID3D12Resource* pResource, UINT numElements,
                                               UINT structureByteStride)
 {
+	// Structured Buffer用SRV記述子の設定
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;	// Structured Bufferは型指定不要
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	// バッファとして設定（構造体の配列をシェーダーで読み取り）
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-	srvDesc.Buffer.NumElements = numElements;
-	srvDesc.Buffer.StructureByteStride = structureByteStride;
+	srvDesc.Buffer.NumElements = numElements;	// バッファ内の要素数
+	srvDesc.Buffer.StructureByteStride = structureByteStride;	// 1要素のサイズ
 	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-	//SRVの生成
+	// 指定インデックスにSRVを作成
 	dxCommon_->GetDevice()->CreateShaderResourceView(
 		pResource,
 		&srvDesc,
@@ -93,30 +105,32 @@ void SrvManager::CreateSRVforStructuredBuffer(uint32_t srvIndex, ID3D12Resource*
 
 void SrvManager::PreDraw()
 {
-	//描画用のDescriptorHeapをセット
+	// 描画用ディスクリプタヒープをコマンドリストにセット
 	ID3D12DescriptorHeap* descriptorHeaps[] = { descriptorHeap_.Get() };
-	dxCommon_->GetCommandList()->SetDescriptorHeaps(1, descriptorHeaps);
+	dxCommon_->GetCommandList()->SetDescriptorHeaps(kDescriptorHeapCount, descriptorHeaps);
 }
 
 void SrvManager::SetGraphicsRootDescriptorTable(UINT RootParameterIndex, uint32_t srvIndex)
 {
-	//RootSignatureの設定
+	// 指定ルートパラメータにSRVをバインド
 	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(RootParameterIndex, GetGPUDescriptorHandle(srvIndex));
 }
 
 void SrvManager::SetGraphicsRootDescriptorTableRange(UINT RootParameterIndex, uint32_t startSrvIndex)
 {
-	// 連続するSRVの開始位置を設定
+	// 連続するSRV範囲の開始位置をバインド
 	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(RootParameterIndex, GetGPUDescriptorHandle(startSrvIndex));
 }
 
 bool SrvManager::IsMaxSRVCount()
 {
+	// 現在のインデックスが最大数以上なら最大に達している
 	return useIndex_ >= kMaxSRVCount;
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE SrvManager::GetCPUDescriptorHandle(uint32_t index)
 {
+	// ヒープの先頭からインデックス分のオフセットを計算
 	D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap_->GetCPUDescriptorHandleForHeapStart();
 	handleCPU.ptr += (descriptorSize_ * index);
 	return handleCPU;
@@ -124,6 +138,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE SrvManager::GetCPUDescriptorHandle(uint32_t index)
 
 D3D12_GPU_DESCRIPTOR_HANDLE SrvManager::GetGPUDescriptorHandle(uint32_t index)
 {
+	// ヒープの先頭からインデックス分のオフセットを計算
 	D3D12_GPU_DESCRIPTOR_HANDLE handleGPU = descriptorHeap_->GetGPUDescriptorHandleForHeapStart();
 	handleGPU.ptr += (descriptorSize_ * index);
 	return handleGPU;
