@@ -11,24 +11,24 @@
 void ImGuiManager::Initialize([[maybe_unused]] WinApp* winApp, [[maybe_unused]] DirectXCommon* dxCommon, [[maybe_unused]] SrvManager* srvManager)
 {
 #ifdef USE_IMGUI
-	//引数をメンバ変数に記録
+	// 引数をメンバ変数に記録
 	winApp_ = winApp;
 	dxCommon_ = dxCommon;
 	srvManager_ = srvManager;
 
-	//ImGUiのコンテキストを生成
+	// ImGuiのコンテキストを生成
 	ImGui::CreateContext();
 
-	//ImGUiのスタイルを設定(好きに変えて大丈夫)
+	// ImGuiのスタイルを設定（ダークテーマ）
 	ImGui::StyleColorsDark();
 
-	//Win32用の初期化
+	// Win32用の初期化（ウィンドウハンドルを渡す）
 	ImGui_ImplWin32_Init(winApp_->GetHwnd());
 
-	//SRVの確保とインデックスの取得
+	// SRVの確保とインデックスの取得
 	uint32_t srvIndex = srvManager_->Allocate();
 
-	//DX12用の初期化
+	// DX12用の初期化（デバイス、バックバッファ、SRVヒープを設定）
 	ImGui_ImplDX12_Init(
 		dxCommon_->GetDevice(),
 		static_cast<int>(dxCommon_->GetBackBufferCount()),
@@ -38,7 +38,7 @@ void ImGuiManager::Initialize([[maybe_unused]] WinApp* winApp, [[maybe_unused]] 
 		srvManager_->GetGPUDescriptorHandle(srvIndex)
 	);
 
-	// ドッキングを有効にする
+	// ドッキング機能を有効にする
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 #endif
@@ -47,7 +47,7 @@ void ImGuiManager::Initialize([[maybe_unused]] WinApp* winApp, [[maybe_unused]] 
 void ImGuiManager::Finalize()
 {
 #ifdef USE_IMGUI
-	//ImGuiの終了処理
+	// ImGuiの終了処理（DX12、Win32、コンテキストの順に解放）
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
@@ -57,7 +57,7 @@ void ImGuiManager::Finalize()
 void ImGuiManager::Begin()
 {
 #ifdef USE_IMGUI
-	//ImGuiの描画開始
+	// ImGuiの新規フレーム開始（DX12、Win32、ImGuiの順に呼び出す）
 	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
@@ -67,7 +67,7 @@ void ImGuiManager::Begin()
 void ImGuiManager::End()
 {
 #ifdef USE_IMGUI
-	//描画前準備
+	// 描画前準備（描画データを確定させる）
 	ImGui::Render();
 #endif
 }
@@ -77,10 +77,11 @@ void ImGuiManager::Draw()
 #ifdef USE_IMGUI
 	ID3D12GraphicsCommandList* commandList = dxCommon_->GetCommandList();
 
-	//ディスクリプタヒープの配列をセットするコマンド
+	// ディスクリプタヒープの配列をセットするコマンド
 	ID3D12DescriptorHeap* ppHeaps[] = { srvManager_->GetSrvHeap() };
 	commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-	//描画コマンドを発行
+	
+	// 描画コマンドを発行
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
 #endif
 }

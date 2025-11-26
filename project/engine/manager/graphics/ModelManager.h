@@ -7,35 +7,51 @@
 #include "graphics/3d/Model.h"
 #include "graphics/3d/ModelCommon.h"
 
+/**
+ * @brief モデルマネージャークラス
+ * @details 3Dモデルのロードとキャッシングを管理するシングルトンクラス
+ *          一度ロードしたモデルはキャッシュされ、再利用される
+ */
 class ModelManager
 {
 public: /*========[ メンバ関数 ]========*/
-	//シングルトンのインスタンスを取得
+	/**
+	 * @brief シングルトンインスタンスを取得
+	 * @return ModelManagerのインスタンス
+	 */
 	static ModelManager* GetInstance();
 
-	//初期化
+	/**
+	 * @brief 初期化処理
+	 * @param dxCommon DirectXCommonへのポインタ
+	 */
 	void Initialize(DirectXCommon* dxCommon);
 
-	//終了
+	/**
+	 * @brief 終了処理
+	 * @details リソースを解放し、インスタンスを削除する
+	 */
 	void Finalize();
 
 	/**
-	 * \brief モデルの読み込み
-	 * \param filePath モデルファイルパス
+	 * @brief モデルの読み込み
+	 * @param filePath モデルファイルパス（Resources/modelsディレクトリからの相対パス）
+	 * @param modelType モデルのファイル形式（デフォルト: ".obj"）
+	 * @details 読み込み済みの場合はスキップされる
 	 */
 	void LoadModel(const std::string& filePath, const std::string& modelType = ".obj");
 
 	/**
-	 * \brief モデルの検索
-	 * \param filePath モデルファイルパス
-	 * \return モデル
+	 * @brief モデルの検索
+	 * @param filePath モデルファイルパス
+	 * @return モデルへのポインタ（見つからない場合はnullptr）
 	 */
 	Model* FindModel(const std::string& filePath);
 
 private: /*========[ シングルトン ]========*/
-	static ModelManager* instance_;
+	static ModelManager* instance_; // シングルトンインスタンス
 	
-	//コピー禁止
+	// コピー禁止
 	ModelManager()=default;
 	~ModelManager()=default;
 	
@@ -43,9 +59,9 @@ private: /*========[ シングルトン ]========*/
 	ModelManager& operator=(const ModelManager& rhs) = delete;
 
 private: /*========[ メンバ変数 ]========*/
-	ModelCommon* modelCommon_ = nullptr;
+	ModelCommon* modelCommon_ = nullptr; // モデル共通設定
 
-	//モデルデータ
+	// モデルデータのキャッシュ（ファイルパス -> モデル）
 	std::map<std::string, std::unique_ptr<Model>> models_;
 };
 
