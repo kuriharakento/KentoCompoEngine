@@ -2,6 +2,83 @@
 
 #include <numbers>
 
+namespace
+{
+	//===========================[ リング形状用定数 ]===========================//
+	// リングの分割数
+	constexpr uint32_t kRingDivide = 32;
+	// リングの外側半径
+	constexpr float kRingOuterRadius = 1.0f;
+	// リングの内側半径
+	constexpr float kRingInnerRadius = 0.2f;
+
+	//===========================[ 円柱形状用定数 ]===========================//
+	// 円柱の分割数
+	constexpr uint32_t kCylinderDivide = 32;
+	// 円柱の半径
+	constexpr float kCylinderRadius = 1.0f;
+	// 円柱の高さ
+	constexpr float kCylinderHeight = 2.0f;
+
+	//===========================[ 球体形状用定数 ]===========================//
+	// 球体の緯度分割数
+	constexpr uint32_t kSphereLatitudeDiv = 16;
+	// 球体の経度分割数
+	constexpr uint32_t kSphereLongitudeDiv = 32;
+	// 球体の半径
+	constexpr float kSphereRadius = 1.0f;
+
+	//===========================[ トーラス形状用定数 ]===========================//
+	// トーラスの外周分割数（大円）
+	constexpr uint32_t kTorusCircleDiv = 32;
+	// トーラスの断面分割数（小円）
+	constexpr uint32_t kTorusTubeDiv = 16;
+	// トーラスの大円半径
+	constexpr float kTorusOuterRadius = 1.0f;
+	// トーラスのチューブ半径
+	constexpr float kTorusInnerRadius = 0.3f;
+
+	//===========================[ 星形状用定数 ]===========================//
+	// 星の頂点数（尖りの数）
+	constexpr int kStarPoints = 5;
+	// 星の外側半径
+	constexpr float kStarOuterRadius = 1.0f;
+	// 星の内側半径
+	constexpr float kStarInnerRadius = 0.5f;
+
+	//===========================[ ハート形状用定数 ]===========================//
+	// ハートの分割数
+	constexpr int kHeartDivide = 64;
+	// ハートのスケール係数
+	constexpr float kHeartScaleFactor = 18.0f;
+
+	//===========================[ スパイラル形状用定数 ]===========================//
+	// スパイラルの円周方向分割数
+	constexpr int kSpiralRingDiv = 64;
+	// スパイラルの高さ方向分割数
+	constexpr int kSpiralHeightDiv = 32;
+	// スパイラルの半径
+	constexpr float kSpiralRadius = 0.5f;
+	// スパイラルの高さ
+	constexpr float kSpiralHeight = 1.0f;
+	// スパイラルの巻き数
+	constexpr float kSpiralTurns = 3.0f;
+	// スパイラルのチューブ半径
+	constexpr float kSpiralTubeRadius = 0.05f;
+
+	//===========================[ 円錐形状用定数 ]===========================//
+	// 円錐の分割数
+	constexpr uint32_t kConeSliceCount = 32;
+	// 円錐の底面半径
+	constexpr float kConeRadius = 1.0f;
+	// 円錐の高さ
+	constexpr float kConeHeight = 2.0f;
+
+	//===========================[ 立方体形状用定数 ]===========================//
+	// 立方体の辺の長さ
+	constexpr float kCubeSize = 1.0f;
+}
+
 std::vector<VertexData> ParticleMath::MakePlaneVertexData()
 {
 	// 頂点データを矩形で初期化
@@ -18,124 +95,91 @@ std::vector<VertexData> ParticleMath::MakePlaneVertexData()
 
 std::vector<VertexData> ParticleMath::MakeRingVertexData()
 {
-	// 頂点データをリングで初期化（triangle list）
-	const uint32_t kRingDivide = 32;
-	const float    kOuterRadius = 1.0f;
-	const float    kInnerRadius = 0.2f;
-	const float    radianPerDiv = 2.0f * std::numbers::pi_v<float> / float(kRingDivide);
+	// 1セグメントあたりの角度を計算
+	const float radianPerDiv = 2.0f * std::numbers::pi_v<float> / float(kRingDivide);
 
 	std::vector<VertexData> ringVertices;
-	ringVertices.reserve(kRingDivide * 6);  // 1セグメントあたり6頂点
+	// 1セグメントあたり6頂点（2三角形）
+	ringVertices.reserve(kRingDivide * 6);
 
+	// 各セグメントの頂点を生成
 	for (uint32_t i = 0; i < kRingDivide; ++i)
 	{
-		// 0→1 の角度
+		// 現在と次のセグメントの角度を計算
 		float theta0 = radianPerDiv * float(i);
 		float theta1 = radianPerDiv * float(i + 1);
 
-		// sin/cos をそれぞれ計算
+		// sin/cosを事前計算
 		float c0 = std::cos(theta0), s0 = std::sin(theta0);
 		float c1 = std::cos(theta1), s1 = std::sin(theta1);
 
-		// テクスチャ座標 U
+		// テクスチャ座標U成分
 		float u0 = float(i) / float(kRingDivide);
 		float u1 = float(i + 1) / float(kRingDivide);
 
-		// ▽ 三角形 1： outer0 → outer1 → inner0
-		ringVertices.push_back({ { c0 * kOuterRadius, s0 * kOuterRadius, 0, 1 }, { u0, 0 }, { 0,0,1 } });
-		ringVertices.push_back({ { c1 * kOuterRadius, s1 * kOuterRadius, 0, 1 }, { u1, 0 }, { 0,0,1 } });
-		ringVertices.push_back({ { c0 * kInnerRadius, s0 * kInnerRadius, 0, 1 }, { u0, 1 }, { 0,0,1 } });
+		// 三角形1: 外側0 → 外側1 → 内側0
+		ringVertices.push_back({ { c0 * kRingOuterRadius, s0 * kRingOuterRadius, 0, 1 }, { u0, 0 }, { 0,0,1 } });
+		ringVertices.push_back({ { c1 * kRingOuterRadius, s1 * kRingOuterRadius, 0, 1 }, { u1, 0 }, { 0,0,1 } });
+		ringVertices.push_back({ { c0 * kRingInnerRadius, s0 * kRingInnerRadius, 0, 1 }, { u0, 1 }, { 0,0,1 } });
 
-		// ▽ 三角形 2： outer1 → inner1 → inner0
-		ringVertices.push_back({ { c1 * kOuterRadius, s1 * kOuterRadius, 0, 1 }, { u1, 0 }, { 0,0,1 } });
-		ringVertices.push_back({ { c1 * kInnerRadius, s1 * kInnerRadius, 0, 1 }, { u1, 1 }, { 0,0,1 } });
-		ringVertices.push_back({ { c0 * kInnerRadius, s0 * kInnerRadius, 0, 1 }, { u0, 1 }, { 0,0,1 } });
+		// 三角形2: 外側1 → 内側1 → 内側0
+		ringVertices.push_back({ { c1 * kRingOuterRadius, s1 * kRingOuterRadius, 0, 1 }, { u1, 0 }, { 0,0,1 } });
+		ringVertices.push_back({ { c1 * kRingInnerRadius, s1 * kRingInnerRadius, 0, 1 }, { u1, 1 }, { 0,0,1 } });
+		ringVertices.push_back({ { c0 * kRingInnerRadius, s0 * kRingInnerRadius, 0, 1 }, { u0, 1 }, { 0,0,1 } });
 	}
 	return ringVertices;
 }
 
 std::vector<VertexData> ParticleMath::MakeCylinderVertexData()
 {
-	const uint32_t kCylinderDivide = 32; // 円柱の分割数
-	const float kOuterRadius = 1.0f;     // 外側の半径
-	const float kHeight = 2.0f;          // 円柱の高さ
+	// 1セグメントあたりの角度を計算
 	const float radianPerDiv = 2.0f * std::numbers::pi_v<float> / float(kCylinderDivide);
 
 	std::vector<VertexData> cylinderVertices;
 
-	//// 上面キャップの頂点データを生成
-	//for (uint32_t index = 0; index < kCylinderDivide; ++index) {
-	//	float sin0 = std::sin(radianPerDiv * index);
-	//	float cos0 = std::cos(radianPerDiv * index);
-	//	float sin1 = std::sin(radianPerDiv * (index + 1));
-	//	float cos1 = std::cos(radianPerDiv * (index + 1));
-	//	float u0 = float(index) / float(kCylinderDivide);
-	//	float u1 = float(index + 1) / float(kCylinderDivide);
-
-	//	// 三角形1: 中心 → 外側0 → 外側1
-	//	cylinderVertices.push_back({ { 0.0f, kHeight / 2.0f, 0.0f, 1.0f }, { 0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f } }); // 中心
-	//	cylinderVertices.push_back({ { cos0 * kOuterRadius, kHeight / 2.0f, sin0 * kOuterRadius, 1.0f }, { u0, 0.0f }, { 0.0f, 1.0f, 0.0f } }); // 外側0
-	//	cylinderVertices.push_back({ { cos1 * kOuterRadius, kHeight / 2.0f, sin1 * kOuterRadius, 1.0f }, { u1, 0.0f }, { 0.0f, 1.0f, 0.0f } }); // 外側1
-	//}
-
-	//// 下面キャップの頂点データを生成
-	//for (uint32_t index = 0; index < kCylinderDivide; ++index) {
-	//	float sin0 = std::sin(radianPerDiv * index);
-	//	float cos0 = std::cos(radianPerDiv * index);
-	//	float sin1 = std::sin(radianPerDiv * (index + 1));
-	//	float cos1 = std::cos(radianPerDiv * (index + 1));
-	//	float u0 = float(index) / float(kCylinderDivide);
-	//	float u1 = float(index + 1) / float(kCylinderDivide);
-
-	//	// 三角形1: 中心 → 外側1 → 外側0
-	//	cylinderVertices.push_back({ { 0.0f, -kHeight / 2.0f, 0.0f, 1.0f }, { 0.5f, 0.5f }, { 0.0f, -1.0f, 0.0f } }); // 中心
-	//	cylinderVertices.push_back({ { cos1 * kOuterRadius, -kHeight / 2.0f, sin1 * kOuterRadius, 1.0f }, { u1, 0.0f }, { 0.0f, -1.0f, 0.0f } }); // 外側1
-	//	cylinderVertices.push_back({ { cos0 * kOuterRadius, -kHeight / 2.0f, sin0 * kOuterRadius, 1.0f }, { u0, 0.0f }, { 0.0f, -1.0f, 0.0f } }); // 外側0
-	//}
-
 	// 側面の頂点データを生成
 	for (uint32_t index = 0; index < kCylinderDivide; ++index)
 	{
+		// sin/cosを計算
 		float sin0 = std::sin(radianPerDiv * index);
 		float cos0 = std::cos(radianPerDiv * index);
 		float sin1 = std::sin(radianPerDiv * (index + 1));
 		float cos1 = std::cos(radianPerDiv * (index + 1));
+		// テクスチャ座標U成分
 		float u0 = float(index) / float(kCylinderDivide);
 		float u1 = float(index + 1) / float(kCylinderDivide);
 
 		// 三角形1: 上外側0 → 上外側1 → 下外側0
-		cylinderVertices.push_back({ { cos0 * kOuterRadius, kHeight / 2.0f, sin0 * kOuterRadius, 1.0f }, { u0, 0.0f }, { cos0, 0.0f, sin0 } });
-		cylinderVertices.push_back({ { cos1 * kOuterRadius, kHeight / 2.0f, sin1 * kOuterRadius, 1.0f }, { u1, 0.0f }, { cos1, 0.0f, sin1 } });
-		cylinderVertices.push_back({ { cos0 * kOuterRadius, -kHeight / 2.0f, sin0 * kOuterRadius, 1.0f }, { u0, 1.0f }, { cos0, 0.0f, sin0 } });
+		cylinderVertices.push_back({ { cos0 * kCylinderRadius, kCylinderHeight / 2.0f, sin0 * kCylinderRadius, 1.0f }, { u0, 0.0f }, { cos0, 0.0f, sin0 } });
+		cylinderVertices.push_back({ { cos1 * kCylinderRadius, kCylinderHeight / 2.0f, sin1 * kCylinderRadius, 1.0f }, { u1, 0.0f }, { cos1, 0.0f, sin1 } });
+		cylinderVertices.push_back({ { cos0 * kCylinderRadius, -kCylinderHeight / 2.0f, sin0 * kCylinderRadius, 1.0f }, { u0, 1.0f }, { cos0, 0.0f, sin0 } });
 
 		// 三角形2: 上外側1 → 下外側1 → 下外側0
-		cylinderVertices.push_back({ { cos1 * kOuterRadius, kHeight / 2.0f, sin1 * kOuterRadius, 1.0f }, { u1, 0.0f }, { cos1, 0.0f, sin1 } });
-		cylinderVertices.push_back({ { cos1 * kOuterRadius, -kHeight / 2.0f, sin1 * kOuterRadius, 1.0f }, { u1, 1.0f }, { cos1, 0.0f, sin1 } });
-		cylinderVertices.push_back({ { cos0 * kOuterRadius, -kHeight / 2.0f, sin0 * kOuterRadius, 1.0f }, { u0, 1.0f }, { cos0, 0.0f, sin0 } });
+		cylinderVertices.push_back({ { cos1 * kCylinderRadius, kCylinderHeight / 2.0f, sin1 * kCylinderRadius, 1.0f }, { u1, 0.0f }, { cos1, 0.0f, sin1 } });
+		cylinderVertices.push_back({ { cos1 * kCylinderRadius, -kCylinderHeight / 2.0f, sin1 * kCylinderRadius, 1.0f }, { u1, 1.0f }, { cos1, 0.0f, sin1 } });
+		cylinderVertices.push_back({ { cos0 * kCylinderRadius, -kCylinderHeight / 2.0f, sin0 * kCylinderRadius, 1.0f }, { u0, 1.0f }, { cos0, 0.0f, sin0 } });
 	}
 	return cylinderVertices;
 }
 
 std::vector<VertexData> ParticleMath::MakeSphereVertexData()
 {
-	const uint32_t kLatitudeDiv = 16;
-	const uint32_t kLongitudeDiv = 32;
-	const float kRadius = 1.0f;
-
 	std::vector<VertexData> sphereVertices;
 
-	// 三角形を直接構築（インデックスバッファなし）
-	for (uint32_t lat = 0; lat < kLatitudeDiv; ++lat)
+	// 三角形を直接構築（インデックスバッファを使用しない）
+	for (uint32_t lat = 0; lat < kSphereLatitudeDiv; ++lat)
 	{
-		float theta0 = float(lat) / float(kLatitudeDiv) * std::numbers::pi_v<float>;
-		float theta1 = float(lat + 1) / float(kLatitudeDiv) * std::numbers::pi_v<float>;
+		// 緯度方向の角度を計算（0〜π）
+		float theta0 = float(lat) / float(kSphereLatitudeDiv) * std::numbers::pi_v<float>;
+		float theta1 = float(lat + 1) / float(kSphereLatitudeDiv) * std::numbers::pi_v<float>;
 
-		for (uint32_t lon = 0; lon < kLongitudeDiv; ++lon)
+		for (uint32_t lon = 0; lon < kSphereLongitudeDiv; ++lon)
 		{
-			float phi0 = float(lon) / float(kLongitudeDiv) * 2.0f * std::numbers::pi_v<float>;
-			float phi1 = float(lon + 1) / float(kLongitudeDiv) * 2.0f * std::numbers::pi_v<float>;
+			// 経度方向の角度を計算（0〜2π）
+			float phi0 = float(lon) / float(kSphereLongitudeDiv) * 2.0f * std::numbers::pi_v<float>;
+			float phi1 = float(lon + 1) / float(kSphereLongitudeDiv) * 2.0f * std::numbers::pi_v<float>;
 
-			// 4頂点計算（パッチ1枚分）
+			// 4頂点の位置を計算（球面座標から直交座標への変換）
 			Vector3 p00 = {
 				std::cos(phi0) * std::sin(theta0),
 				std::cos(theta0),
@@ -157,20 +201,21 @@ std::vector<VertexData> ParticleMath::MakeSphereVertexData()
 				std::sin(phi1) * std::sin(theta1)
 			};
 
-			Vector2 uv00 = { float(lon) / float(kLongitudeDiv), float(lat) / float(kLatitudeDiv) };
-			Vector2 uv01 = { float(lon + 1) / float(kLongitudeDiv), float(lat) / float(kLatitudeDiv) };
-			Vector2 uv10 = { float(lon) / float(kLongitudeDiv), float(lat + 1) / float(kLatitudeDiv) };
-			Vector2 uv11 = { float(lon + 1) / float(kLongitudeDiv), float(lat + 1) / float(kLatitudeDiv) };
+			// テクスチャ座標を計算
+			Vector2 uv00 = { float(lon) / float(kSphereLongitudeDiv), float(lat) / float(kSphereLatitudeDiv) };
+			Vector2 uv01 = { float(lon + 1) / float(kSphereLongitudeDiv), float(lat) / float(kSphereLatitudeDiv) };
+			Vector2 uv10 = { float(lon) / float(kSphereLongitudeDiv), float(lat + 1) / float(kSphereLatitudeDiv) };
+			Vector2 uv11 = { float(lon + 1) / float(kSphereLongitudeDiv), float(lat + 1) / float(kSphereLatitudeDiv) };
 
 			// 三角形1: p00 → p10 → p11
-			sphereVertices.push_back({ { p00.x * kRadius, p00.y * kRadius, p00.z * kRadius, 1.0f }, uv00, p00 });
-			sphereVertices.push_back({ { p10.x * kRadius, p10.y * kRadius, p10.z * kRadius, 1.0f }, uv10, p10 });
-			sphereVertices.push_back({ { p11.x * kRadius, p11.y * kRadius, p11.z * kRadius, 1.0f }, uv11, p11 });
+			sphereVertices.push_back({ { p00.x * kSphereRadius, p00.y * kSphereRadius, p00.z * kSphereRadius, 1.0f }, uv00, p00 });
+			sphereVertices.push_back({ { p10.x * kSphereRadius, p10.y * kSphereRadius, p10.z * kSphereRadius, 1.0f }, uv10, p10 });
+			sphereVertices.push_back({ { p11.x * kSphereRadius, p11.y * kSphereRadius, p11.z * kSphereRadius, 1.0f }, uv11, p11 });
 
 			// 三角形2: p00 → p11 → p01
-			sphereVertices.push_back({ { p00.x * kRadius, p00.y * kRadius, p00.z * kRadius, 1.0f }, uv00, p00 });
-			sphereVertices.push_back({ { p11.x * kRadius, p11.y * kRadius, p11.z * kRadius, 1.0f }, uv11, p11 });
-			sphereVertices.push_back({ { p01.x * kRadius, p01.y * kRadius, p01.z * kRadius, 1.0f }, uv01, p01 });
+			sphereVertices.push_back({ { p00.x * kSphereRadius, p00.y * kSphereRadius, p00.z * kSphereRadius, 1.0f }, uv00, p00 });
+			sphereVertices.push_back({ { p11.x * kSphereRadius, p11.y * kSphereRadius, p11.z * kSphereRadius, 1.0f }, uv11, p11 });
+			sphereVertices.push_back({ { p01.x * kSphereRadius, p01.y * kSphereRadius, p01.z * kSphereRadius, 1.0f }, uv01, p01 });
 		}
 	}
 	return sphereVertices;
@@ -178,64 +223,63 @@ std::vector<VertexData> ParticleMath::MakeSphereVertexData()
 
 std::vector<VertexData> ParticleMath::MakeTorusVertexData()
 {
-	const uint32_t kCircleDiv = 32;     // ドーナツの外周分割数（大円）
-	const uint32_t kTubeDiv = 16;       // チューブの断面分割数（小円）
-	const float kOuterRadius = 1.0f;    // 大円の半径
-	const float kInnerRadius = 0.3f;    // チューブ（小円）の半径
-
 	std::vector<VertexData> torusVertices;
 
-	for (uint32_t i = 0; i < kCircleDiv; ++i)
+	// 大円の各セグメントを処理
+	for (uint32_t i = 0; i < kTorusCircleDiv; ++i)
 	{
-		float theta0 = float(i) / float(kCircleDiv) * 2.0f * std::numbers::pi_v<float>;
-		float theta1 = float(i + 1) / float(kCircleDiv) * 2.0f * std::numbers::pi_v<float>;
+		// 大円方向の角度（0〜2π）
+		float theta0 = float(i) / float(kTorusCircleDiv) * 2.0f * std::numbers::pi_v<float>;
+		float theta1 = float(i + 1) / float(kTorusCircleDiv) * 2.0f * std::numbers::pi_v<float>;
 
-		for (uint32_t j = 0; j < kTubeDiv; ++j)
+		// 小円の各セグメントを処理
+		for (uint32_t j = 0; j < kTorusTubeDiv; ++j)
 		{
-			float phi0 = float(j) / float(kTubeDiv) * 2.0f * std::numbers::pi_v<float>;
-			float phi1 = float(j + 1) / float(kTubeDiv) * 2.0f * std::numbers::pi_v<float>;
+			// 小円方向の角度（0〜2π）
+			float phi0 = float(j) / float(kTorusTubeDiv) * 2.0f * std::numbers::pi_v<float>;
+			float phi1 = float(j + 1) / float(kTorusTubeDiv) * 2.0f * std::numbers::pi_v<float>;
 
-			// 4頂点の計算（トーラスは大円＋小円の組み合わせ）
-			// p00 - theta0, phi0
+			// 4頂点の位置を計算（トーラスのパラメトリック方程式）
+			// p00: theta0, phi0
 			Vector3 p00 = {
-				(kOuterRadius + kInnerRadius * std::cos(phi0)) * std::cos(theta0),
-				kInnerRadius * std::sin(phi0),
-				(kOuterRadius + kInnerRadius * std::cos(phi0)) * std::sin(theta0)
+				(kTorusOuterRadius + kTorusInnerRadius * std::cos(phi0)) * std::cos(theta0),
+				kTorusInnerRadius * std::sin(phi0),
+				(kTorusOuterRadius + kTorusInnerRadius * std::cos(phi0)) * std::sin(theta0)
 			};
-			// p01 - theta0, phi1
+			// p01: theta0, phi1
 			Vector3 p01 = {
-				(kOuterRadius + kInnerRadius * std::cos(phi1)) * std::cos(theta0),
-				kInnerRadius * std::sin(phi1),
-				(kOuterRadius + kInnerRadius * std::cos(phi1)) * std::sin(theta0)
+				(kTorusOuterRadius + kTorusInnerRadius * std::cos(phi1)) * std::cos(theta0),
+				kTorusInnerRadius * std::sin(phi1),
+				(kTorusOuterRadius + kTorusInnerRadius * std::cos(phi1)) * std::sin(theta0)
 			};
-			// p10 - theta1, phi0
+			// p10: theta1, phi0
 			Vector3 p10 = {
-				(kOuterRadius + kInnerRadius * std::cos(phi0)) * std::cos(theta1),
-				kInnerRadius * std::sin(phi0),
-				(kOuterRadius + kInnerRadius * std::cos(phi0)) * std::sin(theta1)
+				(kTorusOuterRadius + kTorusInnerRadius * std::cos(phi0)) * std::cos(theta1),
+				kTorusInnerRadius * std::sin(phi0),
+				(kTorusOuterRadius + kTorusInnerRadius * std::cos(phi0)) * std::sin(theta1)
 			};
-			// p11 - theta1, phi1
+			// p11: theta1, phi1
 			Vector3 p11 = {
-				(kOuterRadius + kInnerRadius * std::cos(phi1)) * std::cos(theta1),
-				kInnerRadius * std::sin(phi1),
-				(kOuterRadius + kInnerRadius * std::cos(phi1)) * std::sin(theta1)
+				(kTorusOuterRadius + kTorusInnerRadius * std::cos(phi1)) * std::cos(theta1),
+				kTorusInnerRadius * std::sin(phi1),
+				(kTorusOuterRadius + kTorusInnerRadius * std::cos(phi1)) * std::sin(theta1)
 			};
 
-			// 法線は中心からの方向（頂点位置 - 大円中心）
-			// 大円中心はtheta軸上の点(kOuterRadius * cos(theta), 0, kOuterRadius * sin(theta))
-			Vector3 center0 = { kOuterRadius * std::cos(theta0), 0.0f, kOuterRadius * std::sin(theta0) };
-			Vector3 center1 = { kOuterRadius * std::cos(theta1), 0.0f, kOuterRadius * std::sin(theta1) };
+			// 法線計算用：大円の中心位置
+			Vector3 center0 = { kTorusOuterRadius * std::cos(theta0), 0.0f, kTorusOuterRadius * std::sin(theta0) };
+			Vector3 center1 = { kTorusOuterRadius * std::cos(theta1), 0.0f, kTorusOuterRadius * std::sin(theta1) };
 
+			// 法線ベクトル（頂点位置から大円中心を引いた方向）
 			Vector3 n00 = p00 - center0;
 			Vector3 n01 = p01 - center0;
 			Vector3 n10 = p10 - center1;
 			Vector3 n11 = p11 - center1;
 
-			// UV座標
-			Vector2 uv00 = { float(i) / float(kCircleDiv), float(j) / float(kTubeDiv) };
-			Vector2 uv01 = { float(i) / float(kCircleDiv), float(j + 1) / float(kTubeDiv) };
-			Vector2 uv10 = { float(i + 1) / float(kCircleDiv), float(j) / float(kTubeDiv) };
-			Vector2 uv11 = { float(i + 1) / float(kCircleDiv), float(j + 1) / float(kTubeDiv) };
+			// テクスチャ座標
+			Vector2 uv00 = { float(i) / float(kTorusCircleDiv), float(j) / float(kTorusTubeDiv) };
+			Vector2 uv01 = { float(i) / float(kTorusCircleDiv), float(j + 1) / float(kTorusTubeDiv) };
+			Vector2 uv10 = { float(i + 1) / float(kTorusCircleDiv), float(j) / float(kTorusTubeDiv) };
+			Vector2 uv11 = { float(i + 1) / float(kTorusCircleDiv), float(j + 1) / float(kTorusTubeDiv) };
 
 			// 三角形1: p00 → p10 → p11
 			torusVertices.push_back({ { p00.x, p00.y, p00.z, 1.0f }, uv00, n00 });
@@ -253,36 +297,37 @@ std::vector<VertexData> ParticleMath::MakeTorusVertexData()
 
 std::vector<VertexData> ParticleMath::MakeStarVertexData()
 {
-	const int kPoints = 5; // 星の頂点数（5つの尖り）
-	const float outerRadius = 1.0f;  // 星の外側の半径
-	const float innerRadius = 0.5f;  // 星の内側の半径
-
 	std::vector<VertexData> vertices;
 
-	float angleStep = 2.0f * std::numbers::pi_v<float> / float(kPoints * 2); // 外内合わせて10頂点
+	// 1頂点あたりの角度（外側と内側合わせて10頂点）
+	float angleStep = 2.0f * std::numbers::pi_v<float> / float(kStarPoints * 2);
+	// Z軸正方向の法線
 	Vector3 normal = { 0.0f, 0.0f, 1.0f };
 
-	// 星の頂点を交互に生成（外側、内側、外側、内側...）
+	// 星の輪郭頂点を生成（外側と内側を交互に配置）
 	std::vector<Vector4> starPoints;
-	for (int i = 0; i < kPoints * 2; ++i)
+	for (int i = 0; i < kStarPoints * 2; ++i)
 	{
-		float radius = (i % 2 == 0) ? outerRadius : innerRadius;
+		// 偶数インデックスは外側、奇数は内側
+		float radius = (i % 2 == 0) ? kStarOuterRadius : kStarInnerRadius;
 		float angle = angleStep * i;
 		starPoints.push_back({ std::cos(angle) * radius, std::sin(angle) * radius, 0.0f, 1.0f });
 	}
 
+	// 中心点とテクスチャ座標
 	Vector4 center = { 0.0f, 0.0f, 0.0f, 1.0f };
 	Vector2 uvCenter = { 0.5f, 0.5f };
 
-	// 扇状に三角形を分割（中心 - 頂点 i - 頂点 i+1）
-	for (int i = 0; i < kPoints * 2; ++i)
+	// 扇状に三角形を生成（中心 - 頂点i - 頂点i+1）
+	for (int i = 0; i < kStarPoints * 2; ++i)
 	{
-		int nextIndex = (i + 1) % (kPoints * 2);
+		int nextIndex = (i + 1) % (kStarPoints * 2);
 
 		Vector4 p0 = center;
 		Vector4 p1 = starPoints[i];
 		Vector4 p2 = starPoints[nextIndex];
 
+		// テクスチャ座標を位置から計算
 		Vector2 uv0 = uvCenter;
 		Vector2 uv1 = { (p1.x + 1.0f) * 0.5f, (p1.y + 1.0f) * 0.5f };
 		Vector2 uv2 = { (p2.x + 1.0f) * 0.5f, (p2.y + 1.0f) * 0.5f };
@@ -296,25 +341,25 @@ std::vector<VertexData> ParticleMath::MakeStarVertexData()
 
 std::vector<VertexData> ParticleMath::MakeHeartVertexData()
 {
-	const int kDiv = 64;
 	std::vector<VertexData> vertices;
 
 	// 中心点（原点）
 	VertexData center = { { 0.0f, 0.0f, 0.0f, 1.0f }, { 0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f } };
 
-	// 輪郭点の配列を一時的に保存
+	// 輪郭点を一時的に格納
 	std::vector<VertexData> outlineVertices;
 
-	// 反時計回りに輪郭の頂点を計算
-	for (int i = 0; i <= kDiv; ++i)
+	// 反時計回りに輪郭の頂点を計算（ハートのパラメトリック方程式）
+	for (int i = 0; i <= kHeartDivide; ++i)
 	{
-		float t = float(i) / float(kDiv) * 2.0f * std::numbers::pi_v<float>;
+		// パラメータt（0〜2π）
+		float t = float(i) / float(kHeartDivide) * 2.0f * std::numbers::pi_v<float>;
 		// ハートのパラメトリック方程式
 		float x = 16.0f * std::powf(std::sin(t), 3);
 		float y = 13.0f * std::cosf(t) - 5.0f * std::cosf(2.0f * t) - 2.0f * std::cosf(3.0f * t) - std::cosf(4.0f * t);
-		// 適切なスケーリング（正規化）
-		x /= 18.0f;
-		y /= 18.0f;
+		// スケールを調整して正規化
+		x /= kHeartScaleFactor;
+		y /= kHeartScaleFactor;
 		// テクスチャ座標（0〜1の範囲にマッピング）
 		float u = (x + 1.0f) * 0.5f;
 		float v = (y + 1.0f) * 0.5f;
@@ -323,51 +368,43 @@ std::vector<VertexData> ParticleMath::MakeHeartVertexData()
 	}
 
 	// 三角形リストを作成（中心と輪郭の2点で三角形を形成）
-	for (int i = 0; i < kDiv; ++i)
+	for (int i = 0; i < kHeartDivide; ++i)
 	{
-		// 各三角形は中心点、現在の輪郭点、次の輪郭点からなる
-		vertices.push_back(center); // 中心点
-		vertices.push_back(outlineVertices[i]); // 現在の輪郭点
-		vertices.push_back(outlineVertices[i + 1]); // 次の輪郭点
+		vertices.push_back(center);                  // 中心点
+		vertices.push_back(outlineVertices[i]);      // 現在の輪郭点
+		vertices.push_back(outlineVertices[i + 1]);  // 次の輪郭点
 	}
 	return vertices;
 }
 
 std::vector<VertexData> ParticleMath::MakeSpiralVertexData()
 {
-	const int kRingDiv = 64;   // 円周方向の分割数
-	const int kHeightDiv = 32; // 高さ方向の分割数
-	const float kRadius = 0.5f; // 螺旋の半径
-	const float kHeight = 1.0f; // 螺旋の高さ
-	const float kTurns = 3.0f;  // 螺旋の巻き数
-
 	std::vector<VertexData> vertices;
 
-	// 螺旋の軌道上に頂点を配置
-	for (int i = 0; i <= kHeightDiv; ++i)
+	// 螺旋の中心線上の頂点を計算
+	for (int i = 0; i <= kSpiralHeightDiv; ++i)
 	{
-		// 高さパラメータ (0 から 1)
-		float v = static_cast<float>(i) / static_cast<float>(kHeightDiv);
+		// 高さパラメータ（0〜1）
+		float v = static_cast<float>(i) / static_cast<float>(kSpiralHeightDiv);
 
-		// 高さ位置
-		float y = v * kHeight - kHeight * 0.5f; // 中心を原点にするため -kHeight/2 から +kHeight/2 の範囲に
+		// 高さ位置（中心を原点にする）
+		float y = v * kSpiralHeight - kSpiralHeight * 0.5f;
 
-		// 回転角度（高さに応じて kTurns 回転する）
-		float angle = v * kTurns * 2.0f * std::numbers::pi_v<float>;
+		// 回転角度（高さに応じて巻き数分回転）
+		float angle = v * kSpiralTurns * 2.0f * std::numbers::pi_v<float>;
 
-		// 円周上の位置
-		float x = kRadius * std::cos(angle);
-		float z = kRadius * std::sin(angle);
+		// 円周上の位置を計算
+		float x = kSpiralRadius * std::cos(angle);
+		float z = kSpiralRadius * std::sin(angle);
 
-		// テクスチャ座標
+		// テクスチャ座標（Uは角度から計算、0〜1に正規化）
 		float u = angle / (2.0f * std::numbers::pi_v<float>);
-		while (u > 1.0f) u -= 1.0f; // 0-1の範囲に正規化
+		while (u > 1.0f) u -= 1.0f;
 
-		// 法線ベクトルは外向き（簡易的に半径方向）
-		float nx = x / kRadius;
-		float nz = z / kRadius;
+		// 法線ベクトル（外向き、半径方向）
+		float nx = x / kSpiralRadius;
+		float nz = z / kSpiralRadius;
 
-		// Vector4, Vector2, Vector3を使用
 		Vector4 position = { x, y, z, 1.0f };
 		Vector2 texcoord = { u, v };
 		Vector3 normal = { nx, 0.0f, nz };
@@ -379,19 +416,15 @@ std::vector<VertexData> ParticleMath::MakeSpiralVertexData()
 		vertices.push_back(vertex);
 	}
 
-	// これで単純な螺旋の点列ができましたが、これを太さを持った形状にする場合は、
-	// 各点から法線方向に複数の頂点を配置し、三角形を形成する必要があります。
-
-	// 太さを持った螺旋（チューブ状）にするためのコード
+	// 螺旋をチューブ状の形状に変換
 	std::vector<VertexData> tubeVertices;
-	const float kTubeRadius = 0.05f; // チューブの半径
 
 	for (int i = 0; i < vertices.size(); ++i)
 	{
 		// 螺旋の中心線上の位置
 		Vector3 center = { vertices[i].position.x, vertices[i].position.y, vertices[i].position.z };
 
-		// 前方向ベクトル（螺旋の進行方向）
+		// 前方向ベクトル（螺旋の進行方向）を計算
 		Vector3 forward;
 		if (i < vertices.size() - 1)
 		{
@@ -410,43 +443,43 @@ std::vector<VertexData> ParticleMath::MakeSpiralVertexData()
 			};
 		}
 
-		// 正規化
+		// 前方向ベクトルを正規化
 		float length = std::sqrt(forward.x * forward.x + forward.y * forward.y + forward.z * forward.z);
 		forward = { forward.x / length, forward.y / length, forward.z / length };
 
-		// 上向きベクトル（仮の上方向）
+		// 上向きベクトル（仮）
 		Vector3 up = { 0.0f, 1.0f, 0.0f };
 
-		// 右向きベクトル（外向き）
+		// 右向きベクトル（外積で計算）
 		Vector3 right = {
 			up.y * forward.z - up.z * forward.y,
 			up.z * forward.x - up.x * forward.z,
 			up.x * forward.y - up.y * forward.x
 		};
 
-		// 正規化
+		// 右向きベクトルを正規化
 		length = std::sqrt(right.x * right.x + right.y * right.y + right.z * right.z);
 		right = { right.x / length, right.y / length, right.z / length };
 
-		// 実際の上向きベクトル（直交するように）
+		// 実際の上向きベクトル（直交するように再計算）
 		up = {
 			forward.y * right.z - forward.z * right.y,
 			forward.z * right.x - forward.x * right.z,
 			forward.x * right.y - forward.y * right.x
 		};
 
-		// 螺旋の周りに円形の頂点を配置
-		for (int j = 0; j < kRingDiv; ++j)
+		// チューブの円周上に頂点を配置
+		for (int j = 0; j < kSpiralRingDiv; ++j)
 		{
-			float angle = static_cast<float>(j) / static_cast<float>(kRingDiv) * 2.0f * std::numbers::pi_v<float>;
+			float angle = static_cast<float>(j) / static_cast<float>(kSpiralRingDiv) * 2.0f * std::numbers::pi_v<float>;
 			float cosA = std::cos(angle);
 			float sinA = std::sin(angle);
 
-			// チューブ上の位置（中心から right と up 方向に offset）
+			// チューブ上の位置（中心からright/up方向にオフセット）
 			Vector3 tubePoint = {
-				center.x + kTubeRadius * (right.x * cosA + up.x * sinA),
-				center.y + kTubeRadius * (right.y * cosA + up.y * sinA),
-				center.z + kTubeRadius * (right.z * cosA + up.z * sinA)
+				center.x + kSpiralTubeRadius * (right.x * cosA + up.x * sinA),
+				center.y + kSpiralTubeRadius * (right.y * cosA + up.y * sinA),
+				center.z + kSpiralTubeRadius * (right.z * cosA + up.z * sinA)
 			};
 
 			// 法線ベクトル（中心から外向き）
@@ -456,18 +489,18 @@ std::vector<VertexData> ParticleMath::MakeSpiralVertexData()
 				tubePoint.z - center.z
 			};
 
-			// 正規化
+			// 法線を正規化
 			length = std::sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
 			normal = { normal.x / length, normal.y / length, normal.z / length };
 
 			// テクスチャ座標
 			Vector2 texcoord = {
-				static_cast<float>(j) / static_cast<float>(kRingDiv),
+				static_cast<float>(j) / static_cast<float>(kSpiralRingDiv),
 				vertices[i].texcoord.y
 			};
 
 			VertexData vertex;
-			vertex.position = { tubePoint.x, tubePoint.y, tubePoint.z, 1.0f }; // Vector4
+			vertex.position = { tubePoint.x, tubePoint.y, tubePoint.z, 1.0f };
 			vertex.texcoord = texcoord;
 			vertex.normal = normal;
 			tubeVertices.push_back(vertex);
@@ -477,14 +510,15 @@ std::vector<VertexData> ParticleMath::MakeSpiralVertexData()
 	// チューブ状の螺旋を三角形で構成
 	std::vector<VertexData> finalVertices;
 
-	for (int i = 0; i < kHeightDiv; ++i)
+	for (int i = 0; i < kSpiralHeightDiv; ++i)
 	{
-		for (int j = 0; j < kRingDiv; ++j)
+		for (int j = 0; j < kSpiralRingDiv; ++j)
 		{
-			int current = i * kRingDiv + j;
-			int next = i * kRingDiv + (j + 1) % kRingDiv;
-			int bottom = (i + 1) * kRingDiv + j;
-			int bottomNext = (i + 1) * kRingDiv + (j + 1) % kRingDiv;
+			// インデックス計算
+			int current = i * kSpiralRingDiv + j;
+			int next = i * kSpiralRingDiv + (j + 1) % kSpiralRingDiv;
+			int bottom = (i + 1) * kSpiralRingDiv + j;
+			int bottomNext = (i + 1) * kSpiralRingDiv + (j + 1) % kSpiralRingDiv;
 
 			// 上部の三角形
 			finalVertices.push_back(tubeVertices[current]);
@@ -504,48 +538,53 @@ std::vector<VertexData> ParticleMath::MakeConeVertexData()
 {
 	std::vector<VertexData> vertices;
 
-	// 固定パラメータ
-	const uint32_t sliceCount = 32;
-	const float radius = 1.0f;
-	const float height = 2.0f;
-	const float angleStep = 2.0f * std::numbers::pi_v<float> / static_cast<float>(sliceCount);
+	// 1セグメントあたりの角度
+	const float angleStep = 2.0f * std::numbers::pi_v<float> / static_cast<float>(kConeSliceCount);
 
-	Vector4 tip = { 0.0f, height, 0.0f, 1.0f };
+	// 頂点と中心点
+	Vector4 tip = { 0.0f, kConeHeight, 0.0f, 1.0f };
 	Vector4 center = { 0.0f, 0.0f, 0.0f, 1.0f };
 
-	// 側面
-	for (uint32_t i = 0; i < sliceCount; ++i)
+	// 側面の生成
+	for (uint32_t i = 0; i < kConeSliceCount; ++i)
 	{
+		// セグメントの角度
 		float theta0 = angleStep * i;
 		float theta1 = angleStep * (i + 1);
 
-		Vector4 p0 = { radius * std::cos(theta0), 0.0f, radius * std::sin(theta0), 1.0f };
-		Vector4 p1 = { radius * std::cos(theta1), 0.0f, radius * std::sin(theta1), 1.0f };
+		// 底面の2点を計算
+		Vector4 p0 = { kConeRadius * std::cos(theta0), 0.0f, kConeRadius * std::sin(theta0), 1.0f };
+		Vector4 p1 = { kConeRadius * std::cos(theta1), 0.0f, kConeRadius * std::sin(theta1), 1.0f };
 
-		// 法線（外積から計算）
+		// 法線を外積から計算
 		Vector3 a = { p0.x - tip.x, p0.y - tip.y, p0.z - tip.z };
 		Vector3 b = { p1.x - tip.x, p1.y - tip.y, p1.z - tip.z };
 		Vector3 normal = Vector3::Normalize(Vector3::Cross(b, a));
 
+		// 側面の三角形
 		vertices.push_back({ tip, {0.5f, 0.0f}, normal });
 		vertices.push_back({ p1,  {1.0f, 1.0f}, normal });
 		vertices.push_back({ p0,  {0.0f, 1.0f}, normal });
 	}
 
-	// 底面
+	// 底面の生成
 	Vector3 downNormal = { 0.0f, -1.0f, 0.0f };
-	for (uint32_t i = 0; i < sliceCount; ++i)
+	for (uint32_t i = 0; i < kConeSliceCount; ++i)
 	{
+		// セグメントの角度
 		float theta0 = angleStep * i;
 		float theta1 = angleStep * (i + 1);
 
-		Vector4 p0 = { radius * std::cos(theta0), 0.0f, radius * std::sin(theta0), 1.0f };
-		Vector4 p1 = { radius * std::cos(theta1), 0.0f, radius * std::sin(theta1), 1.0f };
+		// 底面の2点
+		Vector4 p0 = { kConeRadius * std::cos(theta0), 0.0f, kConeRadius * std::sin(theta0), 1.0f };
+		Vector4 p1 = { kConeRadius * std::cos(theta1), 0.0f, kConeRadius * std::sin(theta1), 1.0f };
 
+		// テクスチャ座標（円形にマッピング）
 		Vector2 uvCenter = { 0.5f, 0.5f };
-		Vector2 uv0 = { 0.5f + p0.x / (2.0f * radius), 0.5f + p0.z / (2.0f * radius) };
-		Vector2 uv1 = { 0.5f + p1.x / (2.0f * radius), 0.5f + p1.z / (2.0f * radius) };
+		Vector2 uv0 = { 0.5f + p0.x / (2.0f * kConeRadius), 0.5f + p0.z / (2.0f * kConeRadius) };
+		Vector2 uv1 = { 0.5f + p1.x / (2.0f * kConeRadius), 0.5f + p1.z / (2.0f * kConeRadius) };
 
+		// 底面の三角形
 		vertices.push_back({ center, uvCenter, downNormal });
 		vertices.push_back({ p0,     uv0,      downNormal });
 		vertices.push_back({ p1,     uv1,      downNormal });
@@ -557,73 +596,60 @@ std::vector<VertexData> ParticleMath::MakeConeVertexData()
 std::vector<VertexData> ParticleMath::MakeCubeVertexData()
 {
 	std::vector<VertexData> vertices;
-	const float size = 1.0f;      // 辺長
-	const float h = size * 0.5f;   // 半幅（中心からの距離）
+	// 半幅（中心からの距離）
+	const float h = kCubeSize * 0.5f;
 
+	// 面を追加するラムダ関数
+	// a:左上, b:左下, c:右上, d:右下（外側から見た順）
 	auto addFace = [&](const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d, const Vector3& normal) {
-		// a = top-left, b = bottom-left, c = top-right, d = bottom-right (外側から見た順)
+		// 三角形1: a → b → c
 		vertices.push_back({ { a.x, a.y, a.z, 1.0f }, { 0.0f, 0.0f }, normal });
 		vertices.push_back({ { b.x, b.y, b.z, 1.0f }, { 0.0f, 1.0f }, normal });
 		vertices.push_back({ { c.x, c.y, c.z, 1.0f }, { 1.0f, 0.0f }, normal });
 
+		// 三角形2: c → b → d
 		vertices.push_back({ { c.x, c.y, c.z, 1.0f }, { 1.0f, 0.0f }, normal });
 		vertices.push_back({ { b.x, b.y, b.z, 1.0f }, { 0.0f, 1.0f }, normal });
 		vertices.push_back({ { d.x, d.y, d.z, 1.0f }, { 1.0f, 1.0f }, normal });
 		};
 
-	// Front (+Z)
+	// 前面 (+Z)
 	addFace(
-		Vector3{ -h,  h,  h }, // top-left
-		Vector3{ -h, -h,  h }, // bottom-left
-		Vector3{ h,  h,  h }, // top-right
-		Vector3{ h, -h,  h }, // bottom-right
+		Vector3{ -h,  h,  h }, // 左上
+		Vector3{ -h, -h,  h }, // 左下
+		Vector3{ h,  h,  h }, // 右上
+		Vector3{ h, -h,  h }, // 右下
 		Vector3{ 0.0f, 0.0f, 1.0f }
 	);
 
-	// Back (-Z)
+	// 背面 (-Z)
 	addFace(
-		Vector3{ h,  h, -h }, // top-left (外側から見たとき)
-		Vector3{ h, -h, -h }, // bottom-left
-		Vector3{ -h,  h, -h }, // top-right
-		Vector3{ -h, -h, -h }, // bottom-right
+		Vector3{ h,  h, -h }, // 左上（外側から見た場合）
+		Vector3{ h, -h, -h }, // 左下
+		Vector3{ -h,  h, -h }, // 右上
+		Vector3{ -h, -h, -h }, // 右下
 		Vector3{ 0.0f, 0.0f, -1.0f }
 	);
 
-	// Left (-X)
+	// 左面 (-X)
 	addFace(
-		Vector3{ -h,  h, -h }, // top-left
-		Vector3{ -h, -h, -h }, // bottom-left
-		Vector3{ -h,  h,  h }, // top-right
-		Vector3{ -h, -h,  h }, // bottom-right
+		Vector3{ -h,  h, -h }, // 左上
+		Vector3{ -h, -h, -h }, // 左下
+		Vector3{ -h,  h,  h }, // 右上
+		Vector3{ -h, -h,  h }, // 右下
 		Vector3{ -1.0f, 0.0f, 0.0f }
 	);
 
-	// Right (+X)
+	// 右面 (+X)
 	addFace(
-		Vector3{ h,  h,  h }, // top-left
-		Vector3{ h, -h,  h }, // bottom-left
-		Vector3{ h,  h, -h }, // top-right
-		Vector3{ h, -h, -h }, // bottom-right
+		Vector3{ h,  h,  h }, // 左上
+		Vector3{ h, -h,  h }, // 左下
+		Vector3{ h,  h, -h }, // 右上
+		Vector3{ h, -h, -h }, // 右下
 		Vector3{ 1.0f, 0.0f, 0.0f }
 	);
 
-	// Top (+Y)
-	//addFace(
-	//	Vector3{ -h,  h, -h }, // top-left
-	//	Vector3{ -h,  h,  h }, // bottom-left
-	//	Vector3{ h,  h, -h }, // top-right
-	//	Vector3{ h,  h,  h }, // bottom-right
-	//	Vector3{ 0.0f, 1.0f, 0.0f }
-	//);
-
-	// Bottom (-Y)
-	//addFace(
-	//	Vector3{ -h, -h,  h }, // top-left
-	//	Vector3{ -h, -h, -h }, // bottom-left
-	//	Vector3{ h, -h,  h }, // top-right
-	//	Vector3{ h, -h, -h }, // bottom-right
-	//	Vector3{ 0.0f, -1.0f, 0.0f }
-	//);
+	// 注：上面と下面はパーティクル用途では通常不要のためコメントアウト
 
 	return vertices;
 }
