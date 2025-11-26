@@ -9,10 +9,12 @@
 #include "imgui/imgui.h"
 #include "math/MathUtils.h"
 
+// シングルトンインスタンス
 CollisionManager* CollisionManager::instance_ = nullptr;
 
 CollisionManager* CollisionManager::GetInstance()
 {
+	// インスタンスが存在しない場合は新規作成
 	if (instance_ == nullptr)
 	{
 		instance_ = new CollisionManager();
@@ -22,12 +24,13 @@ CollisionManager* CollisionManager::GetInstance()
 
 void CollisionManager::Register(ICollisionComponent* collider)
 {
+	// コライダーをリストに追加
 	colliders_.push_back(collider);
 }
 
 void CollisionManager::Unregister(ICollisionComponent* collider)
 {
-	// このコライダーを含む衝突ペアを全て削除
+	// このコライダーを含む衝突ペアを全て削除（衝突状態の整合性を保つ）
 	for (auto it = currentCollisions_.begin(); it != currentCollisions_.end(); )
 	{
 		if (it->a == collider || it->b == collider)
@@ -40,14 +43,17 @@ void CollisionManager::Unregister(ICollisionComponent* collider)
 		}
 	}
 
+	// コライダーリストから削除（erase-remove イディオム）
 	colliders_.erase(std::remove(colliders_.begin(), colliders_.end(), collider), colliders_.end());
 }
 
 void CollisionManager::CheckCollisions()
 {
 #ifdef USE_IMGUI
+	// デバッグ用ImGuiウィンドウ
 	ImGui::Begin("CollisionManager Colliders");
 
+	// 登録されているコライダーの詳細リスト
 	ImGui::SeparatorText("Colliders");
 	if (ImGui::CollapsingHeader("List"))
 	{
@@ -56,6 +62,7 @@ void CollisionManager::CheckCollisions()
 			ICollisionComponent* collider = colliders_[i];
 			if (collider && collider->GetOwner())
 			{
+				// コライダーの基本情報を表示
 				ImGui::Text("Collider %zu: %s", i, collider->GetOwner()->GetTag().c_str());
 				ImGui::Text("Position: (%.2f, %.2f, %.2f)", collider->GetOwner()->GetPosition().x, collider->GetOwner()->GetPosition().y, collider->GetOwner()->GetPosition().z);
 				ImGui::Text("Previous Position: (%.2f, %.2f, %.2f)", collider->GetPreviousPosition().x, collider->GetPreviousPosition().y, collider->GetPreviousPosition().z);
@@ -68,6 +75,7 @@ void CollisionManager::CheckCollisions()
 		}
 	}
 
+	// 現在の衝突状態のサマリー
 	ImGui::SeparatorText("Current Collisions");
 
 	ImGui::Text("Registered Colliders: %zu", colliders_.size());
@@ -96,7 +104,7 @@ void CollisionManager::CheckCollisions()
 	// 新しい衝突ペアを格納するセット
 	std::unordered_set<CollisionPair, CollisionPairHash> newCollisions;
 
-	// 全コライダーの組み合わせで判定
+	// 全コライダーの組み合わせで判定（総当たり）
 	for (size_t i = 0; i < colliders_.size(); ++i)
 	{
 		for (size_t j = i + 1; j < colliders_.size(); ++j)
@@ -280,22 +288,24 @@ void CollisionManager::CheckCollisions()
 		}
 	}
 
-	// 離れた衝突を処理
+	// 前フレームで衝突していて今フレームで衝突していないペアを処理（衝突終了）
 	for (const auto& pair : currentCollisions_)
 	{
 		if (!newCollisions.contains(pair))
 		{
-			// 衝突が離れた時の処理
+			// 衝突が離れた時のコールバックを呼び出し
 			pair.a->CallOnExit(pair.b->GetOwner());
 			pair.b->CallOnExit(pair.a->GetOwner());
 		}
 	}
 
+	// 今フレームの衝突状態を保存
 	currentCollisions_ = std::move(newCollisions);
 }
 
 void CollisionManager::UpdatePreviousPositions()
 {
+	// 全コライダーの前フレーム位置を現在位置で更新（サブステップ判定用）
 	for (auto& collider : colliders_)
 	{
 		collider->SetPreviousPosition(collider->GetOwner()->GetPosition());
@@ -304,6 +314,7 @@ void CollisionManager::UpdatePreviousPositions()
 
 std::string CollisionManager::GetColliderTypeString(ColliderType type) const
 {
+	// コライダータイプを文字列に変換（デバッグ表示用）
 	switch (type)
 	{
 	case ColliderType::AABB:
@@ -319,6 +330,7 @@ std::string CollisionManager::GetColliderTypeString(ColliderType type) const
 void CollisionManager::LogCollision(const std::string& phase, const ICollisionComponent* a, const ICollisionComponent* b)
 {
 #ifdef _DEBUG
+	// 衝突情報をログに出力（デバッグビルドのみ）
 	std::string tagA = a->GetOwner()->GetTag();
 	std::string tagB = b->GetOwner()->GetTag();
 	std::string typeAString = GetColliderTypeString(a->GetColliderType());
