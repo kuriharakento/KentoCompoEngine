@@ -9,97 +9,197 @@
 
 class GameObject;
 
+/**
+ * @brief アサルトライフルを持つ敵のAI行動コンポーネント
+ *
+ * ビヘイビアツリーを使用して、パトロール、戦闘、追跡などの行動を管理する
+ */
 class AssaultEnemyBehavior : public IActionComponent
 {
 public:
+    /**
+     * @brief コンストラクタ
+     * @param target 追跡対象のゲームオブジェクト
+     */
     AssaultEnemyBehavior(GameObject* target);
 
+    /**
+     * @brief フレームごとの更新処理
+     * @param owner このコンポーネントを所有するゲームオブジェクト
+     */
     void Update(GameObject* owner) override;
+
+    /**
+     * @brief 描画処理（このコンポーネントでは何も描画しない）
+     * @param camera カメラマネージャー
+     */
     void Draw(CameraManager* camera) override {}
 
+    /**
+     * @brief ターゲットを設定する
+     * @param target 追跡対象のゲームオブジェクト
+     */
     void SetTarget(GameObject* target) { target_ = target; }
+
+    /**
+     * @brief 移動速度を設定する
+     * @param speed 移動速度
+     */
     void SetMoveSpeed(float speed) { moveSpeed_ = speed; }
+
+    /**
+     * @brief 攻撃範囲を設定する
+     * @param range 攻撃範囲
+     */
     void SetAttackRange(float range) { attackRange_ = range; }
 
 private:
-    // 既存の行動関数
+    // 行動パラメータの定数
+    static constexpr float kDefaultMoveSpeed = 5.0f;
+    static constexpr float kDefaultMaxMoveDistancePerFrame = 0.3f;
+    static constexpr float kDefaultAttackRange = 18.0f;
+    static constexpr float kDefaultMinRange = 10.0f;
+    static constexpr float kDefaultMaxRange = 25.0f;
+    static constexpr float kDefaultExtendedMinRange = 8.0f;
+    static constexpr float kDefaultExtendedMaxRange = 25.0f;
+    static constexpr float kDefaultDetectionRange = 35.0f;
+    static constexpr float kDefaultStrafeChangeInterval = 1.5f;
+    static constexpr float kDefaultStrafeTendencyFactor = 0.5f;
+    static constexpr float kDefaultMaxRepositionSpeed = 1.0f;
+    static constexpr float kDefaultPatrolRadius = 20.0f;
+    static constexpr float kDefaultPatrolSpeed = 0.6f;
+    static constexpr float kDefaultStuckThreshold = 1.0f;
+    static constexpr float kDefaultStrafeDuration = 3.0f;
+    static constexpr float kDefaultStrafeProbability = 0.25f;
+    static constexpr float kStrafeSpeedMultiplier = 1.3f;
+    static constexpr float kShootIntervalDuringStrafe = 0.2f;
+    static constexpr float kPatrolArrivalThreshold = 1.5f;
+    static constexpr float kRetreatSpeedMultiplier = 1.2f;
+    static constexpr float kStrafeActionSpeedMultiplier = 0.6f;
+    static constexpr float kRepositionAcceleration = 0.05f;
+    static constexpr float kForceMovementSpeedMultiplier = 0.5f;
+    static constexpr float kStuckMovementThreshold = 0.01f;
+    static constexpr float kDistanceFactorAdjustment = 0.3f;
+    static constexpr int kPatrolPointCount = 8;
+
+    // ターゲットに照準を合わせる
     void AimAtTarget(GameObject* owner);
+    // 武器を発射する
     void FireWeapon(GameObject* owner);
+    // ターゲットが視界内にいるか確認
     bool IsTargetVisible(GameObject* owner);
+    // 攻撃範囲内にいるか確認
     bool IsInAttackRange(GameObject* owner);
+    // 拡張攻撃範囲内にいるか確認
     bool IsInExtendedAttackRange(GameObject* owner);
+    // ランダムな横移動方向を取得
     Vector3 GetRandomStrafeDirection(GameObject* owner);
+    // パトロールポイントを初期化
     void InitializePatrolPoints(const Vector3& centerPoint, float radius);
+    // スムーズな移動を計算
     Vector3 CalculateSmoothMovement(const Vector3& currentPos, const Vector3& targetPos, float maxDistance);
+    // 移動速度を制限
     float LimitMovementSpeed(float baseSpeed, float dt);
+    // 強制移動（スタック解消用）
     void ForceMovement(GameObject* owner);
+    // スタック状態かどうか確認
     bool IsStuck(GameObject* owner);
 
     // BTノードで使うアクション
+    // 待機行動
     void IdleAction(GameObject* owner);
+    // 戦闘行動
     void CombatAction(GameObject* owner);
+    // パトロール行動
     void PatrolAction(GameObject* owner);
+    // 位置調整行動
     void RepositionAction(GameObject* owner);
+    // 横移動行動
     void StrafeAction(GameObject* owner);
+    // 後退行動
     void RetreatAction(GameObject* owner);
 
-    // 状態
+    // 追跡対象
     GameObject* target_ = nullptr;
 
-    // 行動パラメータ
-    float moveSpeed_ = 5.0f;
-    float maxMoveDistancePerFrame_ = 0.3f;
-    float attackRange_ = 18.0f;      // 最適射撃距離
-    float minRange_ = 10.0f;         // 最小距離
-    float maxRange_ = 25.0f;         // 最大距離
-    float extendedMinRange_ = 8.0f;  // 拡張最小
-    float extendedMaxRange_ = 25.0f; // 拡張最大
-    float detectionRange_ = 35.0f;   // 検知範囲
+    // 移動速度
+    float moveSpeed_ = kDefaultMoveSpeed;
+    // 1フレームあたりの最大移動距離
+    float maxMoveDistancePerFrame_ = kDefaultMaxMoveDistancePerFrame;
+    // 最適射撃距離
+    float attackRange_ = kDefaultAttackRange;
+    // 最小距離
+    float minRange_ = kDefaultMinRange;
+    // 最大距離
+    float maxRange_ = kDefaultMaxRange;
+    // 拡張最小距離
+    float extendedMinRange_ = kDefaultExtendedMinRange;
+    // 拡張最大距離
+    float extendedMaxRange_ = kDefaultExtendedMaxRange;
+    // 検知範囲
+    float detectionRange_ = kDefaultDetectionRange;
 
-    // 横移動用
+    // 横移動方向
     Vector3 strafeDirection_;
-    float strafeChangeInterval_ = 1.5f;
-    float strafeTendencyFactor_ = 0.5f;
+    // 横移動方向変更間隔
+    float strafeChangeInterval_ = kDefaultStrafeChangeInterval;
+    // 横移動傾向係数
+    float strafeTendencyFactor_ = kDefaultStrafeTendencyFactor;
 
-    // 位置調整用
+    // 最後の有効位置
     Vector3 lastValidPosition_;
+    // 位置調整速度
     float repositionSpeed_ = 0.0f;
-    float maxRepositionSpeed_ = 1.0f;
+    // 最大位置調整速度
+    float maxRepositionSpeed_ = kDefaultMaxRepositionSpeed;
 
-    // パトロール用
+    // パトロールポイントのリスト
     std::vector<Vector3> patrolPoints_;
+    // 現在のパトロールインデックス
     int currentPatrolIndex_ = 0;
-    float patrolRadius_ = 20.0f;
+    // パトロール半径
+    float patrolRadius_ = kDefaultPatrolRadius;
+    // パトロール初期化フラグ
     bool patrolInitialized_ = false;
-    float patrolSpeed_ = 0.6f;
+    // パトロール速度係数
+    float patrolSpeed_ = kDefaultPatrolSpeed;
 
-    // タイマー
+    // 状態タイマー
     float stateTimer_ = 0.0f;
+    // 横移動タイマー
     float strafeTimer_ = 0.0f;
+    // 行動クールダウン
     float actionCooldown_ = 0.0f;
+    // 位置確認タイマー
     float positionCheckTimer_ = 0.0f;
 
-    // 動き停止検出用
+    // 最後の位置（スタック検出用）
     Vector3 lastPosition_;
+    // スタック検出タイマー
     float stuckTimer_ = 0.0f;
-    float stuckThreshold_ = 1.0f;
+    // スタック判定閾値
+    float stuckThreshold_ = kDefaultStuckThreshold;
+    // スタック可能性フラグ
     bool potentiallyStuck_ = false;
 
-    // 継続的ストレイフ制御用
-    bool isStrafing_ = false;           // ストレイフ状態フラグ
-    float strafeDuration_ = 3.0f;       // ストレイフ継続時間（秒）
-    float strafeProbability_ = 0.25f;   // ストレイフ開始確率
-    float combatStateTimer_ = 0.0f;     // 戦闘状態タイマー
+    // ストレイフ状態フラグ
+    bool isStrafing_ = false;
+    // ストレイフ継続時間（秒）
+    float strafeDuration_ = kDefaultStrafeDuration;
+    // ストレイフ開始確率
+    float strafeProbability_ = kDefaultStrafeProbability;
+    // 戦闘状態タイマー
+    float combatStateTimer_ = 0.0f;
 
-    // 新しいメソッド宣言も追加
+    // 継続的なストレイフ行動
     void ContinuousStrafAction(GameObject* owner);
 
-    // 乱数生成
+    // 乱数生成器
     std::mt19937 rng_;
 
     // ビヘイビアツリー
     std::unique_ptr<BehaviorTree> behaviorTree_;
 
-    // ツリー構築
+    // ビヘイビアツリーを構築
     void BuildBehaviorTree();
 };

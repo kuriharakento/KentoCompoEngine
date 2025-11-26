@@ -5,46 +5,104 @@
 
 class EnemyBase;
 
+/**
+ * @brief アサルトライフル武器コンポーネント
+ *
+ * プレイヤーおよび敵が使用するアサルトライフルの射撃、リロード機能を提供する
+ */
 class AssaultRifleComponent : public IActionComponent
 {
 public:
+    /**
+     * @brief コンストラクタ
+     * @param object3dCommon 3Dオブジェクト共通情報
+     * @param lightManager ライトマネージャー
+     */
     AssaultRifleComponent(Object3dCommon* object3dCommon, LightManager* lightManager);
+
+    /**
+     * @brief デストラクタ
+     */
     ~AssaultRifleComponent();
 
+    /**
+     * @brief フレームごとの更新処理
+     * @param owner このコンポーネントを所有するゲームオブジェクト
+     */
     void Update(GameObject* owner) override;
+
+    /**
+     * @brief 描画処理
+     * @param camera カメラマネージャー
+     */
     void Draw(CameraManager* camera) override;
 
-	// 敵クラスから呼び出すためのメソッド
+    /**
+     * @brief 敵クラスから呼び出すための発射メソッド
+     */
 	void Fire();
-	// 弾の数を取得
+
+    /**
+     * @brief 発射された弾のリストを取得する
+     * @return 弾のリスト
+     */
 	const std::vector< std::unique_ptr<Bullet>>& GetBullets() { return bullets_; }
 
 private:
-	
-	//　自クラスでの弾発射処理
+    // 定数
+    // 発射クールダウン時間
+    static constexpr float kDefaultFireCooldown = 0.1f;
+    // 最大弾数
+    static constexpr int kDefaultMaxAmmo = 30;
+    // リロード時間
+    static constexpr float kDefaultReloadTime = 2.0f;
+    // 弾の速度
+    static constexpr float kDefaultBulletSpeed = 50.0f;
+    // 弾の寿命
+    static constexpr float kDefaultBulletLifetime = 2.0f;
+    // 発射可能距離
+    static constexpr float kMaxFireDistance = 40.0f;
+    // 弾のスケール
+    static constexpr float kBulletScale = 0.3f;
+
+    // プレイヤー用の弾発射処理
     void FireBullet(GameObject* owner);
+    // 敵用の弾発射処理（ターゲット指定）
     void FireBullet(GameObject* owner, const Vector3& targetPosition);
+    // リロード開始
     void StartReload();
+    // リロード処理
     void Reload(float deltaTime);
 
+    // 3Dオブジェクト共通情報
     Object3dCommon* object3dCommon_ = nullptr;
+    // ライトマネージャー
     LightManager* lightManager_ = nullptr;
-	//敵が任意のタイミングで発射するために敵のポインタを保持
+    // 敵が任意のタイミングで発射するために敵のポインタを保持
 	EnemyBase* enemy_ = nullptr;
 
+    // 発射クールダウン時間
     float fireCooldown_;
+    // 発射クールダウンタイマー
     float fireCooldownTimer_;
+    // 発射された弾のリスト
     std::vector<std::unique_ptr<Bullet>> bullets_;
 
-    // 弾数・リロード
-    int maxAmmo_ = 30;
-    int currentAmmo_ = 30;
+    // 最大弾数
+    int maxAmmo_ = kDefaultMaxAmmo;
+    // 現在の弾数
+    int currentAmmo_ = kDefaultMaxAmmo;
+    // リロード中フラグ
     bool isReloading_ = false;
-    float reloadTime_ = 2.0f;
+    // リロード所要時間
+    float reloadTime_ = kDefaultReloadTime;
+    // リロード経過時間
     float reloadTimer_ = 0.0f;
-	float speed_ = 50.0f; // 弾の速度
-	float lifetime_ = 2.0f; // 弾の寿命
+    // 弾の速度
+	float speed_ = kDefaultBulletSpeed;
+    // 弾の寿命
+	float lifetime_ = kDefaultBulletLifetime;
 
-    //ヒットエフェクト
+    // ヒットエフェクト
 	std::unique_ptr<AssaultRifleHitEffect> hitEffect_;
 };

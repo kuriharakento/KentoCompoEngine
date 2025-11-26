@@ -8,71 +8,195 @@ class EnemyManager;
 class GameObject;
 class Camera;
 
+/**
+ * @brief プレイヤーの移動と回避を制御するコンポーネント
+ *
+ * WASD移動、カメラ基準の方向変換、回避（ダッジ）、バレットタイム機能を提供する
+ */
 class MoveComponent : public IActionComponent
 {
 public:
+    /**
+     * @brief コンストラクタ
+     * @param enemyManager 敵マネージャー（バレットタイム判定用）
+     * @param camera カメラマネージャー
+     */
     MoveComponent(EnemyManager* enemyManager, CameraManager* camera);
+
+    /**
+     * @brief フレームごとの更新処理
+     * @param owner このコンポーネントを所有するゲームオブジェクト
+     */
     void Update(GameObject* owner) override;
+
+    /**
+     * @brief 描画処理（このコンポーネントでは何も描画しない）
+     * @param camera カメラマネージャー
+     */
 	void Draw(CameraManager* camera) override {}
 
-    // 回避パラメータ設定
+    /**
+     * @brief 回避速度を設定する
+     * @param speed 回避速度
+     */
     void SetDodgeSpeed(float speed) { dodgeSpeed_ = speed; }
+
+    /**
+     * @brief 回避持続時間を設定する
+     * @param duration 回避持続時間（秒）
+     */
     void SetDodgeDuration(float duration) { dodgeDuration_ = duration; }
+
+    /**
+     * @brief 回避クールダウンを設定する
+     * @param cooldown クールダウン時間（秒）
+     */
     void SetDodgeCooldown(float cooldown) { dodgeCooldown_ = cooldown; }
+
+    /**
+     * @brief 回避中の無敵時間を設定する
+     * @param time 無敵時間（秒）
+     */
     void SetDodgeInvincibleTime(float time) { dodgeInvincibleTime_ = time; }
+
+    /**
+     * @brief 回避距離を設定する
+     * @param distance 回避距離
+     */
     void SetDodgeDistance(float distance) { dodgeDistance_ = distance; }
+
+    /**
+     * @brief 回転補間速度を設定する
+     * @param speed 回転補間速度
+     */
     void SetRotationSpeed(float speed) { rotationSpeed_ = speed; }
 
-    // 状態取得
+    /**
+     * @brief 回避中かどうかを取得する
+     * @return 回避中ならtrue
+     */
     bool IsDodging() const { return dodgeTimer_ > 0.0f; }
+
+    /**
+     * @brief 無敵状態かどうかを取得する
+     * @return 無敵状態ならtrue
+     */
     bool IsInvincible() const { return invincibleTimer_ > 0.0f; }
-    float GetDodgeProgress() const;  // 回避動作の進行度（0.0～1.0）
+
+    /**
+     * @brief 回避動作の進行度を取得する
+     * @return 進行度（0.0〜1.0）
+     */
+    float GetDodgeProgress() const;
 
 private:
+    // 定数
+    // デフォルト回転補間速度
+    static constexpr float kDefaultRotationSpeed = 0.1f;
+    // デフォルト回避速度
+    static constexpr float kDefaultDodgeSpeed = 30.0f;
+    // デフォルト回避持続時間
+    static constexpr float kDefaultDodgeDuration = 0.25f;
+    // デフォルト回避クールダウン
+    static constexpr float kDefaultDodgeCooldown = 0.8f;
+    // デフォルト回避無敵時間
+    static constexpr float kDefaultDodgeInvincibleTime = 0.25f;
+    // デフォルト回避距離
+    static constexpr float kDefaultDodgeDistance = 8.0f;
+    // 回避開始時の初速倍率
+    static constexpr float kDodgeImpulse = 1.5f;
+    // バレットタイム範囲
+    static constexpr float kBulletTimeRadius = 5.0f;
+    // バレットタイムのスローモーション倍率
+    static constexpr float kBulletTimeScale = 0.3f;
+    // バレットタイムの持続時間
+    static constexpr float kBulletTimeDuration = 3.0f;
+    // バレットタイムのクールダウン時間
+    static constexpr float kBulletTimeCooldown = 5.0f;
+    // エフェクト間隔
+    static constexpr float kEffectInterval = 0.03f;
+    // 移動入力の閾値
+    static constexpr float kMovementInputThreshold = 0.01f;
+    // 回避中の回転補間速度
+    static constexpr float kDodgeRotationInterpolation = 0.2f;
+    // 完全なタイムスケール（通常速度）
+    static constexpr float kNormalTimeScale = 1.0f;
+
+    // 移動処理
     void ProcessMovement(GameObject* owner, float deltaTime);
+    // 回避処理
     void ProcessDodge(GameObject* owner);
+    // 移動方向を取得
     Vector3 GetMovementDirection() const;
+    // カメラ基準の方向を取得
     Vector3 GetCameraRelativeDirection(const Vector3& inputDirection) const;
+    // 回避エフェクトを再生
     void PlayDodgeEffect(GameObject* owner);
-    void UpdateRotation(GameObject* owner, const Vector3& direction);  // 向き補間処理
+    // 向き補間処理
+    void UpdateRotation(GameObject* owner, const Vector3& direction);
+    // バレットタイム処理
     void ProcessBulletTime(GameObject* owner);
 
 private:
+    // 敵マネージャー
     EnemyManager* enemyManager_ = nullptr;
+    // カメラ
     Camera* camera_ = nullptr;
 
     // 移動速度
     float moveSpeed_ = 0.0f;
 
-    // 回転補間
-    float rotationSpeed_ = 0.1f;  // 回転補間速度
+    // 回転補間速度
+    float rotationSpeed_ = kDefaultRotationSpeed;
 
-    // 回避関連（強化版）
-    float dodgeSpeed_ = 30.0f;              // 回避中の移動速度（大幅に上昇）
-    float dodgeDuration_ = 0.25f;           // 回避動作の持続時間（短めに）
-    float dodgeCooldown_ = 0.8f;            // 回避のクールダウン時間
-    float dodgeInvincibleTime_ = 0.25f;     // 回避中の無敵時間
-    float dodgeDistance_ = 8.0f;            // 回避距離（目標距離）
-    float dodgeImpulse_ = 1.5f;             // 回避開始時の初速倍率
-    float dodgeTimer_ = 0.0f;               // 回避タイマー
-    float dodgeCooldownTimer_ = 0.0f;       // 回避クールダウンタイマー
-    float invincibleTimer_ = 0.0f;          // 無敵タイマー
-    Vector3 dodgeDirection_;                // 回避方向
-    Vector3 dodgeStartPosition_;            // 回避開始位置
-    Vector3 dodgeTargetPosition_;           // 回避目標位置
-    bool hasMovementInput_ = false;         // 移動入力があるか
-    bool isDodging_ = false;                // 回避中か
-    float bulletTimeRadius_ = 5.0f;         // バレットタイム範囲
-    bool isInBulletTime_ = false;           // バレットタイム中か
-    float bulletTimeScale_ = 0.3f;     // バレットタイムのスローモーション倍率
-    float bulletTimeDuration_ = 3.0f;       // バレットタイムの持続時間
-    float bulletTimeCooldown_ = 5.0f;       // バレットタイムのクールダウン時間
+    // 回避中の移動速度
+    float dodgeSpeed_ = kDefaultDodgeSpeed;
+    // 回避動作の持続時間
+    float dodgeDuration_ = kDefaultDodgeDuration;
+    // 回避のクールダウン時間
+    float dodgeCooldown_ = kDefaultDodgeCooldown;
+    // 回避中の無敵時間
+    float dodgeInvincibleTime_ = kDefaultDodgeInvincibleTime;
+    // 回避距離
+    float dodgeDistance_ = kDefaultDodgeDistance;
+    // 回避開始時の初速倍率
+    float dodgeImpulse_ = kDodgeImpulse;
+    // 回避タイマー
+    float dodgeTimer_ = 0.0f;
+    // 回避クールダウンタイマー
+    float dodgeCooldownTimer_ = 0.0f;
+    // 無敵タイマー
+    float invincibleTimer_ = 0.0f;
+    // 回避方向
+    Vector3 dodgeDirection_;
+    // 回避開始位置
+    Vector3 dodgeStartPosition_;
+    // 回避目標位置
+    Vector3 dodgeTargetPosition_;
+    // 移動入力があるか
+    bool hasMovementInput_ = false;
+    // 回避中か
+    bool isDodging_ = false;
+    // バレットタイム範囲
+    float bulletTimeRadius_ = kBulletTimeRadius;
+    // バレットタイム中か
+    bool isInBulletTime_ = false;
+    // バレットタイムのスローモーション倍率
+    float bulletTimeScale_ = kBulletTimeScale;
+    // バレットタイムの持続時間
+    float bulletTimeDuration_ = kBulletTimeDuration;
+    // バレットタイムのクールダウン時間
+    float bulletTimeCooldown_ = kBulletTimeCooldown;
 
-    // エフェクト関連
-    float effectTimer_ = 0.0f;              // エフェクトタイマー
-    float effectInterval_ = 0.03f;          // 残像間隔
+    // エフェクトタイマー
+    float effectTimer_ = 0.0f;
+    // 残像間隔
+    float effectInterval_ = kEffectInterval;
 
+    // 回避エフェクトパーティクル
     std::unique_ptr<DodgeEffectParticle> dodgeEffect_;
-    bool isFirstDodgeFrame_ = false;        // 回避の最初のフレームか
-    bool wasEffectPlayed_ = false;          // エフェクト再生済みか
+    // 回避の最初のフレームか
+    bool isFirstDodgeFrame_ = false;
+    // エフェクト再生済みか
+    bool wasEffectPlayed_ = false;
 };

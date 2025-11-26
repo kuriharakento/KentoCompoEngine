@@ -2,16 +2,46 @@
 #include "application/GameObject/Combatable/base/StatusSystem.h"
 #include "application/GameObject/component/base/IActionComponent.h"
 
+/**
+ * @brief ゲームオブジェクトのステータスを管理するコンポーネント
+ *
+ * HP、攻撃力、移動速度などのステータス値を管理し、更新処理を行う
+ */
 class StatusComponent : public IActionComponent
 {
 public:
-	// ステータスの更新
+	/**
+	 * @brief フレームごとの更新処理
+	 * @param owner このコンポーネントを所有するゲームオブジェクト
+	 */
 	void Update(GameObject* owner) override;
+
+	/**
+	 * @brief 描画処理（このコンポーネントでは何も描画しない）
+	 * @param camera カメラマネージャー
+	 */
 	void Draw(CameraManager* camera) override {}
 
-	StatusValue hp{ 100.0f };
-    StatusValue maxHp{ 100.0f };
-    StatusValue attackPower{ 10.0f };
-	StatusValue moveSpeed{ 9.0f };
+	// 現在のHP
+	StatusValue hp{ kDefaultHp };
+	// 最大HP
+    StatusValue maxHp{ kDefaultMaxHp };
+	// 攻撃力
+    StatusValue attackPower{ kDefaultAttackPower };
+	// 移動速度
+	StatusValue moveSpeed{ kDefaultMoveSpeed };
+	// 生存フラグ
 	bool isAlive = true;
+
+private:
+	// デフォルトHP
+	static constexpr float kDefaultHp = 100.0f;
+	// デフォルト最大HP
+	static constexpr float kDefaultMaxHp = 100.0f;
+	// デフォルト攻撃力
+	static constexpr float kDefaultAttackPower = 10.0f;
+	// デフォルト移動速度
+	static constexpr float kDefaultMoveSpeed = 9.0f;
+	// 死亡判定のHP閾値
+	static constexpr float kDeathThreshold = 0.0f;
 };

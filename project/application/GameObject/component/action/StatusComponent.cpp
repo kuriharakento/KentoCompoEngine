@@ -4,8 +4,10 @@
 #include "imgui/imgui.h"
 #include "time/TimeManager.h"
 
+// フレームごとの更新処理
 void StatusComponent::Update(GameObject* owner)
 {
+	// ImGuiでデバッグ情報を表示
 #ifdef USE_IMGUI
 	ImGui::Begin("Status Component");
 	std::string headerTitle = "Status: " + owner->GetTag();
@@ -16,11 +18,16 @@ void StatusComponent::Update(GameObject* owner)
 	ImGui::End();
 #endif
 
+	// デルタタイムを取得
     float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
+
+	// 各ステータス値を更新
     hp.Update(deltaTime);
     maxHp.Update(deltaTime);
     attackPower.Update(deltaTime);
-	if (hp.GetValue() <= 0.0f)
+
+	// HPが0以下になったら死亡判定
+	if (hp.GetValue() <= kDeathThreshold)
 	{
 		isAlive = false;
 	}
