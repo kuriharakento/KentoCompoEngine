@@ -2,70 +2,138 @@
 #include "base/GraphicsTypes.h"
 #include "base/WinApp.h"
 
+/**
+ * @brief カメラクラス
+ */
 class Camera
 {
 public:
+	/**
+	 * @brief コンストラクタ
+	 */
 	Camera();
+
+	/**
+	 * @brief 更新処理
+	 */
 	void Update();
 
-public: //ゲッター
-
+public:
+	/**
+	 * @brief ワールド行列を取得
+	 * @return ワールド行列
+	 */
 	const Matrix4x4& GetWorldMatrix() const { return worldMatrix_; }
+
+	/**
+	 * @brief ビュー行列を取得
+	 * @return ビュー行列
+	 */
 	const Matrix4x4& GetViewMatrix() const { return viewMatrix_; }
+
+	/**
+	 * @brief 透視投影行列を取得
+	 * @return 透視投影行列
+	 */
 	const Matrix4x4& GetProjectionMatrix() const { return projectionMatrix_; }
+
+	/**
+	 * @brief ビュープロジェクション行列を取得
+	 * @return ビュープロジェクション行列
+	 */
 	const Matrix4x4& GetViewProjectionMatrix() const { return viewProjectionMatrix_; }
+
+	/**
+	 * @brief 座標を取得
+	 * @return 座標
+	 */
 	Vector3 GetTranslate() const { return transform_.translate; }
+
+	/**
+	 * @brief 回転を取得
+	 * @return 回転
+	 */
 	Vector3 GetRotate() const { return transform_.rotate; }
 
-public: //セッター
-	//水平方向視野角の設定
+public:
+	/**
+	 * @brief 水平方向視野角を設定
+	 * @param fovY 視野角（ラジアン）
+	 */
 	void SetFovY(float fovY) { fovY_ = fovY; }
-	//アスペクト比の設定
+
+	/**
+	 * @brief アスペクト比を設定
+	 * @param aspectRatio アスペクト比
+	 */
 	void SetAspectRatio(float aspectRatio) { aspectRatio_ = aspectRatio; }
-	//ニアクリップ距離の設定
+
+	/**
+	 * @brief ニアクリップ距離を設定
+	 * @param nearClip ニアクリップ距離
+	 */
 	void SetNearClip(float nearClip) { nearClip_ = nearClip; }
-	//ファークリップ距離の設定
+
+	/**
+	 * @brief ファークリップ距離を設定
+	 * @param farClip ファークリップ距離
+	 */
 	void SetFarClip(float farClip) { farClip_ = farClip; }
-	//座標の設定
+
+	/**
+	 * @brief 座標を設定
+	 * @param translate 座標
+	 */
 	void SetTranslate(const Vector3& translate) { transform_.translate = translate; }
-	//回転の設定
+
+	/**
+	 * @brief 回転を設定
+	 * @param rotate 回転
+	 */
 	void SetRotate(const Vector3& rotate) { transform_.rotate = rotate; }
 
 public:
-	// シェイク開始メソッド
+	/**
+	 * @brief シェイクを開始
+	 * @param intensity シェイクの強度
+	 * @param duration シェイクの継続時間（秒）
+	 */
 	void StartShake(float intensity, float duration);
 
 private:
-	//トランスフォーム
+	// カメラのトランスフォーム
 	Transform transform_ = {
 		{ 1.0f,1.0f,1.0f },
 		{ 0.0f,0.0f,0.0f },
 		{ 0.0f,4.0f,-10.0f },
 	};;
 
-	//ワールド行列
+	// ワールド行列
 	Matrix4x4 worldMatrix_;
-	//ビュー行列
+	// ビュー行列
 	Matrix4x4 viewMatrix_;
-	//透視投影行列
+	// 透視投影行列
 	Matrix4x4 projectionMatrix_;
-	//合成行列
+	// ビュープロジェクション行列
 	Matrix4x4 viewProjectionMatrix_;
 
-	//水平方向視野角
+	// 水平方向視野角
 	float fovY_ = 0.45f;
-	//アスペクト比
+	// アスペクト比
 	float aspectRatio_ = float(WinApp::kClientWidth) / float(WinApp::kClientHeight);
-	//ニアクリップ距離
+	// ニアクリップ距離
 	float nearClip_ = 0.1f;
-	//ファークリップ距離
+	// ファークリップ距離
 	float farClip_ = 100.0f;
 
-	// シェイク関連のメンバー変数
-	Vector3 shakeOffset_ = { 0.0f, 0.0f, 0.0f }; // シェイクによるオフセット
-	float shakeDuration_ = 0.0f; // シェイクの持続時間
-	float shakeTimer_ = 0.0f; // 残り時間
-	float shakeIntensity_ = 0.0f; // シェイクの強度
+	// シェイクによるオフセット
+	Vector3 shakeOffset_ = { 0.0f, 0.0f, 0.0f };
+	// シェイクの持続時間
+	float shakeDuration_ = 0.0f;
+	// シェイクの残り時間
+	float shakeTimer_ = 0.0f;
+	// シェイクの強度
+	float shakeIntensity_ = 0.0f;
 
 };
 

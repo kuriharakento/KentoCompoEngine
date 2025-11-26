@@ -3,6 +3,19 @@
 #include <cstring>
 #include <cassert>
 
+// フレームレート（FPS）
+constexpr float kFrameRate = 60.0f;
+// 1フレームあたりの時間（秒）
+constexpr float kDeltaTime = 1.0f / kFrameRate;
+// ステレオチャンネル数
+constexpr int kStereoChannels = 2;
+// デフォルトサンプルレート（Hz）
+constexpr int kDefaultSampleRate = 44100;
+// リバーブの反射遅延（ミリ秒）
+constexpr UINT32 kReverbReflectionsDelay = 5;
+// リバーブの残響遅延（ミリ秒）
+constexpr UINT32 kReverbDelay = 5;
+
 // シングルトンインスタンスの初期化
 Audio* Audio::instance_ = nullptr;
 
@@ -79,16 +92,14 @@ void Audio::Finalize()
 // フェード処理の更新
 void Audio::Update()
 {
-	// 1フレームあたりの時間
-	const float deltaTime = 1.0f / 60.0f;
-
 	// フェード処理の更新
 	for (auto it = fadeList_.begin(); it != fadeList_.end(); )
 	{
 		FadeData& fadeData = *it;
 		if (fadeData.isFading && fadeData.sourceVoice)
 		{
-			fadeData.currentTime += deltaTime;
+			// 経過時間を更新
+			fadeData.currentTime += kDeltaTime;
 			float t = fadeData.currentTime / fadeData.duration;
 			if (t >= 1.0f)
 			{
@@ -114,6 +125,7 @@ void Audio::Update()
 				}
 			}
 
+			// フェード完了時にリストから削除
 			if (!fadeData.isFading)
 			{
 				it = fadeList_.erase(it);
@@ -482,14 +494,13 @@ void Audio::InitializeEffect()
 	IUnknown* reverbEffect = nullptr;
 	HRESULT hr = XAudio2CreateReverb(&reverbEffect);
 	if (FAILED(hr)) {
-		// エラーハンドリング
 		return;
 	}
 
 	// エフェクトディスクリプタの設定
 	XAUDIO2_EFFECT_DESCRIPTOR effectDescriptor = {};
 	effectDescriptor.InitialState = TRUE;
-	effectDescriptor.OutputChannels = 2; // ステレオ出力
+	effectDescriptor.OutputChannels = kStereoChannels;
 	effectDescriptor.pEffect = reverbEffect;
 
 	XAUDIO2_EFFECT_CHAIN effectChain = {};
@@ -499,24 +510,22 @@ void Audio::InitializeEffect()
 	// サブミックスボイスの作成
 	hr = xAudio2->CreateSubmixVoice(
 		&submixVoice_,
-		2,                         // チャンネル数
-		44100,                     // サンプルレート
-		0,                         // フラグ
-		0,                         // プロセッサ
-		nullptr,                   // センドリスト
-		&effectChain               // エフェクトチェーン
+		kStereoChannels,
+		kDefaultSampleRate,
+		0,
+		0,
+		nullptr,
+		&effectChain
 	);
 	if (FAILED(hr)) {
-		// エラーハンドリング
 		reverbEffect->Release();
 		return;
 	}
 
-	// リバーブパラメータの設定（必要に応じて）
+	// リバーブパラメータの設定
 	XAUDIO2FX_REVERB_PARAMETERS reverbParameters = {};
-	reverbParameters.ReflectionsDelay = 5;
-	reverbParameters.ReverbDelay = 5;
-	// 他のパラメータを設定
+	reverbParameters.ReflectionsDelay = kReverbReflectionsDelay;
+	reverbParameters.ReverbDelay = kReverbDelay;
 
 	submixVoice_->SetEffectParameters(0, &reverbParameters, sizeof(reverbParameters));
 

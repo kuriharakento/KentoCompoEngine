@@ -8,90 +8,192 @@
 //#pragma comment(lib, "XAPOFX.lib")     // エフェクト用
 #include <vector>
 
-//チャンクヘッダ
+/**
+ * @brief チャンクヘッダ
+ */
 struct ChunkHeader
 {
-	char id[4];					//チャンクID
-	int32_t size;				//チャンクサイズ
+	// チャンクID
+	char id[4];
+	// チャンクサイズ
+	int32_t size;
 };
 
-//RIFFヘッダ
+/**
+ * @brief RIFFヘッダ
+ */
 struct RiffHeader
 {
-	ChunkHeader chunk;			//RIFF
-	char type[4];				//WAVE
+	// RIFFチャンク
+	ChunkHeader chunk;
+	// WAVEタイプ
+	char type[4];
 };
 
-//FMTチャンク
+/**
+ * @brief FMTチャンク
+ */
 struct FormatChunk
 {
+	// チャンクヘッダ
 	ChunkHeader chunk;
-	WAVEFORMATEX fmt;			//波形フォーマット
+	// 波形フォーマット
+	WAVEFORMATEX fmt;
 };
 
-//音声グループ
+/**
+ * @brief 音声グループの種類
+ */
 enum class SoundGroup
 {
+	// BGM
 	BGM,
+	// 効果音
 	SE,
 	// 必要に応じて他のグループを追加
 };
 
-//音声データ
+/**
+ * @brief 音声データ
+ */
 struct SoundData
 {
-	WAVEFORMATEX wfex;			//波形フォーマット
-	BYTE* pBuffer;				//バッファの先頭アドレス
-	unsigned int bufferSize;	//バッファのサイズ
-	SoundGroup group;			//グループ
+	// 波形フォーマット
+	WAVEFORMATEX wfex;
+	// バッファの先頭アドレス
+	BYTE* pBuffer;
+	// バッファのサイズ
+	unsigned int bufferSize;
+	// 音声グループ
+	SoundGroup group;
 };
 
+/**
+ * @brief フェード処理用データ
+ */
 struct FadeData
 {
+	// ソースボイス
 	IXAudio2SourceVoice* sourceVoice;
+	// 開始音量
 	float startVolume;
+	// 目標音量
 	float targetVolume;
+	// 現在の経過時間
 	float currentTime;
+	// フェードの継続時間
 	float duration;
+	// フェード中フラグ
 	bool isFading;
 };
 
+/**
+ * @brief オーディオ管理クラス
+ */
 class Audio
 {
 public:
-	//シングルトン
+	/**
+	 * @brief シングルトンインスタンスを取得
+	 * @return Audioクラスのインスタンス
+	 */
 	static Audio* GetInstance();
-	//初期化
+
+	/**
+	 * @brief 初期化処理
+	 */
 	void Initialize();
-	//終了
+
+	/**
+	 * @brief 終了処理
+	 */
 	void Finalize();
-	//更新
+
+	/**
+	 * @brief 更新処理（フェード処理等）
+	 */
 	void Update();
-	//音声データの読み込み
+
+	/**
+	 * @brief WAVファイルの読み込み
+	 * @param filename ファイル名
+	 * @return 読み込んだ音声データ
+	 */
 	SoundData LoadWave(const char* filename);
+
+	/**
+	 * @brief WAVファイルの読み込み（名前付き）
+	 * @param name 音声データの名前
+	 * @param filename ファイル名
+	 * @param group 音声グループ
+	 */
 	void LoadWave(const std::string& name, const char* filename, SoundGroup group);
-	//再生
+
+	/**
+	 * @brief 音声の再生
+	 * @param soundData 音声データ
+	 * @param loop ループ再生するかどうか
+	 */
 	void PlayWave(SoundData* soundData, bool loop = false);
+
+	/**
+	 * @brief 名前指定で音声を再生
+	 * @param name 音声データの名前
+	 * @param loop ループ再生するかどうか
+	 */
 	void PlayWave(const std::string& name, bool loop = false);
-	//停止
+
+	/**
+	 * @brief 音声の停止
+	 * @param name 音声データの名前
+	 */
 	void StopWave(const std::string& name);
+
+	/**
+	 * @brief グループ内の全音声を停止
+	 * @param group 音声グループ
+	 */
 	void StopGroup(SoundGroup group);
-	//音量調整
+
+	/**
+	 * @brief 音量の設定
+	 * @param name 音声データの名前
+	 * @param volume 音量（0.0f〜1.0f）
+	 */
 	void SetVolume(const std::string& name, float volume);
+
+	/**
+	 * @brief グループ全体の音量を設定
+	 * @param group 音声グループ
+	 * @param volume 音量（0.0f〜1.0f）
+	 */
 	void SetGroupVolume(SoundGroup group, float volume);
-	//フェード
+
+	/**
+	 * @brief フェードイン開始
+	 * @param name 音声データの名前
+	 * @param duration フェードの継続時間（秒）
+	 */
 	void FadeIn(const std::string& name, float duration);
+
+	/**
+	 * @brief フェードアウト開始
+	 * @param name 音声データの名前
+	 * @param duration フェードの継続時間（秒）
+	 */
 	void FadeOut(const std::string& name, float duration);
 
-private: //メンバ関数
+private:
+	/**
+	 * @brief エフェクトの初期化
+	 */
 	void InitializeEffect();
 
 private:
-	//IXAudio2
+	// XAudio2エンジン
 	Microsoft::WRL::ComPtr<IXAudio2> xAudio2;
-	//IXAudio2MasteringVoice
+	// マスターボイス
 	IXAudio2MasteringVoice* masterVoice;
-
 	// 音声データのマップ
 	std::unordered_map<std::string, SoundData> soundDataMap_;
 	// 再生中の音声ソースボイスのマップ
@@ -100,13 +202,13 @@ private:
 	std::unordered_map<SoundGroup, std::vector<IXAudio2SourceVoice*>> groupVoicesMap_;
 	// フェード操作を管理するリスト
 	std::vector<FadeData> fadeList_;
-	//エフェクトチェーン
+	// サブミックスボイス（エフェクト用）
 	IXAudio2SubmixVoice* submixVoice_;
-
-	//ディレクトリパス
+	// 音声リソースのディレクトリパス
 	const std::string directoryPath = "Resources/audio/";
 
-private: //シングルトン
+private:
+	// シングルトンインスタンス
 	static Audio* instance_;
 
 	Audio() {}

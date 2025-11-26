@@ -23,6 +23,23 @@
 
 using namespace Microsoft::WRL;
 
+// スワップチェインのバッファ数
+constexpr UINT kSwapChainBufferCount = 2;
+// RTV用ディスクリプタ数
+constexpr UINT kRtvDescriptorCount = 2;
+// DSV用ディスクリプタ数
+constexpr UINT kDsvDescriptorCount = 1;
+// サンプラー用ディスクリプタ数
+constexpr UINT kSamplerDescriptorCount = 1;
+// 256バイトアラインメント用マスク
+constexpr size_t kAlignmentMask = 255;
+// フレームレート（FPS）
+constexpr float kFrameRate = 60.0f;
+// FPSチェック用マージンフレームレート
+constexpr float kFrameRateCheckMargin = 65.0f;
+// マイクロ秒から秒への変換係数
+constexpr float kMicrosecondsPerSecond = 1000000.0f;
+
 void DirectXCommon::Initialize(WinApp* winApp)
 {
 	//Null検出
@@ -333,17 +350,17 @@ void DirectXCommon::CreateSwapChain()
 	/*--------------[ スワップチェインの設定 ]-----------------*/
 
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
-	swapChainDesc.Width = WinApp::kClientWidth;								//画面の幅。ウィンドウのクライアント領域を同じものにしておく
-	swapChainDesc.Height = WinApp::kClientHeight;							//画面の高さ。ウィンドウのクライアント領域を同じものにしておく
-	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;				//色の形式
-	swapChainDesc.SampleDesc.Count = 1;								//マルチサンプルしない
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;	//描画のターゲットとして利用する
-	swapChainDesc.BufferCount = 2;									//ダブルバッファ
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;		//モニタにうつしたら、中身を廃棄
+	swapChainDesc.Width = WinApp::kClientWidth;
+	swapChainDesc.Height = WinApp::kClientHeight;
+	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapChainDesc.SampleDesc.Count = 1;
+	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swapChainDesc.BufferCount = kSwapChainBufferCount;
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
 	/*--------------[ スワップチェインの生成 ]-----------------*/
 
-	//コマンドキュー、ウィンドウハンドル、設定を渡して生成する
+	// コマンドキュー、ウィンドウハンドル、設定を渡して生成する
 	hr = dxgiFactory_->CreateSwapChainForHwnd(commandQueue_.Get(), winApp_->GetHwnd(), &swapChainDesc, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(swapChain_.GetAddressOf()));
 	assert(SUCCEEDED(hr));
 }
@@ -404,11 +421,11 @@ void DirectXCommon::CreateDescriptorHeap()
 	///ディスクリプタヒープの生成
 	///===================================================================
 
-	//RTV用のヒープでディスクリプタの数は２。RTVはShader内で触るものではないので、ShaderVisibleはfalse
-	rtvDescriptorHeap_ = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 2, false);
+	// RTV用のヒープでディスクリプタの数は２。RTVはShader内で触るものではないので、ShaderVisibleはfalse
+	rtvDescriptorHeap_ = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, kRtvDescriptorCount, false);
 
-	//DSV用のヒープでディスクリプタの数は１。DSVはSharder内で触るものではないので、ShaderVisibleはfalse
-	dsvDescriptorHeap_ = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, false);
+	// DSV用のヒープでディスクリプタの数は１。DSVはSharder内で触るものではないので、ShaderVisibleはfalse
+	dsvDescriptorHeap_ = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, kDsvDescriptorCount, false);
 
 
 }
@@ -523,27 +540,27 @@ void DirectXCommon::InitializeFixFPS()
 
 void DirectXCommon::UpdateFixFPS()
 {
-	// 1//60秒ぴったりの時間
-	const std::chrono::microseconds kMinTime(uint64_t(1000000.0f / 60.0f));
+	// 1/60秒ぴったりの時間
+	const std::chrono::microseconds kMinTime(uint64_t(kMicrosecondsPerSecond / kFrameRate));
 	// 1/60秒よりわずかに短い時間
-	const std::chrono::microseconds kMinCheckTime(uint64_t(1000000.0f / 65.0f));
+	const std::chrono::microseconds kMinCheckTime(uint64_t(kMicrosecondsPerSecond / kFrameRateCheckMargin));
 
-	//現在時間を取得
+	// 現在時間を取得
 	std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-	//前回記録からの経過時間を取得する
+	// 前回記録からの経過時間を取得する
 	std::chrono::microseconds elapsed = std::chrono::duration_cast<std::chrono::microseconds>(now - reference_);
 
-	// 1/60(よりわずかに短い時間) 経っていない場合
+	// 1/60秒（よりわずかに短い時間）経っていない場合
 	if(elapsed < kMinCheckTime)
 	{
 		// 1/60秒経過するまで微小なスリープを繰り返す
 		while(std::chrono::steady_clock::now() - reference_ < kMinTime)
 		{
-			//1マイクロ秒スリープ
+			// 1マイクロ秒スリープ
 			std::this_thread::sleep_for(std::chrono::microseconds(1));
 		}
 	}
-	//現在時間の記録をする
+	// 現在時間の記録をする
 	reference_ = std::chrono::steady_clock::now();
 
 }
@@ -563,18 +580,20 @@ Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> DirectXCommon::CreateDescriptorHeap
 
 void DirectXCommon::CreateSamplerHeap()
 {
+	// サンプラー用ディスクリプタヒープの設定
 	D3D12_DESCRIPTOR_HEAP_DESC desc{};
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
-	desc.NumDescriptors = 1;
+	desc.NumDescriptors = kSamplerDescriptorCount;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	HRESULT hr = device_->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&samplerHeap_));
 	assert(SUCCEEDED(hr) && "Failed to create Sampler Heap!");
 
-	// デバッグログ
+	// デバッグログ出力
 	D3D12_GPU_DESCRIPTOR_HANDLE samplerHeapBase = samplerHeap_->GetGPUDescriptorHandleForHeapStart();
 	OutputDebugStringA(("Sampler Heap Base Address: " + std::to_string(samplerHeapBase.ptr) + "\n").c_str());
 	assert(samplerHeap_ != nullptr && "Sampler Descriptor Heap is null!");
 
+	// サンプラーの設定
 	D3D12_SAMPLER_DESC samplerDesc{};
 	samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
 	samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
@@ -586,6 +605,7 @@ void DirectXCommon::CreateSamplerHeap()
 	samplerDesc.MaxAnisotropy = 1;
 	samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
 
+	// サンプラーの生成
 	device_->CreateSampler(&samplerDesc, samplerHeap_->GetCPUDescriptorHandleForHeapStart());
 
 }
@@ -684,20 +704,21 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileSharder(const std::wstrin
 Microsoft::WRL::ComPtr<ID3D12Resource> DirectXCommon::CreateBufferResource(size_t sizeInBytes)
 {
 	Microsoft::WRL::ComPtr<ID3D12Resource> bufferResource = nullptr;
-	//頂点リソース用のヒープ設定
+	// 頂点リソース用のヒープ設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
 	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
-	//頂点リソースの設定
+	// 頂点リソースの設定
 	D3D12_RESOURCE_DESC bufferResourceDesc{};
-	//バッファリソース。テクスチャの場合はまた別の設定をする
+	// バッファリソース。テクスチャの場合はまた別の設定をする
 	bufferResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	bufferResourceDesc.Width = (sizeInBytes + 255) & ~255;
-	//バッファの場合はこれらは１にする決まり
+	// 256バイトアラインメント
+	bufferResourceDesc.Width = (sizeInBytes + kAlignmentMask) & ~kAlignmentMask;
+	// バッファの場合はこれらは１にする決まり
 	bufferResourceDesc.Height = 1;
 	bufferResourceDesc.DepthOrArraySize = 1;
 	bufferResourceDesc.MipLevels = 1;
 	bufferResourceDesc.SampleDesc.Count = 1;
-	//バッファの場合はこれにする決まり
+	// バッファの場合はこれにする決まり
 	bufferResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
 	HRESULT hr = device_->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &bufferResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&bufferResource));
