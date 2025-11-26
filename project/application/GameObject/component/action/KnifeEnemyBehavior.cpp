@@ -13,31 +13,37 @@
 #include "imgui/imgui.h"
 #include "math/Easing.h"
 
+// コンストラクタ：各種オブジェクトの初期化とビヘイビアツリーの構築
 KnifeEnemyBehavior::KnifeEnemyBehavior(GameObject* target, GameObject* rightArm, GameObject* leftArm, GameObject* knife)
 	: target_(target), rightArm_(rightArm), leftArm_(leftArm), knife_(knife)
 {
+	// 乱数生成器を初期化
 	std::random_device rd;
 	rng_ = std::mt19937(rd());
 
-	// 初期回転値を設定
+	// 初期回転値と位置を保存
 	rightArmInitialRotation_ = rightArm_->GetRotation();
 	rightArmInitialPosition_ = rightArm_->GetPosition();
 	leftArmInitialRotation_ = leftArm_->GetRotation();
 	knifeInitialRotation_ = knife_->GetRotation();
 	knifeInitialPosition_ = knife_->GetPosition();
 
+	// ビヘイビアツリーを構築
 	BuildBehaviorTree();
 }
 
+// フレームごとの更新処理
 void KnifeEnemyBehavior::Update(GameObject* owner)
 {
 	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
+
+	// 攻撃クールダウンを減少
 	if (attackCooldown_ > 0)
 	{
 		attackCooldown_ -= deltaTime;
 	}
 
-	// 腕のオブジェクトを取得
+	// 腕のオブジェクトを取得（未設定の場合）
 	if (!rightArm_)
 	{
 		rightArm_ = owner->GetChild(GameObjectTag::Character::KnifeEnemyRightArm);
@@ -53,6 +59,7 @@ void KnifeEnemyBehavior::Update(GameObject* owner)
 		UpdateAttackMotion(owner, deltaTime);
 	}
 
+	// ImGuiでデバッグ情報を表示
 	ImGui::Begin("KnifeBehavior");
 	{
 		ImGui::Text("Attacking: %s", isAttacking_ ? "true" : "false");
@@ -61,6 +68,7 @@ void KnifeEnemyBehavior::Update(GameObject* owner)
 		ImGui::Text("Target Visible: %s", IsTargetVisible(owner) ? "true" : "false");
 		ImGui::Text("In Attack Range: %s", IsInAttackRange(owner) ? "true" : "false");
 
+		// ビヘイビアツリーの表示
 		if (ImGui::TreeNode("BehaviorTree"))
 		{
 			if (behaviorTree_)
@@ -70,7 +78,7 @@ void KnifeEnemyBehavior::Update(GameObject* owner)
 	}
 	ImGui::End();
 
-	// Blackboardへ情報セット
+	// Blackboardへ状態情報をセット
 	auto& bb = behaviorTree_->GetBlackboard();
 	bb.Set<GameObject*>("Owner", owner);
 	bb.Set<GameObject*>("Target", target_);
@@ -80,9 +88,11 @@ void KnifeEnemyBehavior::Update(GameObject* owner)
 	bb.Set<float>("AttackCooldown", attackCooldown_);
 	bb.Set<bool>("IsAttacking", isAttacking_);
 
+	// ビヘイビアツリーを実行
 	behaviorTree_->Tick();
 }
 
+// ビヘイビアツリーの構築
 void KnifeEnemyBehavior::BuildBehaviorTree()
 {
 	auto root = std::make_unique<SelectorNode>();
@@ -103,7 +113,7 @@ void KnifeEnemyBehavior::BuildBehaviorTree()
 			{
 				return NodeStatus::Success;
 			}
-			// 攻撃範囲外
+			// 攻撃範囲外になった場合
 			if (!IsInAttackRange(owner))
 			{
 				return NodeStatus::Failure;
@@ -146,7 +156,7 @@ void KnifeEnemyBehavior::BuildBehaviorTree()
 		}));
 	root->AddChild(std::move(patrolSeq));
 
-	// 4. Idle
+	// 4. 待機行動（他の条件に該当しない場合）
 	root->AddChild(std::make_unique<ActionNode>(
 		"Idle",
 		[this](Blackboard& bb) {
@@ -158,63 +168,88 @@ void KnifeEnemyBehavior::BuildBehaviorTree()
 	behaviorTree_ = std::make_unique<BehaviorTree>(std::move(root));
 }
 
+// 待機行動（何もしない）
 void KnifeEnemyBehavior::IdleAction(GameObject* owner)
 {
 	// 何もしない
 }
 
+// パトロール行動
 bool KnifeEnemyBehavior::PatrolAction(GameObject* owner)
 {
+	// パトロールポイントが未初期化の場合は初期化
 	if (patrolPoints_.empty())
 	{
 		InitializePatrolPoints(owner->GetPosition(), patrolRadius_);
 	}
+
+	// 目標のパトロールポイントを取得
 	Vector3 targetPoint = patrolPoints_[currentPatrolIndex_];
 	Vector3 dir = targetPoint - owner->GetPosition();
 	float dist = dir.Length();
-	if (dist < 1.5f)
+
+	// 目標地点に到達した場合、次のポイントへ
+	if (dist < kPatrolArrivalThreshold)
 	{
 		currentPatrolIndex_ = (currentPatrolIndex_ + 1) % patrolPoints_.size();
-		return true; // 到達したらSuccess
+		return true;
 	}
+
+	// 目標地点へ移動
 	dir.NormalizeSelf();
 	float moveDistance = LimitMovementSpeed(moveSpeed_ * patrolSpeed_, TimeManager::GetInstance().GetGameContext().deltaTime);
 	owner->SetPosition(owner->GetPosition() + dir * moveDistance);
+
+	// 移動方向を向く
 	float angle = atan2(dir.x, dir.z);
 	owner->SetRotation(Vector3(0, angle, 0));
-	return false; // まだ到達してない
+
+	return false;
 }
 
+// 追跡行動
 bool KnifeEnemyBehavior::ChaseAction(GameObject* owner)
 {
-	if (!target_) return true; // 目標消失時は終了
+	// 目標消失時は終了
+	if (!target_) return true;
+
+	// ターゲットの位置を取得
 	Vector3 targetPos = target_->GetPosition();
 	Vector3 dir = targetPos - owner->GetPosition();
 	float dist = dir.Length();
+
+	// 攻撃レンジに入ったらSuccess
 	if (dist < attackRange_)
 	{
-		return true; // 攻撃レンジに入ったらSuccess
+		return true;
 	}
+
+	// ターゲットへ移動
 	dir.NormalizeSelf();
 	float moveDistance = LimitMovementSpeed(moveSpeed_, TimeManager::GetInstance().GetGameContext().deltaTime);
 	owner->SetPosition(owner->GetPosition() + dir * moveDistance);
+
+	// 移動方向を向く
 	float angle = atan2(dir.x, dir.z);
 	owner->SetRotation(Vector3(0, angle, 0));
-	return false; // まだ到達してない
+
+	return false;
 }
 
+// 攻撃行動
 bool KnifeEnemyBehavior::AttackAction(GameObject* owner)
 {
-	// 攻撃範囲外なら即Failureを返してChaseにBTが遷移
+	// 攻撃範囲外なら即Failureを返してChaseに遷移
 	if (!IsInAttackRange(owner))
 	{
+		// 攻撃状態をリセット
 		isAttacking_ = false;
 		attackProgress_ = 0.0f;
 		knife_->SetPosition(knifeInitialPosition_);
 		knife_->SetRotation(knifeInitialRotation_);
 		rightArm_->SetPosition(rightArmInitialPosition_);
 		rightArm_->SetRotation(rightArmInitialRotation_);
-		return false; // Failureを返す
+		return false;
 	}
 
 	// 既に攻撃中の場合は攻撃の完了を待つ
@@ -223,21 +258,22 @@ bool KnifeEnemyBehavior::AttackAction(GameObject* owner)
 		// 攻撃完了
 		if (attackProgress_ >= 1.0f)
 		{
+			// 攻撃状態をリセット
 			isAttacking_ = false;
 			attackProgress_ = 0.0f;
 			knife_->SetPosition(knifeInitialPosition_);
 			knife_->SetRotation(knifeInitialRotation_);
 			rightArm_->SetPosition(rightArmInitialPosition_);
 			rightArm_->SetRotation(rightArmInitialRotation_);
-			return true; // Success
+			return true;
 		}
-		return false; // Running
+		return false;
 	}
 
 	// クールダウン中なら攻撃不可
 	if (attackCooldown_ > 0.0f)
 	{
-		return false; // Running
+		return false;
 	}
 
 	// ターゲットの方向を向く
@@ -245,7 +281,7 @@ bool KnifeEnemyBehavior::AttackAction(GameObject* owner)
 	{
 		Vector3 targetPos = target_->GetPosition();
 		Vector3 direction = targetPos - owner->GetPosition();
-		direction.y = 0.0f; // Y軸回転のみ
+		direction.y = 0.0f;
 		direction.NormalizeSelf();
 
 		float angle = atan2(direction.x, direction.z);
@@ -258,57 +294,74 @@ bool KnifeEnemyBehavior::AttackAction(GameObject* owner)
 	hasHitTarget_ = false;
 	attackCooldown_ = attackInterval_;
 
-	return false; // Running
+	return false;
 }
 
+// ターゲットが視界内にいるか確認
 bool KnifeEnemyBehavior::IsTargetVisible(GameObject* owner)
 {
 	if (!target_) return false;
+
+	// ターゲットまでの距離を計算
 	Vector3 targetPos = target_->GetPosition();
 	Vector3 direction = targetPos - owner->GetPosition();
 	float distance = direction.Length();
+
+	// 検知範囲内にいるかどうかを返す
 	return (distance <= detectionRange_);
 }
 
+// 攻撃範囲内にいるか確認
 bool KnifeEnemyBehavior::IsInAttackRange(GameObject* owner)
 {
 	if (!target_) return false;
+
+	// ターゲットまでの距離を計算
 	Vector3 targetPos = target_->GetPosition();
 	Vector3 direction = targetPos - owner->GetPosition();
 	float distance = direction.Length();
+
+	// 攻撃範囲内にいるかどうかを返す
 	return (distance <= attackRange_);
 }
 
+// パトロールポイントを初期化
 void KnifeEnemyBehavior::InitializePatrolPoints(const Vector3& centerPoint, float radius)
 {
 	patrolPoints_.clear();
-	const int numPoints = 8;
-	for (int i = 0; i < numPoints; i++)
+
+	// 円周上に等間隔でパトロールポイントを生成
+	for (int i = 0; i < kPatrolPointCount; i++)
 	{
-		float angle = (i * 2.0f * 3.14159f) / numPoints;
+		float angle = (i * 2.0f * 3.14159f) / kPatrolPointCount;
 		float x = centerPoint.x + radius * std::cos(angle);
 		float z = centerPoint.z + radius * std::sin(angle);
 		patrolPoints_.push_back(Vector3(x, centerPoint.y, z));
 	}
+
+	// ランダムな開始位置を設定
 	std::random_device rd;
 	rng_ = std::mt19937(rd());
-	currentPatrolIndex_ = std::uniform_int_distribution<int>(0, numPoints - 1)(rng_);
+	currentPatrolIndex_ = std::uniform_int_distribution<int>(0, kPatrolPointCount - 1)(rng_);
 	patrolInitialized_ = true;
 }
 
+// 移動速度を制限
 float KnifeEnemyBehavior::LimitMovementSpeed(float baseSpeed, float dt)
 {
-	return std::min(baseSpeed * dt, 0.25f);
+	// 1フレームあたりの移動距離に上限を設定
+	return std::min(baseSpeed * dt, kMaxMoveDistancePerFrame);
 }
 
+// 攻撃モーションの更新
 void KnifeEnemyBehavior::UpdateAttackMotion(GameObject* owner, float deltaTime)
 {
 	if (!isAttacking_) return;
 
-
-	// 攻撃中に攻撃範囲外なら即中断・初期化
+	// 攻撃中に攻撃範囲外になった場合は即中断
 	if (!IsInAttackRange(owner) || attackProgress_ >= 1.0f)
 	{
+		// 攻撃状態をリセット
 		isAttacking_ = false;
 		attackProgress_ = 0.0f;
 		knife_->SetPosition(knifeInitialPosition_);
@@ -318,23 +371,27 @@ void KnifeEnemyBehavior::UpdateAttackMotion(GameObject* owner, float deltaTime)
 		return;
 	}
 
+	// 攻撃進行度を更新
 	attackProgress_ += deltaTime / attackDuration_;
 	float t = std::clamp(attackProgress_, 0.0f, 1.0f);
-	float easeT = EaseInOutExpo(t); // イージングで強弱
 
-	// 例えば左から右へ（yStart→yEnd）
-	float yStart = -1.2f, yEnd = 2.5f;
-	float y = yStart + (yEnd - yStart) * easeT;
+	// イージングで強弱をつける
+	float easeT = EaseInOutExpo(t);
 
+	// 左から右への回転アニメーション
+	float y = kAttackRotationStart + (kAttackRotationEnd - kAttackRotationStart) * easeT;
+
+	// 攻撃時の腕の回転を計算
 	Vector3 attackRotation;
-	attackRotation.x = -std::numbers::pi_v<float> / 2.0; // -90度
+	attackRotation.x = -std::numbers::pi_v<float> / 2.0;
 	attackRotation.y = y;
 	attackRotation.z = 0.0;
 
-	knife_->SetPosition({ -4.3f, -0.6f, 0.1f });
-	knife_->SetRotation({ 0.0f, -1.57f, 0.0f });
+	// ナイフと腕の位置・回転を更新
+	knife_->SetPosition({ kKnifeAttackPosX, kKnifeAttackPosY, kKnifeAttackPosZ });
+	knife_->SetRotation({ 0.0f, kKnifeAttackRotY, 0.0f });
 	Vector3 rightArmPos = rightArmInitialPosition_;
-	rightArmPos.z = 1.5f; // ナイフを持つ手を前に出す
+	rightArmPos.z = kArmAttackPosZ;
 	rightArm_->SetPosition(rightArmPos);
 	rightArm_->SetRotation(attackRotation);
 }

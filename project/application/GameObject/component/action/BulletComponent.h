@@ -2,17 +2,46 @@
 #include "application/GameObject/component/base/IActionComponent.h"
 #include "math/Vector3.h"
 
+/**
+ * @brief 弾丸の移動と寿命を管理するコンポーネント
+ *
+ * 弾丸の進行方向、速度、寿命を設定し、フレームごとに位置を更新する
+ */
 class BulletComponent : public IActionComponent
 {
 public:
+	/**
+	 * @brief コンストラクタ
+	 */
 	BulletComponent();
+
+	/**
+	 * @brief 弾丸の初期化
+	 * @param direction 弾丸の進行方向
+	 * @param speed 弾丸の移動速度
+	 * @param lifetime 弾丸の寿命（秒）
+	 */
 	void Initialize(Vector3 direction, float speed, float lifetime);
+
+	/**
+	 * @brief フレームごとの更新処理
+	 * @param owner このコンポーネントを所有するゲームオブジェクト
+	 */
 	void Update(GameObject* owner) override;
+
+	/**
+	 * @brief 描画処理（このコンポーネントでは何も描画しない）
+	 * @param camera カメラマネージャー
+	 */
 	void Draw(CameraManager* camera) override {};
 
 private:
-	Vector3 direction_;  // 弾の進行方向
-	float speed_;        // 弾の移動速度
-	float lifetime_;     // 弾の寿命
-	float timeAlive_;    // 経過時間
+	// 弾の進行方向
+	Vector3 direction_;
+	// 弾の移動速度
+	float speed_;
+	// 弾の寿命
+	float lifetime_;
+	// 経過時間
+	float timeAlive_;
 };

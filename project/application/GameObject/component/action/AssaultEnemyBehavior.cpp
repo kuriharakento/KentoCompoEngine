@@ -12,26 +12,35 @@
 #include "application/GameObject/Combatable/character/enemy/base/Node/SelectorNode.h"
 #include "application/GameObject/Combatable/character/enemy/base/Node/SequenceNode.h"
 
-// --- コンストラクタ ---
+// コンストラクタ：乱数生成器の初期化とビヘイビアツリーの構築
 AssaultEnemyBehavior::AssaultEnemyBehavior(GameObject* target) : target_(target)
 {
+	// 乱数生成器を初期化
 	std::random_device rd;
 	rng_ = std::mt19937(rd());
+	// ビヘイビアツリーを構築
 	BuildBehaviorTree();
 }
 
-// --- Update ---
+// フレームごとの更新処理
 void AssaultEnemyBehavior::Update(GameObject* owner)
 {
+	// デルタタイムを取得
 	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
+
+	// 各種タイマーを更新
 	stateTimer_ += deltaTime;
 	strafeTimer_ += deltaTime;
 	positionCheckTimer_ += deltaTime;
-	combatStateTimer_ += deltaTime;  // 追加
+	combatStateTimer_ += deltaTime;
+
+	// 行動クールダウンを減少
 	if (actionCooldown_ > 0) actionCooldown_ -= deltaTime;
+
+	// 前フレームの位置を保存（スタック検出用）
 	lastPosition_ = owner->GetPosition();
 
-	// Blackboardへ情報セット
+	// Blackboardへ状態情報をセット
 	auto& bb = behaviorTree_->GetBlackboard();
 	bb.Set<GameObject*>("Owner", owner);
 	bb.Set<GameObject*>("Target", target_);
@@ -52,12 +61,14 @@ void AssaultEnemyBehavior::Update(GameObject* owner)
 	bb.Set<int>("CurrentPatrolIndex", currentPatrolIndex_);
 	bb.Set<bool>("PatrolInitialized", patrolInitialized_);
 
-	// BTで行動管理
+	// ビヘイビアツリーを実行
 	behaviorTree_->Tick();
 }
 
+// 継続的なストレイフ行動
 void AssaultEnemyBehavior::ContinuousStrafAction(GameObject* owner)
 {
+	// ターゲットが存在しない場合はストレイフを終了
 	if (!target_)
 	{
 		isStrafing_ = false;
@@ -75,14 +86,14 @@ void AssaultEnemyBehavior::ContinuousStrafAction(GameObject* owner)
 		return;
 	}
 
-	// ストレイフ方向を定期的に変更（継続中も方向転換）
+	// ストレイフ方向を定期的に変更
 	if (fmod(strafeTimer_, strafeChangeInterval_) < deltaTime)
 	{
 		strafeDirection_ = GetRandomStrafeDirection(owner);
 	}
 
-	// ストレイフ移動実行
-	float strafeSpeed = moveSpeed_ * 1.3f;
+	// ストレイフ移動を実行
+	float strafeSpeed = moveSpeed_ * kStrafeSpeedMultiplier;
 	float moveDistance = LimitMovementSpeed(strafeSpeed, deltaTime);
 	Vector3 newPosition = owner->GetPosition() + strafeDirection_ * moveDistance;
 	owner->SetPosition(newPosition);
@@ -91,14 +102,14 @@ void AssaultEnemyBehavior::ContinuousStrafAction(GameObject* owner)
 	if (actionCooldown_ <= 0.0f)
 	{
 		FireWeapon(owner);
-		actionCooldown_ = 0.2f; // 射撃間隔
+		actionCooldown_ = kShootIntervalDuringStrafe;
 	}
 
 	// エイミングも継続
 	AimAtTarget(owner);
 }
 
-// --- BT構築 ---
+// ビヘイビアツリーの構築
 void AssaultEnemyBehavior::BuildBehaviorTree()
 {
 	auto root = std::make_unique<SelectorNode>();
@@ -118,7 +129,7 @@ void AssaultEnemyBehavior::BuildBehaviorTree()
 		}));
 	root->AddChild(std::move(stuckSeq));
 
-	// 2. 距離による後退
+	// 2. 距離が近すぎる場合は後退
 	auto retreatSeq = std::make_unique<SequenceNode>();
 	retreatSeq->AddChild(std::make_unique<ConditionNode>([this](Blackboard& bb) {
 		auto owner = bb.Get<GameObject*>("Owner");
@@ -136,7 +147,7 @@ void AssaultEnemyBehavior::BuildBehaviorTree()
 		}));
 	root->AddChild(std::move(retreatSeq));
 
-	// 3. 距離によるリポジション
+	// 3. 距離が遠すぎる場合はリポジション
 	auto repositionSeq = std::make_unique<SequenceNode>();
 	repositionSeq->AddChild(std::make_unique<ConditionNode>([this](Blackboard& bb) {
 		auto owner = bb.Get<GameObject*>("Owner");
@@ -154,7 +165,7 @@ void AssaultEnemyBehavior::BuildBehaviorTree()
 		}));
 	root->AddChild(std::move(repositionSeq));
 
-	// 4. 戦闘：ターゲットが見えて攻撃範囲内
+	// 4. 戦闘：ターゲットが見えて攻撃範囲内の場合
 	auto combatSeq = std::make_unique<SequenceNode>();
 	combatSeq->AddChild(std::make_unique<ConditionNode>([this](Blackboard& bb) {
 		return bb.Get<bool>("IsTargetVisible") && bb.Get<bool>("IsInAttackRange");
@@ -166,14 +177,14 @@ void AssaultEnemyBehavior::BuildBehaviorTree()
 	// 4a. 継続的ストレイフ（一定期間継続）
 	auto continuousStrafSeq = std::make_unique<SequenceNode>();
 	continuousStrafSeq->AddChild(std::make_unique<ConditionNode>([this](Blackboard& bb) {
-		// ストレイフ状態が継続中、または新たにストレイフを開始する条件
+		// ストレイフ状態が継続中の場合
 		if (isStrafing_)
 		{
-			return strafeTimer_ < strafeDuration_; // ストレイフ継続中
+			return strafeTimer_ < strafeDuration_;
 		}
 		else
 		{
-			// 新たにストレイフを開始する条件
+			// 新たにストレイフを開始する条件をチェック
 			std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 			if (dist(rng_) < strafeProbability_ && combatStateTimer_ > 1.0f)
 			{
@@ -190,7 +201,7 @@ void AssaultEnemyBehavior::BuildBehaviorTree()
 		[this](Blackboard& bb) {
 			auto owner = bb.Get<GameObject*>("Owner");
 			ContinuousStrafAction(owner);
-			return NodeStatus::Running; // 継続実行
+			return NodeStatus::Running;
 		}));
 	combatSelector->AddChild(std::move(continuousStrafSeq));
 
@@ -199,7 +210,7 @@ void AssaultEnemyBehavior::BuildBehaviorTree()
 		"Fire",
 		[this](Blackboard& bb) {
 			auto owner = bb.Get<GameObject*>("Owner");
-			isStrafing_ = false; // ストレイフ状態をリセット
+			isStrafing_ = false;
 			FireWeapon(owner);
 			AimAtTarget(owner);
 			return NodeStatus::Success;
@@ -208,7 +219,7 @@ void AssaultEnemyBehavior::BuildBehaviorTree()
 	combatSeq->AddChild(std::move(combatSelector));
 	root->AddChild(std::move(combatSeq));
 
-	// 5. パトロール：ターゲットが見えていなければ
+	// 5. パトロール：ターゲットが見えていない場合
 	auto patrolSeq = std::make_unique<SequenceNode>();
 	patrolSeq->AddChild(std::make_unique<ConditionNode>([this](Blackboard& bb) {
 		return !bb.Get<bool>("IsTargetVisible");
@@ -222,7 +233,7 @@ void AssaultEnemyBehavior::BuildBehaviorTree()
 		}));
 	root->AddChild(std::move(patrolSeq));
 
-	// 6. Idle
+	// 6. 待機行動（他の条件に該当しない場合）
 	root->AddChild(std::make_unique<ActionNode>(
 		"Idle",
 		[this](Blackboard& bb) {
@@ -234,45 +245,61 @@ void AssaultEnemyBehavior::BuildBehaviorTree()
 	behaviorTree_ = std::make_unique<BehaviorTree>(std::move(root));
 }
 
-// --- 各種アクションの中身例 ---
-// ここでは省略せずに記述します。必要に応じて既存のメソッドから抜粋/整理してください。
-
+// 待機行動（何もしない）
 void AssaultEnemyBehavior::IdleAction(GameObject* owner)
 {
 	// 何もしない、または待機アニメ再生など
 }
 
+// パトロール行動
 void AssaultEnemyBehavior::PatrolAction(GameObject* owner)
 {
+	// パトロールポイントが未初期化の場合は初期化
 	if (patrolPoints_.empty())
 	{
 		InitializePatrolPoints(owner->GetPosition(), patrolRadius_);
 	}
+
+	// 目標のパトロールポイントを取得
 	Vector3 targetPoint = patrolPoints_[currentPatrolIndex_];
 	Vector3 dir = targetPoint - owner->GetPosition();
 	float dist = dir.Length();
-	if (dist < 1.5f)
+
+	// 目標地点に到達した場合、次のポイントへ
+	if (dist < kPatrolArrivalThreshold)
 	{
 		currentPatrolIndex_ = (currentPatrolIndex_ + 1) % patrolPoints_.size();
 		return;
 	}
+
+	// 目標地点へ移動
 	dir.NormalizeSelf();
 	float moveDistance = LimitMovementSpeed(moveSpeed_ * patrolSpeed_, TimeManager::GetInstance().GetGameContext().deltaTime);
 	owner->SetPosition(owner->GetPosition() + dir * moveDistance);
+
+	// 移動方向を向く
 	float angle = atan2(dir.x, dir.z);
 	owner->SetRotation(Vector3(0, angle, 0));
 }
 
+// 位置調整行動
 void AssaultEnemyBehavior::RepositionAction(GameObject* owner)
 {
 	if (!target_) return;
+
 	Vector3 targetPos = target_->GetPosition();
 	Vector3 dir = targetPos - owner->GetPosition();
 	float dist = dir.Length();
+
+	// 最適距離を計算
 	float optimalDistance = (attackRange_ + minRange_) / 2.0f;
-	repositionSpeed_ = std::min(repositionSpeed_ + 0.05f, maxRepositionSpeed_);
+
+	// 位置調整速度を徐々に上げる
+	repositionSpeed_ = std::min(repositionSpeed_ + kRepositionAcceleration, maxRepositionSpeed_);
 	dir.NormalizeSelf();
 	float moveDistance = LimitMovementSpeed(moveSpeed_, TimeManager::GetInstance().GetGameContext().deltaTime);
+
+	// 最適距離より遠い場合は接近、近い場合は離れる
 	if (dist > optimalDistance)
 	{
 		owner->SetPosition(owner->GetPosition() + dir * moveDistance * repositionSpeed_);
@@ -283,41 +310,53 @@ void AssaultEnemyBehavior::RepositionAction(GameObject* owner)
 	}
 }
 
+// 横移動行動
 void AssaultEnemyBehavior::StrafeAction(GameObject* owner)
 {
 	if (!target_) return;
+
 	strafeTimer_ += TimeManager::GetInstance().GetGameContext().deltaTime;
+
+	// 一定時間ごとにストレイフ方向を変更
 	if (strafeTimer_ > strafeChangeInterval_)
 	{
 		strafeDirection_ = GetRandomStrafeDirection(owner);
 		strafeTimer_ = 0.0f;
 	}
-	float moveDistance = LimitMovementSpeed(moveSpeed_ * 0.6f, TimeManager::GetInstance().GetGameContext().deltaTime);
+
+	// ストレイフ移動を実行
+	float moveDistance = LimitMovementSpeed(moveSpeed_ * kStrafeActionSpeedMultiplier, TimeManager::GetInstance().GetGameContext().deltaTime);
 	owner->SetPosition(owner->GetPosition() + strafeDirection_ * moveDistance);
+
+	// 攻撃範囲内なら射撃
 	if (IsInAttackRange(owner))
 	{
 		FireWeapon(owner);
 	}
 }
 
+// 後退行動
 void AssaultEnemyBehavior::RetreatAction(GameObject* owner)
 {
 	if (!target_) return;
+
+	// ターゲットから離れる方向を計算
 	Vector3 targetPos = target_->GetPosition();
 	Vector3 dir = targetPos - owner->GetPosition();
 	dir.NormalizeSelf();
 	Vector3 retreatDir = -dir;
-	float moveDistance = LimitMovementSpeed(moveSpeed_ * 1.2f, TimeManager::GetInstance().GetGameContext().deltaTime);
+
+	// 後退移動を実行
+	float moveDistance = LimitMovementSpeed(moveSpeed_ * kRetreatSpeedMultiplier, TimeManager::GetInstance().GetGameContext().deltaTime);
 	owner->SetPosition(owner->GetPosition() + retreatDir * moveDistance);
 }
 
-// --- 既存の補助メソッド（省略せずに全て記述してください） ---
-// AimAtTarget, FireWeapon, IsTargetVisible, IsInAttackRange, IsInExtendedAttackRange, GetRandomStrafeDirection, InitializePatrolPoints,
-// CalculateSmoothMovement, LimitMovementSpeed, ForceMovement, IsStuck, などは元のコードから移植してください。
-
+// ターゲットに照準を合わせる
 void AssaultEnemyBehavior::AimAtTarget(GameObject* owner)
 {
 	if (!target_) return;
+
+	// ターゲット方向を計算して向きを設定
 	Vector3 targetPos = target_->GetPosition();
 	Vector3 direction = targetPos - owner->GetPosition();
 	direction.NormalizeSelf();
@@ -325,6 +364,7 @@ void AssaultEnemyBehavior::AimAtTarget(GameObject* owner)
 	owner->SetRotation(Vector3(0, angle, 0));
 }
 
+// 武器を発射する
 void AssaultEnemyBehavior::FireWeapon(GameObject* owner)
 {
 	// アサルトライフルコンポーネントのFire()メソッドを呼び出す
@@ -334,45 +374,62 @@ void AssaultEnemyBehavior::FireWeapon(GameObject* owner)
 	}
 }
 
+// ターゲットが視界内にいるか確認
 bool AssaultEnemyBehavior::IsTargetVisible(GameObject* owner)
 {
 	if (!target_) return false;
+
+	// ターゲットまでの距離を計算
 	Vector3 targetPos = target_->GetPosition();
 	Vector3 direction = targetPos - owner->GetPosition();
 	float distance = direction.Length();
+
+	// 検知範囲内にいるかどうかを返す
 	return (distance <= detectionRange_);
 }
 
+// 攻撃範囲内にいるか確認
 bool AssaultEnemyBehavior::IsInAttackRange(GameObject* owner)
 {
 	if (!target_) return false;
+
+	// ターゲットまでの距離を計算
 	Vector3 targetPos = target_->GetPosition();
 	Vector3 direction = targetPos - owner->GetPosition();
 	float distance = direction.Length();
+
+	// 最小〜最大範囲内にいるかどうかを返す
 	return (distance >= minRange_ && distance <= maxRange_);
 }
 
+// 拡張攻撃範囲内にいるか確認
 bool AssaultEnemyBehavior::IsInExtendedAttackRange(GameObject* owner)
 {
 	if (!target_) return false;
+
+	// ターゲットまでの距離を計算
 	Vector3 targetPos = target_->GetPosition();
 	Vector3 direction = targetPos - owner->GetPosition();
 	float distance = direction.Length();
+
+	// 拡張最小〜拡張最大範囲内にいるかどうかを返す
 	return (distance >= extendedMinRange_ && distance <= extendedMaxRange_);
 }
 
+// ランダムな横移動方向を取得
 Vector3 AssaultEnemyBehavior::GetRandomStrafeDirection(GameObject* owner)
 {
 	if (!target_) return Vector3(1.0f, 0, 0);
 
+	// ターゲットへの方向を計算
 	Vector3 toTarget = target_->GetPosition() - owner->GetPosition();
 	float distanceToTarget = toTarget.Length();
 	toTarget.NormalizeSelf();
 
-	// 横方向ベクトル
+	// 横方向ベクトルを計算
 	Vector3 right(toTarget.z, 0, -toTarget.x);
 
-	// ランダム要素
+	// ランダム要素を生成
 	std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
 	float randomValue = dist(rng_);
 
@@ -380,73 +437,80 @@ Vector3 AssaultEnemyBehavior::GetRandomStrafeDirection(GameObject* owner)
 	float optimalDistance = (attackRange_ + minRange_) / 2.0f;
 	float distanceFactor = std::min(1.0f, std::abs(distanceToTarget - optimalDistance) / (maxRange_ - minRange_));
 
-	// 横方向と前後方向を混ぜる
+	// 横方向と前後方向を混ぜてストレイフ方向を決定
 	Vector3 strafeDir;
 	if (distanceToTarget > optimalDistance)
 	{
 		// 遠い場合は接近しながら横移動
-		strafeDir = right * randomValue * strafeTendencyFactor_ + toTarget * (1.0f - strafeTendencyFactor_ + distanceFactor * 0.3f);
+		strafeDir = right * randomValue * strafeTendencyFactor_ + toTarget * (1.0f - strafeTendencyFactor_ + distanceFactor * kDistanceFactorAdjustment);
 	}
 	else
 	{
 		// 近い場合は離れながら横移動
-		strafeDir = right * randomValue * strafeTendencyFactor_ - toTarget * (1.0f - strafeTendencyFactor_ + distanceFactor * 0.3f);
+		strafeDir = right * randomValue * strafeTendencyFactor_ - toTarget * (1.0f - strafeTendencyFactor_ + distanceFactor * kDistanceFactorAdjustment);
 	}
 
 	strafeDir.NormalizeSelf();
 	return strafeDir;
 }
 
+// パトロールポイントを初期化
 void AssaultEnemyBehavior::InitializePatrolPoints(const Vector3& centerPoint, float radius)
 {
 	patrolPoints_.clear();
 
-	// 8点の巡回ポイントを生成
-	const int numPoints = 8;
-	for (int i = 0; i < numPoints; i++)
+	// 円周上に等間隔でパトロールポイントを生成
+	for (int i = 0; i < kPatrolPointCount; i++)
 	{
-		float angle = (i * 2.0f * 3.14159f) / numPoints;
+		float angle = (i * 2.0f * 3.14159f) / kPatrolPointCount;
 		float x = centerPoint.x + radius * std::cos(angle);
 		float z = centerPoint.z + radius * std::sin(angle);
 		patrolPoints_.push_back(Vector3(x, centerPoint.y, z));
 	}
 
-	// ランダムな開始位置
+	// ランダムな開始位置を設定
 	std::random_device rd;
 	rng_ = std::mt19937(rd());
-	currentPatrolIndex_ = std::uniform_int_distribution<int>(0, numPoints - 1)(rng_);
+	currentPatrolIndex_ = std::uniform_int_distribution<int>(0, kPatrolPointCount - 1)(rng_);
 	patrolInitialized_ = true;
 }
 
+// スムーズな移動を計算
 Vector3 AssaultEnemyBehavior::CalculateSmoothMovement(const Vector3& currentPos, const Vector3& targetPos, float maxDistance)
 {
 	Vector3 direction = targetPos - currentPos;
 	float distance = direction.Length();
 
+	// 目標地点に到達可能な場合はそのまま返す
 	if (distance <= maxDistance)
 	{
 		return targetPos;
 	}
 
+	// 最大距離で制限した位置を返す
 	direction.NormalizeSelf();
 	return currentPos + direction * maxDistance;
 }
 
+// 移動速度を制限
 float AssaultEnemyBehavior::LimitMovementSpeed(float baseSpeed, float dt)
 {
 	// 1フレームあたりの移動距離に上限を設定
 	return std::min(baseSpeed * dt, maxMoveDistancePerFrame_);
 }
 
+// スタック状態かどうか確認
 bool AssaultEnemyBehavior::IsStuck(GameObject* owner)
 {
 	Vector3 currentPos = owner->GetPosition();
 	float movement = (currentPos - lastPosition_).Length();
 
-	if (movement < 0.01f)
+	// 移動量が閾値未満の場合
+	if (movement < kStuckMovementThreshold)
 	{
 		stuckTimer_ += TimeManager::GetInstance().GetGameContext().deltaTime;
 
+		// スタック判定時間を超えた場合
 		if (stuckTimer_ > stuckThreshold_)
 		{
 			stuckTimer_ = 0.0f;
@@ -461,18 +525,15 @@ bool AssaultEnemyBehavior::IsStuck(GameObject* owner)
 	return false;
 }
 
+// 強制移動（スタック解消用）
 void AssaultEnemyBehavior::ForceMovement(GameObject* owner)
 {
-	// スタック状態を解消するための緊急移動
-
-	// 現在の状態を変更
-	// BT化でcurrentState_未使用の場合は不要だが、もし使いたければここで分岐も可能
-
-	// 強制的に少し動かす
+	// ランダムな方向を生成
 	std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
 	Vector3 randomDir(dist(rng_), 0, dist(rng_));
 	randomDir.NormalizeSelf();
 
-	float forceMove = moveSpeed_ * 0.5f * (TimeManager::GetInstance().GetGameContext().deltaTime);
+	// 強制的に少し動かす
+	float forceMove = moveSpeed_ * kForceMovementSpeedMultiplier * (TimeManager::GetInstance().GetGameContext().deltaTime);
 	owner->SetPosition(owner->GetPosition() + randomDir * forceMove);
 }

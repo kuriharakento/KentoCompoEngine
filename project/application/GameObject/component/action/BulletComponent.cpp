@@ -1,13 +1,15 @@
 #include "BulletComponent.h"  
-#include "application/GameObject/base/GameObject.h" // GameObject の完全な型を使用するために追加  
+#include "application/GameObject/base/GameObject.h"
 #include "application/GameObject/Combatable/weapon/Bullet.h"
 #include "time/TimeManager.h"
 
+// コンストラクタ：メンバ変数の初期化
 BulletComponent::BulletComponent()
 	: speed_(0.0f), lifetime_(0.0f), timeAlive_(0.0f)
 {
 }
 
+// 弾丸の初期化
 void BulletComponent::Initialize(Vector3 direction, float speed, float lifetime)
 {
 	direction_ = direction;
@@ -16,19 +18,21 @@ void BulletComponent::Initialize(Vector3 direction, float speed, float lifetime)
 	timeAlive_ = 0.0f;
 }
 
+// フレームごとの更新処理
 void BulletComponent::Update(GameObject* owner)
 {
-	timeAlive_ += TimeManager::GetInstance().GetGameContext().deltaTime;  // 経過時間を更新  
+	// 経過時間を更新
+	timeAlive_ += TimeManager::GetInstance().GetGameContext().deltaTime;
 
-	//ダイナミックキャストで GameObject を取得
+	// Bullet型にダイナミックキャスト
 	auto bullet = dynamic_cast<Bullet*>(owner);
 
-	// 弾の移動  
+	// 弾の移動処理
 	owner->SetPosition(owner->GetPosition() + direction_ * speed_ * TimeManager::GetInstance().GetGameContext().deltaTime);
 
-	// ライフタイムを超えたら弾を削除  
+	// ライフタイムを超えたら弾を非アクティブ化
 	if (timeAlive_ >= lifetime_)
 	{
-		bullet->SetAlive(false);  // 弾を非アクティブにすることで削除処理を行う  
+		bullet->SetAlive(false);
 	}
 }
