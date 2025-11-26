@@ -6,6 +6,7 @@
 #include <cmath>
 #include <algorithm>
 #include <random>
+#include <numbers>
 
 #include "application/GameObject/Combatable/character/enemy/base/Node/ActionNode.h"
 #include "application/GameObject/Combatable/character/enemy/base/Node/ConditionNode.h"
@@ -462,7 +463,7 @@ void AssaultEnemyBehavior::InitializePatrolPoints(const Vector3& centerPoint, fl
 	// 円周上に等間隔でパトロールポイントを生成
 	for (int i = 0; i < kPatrolPointCount; i++)
 	{
-		float angle = (i * 2.0f * 3.14159f) / kPatrolPointCount;
+		float angle = (i * 2.0f * std::numbers::pi_v<float>) / kPatrolPointCount;
 		float x = centerPoint.x + radius * std::cos(angle);
 		float z = centerPoint.z + radius * std::sin(angle);
 		patrolPoints_.push_back(Vector3(x, centerPoint.y, z));

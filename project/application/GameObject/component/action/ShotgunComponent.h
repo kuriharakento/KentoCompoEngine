@@ -1,5 +1,6 @@
 #pragma once
 
+#include <numbers>
 #include "application/GameObject/Combatable/weapon/Bullet.h"
 #include "application/GameObject/component/base/IActionComponent.h"
 
@@ -59,7 +60,7 @@ private:
     // Y方向のばらけ範囲
     static constexpr float kVerticalSpreadRange = 0.05f;
     // 度からラジアンへの変換係数
-    static constexpr float kDegToRad = 3.14159265f / 180.0f;
+    static constexpr float kDegToRad = std::numbers::pi_v<float> / 180.0f;
 
     // プレイヤー用の弾発射処理
     void FireBullets(GameObject* owner);
