@@ -17,32 +17,83 @@
  * 変数名は必ずJsonで定義した名前と一致させること。
  */
 
+/**
+ * @brief JSON編集可能な基底クラス
+ * 
+ * IJsonEditableインターフェースの実装を提供し、リフレクション的な仕組みで
+ * メンバ変数の登録・シリアライズ・デシリアライズ・ImGui編集を自動化します。
+ * 
+ * 使用方法:
+ * 1. このクラスを継承
+ * 2. コンストラクタでREGISTER_MEMBERマクロを使用してメンバ変数を登録
+ * 3. DrawImGui()でSetttingsセクションが自動生成される
+ */
 class JsonEditableBase : public IJsonEditable
 {
 public:
 	JsonEditableBase() = default;
 	~JsonEditableBase();
+
+	/**
+	 * @brief JSONファイルからデータを読み込む
+	 * @param path JSONファイルのパス
+	 * @return 読み込み成功時true
+	 */
 	bool LoadJson(const std::string& path) override;
+
+	/**
+	 * @brief JSONファイルにデータを保存する
+	 * @param path JSONファイルのパス
+	 * @return 保存成功時true
+	 */
 	bool SaveJson(const std::string& path) const override;
+
+	/**
+	 * @brief ImGuiによる編集UIを描画
+	 */
 	void DrawImGui() override;
+
+	/**
+	 * @brief 保存/読込ボタンを含むオプションUIを描画
+	 */
 	virtual void DrawOptions();
 
+	/**
+	 * @brief 指定キーに対応する値をJSONから設定
+	 * @param key プロパティのキー名
+	 * @param value 設定するJSON値
+	 */
 	void SetValue(const std::string& key, const nlohmann::json& value);
+
+	/**
+	 * @brief JSONファイル名を設定
+	 * @param name ファイル名
+	 */
 	void SetFileName(const std::string& name) { fileName = name; }
 
 protected:
+	/**
+	 * @brief メンバ変数を登録する
+	 * 
+	 * 登録されたメンバ変数は自動的にシリアライズ/デシリアライズ対象となり、
+	 * ImGuiでの編集UIも自動生成されます。
+	 * 
+	 * @tparam T 登録する変数の型
+	 * @param name 変数名（JSONのキー名として使用）
+	 * @param value 変数へのポインタ
+	 */
 	template<typename T>
 	// NOTE: 必ず変数は登録すること!! しないとエラーが出る。
 	void Register(const std::string& name, T* value);
 
 private:
-	std::unordered_map<std::string, std::function<nlohmann::json()>> getters_;
-	std::unordered_map<std::string, std::function<void(const nlohmann::json&)>> setters_;
-	std::unordered_map<std::string, std::function<void()>> drawers_;
+	std::unordered_map<std::string, std::function<nlohmann::json()>> getters_;              // 値取得関数マップ
+	std::unordered_map<std::string, std::function<void(const nlohmann::json&)>> setters_;   // 値設定関数マップ
+	std::unordered_map<std::string, std::function<void()>> drawers_;                        // ImGui描画関数マップ
 
 	std::vector<std::shared_ptr<void>> registeredMembers_; // 登録されたメンバ変数のポインタを保持
-	const std::string dirPath = "Resources/json/";
-	std::string fileName;
+	const std::string dirPath = "Resources/json/";         // JSONファイルのディレクトリパス
+	std::string fileName;                                   // JSONファイル名
 };
 
 // メンバ変数登録の自動化マクロ
@@ -55,12 +106,13 @@ template<typename U, typename A> struct is_std_vector<std::vector<U, A>> : std::
 template<typename T>
 void JsonEditableBase::Register(const std::string& name, T* value)
 {
+	// 重複登録を防止
 	if (getters_.count(name)) return;
 
 	// 型名を出力
 	Logger::Log("Register: " + name + " type: " + std::string(typeid(T).name()) + "\n");
 
-	// シンプルに全体型に対して to_json/from_json を丸投げ
+	// nlohmann::jsonのto_json/from_jsonに委譲
 	getters_[name] = [value]() {
 		return nlohmann::json(*value);
 		};

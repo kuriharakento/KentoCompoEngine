@@ -15,7 +15,7 @@ void LineCommon::CreateRootSignature() {
     // ルートパラメータの作成
     D3D12_ROOT_PARAMETER rootParameters[1] = {};
 
-    // ルートパラメータ0: バーテックスシェーダー用のCBV
+    // ルートパラメータ0: バーテックスシェーダー用のCBV（WVP行列）
     rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
     rootParameters[0].Descriptor.ShaderRegister = 0;
     rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
@@ -50,7 +50,7 @@ void LineCommon::CreateGraphicsPipelineState() {
     Microsoft::WRL::ComPtr<IDxcBlob> pixelShaderBlob = dxCommon_->CompileSharder(L"Resources/shaders/Line.PS.hlsl", L"ps_6_0");
     assert(pixelShaderBlob != nullptr);
 
-    // 入力レイアウトの定義
+    // 入力レイアウトの定義（位置と色）
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
         {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
@@ -60,7 +60,7 @@ void LineCommon::CreateGraphicsPipelineState() {
     inputLayoutDesc.NumElements = _countof(inputElementDescs);
     inputLayoutDesc.pInputElementDescs = inputElementDescs;
 
-    // ブレンドステートの設定
+    // ブレンドステートの設定（アルファブレンド有効）
     D3D12_BLEND_DESC blendDesc = {};
     blendDesc.RenderTarget[0].BlendEnable = TRUE;
     blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
@@ -71,7 +71,7 @@ void LineCommon::CreateGraphicsPipelineState() {
     blendDesc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
     blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
-    // ラスタライザステートの設定
+    // ラスタライザステートの設定（カリングなし）
     D3D12_RASTERIZER_DESC rasterizerDesc = {};
     rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
     rasterizerDesc.CullMode = D3D12_CULL_MODE_NONE; // ライン描画のためカリングなし

@@ -2,6 +2,8 @@
 
 #include <fstream>
 
+// JSONインデント幅
+constexpr int kJsonIndent = 4;
 
 JsonEditableBase::~JsonEditableBase()
 {
@@ -19,6 +21,8 @@ bool JsonEditableBase::LoadJson(const std::string& path)
 {
 	fileName = path;
 	std::string fullPath = dirPath + fileName;
+	
+	// JSONファイルを開く
 	std::ifstream ifs(fullPath);
 	if (!ifs)
 	{
@@ -36,6 +40,8 @@ bool JsonEditableBase::LoadJson(const std::string& path)
         size_t pos = 0, next;
         std::string keyPath = key;
         bool found = true;
+        
+        // ドット区切りのパスを辿る
         while ((next = keyPath.find('.', pos)) != std::string::npos)
         {
             std::string token = keyPath.substr(pos, next - pos);
@@ -68,6 +74,8 @@ bool JsonEditableBase::LoadJson(const std::string& path)
             }
             pos = next + 1;
         }
+        
+        // 最後のトークンを処理
         std::string lastToken = keyPath.substr(pos);
         // 配列インデックス対応
         size_t arrPos = lastToken.find('[');
@@ -94,10 +102,14 @@ bool JsonEditableBase::SaveJson(const std::string& path) const
 {
 	std::string fullPath = dirPath + fileName;
 	nlohmann::json json;
+	
+	// すべての登録済みプロパティをJSONに変換
 	for (auto& [key, getter] : getters_)
 	{
 		json[key] = getter();
 	}
+	
+	// ファイルに書き出し
 	std::ofstream ofs(fullPath);
 	if (!ofs)
 	{
@@ -105,13 +117,15 @@ bool JsonEditableBase::SaveJson(const std::string& path) const
 		return false;
 	}
 
-	ofs << json.dump(4);
+	// 整形して出力
+	ofs << json.dump(kJsonIndent);
 	return true;
 }
 
 void JsonEditableBase::DrawImGui()
 {
 	ImGui::SeparatorText("Settings");
+	// 登録済みの描画関数を実行
 	for (auto& [name, drawer] : drawers_)
 	{
 		drawer();
@@ -121,11 +135,13 @@ void JsonEditableBase::DrawImGui()
 void JsonEditableBase::DrawOptions()
 {
 	ImGui::SeparatorText("Options");
+	// 保存ボタン
 	if (ImGui::Button("Save Json"))
 	{
 		SaveJson(fileName);
 	}
 	ImGui::SameLine();
+	// 読込ボタン
 	if (ImGui::Button("Load Json"))
 	{
 		LoadJson(fileName);
