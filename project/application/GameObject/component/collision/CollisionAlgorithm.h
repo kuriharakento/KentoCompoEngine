@@ -159,8 +159,28 @@ namespace CollisionAlgorithm
 	 */
 	bool CheckOBBvsOBB2D(const OBBColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane);
 	
+	/**
+	 * @brief XY平面専用のOBB同士の2D衝突判定
+	 * @param obbA 判定対象のOBB A
+	 * @param obbB 判定対象のOBB B
+	 * @return 衝突している場合true
+	 */
 	bool CheckOBBvsOBB_XY(const OBB& obbA, const OBB& obbB);
+	
+	/**
+	 * @brief XZ平面専用のOBB同士の2D衝突判定
+	 * @param obbA 判定対象のOBB A
+	 * @param obbB 判定対象のOBB B
+	 * @return 衝突している場合true
+	 */
 	bool CheckOBBvsOBB_XZ(const OBB& obbA, const OBB& obbB);
+	
+	/**
+	 * @brief YZ平面専用のOBB同士の2D衝突判定
+	 * @param obbA 判定対象のOBB A
+	 * @param obbB 判定対象のOBB B
+	 * @return 衝突している場合true
+	 */
 	bool CheckOBBvsOBB_YZ(const OBB& obbA, const OBB& obbB);
 	
 	/**
