@@ -33,8 +33,6 @@ constexpr UINT kDsvDescriptorCount = 1;
 constexpr UINT kSamplerDescriptorCount = 1;
 // 256バイトアラインメント用マスク
 constexpr size_t kAlignmentMask = 255;
-// 256バイトアラインメントサイズ
-constexpr size_t kAlignmentSize = 256;
 // フレームレート（FPS）
 constexpr float kFrameRate = 60.0f;
 // FPSチェック用マージンフレームレート
