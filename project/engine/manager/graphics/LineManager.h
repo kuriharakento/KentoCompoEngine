@@ -10,40 +10,118 @@
 
 class CameraManager;
 
+/**
+ * @brief ライン描画マネージャークラス
+ * @details デバッグ描画用のユーティリティクラス
+ *          線、キューブ、球、グリッド、矢印、座標軸、AABB、OBBの描画機能を提供
+ */
 class LineManager {
 public:
+	/**
+	 * @brief シングルトンインスタンスを取得
+	 * @return LineManagerのインスタンス
+	 */
 	static LineManager* GetInstance();
+
+	/**
+	 * @brief 初期化処理
+	 * @param dxCommon DirectXCommonへのポインタ
+	 * @param cameraManager カメラマネージャーへのポインタ
+	 */
     void Initialize(DirectXCommon* dxCommon,CameraManager* cameraManager);
+
+	/**
+	 * @brief ラインの描画処理
+	 * @details 登録されたすべてのラインを描画し、描画後にクリアする
+	 */
     void RenderLines();
+
+	/**
+	 * @brief 登録されたラインをクリア
+	 */
     void Clear();
+
+	/**
+	 * @brief 終了処理
+	 */
 	void Finalize();
-	//ラインの描画
+
+	/**
+	 * @brief ラインの描画
+	 * @param start 開始点
+	 * @param end 終了点
+	 * @param color 色
+	 */
 	void DrawLine(const Vector3& start, const Vector3& end, const Vector4& color);
-	//キューブの描画
+
+	/**
+	 * @brief キューブの描画
+	 * @param center 中心位置
+	 * @param size サイズ
+	 * @param color 色
+	 * @details 8頂点12辺のワイヤーフレームキューブを描画する
+	 */
     void DrawCube(const Vector3& center, float size, const Vector4& color);
-	//球の描画
+
+	/**
+	 * @brief 球の描画
+	 * @param center 中心位置
+	 * @param radius 半径
+	 * @param color 色
+	 * @details 緯度・経度方向のラインで球を描画する
+	 */
 	void DrawSphere(const Vector3& center, float radius, const Vector4& color);
-	// グリッドの描画
+
+	/**
+	 * @brief グリッドの描画
+	 * @param gridSize グリッドの全体サイズ
+	 * @param gridSpacing グリッドの間隔
+	 * @param color 色
+	 * @details XZ平面にグリッドを描画する
+	 */
     void DrawGrid(float gridSize, float gridSpacing, const Vector4& color);
-	// 矢印の描画
+
+	/**
+	 * @brief 矢印の描画
+	 * @param start 開始点
+	 * @param direction 方向ベクトル
+	 * @param length 長さ
+	 * @param color 色
+	 */
 	void DrawArrow(const Vector3& start, const Vector3& direction, float length, const Vector4& color);
-	// 座標軸の描画
+
+	/**
+	 * @brief 座標軸の描画
+	 * @param position 描画位置
+	 * @param scale スケール（デフォルト: 1.0f）
+	 * @details X軸（赤）、Y軸（緑）、Z軸（青）を描画する
+	 */
 	void DrawAxis(const Vector3& position, float scale = 1.0f);
-	// AABBの描画
+
+	/**
+	 * @brief AABBの描画
+	 * @param aabb 描画するAABB
+	 * @param color 色
+	 */
 	void DrawAABB(const AABB& aabb, const Vector4& color);
-	// OBBの描画
+
+	/**
+	 * @brief OBBの描画
+	 * @param obb 描画するOBB
+	 * @param color 色
+	 */
 	void DrawOBB(const OBB& obb, const Vector4& color);
 	
 private:
-    std::unique_ptr<LineCommon> lineCommon_; ///< LineCommon クラスのインスタンス
-    std::unique_ptr<Line> line_;             ///< Line クラスのインスタンス
-    DirectXCommon* dxCommon_ = nullptr;      ///< DirectXCommon クラスのインスタンス
-	CameraManager* cameraManager_ = nullptr; ///< CameraManager クラスのインスタンス
+    std::unique_ptr<LineCommon> lineCommon_; // LineCommonクラスのインスタンス
+    std::unique_ptr<Line> line_;             // Lineクラスのインスタンス
+    DirectXCommon* dxCommon_ = nullptr;      // DirectXCommonへのポインタ
+	CameraManager* cameraManager_ = nullptr; // CameraManagerへのポインタ
 
-private:    //シングルトンインスタンス
-	static LineManager* instance_; ///< シングルトンインスタンス
-	LineManager() = default;        ///< コンストラクタ
-	~LineManager() = default;       ///< デストラクタ
-	LineManager(const LineManager&) = delete; ///< コピーコンストラクタ
-	LineManager& operator=(const LineManager&) = delete; ///< 代入演算子
+private:    // シングルトンインスタンス
+	static LineManager* instance_;                           // シングルトンインスタンス
+	LineManager() = default;                                 // コンストラクタ
+	~LineManager() = default;                                // デストラクタ
+	LineManager(const LineManager&) = delete;                // コピーコンストラクタ
+	LineManager& operator=(const LineManager&) = delete;     // 代入演算子
 };

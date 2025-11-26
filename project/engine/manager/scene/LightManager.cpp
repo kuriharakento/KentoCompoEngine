@@ -12,13 +12,14 @@
 
 LightManager::LightManager()
 {
-	//ライトの数を初期化
+	// ライトの数を初期化
 	lightCount_.pointLightCount = 0;
 	lightCount_.spotLightCount = 0;
 }
 
 LightManager::~LightManager()
 {
+	// 定数バッファのアンマップ
 	if (lightCountResource_)
 	{
 		lightCountResource_->Unmap(0, nullptr);
@@ -35,24 +36,27 @@ LightManager::~LightManager()
 
 void LightManager::Initialize(DirectXCommon* dxCommon)
 {
+	// 引数をメンバ変数に記録
 	dxCommon_ = dxCommon;
-	//定数バッファの作成
+
+	// 定数バッファの作成
 	CreateConstantBuffer();
 
-	//イージング関数の設定
+	// デフォルトのイージング関数を設定
 	pEasingFunc_ = EaseInSine<float>;
 }
 
 void LightManager::Update()
 {
-	//ImGuiの表示
+	// ImGuiの表示
 	ImGuiUpdate();
 
-	// フレーム間の経過時間を取得（例として固定値を使用）
+	// フレーム間の経過時間を取得
 	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
 
-	// ポイントライトの更新
+	/*--------------[ ポイントライトの更新 ]-----------------*/
 	for (auto& [name, light] : pointLights_) {
+		// グラデーションが有効な場合のみ処理
 		if (light.isGradientActive) {
 			// 経過時間を更新
 			light.elapsedTime += deltaTime;
@@ -72,8 +76,9 @@ void LightManager::Update()
 		}
 	}
 
-	// スポットライトの更新
+	/*--------------[ スポットライトの更新 ]-----------------*/
 	for (auto& [name, light] : spotLights_) {
+		// グラデーションが有効な場合のみ処理
 		if (light.isGradientActive) {
 			// 経過時間を更新
 			light.elapsedTime += deltaTime;
@@ -93,17 +98,21 @@ void LightManager::Update()
 		}
 	}
 
-	// GPUに送るデータを更新
+	/*--------------[ GPUに送るデータを更新 ]-----------------*/
+
+	// ポイントライトデータの転送
 	uint32_t pointLightIndex = 0;
 	for (const auto& [name, light] : pointLights_) {
 		pointLightData_[pointLightIndex++] = light.gpuData;
 	}
 
+	// スポットライトデータの転送
 	uint32_t spotLightIndex = 0;
 	for (const auto& [name, light] : spotLights_) {
 		spotLightData_[spotLightIndex++] = light.gpuData;
 	}
 
+	// ライトの数を更新
 	lightCount_.pointLightCount = pointLightIndex;
 	lightCount_.spotLightCount = spotLightIndex;
 
@@ -115,24 +124,24 @@ void LightManager::Update()
 
 void LightManager::Draw()
 {
-	//ポイントライトのCBVを設定
+	// ポイントライトのシェーダーリソースビューを設定
 	dxCommon_->GetCommandList()->SetGraphicsRootShaderResourceView(5, pointLightResource_->GetGPUVirtualAddress());
-	//スポットライトのCBVを設定
+	// スポットライトのシェーダーリソースビューを設定
 	dxCommon_->GetCommandList()->SetGraphicsRootShaderResourceView(6, spotLightResource_->GetGPUVirtualAddress());
-	//ライトの数のCBVを設定
+	// ライトの数の定数バッファビューを設定
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(7, lightCountResource_->GetGPUVirtualAddress());
 }
 
 void LightManager::AddPointLight(const std::string& name)
 {
-	//最大個数に達している場合は追加しない
+	// 最大個数に達している場合は追加しない
 	if (pointLights_.size() >= LightMaxCount::kMaxPointLightCount)
 	{
 		Logger::Log("ポイントライトの最大数に達しているため追加できません\n");
 		return;
 	}
 
-	//ポイントライトを作成と初期化
+	// ポイントライトを作成と初期化
 	GPUPointLight pointLight;
 	pointLight.color = { 1.0f,1.0f,1.0f,1.0f };
 	pointLight.position = { 0.0f,2.0f,0.0f };
@@ -140,15 +149,16 @@ void LightManager::AddPointLight(const std::string& name)
 	pointLight.radius = 3.0f;
 	pointLight.decay = 1.0f;
 	pointLights_.emplace(name, pointLight);
-	//名前を保存
+
+	// 名前を保存
 	pointLightNames_.push_back(name);
-	//ライトの数をインクリメント
+	// ライトの数をインクリメント
 	++lightCount_.pointLightCount;
 }
 
 void LightManager::AddSpotLight(const std::string& name)
 {
-	//最大個数に達している場合は追加しない
+	// 最大個数に達している場合は追加しない
 	if (spotLights_.size() >= LightMaxCount::kMaxSpotLightCount)
 	{
 		Logger::Log("スポットライトの最大数に達しているため追加できません\n");
@@ -169,16 +179,17 @@ void LightManager::AddSpotLight(const std::string& name)
 
     // シャドウマップ用のリソースを初期化
     spotLight.InitializeShadowMap(dxCommon_->GetDevice());
-	//リストに追加
+	// リストに追加
 	spotLights_.emplace(name, spotLight);
-	//名前を保存
+	// 名前を保存
 	spotLightNames_.push_back(name);
-	//ライトの数をインクリメント
+	// ライトの数をインクリメント
 	++lightCount_.spotLightCount;
 }
 
 void LightManager::Clear()
 {
+	// 全てのライトをクリア
 	pointLights_.clear();
 	spotLights_.clear();
 	pointLightNames_.clear();
@@ -189,6 +200,7 @@ void LightManager::Clear()
 
 void LightManager::StartGradient(const std::string& name, const Vector4& startColor, const Vector4& endColor, float duration, std::function<float(float)> easingFunction)
 {
+	// ポイントライトを検索
 	if (pointLights_.find(name) != pointLights_.end()) {
 		auto& light = pointLights_.at(name);
 		light.startColor = startColor;
@@ -198,6 +210,7 @@ void LightManager::StartGradient(const std::string& name, const Vector4& startCo
 		light.isReversing = false;
 		light.isGradientActive = true;
 		light.easingFunction = easingFunction;
+	// スポットライトを検索
 	} else if (spotLights_.find(name) != spotLights_.end()) {
 		auto& light = spotLights_.at(name);
 		light.startColor = startColor;
@@ -208,17 +221,18 @@ void LightManager::StartGradient(const std::string& name, const Vector4& startCo
 		light.isGradientActive = true;
 		light.easingFunction = easingFunction;
 	} else {
+		// ライトが見つからない場合はログを出力
 		Logger::Log("ライトが見つかりません: " + name);
 	}
 }
 
 void LightManager::CreateConstantBuffer()
 {
-	/*--------------[ ライトの数リソースを作る ]-----------------*/
+	/*--------------[ ライトの数リソースを作成 ]-----------------*/
 
 	lightCountResource_ = dxCommon_->CreateBufferResource(sizeof(LightCount));
 
-	/*--------------[ ライトの数リソースにデータを書き込むためのアドレスを取得してlightCountDataに割り当てる ]-----------------*/
+	/*--------------[ ライトの数リソースにデータを書き込むためのアドレスを取得 ]-----------------*/
 
 	lightCountResource_->Map(
 		0,
@@ -226,15 +240,15 @@ void LightManager::CreateConstantBuffer()
 		reinterpret_cast<void**>(&lightCountData_)
 	);
 
-	//デフォルト値は以下のようにしておく
+	// デフォルト値を設定
 	lightCountData_->pointLightCount = 0;
 	lightCountData_->spotLightCount = 0;
 
-	/*--------------[ ポイントライトリソースを作る ]-----------------*/
+	/*--------------[ ポイントライトリソースを作成 ]-----------------*/
 
 	pointLightResource_ = dxCommon_->CreateBufferResource(sizeof(GPUPointLight) * LightMaxCount::kMaxPointLightCount);
 
-	/*--------------[ ポイントライトリソースにデータを書き込むためのアドレスを取得してpointLightDataに割り当てる ]-----------------*/
+	/*--------------[ ポイントライトリソースにデータを書き込むためのアドレスを取得 ]-----------------*/
 
 	pointLightResource_->Map(
 		0,
@@ -242,17 +256,17 @@ void LightManager::CreateConstantBuffer()
 		reinterpret_cast<void**>(&pointLightData_)
 	);
 
-	//デフォルト値は以下のようにしておく
+	// デフォルト値を設定
 	pointLightData_->color = { 1.0f,1.0f,1.0f,1.0f };
 	pointLightData_->position = { 0.0f,0.0f,0.0f };
 	pointLightData_->intensity = 1.0f;
 	pointLightData_->radius = 3.0f;
 
-	/*--------------[ スポットライトリソースを作る ]-----------------*/
+	/*--------------[ スポットライトリソースを作成 ]-----------------*/
 
 	spotLightResource_ = dxCommon_->CreateBufferResource(sizeof(GPUSpotLight) * LightMaxCount::kMaxSpotLightCount);
 
-	/*--------------[ スポットライトリソースにデータを書き込むためのアドレスを取得してspotLightDataに割り当てる ]-----------------*/
+	/*--------------[ スポットライトリソースにデータを書き込むためのアドレスを取得 ]-----------------*/
 
 	spotLightResource_->Map(
 		0,
@@ -260,7 +274,7 @@ void LightManager::CreateConstantBuffer()
 		reinterpret_cast<void**>(&spotLightData_)
 	);
 
-	//デフォルト値は以下のようにしておく
+	// デフォルト値を設定
 	spotLightData_->color = { 1.0f,1.0f,1.0f,1.0f };
 	spotLightData_->position = { 0.0f,0.0f,0.0f };
 	spotLightData_->intensity = 1.0f;
@@ -274,10 +288,12 @@ void LightManager::CreateConstantBuffer()
 void LightManager::ImGuiUpdate()
 {
 #ifdef USE_IMGUI
+	/*--------------[ ImGuiウィンドウの開始 ]-----------------*/
 	ImGui::Begin("LightManager");
 
 	if (ImGui::BeginTabBar("LightTabs"))
 	{
+		/*--------------[ ライトオプションタブ ]-----------------*/
 		if (ImGui::BeginTabItem("Light Options"))
 		{
 			// イージング関数の選択肢
@@ -305,8 +321,10 @@ void LightManager::ImGuiUpdate()
 				"EaseInOutBounce"
 			};
 			static int currentEasingIndex = 0;
-			//イージングの時間
+
+			// イージングの時間
 			ImGui::DragFloat("Easing Time", &duration_, 0.1f, 0.0f, 10.0f);
+
 			// イージング関数の選択
 			if (ImGui::Combo("Easing Function", &currentEasingIndex, easingOptions, IM_ARRAYSIZE(easingOptions))) {
 				switch (currentEasingIndex) {
@@ -333,6 +351,8 @@ void LightManager::ImGuiUpdate()
 				case 20: pEasingFunc_ = EaseInOutBounce<float>; break;
 				}
 			}
+
+			// 全ライトクリアボタン
 			ImGui::SeparatorText("List Clear");
 			if (ImGui::Button("clear"))
 			{
@@ -340,8 +360,11 @@ void LightManager::ImGuiUpdate()
 			}
 			ImGui::EndTabItem();
 		}
+
+		/*--------------[ ポイントライトタブ ]-----------------*/
 		if (ImGui::BeginTabItem("Point Lights"))
 		{
+			// リストオプション
 			ImGui::SeparatorText("List Options");
 			ImGui::Text("PointLight Count : %d", lightCount_.pointLightCount);
 			if (ImGui::Button("Add PointLight"))
@@ -356,22 +379,23 @@ void LightManager::ImGuiUpdate()
 				lightCount_.pointLightCount = 0;
 			}
 
+			// グラデーション設定
 			ImGui::SeparatorText("Gradient");
 			if (ImGui::Button("Start Gradient"))
 			{
-				//すべてのポイントライトにグラデーションを適用
+				// すべてのポイントライトにグラデーションを適用
 				for (const auto& name : pointLightNames_)
 				{
 					StartGradient(name, startPointLightColor_, endPointLightColor_, duration_, pEasingFunc_);
 				}
 			}
-			//開始色
+			// 開始色
 			ImGui::ColorEdit4("Start Color", &startPointLightColor_.x);
-			//終了色
+			// 終了色
 			ImGui::ColorEdit4("End Color", &endPointLightColor_.x);
 
+			// ポイントライトの個別設定
 			ImGui::SeparatorText("List");
-			// ポイントライトの設定
 			for (const auto& name : pointLightNames_)
 			{
 				ImGui::PushID(name.c_str());
@@ -389,8 +413,10 @@ void LightManager::ImGuiUpdate()
 			ImGui::EndTabItem();
 		}
 
+		/*--------------[ スポットライトタブ ]-----------------*/
 		if (ImGui::BeginTabItem("Spot Lights"))
 		{
+			// リストオプション
 			ImGui::SeparatorText("List Options");
 			ImGui::Text("SpotLight Count : %d", lightCount_.spotLightCount);
 			if (ImGui::Button("Add GPUSpotLight"))
@@ -405,23 +431,24 @@ void LightManager::ImGuiUpdate()
 				lightCount_.spotLightCount = 0;
 			}
 
+			// グラデーション設定
 			ImGui::SeparatorText("Gradient");
 
 			if (ImGui::Button("Start Gradient"))
 			{
-				//すべてのスポットライトにグラデーションを適用
+				// すべてのスポットライトにグラデーションを適用
 				for (const auto& name : spotLightNames_)
 				{
 					StartGradient(name, startSpotLightColor_, endSpotLightColor_, duration_, pEasingFunc_);
 				}
 			}
-			//開始色
+			// 開始色
 			ImGui::ColorEdit4("Start Color", &startSpotLightColor_.x);
-			//終了色
+			// 終了色
 			ImGui::ColorEdit4("End Color", &endSpotLightColor_.x);
 
+			// スポットライトの個別設定
 			ImGui::SeparatorText("List");
-			// スポットライトの設定
 			for (const auto& name : spotLightNames_)
 			{
 				ImGui::PushID(name.c_str());
@@ -451,6 +478,8 @@ void LightManager::ImGuiUpdate()
 }
 
 #pragma region Accessor
+
+// ポイントライトのセッター
 void LightManager::SetPointLightColor(const std::string& name, const Vector4& color)
 {
 	if (pointLights_.find(name) != pointLights_.end()) {
@@ -496,6 +525,7 @@ void LightManager::SetPointLightDecay(const std::string& name, float decay)
 	}
 }
 
+// スポットライトのセッター
 void LightManager::SetSpotLightColor(const std::string& name, const Vector4& color)
 {
 	if (spotLights_.find(name) != spotLights_.end()) {
@@ -568,6 +598,7 @@ void LightManager::SetSpotLightCosFalloffStart(const std::string& name, float co
 	}
 }
 
+// ライト数のゲッター
 const uint32_t& LightManager::GetPointLightCount() const
 {
 	return lightCount_.pointLightCount;
@@ -578,6 +609,7 @@ const uint32_t& LightManager::GetSpotLightCount() const
 	return lightCount_.spotLightCount;
 }
 
+// ライトのゲッター
 const GPUPointLight& LightManager::GetPointLight(const std::string& name) const
 {
 	if (pointLights_.find(name) != pointLights_.end()) {
@@ -598,6 +630,7 @@ const GPUSpotLight& LightManager::GetSpotLight(const std::string& name) const
 	}
 }
 
+// ポイントライトのプロパティゲッター
 const Vector4& LightManager::GetPointLightColor(const std::string& name) const
 {
 	if (pointLights_.find(name) != pointLights_.end()) {
@@ -648,6 +681,7 @@ float LightManager::GetPointLightDecay(const std::string& name) const
 	}
 }
 
+// スポットライトのプロパティゲッター
 const Vector4& LightManager::GetSpotLightColor(const std::string& name) const
 {
 	if (spotLights_.find(name) != spotLights_.end()) {

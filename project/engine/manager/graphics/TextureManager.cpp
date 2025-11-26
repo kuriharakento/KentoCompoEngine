@@ -4,14 +4,18 @@
 #include "base/StringUtility.h"
 #include "externals/DirectXTex/d3dx12.h"
 
-// ImGuiで0番を使用するため、1番から開始
-uint32_t TextureManager::kSRVIndexTop = 1;
+// SRVインデックスの開始番号（ImGuiが0番を使用するため、1番から開始）
+constexpr uint32_t kSRVIndexTop = 1;
 
-//テクスチャマネージャーのインスタンス
+// SRVインデックスの開始番号の実体
+uint32_t TextureManager::kSRVIndexTop = kSRVIndexTop;
+
+// シングルトンインスタンスの実体
 TextureManager* TextureManager::instance_ = nullptr;
 
 TextureManager* TextureManager::GetInstance()
 {
+	// インスタンスが存在しない場合は生成
 	if (instance_ == nullptr)
 	{
 		instance_ = new TextureManager();
@@ -21,14 +25,18 @@ TextureManager* TextureManager::GetInstance()
 
 void TextureManager::Finalize()
 {
+	// シングルトンインスタンスを解放
 	delete instance_;
 	instance_ = nullptr;
 }
 
 void TextureManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
+	// 引数をメンバ変数に記録
 	dxCommon_ = dxCommon;
 	srvManager_ = srvManager;
+
+	// テクスチャデータの領域を予約
 	textureDatas_.reserve(srvManager_->kMaxSRVCount);
 }
 
@@ -44,11 +52,13 @@ void TextureManager::LoadTexture(const std::string& filePath)
 	// テクスチャ枚数上限チェック
 	assert(!srvManager_->IsMaxSRVCount());
 
-	/*--------------[ テクスチャファイルを読んでプログラムで扱えるようにする ]-----------------*/
+	/*--------------[ テクスチャファイルを読み込み ]-----------------*/
 
 	DirectX::ScratchImage image{};
 	std::wstring filePathW = StringUtility::ConvertString(filePath);
 	HRESULT hr;
+
+	// ファイル形式に応じて読み込み方法を変更
 	if (filePathW.ends_with(L".dds"))
 	{
 		// DDSファイルの場合
@@ -61,6 +71,7 @@ void TextureManager::LoadTexture(const std::string& filePath)
 	}
 	else
 	{
+		// WICファイル（PNG, JPG等）の場合
 		hr = DirectX::LoadFromWICFile(
 			filePathW.c_str(),
 			DirectX::WIC_FLAGS_FORCE_SRGB,
@@ -75,11 +86,12 @@ void TextureManager::LoadTexture(const std::string& filePath)
 	DirectX::ScratchImage mipImages{};
 	if (DirectX::IsCompressed(image.GetMetadata().format))
 	{
-		// 圧縮フォーマットならそのまま使うのでmoveする
+		// 圧縮フォーマットならそのまま使用
 		mipImages = std::move(image);
 	}
 	else
 	{
+		// 非圧縮フォーマットの場合はミップマップを生成
 		hr = DirectX::GenerateMipMaps(
 			image.GetImages(),
 			image.GetImageCount(),
@@ -93,7 +105,7 @@ void TextureManager::LoadTexture(const std::string& filePath)
 
 	/*--------------[ テクスチャデータを追加 ]-----------------*/
 
-	// 追加したテクスチャデータの参照を取得する
+	// 追加したテクスチャデータの参照を取得
 	TextureData& textureData = textureDatas_[filePath];
 
 	/*--------------[ テクスチャデータの書き込み ]-----------------*/
@@ -125,6 +137,7 @@ void TextureManager::LoadTexture(const std::string& filePath)
 		srvManager_->CreateSRVforTexture2D(textureData.srvIndex, textureData.resource.Get(), textureData.metadata.format, static_cast<UINT>(textureData.metadata.mipLevels));
 	}
 
+	// ディスクリプタハンドルを更新
 	textureData.srvHandleCPU = srvManager_->GetCPUDescriptorHandle(textureData.srvIndex);
 	textureData.srvHandleGPU = srvManager_->GetGPUDescriptorHandle(textureData.srvIndex);
 
@@ -136,7 +149,8 @@ void TextureManager::LoadTexture(const std::string& filePath)
 
 uint32_t TextureManager::GetTextureIndexByFilePath(const std::string& filePath)
 {
-	assert(filePathToIndex_.contains(filePath)); // 存在確認
+	// ファイルパスが登録されているか確認
+	assert(filePathToIndex_.contains(filePath));
 	return filePathToIndex_[filePath];
 }
 
@@ -151,12 +165,20 @@ const DirectX::TexMetadata& TextureManager::GetMetadata(uint32_t textureIndex)
 [[nodiscard]]
 Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::UploadTextureData(Microsoft::WRL::ComPtr<ID3D12Resource> texture, const DirectX::ScratchImage& mipImages)
 {
+	// サブリソースデータを準備
 	std::vector<D3D12_SUBRESOURCE_DATA> subresources;
 	DirectX::PrepareUpload(dxCommon_->GetDevice(), mipImages.GetImages(), mipImages.GetImageCount(), mipImages.GetMetadata(), subresources);
+
+	// 中間バッファのサイズを計算
 	uint64_t intermediateSize = GetRequiredIntermediateSize(texture.Get(), 0, UINT(subresources.size()));
+
+	// 中間バッファを作成
 	Microsoft::WRL::ComPtr<ID3D12Resource> intermediateResource = dxCommon_->CreateBufferResource(intermediateSize);
+
+	// サブリソースを更新
 	UpdateSubresources(dxCommon_->GetCommandList(), texture.Get(), intermediateResource.Get(), 0, 0, UINT(subresources.size()), subresources.data());
-	// Textureへの転送後は利用できるよう、D3D12_RESOURCE_STATE_COPY_DESTからD3D12_RESOURCE_STATE_GENERIC_READへResourceStateを変更する
+
+	// テクスチャへの転送後は利用できるようにリソースステートを変更
 	D3D12_RESOURCE_BARRIER barrier{};
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -165,5 +187,6 @@ Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::UploadTextureData(Microso
 	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_GENERIC_READ;
 	dxCommon_->GetCommandList()->ResourceBarrier(1, &barrier);
+
 	return intermediateResource;
 }

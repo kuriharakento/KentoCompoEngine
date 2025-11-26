@@ -13,10 +13,12 @@
 #include "externals/imgui/imgui.h"
 #endif
 
+// シングルトンインスタンスの実体
 ParticleManager* ParticleManager::instance_ = nullptr;
 
 ParticleManager* ParticleManager::GetInstance()
 {
+	// インスタンスが存在しない場合は生成
 	if (instance_ == nullptr)
 	{
 		instance_ = new ParticleManager();
@@ -31,6 +33,7 @@ void ParticleManager::Finalize()
 		// パイプラインマネージャーの解放
 		instance_->pipelineManager_.reset();
 		
+		// シングルトンインスタンスを解放
 		delete instance_;
 		instance_ = nullptr;
 	}
@@ -38,24 +41,25 @@ void ParticleManager::Finalize()
 
 void ParticleManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
-	//引数をメンバ変数に記録
+	// 引数をメンバ変数に記録
 	dxCommon_ = dxCommon;
 	srvManager_ = srvManager;
 
-	//パイプラインマネージャーの初期化
+	// パイプラインマネージャーの初期化
 	pipelineManager_ = std::make_unique<ParticlePipelineManager>();
 	pipelineManager_->Initialize(dxCommon_);
 
-	//　エミッターの初期化
+	// エミッターリストの初期化
 	emitters_.clear();
 }
 
 void ParticleManager::Update(CameraManager* camera)
 {
 #ifdef USE_IMGUI
-	/*--------------[ ImGui ]-----------------*/
+	/*--------------[ ImGuiでのデバッグ表示 ]-----------------*/
 	ImGui::Begin("ParticleManager");
 
+	// 登録されたエミッターをコラプシングヘッダーで表示
 	for (auto& emitter : emitters_)
 	{
 		if (ImGui::CollapsingHeader(emitter.first.c_str()))
@@ -67,6 +71,7 @@ void ParticleManager::Update(CameraManager* camera)
 	ImGui::End();
 #endif
 
+	// すべてのエミッターを更新
 	for (auto& emitter : emitters_)
 	{
 		emitter.second->Update(camera);
@@ -89,7 +94,7 @@ void ParticleManager::Draw()
 
 	for (auto& emitter : emitters_)
 	{
-		//NULLチェック
+		// NULLチェック
 		if (!emitter.second) { continue; }
 
 		// パーティクルが無ければ描画しない
@@ -104,22 +109,22 @@ void ParticleManager::Draw()
 
 void ParticleManager::RegisterEmitter(const std::string& name, ParticleEmitter* emitter)
 {
-	// 既に存在してたらエラー
+	// 既に存在していたらエラー
 	if (emitters_.find(name) != emitters_.end())
 	{
 		assert(0 && "Emitter already registered");
 	}
-	//登録
+	// エミッターを登録
 	emitters_[name] = emitter;
 }
 
 void ParticleManager::UnregisterEmitter(const std::string& name)
 {
-	// 既に存在してたらエラー
+	// 存在しなければエラー
 	if (emitters_.find(name) == emitters_.end())
 	{
 		assert(0 && "Emitter not found");
 	}
-	//登録解除
+	// エミッターを登録解除
 	emitters_.erase(name);
 }
