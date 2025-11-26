@@ -1,16 +1,28 @@
 #pragma once
 #include "base/DirectXCommon.h"
 
+/**
+ * @brief モデル共通部クラス
+ * @details 3Dモデル描画に必要なDirectXCommonへのポインタを保持する
+ */
 class ModelCommon
 {
 public:
-	//初期化
+	/**
+	 * @brief 初期化
+	 * @param dxCommon DirectXCommonへのポインタ
+	 */
 	void Initialize(DirectXCommon* dxCommon);
 
-public: //ゲッター
+public: // アクセッサ
+	/**
+	 * @brief DirectXCommonの取得
+	 * @return DirectXCommonへのポインタ
+	 */
 	DirectXCommon* GetDXCommon() { return dxCommon_; }
 
 private:
+	// DirectXCommonへのポインタ
 	DirectXCommon* dxCommon_;
 
 };

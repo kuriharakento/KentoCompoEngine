@@ -7,80 +7,87 @@
 // graphics
 #include "manager/scene/LightManager.h"
 
+// デフォルトのディレクショナルライト強度
+constexpr float kDefaultLightIntensity = 0.5f;
+// デフォルトのディレクショナルライト方向のY成分
+constexpr float kDefaultLightDirectionY = -1.0f;
+// デフォルトのスケール値
+constexpr float kDefaultScale = 1.0f;
+// ワールド行列の位置成分のインデックス
+constexpr int kWorldMatrixPosIndex = 3;
+
 ///////////////////////////////////////////////////////////////////////
 ///						>>>基本的な処理<<<							///
 ///////////////////////////////////////////////////////////////////////
 
 Object3d::~Object3d()
 {
-	//座標変換行列のリソースを解放
+	// 座標変換行列のリソースを解放
 	if (wvpResource_)
 	{
 		wvpResource_->Unmap(0, nullptr);
 		wvpResource_.Reset();
 	}
-	//平行光源のリソースを解放
+	// 平行光源のリソースを解放
 	if (directionalLightResource_)
 	{
 		directionalLightResource_->Unmap(0, nullptr);
 		directionalLightResource_.Reset();
 	}
-	//カメラのリソースを解放
+	// カメラのリソースを解放
 	if (cameraResource_)
 	{
 		cameraResource_->Unmap(0, nullptr);
 		cameraResource_.Reset();
 	}
-	//ディレクショナルライトのリソースを解放
-	if (directionalLightResource_)
-	{
-		directionalLightResource_->Unmap(0, nullptr);
-		directionalLightResource_.Reset();
-	}
-	
 }
 
 void Object3d::Initialize(Object3dCommon* object3dCommon,Camera* camera)
 {
-	//引数で受け取った物を記録する
+	// 引数で受け取った物を記録する
 	object3dCommon_ = object3dCommon;
-	//引数が指定されていれば引数のカメラを使う。指定されていなければデフォルトのカメラを使う
+
+	// 引数が指定されていれば引数のカメラを使う。指定されていなければデフォルトのカメラを使う
 	camera_ = camera ? camera : object3dCommon->GetDefaultCamera();
 
-	//描画設定の初期化
+	// 描画設定の初期化
 	InitializeRenderingSettings();
 
-	//Transformの変数を作る
+	// Transformの初期値を設定
 	transform_ = {
-		{ 1.0f,1.0f,1.0f },
-		{ 0.0f,0.0f,0.0f },
-		{ 0.0f,0.0f,0.0f },
+		{ kDefaultScale, kDefaultScale, kDefaultScale },
+		{ 0.0f, 0.0f, 0.0f },
+		{ 0.0f, 0.0f, 0.0f },
 	};
 }
 
 void Object3d::Update(CameraManager* camera)
 {
+	// カメラマネージャーが指定されていればアクティブカメラを使用
 	camera_ = camera ? camera->GetActiveCamera() : camera_;
-	//座標変換行列の更新
+
+	// 座標変換行列の更新
 	UpdateMatrix(camera_);
 }
 
 void Object3d::Draw()
 {
-	//座標変換行列CBufferの場所を設定
+	// 座標変換行列CBufferの場所を設定
 	object3dCommon_->GetDXCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(1, wvpResource_->GetGPUVirtualAddress());
-	//平行光源CBufferの場所を設定
+
+	// 平行光源CBufferの場所を設定
 	object3dCommon_->GetDXCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(3, directionalLightResource_->GetGPUVirtualAddress());
-	//カメラCBufferの場所を設定
+
+	// カメラCBufferの場所を設定
 	object3dCommon_->GetDXCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(4, cameraResource_->GetGPUVirtualAddress());
 
-	//ライトマネージャーがあればライトの描画を行う
+	// ライトマネージャーがあればライトの描画を行う
 	if (lightManager_)
 	{
 		lightManager_->Draw();
 	}
 
-	//3Dモデルが割り当てられていれば描画する
+	// 3Dモデルが割り当てられていれば描画する
 	if(model_)
 	{
 		model_->Draw();
@@ -95,20 +102,29 @@ void Object3d::UpdateMatrix(Camera* camera)
 {
 	// 安全チェック
 	if (!transformationMatrixData_) return;
+
 	// 引数が指定されていれば引数のカメラを使う。指定されていなければデフォルトのカメラを使う
 	camera_ = camera ? camera : object3dCommon_->GetDefaultCamera();
 
+	// ワールド行列を計算
 	Matrix4x4 worldMatrix = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
 	Matrix4x4 worldViewProjectionMatrix;
 	Matrix4x4 worldInverseTransposeMatrix = MathUtils::Transpose(Inverse(worldMatrix));
 
+	// カメラが有効な場合はビュープロジェクション行列を適用
 	if (camera)
 	{
 		const Matrix4x4& viewProjectionMatrix = camera->GetViewProjectionMatrix();
 		worldViewProjectionMatrix = worldMatrix * viewProjectionMatrix;
+
+		// カメラのワールド座標をシェーダーに送る
 		if (cameraData_)
 		{
-			cameraData_->worldPos = { camera->GetWorldMatrix().m[3][0], camera->GetWorldMatrix().m[3][1], camera->GetWorldMatrix().m[3][2] };
+			cameraData_->worldPos = { 
+				camera->GetWorldMatrix().m[kWorldMatrixPosIndex][0], 
+				camera->GetWorldMatrix().m[kWorldMatrixPosIndex][1], 
+				camera->GetWorldMatrix().m[kWorldMatrixPosIndex][2] 
+			};
 		}
 	}
 	else
@@ -116,7 +132,7 @@ void Object3d::UpdateMatrix(Camera* camera)
 		worldViewProjectionMatrix = worldMatrix;
 	}
 
-	// model_ がある場合は model のローカル行列を乗算、ない場合はそのままセットしてクラッシュを防ぐ
+	// モデルがある場合はモデルのローカル行列を乗算
 	if (model_)
 	{
 		const Matrix4x4& local = model_->GetModelData().rootNode.localMatrix;
@@ -156,18 +172,26 @@ void Object3d::UpdateMatrixWithWorld(const Matrix4x4& worldMatrix, Camera* camer
 {
 	if (!transformationMatrixData_) return;
 
+	// 引数が指定されていれば引数のカメラを使う
 	camera_ = camera ? camera : object3dCommon_->GetDefaultCamera();
 
 	Matrix4x4 worldViewProjectionMatrix;
 	Matrix4x4 worldInverseTransposeMatrix = MathUtils::Transpose(Inverse(worldMatrix));
 
+	// カメラが有効な場合はビュープロジェクション行列を適用
 	if (camera_)
 	{
 		const Matrix4x4& viewProjectionMatrix = camera_->GetViewProjectionMatrix();
 		worldViewProjectionMatrix = worldMatrix * viewProjectionMatrix;
+
+		// カメラのワールド座標をシェーダーに送る
 		if (cameraData_)
 		{
-			cameraData_->worldPos = { camera_->GetWorldMatrix().m[3][0], camera_->GetWorldMatrix().m[3][1], camera_->GetWorldMatrix().m[3][2] };
+			cameraData_->worldPos = { 
+				camera_->GetWorldMatrix().m[kWorldMatrixPosIndex][0], 
+				camera_->GetWorldMatrix().m[kWorldMatrixPosIndex][1], 
+				camera_->GetWorldMatrix().m[kWorldMatrixPosIndex][2] 
+			};
 		}
 	}
 	else
@@ -175,6 +199,7 @@ void Object3d::UpdateMatrixWithWorld(const Matrix4x4& worldMatrix, Camera* camer
 		worldViewProjectionMatrix = worldMatrix;
 	}
 
+	// モデルがある場合はモデルのローカル行列を乗算
 	if (model_)
 	{
 		const Matrix4x4& local = model_->GetModelData().rootNode.localMatrix;
@@ -192,69 +217,63 @@ void Object3d::UpdateMatrixWithWorld(const Matrix4x4& worldMatrix, Camera* camer
 
 void Object3d::CreateWvpData()
 {
-	/*--------------[ 座標変換行列リソースを作る ]-----------------*/
-
+	// 座標変換行列リソースを作成
 	wvpResource_ = object3dCommon_->GetDXCommon()->CreateBufferResource(sizeof(TransformationMatrix));
 
-	/*--------------[ 座標変換行列リソースにデータを書き込むためのアドレスを取得してtransformationMatrixDataに割り当てる ]-----------------*/
-
+	// 座標変換行列リソースにデータを書き込むためのアドレスを取得
 	wvpResource_->Map(0,
 		nullptr,
 		reinterpret_cast<void**>(&transformationMatrixData_)
 	);
 
-	//単位行列を書き込んでおく
+	// 単位行列で初期化
 	transformationMatrixData_->WVP = MakeIdentity4x4();
 	transformationMatrixData_->World = MakeIdentity4x4();
 }
 
 void Object3d::CreateDirectionalLightData()
 {
-	/*--------------[ 平行光源リソースを作る ]-----------------*/
-
+	// 平行光源リソースを作成
 	directionalLightResource_ = object3dCommon_->GetDXCommon()->CreateBufferResource(sizeof(DirectionalLight));
 
-	/*--------------[ 平行光源リソースにデータを書き込むためのアドレスを取得してdirectionalLightDataに割り当てる ]-----------------*/
-
+	// 平行光源リソースにデータを書き込むためのアドレスを取得
 	directionalLightResource_->Map(
 		0,
 		nullptr,
 		reinterpret_cast<void**>(&directionalLightData_)
 	);
 
-	//デフォルト値は以下のようにしておく
-	directionalLightData_->color = { 1.0f,1.0f,1.0f,1.0f };
-	directionalLightData_->direction = Vector3::Normalize({ 0.0f,-1.0f,0.0f });
-	directionalLightData_->intensity = 0.5f;
+	// デフォルト値を設定
+	directionalLightData_->color = { 1.0f, 1.0f, 1.0f, 1.0f };
+	directionalLightData_->direction = Vector3::Normalize({ 0.0f, kDefaultLightDirectionY, 0.0f });
+	directionalLightData_->intensity = kDefaultLightIntensity;
 }
 
 void Object3d::CreateCameraData()
 {
-	/*--------------[ カメラリソースを作る ]-----------------*/
-
+	// カメラリソースを作成
 	cameraResource_ = object3dCommon_->GetDXCommon()->CreateBufferResource(sizeof(CameraForGPU));
 
-	/*--------------[ カメラリソースにデータを書き込むためのアドレスを取得してcameraDataに割り当てる ]-----------------*/
-
+	// カメラリソースにデータを書き込むためのアドレスを取得
 	cameraResource_->Map(
 		0,
 		nullptr,
 		reinterpret_cast<void**>(&cameraData_)
 	);
   
-	//デフォルト値は以下のようにしておく
+	// デフォルト値を設定
 	cameraData_->worldPos = {};
 }
 
 
 void Object3d::InitializeRenderingSettings()
 {
-	//座標変換行列の生成
+	// 座標変換行列の生成
 	CreateWvpData();
 
-	//平行光源データの生成
+	// 平行光源データの生成
 	CreateDirectionalLightData();
 
-	//カメラデータの生成
+	// カメラデータの生成
 	CreateCameraData();
 }

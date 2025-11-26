@@ -22,23 +22,38 @@
 #include "ImGui/imgui_internal.h"
 #endif
 
+// ブラーレンダーターゲットの数（ピンポンバッファ用）
+constexpr int kBlurRenderTargetCount = 2;
+// レンダーテクスチャのクリアカラー
+constexpr float kClearColorR = 0.1f;
+constexpr float kClearColorG = 0.1f;
+constexpr float kClearColorB = 0.1f;
+constexpr float kClearColorA = 1.0f;
+// デフォルトのカメラ位置
+constexpr float kDefaultCameraY = 1.0f;
+constexpr float kDefaultCameraZ = -10.0f;
+
 void Framework::Initialize()
 {
-	// ウィンドウアプリケーションの初期化
+	/*----- システムの初期化（順序重要） -----*/
+
+	// 1. ウィンドウアプリケーションの初期化
 	winApp_ = std::make_unique<WinApp>();
 	winApp_->Initialize();
 
-	// DirectXCoomonの初期化
+	// 2. DirectXCommonの初期化
 	dxCommon_ = std::make_unique<DirectXCommon>();
 	dxCommon_->Initialize(winApp_.get());
 
-	// SRVマネージャーの初期化
+	// 3. SRVマネージャーの初期化
 	srvManager_ = std::make_unique<SrvManager>();
 	srvManager_->Initialize(dxCommon_.get());
 
-	// ImGuiの初期化
+	// 4. ImGuiの初期化
 	imguiManager_ = std::make_unique<ImGuiManager>();
 	imguiManager_->Initialize(winApp_.get(), dxCommon_.get(), srvManager_.get());
+
+	/*----- テクスチャ・グラフィックスの初期化 -----*/
 
 	// テクスチャマネージャーの初期化
 	TextureManager::GetInstance()->Initialize(dxCommon_.get(), srvManager_.get());
@@ -57,6 +72,8 @@ void Framework::Initialize()
 	// パーティクルマネージャーの初期化
 	ParticleManager::GetInstance()->Initialize(dxCommon_.get(), srvManager_.get());
 
+	/*----- 入力・オーディオ・時間管理の初期化 -----*/
+
 	// 入力の初期化
 	Input::GetInstance()->Initialize(winApp_.get());
 
@@ -69,12 +86,14 @@ void Framework::Initialize()
 	// タイマーマネージャーの初期化
 	TimerManager::GetInstance();
 
+	/*----- カメラ・シーン管理の初期化 -----*/
+
 	// カメラマネージャーの初期化
 	cameraManager_ = std::make_unique<CameraManager>();
 	cameraManager_->AddCamera("main");
 	cameraManager_->SetActiveCamera("main");
-	cameraManager_->GetActiveCamera()->SetTranslate({ 0.0f,1.0f,-10.0f });
-	cameraManager_->GetActiveCamera()->SetRotate({ 0.0f,0.0f,0.0f });
+	cameraManager_->GetActiveCamera()->SetTranslate({ 0.0f, kDefaultCameraY, kDefaultCameraZ });
+	cameraManager_->GetActiveCamera()->SetRotate({ 0.0f, 0.0f, 0.0f });
 
 	// 3Dオブジェクト共通部に初期カメラをセット
 	objectCommon_->SetDefaultCamera(cameraManager_->GetActiveCamera());
@@ -85,6 +104,8 @@ void Framework::Initialize()
 	// シーンマネージャーの初期化
 	sceneManager_ = std::make_unique<SceneManager>(sceneFactory_.get());
 
+	/*----- ライト・ライン管理の初期化 -----*/
+
 	// ライトマネージャーの初期化
 	lightManager_ = std::make_unique<LightManager>();
 	lightManager_->Initialize(dxCommon_.get());
@@ -92,32 +113,35 @@ void Framework::Initialize()
 	// ラインマネージャーの初期化
 	LineManager::GetInstance()->Initialize(dxCommon_.get(), cameraManager_.get());
 
-	// レンダーテクスチャの初期化
+	/*----- レンダーテクスチャ・ポストプロセスの初期化 -----*/
+
+	// メインレンダーテクスチャの初期化
 	renderTexture_ = std::make_unique<RenderTexture>();
-	// HDRレンダーターゲットの作成
-	Vector4 clearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
+	Vector4 clearColor = { kClearColorR, kClearColorG, kClearColorB, kClearColorA };
+	// DXGI_FORMAT_R8G8B8A8_UNORM_SRGB: 標準的なsRGBフォーマット
 	renderTexture_->Initialize(
 		dxCommon_.get(),
 		srvManager_.get(),
 		WinApp::kClientWidth,
 		WinApp::kClientHeight,
-		DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,  // HDRフォーマットに変更
+		DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
 		clearColor
 	);
 
-	// ブライトパス用のレンダーターゲットを追加
+	// ブライトパス用レンダーターゲットの初期化
 	brightPassRT_ = std::make_unique<RenderTexture>();
+	// DXGI_FORMAT_R16G16B16A16_FLOAT: HDR処理用の浮動小数点フォーマット
 	brightPassRT_->Initialize(
 		dxCommon_.get(),
 		srvManager_.get(),
-		WinApp::kClientWidth,  // 半分のサイズ
+		WinApp::kClientWidth,
 		WinApp::kClientHeight,
 		DXGI_FORMAT_R16G16B16A16_FLOAT,
 		clearColor
 	);
 
-	// ブラー用のレンダーターゲット
-	for (int i = 0; i < 2; i++)
+	// ブラー用レンダーターゲットの初期化（ピンポンバッファとして使用）
+	for (int i = 0; i < kBlurRenderTargetCount; i++)
 	{
 		blurRT_[i] = std::make_unique<RenderTexture>();
 		blurRT_[i]->Initialize(
@@ -139,6 +163,8 @@ void Framework::Initialize()
 		blurRT_[1].get()
 	);
 
+	/*----- その他の初期化 -----*/
+
 	// JSONエディターの初期化
 	JsonEditorManager::GetInstance()->Initialize();
 
@@ -148,47 +174,51 @@ void Framework::Initialize()
 
 void Framework::Finalize()
 {
-	//NOTE:ここは基本的に触らない
-	sceneManager_.reset();							// シーンマネージャーの解放
-	winApp_->Finalize();							// ウィンドウアプリケーションの終了処理
-	winApp_.reset();								// ウィンドウアプリケーションの解放
-	imguiManager_->Finalize();						// ImGuiManagerの終了処理
-	imguiManager_.reset();							// ImGuiManagerの解放
-	TextureManager::GetInstance()->Finalize();		// テクスチャマネージャーの終了処理
-	dxCommon_.reset();								// DirectXCommonの解放
-	spriteCommon_.reset();							// スプライト共通部の解放
-	objectCommon_.reset();							// 3Dオブジェクト共通部の解放
-	ModelManager::GetInstance()->Finalize();		// 3Dモデルマネージャーの終了処理
-	ParticleManager::GetInstance()->Finalize();		// パーティクルマネージャーの終了処理
-	Input::GetInstance()->Finalize();				// 入力の解放
-	Audio::GetInstance()->Finalize();				// オーディオの解放
-	lightManager_.reset();							// ライトマネージャーの解放
-	LineManager::GetInstance()->Finalize();			// ラインマネージャーの解放
-	renderTexture_.reset();							// レンダーテクスチャの解放
-	postProcessManager_.reset();					// ポストプロセスマネージャーの解放
-	brightPassRT_.reset();							// ブライトパス用レンダーターゲットの解放
-	for (int i = 0; i < 2; i++)
+	/*----- 終了処理（初期化の逆順で解放） -----*/
+
+	sceneManager_.reset();
+	winApp_->Finalize();
+	winApp_.reset();
+	imguiManager_->Finalize();
+	imguiManager_.reset();
+	TextureManager::GetInstance()->Finalize();
+	dxCommon_.reset();
+	spriteCommon_.reset();
+	objectCommon_.reset();
+	ModelManager::GetInstance()->Finalize();
+	ParticleManager::GetInstance()->Finalize();
+	Input::GetInstance()->Finalize();
+	Audio::GetInstance()->Finalize();
+	lightManager_.reset();
+	LineManager::GetInstance()->Finalize();
+	renderTexture_.reset();
+	postProcessManager_.reset();
+	brightPassRT_.reset();
+
+	// ブラー用レンダーターゲットの解放
+	for (int i = 0; i < kBlurRenderTargetCount; i++)
 	{
-		blurRT_[i].reset();							// ブラー用レンダーターゲットの解放
+		blurRT_[i].reset();
 	}
-	JsonEditorManager::GetInstance()->Finalize();	// JSONエディターの終了処理
+
+	JsonEditorManager::GetInstance()->Finalize();
 }
 
 void Framework::Update()
 {
-	//ウィンドウアプリケーションのメッセージ処理
+	// ウィンドウメッセージ処理
 	if (winApp_->ProcessMessage())
 	{
 		endRequest_ = true;
 	}
 
-	//フレームの先頭でImGuiに、ここからフレームが始まる旨を告げる
+	// ImGuiフレーム開始
 	imguiManager_->Begin();
 
-	//入力の更新
+	// 入力の更新
 	Input::GetInstance()->Update();
 
-	// 時間計測
+	// 時間計測の更新
 	TimeManager::GetInstance().Update();
 
 	// タイマーマネージャーの更新
@@ -212,57 +242,65 @@ void Framework::Update()
 
 void Framework::Draw3DSetting()
 {
-	//NOTE:3Dオブジェクトの描画準備。共通の設定を行う
+	// 3Dオブジェクト描画の共通設定
 	objectCommon_->CommonRenderingSetting();
 
 }
 
 void Framework::Draw2DSetting()
 {
-	//スプライトの描画準備。共通の設定を行う
+	// スプライト描画の共通設定
 	spriteCommon_->CommonRenderingSetting();
 }
 
 void Framework::Run()
 {
-	//初期化
+	// 初期化
 	Initialize();
 
-	//メインループの開始を告げる
+	// メインループ開始ログ
 	Logger::Log("\n/******* Start Main Loop *******/\n\n");
 
+	// メインループ
 	while (true)
 	{
-		//更新
+		// 更新
 		Update();
-		//終了リクエストがあるか
+
+		// 終了リクエストがあればループ終了
 		if (IsEndRequest())
 		{
 			break;
 		}
-		//描画
+
+		// 描画
 		Draw();
 	}
-	//メインループの終了を告げる
+
+	// メインループ終了ログ
 	Logger::Log("\n/******* End Main Loop *******/\n\n");
 
-	//終了処理
+	// 終了処理
 	Finalize();
 }
 
 void Framework::ShowPerformanceInfo()
 {
 #ifdef USE_IMGUI
-	// ウィンドウの位置を左上に固定
+	// ウィンドウ位置を左上に固定
 	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-	// ウィンドウのサイズを固定
+	// ウィンドウサイズを固定
 	ImGui::SetNextWindowSize(ImVec2(200, 65), ImGuiCond_Always);
 	ImGui::Begin("Performance", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+
+	// FPS表示
 	ImGui::Text("FPS : %.2f", ImGui::GetIO().Framerate);
-	// メモリ使用量
+
+	// メモリ使用量表示
 	PROCESS_MEMORY_COUNTERS memInfo;
 	GetProcessMemoryInfo(GetCurrentProcess(), &memInfo, sizeof(memInfo));
 	ImGui::Text("Memory Usage : %.2f MB", memInfo.WorkingSetSize / (1024.0f * 1024.0f));
+
 	ImGui::End();
 #endif
 }
