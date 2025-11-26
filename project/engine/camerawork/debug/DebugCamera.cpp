@@ -10,6 +10,13 @@
 #include "imgui/imgui.h"
 #endif
 
+// 60FPS想定のフレームデルタタイム
+constexpr float kFrameDeltaTime = 0.016f;
+// ピッチ制限最小値（度）
+constexpr float kPitchLimitMin = -80.0f;
+// ピッチ制限最大値（度）
+constexpr float kPitchLimitMax = 80.0f;
+
 void DebugCamera::Initialize(Camera* camera)
 {
     camera_ = camera;
@@ -22,7 +29,7 @@ void DebugCamera::Start(const Vector3& initialPosition, const Vector3& initialRo
     camera_->SetTranslate(initialPosition);
     camera_->SetRotate(initialRotation);
 
-    // 回転状態を初期化
+    // 回転状態を初期化（ラジアンから度に変換済みの値を使用）
     yaw_ = initialRotation.y;
     pitch_ = initialRotation.x;
 
@@ -33,10 +40,12 @@ void DebugCamera::Update()
 {
     if (!isActive_ || !camera_) return;
 
+    // 各種更新処理を実行
     UpdateSpeedControl();
     UpdateMovement();
     UpdateMouseLook();
 
+    // デバッグUI描画
     if (showDebugUI_)
     {
         DrawDebugUI();
@@ -58,10 +67,10 @@ void DebugCamera::UpdateMovement()
     Vector3 currentPos = camera_->GetTranslate();
     Vector3 moveDirection = { 0.0f, 0.0f, 0.0f };
 
-    float deltaTime = 0.016f; // 60FPS想定
-    float currentSpeed = moveSpeed_ * speedMultiplier_ * deltaTime;
+    // 現在フレームの移動速度を計算
+    float currentSpeed = moveSpeed_ * speedMultiplier_ * kFrameDeltaTime;
 
-    // WASD移動
+    // WASD移動（前後左右）
     if (Input::GetInstance()->PushKey(DIK_W))
     {
         moveDirection = moveDirection + GetForwardVector();
@@ -79,7 +88,7 @@ void DebugCamera::UpdateMovement()
         moveDirection = moveDirection + GetRightVector();
     }
 
-    // 上下移動（Space/Shift）
+    // 上下移動（Space: 上昇、LShift: 下降）
     if (Input::GetInstance()->PushKey(DIK_SPACE))
     {
         moveDirection.y += 1.0f;
@@ -100,6 +109,7 @@ void DebugCamera::UpdateMovement()
 
 void DebugCamera::UpdateMouseLook()
 {
+    // マウス右クリック時のみ視点操作を有効化
     Input::GetInstance()->SetMouseLockEnabled(Input::GetInstance()->IsMouseButtonPressed(2));
 	Input::GetInstance()->SetMouseVisible(!Input::GetInstance()->IsMouseButtonPressed(2));
 
@@ -111,11 +121,10 @@ void DebugCamera::UpdateMouseLook()
     yaw_ += deltaX * mouseSensitivity_;
     pitch_+= deltaY * mouseSensitivity_;
 
-    // ピッチ角を制限
-    const float pitchMin = -80.0f;    // 水平
-    const float pitchMax = 80.0f;   // 真上にならない範囲
-	pitch_ = std::clamp(pitch_, pitchMin, pitchMax);
+    // ピッチ角を制限（真上・真下を向かないように）
+	pitch_ = std::clamp(pitch_, kPitchLimitMin, kPitchLimitMax);
 
+    // 度からラジアンに変換
 	float radYaw = DirectX::XMConvertToRadians(yaw_);
 	float radPitch = DirectX::XMConvertToRadians(pitch_);
 
@@ -138,9 +147,11 @@ void DebugCamera::Reset()
 {
     if (!camera_) return;
 
+    // カメラの位置と回転を原点にリセット
     camera_->SetTranslate(Vector3());
     camera_->SetRotate(Vector3());
 
+    // 回転状態をリセット
     yaw_ = 0.0f;
     pitch_ = 0.0f;
     speedMultiplier_ = 1.0f;
@@ -150,9 +161,11 @@ void DebugCamera::FocusOnTarget(const Vector3& target)
 {
     if (!camera_) return;
 
+    // 現在位置からターゲットへの方向を計算
     Vector3 currentPos = camera_->GetTranslate();
     Vector3 rotation = MathUtils::CalculateDirectionToTarget(currentPos, target);
 
+    // カメラの回転を設定
     camera_->SetRotate(rotation);
     yaw_ = rotation.y;
     pitch_ = rotation.x;
@@ -160,6 +173,7 @@ void DebugCamera::FocusOnTarget(const Vector3& target)
 
 Vector3 DebugCamera::GetForwardVector() const
 {
+    // ヨーとピッチから前方ベクトルを計算
     float radYaw = DirectX::XMConvertToRadians(yaw_);
     float radPitch = DirectX::XMConvertToRadians(pitch_);
 
@@ -172,6 +186,7 @@ Vector3 DebugCamera::GetForwardVector() const
 
 Vector3 DebugCamera::GetRightVector() const
 {
+    // ヨーから右方ベクトルを計算（Y軸回転のみ考慮）
     float radYaw = DirectX::XMConvertToRadians(yaw_);
 
     return {
@@ -183,7 +198,8 @@ Vector3 DebugCamera::GetRightVector() const
 
 Vector3 DebugCamera::GetUpVector() const
 {
-    return { 0.0f, 1.0f, 0.0f }; // 固定で上方向
+    // 固定で上方向を返す
+    return { 0.0f, 1.0f, 0.0f };
 }
 
 

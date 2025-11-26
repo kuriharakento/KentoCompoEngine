@@ -9,6 +9,11 @@
 // editor
 #include "manager/editor/JsonEditorManager.h"
 
+// スプライン補間の微小値（次位置計算用）
+constexpr float kSplineSegmentDelta = 0.01f;
+// セグメントごとのサンプル数（デバッグ描画用）
+constexpr int kSamplesPerSegment = 20;
+
 void SplineCamera::Initialize(Camera* camera)
 {
 	camera_ = camera;
@@ -19,34 +24,39 @@ void SplineCamera::Initialize(Camera* camera)
 void SplineCamera::Update()
 {
     const auto& points = splineData_->GetControlPoints();
-    if (points.size() < 4) return;  // 4つ以上のポイントが必要
+    
+    // 4つ以上のポイントが必要（Catmull-Romスプラインの要件）
+    if (points.size() < 4) return;
 
-    int numSegments = static_cast<int>(points.size()) - 3;  // セグメント数を計算
+    // セグメント数を計算（制御点数 - 3）
+    int numSegments = static_cast<int>(points.size()) - 3;
 
     // time_ に基づいて現在のセグメントと補間の割合を計算
     float segmentTime = time_ * numSegments;
-    int segment = static_cast<int>(segmentTime);  // セグメントのインデックス
-    float t = segmentTime - segment;  // 補間の割合
+    int segment = static_cast<int>(segmentTime);
+    float t = segmentTime - segment;
 
     // セグメントのインデックスが有効範囲内か確認
     if (segment >= numSegments) {
         if (loop_) {
-            time_ = 0.0f;  // ループする場合は最初に戻る
-            segment = 0;   // 最初のセグメントに戻す
-            t = 0.0f;      // 補間の割合も0に戻す
+            // ループする場合は最初に戻る
+            time_ = 0.0f;
+            segment = 0;
+            t = 0.0f;
         }
         else {
-            time_ = 1.0f;  // 最後まで進んだ場合、時間を1.0に設定
-            segment = numSegments - 1;  // 最後のセグメント
-            t = 1.0f;  // 補間の割合も1.0に設定
-			isEnd_ = true;  // 終了フラグを立てる
+            // 最後まで進んだ場合、終了状態に設定
+            time_ = 1.0f;
+            segment = numSegments - 1;
+            t = 1.0f;
+			isEnd_ = true;
         }
     }
 
-    // セグメントが有効な範囲に収まるように修正
-    segment = std::clamp(segment, 0, numSegments - 1);  // 範囲内に制限
+    // セグメントインデックスを有効範囲に制限
+    segment = std::clamp(segment, 0, numSegments - 1);
 
-    // スプラインの補間
+    // Catmull-Romスプライン補間でカメラ位置を計算
     Vector3 pos = Spline::CatmullRom(
         points[segment + 0],
         points[segment + 1],
@@ -58,9 +68,9 @@ void SplineCamera::Update()
     camera_->SetTranslate(pos);
 
 	// カメラの向き更新
-    //ターゲットが指定されている場合、カメラの向きを設定
     if (targetPtr_)
     {
+        // ターゲットが指定されている場合、カメラの向きを設定
         Vector3 targetPos = *targetPtr_;
         camera_->SetRotate(MathUtils::CalculateDirectionToTarget(pos, targetPos));
     }
@@ -68,7 +78,7 @@ void SplineCamera::Update()
     {
         // ターゲットがない場合、進行方向から回転を計算
         // t + Δt（小さな値）を使って「次の位置」を取得
-        float nextT = t + 0.01f;
+        float nextT = t + kSplineSegmentDelta;
         int nextSegment = segment;
         if (nextT >= 1.0f) {
             nextT -= 1.0f;
@@ -101,9 +111,10 @@ void SplineCamera::Update()
 
 void SplineCamera::Start(float speed, bool loop)
 {
-    speed_ = speed; // speed は移動の速さ（例えば 0.01f など）
-    loop_ = loop;   // ループの有無
-    time_ = 0.0f;   // 初期時間
+    // パラメータを設定
+    speed_ = speed;
+    loop_ = loop;
+    time_ = 0.0f;
 }
 
 
@@ -116,16 +127,20 @@ void SplineCamera::DrawSplineLine()
 {
 #ifdef _DEBUG
     const auto& points = splineData_->GetControlPoints();
-    if (points.size() < 4) return; // 4つ以上のポイントが必要
+    
+    // 4つ以上のポイントが必要
+    if (points.size() < 4) return;
 
-    const int numSegments = static_cast<int>(points.size()) - 3; // セグメント数を計算
-    const int samplesPerSegment = 20;         // 各セグメントを分割するサンプル数
+    // セグメント数を計算
+    const int numSegments = static_cast<int>(points.size()) - 3;
 
+    // 各セグメントを描画
     for (int segment = 0; segment < numSegments; ++segment) {
-        Vector3 prevPoint = points[segment + 1]; // 初期点（セグメントの始点）
+        Vector3 prevPoint = points[segment + 1];
 
-        for (int i = 1; i <= samplesPerSegment; ++i) {
-            float t = static_cast<float>(i) / samplesPerSegment; // 補間の割合
+        // セグメントをサンプル数で分割して線を描画
+        for (int i = 1; i <= kSamplesPerSegment; ++i) {
+            float t = static_cast<float>(i) / kSamplesPerSegment;
             Vector3 currentPoint = Spline::CatmullRom(
                 points[segment + 0],
                 points[segment + 1],
@@ -134,9 +149,9 @@ void SplineCamera::DrawSplineLine()
                 t
             );
 
-            // 線を描画
-            LineManager::GetInstance()->DrawLine(prevPoint, currentPoint, { 1.0f, 0.0f, 0.0f, 1.0f }); // 赤色の線
-            prevPoint = currentPoint; // 現在の点を次の始点に設定
+            // 赤色の線を描画
+            LineManager::GetInstance()->DrawLine(prevPoint, currentPoint, { 1.0f, 0.0f, 0.0f, 1.0f });
+            prevPoint = currentPoint;
         }
     }
 #endif
