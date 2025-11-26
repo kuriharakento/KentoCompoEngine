@@ -40,13 +40,6 @@ Object3d::~Object3d()
 		cameraResource_->Unmap(0, nullptr);
 		cameraResource_.Reset();
 	}
-	// ディレクショナルライトのリソースを解放（重複チェック済み）
-	if (directionalLightResource_)
-	{
-		directionalLightResource_->Unmap(0, nullptr);
-		directionalLightResource_.Reset();
-	}
-	
 }
 
 void Object3d::Initialize(Object3dCommon* object3dCommon,Camera* camera)

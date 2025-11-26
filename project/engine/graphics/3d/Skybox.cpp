@@ -140,14 +140,6 @@ void Skybox::CreateModeldata(const std::string& textureFilePath)
 	// マテリアルの初期値を設定
 	material_->color = VectorColorCodes::White;
 	material_->uvTransform = MakeIdentity4x4();
-	material_->enableLighting = false; modelData_.material.textureFilePath = textureFilePath;
-	modelData_.material.textureIndex = TextureManager::GetInstance()->GetTextureIndexByFilePath(modelData_.material.textureFilePath);
-
-	// マテリアルリソースの作成
-	materialResource_ = dxCommon_->CreateBufferResource(sizeof(Material));
-	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&material_));
-	material_->color = VectorColorCodes::White;
-	material_->uvTransform = MakeIdentity4x4();
 	material_->enableLighting = false;
 }
 

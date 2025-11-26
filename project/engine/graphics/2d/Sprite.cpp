@@ -191,7 +191,7 @@ void Sprite::UpdateVertexData()
 	// 頂点データの法線を設定（手前向き）
 	vertexData_[0].normal = { 0.0f, 0.0f, kNormalZ };
 	vertexData_[1].normal = { 0.0f, 0.0f, kNormalZ };
-	vertexData_[3].normal = { 0.0f, 0.0f, kNormalZ };	
+	vertexData_[2].normal = { 0.0f, 0.0f, kNormalZ };
 	vertexData_[3].normal = { 0.0f, 0.0f, kNormalZ };
 }
 
