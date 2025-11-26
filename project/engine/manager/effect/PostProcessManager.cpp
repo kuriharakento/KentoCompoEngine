@@ -7,12 +7,6 @@
 #include "manager/system/SrvManager.h"
 #include "base/RenderTexture.h"
 
-// Bloomエフェクトのデフォルトパラメータ定数
-constexpr float kDefaultBloomThreshold = 0.8f;  // 明るさの閾値
-constexpr float kDefaultBloomIntensity = 2.0f;  // ブルーム強度
-constexpr float kDefaultBloomKnee = 0.5f;       // ソフトな閾値の範囲
-constexpr float kDefaultBlurRadius = 8.0f;      // ブラー半径
-
 PostProcessManager::PostProcessManager() {}
 
 PostProcessManager::~PostProcessManager() {}

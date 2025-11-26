@@ -4,11 +4,8 @@
 #include "base/StringUtility.h"
 #include "externals/DirectXTex/d3dx12.h"
 
-// SRVインデックスの開始番号（ImGuiが0番を使用するため、1番から開始）
-constexpr uint32_t kSRVIndexTop = 1;
-
-// SRVインデックスの開始番号の実体
-uint32_t TextureManager::kSRVIndexTop = kSRVIndexTop;
+// SRVインデックスの開始番号の実体（ImGuiが0番を使用するため、1番から開始）
+uint32_t TextureManager::kSRVIndexTop = 1;
 
 // シングルトンインスタンスの実体
 TextureManager* TextureManager::instance_ = nullptr;
