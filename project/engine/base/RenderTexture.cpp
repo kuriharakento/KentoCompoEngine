@@ -6,6 +6,11 @@
 #include "DirectXCommon.h"
 #include "manager/system/SrvManager.h"
 
+// RTV用ディスクリプタ数
+constexpr UINT kRtvDescriptorCount = 1;
+// ミップレベル数
+constexpr UINT kMipLevels = 1;
+
 
 void RenderTexture::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, uint32_t width, uint32_t height, DXGI_FORMAT format, const Vector4& clearColor)
 {
@@ -16,19 +21,22 @@ void RenderTexture::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, 
     format_ = format;
     clearColor_ = clearColor;
 
+    // リソースの設定
     D3D12_RESOURCE_DESC desc{};
     desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
     desc.Width = width;
     desc.Height = height;
     desc.DepthOrArraySize = 1;
-    desc.MipLevels = 1;
+    desc.MipLevels = kMipLevels;
     desc.Format = format;
     desc.SampleDesc.Count = 1;
     desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
+    // ヒープの設定
     D3D12_HEAP_PROPERTIES heapProps{};
     heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
 
+    // クリア値の設定
     D3D12_CLEAR_VALUE clear{};
     clear.Format = format;
     clear.Color[0] = clearColor.x;
@@ -36,6 +44,7 @@ void RenderTexture::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, 
     clear.Color[2] = clearColor.z;
     clear.Color[3] = clearColor.w;
 
+    // リソースの生成
     HRESULT hr = dxCommon_->GetDevice()->CreateCommittedResource(
         &heapProps,
         D3D12_HEAP_FLAG_NONE,
@@ -45,13 +54,16 @@ void RenderTexture::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, 
         IID_PPV_ARGS(&texture_));
     assert(SUCCEEDED(hr));
 
-    rtvHeap_ = dxCommon_->CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 1, false);
+    // RTV用ディスクリプタヒープの生成
+    rtvHeap_ = dxCommon_->CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, kRtvDescriptorCount, false);
     rtvHandle_ = dxCommon_->GetCPUDescriptorHandle(rtvHeap_.Get(), dxCommon_->GetDescriptorSizeRTV(), 0);
 
+    // RTVの生成
     dxCommon_->GetDevice()->CreateRenderTargetView(texture_.Get(), nullptr, rtvHandle_);
 
+    // SRVの確保と生成
     srvIndex_ = srvManager_->Allocate();
-    srvManager_->CreateSRVforTexture2D(srvIndex_, texture_.Get(), format, 1);
+    srvManager_->CreateSRVforTexture2D(srvIndex_, texture_.Get(), format, kMipLevels);
 
     currentState_ = D3D12_RESOURCE_STATE_RENDER_TARGET;
 }

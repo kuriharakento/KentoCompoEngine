@@ -5,8 +5,12 @@ extern  IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT ms
 
 #pragma comment(lib,"winmm.lib")
 
+// システムタイマー精度（ミリ秒）
+constexpr UINT kTimerPrecision = 1;
+
 LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
+	// ImGuiのメッセージ処理
 	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
 	{
 		return true;
@@ -14,6 +18,7 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 	switch (msg)
 	{
 	case WM_DESTROY:
+		// ウィンドウ破棄時に終了メッセージを送信
 		PostQuitMessage(0);
 		return 0;
 	}
@@ -24,69 +29,73 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 
 void WinApp::Initialize()
 {
+	// COMの初期化
 	HRESULT hr = CoInitializeEx(0, COINIT_MULTITHREADED);
 
-	//システムタイマーの精度を上げる
-	timeBeginPeriod(1);
+	// システムタイマーの精度を上げる
+	timeBeginPeriod(kTimerPrecision);
 
 	///===================================================================
 	///ウィンドウを表示
 	///===================================================================
 
-	//ウィンドウプロシージャ
+	// ウィンドウプロシージャを設定
 	wc_.lpfnWndProc = WindowProc;
-	//ウィンドウクラス名
+	// ウィンドウクラス名を設定
 	wc_.lpszClassName = L"CG2WindowClass";
-	//インスタンスハンドル
+	// インスタンスハンドルを設定
 	wc_.hInstance = GetModuleHandle(nullptr);
-	//カーソル
+	// カーソルを設定
 	wc_.hCursor = LoadCursor(nullptr, IDC_ARROW);
 
-	//ウィンドウクラスを登録する
+	// ウィンドウクラスを登録
 	RegisterClass(&wc_);
 
-	//ウィンドウサイズを表す構造体にクライアント領域を入れる
+	// ウィンドウサイズを表す構造体にクライアント領域を入れる
 	RECT wrc = { 0,0,kClientWidth,kClientHeight };
 
-	//クライアント領域をもとに実際のサイズにwrcを変更してもらう
+	// クライアント領域をもとに実際のサイズにwrcを変更
 	AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
 
-	//ウィンドウの設定
+	// ウィンドウの生成
 	hwnd_ = CreateWindow(
-		wc_.lpszClassName,		//利用するクラス名
-		L"KentoCompo",			//タイトルバーの文字
-		WS_OVERLAPPEDWINDOW,	//よく見るウィンドウスタイル
-		CW_USEDEFAULT,			//表示X座標(WindowsOSに任せる)
-		CW_USEDEFAULT,			//表示Y座標(WindowsOSに任せる)
-		wrc.right - wrc.left,	//ウィンドウ横幅
-		wrc.bottom - wrc.top,	//ウィンドウ縦幅
-		nullptr,				//親ウィンドウハンドル
-		nullptr,				//メニューハンドル
-		wc_.hInstance,			//インスタンスハンドル
-		nullptr					//オプション
+		wc_.lpszClassName,
+		L"KentoCompo",
+		WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		wrc.right - wrc.left,
+		wrc.bottom - wrc.top,
+		nullptr,
+		nullptr,
+		wc_.hInstance,
+		nullptr
 	);
 
-	//ウィンドウを表示する
+	// ウィンドウを表示
 	ShowWindow(hwnd_, SW_SHOW);
 
 }
 
 void WinApp::Finalize()
 {
-	//COMの終了処理
+	// ウィンドウを閉じる
 	CloseWindow(hwnd_);
+	// COMの終了処理
 	CoUninitialize();
 }
 
 bool WinApp::ProcessMessage()
 {
 	MSG msg;
+	// メッセージがあれば処理
 	if(PeekMessage(&msg,nullptr,0,0,PM_REMOVE))
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
 
+	// 終了メッセージを受け取った場合はtrueを返す
 	if(msg.message == WM_QUIT)
 	{
 		return true;
