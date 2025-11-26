@@ -2,16 +2,19 @@
 #include "DirectXTex/d3dx12.h"
 #include <cassert>
 
+// コンストラクタ：エフェクトを無効状態で初期化
 BasePostEffect::BasePostEffect() : enabled_(false), isDirty_(true) {}
 
+// デストラクタ
 BasePostEffect::~BasePostEffect() {}
 
 
 void BasePostEffect::SetEnabled(bool enabled)
 {
+	// 値が変更された場合のみ更新
 	if (enabled_ != enabled)
 	{
 		enabled_ = enabled;
-		isDirty_ = true; // パラメータが変更されたことを示す
+		isDirty_ = true;
 	}
 }
