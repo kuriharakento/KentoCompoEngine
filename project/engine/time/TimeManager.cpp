@@ -4,14 +4,16 @@
 
 TimeManager& TimeManager::GetInstance()
 {
+	// 静的ローカル変数でシングルトンを実現
 	static TimeManager instance;
 	return instance;
 }
 
 TimeManager::TimeManager()
 {
+	// 初回時刻を記録
 	lastUpdate_ = std::chrono::steady_clock::now();
-	// 各コンテキストの初期化
+	// 各コンテキストの初期化（deltaTime, gameTime, realDeltaTime, realGameTime, timeScale）
 	gameContext_ = { 0.0f, 0.0f, 0.0f, 0.0f, 1.0f };
 	uiContext_ = { 0.0f, 0.0f, 0.0f, 0.0f, 1.0f };
 }
@@ -32,13 +34,14 @@ void TimeManager::UpdateTimeContext(TimeContext& context, float realDelta, bool 
 void TimeManager::Update()
 {
 #ifdef USE_IMGUI
+	// ImGuiによるデバッグUI表示
 	ImGui::Begin("Time Manager");
 
 	// 全体のポーズ設定
 	ImGui::Checkbox("Paused", &paused_);
 	ImGui::Separator();
 
-	// ゲーム
+	// ゲームコンテキストの表示
 	ImGui::Text("Game Context:");
 	ImGui::SliderFloat("Game Time Scale", &gameContext_.timeScale, 0.0f, 3.0f, "%.2f");
 	ImGui::Text("  GameTime: %.2f", gameContext_.gameTime);
@@ -48,7 +51,7 @@ void TimeManager::Update()
 
 	ImGui::Separator();
 
-	// UI
+	// UIコンテキストの表示
 	ImGui::Text("UI Context:");
 	ImGui::SliderFloat("UI Time Scale", &uiContext_.timeScale, 0.0f, 3.0f, "%.2f");
 	ImGui::Text("  GameTime: %.2f", uiContext_.gameTime);
@@ -71,11 +74,13 @@ void TimeManager::Update()
 
 void TimeManager::Pause()
 {
+	// ポーズ状態に設定
 	paused_ = true;
 }
 
 void TimeManager::Resume()
 {
+	// ポーズ解除
 	paused_ = false;
 }
 

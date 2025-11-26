@@ -2,14 +2,17 @@
 
 void Timer::Start()
 {
+    // タイマーを開始状態に設定
     running_ = true;
     finished_ = false;
     elapsed_ = 0.0f;
-	onStart(); // 開始時のコールバックを呼び出す
+	// 開始時のコールバックを呼び出す
+	onStart();
 }
 
 void Timer::Reset()
 {
+    // タイマーをリセット
     running_ = false;
     finished_ = false;
     elapsed_ = 0.0f;
@@ -17,13 +20,16 @@ void Timer::Reset()
 
 void Timer::Stop()
 {
+    // タイマーを停止（経過時間は保持）
     running_ = false;
 }
 
 void Timer::Update(float deltaTime)
 {
+    // 動作中でなければ何もしない
     if (!running_ || finished_) return;
 
+    // 経過時間を加算
     elapsed_ += deltaTime;
     float remaining = duration_ - elapsed_;
 
@@ -38,6 +44,7 @@ void Timer::Update(float deltaTime)
     {
         running_ = false;
         finished_ = true;
+        // 終了時コールバック
         if (onFinish_)
         {
             onFinish_();
@@ -72,6 +79,7 @@ bool Timer::IsFinished() const
 
 float Timer::GetRemainingTime() const
 {
+    // 残り時間を計算
     return duration_ - elapsed_;
 }
 
