@@ -2,6 +2,6 @@
 
 void ModelCommon::Initialize(DirectXCommon* dxCommon)
 {
-	//DirectXCommonのポインタを取得
+	// DirectXCommonのポインタを保存
 	dxCommon_ = dxCommon;
 }

@@ -10,19 +10,39 @@
 // editor
 #include "ImGui/imgui.h"
 
+// スカイボックスの頂点数（6面 × 6頂点 = 36頂点）
+constexpr int kSkyboxVertexCount = 36;
+// キューブの面数
+constexpr int kCubeFaceCount = 6;
+// 1面あたりの頂点数
+constexpr int kVerticesPerFace = 6;
+// キューブのハーフサイズ
+constexpr float kCubeHalfSize = 1.0f;
+// デフォルトのスカイボックススケール
+constexpr float kDefaultSkyboxScale = 10.0f;
+// ルートパラメータ数
+constexpr int kSkyboxRootParameterCount = 3;
+// 入力要素数
+constexpr int kSkyboxInputElementCount = 3;
+// ビュー行列の位置リセット用インデックス
+constexpr int kViewMatrixPosIndex = 3;
+
 Skybox::~Skybox()
 {
+	// 頂点バッファの解放
 	if (vertexBuffer_)
 	{
 		vertexBuffer_.Reset();
 		vertices_ = nullptr;
 	}
+	// マテリアルリソースの解放
 	if (materialResource_)
 	{
 		materialResource_->Unmap(0, nullptr);
 		materialResource_.Reset();
 		material_ = nullptr;
 	}
+	// WVP行列リソースの解放
 	if (wvpResource_)
 	{
 		wvpResource_->Unmap(0, nullptr);
@@ -51,7 +71,8 @@ void Skybox::Initialize(DirectXCommon* dxCommon, const std::string& textureFileP
 	// パイプライン作成
 	CreatePipelineState();
 
-	transform_.scale = { 10.0f, 10.0f, 10.0f };
+	// デフォルトのスケールを設定
+	transform_.scale = { kDefaultSkyboxScale, kDefaultSkyboxScale, kDefaultSkyboxScale };
 }
 
 void Skybox::Update(Camera* camera)
@@ -63,13 +84,13 @@ void Skybox::Update(Camera* camera)
 		transform_.translate
 	);
 
-	// ビュー行列を取得し、位置情報をクリア
+	// ビュー行列を取得し、位置情報をクリア（カメラの移動に追従しない）
 	Matrix4x4 viewMatrix = camera->GetViewMatrix();
-	viewMatrix.m[3][0] = 0.0f;  // 位置をリセット
-	viewMatrix.m[3][1] = 0.0f;
-	viewMatrix.m[3][2] = 0.0f;
+	viewMatrix.m[kViewMatrixPosIndex][0] = 0.0f;
+	viewMatrix.m[kViewMatrixPosIndex][1] = 0.0f;
+	viewMatrix.m[kViewMatrixPosIndex][2] = 0.0f;
 
-	//  座標変換行列を計算
+	// 座標変換行列を計算
 	Matrix4x4 projectionMatrix = camera->GetProjectionMatrix();
 	Matrix4x4 viewProjectionMatrix = Multiply(viewMatrix, projectionMatrix);
 	Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, viewProjectionMatrix);
@@ -83,30 +104,40 @@ void Skybox::Draw()
 {
 	// ルートシグネチャの設定
 	dxCommon_->GetCommandList()->SetGraphicsRootSignature(rootSignature_.Get());
+
 	// パイプラインステートの設定
 	dxCommon_->GetCommandList()->SetPipelineState(pipelineState_.Get());
-	// トポロジの設定
+
+	// トポロジの設定（三角形リスト）
 	dxCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 	// 頂点バッファの設定
 	dxCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView_);
-	// CBufferの設定
+
+	// 座標変換CBufferの設定
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, wvpResource_->GetGPUVirtualAddress());
-	// マテリアルCBufferの設定座標変換
+
+	// マテリアルCBufferの設定
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, materialResource_->GetGPUVirtualAddress());
+
 	// テクスチャのSRVを設定
 	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetSrvHandleGPU(modelData_.material.textureIndex));
+
 	// 描画コマンドを発行
 	dxCommon_->GetCommandList()->DrawInstanced(UINT(modelData_.vertices.size()), 1, 0, 0);
 }
 
 void Skybox::CreateModeldata(const std::string& textureFilePath)
 {
+	// テクスチャファイルパスとインデックスを設定
 	modelData_.material.textureFilePath = textureFilePath;
 	modelData_.material.textureIndex = TextureManager::GetInstance()->GetTextureIndexByFilePath(modelData_.material.textureFilePath);
 
 	// マテリアルリソースの作成
 	materialResource_ = dxCommon_->CreateBufferResource(sizeof(Material));
 	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&material_));
+
+	// マテリアルの初期値を設定
 	material_->color = VectorColorCodes::White;
 	material_->uvTransform = MakeIdentity4x4();
 	material_->enableLighting = false; modelData_.material.textureFilePath = textureFilePath;
@@ -123,66 +154,65 @@ void Skybox::CreateModeldata(const std::string& textureFilePath)
 void Skybox::CreateVertexData()
 {
 	// 頂点データを箱の形に設定 - 各面は2つの三角形（6頂点）で構成
-	std::vector<VertexData> vertices(36); // 6面 × 6頂点 = 36頂点
+	std::vector<VertexData> vertices(kSkyboxVertexCount);
 
-	// サイズ（一辺の長さの半分）
-	const float size = 1.0f;
+	const float size = kCubeHalfSize;
 
 	int index = 0;
 
 	// 前面 (z+) - 時計回り（内側から見て）
-	vertices[index++] = { {-size, -size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // 左下
-	vertices[index++] = { {-size, size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };  // 左上
-	vertices[index++] = { {size, -size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };  // 右下
+	vertices[index++] = { {-size, -size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {-size, size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {size, -size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
 
-	vertices[index++] = { {size, -size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };  // 右下
-	vertices[index++] = { {-size, size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };  // 左上
-	vertices[index++] = { {size, size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };   // 右上
+	vertices[index++] = { {size, -size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {-size, size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {size, size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
 
 	// 後面 (z-) - 時計回り（内側から見て）
-	vertices[index++] = { {size, -size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };  // 右下
-	vertices[index++] = { {size, size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };   // 右上
-	vertices[index++] = { {-size, -size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // 左下
+	vertices[index++] = { {size, -size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {size, size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {-size, -size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
 
-	vertices[index++] = { {-size, -size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // 左下
-	vertices[index++] = { {size, size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };   // 右上
-	vertices[index++] = { {-size, size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };  // 左上
+	vertices[index++] = { {-size, -size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {size, size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {-size, size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
 
 	// 右面 (x+) - 時計回り（内側から見て）
-	vertices[index++] = { {size, -size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };   // 右下前
-	vertices[index++] = { {size, size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };    // 右上前
-	vertices[index++] = { {size, -size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };  // 右下奥
+	vertices[index++] = { {size, -size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {size, size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {size, -size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
 
-	vertices[index++] = { {size, -size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };  // 右下奥
-	vertices[index++] = { {size, size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };    // 右上前
-	vertices[index++] = { {size, size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };   // 右上奥
+	vertices[index++] = { {size, -size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {size, size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {size, size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
 
 	// 左面 (x-) - 時計回り（内側から見て）
-	vertices[index++] = { {-size, -size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // 左下奥
-	vertices[index++] = { {-size, size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };  // 左上奥
-	vertices[index++] = { {-size, -size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };  // 左下前
+	vertices[index++] = { {-size, -size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {-size, size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {-size, -size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
 
-	vertices[index++] = { {-size, -size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };  // 左下前
-	vertices[index++] = { {-size, size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };  // 左上奥
-	vertices[index++] = { {-size, size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };   // 左上前
+	vertices[index++] = { {-size, -size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {-size, size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {-size, size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
 
 	// 上面 (y+) - 時計回り（内側から見て）
-	vertices[index++] = { {-size, size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };   // 左上前
-	vertices[index++] = { {-size, size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };  // 左上奥
-	vertices[index++] = { {size, size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };    // 右上前
+	vertices[index++] = { {-size, size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {-size, size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {size, size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
 
-	vertices[index++] = { {size, size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };    // 右上前
-	vertices[index++] = { {-size, size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };  // 左上奥
-	vertices[index++] = { {size, size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };   // 右上奥
+	vertices[index++] = { {size, size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {-size, size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {size, size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
 
 	// 下面 (y-) - 時計回り（内側から見て）
-	vertices[index++] = { {-size, -size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // 左下奥
-	vertices[index++] = { {-size, -size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };  // 左下前
-	vertices[index++] = { {size, -size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };  // 右下奥
+	vertices[index++] = { {-size, -size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {-size, -size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {size, -size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
 
-	vertices[index++] = { {size, -size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };  // 右下奥
-	vertices[index++] = { {-size, -size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };  // 左下前
-	vertices[index++] = { {size, -size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };   // 右下前
+	vertices[index++] = { {size, -size, -size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {-size, -size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	vertices[index++] = { {size, -size, size, 1.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
 
 	// 頂点リソースの作成
 	vertexBuffer_ = dxCommon_->CreateBufferResource(sizeof(VertexData) * vertices.size());
@@ -199,6 +229,7 @@ void Skybox::CreateVertexData()
 
 void Skybox::CreateWVPBData()
 {
+	// WVP行列リソースの作成
 	wvpResource_ = dxCommon_->CreateBufferResource(sizeof(TransformationMatrix));
 	wvpResource_->Map(0, nullptr, reinterpret_cast<void**>(&wvpData_));
 
@@ -209,10 +240,7 @@ void Skybox::CreateWVPBData()
 
 void Skybox::CreateRootSignature()
 {
-	///===================================================================
-	///ディスクリプタレンジの生成
-	///===================================================================
-
+	// ディスクリプタレンジの設定
 	D3D12_DESCRIPTOR_RANGE descriptorRange[1] = {};
 	descriptorRange[0].BaseShaderRegister = 0;
 	descriptorRange[0].NumDescriptors = 1;
@@ -220,55 +248,51 @@ void Skybox::CreateRootSignature()
 	descriptorRange[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
 	D3D12_DESCRIPTOR_RANGE descriptorRangeForInstancing[1] = {};
-	descriptorRangeForInstancing[0].BaseShaderRegister = 0;	//０から始まる
-	descriptorRangeForInstancing[0].NumDescriptors = 1;		//数は１つ
-	descriptorRangeForInstancing[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;	//SRVを使う
+	descriptorRangeForInstancing[0].BaseShaderRegister = 0;
+	descriptorRangeForInstancing[0].NumDescriptors = 1;
+	descriptorRangeForInstancing[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	descriptorRangeForInstancing[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-	///===================================================================
-	///RootSignatureを生成する
-	///===================================================================
-
-	//RootSignature作成
+	// RootSignatureの設定
 	D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature{};
 	descriptionRootSignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
-	//RootParameter作成。複数設定できるので配列。今回は結果１つだけなので長さ１の配列
-	D3D12_ROOT_PARAMETER rootParameters[3] = {};
+	// RootParameterの設定
+	D3D12_ROOT_PARAMETER rootParameters[kSkyboxRootParameterCount] = {};
 
-	// 1.VSに送る座標変換行列
-	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;	//CBVを使う
-	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;	//VertexShaderで使う
-	rootParameters[0].Descriptor.ShaderRegister = 0;	//レジスタ番号０を使う
+	// ルートパラメータ0: 頂点シェーダ用座標変換行列
+	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+	rootParameters[0].Descriptor.ShaderRegister = 0;
 
-	// 2.PSに送るマテリアルデータ
-	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;	//CBVを使う
-	rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;	//PixelShaderで使う
-	rootParameters[1].Descriptor.ShaderRegister = 0;	//レジスタ番号１を使う
+	// ルートパラメータ1: ピクセルシェーダ用マテリアルデータ
+	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[1].Descriptor.ShaderRegister = 0;
 
-	// 3.PSに送るテクスチャ
-	rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;	//テーブルを使う
-	rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;	//PixelShaderで使う
-	rootParameters[2].DescriptorTable.pDescriptorRanges = descriptorRange;	//先ほど作ったレンジを使う
-	rootParameters[2].DescriptorTable.NumDescriptorRanges = _countof(descriptorRange);	//レンジの数は１つ
+	// ルートパラメータ2: ピクセルシェーダ用テクスチャ
+	rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[2].DescriptorTable.pDescriptorRanges = descriptorRange;
+	rootParameters[2].DescriptorTable.NumDescriptorRanges = _countof(descriptorRange);
 
-	//Smaplerの設定
+	// サンプラーの設定
 	D3D12_STATIC_SAMPLER_DESC staticSamplers[1] = {};
-	staticSamplers[0].Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;				//バイリニアフィルタ
+	staticSamplers[0].Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
 	staticSamplers[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 	staticSamplers[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 	staticSamplers[0].AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	staticSamplers[0].ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;			//比較しない
-	staticSamplers[0].MaxLOD = D3D12_FLOAT32_MAX;							//ありったけのMipmapを使う
-	staticSamplers[0].ShaderRegister = 0;									//レジスタ番号0を使う
-	staticSamplers[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;		//PixelShaderを使う
+	staticSamplers[0].ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+	staticSamplers[0].MaxLOD = D3D12_FLOAT32_MAX;
+	staticSamplers[0].ShaderRegister = 0;
+	staticSamplers[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	descriptionRootSignature.pStaticSamplers = staticSamplers;
 	descriptionRootSignature.NumStaticSamplers = _countof(staticSamplers);
 
-	descriptionRootSignature.pParameters = rootParameters;					//ルートパラメータ配列へのポインタ
-	descriptionRootSignature.NumParameters = _countof(rootParameters);		//配列の長さ
+	descriptionRootSignature.pParameters = rootParameters;
+	descriptionRootSignature.NumParameters = _countof(rootParameters);
 
-	//シリアライズしてバイナリする
+	// シリアライズしてバイナリ化
 	HRESULT hr;
 	Microsoft::WRL::ComPtr<ID3DBlob> signatureBlob = nullptr;
 	Microsoft::WRL::ComPtr<ID3DBlob> errorBlob = nullptr;
@@ -278,7 +302,8 @@ void Skybox::CreateRootSignature()
 		Logger::Log(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
 		assert(false);
 	}
-	//バイナリをもとに生成
+
+	// ルートシグネチャを生成
 	hr = dxCommon_->GetDevice()->CreateRootSignature(
 		0,
 		signatureBlob->GetBufferPointer(),
@@ -294,12 +319,8 @@ void Skybox::CreatePipelineState()
 
 	HRESULT hr;
 
-	///===================================================================
-	///InputLayout(インプットレイアウト)
-	///===================================================================
-
-	//InputLayout
-	D3D12_INPUT_ELEMENT_DESC inputElementDescs[3] = {};
+	// InputLayoutの設定
+	D3D12_INPUT_ELEMENT_DESC inputElementDescs[kSkyboxInputElementCount] = {};
 	inputElementDescs[0].SemanticName = "POSITION";
 	inputElementDescs[0].SemanticIndex = 0;
 	inputElementDescs[0].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -320,13 +341,8 @@ void Skybox::CreatePipelineState()
 	inputLayoutDesc.NumElements = _countof(inputElementDescs);
 
 
-	///===================================================================
-	///BlendState(ブレンドステート)
-	///===================================================================
-
-	//BlendStateの設定
+	// BlendStateの設定（アルファブレンド有効）
 	D3D12_BLEND_DESC blendDesc{};
-	//すべての色要素を書き込む
 	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 	blendDesc.RenderTarget[0].BlendEnable = TRUE;
 	blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
@@ -336,22 +352,12 @@ void Skybox::CreatePipelineState()
 	blendDesc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
 	blendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
 
-	///===================================================================
-	///RasterizerState(ラスタライザステート)
-	///===================================================================
-
-	//RasterizerStateの設定
+	// RasterizerStateの設定
 	D3D12_RASTERIZER_DESC rasterizerDesc{};
-	//裏面(時計回り)を表示しない
 	rasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
-	//三角形の中を塗りつぶす
 	rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
 
-	///===================================================================
-	///ShaderをCompileする
-	///===================================================================
-
-	//shaderをコンパイルする
+	// シェーダーをコンパイル
 	Microsoft::WRL::ComPtr<IDxcBlob> vertexShaderBlob = dxCommon_->CompileSharder(L"Resources/shaders/Skybox.VS.hlsl", L"vs_6_0");
 	assert(vertexShaderBlob != nullptr);
 
@@ -359,23 +365,13 @@ void Skybox::CreatePipelineState()
 	assert(pixelShaderBlob != nullptr);
 
 
-	///===================================================================
-	///DepthStencilStateの設定を行う
-	///===================================================================
-
-	//DepthStencilStateの設定
+	// DepthStencilStateの設定（深度書き込み無効）
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc{};
-	//Depthの機能を有効化する
 	depthStencilDesc.DepthEnable = true;
-	//書き込みします
 	depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
-	//比較関数はLessEqual。つまり、近ければ描画される
 	depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 
-	///===================================================================
-	///PSOを生成する
-	///===================================================================
-
+	// PSOの設定と生成
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDesc{};
 	graphicsPipelineStateDesc.pRootSignature = rootSignature_.Get();
 	graphicsPipelineStateDesc.InputLayout = inputLayoutDesc;
@@ -383,19 +379,17 @@ void Skybox::CreatePipelineState()
 	graphicsPipelineStateDesc.PS = { pixelShaderBlob->GetBufferPointer(),pixelShaderBlob->GetBufferSize() };
 	graphicsPipelineStateDesc.BlendState = blendDesc;
 	graphicsPipelineStateDesc.RasterizerState = rasterizerDesc;
-	//DepthStencilの設定
 	graphicsPipelineStateDesc.DepthStencilState = depthStencilDesc;
 	graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
-	//書き込むRTVの情報
+	// レンダーターゲットの設定
 	graphicsPipelineStateDesc.NumRenderTargets = 1;
 	graphicsPipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-	//利用するトポロジ（形状）のタイプ。三角形
 	graphicsPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	//どのように画面に色を打ち込むかの設定（気にしなくていい）
 	graphicsPipelineStateDesc.SampleDesc.Count = 1;
 	graphicsPipelineStateDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
-	//実際に生成
+
+	// パイプラインステートを生成
 	hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&pipelineState_));
 	assert(SUCCEEDED(hr));
 }

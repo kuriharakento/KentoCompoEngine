@@ -19,62 +19,106 @@
 #include "graphics/2d/SpriteCommon.h"
 #include "graphics/3d/Object3dCommon.h"
 
+/**
+ * @brief フレームワーククラス
+ * @details ゲームエンジンの基盤となるクラス。
+ *          初期化、更新、描画、終了処理の流れを管理する。
+ */
 class Framework
 {
-public: //メンバ関数
-	//デストラクタ
+public: // メンバ関数
+	/**
+	 * @brief デストラクタ
+	 */
 	virtual ~Framework() = default;
-	//初期化
+
+	/**
+	 * @brief 初期化
+	 * @details 各種マネージャーやレンダリング設定を初期化する
+	 */
 	virtual void Initialize();
-	//終了
+
+	/**
+	 * @brief 終了処理
+	 * @details 各種リソースを解放する
+	 */
 	virtual void Finalize();
-	//毎フレーム
+
+	/**
+	 * @brief 毎フレーム更新処理
+	 * @details 入力、カメラ、シーンなどを更新する
+	 */
 	virtual void Update();
-	//描画
+
+	/**
+	 * @brief 描画処理
+	 * @details 派生クラスで実装する
+	 */
 	virtual void Draw() = 0;
-	//3D描画用の設定
+
+	/**
+	 * @brief 3D描画用の設定
+	 * @details 3Dオブジェクト描画の共通設定を行う
+	 */
 	void Draw3DSetting();
-	//2D描画用の設定
+
+	/**
+	 * @brief 2D描画用の設定
+	 * @details スプライト描画の共通設定を行う
+	 */
 	void Draw2DSetting();
-	//パフォーマンス情報の表示
+
+	/**
+	 * @brief パフォーマンス情報の表示
+	 * @details FPSとメモリ使用量を表示する
+	 */
 	void ShowPerformanceInfo();
-	//終了リクエストがあるか
+
+	/**
+	 * @brief 終了リクエストがあるか
+	 * @return 終了リクエストフラグ
+	 */
 	virtual bool IsEndRequest() { return endRequest_; }
-	//実行
+
+	/**
+	 * @brief 実行
+	 * @details メインループを実行する
+	 */
 	void Run();
 
-protected: //メンバ変数
-	//終了リクエスト
+protected: // メンバ変数
+	// 終了リクエストフラグ
 	bool endRequest_ = false;
-	//ウィンドウアプリケーション
+	// ウィンドウアプリケーション
 	std::unique_ptr<WinApp> winApp_;
-	//DirectXCommon
+	// DirectXCommon
 	std::unique_ptr<DirectXCommon> dxCommon_;
-	//SRVマネージャー
+	// SRVマネージャー
 	std::unique_ptr<SrvManager> srvManager_;
-	//ImGuiManager
+	// ImGuiManager
 	std::unique_ptr<ImGuiManager> imguiManager_;
-	//スプライト共通部
+	// スプライト共通部
 	std::unique_ptr<SpriteCommon> spriteCommon_;
-	//3Dオブジェクト共通部
+	// 3Dオブジェクト共通部
 	std::unique_ptr<Object3dCommon> objectCommon_;
-	//カメラマネージャー
+	// カメラマネージャー
 	std::unique_ptr<CameraManager> cameraManager_;
-	//シーンマネージャー
+	// シーンマネージャー
 	std::unique_ptr<SceneManager> sceneManager_;
-	//シーンファクトリ
+	// シーンファクトリ
 	std::unique_ptr<SceneFactory> sceneFactory_;
-	//ライトマネージャー
+	// ライトマネージャー
 	std::unique_ptr<LightManager> lightManager_;
-	//
+	// レンダーテクスチャ
 	std::unique_ptr<RenderTexture> renderTexture_;
-	//
+	// ポストプロセスマネージャー
 	std::unique_ptr<PostProcessManager> postProcessManager_;
 	// Skybox
 	std::unique_ptr<Skybox> skybox_;
-	// ブルーム用
+	// ブルーム用ブライトパスレンダーターゲット
 	std::unique_ptr<RenderTexture> brightPassRT_;
-	// ブラー用のレンダーターゲット
+	// ブラー用のレンダーターゲット（ピンポンバッファ）
 	std::unique_ptr<RenderTexture> blurRT_[2];  
 };
+
 

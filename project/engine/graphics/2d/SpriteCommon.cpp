@@ -4,87 +4,94 @@
 
 #include "base/Logger.h"
 
+// ルートパラメータ数
+constexpr int kSpriteRootParameterCount = 4;
+// 入力要素数
+constexpr int kSpriteInputElementCount = 3;
+// ディスクリプタレンジ数
+constexpr int kDescriptorRangeCount = 1;
+// サンプラー数
+constexpr int kStaticSamplerCount = 1;
+
 void SpriteCommon::Initialize(DirectXCommon* dxCommon)
 {
-	//引数で受け取ってメンバ変数に記録する
+	// 引数で受け取ってメンバ変数に記録する
 	dxCommon_ = dxCommon;
 
-	//グラフィックスパイプラインの生成
+	// グラフィックスパイプラインの生成
 	CreateGraphicsPipelineState();
 }
 
 void SpriteCommon::CommonRenderingSetting()
 {
-	//ルートシグネチャをセットするコマンド
+	// ルートシグネチャをセット
 	dxCommon_->GetCommandList()->SetGraphicsRootSignature(rootSignature_.Get());
 
-	//グラフィックスパイプラインステートをセットするコマンド
+	// グラフィックスパイプラインステートをセット
 	dxCommon_->GetCommandList()->SetPipelineState(graphicsPipelineState_.Get());
 
-	//プリミティブトポロジーをセットするコマンド
+	// プリミティブトポロジーをセット（三角形リスト）
 	dxCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 }
 
 void SpriteCommon::CreateRootSignature()
 {
-	///===================================================================
-	///ディスクリプタレンジの生成
-	///===================================================================
-
-	D3D12_DESCRIPTOR_RANGE descriptorRange[1] = {};
+	// ディスクリプタレンジの設定
+	D3D12_DESCRIPTOR_RANGE descriptorRange[kDescriptorRangeCount] = {};
 	descriptorRange[0].BaseShaderRegister = 0;
 	descriptorRange[0].NumDescriptors = 1;
 	descriptorRange[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	descriptorRange[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-	///===================================================================
-	///RootSignatureを生成する
-	///===================================================================
-
-	//RootSignature作成
+	// RootSignatureの設定
 	D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature{};
 	descriptionRootSignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
-	//RootParameter作成。複数設定できるので配列。今回は結果１つだけなので長さ１の配列
-	D3D12_ROOT_PARAMETER rootParameters[4] = {};
-	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;		//CBVを使う
-	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;		//PixelShaderで使う
-	rootParameters[0].Descriptor.ShaderRegister = 0;						//レジスタ番号０とバインド
+	// RootParameterの設定
+	D3D12_ROOT_PARAMETER rootParameters[kSpriteRootParameterCount] = {};
 
+	// ルートパラメータ0: ピクセルシェーダ用CBV（マテリアル）
+	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[0].Descriptor.ShaderRegister = 0;
+
+	// ルートパラメータ1: 頂点シェーダ用CBV（座標変換行列）
 	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 	rootParameters[1].Descriptor.ShaderRegister = 0;
 
-	rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;			//DescriptorTableを使う
-	rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;						//PixelShaderで使う
-	rootParameters[2].DescriptorTable.pDescriptorRanges = descriptorRange;					//Tableの中身の配列を指定
-	rootParameters[2].DescriptorTable.NumDescriptorRanges = _countof(descriptorRange);		//Tableで利用する数
+	// ルートパラメータ2: ピクセルシェーダ用テクスチャ
+	rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[2].DescriptorTable.pDescriptorRanges = descriptorRange;
+	rootParameters[2].DescriptorTable.NumDescriptorRanges = _countof(descriptorRange);
 
+	// ルートパラメータ3: ピクセルシェーダ用CBV（ライティング）
 	rootParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	rootParameters[3].Descriptor.RegisterSpace = 0;
 	rootParameters[3].Descriptor.ShaderRegister = 1;
 
-	//Smaplerの設定
-	D3D12_STATIC_SAMPLER_DESC staticSamplers[1] = {};
-	staticSamplers[0].Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;				//バイリニアフィルタ
-	staticSamplers[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;			//0～1の範囲外をリピート
+	// サンプラーの設定
+	D3D12_STATIC_SAMPLER_DESC staticSamplers[kStaticSamplerCount] = {};
+	staticSamplers[0].Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+	staticSamplers[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 	staticSamplers[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 	staticSamplers[0].AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	staticSamplers[0].ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;			//比較しない
-	staticSamplers[0].MaxLOD = D3D12_FLOAT32_MAX;							//ありったけのMipmapを使う
-	staticSamplers[0].ShaderRegister = 0;									//レジスタ番号0を使う
-	staticSamplers[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;		//PixelShaderを使う
+	staticSamplers[0].ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+	staticSamplers[0].MaxLOD = D3D12_FLOAT32_MAX;
+	staticSamplers[0].ShaderRegister = 0;
+	staticSamplers[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	descriptionRootSignature.pStaticSamplers = staticSamplers;
 	descriptionRootSignature.NumStaticSamplers = _countof(staticSamplers);
 
-	descriptionRootSignature.pParameters = rootParameters;					//ルートパラメータ配列へのポインタ
-	descriptionRootSignature.NumParameters = _countof(rootParameters);		//配列の長さ
+	descriptionRootSignature.pParameters = rootParameters;
+	descriptionRootSignature.NumParameters = _countof(rootParameters);
 
 	HRESULT hr;
 
-	//シリアライズしてバイナリする
+	// シリアライズしてバイナリ化
 	Microsoft::WRL::ComPtr<ID3DBlob> signatureBlob = nullptr;
 	Microsoft::WRL::ComPtr<ID3DBlob> errorBlob = nullptr;
 	hr = D3D12SerializeRootSignature(&descriptionRootSignature, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &errorBlob);
@@ -93,25 +100,21 @@ void SpriteCommon::CreateRootSignature()
 		Logger::Log(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
 		assert(false);
 	}
-	//バイナリをもとに生成
 
+	// ルートシグネチャを生成
 	hr = dxCommon_->GetDevice()->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature_));
 	assert(SUCCEEDED(hr));
 }
 
 void SpriteCommon::CreateGraphicsPipelineState()
 {
-	//ルートシグネチャ
+	// ルートシグネチャの生成
 	CreateRootSignature();
 
 	HRESULT hr;
 
-	///===================================================================
-	///InputLayout(インプットレイアウト)
-	///===================================================================
-
-	//InputLayout
-	D3D12_INPUT_ELEMENT_DESC inputElementDescs[3] = {};
+	// InputLayoutの設定
+	D3D12_INPUT_ELEMENT_DESC inputElementDescs[kSpriteInputElementCount] = {};
 	inputElementDescs[0].SemanticName = "POSITION";
 	inputElementDescs[0].SemanticIndex = 0;
 	inputElementDescs[0].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -132,13 +135,8 @@ void SpriteCommon::CreateGraphicsPipelineState()
 	inputLayoutDesc.NumElements = _countof(inputElementDescs);
 
 
-	///===================================================================
-	///BlendState(ブレンドステート)
-	///===================================================================
-
-	//BlendStateの設定
+	// BlendStateの設定（アルファブレンド有効）
 	D3D12_BLEND_DESC blendDesc{};
-	//すべての色要素を書き込む
 	blendDesc.RenderTarget[0].BlendEnable = TRUE;
 	blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
 	blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
@@ -149,23 +147,13 @@ void SpriteCommon::CreateGraphicsPipelineState()
 	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
 
-	///===================================================================
-	///RasterizerState(ラスタライザステート)
-	///===================================================================
-
-	//RasterizerStateの設定
+	// RasterizerStateの設定
 	D3D12_RASTERIZER_DESC rasterizerDesc{};
-	//裏面(時計回り)を表示しない
 	rasterizerDesc.CullMode = D3D12_CULL_MODE_NONE;
-	//三角形の中を塗りつぶす
 	rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
 
 
-	///===================================================================
-	///ShaderをCompileする
-	///===================================================================
-
-	//shaderをコンパイルする
+	// シェーダーをコンパイル
 	Microsoft::WRL::ComPtr<IDxcBlob> vertexShaderBlob = dxCommon_->CompileSharder(L"Resources/shaders/Sprite.VS.hlsl", L"vs_6_0");
 	assert(vertexShaderBlob != nullptr);
 
@@ -173,24 +161,14 @@ void SpriteCommon::CreateGraphicsPipelineState()
 	assert(pixelShaderBlob != nullptr);
 
 
-	///===================================================================
-	///DepthStencilStateの設定を行う
-	///===================================================================
-
-	//DepthStencilStateの設定
+	// DepthStencilStateの設定
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc{};
-	//Depthの機能を有効化する
 	depthStencilDesc.DepthEnable = true;
-	//書き込みします
 	depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-	//比較関数はLessEqual。つまり、近ければ描画される
 	depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 
 
-	///===================================================================
-	///PSOを生成する
-	///===================================================================
-
+	// PSOの設定と生成
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDesc{};
 	graphicsPipelineStateDesc.pRootSignature = rootSignature_.Get();
 	graphicsPipelineStateDesc.InputLayout = inputLayoutDesc;
@@ -198,20 +176,17 @@ void SpriteCommon::CreateGraphicsPipelineState()
 	graphicsPipelineStateDesc.PS = { pixelShaderBlob->GetBufferPointer(),pixelShaderBlob->GetBufferSize() };
 	graphicsPipelineStateDesc.BlendState = blendDesc;
 	graphicsPipelineStateDesc.RasterizerState = rasterizerDesc;
-	//DepthStencilの設定
 	graphicsPipelineStateDesc.DepthStencilState = depthStencilDesc;
 	graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
-	//書き込むRTVの情報
+	// レンダーターゲットの設定
 	graphicsPipelineStateDesc.NumRenderTargets = 1;
 	graphicsPipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-	//利用するトポロジ（形状）のタイプ。三角形
 	graphicsPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	//どのように画面に色を打ち込むかの設定（気にしなくていい）
 	graphicsPipelineStateDesc.SampleDesc.Count = 1;
 	graphicsPipelineStateDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
-	//実際に生成
 
+	// パイプラインステートを生成
 	hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&graphicsPipelineState_));
 	assert(SUCCEEDED(hr));
 }
