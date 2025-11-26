@@ -2,13 +2,13 @@
 
 VignetteEffect::VignetteEffect()
 {
-    // デフォルトパラメータ
-    params_.intensity = 1.0f;
-    params_.radius = 0.6f;
-    params_.softness = 0.3f;
+    // デフォルトパラメータの設定
+    params_.intensity = kDefaultVignetteIntensity;
+    params_.radius = kDefaultVignetteRadius;
+    params_.softness = kDefaultVignetteSoftness;
     params_.color = { 0.0f, 0.0f, 0.0f };
-    params_.enabled = 0;
-	isDirty_ = true; // 初期状態ではパラメータが変更されているとみなす
+    params_.enabled = kEffectDisabled;
+	isDirty_ = true;
 }
 
 VignetteEffect::~VignetteEffect() {}
@@ -17,7 +17,8 @@ void VignetteEffect::ApplyEffect(PostEffectParams& params)
 {
 	if (enabled_)
 	{
-		params.vignetteEnabled = 1; // ビネットエフェクトを有効にする
+		// ビネットエフェクトを有効にし、パラメータを設定
+		params.vignetteEnabled = kEffectEnabled;
 		params.vignetteIntensity = params_.intensity;
 		params.vignetteRadius = params_.radius;
 		params.vignetteSoftness = params_.softness;
@@ -25,12 +26,14 @@ void VignetteEffect::ApplyEffect(PostEffectParams& params)
 	}
 	else
 	{
-		params.vignetteEnabled = 0; // ビネットエフェクトを無効にする
+		// ビネットエフェクトを無効化
+		params.vignetteEnabled = kEffectDisabled;
 	}
 }
 
 void VignetteEffect::SetIntensity(float intensity)
 {
+    // 値が変更された場合のみ更新
     if (params_.intensity != intensity)
     {
         params_.intensity = intensity;
@@ -40,6 +43,7 @@ void VignetteEffect::SetIntensity(float intensity)
 
 void VignetteEffect::SetRadius(float radius)
 {
+    // 値が変更された場合のみ更新
     if (params_.radius != radius)
     {
         params_.radius = radius;
@@ -49,6 +53,7 @@ void VignetteEffect::SetRadius(float radius)
 
 void VignetteEffect::SetSoftness(float softness)
 {
+    // 値が変更された場合のみ更新
     if (params_.softness != softness)
     {
         params_.softness = softness;
@@ -58,6 +63,7 @@ void VignetteEffect::SetSoftness(float softness)
 
 void VignetteEffect::SetColor(const Vector3& color)
 {
+    // 値が変更された場合のみ更新
     if (params_.color.x != color.x || params_.color.y != color.y || params_.color.z != color.z)
     {
         params_.color = color;
@@ -67,6 +73,7 @@ void VignetteEffect::SetColor(const Vector3& color)
 
 void VignetteEffect::SetEnabled(bool enabled)
 {
+    // 値が変更された場合のみ更新
     if (enabled_ != enabled)
     {
         enabled_ = enabled;

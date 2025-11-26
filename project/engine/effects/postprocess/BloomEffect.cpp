@@ -4,13 +4,14 @@
 
 BloomEffect::BloomEffect()
 {
-    params_.intensity = 0.7f;
-    params_.threshold = 0.78f;
-    params_.radius = 2.0f;
-    params_.enabled = 1;
+    // デフォルトパラメータの設定
+    params_.intensity = kDefaultBloomIntensity;
+    params_.threshold = kDefaultBloomThreshold;
+    params_.radius = kDefaultBloomRadius;
+    params_.enabled = kEffectEnabled;
 	params_.invScreenSize = { 1.0f / WinApp::kClientWidth, 1.0f / WinApp::kClientHeight };
-	params_.thresholdKnee = 0.5f;
-	params_.bloomMix = 1.0f;
+	params_.thresholdKnee = kDefaultThresholdKnee;
+	params_.bloomMix = kDefaultBloomMix;
 	enabled_ = true;
     isDirty_ = true;
 }
@@ -21,7 +22,8 @@ void BloomEffect::ApplyEffect(PostEffectParams& params)
 {
     if (enabled_)
     {
-        params.bloomEnabled = 1;
+        // Bloomエフェクトを有効にし、パラメータを設定
+        params.bloomEnabled = kEffectEnabled;
         params.bloomIntensity = params_.intensity;
         params.bloomThreshold = params_.threshold;
         params.bloomRadius = params_.radius;
@@ -31,12 +33,14 @@ void BloomEffect::ApplyEffect(PostEffectParams& params)
     }
     else
     {
-        params.bloomEnabled = 0;
+        // Bloomエフェクトを無効化
+        params.bloomEnabled = kEffectDisabled;
     }
 }
 
 void BloomEffect::SetIntensity(float intensity)
 {
+    // 値が変更された場合のみ更新
     if (params_.intensity != intensity)
     {
         params_.intensity = intensity;
@@ -46,6 +50,7 @@ void BloomEffect::SetIntensity(float intensity)
 
 void BloomEffect::SetThreshold(float threshold)
 {
+    // 値が変更された場合のみ更新
     if (params_.threshold != threshold)
     {
         params_.threshold = threshold;
@@ -55,6 +60,7 @@ void BloomEffect::SetThreshold(float threshold)
 
 void BloomEffect::SetRadius(float radius)
 {
+    // 値が変更された場合のみ更新
     if (params_.radius != radius)
     {
         params_.radius = radius;
@@ -64,6 +70,7 @@ void BloomEffect::SetRadius(float radius)
 
 void BloomEffect::SetEnabled(bool enabled)
 {
+    // 値が変更された場合のみ更新
     if (enabled_ != enabled)
     {
         enabled_ = enabled;
@@ -73,6 +80,7 @@ void BloomEffect::SetEnabled(bool enabled)
 
 void BloomEffect::SetInvScreenSize(const Vector2& invScreenSize)
 {
+	// 値が変更された場合のみ更新
 	if (params_.invScreenSize.x != invScreenSize.x || params_.invScreenSize.y != invScreenSize.y)
 	{
 		params_.invScreenSize = invScreenSize;
@@ -82,6 +90,7 @@ void BloomEffect::SetInvScreenSize(const Vector2& invScreenSize)
 
 void BloomEffect::SetThresholdKnee(float thresholdKnee)
 {
+	// 値が変更された場合のみ更新
 	if (params_.thresholdKnee != thresholdKnee)
 	{
 		params_.thresholdKnee = thresholdKnee;
@@ -91,6 +100,7 @@ void BloomEffect::SetThresholdKnee(float thresholdKnee)
 
 void BloomEffect::SetBloomMix(float bloomMix)
 {
+	// 値が変更された場合のみ更新
 	if (params_.bloomMix != bloomMix)
 	{
 		params_.bloomMix = bloomMix;
