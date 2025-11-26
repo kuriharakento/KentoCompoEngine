@@ -4,6 +4,9 @@
 #include "imgui/imgui_internal.h"
 #include "math/MathUtils.h"
 
+// カメラ補間速度（イージング係数）
+constexpr float kCameraLerpSpeed = 0.1f;
+
 void TopDownCamera::Initialize(Camera* camera)
 {
     camera_ = camera;
@@ -12,6 +15,7 @@ void TopDownCamera::Initialize(Camera* camera)
 void TopDownCamera::Update()
 {
 #ifdef USE_IMGUI
+    // ImGuiデバッグUI
 	ImGui::Begin("TopDownCamera Settings");
 	Vector3 cameraPos = camera_->GetTranslate();
 	ImGui::DragFloat3("Camera Position", &cameraPos.x, 0.1f);
@@ -28,25 +32,26 @@ void TopDownCamera::Update()
 
     if (!camera_ || !target_ || !isActive_) return;
 
-    // ターゲットの位置を基準にカメラの位置を計算（高さのみ加える）
+    // ターゲットの位置を基準にカメラの目標位置を計算
     Vector3 targetPos = *target_;
     Vector3 targetCameraPos = targetPos + Vector3(0.0f, height_, 0.0f);
 
-    // 現在のカメラ位置は offset が既に加わっている場合がある -> 一度差し引いて「生の位置」を取得
+    // 現在のカメラ位置からオフセットを差し引いて「生の位置」を取得
     Vector3 currentWorld = camera_->GetTranslate() - offset_;
 
-	// イージングを使用してカメラの位置を滑らかに移動（生の位置同士で補間）
-	Vector3 newWorld = MathUtils::Lerp(currentWorld, targetCameraPos, 0.1f);
+	// イージングを使用してカメラの位置を滑らかに移動
+	Vector3 newWorld = MathUtils::Lerp(currentWorld, targetCameraPos, kCameraLerpSpeed);
 
-    // 最終的にオフセットを一度だけ加えてセット
+    // オフセットを加えて最終位置を設定
     camera_->SetTranslate(newWorld + offset_);
 
-	// カメラの向きを真下に向ける
+	// カメラの向きを設定（真下を向く）
 	camera_->SetRotate(Vector3(pitch_, yaw_, 0.0f));
 }
 
 void TopDownCamera::Start(float height, const Vector3* target)
 {
+    // パラメータを設定
 	height_ = height;
 	target_ = target;
 	isActive_ = true;

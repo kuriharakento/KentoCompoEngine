@@ -6,6 +6,11 @@
 #include "input/Input.h"
 #include "math/MathUtils.h"
 
+// ピッチ角最小値（度）- 水平より少し下
+constexpr float kPitchMin = -5.0f;
+// ピッチ角最大値（度）- 真上にならない範囲
+constexpr float kPitchMax = 50.0f;
+
 void FollowCamera::Initialize(Camera* camera)
 {
 	camera_ = camera;
@@ -13,9 +18,12 @@ void FollowCamera::Initialize(Camera* camera)
 
 void FollowCamera::Start(const Vector3* target, float distance, float sensitivity)
 {
+    // パラメータを設定
     target_ = target;
     distance_ = distance;
     sensitivity_ = sensitivity;
+    
+    // 回転角度を初期化
     yaw_ = 0.0f;
     pitch_ = 0.0f;
     isActive_ = true;
@@ -34,11 +42,9 @@ void FollowCamera::Update()
     pitch_ -= deltaY * sensitivity_;
 
     // ピッチ角を制限（水平から真上にならない範囲に制御）
-    const float pitchMin = -5.0f;    // 水平
-    const float pitchMax = 50.0f;   // 真上にならない範囲
-    pitch_ = std::clamp(pitch_, pitchMin, pitchMax);
+    pitch_ = std::clamp(pitch_, kPitchMin, kPitchMax);
 
-    // カメラの位置を計算
+    // 球面座標からカメラの位置を計算
     float radYaw = DirectX::XMConvertToRadians(yaw_);
     float radPitch = DirectX::XMConvertToRadians(pitch_);
     Vector3 offset = {
