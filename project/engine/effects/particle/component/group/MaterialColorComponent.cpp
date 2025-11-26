@@ -7,5 +7,6 @@ MaterialColorComponent::MaterialColorComponent(const Vector4& color)
 
 void MaterialColorComponent::Update(ParticleGroup& group)
 {
+    // パーティクルグループのマテリアルカラーを設定
     group.SetMaterialColor(color_);
 }
