@@ -4,10 +4,12 @@
 
 Line::~Line()
 {
+	// 頂点バッファのアンマップとリセット
 	if (vertexResource_) {
 		vertexResource_->Unmap(0, nullptr);
 		vertexResource_.Reset();
 	}
+	// 定数バッファのアンマップとリセット
 	if (wvpResource_) {
 		wvpResource_->Unmap(0, nullptr);
 		wvpResource_.Reset();
@@ -24,6 +26,7 @@ void Line::Initialize(LineCommon* lineCommon) {
 }
 
 void Line::AddLine(const Vector3& start, const Vector3& end, const Vector4& color) {
+    // 始点と終点を頂点として追加
     vertices_.push_back({ start, color });
     vertices_.push_back({ end, color });
 }
@@ -35,19 +38,19 @@ void Line::Update(Camera* camera)
 }
 
 void Line::CreateVertexData() {
-    // バッファリソースの作成
+    // 最大頂点数分のバッファリソースを作成
     vertexResource_ = lineCommon_->GetDirectXCommon()->CreateBufferResource(
         sizeof(LineVertex) * kMaxVertexCount
     );
 
-    // バッファにデータを書き込む
+    // バッファをマップして書き込み可能にする
     vertexResource_->Map(
         0, 
         nullptr,
 		reinterpret_cast<void**>(&vertexData_)
         );
 
-    // バッファビューの設定
+    // 頂点バッファビューの設定
     vertexBufferView_.BufferLocation = vertexResource_->GetGPUVirtualAddress();
     vertexBufferView_.SizeInBytes = sizeof(LineVertex) * kMaxVertexCount;
     vertexBufferView_.StrideInBytes = sizeof(LineVertex);
@@ -58,12 +61,13 @@ void Line::CreateWVPResource()
     // 定数バッファの作成
     wvpResource_ = lineCommon_->GetDirectXCommon()->CreateBufferResource(sizeof(Matrix4x4));
 
-	// バッファにデータを書き込む
+	// バッファをマップ
     wvpResource_->Map(0, 
         nullptr,
 		reinterpret_cast<void**>(&wvpData_)
     );
 
+    // 単位行列で初期化
     wvpData_->WVP = MakeIdentity4x4();
     wvpData_->World = MakeIdentity4x4();
 }
@@ -81,20 +85,24 @@ void Line::UpdateMatrix(Camera* camera)
 
 void Line::UpdateVertexData()
 {
-    // バッファにデータを書き込む
+    // 頂点データをGPUバッファにコピー
     std::memcpy(vertexData_, vertices_.data(), sizeof(LineVertex) * vertices_.size());
 }
 
 void Line::Draw() {
+    // 描画に必要なリソースがない場合は終了
     if (vertices_.empty() || !vertexResource_ || !wvpResource_) return;
 
     auto commandList = lineCommon_->GetDirectXCommon()->GetCommandList();
+    
+    // パイプラインステートとルートシグネチャを設定
     commandList->SetPipelineState(lineCommon_->GetPipelineState().Get());
     commandList->SetGraphicsRootSignature(lineCommon_->GetRootSignature().Get());
 
     // バッファが有効かチェック
     if (vertexBufferView_.BufferLocation == 0) return;
 
+    // ラインリストとして描画設定
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
     commandList->IASetVertexBuffers(0, 1, &vertexBufferView_);
 
