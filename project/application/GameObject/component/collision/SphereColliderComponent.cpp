@@ -3,21 +3,33 @@
 #include "manager/graphics/LineManager.h"
 #include "math/VectorColorCodes.h"
 
+/**
+ * @brief コンストラクタ
+ */
 SphereColliderComponent::SphereColliderComponent(GameObject* owner)
     : ICollisionComponent(owner), sphere_()
 {
 }
 
+/**
+ * @brief 球データを取得
+ */
 const Sphere& SphereColliderComponent::GetSphere() const
 {
     return sphere_;
 }
 
+/**
+ * @brief 球データを設定
+ */
 void SphereColliderComponent::SetSphere(const Sphere& s)
 {
     sphere_ = s;
 }
 
+/**
+ * @brief 毎フレームの更新処理
+ */
 void SphereColliderComponent::Update(GameObject* owner)
 {
 	if (owner)
@@ -36,6 +48,9 @@ void SphereColliderComponent::Update(GameObject* owner)
 #endif
 }
 
+/**
+ * @brief コライダーの種類を取得
+ */
 ColliderType SphereColliderComponent::GetColliderType() const
 {
     return ColliderType::Sphere;

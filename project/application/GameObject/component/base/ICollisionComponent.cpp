@@ -1,6 +1,11 @@
 #include "ICollisionComponent.h"
 #include "application/GameObject/component/collision/CollisionManager.h"
 
+/**
+ * @brief デストラクタ
+ * 
+ * CollisionManagerから自動的に登録解除します。
+ */
 ICollisionComponent::~ICollisionComponent()
 {
 	owner_ = nullptr;
@@ -8,6 +13,11 @@ ICollisionComponent::~ICollisionComponent()
 	CollisionManager::GetInstance()->Unregister(this);
 }
 
+/**
+ * @brief コンストラクタ
+ * 
+ * CollisionManagerに自動的に登録します。
+ */
 ICollisionComponent::ICollisionComponent(GameObject* owner)
 {
 	owner_ = owner;
