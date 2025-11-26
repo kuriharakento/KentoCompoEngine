@@ -755,7 +755,7 @@ bool CollisionAlgorithm::CheckOBBvsOBB_XY(const OBB& obbA, const OBB& obbB)
 		Vector2(obbB.rotate.m[1][0], obbB.rotate.m[1][1])   // Y軸
 	};
 
-	// XY平面のサイズを2Dベクトルとして取得
+	// XY平面のサイズを2Dベクトルとして取得（Vector2.x = OBB.size.x, Vector2.y = OBB.size.y）
 	Vector2 sizeA(obbA.size.x, obbA.size.y);
 	Vector2 sizeB(obbB.size.x, obbB.size.y);
 
@@ -806,7 +806,7 @@ bool CollisionAlgorithm::CheckOBBvsOBB_XZ(const OBB& obbA, const OBB& obbB)
 		Vector2(obbB.rotate.m[2][0], obbB.rotate.m[2][2])
 	};
 
-	// XZ平面のサイズを2Dベクトルとして取得
+	// XZ平面のサイズを2Dベクトルとして取得（Vector2.x = OBB.size.x, Vector2.y = OBB.size.z）
 	Vector2 sizeA(obbA.size.x, obbA.size.z);
 	Vector2 sizeB(obbB.size.x, obbB.size.z);
 
@@ -818,7 +818,7 @@ bool CollisionAlgorithm::CheckOBBvsOBB_XZ(const OBB& obbA, const OBB& obbB)
 	{
 		const Vector2& axis = testAxes[i];
 
-		// 各OBBの投影幅を計算
+		// 各OBBの投影幅を計算（sizeA.y = obbA.size.z）
 		float projA = std::abs(Vector2::Dot(axesA[0] * sizeA.x, axis)) +
 			std::abs(Vector2::Dot(axesA[1] * sizeA.y, axis));
 
@@ -857,7 +857,7 @@ bool CollisionAlgorithm::CheckOBBvsOBB_YZ(const OBB& obbA, const OBB& obbB)
 		Vector2(obbB.rotate.m[2][1], obbB.rotate.m[2][2])
 	};
 
-	// YZ平面のサイズを2Dベクトルとして取得
+	// YZ平面のサイズを2Dベクトルとして取得（Vector2.x = OBB.size.y, Vector2.y = OBB.size.z）
 	Vector2 sizeA(obbA.size.y, obbA.size.z);
 	Vector2 sizeB(obbB.size.y, obbB.size.z);
 
