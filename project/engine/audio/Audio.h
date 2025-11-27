@@ -4,216 +4,186 @@
 #include <fstream>
 #include <unordered_map>
 #include <wrl.h>
-#include <xaudio2fx.h> // エフェクト用
-//#pragma comment(lib, "XAPOFX.lib")     // エフェクト用
+#include <xaudio2fx.h>
 #include <vector>
+#include <string>
 
-/**
- * @brief チャンクヘッダ
- */
 struct ChunkHeader
 {
-	// チャンクID
 	char id[4];
-	// チャンクサイズ
 	int32_t size;
 };
 
-/**
- * @brief RIFFヘッダ
- */
 struct RiffHeader
 {
-	// RIFFチャンク
 	ChunkHeader chunk;
-	// WAVEタイプ
 	char type[4];
 };
 
-/**
- * @brief FMTチャンク
- */
 struct FormatChunk
 {
-	// チャンクヘッダ
 	ChunkHeader chunk;
-	// 波形フォーマット
 	WAVEFORMATEX fmt;
 };
 
-/**
- * @brief 音声グループの種類
- */
 enum class SoundGroup
 {
-	// BGM
 	BGM,
-	// 効果音
 	SE,
-	// 必要に応じて他のグループを追加
+	Voice,
+	Ambient,
 };
 
-/**
- * @brief 音声データ
- */
+enum class ReverbPreset
+{
+	Default,
+	Generic,
+	Room,
+	Bathroom,
+	StoneRoom,
+	Auditorium,
+	ConcertHall,
+	Cave,
+	Arena,
+	Hangar,
+	Forest,
+	City,
+	Mountains,
+	Quarry,
+	Plain,
+	SmallRoom,
+	MediumRoom,
+	LargeRoom,
+	MediumHall,
+	LargeHall,
+	Plate,
+};
+
 struct SoundData
 {
-	// 波形フォーマット
 	WAVEFORMATEX wfex;
-	// バッファの先頭アドレス
 	BYTE* pBuffer;
-	// バッファのサイズ
 	unsigned int bufferSize;
-	// 音声グループ
 	SoundGroup group;
 };
 
-/**
- * @brief フェード処理用データ
- */
 struct FadeData
 {
-	// ソースボイス
 	IXAudio2SourceVoice* sourceVoice;
-	// 開始音量
+	std::string name;
 	float startVolume;
-	// 目標音量
 	float targetVolume;
-	// 現在の経過時間
 	float currentTime;
-	// フェードの継続時間
 	float duration;
-	// フェード中フラグ
 	bool isFading;
 };
 
-/**
- * @brief オーディオ管理クラス
- */
+#ifdef USE_IMGUI
+struct AudioDebugData
+{
+	bool windowVisible = false;
+	float groupVolumes[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	std::string selectedSound;
+	float selectedVolume = 1.0f;
+	float selectedPitch = 1.0f;
+	bool selectedLoop = false;
+	float fadeDuration = 1.0f;
+	float fadeTargetVolume = 1.0f;
+	bool fadeOutStop = true;
+	int currentPreset = 0;
+	float reverbAmount = 0.3f;
+};
+#endif
+
 class Audio
 {
 public:
-	/**
-	 * @brief シングルトンインスタンスを取得
-	 * @return Audioクラスのインスタンス
-	 */
 	static Audio* GetInstance();
-
-	/**
-	 * @brief 初期化処理
-	 */
 	void Initialize();
-
-	/**
-	 * @brief 終了処理
-	 */
 	void Finalize();
-
-	/**
-	 * @brief 更新処理（フェード処理等）
-	 */
 	void Update();
 
-	/**
-	 * @brief WAVファイルの読み込み
-	 * @param filename ファイル名
-	 * @return 読み込んだ音声データ
-	 */
 	SoundData LoadWave(const char* filename);
-
-	/**
-	 * @brief WAVファイルの読み込み（名前付き）
-	 * @param name 音声データの名前
-	 * @param filename ファイル名
-	 * @param group 音声グループ
-	 */
 	void LoadWave(const std::string& name, const char* filename, SoundGroup group);
 
-	/**
-	 * @brief 音声の再生
-	 * @param soundData 音声データ
-	 * @param loop ループ再生するかどうか
-	 */
 	void PlayWave(SoundData* soundData, bool loop = false);
-
-	/**
-	 * @brief 名前指定で音声を再生
-	 * @param name 音声データの名前
-	 * @param loop ループ再生するかどうか
-	 */
 	void PlayWave(const std::string& name, bool loop = false);
-
-	/**
-	 * @brief 音声の停止
-	 * @param name 音声データの名前
-	 */
 	void StopWave(const std::string& name);
-
-	/**
-	 * @brief グループ内の全音声を停止
-	 * @param group 音声グループ
-	 */
 	void StopGroup(SoundGroup group);
+	void StopAll();
 
-	/**
-	 * @brief 音量の設定
-	 * @param name 音声データの名前
-	 * @param volume 音量（0.0f〜1.0f）
-	 */
+	void Pause(const std::string& name);
+	void Resume(const std::string& name);
+	void PauseGroup(SoundGroup group);
+	void ResumeGroup(SoundGroup group);
+	void PauseAll();
+	void ResumeAll();
+
 	void SetVolume(const std::string& name, float volume);
-
-	/**
-	 * @brief グループ全体の音量を設定
-	 * @param group 音声グループ
-	 * @param volume 音量（0.0f〜1.0f）
-	 */
 	void SetGroupVolume(SoundGroup group, float volume);
+	void SetMasterVolume(float volume);
+	float GetMasterVolume() const;
+	void SetPitch(const std::string& name, float pitch);
 
-	/**
-	 * @brief フェードイン開始
-	 * @param name 音声データの名前
-	 * @param duration フェードの継続時間（秒）
-	 */
-	void FadeIn(const std::string& name, float duration);
+	void FadeIn(const std::string& name, float duration, float targetVolume = 1.0f);
+	void FadeOut(const std::string& name, float duration, bool stopOnComplete = true);
 
-	/**
-	 * @brief フェードアウト開始
-	 * @param name 音声データの名前
-	 * @param duration フェードの継続時間（秒）
-	 */
-	void FadeOut(const std::string& name, float duration);
+	bool IsPlaying(const std::string& name) const;
+	bool IsPaused(const std::string& name) const;
+	bool IsLoaded(const std::string& name) const;
+
+	void SetReverbEnabled(bool enabled);
+	bool IsReverbEnabled() const;
+	void SetReverbPreset(ReverbPreset preset);
+	void SetReverbAmount(float amount);
+	float GetReverbAmount() const;
+
+	void UnloadWave(const std::string& name);
+	void UnloadAll();
+
+#ifdef USE_IMGUI
+	void SetDebugWindowVisible(bool visible) { debugData_.windowVisible = visible; }
+	bool IsDebugWindowVisible() const { return debugData_.windowVisible; }
+	void ToggleDebugWindow() { debugData_.windowVisible = !debugData_.windowVisible; }
+#endif
 
 private:
-	/**
-	 * @brief エフェクトの初期化
-	 */
 	void InitializeEffect();
+	void RemoveFromGroupMap(IXAudio2SourceVoice* sourceVoice);
+	float ClampVolume(float volume) const;
+	float ClampPitch(float pitch) const;
+	void UpdateReverbVolume();
+
+#ifdef USE_IMGUI
+	void DrawDebugWindow();
+#endif
 
 private:
-	// XAudio2エンジン
 	Microsoft::WRL::ComPtr<IXAudio2> xAudio2;
-	// マスターボイス
-	IXAudio2MasteringVoice* masterVoice;
-	// 音声データのマップ
+	IXAudio2MasteringVoice* masterVoice = nullptr;
+	IXAudio2SubmixVoice* submixVoiceDry_ = nullptr;    // ドライ音用
+	IXAudio2SubmixVoice* submixVoiceReverb_ = nullptr; // リバーブ用
+
 	std::unordered_map<std::string, SoundData> soundDataMap_;
-	// 再生中の音声ソースボイスのマップ
 	std::unordered_map<std::string, IXAudio2SourceVoice*> sourceVoiceMap_;
-	// グループごとのソースボイスリスト
 	std::unordered_map<SoundGroup, std::vector<IXAudio2SourceVoice*>> groupVoicesMap_;
-	// フェード操作を管理するリスト
+	std::unordered_map<std::string, bool> pausedMap_;
 	std::vector<FadeData> fadeList_;
-	// サブミックスボイス（エフェクト用）
-	IXAudio2SubmixVoice* submixVoice_;
-	// 音声リソースのディレクトリパス
+	std::unordered_map<IXAudio2SourceVoice*, bool> fadeOutStopMap_;
+
+	bool reverbEnabled_ = true;
+	float masterVolume_ = 1.0f;
+	float reverbAmount_ = 0.3f;
+	ReverbPreset currentPreset_ = ReverbPreset::Default;
 	const std::string directoryPath = "Resources/audio/";
 
-private:
-	// シングルトンインスタンス
-	static Audio* instance_;
+#ifdef USE_IMGUI
+	AudioDebugData debugData_;
+#endif
 
-	Audio() {}
-	~Audio() {}
+	static Audio* instance_;
+	Audio() = default;
+	~Audio() = default;
 	Audio(const Audio&) = delete;
 	Audio& operator=(const Audio&) = delete;
 };
-

@@ -79,6 +79,7 @@ void Framework::Initialize()
 
 	// オーディオの初期化
 	Audio::GetInstance()->Initialize();
+	Audio::GetInstance()->SetDebugWindowVisible(true);
 
 	// 時間管理クラスの初期化
 	TimeManager::GetInstance();
