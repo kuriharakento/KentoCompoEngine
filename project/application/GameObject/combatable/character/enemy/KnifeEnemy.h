@@ -22,7 +22,7 @@ public:
 	 * @param target 追跡対象（プレイヤー）
 	 * @param initialTransform 初期トランスフォーム
 	 */
-	void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target, const Transform& initialTransform = Transform()) override;
+	void Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, CameraManager* camera, LightManager* lightManager, GameObject* target, const Transform& initialTransform = Transform()) override;
 		
 	/**
 	 * @brief コリジョン設定

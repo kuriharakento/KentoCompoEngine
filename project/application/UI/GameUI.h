@@ -71,6 +71,12 @@ public:
 	void SetSize(const Vector2& size);
 
 	/**
+	 * @brief テクスチャサイズを設定
+	 * @param textureSize テクスチャサイズ
+	 */
+	void SetTextureSize(const Vector2& textureSize);
+
+	/**
 	 * @brief UIの色を設定
 	 * @param color 色（RGBA）
 	 */

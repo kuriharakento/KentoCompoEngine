@@ -94,7 +94,7 @@ public:
 	struct BrightPassParams
     {
         float threshold = 0.8f;   // 明るさの閾値
-        float intensity = 2.0f;   // 強度
+        float intensity = 1.5f;   // 強度
         float knee = 0.5f;        // ソフトな閾値の範囲
         float padding = 0.0f;     // パディング
     } brightPassParams_;

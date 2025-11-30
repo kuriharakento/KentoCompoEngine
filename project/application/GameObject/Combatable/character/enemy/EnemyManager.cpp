@@ -7,9 +7,11 @@
 #include "application/combo/ComboManager.h"
 #include "math/MathUtils.h"
 
-void EnemyManager::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target)
+void EnemyManager::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, CameraManager* camera, LightManager* lightManager, GameObject* target)
 {
 	object3dCommon_ = object3dCommon; // 3Dオブジェクト共通処理
+	spriteCommon_ = spriteCommon; // スプライト共通処理
+	camera_ = camera; // カメラマネージャー
 	lightManager_ = lightManager; // ライトマネージャー
 	target_ = target; // ターゲット（プレイヤーなど）
 	enemies_.clear(); // 敵キャラクターのリストをクリア
@@ -136,7 +138,13 @@ void EnemyManager::AddPistolEnemy(uint32_t count)
 	for (uint32_t i = 0; i < count; ++i)
 	{
 		auto enemy = std::make_unique<PistolEnemy>();
-		enemy->Initialize(object3dCommon_, lightManager_, target_);
+		enemy->Initialize(
+			object3dCommon_,
+			spriteCommon_,
+			camera_,
+			lightManager_, 
+			target_
+		);
 		//ランダムな位置を設定
 		Vector3 randomPosition = MathUtils::RandomVector3(emitRange_.min_, emitRange_.max_);
 		enemy->SetPosition(randomPosition);
@@ -150,7 +158,13 @@ void EnemyManager::AddAssaultEnemy(uint32_t count)
 	for (uint32_t i = 0; i < count; ++i)
 	{
 		auto enemy = std::make_unique<AssaultEnemy>();
-		enemy->Initialize(object3dCommon_, lightManager_, target_);
+		enemy->Initialize(
+			object3dCommon_,
+			spriteCommon_,
+			camera_,
+			lightManager_,
+			target_
+		);
 		//ランダムな位置を設定
 		Vector3 randomPosition = MathUtils::RandomVector3(emitRange_.min_, emitRange_.max_);
 		enemy->SetPosition(randomPosition);
@@ -164,7 +178,13 @@ void EnemyManager::AddShotgunEnemy(uint32_t count)
 	for (uint32_t i = 0; i < count; ++i)
 	{
 		auto enemy = std::make_unique<ShotgunEnemy>();
-		enemy->Initialize(object3dCommon_, lightManager_, target_);
+		enemy->Initialize(
+			object3dCommon_,
+			spriteCommon_,
+			camera_,
+			lightManager_,
+			target_
+		);
 		//ランダムな位置を設定
 		Vector3 randomPosition = MathUtils::RandomVector3(emitRange_.min_, emitRange_.max_);
 		enemy->SetPosition(randomPosition);
@@ -178,7 +198,13 @@ void EnemyManager::AddKnifeEnemy(uint32_t count)
 	for (uint32_t i = 0; i < count; ++i)
 	{
 		auto enemy = std::make_unique<KnifeEnemy>();
-		enemy->Initialize(object3dCommon_, lightManager_, target_);
+		enemy->Initialize(
+			object3dCommon_,
+			spriteCommon_,
+			camera_,
+			lightManager_,
+			target_
+		);
 		//ランダムな位置を設定
 		Vector3 randomPosition = MathUtils::RandomVector3(emitRange_.min_, emitRange_.max_);
 		enemy->SetPosition(randomPosition);
@@ -205,7 +231,14 @@ void EnemyManager::AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo
 		if (data[i].fileName == "enemy" || data[i].fileName == "assault")
 		{
 			auto enemy = std::make_unique<AssaultEnemy>();
-			enemy->Initialize(object3dCommon_, lightManager_, target_, Transform(data[i].transform.scale, data[i].transform.rotate, data[i].transform.translate));
+			enemy->Initialize(
+				object3dCommon_, 
+				spriteCommon_,
+				camera_,
+				lightManager_, 
+				target_,
+				Transform(data[i].transform.scale, data[i].transform.rotate, data[i].transform.translate)
+			);
 			enemy->SetModel(data[i].fileName);
 			
 			enemies_.push_back(std::move(enemy));
@@ -214,7 +247,14 @@ void EnemyManager::AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo
 		else if (data[i].fileName == "knife")
 		{
 			auto enemy = std::make_unique<KnifeEnemy>();
-			enemy->Initialize(object3dCommon_, lightManager_, target_, Transform(data[i].transform.scale, data[i].transform.rotate, data[i].transform.translate));
+			enemy->Initialize(
+				object3dCommon_,
+				spriteCommon_,
+				camera_,
+				lightManager_, 
+				target_,
+				Transform(data[i].transform.scale, data[i].transform.rotate, data[i].transform.translate)
+			);
 			// NOTE:ここのせいで処理が増えている。本来はもっと簡潔になります。
 			enemy->SetModel("cube");
 			enemies_.push_back(std::move(enemy));
@@ -232,7 +272,13 @@ void EnemyManager::CreateAssaultEnemyFromData()
 	for(int i = 0;i < enemyData_.size();i++)
 	{
 		auto enemy = std::make_unique<AssaultEnemy>();
-		enemy->Initialize(object3dCommon_, lightManager_, target_);
+		enemy->Initialize(
+			object3dCommon_,
+			spriteCommon_,
+			camera_,
+			lightManager_,
+			target_
+		);
 		enemy->SetModel(enemyData_[i].fileName);
 		enemy->SetPosition(enemyData_[i].transform.translate);
 		enemy->SetRotation(enemyData_[i].transform.rotate);

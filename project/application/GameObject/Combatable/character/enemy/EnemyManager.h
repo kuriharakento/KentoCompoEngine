@@ -12,7 +12,7 @@ class Object3dCommon;
 class EnemyManager
 {
 public:
-	void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target);
+	void Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, CameraManager* camera, LightManager* lightManager, GameObject* target);
 	void Update();
 	void UpdateTransform(CameraManager* camera);
 	void Draw3D(CameraManager* camera);
@@ -41,6 +41,7 @@ private:
 
 private:
 	Object3dCommon* object3dCommon_ = nullptr; // 3Dオブジェクト共通処理
+	SpriteCommon* spriteCommon_ = nullptr; // スプライト共通処理
 	LightManager* lightManager_ = nullptr; // ライトマネージャー
 	GameObject* target_ = nullptr; // ターゲット（プレイヤーなど）
 	CameraManager* camera_ = nullptr; // カメラマネージャー
