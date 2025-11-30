@@ -16,20 +16,20 @@ void PlayerDeathEffect::Initialize(Player* player)
 	debrisEmitter_ = std::make_unique<ParticleEmitter>();
 	debrisEmitter_->Initialize(
 		"player_death_debris",
-		"./Resources/black.png"
+		"./Resources/star.png"
 	);
 	
 	// パーティクルの基本設定
-	debrisEmitter_->SetInitialLifeTime(1.0f);
+	debrisEmitter_->SetInitialLifeTime(0.7f);
 	debrisEmitter_->SetEmitRate(0.1f);
 	debrisEmitter_->SetModelType(ParticleGroup::ParticleType::Cube);
 	debrisEmitter_->SetBlendMode(BlendMode::Additive);
 	
 	// ランダムパラメータ設定（多様な破片表現）
 	debrisEmitter_->SetRandomScale(true);
-	debrisEmitter_->SetRandomScaleRange(AABB({ 0.1f, 0.1f, 0.1f }, { 0.5f, 0.5f, 0.5f }));
+	debrisEmitter_->SetRandomScaleRange(AABB({ 5.0f, 5.0f, 5.0f }, { 30.0f, 30.0f, 30.0f }));
 	debrisEmitter_->SetRandomVelocity(true);
-	debrisEmitter_->SetRandomVelocityRange(AABB({ -2.0f, 2.0f, -2.0f }, { 2.0f, 2.0f, 2.0f }));
+	debrisEmitter_->SetRandomVelocityRange(AABB({ -8.0f, -8.0f, -8.0f }, { 8.0f, 8.0f, 8.0f }));
 	debrisEmitter_->SetRandomRotation(true);
 	debrisEmitter_->SetRandomRotationRange(AABB({ 0.0f, 0.0f, 0.0f }, { 3.14f, 3.14f, 3.14f }));
 	debrisEmitter_->SetRandomColor(true);
