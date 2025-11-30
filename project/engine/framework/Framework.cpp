@@ -79,7 +79,9 @@ void Framework::Initialize()
 
 	// オーディオの初期化
 	Audio::GetInstance()->Initialize();
+#ifdef USE_IMGUI
 	Audio::GetInstance()->SetDebugWindowVisible(true);
+#endif // USE_IMGUI
 
 	// 時間管理クラスの初期化
 	TimeManager::GetInstance();
