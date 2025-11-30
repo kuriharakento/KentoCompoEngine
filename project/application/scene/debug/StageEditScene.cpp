@@ -65,6 +65,7 @@ void StageEditScene::OnUpdatePlaying()
 
 void StageEditScene::Draw2D()
 {
+	if (stageManager_) stageManager_->Draw2D();
 }
 
 void StageEditScene::Draw3D()
@@ -101,5 +102,5 @@ void StageEditScene::Draw3D()
 		VectorColorCodes::Blue
 	);
 
-	if (stageManager_) stageManager_->Draw();
+	if (stageManager_) stageManager_->Draw3D();
 }

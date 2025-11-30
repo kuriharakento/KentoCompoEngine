@@ -1,5 +1,5 @@
 #pragma once
-#include "application/GameObject/component/base/IGameObjectComponent.h"
+#include "application/GameObject/component/base/IActionComponent.h"
 #include "math/Vector3.h"
 #include <vector>
 #include <memory>
@@ -13,7 +13,7 @@ class GameObject;
  *
  * ビヘイビアツリーを使用して、パトロール、追跡、近接攻撃などの行動を管理する
  */
-class KnifeEnemyBehavior : public IGameObjectComponent
+class KnifeEnemyBehavior : public IActionComponent
 {
 public:
     /**

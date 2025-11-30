@@ -13,8 +13,3 @@ void EnemyBase::Update()
 {
 	Character::Update();
 }
-
-void EnemyBase::Draw(CameraManager* camera)
-{
-	Character::Draw(camera);
-}

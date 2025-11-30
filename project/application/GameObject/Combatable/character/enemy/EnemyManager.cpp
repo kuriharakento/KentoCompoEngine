@@ -26,6 +26,9 @@ void EnemyManager::Initialize(Object3dCommon* object3dCommon, LightManager* ligh
 
 void EnemyManager::Update()
 {
+	// 削除保留中の敵をクリーンアップ
+	CleanupPendingRemovals();
+
 #ifdef USE_IMGUI
 	ImGui::Begin("Enemy Manager");
 	ImGui::Text("Enemy Count: %d", static_cast<int>(enemies_.size()));
@@ -112,15 +115,20 @@ void EnemyManager::UpdateTransform(CameraManager* camera)
 	}
 }
 
-void EnemyManager::Draw(CameraManager* camera)
+void EnemyManager::Draw3D(CameraManager* camera)
 {
 	for (auto& enemy : enemies_)
 	{
-		enemy->Draw(camera); // 各敵キャラクターの描画
+		enemy->Draw3D(camera); // 各敵キャラクターの描画
 	}
+}
 
-	// Draw が終わったら pendingRemovals_ をクリアして実際にデストラクトさせる
-	CleanupPendingRemovals();
+void EnemyManager::Draw2D()
+{
+	for (auto& enemy : enemies_)
+	{
+		enemy->Draw2D(); // 各敵キャラクターの2D描画
+	}	
 }
 
 void EnemyManager::AddPistolEnemy(uint32_t count)

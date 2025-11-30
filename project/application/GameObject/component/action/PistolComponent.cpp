@@ -98,14 +98,14 @@ void PistolComponent::Update(GameObject* owner)
 }
 
 // 描画処理
-void PistolComponent::Draw(CameraManager* camera)
+void PistolComponent::Draw3D(CameraManager* camera)
 {
 	// 生存している弾のみ描画
 	for (const auto& bullet : bullets_)
 	{
 		if (bullet->IsAlive())
 		{
-			bullet->Draw(camera);
+			bullet->Draw3D(camera);
 		}
 	}
 }

@@ -29,15 +29,4 @@ public:
 	 * @param position 弾丸の初期位置
 	 */
 	void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, const Vector3& position);
-	
-	/**
-	 * @brief 毎フレームの更新処理
-	 */
-	void Update();
-	
-	/**
-	 * @brief 描画処理
-	 * @param camera カメラ管理クラス
-	 */
-	void Draw(CameraManager* camera);
 };

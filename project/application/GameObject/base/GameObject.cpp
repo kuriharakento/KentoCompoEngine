@@ -82,7 +82,7 @@ void GameObject::Update()
 	ProcessPendingChanges();
 }
 
-void GameObject::Draw(CameraManager* camera)
+void GameObject::Draw3D(CameraManager* camera)
 {
 	if (!object3d_) { return; }
 
@@ -96,7 +96,7 @@ void GameObject::Draw(CameraManager* camera)
 	{
 		if (child)
 		{
-			child->Draw(camera);
+			child->Draw3D(camera);
 		}
 	}
 
@@ -105,7 +105,27 @@ void GameObject::Draw(CameraManager* camera)
 	{
 		if (actionComp)
 		{
-			actionComp->Draw(camera);
+			actionComp->Draw3D(camera);
+		}
+	}
+}
+
+void GameObject::Draw2D()
+{
+	// アクションコンポーネントの2D描画
+	for (auto& actionComp : actionComponents_)
+	{
+		if (actionComp)
+		{
+			actionComp->Draw2D();
+		}
+	}
+	// 子オブジェクトの2D描画
+	for (auto& [name, child] : children_)
+	{
+		if (child)
+		{
+			child->Draw2D();
 		}
 	}
 }

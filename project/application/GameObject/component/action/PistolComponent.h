@@ -37,7 +37,7 @@ public:
 	 * @brief 描画処理
 	 * @param camera カメラマネージャー
 	 */
-	void Draw(CameraManager* camera) override;
+	void Draw3D(CameraManager* camera) override;
 
 private:
 	// 定数

@@ -26,11 +26,6 @@ public:
 	void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager);
 	
 	/**
-	 * @brief 毎フレームの更新処理
-	 */
-	void Update();
-	
-	/**
 	 * @brief 描画処理
 	 * @param camera カメラ管理クラス
 	 */

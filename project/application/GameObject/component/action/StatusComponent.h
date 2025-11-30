@@ -16,12 +16,6 @@ public:
 	 */
 	void Update(GameObject* owner) override;
 
-	/**
-	 * @brief 描画処理（このコンポーネントでは何も描画しない）
-	 * @param camera カメラマネージャー
-	 */
-	void Draw(CameraManager* camera) override {}
-
 	// 現在のHP
 	StatusValue hp{ kDefaultHp };
 	// 最大HP

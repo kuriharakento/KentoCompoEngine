@@ -106,24 +106,38 @@ void StageManager::UpdateTransforms(CameraManager* camera)
 	}
 }
 
-void StageManager::Draw()
+void StageManager::Draw3D()
 {
 	// プレイヤーの描画
 	if (player_)
 	{
-		player_->Draw(cameraManager_);
+		player_->Draw3D(cameraManager_);
 	}
 
 	// 敵マネージャーの描画
 	if (enemyManager_)
 	{
-		enemyManager_->Draw(cameraManager_);
+		enemyManager_->Draw3D(cameraManager_);
 	}
 
 	// 障害物の描画
 	if (obstacleManager_)
 	{
 		obstacleManager_->Draw(cameraManager_);
+	}
+}
+
+void StageManager::Draw2D()
+{
+	// プレイヤーの2D描画
+	if (player_)
+	{
+		player_->Draw2D();
+	}
+	// 敵マネージャーの2D描画
+	if (enemyManager_)
+	{
+		enemyManager_->Draw2D();
 	}
 }
 

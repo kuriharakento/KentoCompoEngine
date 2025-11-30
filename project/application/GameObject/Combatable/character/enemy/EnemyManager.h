@@ -15,7 +15,8 @@ public:
 	void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target);
 	void Update();
 	void UpdateTransform(CameraManager* camera);
-	void Draw(CameraManager* camera);
+	void Draw3D(CameraManager* camera);
+	void Draw2D();
 	const std::vector<std::unique_ptr<EnemyBase>>& GetEnemies() const { return enemies_; }
 	uint32_t GetEnemyCount() const { return static_cast<uint32_t>(enemies_.size()); }
 	void AddPistolEnemy(uint32_t count);

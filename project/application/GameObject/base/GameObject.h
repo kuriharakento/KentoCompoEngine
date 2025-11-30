@@ -60,10 +60,15 @@ public:
 	virtual void Update();
 
 	/**
-	 * @brief 描画処理
+	 * @brief 3D描画処理
 	 * @param camera カメラ管理クラス
 	 */
-	virtual void Draw(CameraManager* camera);
+	virtual void Draw3D(CameraManager* camera);
+
+	/**
+	 * @brief 2D描画処理
+	 */
+	virtual void Draw2D();
 
 	/**
 	 * @brief トランスフォーム情報の更新

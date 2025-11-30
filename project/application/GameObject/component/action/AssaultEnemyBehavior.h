@@ -30,12 +30,6 @@ public:
     void Update(GameObject* owner) override;
 
     /**
-     * @brief 描画処理（このコンポーネントでは何も描画しない）
-     * @param camera カメラマネージャー
-     */
-    void Draw(CameraManager* camera) override {}
-
-    /**
      * @brief ターゲットを設定する
      * @param target 追跡対象のゲームオブジェクト
      */
@@ -108,8 +102,6 @@ private:
     // BTノードで使うアクション
     // 待機行動
     void IdleAction(GameObject* owner);
-    // 戦闘行動
-    void CombatAction(GameObject* owner);
     // パトロール行動
     void PatrolAction(GameObject* owner);
     // 位置調整行動

@@ -467,6 +467,7 @@
       <Filter>application\effect</Filter>
     </ClCompile>
     <ClCompile Include="application\UI\GameUI.cpp" />
+    <ClCompile Include="application\GameObject\component\action\PlayerUIComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -1019,6 +1020,7 @@
       <Filter>application\effect</Filter>
     </ClInclude>
     <ClInclude Include="application\UI\GameUI.h" />
+    <ClInclude Include="application\GameObject\component\action\PlayerUIComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

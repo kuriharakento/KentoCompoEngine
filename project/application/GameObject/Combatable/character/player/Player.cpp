@@ -44,16 +44,6 @@ void Player::Initialize(Object3dCommon* object3dCommon, LightManager* lightManag
 	AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(this));
 }
 
-void Player::Update()
-{
-	Character::Update();
-}
-
-void Player::Draw(CameraManager* camera)
-{
-	Character::Draw(camera);
-}
-
 void Player::CollisionSettings(ICollisionComponent* collider)
 {
 	// スイープ判定を仕様

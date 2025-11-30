@@ -8,8 +8,6 @@ public:
 	virtual ~EnemyBase() = default;
 	virtual void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target, const Transform& initialTransform = Transform());
 	void Update() override;
-	void Draw(CameraManager* camera) override;
-
 	GameObject* GetTarget() const { return target_; }
 
 protected:
