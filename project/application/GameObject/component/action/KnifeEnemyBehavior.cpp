@@ -61,6 +61,7 @@ void KnifeEnemyBehavior::Update(GameObject* owner)
 	}
 
 	// ImGuiでデバッグ情報を表示
+#ifdef USE_IMGUI
 	ImGui::Begin("KnifeBehavior");
 	{
 		ImGui::Text("Attacking: %s", isAttacking_ ? "true" : "false");
@@ -78,6 +79,7 @@ void KnifeEnemyBehavior::Update(GameObject* owner)
 		}
 	}
 	ImGui::End();
+#endif
 
 	// Blackboardへ状態情報をセット
 	auto& bb = behaviorTree_->GetBlackboard();

@@ -145,6 +145,8 @@ void MyGame::LoadTextures()
 	TextureManager::GetInstance()->LoadTexture("./Resources/minimap_frame.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/numbers.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/title_logo.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/hp_bar_fill.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/hp_bar_frame.png");
 }
 
 void MyGame::LoadModels()

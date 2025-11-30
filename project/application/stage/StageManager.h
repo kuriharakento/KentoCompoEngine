@@ -2,6 +2,7 @@
 
 // system
 #include "graphics/3d/Object3dCommon.h"
+#include "graphics/2d/SpriteCommon.h"
 #include "manager/scene/CameraManager.h"
 #include "manager/scene/LightManager.h"
 
@@ -73,7 +74,7 @@ public:
 	 * @param lightManager ライトマネージャーへのポインタ
 	 * @param camera カメラマネージャーへのポインタ
 	 */
-	void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, CameraManager* camera);
+	void Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, CameraManager* camera);
 
 	/**
 	 * @brief ステージマネージャーの更新処理
@@ -182,6 +183,7 @@ private:
 	Object3dCommon* object3dCommon_;  ///< 3Dオブジェクトの共通データへのポインタ
 	LightManager* lightManager_;      ///< ライトマネージャーへのポインタ
 	CameraManager* cameraManager_;    ///< カメラマネージャーへのポインタ
+	SpriteCommon* spriteCommon_;    ///< 2Dスプライトの共通データへのポインタ
 
 	std::shared_ptr<StageData> stageData_;      ///< ステージデータ（固定オブジェクト配置）
 	std::shared_ptr<ObstacleData> obstacleData_; ///< 障害物データ
