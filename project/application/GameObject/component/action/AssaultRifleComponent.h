@@ -35,7 +35,7 @@ public:
      * @brief 描画処理
      * @param camera カメラマネージャー
      */
-    void Draw(CameraManager* camera) override;
+    void Draw3D(CameraManager* camera) override;
 
     /**
      * @brief 敵クラスから呼び出すための発射メソッド

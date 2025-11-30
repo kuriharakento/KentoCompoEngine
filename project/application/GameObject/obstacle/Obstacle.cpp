@@ -24,7 +24,7 @@ void Obstacle::Update()
 void Obstacle::Draw(CameraManager* camera)
 {
 	// ゲームオブジェクトの描画処理
-	GameObject::Draw(camera);
+	GameObject::Draw3D(camera);
 }
 
 void Obstacle::AddComponent(const std::string& name, std::unique_ptr<IGameObjectComponent> comp)

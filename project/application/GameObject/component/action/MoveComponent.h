@@ -30,12 +30,6 @@ public:
     void Update(GameObject* owner) override;
 
     /**
-     * @brief 描画処理（このコンポーネントでは何も描画しない）
-     * @param camera カメラマネージャー
-     */
-	void Draw(CameraManager* camera) override {}
-
-    /**
      * @brief 回避速度を設定する
      * @param speed 回避速度
      */

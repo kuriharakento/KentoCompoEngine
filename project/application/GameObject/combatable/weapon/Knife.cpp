@@ -5,13 +5,8 @@ void Knife::Initialize(Object3dCommon* object3dCommon, LightManager* lightManage
 	GameObject::Initialize(object3dCommon, lightManager);
 }
 
-void Knife::Update()
-{
-	GameObject::Update();
-}
-
 void Knife::Draw(CameraManager* camera)
 {
 	if (!IsAlive()) return;
-	GameObject::Draw(camera);
+	GameObject::Draw3D(camera);
 }

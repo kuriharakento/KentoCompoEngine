@@ -23,18 +23,7 @@ public:
 	 * @param initialTransform 初期トランスフォーム
 	 */
 	void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, GameObject* target, const Transform& initialTransform = Transform()) override;
-	
-	/**
-	 * @brief 毎フレームの更新処理
-	 */
-	void Update() override;
-	
-	/**
-	 * @brief 描画処理
-	 * @param camera カメラ管理クラス
-	 */
-	void Draw(CameraManager* camera) override;
-	
+		
 	/**
 	 * @brief コリジョン設定
 	 * @param collider 設定するコライダーコンポーネント

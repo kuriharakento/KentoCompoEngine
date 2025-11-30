@@ -10,7 +10,6 @@ public:
 	virtual ~Character() = default;
 	explicit Character(const std::string& tag = GameObjectTag::Common::Character): CombatableObject(tag){}
 	virtual void Update() override;
-	virtual void Draw(CameraManager* camera);
 	void AddComponent(const std::string& name, std::unique_ptr<IGameObjectComponent> comp);
 
 	// トランスフォーム

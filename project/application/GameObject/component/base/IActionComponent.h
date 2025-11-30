@@ -15,12 +15,20 @@ public:
 	virtual ~IActionComponent() = default;
 	
 	/**
-	 * @brief 描画処理
+	 * @brief 3D描画処理
 	 * 
-	 * コンポーネントの描画処理を実装します。
+	 * コンポーネントの3D描画処理を実装します。
 	 * 必要に応じてオーバーライドしてください。
 	 * 
 	 * @param camera 描画に使用するカメラマネージャー
 	 */
-	virtual void Draw(CameraManager* camera) {}
+	virtual void Draw3D(CameraManager* camera) {}
+
+	/**
+	 * @brief 2D描画処理
+	 * 
+	 * コンポーネントの2D描画処理を実装します。
+	 * 必要に応じてオーバーライドしてください。
+	 */
+	virtual void Draw2D() {}
 };

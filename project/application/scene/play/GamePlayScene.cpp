@@ -417,13 +417,15 @@ void GamePlayScene::Draw3D()
 	skydome_->Draw();
 	ground_->Draw();
 
-	stageManager_->Draw();
+	stageManager_->Draw3D();
 
 	splineCamera_->DrawSplineLine();
 }
 
 void GamePlayScene::Draw2D()
 {
+	stageManager_->Draw2D();
+
 	minimap_->Draw();
 
 	hpBarUI_->Draw();

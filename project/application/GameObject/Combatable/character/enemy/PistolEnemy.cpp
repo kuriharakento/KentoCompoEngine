@@ -27,13 +27,3 @@ void PistolEnemy::Initialize(Object3dCommon* object3dCommon, LightManager* light
 						});
 	AddComponent("OBBCollider", std::move(collider));
 }
-
-void PistolEnemy::Update()
-{
-	EnemyBase::Update();
-}
-
-void PistolEnemy::Draw(CameraManager* camera)
-{
-	EnemyBase::Draw(camera);
-}

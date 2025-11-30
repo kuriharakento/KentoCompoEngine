@@ -18,16 +18,6 @@ void AssaultEnemy::Initialize(Object3dCommon* object3dCommon, LightManager* ligh
 	AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(this));
 }
 
-void AssaultEnemy::Update()
-{
-	EnemyBase::Update();
-}
-
-void AssaultEnemy::Draw(CameraManager* camera)
-{
-	EnemyBase::Draw(camera);
-}
-
 void AssaultEnemy::CollisionSettings(ICollisionComponent* collider)
 {
 	// スイープ判定を使用

@@ -256,6 +256,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\effect\TitleFireEffect.cpp" />
     <ClCompile Include="application\effect\SceneTransitionEffect.cpp" />
     <ClCompile Include="application\effect\PlayerDeathEffect.cpp" />
+    <ClCompile Include="application\GameObject\component\action\PlayerUIComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObjectTag.h" />
@@ -444,6 +445,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\scene\play\GameOverScene.h" />
     <ClInclude Include="application\effect\PlayerDeathEffect.h" />
     <ClInclude Include="application\UI\GameUI.h" />
+    <ClInclude Include="application\GameObject\component\action\PlayerUIComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />

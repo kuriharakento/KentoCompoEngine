@@ -25,12 +25,6 @@ public:
      */
     void Update(GameObject* owner) override;
 
-    /**
-     * @brief 描画処理（このコンポーネントでは何も描画しない）
-     * @param camera カメラマネージャー
-     */
-    void Draw(CameraManager* camera) override {}
-
 private:
     // デフォルトの重力加速度
     static constexpr float kDefaultGravity = 9.8f;

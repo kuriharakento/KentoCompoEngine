@@ -100,11 +100,11 @@ void ShotgunComponent::Update(GameObject* owner)
 }
 
 // 描画処理
-void ShotgunComponent::Draw(CameraManager* camera)
+void ShotgunComponent::Draw3D(CameraManager* camera)
 {
     // 生存している弾のみ描画
     for (const auto& bullet : bullets_)
-        if (bullet->IsAlive()) bullet->Draw(camera);
+        if (bullet->IsAlive()) bullet->Draw3D(camera);
 }
 
 // プレイヤー用の弾発射処理

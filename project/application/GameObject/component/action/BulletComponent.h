@@ -29,12 +29,6 @@ public:
 	 */
 	void Update(GameObject* owner) override;
 
-	/**
-	 * @brief 描画処理（このコンポーネントでは何も描画しない）
-	 * @param camera カメラマネージャー
-	 */
-	void Draw(CameraManager* camera) override {};
-
 private:
 	// 弾の進行方向
 	Vector3 direction_;

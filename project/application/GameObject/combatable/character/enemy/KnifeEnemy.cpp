@@ -46,16 +46,6 @@ void KnifeEnemy::Initialize(Object3dCommon* object3dCommon, LightManager* lightM
 	AddChild(GameObjectTag::Character::KnifeEnemyLeftArm, std::move(leftArm));
 }
 
-void KnifeEnemy::Update()
-{
-	EnemyBase::Update();
-}
-
-void KnifeEnemy::Draw(CameraManager* camera)
-{
-	EnemyBase::Draw(camera);
-}
-
 void KnifeEnemy::CollisionSettings(ICollisionComponent* collider)
 {
 	// スイープ判定を使用

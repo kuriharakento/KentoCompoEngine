@@ -2,8 +2,6 @@
 
 void Character::Update()
 {
-	GameObject::Update();
-
 	// 無敵時間の更新
 	if (isInvincible_)
 	{
@@ -14,11 +12,9 @@ void Character::Update()
 			isInvincible_ = false; // 無敵状態解除
 		}
 	}
-}
 
-void Character::Draw(CameraManager* camera)
-{
-	GameObject::Draw(camera);
+	// 基底クラスの更新処理を呼び出す
+	GameObject::Update();
 }
 
 void Character::AddComponent(const std::string& name, std::unique_ptr<IGameObjectComponent> comp)

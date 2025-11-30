@@ -24,13 +24,3 @@ void ShotgunEnemy::Initialize(Object3dCommon* object3dCommon, LightManager* ligh
 						});
 	AddComponent("OBBCollider", std::move(collider));
 }
-
-void ShotgunEnemy::Update()
-{
-	EnemyBase::Update();
-}
-
-void ShotgunEnemy::Draw(CameraManager* camera)
-{
-	EnemyBase::Draw(camera);
-}

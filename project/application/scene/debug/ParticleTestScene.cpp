@@ -100,6 +100,9 @@ void ParticleTestScene::OnUpdatePlaying()
 	if (debugCamera_) debugCamera_->Update();
 }
 
+void ParticleTestScene::Draw2D()
+{
+}
 
 void ParticleTestScene::Draw3D()
 {
@@ -108,8 +111,4 @@ void ParticleTestScene::Draw3D()
 		5.0f,
 		VectorColorCodes::White
 	);
-}
-
-void ParticleTestScene::Draw2D()
-{
 }
