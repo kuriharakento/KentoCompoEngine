@@ -8,8 +8,9 @@
 #include "application/GameObject/component/collision/CollisionUtils.h"
 #include "application/GameObject/component/collision/OBBColliderComponent.h"
 #include "math/VectorColorCodes.h"
+#include "application/GameObject/component/action/PlayerUIComponent.h"
 
-void Player::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, EnemyManager* enemyManager, CameraManager* camera)
+void Player::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, EnemyManager* enemyManager, CameraManager* camera)
 {
 	Character::Initialize(object3dCommon, lightManager);
 	//初期位置を設定
@@ -42,6 +43,8 @@ void Player::Initialize(Object3dCommon* object3dCommon, LightManager* lightManag
 	AddComponent("PistolComponent", std::make_unique<AssaultRifleComponent>(object3dCommon, lightManager));
 	// 衝突判定コンポーネント
 	AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(this));
+	// UIコンポーネント
+	AddComponent("PlayerUIComponent", std::make_unique<PlayerUIComponent>(spriteCommon));
 }
 
 void Player::CollisionSettings(ICollisionComponent* collider)

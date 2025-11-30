@@ -199,8 +199,6 @@ private: //メンバ変数
     
     // ミニマップUI（敵・エリアの位置表示）
     std::unique_ptr<Minimap> minimap_;
-    // HPバー
-	std::unique_ptr<GameUI> hpBarUI_;
     // スカイドーム（背景天球）
     std::unique_ptr<Object3d> skydome_;
     // 地面オブジェクト

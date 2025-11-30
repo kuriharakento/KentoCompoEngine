@@ -15,6 +15,7 @@ void StageEditScene::Initialize()
 	stageManager_ = std::make_unique<StageManager>();
 	stageManager_->Initialize(
 		sceneManager_->GetObject3dCommon(),
+		sceneManager_->GetSpriteCommon(),
 		sceneManager_->GetLightManager(),
 		sceneManager_->GetCameraManager()
 	);

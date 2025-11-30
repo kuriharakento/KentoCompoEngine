@@ -48,6 +48,39 @@ public:
      */
 	const std::vector< std::unique_ptr<Bullet>>& GetBullets() { return bullets_; }
 
+    /**
+ * @brief 現在の弾数を取得
+ * @return 現在の弾数
+ */
+    int GetCurrentAmmo() const { return currentAmmo_; }
+
+    /**
+     * @brief 最大弾数を取得
+     * @return 最大弾数
+     */
+    int GetMaxAmmo() const { return maxAmmo_; }
+
+    /**
+     * @brief リロード中かどうかを取得
+     * @return リロード中ならtrue
+     */
+    bool IsReloading() const { return isReloading_; }
+
+    /**
+     * @brief リロードの進行度を取得（0.0〜1.0）
+     * @return リロード進行度
+     */
+    float GetReloadProgress() const
+    {
+        return isReloading_ ? (reloadTimer_ / reloadTime_) : 0.0f;
+    }
+
+    /**
+     * @brief リロード時間を取得
+     * @return リロード所要時間（秒）
+     */
+    float GetReloadTime() const { return reloadTime_; }
+
 private:
     // 定数
     // 発射クールダウン時間
