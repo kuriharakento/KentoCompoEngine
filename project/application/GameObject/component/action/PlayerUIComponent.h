@@ -97,7 +97,7 @@ private:
     static constexpr float kHealthBarPosY = 650.0f;
     // 体力バーのサイズ
     static constexpr float kHealthBarWidth = 300.0f;
-    static constexpr float kHealthBarHeight = 30.0f;
+    static constexpr float kHealthBarHeight = 40.0f;
     // 弾薬表示の位置
     static constexpr float kAmmoPosX = 1100.0f;
     static constexpr float kAmmoPosY = 650.0f;

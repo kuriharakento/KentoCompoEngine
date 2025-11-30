@@ -60,7 +60,7 @@ void Player::CollisionSettings(ICollisionComponent* collider)
 			auto combatable = dynamic_cast<CombatableObject*>(other);
 			if(combatable)
 			{
-				//TakeDamage(combatable->GetAttackPower());
+				TakeDamage(combatable->GetAttackPower() / 10.0f);
 			}
 		}
 						 });

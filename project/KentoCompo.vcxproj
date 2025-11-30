@@ -129,6 +129,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\effect\CarnageModeEffect.cpp" />
     <ClCompile Include="application\effect\CinematicLetterbox.cpp" />
     <ClCompile Include="application\effect\AreaEffect.cpp" />
+    <ClCompile Include="application\GameObject\component\action\EnemyUIComponent.cpp" />
     <ClCompile Include="engine\effects\postprocess\BloomEffect.cpp" />
     <ClCompile Include="engine\camerawork\debug\DebugCamera.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
@@ -292,6 +293,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\effect\CarnageModeEffect.h" />
     <ClInclude Include="application\effect\CinematicLetterbox.h" />
     <ClInclude Include="application\effect\AreaEffect.h" />
+    <ClInclude Include="application\GameObject\component\action\EnemyUIComponent.h" />
     <ClInclude Include="engine\effects\postprocess\BloomEffect.h" />
     <ClInclude Include="engine\camerawork\debug\DebugCamera.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>

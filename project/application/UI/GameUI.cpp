@@ -133,6 +133,14 @@ void GameUI::SetSize(const Vector2& size)
 	}
 }
 
+void GameUI::SetTextureSize(const Vector2& textureSize)
+{
+	if (sprite_)
+	{
+		sprite_->SetTextureSize(textureSize);
+	}
+}
+
 void GameUI::SetColor(const Vector4& color)
 {
 	if (sprite_)

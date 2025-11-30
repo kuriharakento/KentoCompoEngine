@@ -29,6 +29,7 @@ void PlayerUIComponent::InitializeUI()
     healthBarBg_->Initialize(spriteCommon_, "./Resources/UI/hp_bar_frame.png");
     healthBarBg_->SetScreenPosition({ kHealthBarPosX, kHealthBarPosY });
     healthBarBg_->SetSize({ kHealthBarWidth, kHealthBarHeight });
+	healthBarBg_->SetTextureSize({ kHealthBarWidth, kHealthBarHeight });
     healthBarBg_->SetAnchorPoint({ 0.0f, 0.5f });
     healthBarBg_->SetInteractable(false);
 
@@ -37,6 +38,7 @@ void PlayerUIComponent::InitializeUI()
     healthBarFill_->Initialize(spriteCommon_, "./Resources/UI/hp_bar_fill.png");
     healthBarFill_->SetScreenPosition({ kHealthBarPosX, kHealthBarPosY });
     healthBarFill_->SetSize({ kHealthBarWidth, kHealthBarHeight });
+	healthBarFill_->SetTextureSize({ kHealthBarWidth, kHealthBarHeight });
     healthBarFill_->SetAnchorPoint({ 0.0f, 0.5f });
     healthBarFill_->SetInteractable(false);
 
@@ -116,7 +118,10 @@ void PlayerUIComponent::Draw2D()
     if (isHealthBarVisible_)
     {
         healthBarBg_->Draw();
-        healthBarFill_->Draw();
+        if (healthBarFill_->GetSize().x > 0)
+        {
+            healthBarFill_->Draw();
+        }
     }
 
     // 弾薬表示
@@ -146,6 +151,7 @@ void PlayerUIComponent::UpdateHealthBar()
 
     // 体力バーの幅を更新
     healthBarFill_->SetSize({ healthBarMaxWidth_ * hpRatio, kHealthBarHeight });
+	healthBarFill_->SetTextureSize({ healthBarMaxWidth_ * hpRatio, kHealthBarHeight });
 
     // HP残量に応じて色を変更
     if (hpRatio > kHpThresholdHigh)

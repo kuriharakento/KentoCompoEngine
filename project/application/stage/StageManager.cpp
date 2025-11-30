@@ -37,7 +37,7 @@ void StageManager::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spri
 
 	// 敵マネージャーの初期化
 	enemyManager_ = std::make_unique<EnemyManager>();
-	enemyManager_->Initialize(object3dCommon_, lightManager, nullptr); // ターゲットは後で設定
+	enemyManager_->Initialize(object3dCommon_, spriteCommon, camera, lightManager, nullptr); // ターゲットは後で設定
 	enemyManager_->SetCameraManager(cameraManager_);
 
 	// 障害物マネージャーの初期化
