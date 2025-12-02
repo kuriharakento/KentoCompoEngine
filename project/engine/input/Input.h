@@ -11,8 +11,7 @@
 #include <unordered_map>
 #include <vector>
 #include <functional>
-
-
+#include "math/Vector2.h"
 
 // 前方宣言
 class WinApp;
@@ -217,6 +216,12 @@ public:
      * @return クライアント領域内のY座標
      */
     float GetMouseY() const;
+
+    /**
+     * @brief マウスの座標を取得
+     * @return クライアント領域内のマウス座標ベクトル
+	 */
+	Vector2 GetMousePosition() const;
 
     /**
      * @brief マウスの固定状態を設定

@@ -147,6 +147,7 @@ void MyGame::LoadTextures()
 	TextureManager::GetInstance()->LoadTexture("./Resources/title_logo.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/hp_bar_fill.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/hp_bar_frame.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/reticle.png");
 }
 
 void MyGame::LoadModels()

@@ -25,8 +25,9 @@
 #include "application/minimap/Minimap.h"
 #include "effects/particle/ParticleEmitter.h"
 #include "graphics/2d/NumberSprite.h"
-#include <camerawork/orbit/OrbitCameraWork.h>
-#include <application/ui/GameUI.h>
+#include "camerawork/orbit/OrbitCameraWork.h"
+#include "application/ui/GameUI.h"
+#include "application/UI/Cursor.h"
 
 /**
  * @brief メインゲームプレイシーン
@@ -199,6 +200,8 @@ private: //メンバ変数
     
     // ミニマップUI（敵・エリアの位置表示）
     std::unique_ptr<Minimap> minimap_;
+    // レティクル
+	std::unique_ptr<Cursor> reticle_;
     // スカイドーム（背景天球）
     std::unique_ptr<Object3d> skydome_;
     // 地面オブジェクト
