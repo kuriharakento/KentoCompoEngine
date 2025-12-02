@@ -26,9 +26,6 @@ void Cursor::Initialize(SpriteCommon* spriteCommon, const std::string& texturePa
 	sprite_ = std::make_unique<Sprite>();
 	sprite_->Initialize(spriteCommon, texturePath);
 
-	// レティクルのデフォルトサイズを設定（画像サイズに合わせて調整してください）
-	
-
 	// レティクルの中心を基準点に設定
 	sprite_->SetAnchorPoint({ 0.5f, 0.5f });
 
