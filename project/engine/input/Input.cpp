@@ -439,3 +439,8 @@ float Input::GetMouseY() const
 {
 	return static_cast<float>(mousePos_.y);
 }
+
+Vector2 Input::GetMousePosition() const
+{
+    return Vector2{ static_cast<float>(mousePos_.x), static_cast<float>(mousePos_.y) };
+}

@@ -112,6 +112,12 @@ void GamePlayScene::Initialize()
 		WinApp::kClientWidth, WinApp::kClientHeight
 	);
 
+	reticle_ = std::make_unique<Cursor>();
+	reticle_->Initialize(
+		sceneManager_->GetSpriteCommon(),
+		"./Resources/UI/reticle.png"
+	);
+
 	StartState(SceneState::Enter);
 	gameClear_ = false;
 	gameOver_ = false;
@@ -229,6 +235,8 @@ void GamePlayScene::OnUpdatePlaying()
 	topDownCamera_->Update();
 
 	minimap_->Update();
+
+	reticle_->Update();
 
 	stageManager_->Update();
 
@@ -405,6 +413,8 @@ void GamePlayScene::Draw2D()
 	stageManager_->Draw2D();
 
 	minimap_->Draw();
+
+	reticle_->Draw();
 
 	ComboManager::GetInstance().Draw();
 
