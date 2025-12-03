@@ -56,6 +56,16 @@ void TitleScene::Initialize()
 	sceneManager_->GetPostProcessManager()->crtEffect_->SetChromaticAberrationEnabled(true);
 	sceneManager_->GetPostProcessManager()->crtEffect_->SetChromaticAberrationOffset(10.0f);
 
+	// フォントスプライトの初期化（テスト用）
+	fontSprite_ = std::make_unique<FontSprite>();
+	fontSprite_->Initialize(
+		sceneManager_->GetSpriteCommon(),
+		"luna"
+	);
+	fontSprite_->SetText("Press SPACE to Start");
+	fontSprite_->SetPosition({ 640.0f, 500.0f });
+	fontSprite_->SetScale(0.1f);
+
 	StartState(SceneState::Playing);
 }
 
@@ -76,6 +86,8 @@ void TitleScene::OnEnterPlaying()
 void TitleScene::OnUpdatePlaying()
 {
 	DrawImGui();
+
+	fontSprite_->Update();
 
 	if (Input::GetInstance()->TriggerKey(DIK_SPACE))
 	{
@@ -166,6 +178,7 @@ void TitleScene::Draw3D()
 void TitleScene::Draw2D()
 {
 	titleLogo_->Draw();
+	fontSprite_->Draw();
 	transitionEffect_.Draw();
 }
 

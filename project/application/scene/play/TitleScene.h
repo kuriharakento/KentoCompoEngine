@@ -24,6 +24,7 @@
 #include "application/minimap/Minimap.h"
 #include "effects/particle/ParticleEmitter.h"
 #include "graphics/2d/NumberSprite.h"
+#include <graphics/2d/FontSprite.h>
 
 /**
  * @brief タイトルシーン
@@ -135,4 +136,6 @@ private: //メンバ変数
 	float cubeWaveTime = 0.0f;
 	// シーン遷移エフェクト（フェードイン/アウト）
 	SceneTransitionEffect transitionEffect_;
+	// フォントスプライトを試してみる
+	std::unique_ptr<FontSprite> fontSprite_;
 };

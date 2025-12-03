@@ -2,9 +2,9 @@
 #include <string>
 #include <unordered_map>
 #include <memory>
-#include "Sprite.h"
+#include <vector>
 #include "SpriteCommon.h"
-#include "base/GraphicsTypes.h"
+#include "Sprite.h"
 
 /**
  * @brief 文字情報構造体
@@ -21,6 +21,10 @@ struct CharInfo
 /**
  * @brief フォントスプライトクラス
  * @details フォントアトラスPNGとJSONを使用して文字列を描画するクラス
+ *
+ * SetText / DrawText のタイミングで、その文字列長分のスプライトを生成（または再利用）する実装。
+ * これにより文字列中で同一文字が連続していても、それぞれ別インスタンス（別 WVP）で描画されるため
+ * 「後ろの文字しか見えない」問題を回避できます。
  */
 class FontSprite
 {
@@ -31,10 +35,9 @@ public:
     /**
      * @brief 初期化
      * @param spriteCommon スプライト共通部へのポインタ
-     * @param atlasTexturePath フォントアトラスPNGのパス
-     * @param jsonPath フォントメトリクスJSONのパス
+     * @param atlasTexturePath フォントアトラスPNGのパス（fontName を基に内部で ./Resources/fonts/<fontName>_atlas.png を参照）
      */
-    void Initialize(SpriteCommon* spriteCommon, const std::string& atlasTexturePath, const std::string& jsonPath);
+    void Initialize(SpriteCommon* spriteCommon, const std::string& fontName);
 
     /**
      * @brief 更新処理
@@ -54,6 +57,8 @@ public:
      * @param position 描画開始位置
      * @param scale スケール（デフォルト1.0f）
      * @param spacing 文字間スペース（デフォルト0.0f）
+     *
+     * DrawText 呼び出し時にも EnsureSpritesForText を実行して必要な分だけスプライトを用意します。
      */
     void DrawText(const std::string& text, const Vector2& position, float scale = 1.0f, float spacing = 0.0f);
 
@@ -70,8 +75,9 @@ public:
     /**
      * @brief 表示する文字列を設定
      * @param text 表示する文字列
+     * @note SetText のタイミングでスプライトが Ensure されます
      */
-    void SetText(const std::string& text) { text_ = text; }
+    void SetText(const std::string& text);
 
     /**
      * @brief 描画位置を設定
@@ -161,18 +167,21 @@ private:
     void LoadFontMetrics(const std::string& jsonPath);
 
     /**
-     * @brief 指定した文字のスプライトを取得または生成
-     * @param character 文字
-     * @return スプライトへのポインタ
+     * @brief SetText / DrawText のタイミングで必要分のスプライトを確保する
+     * @param text 対象の文字列
+     * @details 既存スプライトは再利用し、足りない分だけ生成します。スペースは nullptr として扱います。
      */
-    Sprite* GetOrCreateCharSprite(char character);
+    void EnsureSpritesForText(const std::string& text);
+
+    /**
+     * @brief 指定した文字のスプライトを新規生成して返す
+     * @param c 文字
+     * @return 作成したスプライト（失敗時は nullptr）
+     */
+    std::unique_ptr<Sprite> CreateSpriteForChar(char c);
 
     /**
      * @brief 内部実装：文字列を描画
-     * @param text 描画する文字列
-     * @param position 描画開始位置
-     * @param scale スケール
-     * @param spacing 文字間スペース
      */
     void DrawTextInternal(const std::string& text, const Vector2& position, float scale, float spacing);
 
@@ -183,14 +192,14 @@ private:
     // フォントアトラステクスチャパス
     std::string atlasTexturePath_;
 
-    // 文字ごとのスプライトマップ
-    std::unordered_map<char, std::unique_ptr<Sprite>> charSprites_;
-
     // 文字情報マップ（JSONから読み込み）
     std::unordered_map<char, CharInfo> charMetrics_;
 
     // セルサイズ（フォントアトラス生成時の値）
     float cellSize_ = 64.0f;
+
+    // indexごとのスプライト配列（text の各文字位置に対応）
+    std::vector<std::unique_ptr<Sprite>> indexSprites_;
 
     // 表示する文字列
     std::string text_;
