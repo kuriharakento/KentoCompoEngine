@@ -14,7 +14,35 @@ void GameOverScene::Initialize()
 		22, 16,
 		1280.0f, 720.0f
 	);
-	
+
+	// ゲームオーバーからタイトルUIの初期化
+	gameOverToTitleUI_ = std::make_unique<GameUI>();
+	gameOverToTitleUI_->Initialize(sceneManager_->GetSpriteCommon(), "./Resources/UI/back_to_title.png");
+	gameOverToTitleUI_->SetScreenPosition(kGameOverToTitleUIPosition);
+	gameOverToTitleUI_->SetSize(kGameOverUISize);
+	gameOverToTitleUI_->SetAnchorPoint(kGameOverUIAnchorPoint);
+	// コールバックの設定
+	gameOverToTitleUI_->SetInteractable(true);
+	gameOverToTitleUI_->SetOnClickCallback([this]() {
+		returnToTitle_ = true;
+		ChangeState(SceneState::Exit);
+		gameOverToTitleUI_->SetInteractable(false);
+										   });
+
+	// ゲームオーバーからリトライUIの初期化
+	gameOverRetryUI_ = std::make_unique<GameUI>();
+	gameOverRetryUI_->Initialize(sceneManager_->GetSpriteCommon(), "./Resources/UI/retry.png");
+	gameOverRetryUI_->SetScreenPosition(kGameOverRetryUIPosition);
+	gameOverRetryUI_->SetSize(kGameOverUISize);
+	gameOverRetryUI_->SetAnchorPoint(kGameOverUIAnchorPoint);
+	// コールバックの設定
+	gameOverRetryUI_->SetInteractable(true);
+	gameOverRetryUI_->SetOnClickCallback([this]() {
+		retry_ = true;
+		ChangeState(SceneState::Exit);
+		gameOverRetryUI_->SetInteractable(false);
+										 });
+
 	StartState(SceneState::Enter);
 }
 
@@ -28,6 +56,11 @@ void GameOverScene::Draw3D()
 
 void GameOverScene::Draw2D()
 {
+	// UIの描画
+	gameOverToTitleUI_->Draw();
+	gameOverRetryUI_->Draw();
+
+	// シーン遷移エフェクトの描画
 	transitionEffect_.Draw();
 }
 
@@ -54,8 +87,8 @@ void GameOverScene::OnEnterEnter()
 void GameOverScene::OnUpdateEnter()
 {
 	transitionEffect_.Update();
-	
-	if(transitionEffect_.GetState() == TransitionState::Done)
+
+	if (transitionEffect_.GetState() == TransitionState::Done)
 	{
 		ChangeState(SceneState::Playing);
 	}
@@ -74,7 +107,7 @@ void GameOverScene::OnEnterPlaying()
 
 void GameOverScene::OnUpdatePlaying()
 {
-	if(Input::GetInstance()->TriggerKey(DIK_SPACE))
+	if (Input::GetInstance()->TriggerKey(DIK_SPACE))
 	{
 		transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
 		transitionEffect_.SetFadeType(FadeType::FadeIn);
@@ -97,18 +130,41 @@ void GameOverScene::OnExitPlaying()
 // ==================================================
 void GameOverScene::OnEnterExit()
 {
+	transitionEffect_.SetFadeType(FadeType::FadeIn);
+	transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
+	transitionEffect_.SetMode(TransitionMode::EdgesToCenter);
+	transitionEffect_.Start(
+		1.0f,
+		VectorColorCodes::Red,
+		VectorColorCodes::Black
+	);
 }
 
 void GameOverScene::OnUpdateExit()
 {
 	transitionEffect_.Update();
-	
+
 	if (transitionEffect_.GetState() == TransitionState::Done)
 	{
-		sceneManager_->ChangeScene(SceneNames::Title);
+		// タイトルへ戻る場合
+		if (returnToTitle_)
+		{
+			sceneManager_->ChangeScene(SceneNames::Title);
+		}
+		// リトライする場合
+		else if (retry_)
+		{
+			sceneManager_->ChangeScene(SceneNames::GamePlay);
+		}
 	}
 }
 
 void GameOverScene::OnExitExit()
 {
+}
+
+void GameOverScene::CommonUpdate()
+{
+	gameOverToTitleUI_->Update();
+	gameOverRetryUI_->Update();
 }

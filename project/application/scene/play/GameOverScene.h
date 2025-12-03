@@ -1,6 +1,7 @@
 #pragma once
 #include "scene/interface/BaseScene.h"
 #include <application/effect/SceneTransitionEffect.h>
+#include <application/UI/GameUI.h>
 
 /**
  * @brief ゲームオーバーシーン
@@ -116,9 +117,26 @@ protected:
 	 */
 	void OnExitExit() override;
 
-private:
-	//メンバ変数
+	void CommonUpdate() override;
+
+private: //メンバ変数
+	// ゲームオーバーからタイトルUIの位置
+	static constexpr Vector2 kGameOverToTitleUIPosition = { 360.0f, 580.0f };
+	// ゲームオーバーからリトライUIの位置
+	static constexpr Vector2 kGameOverRetryUIPosition = { 920.0f, 580.0f };
+	// UIのサイズ
+	static constexpr Vector2 kGameOverUISize = { 300.0f, 80.0f };
+	// UIのアンカーポイント
+	static constexpr Vector2 kGameOverUIAnchorPoint = { 0.5f, 0.5f };
+	// タイトルへ戻るフラグ
+	bool returnToTitle_ = false;
+	// リトライフラグ
+	bool retry_ = false;
 	// シーン遷移エフェクト（フェードイン/アウト）
 	SceneTransitionEffect transitionEffect_;
+	// ゲームオーバーからタイトルへ戻るUI
+	std::unique_ptr<GameUI> gameOverToTitleUI_;
+	// ゲームオーバーからリトライするUI
+	std::unique_ptr<GameUI> gameOverRetryUI_;
 };
 

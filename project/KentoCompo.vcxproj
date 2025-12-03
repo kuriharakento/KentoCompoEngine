@@ -205,6 +205,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\scene\play\GameClearScene.cpp" />
     <ClCompile Include="application\scene\play\GameOverScene.cpp" />
     <ClCompile Include="application\UI\GameUI.cpp" />
+    <ClCompile Include="engine\graphics\2d\FontSprite.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="engine\manager\system\SrvManager.cpp" />
     <ClCompile Include="engine\manager\effect\ParticleManager.cpp" />
@@ -450,6 +451,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\effect\PlayerDeathEffect.h" />
     <ClInclude Include="application\UI\GameUI.h" />
     <ClInclude Include="application\GameObject\component\action\PlayerUIComponent.h" />
+    <ClInclude Include="engine\graphics\2d\FontSprite.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />
