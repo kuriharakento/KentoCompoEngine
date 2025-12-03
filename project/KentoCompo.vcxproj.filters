@@ -470,6 +470,9 @@
     <ClCompile Include="application\GameObject\component\action\PlayerUIComponent.cpp" />
     <ClCompile Include="application\GameObject\component\action\EnemyUIComponent.cpp" />
     <ClCompile Include="application\UI\Cursor.cpp" />
+    <ClCompile Include="engine\graphics\2d\FontSprite.cpp">
+      <Filter>engine\graphics\2d</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -1025,6 +1028,9 @@
     <ClInclude Include="application\GameObject\component\action\PlayerUIComponent.h" />
     <ClInclude Include="application\GameObject\component\action\EnemyUIComponent.h" />
     <ClInclude Include="application\UI\Cursor.h" />
+    <ClInclude Include="engine\graphics\2d\FontSprite.h">
+      <Filter>engine\graphics\2d</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">
