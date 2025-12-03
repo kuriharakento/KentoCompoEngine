@@ -46,7 +46,7 @@ void FontSprite::LoadFontMetrics(const std::string& jsonPath)
             charMetrics_[ch] = info;
 
             // セルサイズを最初の文字から取得
-            if (cellSize_ == 64. 0f)
+            if (cellSize_ == 64.0f)
             {
                 cellSize_ = static_cast<float>(info.w);
             }

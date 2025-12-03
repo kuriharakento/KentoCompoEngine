@@ -63,7 +63,7 @@ public:
      * @param position 描画位置
      * @param scale スケール
      */
-    void DrawChar(char character, const Vector2& position, float scale = 1. 0f);
+    void DrawChar(char character, const Vector2& position, float scale = 1.0f);
 
     /*---------------[ セッター ]---------------*/
 
