@@ -36,6 +36,19 @@ void MyGame::Initialize()
 
 	// Skyboxの初期化
 	skybox_->Initialize(dxCommon_.get(), "./Resources/skybox.dds");
+
+	// シーン描画用レンダーテクスチャ（ポストプロセス後）の初期化
+	// DXGI_FORMAT_R8G8B8A8_UNORM_SRGB: 標準的なsRGBフォーマット
+	Vector4 clearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
+	sceneRenderTexture_ = std::make_unique<RenderTexture>();
+	sceneRenderTexture_->Initialize(
+		dxCommon_.get(),
+		srvManager_.get(),
+		WinApp::kClientWidth,
+		WinApp::kClientHeight,
+		DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
+		clearColor
+	);
 }
 
 void MyGame::Finalize()
@@ -99,8 +112,65 @@ void MyGame::Draw()
 	/////////////////< 描画ここまで >////////////////////
 
 	renderTexture_->EndRender();
+	
+#ifdef USE_IMGUI
+	// ポストプロセス処理（シーンテクスチャ -> シーンレンダーテクスチャ）
+	// バックバッファではなく、ImGui表示用のテクスチャに出力する
+	sceneRenderTexture_->BeginRender();
+	postProcessManager_->Draw(renderTexture_.get(), sceneRenderTexture_.get());
+	sceneRenderTexture_->EndRender();
+
+	// バックバッファのクリア
 	dxCommon_->PreDraw();
-	postProcessManager_->Draw(renderTexture_.get());
+
+	// ドッキングスペースの作成
+	// エラー回避のため、手動でウィンドウを作成してDockSpaceを設定
+	ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowPos(viewport->Pos);
+	ImGui::SetNextWindowSize(viewport->Size);
+	ImGui::SetNextWindowViewport(viewport->ID);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+	ImGui::Begin("DockSpace", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground);
+	ImGui::PopStyleVar(3);
+	ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+	ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
+	ImGui::End();
+
+	// シーンウィンドウの作成
+	ImGui::Begin("Scene");
+	
+	// ウィンドウサイズに合わせて画像を表示
+	ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+	// ポストプロセス後のテクスチャを表示
+	ImGui::Image((ImTextureID)sceneRenderTexture_->GetGPUHandle().ptr, viewportSize);
+
+	ImGui::End();
+
+	// その他のウィンドウ（プレースホルダー）
+	ImGui::Begin("Hierarchy");
+	ImGui::Text("Hierarchy Placeholder");
+	ImGui::End();
+
+	ImGui::Begin("Inspector");
+	ImGui::Text("Inspector Placeholder");
+	ImGui::End();
+
+	ImGui::Begin("Project");
+	ImGui::Text("Project Placeholder");
+	ImGui::End();
+
+	ImGui::Begin("Console");
+	ImGui::Text("Console Placeholder");
+	ImGui::End();
+#else
+	// バックバッファのクリア
+	dxCommon_->PreDraw();
+	// ポストプロセス処理（シーンテクスチャ -> バックバッファ）
+	postProcessManager_->Draw(renderTexture_.get(), nullptr);
+#endif
+
 	imguiManager_->End();
 	imguiManager_->Draw();
 	dxCommon_->PostDraw();

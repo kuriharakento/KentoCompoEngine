@@ -19,6 +19,11 @@ private:
 	//テクスチャの読み込み
 	void LoadTextures();
 	//モデルの読み込み
+	//モデルの読み込み
 	void LoadModels();
+
+private:
+	// シーン描画用レンダーテクスチャ（ポストプロセス後）
+	std::unique_ptr<RenderTexture> sceneRenderTexture_;
 };
 

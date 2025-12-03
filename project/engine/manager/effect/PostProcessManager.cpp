@@ -292,16 +292,21 @@ void PostProcessManager::RenderBlurPass(RenderTexture* inputTexture, RenderTextu
 	outputRT->EndRender();
 }
 
-void PostProcessManager::RenderFinalComposite(RenderTexture* sceneTexture, RenderTexture* bloomTexture)
+void PostProcessManager::RenderFinalComposite(RenderTexture* sceneTexture, RenderTexture* bloomTexture, RenderTexture* outputRT)
 {
 	auto cmdList = dxCommon_->GetCommandList();
 	auto device = dxCommon_->GetDevice();
 
-	// バックバッファをレンダーターゲットとして設定
-	UINT backBufferIndex = dxCommon_->GetCurrentBackBufferIndex();
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = dxCommon_->GetCPUDescriptorHandle(dxCommon_->GetRTVDescriptorHeap(), dxCommon_->GetDescriptorSizeRTV(), backBufferIndex);
-	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dxCommon_->GetDSVDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
-	cmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
+	if (outputRT) {
+		outputRT->BeginRender();
+	}
+	else {
+		// バックバッファをレンダーターゲットとして設定
+		UINT backBufferIndex = dxCommon_->GetCurrentBackBufferIndex();
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = dxCommon_->GetCPUDescriptorHandle(dxCommon_->GetRTVDescriptorHeap(), dxCommon_->GetDescriptorSizeRTV(), backBufferIndex);
+		D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dxCommon_->GetDSVDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+		cmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
+	}
 
 	// ビューポートとシザー矩形を設定
 	cmdList->RSSetViewports(1, &viewport_);
@@ -337,6 +342,10 @@ void PostProcessManager::RenderFinalComposite(RenderTexture* sceneTexture, Rende
 
 	// フルスクリーン三角形を描画
 	cmdList->DrawInstanced(3, 1, 0, 0);
+
+	if (outputRT) {
+		outputRT->EndRender();
+	}
 }
 
 void PostProcessManager::SetBloomRenderTargets(RenderTexture* brightPassRT, RenderTexture* blurRT0, RenderTexture* blurRT1)
@@ -347,22 +356,22 @@ void PostProcessManager::SetBloomRenderTargets(RenderTexture* brightPassRT, Rend
 	blurRT_[1] = blurRT1;
 }
 
-void PostProcessManager::Draw(RenderTexture* inputTexture)
+void PostProcessManager::Draw(RenderTexture* inputTexture, RenderTexture* outputRT)
 {
 	// ブルームが有効かつ、必要なレンダーターゲットが存在する場合
 	if (bloomEffect_->IsEnabled() && HasBloomRenderTargets())
 	{
 		// マルチパス・ブルーム処理
-		RenderWithBloom(inputTexture);
+		RenderWithBloom(inputTexture, outputRT);
 	}
 	else
 	{
 		// 従来のシングルパス処理
-		RenderSinglePass(inputTexture);
+		RenderSinglePass(inputTexture, outputRT);
 	}
 }
 
-void PostProcessManager::RenderWithBloom(RenderTexture* inputTexture)
+void PostProcessManager::RenderWithBloom(RenderTexture* inputTexture, RenderTexture* outputRT)
 {
 	// ブルームのマルチパス処理
 
@@ -376,7 +385,7 @@ void PostProcessManager::RenderWithBloom(RenderTexture* inputTexture)
 	RenderBlurPass(blurRT_[0], blurRT_[1], false);
 
 	// 4. 最終合成（シーン + ブルーム）
-	RenderFinalComposite(inputTexture, blurRT_[1]);
+	RenderFinalComposite(inputTexture, blurRT_[1], outputRT);
 }
 
 bool PostProcessManager::HasBloomRenderTargets() const
@@ -385,15 +394,20 @@ bool PostProcessManager::HasBloomRenderTargets() const
 	return brightPassRT_ != nullptr && blurRT_[0] != nullptr && blurRT_[1] != nullptr;
 }
 
-void PostProcessManager::RenderSinglePass(RenderTexture* inputTexture)
+void PostProcessManager::RenderSinglePass(RenderTexture* inputTexture, RenderTexture* outputRT)
 {
 	auto cmdList = dxCommon_->GetCommandList();
 
-	// バックバッファをレンダーターゲットとして設定
-	UINT backBufferIndex = dxCommon_->GetCurrentBackBufferIndex();
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = dxCommon_->GetCPUDescriptorHandle(dxCommon_->GetRTVDescriptorHeap(), dxCommon_->GetDescriptorSizeRTV(), backBufferIndex);
-	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dxCommon_->GetDSVDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
-	cmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
+	if (outputRT) {
+		outputRT->BeginRender();
+	}
+	else {
+		// バックバッファをレンダーターゲットとして設定
+		UINT backBufferIndex = dxCommon_->GetCurrentBackBufferIndex();
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = dxCommon_->GetCPUDescriptorHandle(dxCommon_->GetRTVDescriptorHeap(), dxCommon_->GetDescriptorSizeRTV(), backBufferIndex);
+		D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dxCommon_->GetDSVDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+		cmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
+	}
 
 	// ビューポートとシザー矩形を設定
 	cmdList->RSSetViewports(1, &viewport_);
@@ -427,6 +441,10 @@ void PostProcessManager::RenderSinglePass(RenderTexture* inputTexture)
 	cmdList->SetGraphicsRootConstantBufferView(3, constantBuffer_->GetGPUVirtualAddress());
 	// フルスクリーン三角形を描画
 	cmdList->DrawInstanced(3, 1, 0, 0);
+
+	if (outputRT) {
+		outputRT->EndRender();
+	}
 }
 
 void PostProcessManager::CreateConstantBuffer()

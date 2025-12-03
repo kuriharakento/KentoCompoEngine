@@ -48,7 +48,7 @@ public:
      * @param inputTexture 入力テクスチャ
      * @details ブルームが有効な場合はマルチパス処理、それ以外はシングルパス処理を行う
      */
-    void Draw(RenderTexture* inputTexture);
+    void Draw(RenderTexture* inputTexture, RenderTexture* outputRT = nullptr);
 
     /**
      * @brief ブライトパスレンダリング
@@ -72,7 +72,7 @@ public:
      * @param bloomTexture ブルームテクスチャ
      * @details シーンとブルームを合成して最終出力を生成する
      */
-    void RenderFinalComposite(RenderTexture* sceneTexture, RenderTexture* bloomTexture);
+    void RenderFinalComposite(RenderTexture* sceneTexture, RenderTexture* bloomTexture, RenderTexture* outputRT = nullptr);
 
     /**
      * @brief ブルーム用レンダーターゲットの設定
@@ -137,13 +137,13 @@ private:
      * @brief シングルパスレンダリング
      * @param inputTexture 入力テクスチャ
      */
-    void RenderSinglePass(RenderTexture* inputTexture);
+    void RenderSinglePass(RenderTexture* inputTexture, RenderTexture* outputRT = nullptr);
 
     /**
      * @brief ブルーム付きレンダリング
      * @param inputTexture 入力テクスチャ
      */
-    void RenderWithBloom(RenderTexture* inputTexture);
+    void RenderWithBloom(RenderTexture* inputTexture, RenderTexture* outputRT = nullptr);
 
     /**
      * @brief ブルーム用レンダーターゲットが設定されているかチェック
