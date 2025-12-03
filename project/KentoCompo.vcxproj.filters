@@ -466,12 +466,20 @@
     <ClCompile Include="application\effect\AreaEffect.cpp">
       <Filter>application\effect</Filter>
     </ClCompile>
-    <ClCompile Include="application\UI\GameUI.cpp" />
-    <ClCompile Include="application\GameObject\component\action\PlayerUIComponent.cpp" />
-    <ClCompile Include="application\GameObject\component\action\EnemyUIComponent.cpp" />
-    <ClCompile Include="application\UI\Cursor.cpp" />
     <ClCompile Include="engine\graphics\2d\FontSprite.cpp">
       <Filter>engine\graphics\2d</Filter>
+    </ClCompile>
+    <ClCompile Include="application\UI\Cursor.cpp">
+      <Filter>application\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="application\UI\GameUI.cpp">
+      <Filter>application\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="application\GameObject\component\action\EnemyUIComponent.cpp">
+      <Filter>application\GameObject\component\action</Filter>
+    </ClCompile>
+    <ClCompile Include="application\GameObject\component\action\PlayerUIComponent.cpp">
+      <Filter>application\GameObject\component\action</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1024,12 +1032,20 @@
     <ClInclude Include="application\effect\AreaEffect.h">
       <Filter>application\effect</Filter>
     </ClInclude>
-    <ClInclude Include="application\UI\GameUI.h" />
-    <ClInclude Include="application\GameObject\component\action\PlayerUIComponent.h" />
-    <ClInclude Include="application\GameObject\component\action\EnemyUIComponent.h" />
-    <ClInclude Include="application\UI\Cursor.h" />
     <ClInclude Include="engine\graphics\2d\FontSprite.h">
       <Filter>engine\graphics\2d</Filter>
+    </ClInclude>
+    <ClInclude Include="application\UI\Cursor.h">
+      <Filter>application\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="application\UI\GameUI.h">
+      <Filter>application\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="application\GameObject\component\action\EnemyUIComponent.h">
+      <Filter>application\GameObject\component\action</Filter>
+    </ClInclude>
+    <ClInclude Include="application\GameObject\component\action\PlayerUIComponent.h">
+      <Filter>application\GameObject\component\action</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1238,6 +1254,9 @@
     </Filter>
     <Filter Include="application\carmage">
       <UniqueIdentifier>{51744ab4-a2cc-4e74-ab4a-82e8dddc911a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="application\UI">
+      <UniqueIdentifier>{bc4f1c94-29ad-41d9-92c0-b64afddc267f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

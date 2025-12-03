@@ -151,6 +151,7 @@ void MyGame::LoadTextures()
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/dot_reticle.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/retry.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/back_to_title.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/fonts/luna_atlas.png");
 }
 
 void MyGame::LoadModels()

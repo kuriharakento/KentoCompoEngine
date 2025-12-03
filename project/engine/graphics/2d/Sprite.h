@@ -235,6 +235,5 @@ private: // メンバ変数
 
 	// テクスチャ切り出しサイズ
 	Vector2 textureSize_ = { 0.0f,0.0f };
-
 };
 
