@@ -17,7 +17,7 @@ void GameOverScene::Initialize()
 
 	// ゲームオーバーからタイトルUIの初期化
 	gameOverToTitleUI_ = std::make_unique<GameUI>();
-	gameOverToTitleUI_->Initialize(sceneManager_->GetSpriteCommon(), "./Resources/UI/back_to_title.png");
+	gameOverToTitleUI_->Initialize(sceneManager_->GetSpriteCommon(), "./Resources/black.png");
 	gameOverToTitleUI_->SetScreenPosition(kGameOverToTitleUIPosition);
 	gameOverToTitleUI_->SetSize(kGameOverUISize);
 	gameOverToTitleUI_->SetAnchorPoint(kGameOverUIAnchorPoint);
@@ -31,7 +31,7 @@ void GameOverScene::Initialize()
 
 	// ゲームオーバーからリトライUIの初期化
 	gameOverRetryUI_ = std::make_unique<GameUI>();
-	gameOverRetryUI_->Initialize(sceneManager_->GetSpriteCommon(), "./Resources/UI/retry.png");
+	gameOverRetryUI_->Initialize(sceneManager_->GetSpriteCommon(), "./Resources/black.png");
 	gameOverRetryUI_->SetScreenPosition(kGameOverRetryUIPosition);
 	gameOverRetryUI_->SetSize(kGameOverUISize);
 	gameOverRetryUI_->SetAnchorPoint(kGameOverUIAnchorPoint);
@@ -42,6 +42,20 @@ void GameOverScene::Initialize()
 		ChangeState(SceneState::Exit);
 		gameOverRetryUI_->SetInteractable(false);
 										 });
+
+	// タイトルフォントスプライトの初期化
+	titleFontSprite_ = std::make_unique<FontSprite>();
+	titleFontSprite_->Initialize(sceneManager_->GetSpriteCommon(), "luna");
+	titleFontSprite_->SetText("Title");
+	titleFontSprite_->SetPosition(kGameOverToTitleUIPosition);
+	titleFontSprite_->SetScale(0.5f);
+
+	// リトライフォントスプライトの初期化
+	retryFontSprite_ = std::make_unique<FontSprite>();
+	retryFontSprite_->Initialize(sceneManager_->GetSpriteCommon(), "luna");
+	retryFontSprite_->SetText("Retry");
+	retryFontSprite_->SetPosition(kGameOverRetryUIPosition);
+	retryFontSprite_->SetScale(0.5f);
 
 	StartState(SceneState::Enter);
 }
@@ -59,6 +73,10 @@ void GameOverScene::Draw2D()
 	// UIの描画
 	gameOverToTitleUI_->Draw();
 	gameOverRetryUI_->Draw();
+
+	// フォントスプライトの描画
+	titleFontSprite_->Draw();
+	retryFontSprite_->Draw();
 
 	// シーン遷移エフェクトの描画
 	transitionEffect_.Draw();
@@ -167,4 +185,6 @@ void GameOverScene::CommonUpdate()
 {
 	gameOverToTitleUI_->Update();
 	gameOverRetryUI_->Update();
+	titleFontSprite_->Update();
+	retryFontSprite_->Update();
 }

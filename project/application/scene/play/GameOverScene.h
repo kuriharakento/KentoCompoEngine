@@ -2,6 +2,7 @@
 #include "scene/interface/BaseScene.h"
 #include <application/effect/SceneTransitionEffect.h>
 #include <application/UI/GameUI.h>
+#include <graphics/2d/FontSprite.h>
 
 /**
  * @brief ゲームオーバーシーン
@@ -117,6 +118,11 @@ protected:
 	 */
 	void OnExitExit() override;
 
+	/**
+	 * @brief 共通更新処理
+	 * 
+	 * 各フレームで共通して行う更新処理を実装します。
+	 */
 	void CommonUpdate() override;
 
 private: //メンバ変数
@@ -138,5 +144,9 @@ private: //メンバ変数
 	std::unique_ptr<GameUI> gameOverToTitleUI_;
 	// ゲームオーバーからリトライするUI
 	std::unique_ptr<GameUI> gameOverRetryUI_;
+	// タイトルの文字
+	std::unique_ptr<FontSprite> titleFontSprite_;
+	// リトライの文字
+	std::unique_ptr<FontSprite> retryFontSprite_;
 };
 
