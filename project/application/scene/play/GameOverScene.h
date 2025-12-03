@@ -3,6 +3,7 @@
 #include <application/effect/SceneTransitionEffect.h>
 #include <application/UI/GameUI.h>
 #include <graphics/2d/FontSprite.h>
+#include <graphics/3d/Object3d.h>
 
 /**
  * @brief ゲームオーバーシーン
@@ -134,6 +135,12 @@ private: //メンバ変数
 	static constexpr Vector2 kGameOverUISize = { 300.0f, 80.0f };
 	// UIのアンカーポイント
 	static constexpr Vector2 kGameOverUIAnchorPoint = { 0.5f, 0.5f };
+	// タイトルフォントスプライトの位置
+	static constexpr Vector2 kTitleFontSpritePosition = { 260.0f, 580.0f };
+	// リトライフォントスプライトの位置
+	static constexpr Vector2 kRetryFontSpritePosition = { 820.0f, 580.0f };
+	// スカイドーム
+	std::unique_ptr<Object3d> skydome_ = nullptr;
 	// タイトルへ戻るフラグ
 	bool returnToTitle_ = false;
 	// リトライフラグ

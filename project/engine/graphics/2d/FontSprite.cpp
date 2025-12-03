@@ -154,6 +154,8 @@ void FontSprite::Update()
     windowName += atlasTexturePath_.empty() ? "default" : atlasTexturePath_;
     ImGui::Begin(windowName.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
+	ImGui::PushID(this); // FontSprite インスタンスごとにIDを分ける
+
     // Text 入力（簡易実装：内部バッファを用いる）
     static char textBuf[512] = "";
     static bool textBufInitialized = false;
@@ -190,6 +192,7 @@ void FontSprite::Update()
     {
         indexSprites_.clear();
     }
+	ImGui::PopID();
 
     ImGui::End();
 #endif // USE_IMGUI

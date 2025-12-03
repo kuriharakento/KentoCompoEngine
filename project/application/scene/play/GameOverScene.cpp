@@ -15,6 +15,18 @@ void GameOverScene::Initialize()
 		1280.0f, 720.0f
 	);
 
+	// カメラの位置を設定
+	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate(Vector3());
+
+	// スカイドームの初期化
+	skydome_ = std::make_unique<Object3d>();
+	skydome_->Initialize(sceneManager_->GetObject3dCommon());
+	skydome_->SetModel("skydome");
+	skydome_->SetLightManager(sceneManager_->GetLightManager());
+	skydome_->SetEnableLighting(true);
+	skydome_->SetDirectionalLightIntensity(0.5f);
+	skydome_->SetDirectionalLightDirection({ 0.0f, -1.0f, 0.0f });
+
 	// ゲームオーバーからタイトルUIの初期化
 	gameOverToTitleUI_ = std::make_unique<GameUI>();
 	gameOverToTitleUI_->Initialize(sceneManager_->GetSpriteCommon(), "./Resources/black.png");
@@ -47,14 +59,14 @@ void GameOverScene::Initialize()
 	titleFontSprite_ = std::make_unique<FontSprite>();
 	titleFontSprite_->Initialize(sceneManager_->GetSpriteCommon(), "luna");
 	titleFontSprite_->SetText("Title");
-	titleFontSprite_->SetPosition(kGameOverToTitleUIPosition);
+	titleFontSprite_->SetPosition(kTitleFontSpritePosition);
 	titleFontSprite_->SetScale(0.5f);
 
 	// リトライフォントスプライトの初期化
 	retryFontSprite_ = std::make_unique<FontSprite>();
 	retryFontSprite_->Initialize(sceneManager_->GetSpriteCommon(), "luna");
 	retryFontSprite_->SetText("Retry");
-	retryFontSprite_->SetPosition(kGameOverRetryUIPosition);
+	retryFontSprite_->SetPosition(kRetryFontSpritePosition);
 	retryFontSprite_->SetScale(0.5f);
 
 	StartState(SceneState::Enter);
@@ -66,6 +78,7 @@ void GameOverScene::Finalize()
 
 void GameOverScene::Draw3D()
 {
+	skydome_->Draw();
 }
 
 void GameOverScene::Draw2D()
@@ -183,6 +196,7 @@ void GameOverScene::OnExitExit()
 
 void GameOverScene::CommonUpdate()
 {
+	skydome_->Update(sceneManager_->GetCameraManager());
 	gameOverToTitleUI_->Update();
 	gameOverRetryUI_->Update();
 	titleFontSprite_->Update();
