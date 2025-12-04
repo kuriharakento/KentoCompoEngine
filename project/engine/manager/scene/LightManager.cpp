@@ -177,8 +177,6 @@ void LightManager::AddSpotLight(const std::string& name)
     spotLight.gpuData.cosFalloffStart = 1.0f;
 	spotLight.isGradientActive = false;
 
-    // シャドウマップ用のリソースを初期化
-    spotLight.InitializeShadowMap(dxCommon_->GetDevice());
 	// リストに追加
 	spotLights_.emplace(name, spotLight);
 	// 名前を保存

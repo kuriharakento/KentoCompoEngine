@@ -29,3 +29,23 @@ struct GPUSpotLight
 	float cosAngle;					// ライト円錐角度の余弦（内側境界）
 	float cosFalloffStart;			// フォールオフ開始角度の余弦（外側境界）
 };
+
+/**
+ * @brief CPU用スポットライト構造体
+ * 
+ * GPU側のデータに加え、アニメーション処理とシャドウマップ用のメンバを持つ
+ * CPU側で管理するスポットライト。
+ * シャドウマップを使用してリアルな影の描画が可能。
+ */
+struct CPUSpotLight {
+    GPUSpotLight gpuData;   // GPU送信用データ
+
+    // 色補間用メンバ
+    Vector4 startColor;      // グラデーション開始色
+    Vector4 endColor;        // グラデーション終了色
+    float duration;          // 補間にかける時間（秒）
+    float elapsedTime;       // 経過時間（秒）
+    bool isReversing;        // 補間の方向（往復用）
+    bool isGradientActive;   // グラデーションが有効かどうか
+    std::function<float(float)> easingFunction; // イージング関数
+};
