@@ -29,9 +29,11 @@ void Cursor::Initialize(SpriteCommon* spriteCommon, const std::string& texturePa
 	// レティクルの中心を基準点に設定
 	sprite_->SetAnchorPoint({ 0.5f, 0.5f });
 
-	// マウスカーソルを非表示
+#ifdef _RELEASE
+	// リリース時はマウスカーソルを非表示にする
 	ShowMouseCursor(false);
 	isCursorHidden_ = true;
+#endif
 }
 
 void Cursor::Update()
