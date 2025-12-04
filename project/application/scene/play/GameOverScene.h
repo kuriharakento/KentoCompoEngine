@@ -151,6 +151,8 @@ private: //メンバ変数
 	std::unique_ptr<GameUI> gameOverToTitleUI_;
 	// ゲームオーバーからリトライするUI
 	std::unique_ptr<GameUI> gameOverRetryUI_;
+	// ゲームオーバーロゴの文字
+	std::unique_ptr<FontSprite> gameOverLogoFontSprite_;
 	// タイトルの文字
 	std::unique_ptr<FontSprite> titleFontSprite_;
 	// リトライの文字

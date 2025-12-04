@@ -33,6 +33,7 @@ void GameOverScene::Initialize()
 	gameOverToTitleUI_->SetScreenPosition(kGameOverToTitleUIPosition);
 	gameOverToTitleUI_->SetSize(kGameOverUISize);
 	gameOverToTitleUI_->SetAnchorPoint(kGameOverUIAnchorPoint);
+	gameOverToTitleUI_->SetColor(VectorColorCodes::Black);
 	// コールバックの設定
 	gameOverToTitleUI_->SetInteractable(true);
 	gameOverToTitleUI_->SetOnClickCallback([this]() {
@@ -40,6 +41,14 @@ void GameOverScene::Initialize()
 		ChangeState(SceneState::Exit);
 		gameOverToTitleUI_->SetInteractable(false);
 										   });
+	gameOverToTitleUI_->SetOnHoverStayCallback([this]() {
+		gameOverToTitleUI_->SetColor(VectorColorCodes::White);
+		titleFontSprite_->SetColor(VectorColorCodes::Black);
+											   });
+	gameOverToTitleUI_->SetOnHoverExitCallback([this]() {
+		gameOverToTitleUI_->SetColor(VectorColorCodes::Black);
+		titleFontSprite_->SetColor(VectorColorCodes::White);
+											   });
 
 	// ゲームオーバーからリトライUIの初期化
 	gameOverRetryUI_ = std::make_unique<GameUI>();
@@ -47,6 +56,7 @@ void GameOverScene::Initialize()
 	gameOverRetryUI_->SetScreenPosition(kGameOverRetryUIPosition);
 	gameOverRetryUI_->SetSize(kGameOverUISize);
 	gameOverRetryUI_->SetAnchorPoint(kGameOverUIAnchorPoint);
+	gameOverRetryUI_->SetColor(VectorColorCodes::Black);
 	// コールバックの設定
 	gameOverRetryUI_->SetInteractable(true);
 	gameOverRetryUI_->SetOnClickCallback([this]() {
@@ -54,6 +64,14 @@ void GameOverScene::Initialize()
 		ChangeState(SceneState::Exit);
 		gameOverRetryUI_->SetInteractable(false);
 										 });
+	gameOverRetryUI_->SetOnHoverStayCallback([this]() {
+		gameOverRetryUI_->SetColor(VectorColorCodes::White);
+		retryFontSprite_->SetColor(VectorColorCodes::Black);
+											 });
+	gameOverRetryUI_->SetOnHoverExitCallback([this]() {
+		gameOverRetryUI_->SetColor(VectorColorCodes::Black);
+		retryFontSprite_->SetColor(VectorColorCodes::White);
+											 });
 
 	// タイトルフォントスプライトの初期化
 	titleFontSprite_ = std::make_unique<FontSprite>();
@@ -68,6 +86,13 @@ void GameOverScene::Initialize()
 	retryFontSprite_->SetText("Retry");
 	retryFontSprite_->SetPosition(kRetryFontSpritePosition);
 	retryFontSprite_->SetScale(0.5f);
+
+	// ゲームオーバーロゴ
+	gameOverLogoFontSprite_ = std::make_unique<FontSprite>();
+	gameOverLogoFontSprite_->Initialize(sceneManager_->GetSpriteCommon(), "luna");
+	gameOverLogoFontSprite_->SetText("Game Over");
+	gameOverLogoFontSprite_->SetPosition({ 250.0f, 200.0f });
+	gameOverLogoFontSprite_->SetScale(1.0f);
 
 	StartState(SceneState::Enter);
 }
@@ -90,6 +115,8 @@ void GameOverScene::Draw2D()
 	// フォントスプライトの描画
 	titleFontSprite_->Draw();
 	retryFontSprite_->Draw();
+	// ゲームオーバーロゴの描画
+	gameOverLogoFontSprite_->Draw();
 
 	// シーン遷移エフェクトの描画
 	transitionEffect_.Draw();
@@ -201,4 +228,5 @@ void GameOverScene::CommonUpdate()
 	gameOverRetryUI_->Update();
 	titleFontSprite_->Update();
 	retryFontSprite_->Update();
+	gameOverLogoFontSprite_->Update();
 }

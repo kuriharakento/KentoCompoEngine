@@ -63,8 +63,9 @@ void TitleScene::Initialize()
 		"luna"
 	);
 	fontSprite_->SetText("Press SPACE to Start");
-	fontSprite_->SetPosition({ 200.0f, 560.0f });
-	fontSprite_->SetScale(0.5f);
+	fontSprite_->SetPosition({ 100.0f, 600.0f });
+	fontSprite_->SetScale(0.6f);
+	fontSprite_->SetColor(VectorColorCodes::Cyan);
 
 	StartState(SceneState::Playing);
 }
