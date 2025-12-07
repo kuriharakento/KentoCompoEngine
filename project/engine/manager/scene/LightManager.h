@@ -50,6 +50,12 @@ public:
 	void Draw();
 
 	/**
+	 * @brief デバッグ用ライト可視化描画
+	 * @details ポイントライト、スポットライト、ディレクショナルライトの位置と方向を線で描画する
+	 */
+	void DrawDebugLines();
+
+	/**
 	 * @brief ポイントライトの追加
 	 * @param name ライトの名前
 	 */

@@ -216,6 +216,8 @@ void MyGame::Draw()
 
 	sceneManager_->Draw3D();
 
+	lightManager_->DrawDebugLines();
+
 	// ラインの描画
 	LineManager::GetInstance()->RenderLines();
 

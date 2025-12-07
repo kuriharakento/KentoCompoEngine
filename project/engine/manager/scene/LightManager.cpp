@@ -13,6 +13,8 @@
 // editor
 #include "externals/imgui/imgui.h"
 #include "time/TimeManager.h"
+// debug
+#include "manager/graphics/LineManager.h"
 
 LightManager::LightManager()
 {
@@ -145,6 +147,71 @@ void LightManager::Draw()
 	dxCommon_->GetCommandList()->SetGraphicsRootShaderResourceView(6, spotLightResource_->GetGPUVirtualAddress());
 	// ライトの数の定数バッファビューを設定
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(7, lightCountResource_->GetGPUVirtualAddress());
+}
+
+void LightManager::DrawDebugLines()
+{
+	auto* lineManager = LineManager::GetInstance();
+	if (!lineManager) return;
+
+	// ディレクショナルライトの可視化
+	{
+		Vector3 origin = { 0.0f, 10.0f, 0.0f }; // シーン中央上空
+		Vector3 dir = Vector3::Normalize(directionalLight_.direction);
+		// 黄色の矢印でディレクショナルライトの方向を表示
+		lineManager->DrawArrow(origin, dir, 5.0f, { 1.0f, 1.0f, 0.0f, 1.0f });
+	}
+
+	// ポイントライトの可視化
+	for (auto& [name, light] : pointLights_) {
+		Vector3 pos = light.gpuData.position;
+		float radius = light.gpuData.radius;
+		// ライトの色で球を描画
+		Vector4 color = light.gpuData.color;
+		color.w = 1.0f;
+		lineManager->DrawSphere(pos, 0.2f, color); // 小さい球でライト位置を表示
+		// 半径を白いワイヤーフレーム球で表示
+		lineManager->DrawSphere(pos, radius, { 1.0f, 1.0f, 1.0f, 0.3f });
+	}
+
+	// スポットライトの可視化
+	for (auto& [name, light] : spotLights_) {
+		Vector3 pos = light.gpuData.position;
+		Vector3 dir = Vector3::Normalize(light.gpuData.direction);
+		float distance = light.gpuData.distance;
+		// ライトの色で矢印を描画（方向と距離を表示）
+		Vector4 color = light.gpuData.color;
+		color.w = 1.0f;
+		lineManager->DrawArrow(pos, dir, distance, color);
+		// 小さい球でライト位置を表示
+		lineManager->DrawSphere(pos, 0.2f, color);
+		
+		// コーン（円錐）の外縁を表示
+		float angle = std::acos(light.gpuData.cosAngle);
+		float coneRadius = distance * std::tan(angle);
+		Vector3 coneEnd = pos + dir * distance;
+		
+		// 円錐の底面を近似的に描画（8本の線で円を描く）
+		Vector3 right = Vector3::Cross(dir, Vector3{ 0.0f, 1.0f, 0.0f });
+		if (right.Length() < 0.001f) {
+			right = Vector3::Cross(dir, Vector3{ 1.0f, 0.0f, 0.0f });
+		}
+		right = Vector3::Normalize(right);
+		Vector3 up = Vector3::Cross(right, dir);
+		
+		const int segments = 8;
+		for (int i = 0; i < segments; ++i) {
+			float angle1 = static_cast<float>(i) / segments * 2.0f * 3.14159265f;
+			float angle2 = static_cast<float>(i + 1) / segments * 2.0f * 3.14159265f;
+			Vector3 p1 = coneEnd + (right * std::cos(angle1) + up * std::sin(angle1)) * coneRadius;
+			Vector3 p2 = coneEnd + (right * std::cos(angle2) + up * std::sin(angle2)) * coneRadius;
+			lineManager->DrawLine(p1, p2, color);
+			// コーンのエッジ
+			if (i % 2 == 0) {
+				lineManager->DrawLine(pos, p1, { color.x * 0.5f, color.y * 0.5f, color.z * 0.5f, 0.5f });
+			}
+		}
+	}
 }
 
 void LightManager::AddPointLight(const std::string& name)
