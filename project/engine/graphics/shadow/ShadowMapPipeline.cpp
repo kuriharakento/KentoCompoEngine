@@ -113,11 +113,11 @@ void ShadowMapPipeline::CreatePipelineState() {
     // ラスタライザステートの設定
     D3D12_RASTERIZER_DESC rasterizerDesc = {};
     rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
-    rasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
+    rasterizerDesc.CullMode = D3D12_CULL_MODE_BACK; // カリング設定をバックに戻す（一般的な設定）
     rasterizerDesc.FrontCounterClockwise = FALSE;
-    rasterizerDesc.DepthBias = 1000;           // シャドウアクネ対策
+    rasterizerDesc.DepthBias = 50;           // シャドウアクネ対策（値を調整）
     rasterizerDesc.DepthBiasClamp = 0.0f;
-    rasterizerDesc.SlopeScaledDepthBias = 1.5f; // スロープスケールバイアス
+    rasterizerDesc.SlopeScaledDepthBias = 2.0f; // スロープスケールバイアス
     rasterizerDesc.DepthClipEnable = TRUE;
     rasterizerDesc.MultisampleEnable = FALSE;
     rasterizerDesc.AntialiasedLineEnable = FALSE;

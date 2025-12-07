@@ -285,6 +285,13 @@ public: // SpotLight シャドウ関連
 	 */
 	const std::unordered_map<std::string, CPUSpotLight>& GetSpotLights() const { return spotLights_; }
 
+	/**
+	 * @brief スポットライトのシャドウ行列GPUアドレスを取得
+	 * @param name ライトの名前
+	 * @return GPUバーチャルアドレス（シャドウパス用）
+	 */
+	D3D12_GPU_VIRTUAL_ADDRESS GetSpotLightShadowMatrixGPUAddress(const std::string& name) const;
+
 public: // PointLight シャドウ関連
 	/**
 	 * @brief ポイントライトのシャドウ用行列を更新（6面）
@@ -321,6 +328,14 @@ public: // PointLight シャドウ関連
 	 * @return ポイントライトのマップ
 	 */
 	const std::unordered_map<std::string, CPUPointLight>& GetPointLights() const { return pointLights_; }
+
+	/**
+	 * @brief ポイントライトのシャドウ行列GPUアドレスを取得
+	 * @param name ライトの名前
+	 * @param faceIndex 面のインデックス（0-5）
+	 * @return GPUバーチャルアドレス（シャドウパス用）
+	 */
+	D3D12_GPU_VIRTUAL_ADDRESS GetPointLightShadowMatrixGPUAddress(const std::string& name, uint32_t faceIndex) const;
 
 public: // ゲッター
 	/**
@@ -539,4 +554,16 @@ private:
 	// 各カスケードのライトビュープロジェクション行列用個別バッファ（シャドウパス用、256バイトアライメント）
 	Microsoft::WRL::ComPtr<ID3D12Resource> cascadeLightVPResources_[4];
 	Matrix4x4* cascadeLightVPData_[4] = {};
+
+	// スポットライト用シャドウ行列バッファ（シャドウパス用、最大4つ）
+	static constexpr uint32_t kMaxSpotLightShadows = 4;
+	Microsoft::WRL::ComPtr<ID3D12Resource> spotLightVPResources_[kMaxSpotLightShadows];
+	Matrix4x4* spotLightVPData_[kMaxSpotLightShadows] = {};
+	std::unordered_map<std::string, uint32_t> spotLightVPIndices_; // ライト名 -> バッファインデックス
+
+	// ポイントライト用シャドウ行列バッファ（シャドウパス用、最大2つ×6面）
+	static constexpr uint32_t kMaxPointLightShadows = 2;
+	Microsoft::WRL::ComPtr<ID3D12Resource> pointLightVPResources_[kMaxPointLightShadows][6];
+	Matrix4x4* pointLightVPData_[kMaxPointLightShadows][6] = {};
+	std::unordered_map<std::string, uint32_t> pointLightVPIndices_; // ライト名 -> バッファインデックス
 };

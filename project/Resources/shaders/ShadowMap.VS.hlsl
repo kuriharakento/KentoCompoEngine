@@ -21,7 +21,8 @@ cbuffer LightViewProjection : register(b0) {
 
 // オブジェクトのワールド行列
 cbuffer WorldMatrix : register(b1) {
-    float4x4 gWorld;
+    float4x4 gWVP;   // TransformationMatrix.WVP (使用しない)
+    float4x4 gWorld; // TransformationMatrix.World (使用する)
 };
 
 VertexShaderOutput main(VertexShaderInput input) {

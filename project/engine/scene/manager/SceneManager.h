@@ -26,8 +26,11 @@ public: //メンバ関数
 	void Draw2D();
 	//シャドウ描画
 	void DrawShadow();
+	//G-Buffer描画（ディファードレンダリング）
+	void DrawGBuffer();
 
 	//シーンの変更
+
 	void ChangeScene(const std::string& sceneName);
 
 public: //アクセッサ

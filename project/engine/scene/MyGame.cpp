@@ -106,42 +106,116 @@ void MyGame::Draw()
 		shadowMapManager_->EndShadowPass();
 	}
 
+	/*----[ スポットライトシャドウパス描画 ]----*/
+	auto& spotLights = lightManager_->GetSpotLights();
+	for (auto& [name, light] : spotLights) {
+		if (!light.shadowEnabled) continue;
+		
+		// シャドウマップがなければ作成
+		if (!shadowMapManager_->HasSpotLightShadowMap(name)) {
+			shadowMapManager_->CreateSpotLightShadowMap(name);
+		}
+		
+
+		
+		// シャドウパス開始
+		shadowMapManager_->BeginSpotLightShadowPass(name);
+		shadowMapPipeline_->SetPipeline();
+		
+		// スポットライトのビュープロジェクション行列を設定
+		D3D12_GPU_VIRTUAL_ADDRESS spotMatrixAddr = lightManager_->GetSpotLightShadowMatrixGPUAddress(name);
+		if (spotMatrixAddr != 0) {
+			dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, spotMatrixAddr);
+		}
+		
+		// シャドウキャスターを描画
+		sceneManager_->DrawShadow();
+		
+		shadowMapManager_->EndShadowPass();
+	}
+
+	/*----[ ポイントライトシャドウパス描画 ]----*/
+	auto& pointLights = lightManager_->GetPointLights();
+	for (auto& [name, light] : pointLights) {
+		if (!light.shadowEnabled) continue;
+		
+		// シャドウマップがなければ作成
+		if (!shadowMapManager_->HasPointLightShadowMap(name)) {
+			shadowMapManager_->CreatePointLightShadowMap(name);
+		}
+		
+
+		
+		// 6面のキューブマップを描画
+		for (uint32_t face = 0; face < 6; ++face) {
+			shadowMapManager_->BeginPointLightShadowPass(name, face);
+			shadowMapPipeline_->SetPipeline();
+			
+			// ポイントライトのビュープロジェクション行列を設定
+			D3D12_GPU_VIRTUAL_ADDRESS pointMatrixAddr = lightManager_->GetPointLightShadowMatrixGPUAddress(name, face);
+			if (pointMatrixAddr != 0) {
+				dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, pointMatrixAddr);
+			}
+			
+			// シャドウキャスターを描画
+			sceneManager_->DrawShadow();
+			
+			shadowMapManager_->EndShadowPass();
+		}
+	}
 
 
-	/*----[ オフスクリーン描画 ]----*/
+	/*----[ ディファードレンダリングパス ]----*/
 
+	// === Phase 1: G-Bufferパス ===
+	deferredRenderer_->BeginGeometryPass();
+	
+	// G-Bufferにジオメトリを描画
+	sceneManager_->DrawGBuffer();
+	
+	deferredRenderer_->EndGeometryPass();
+
+	// === Phase 2: ライトパス（renderTextureに描画） ===
 	renderTexture_->BeginRender();
+	
+	deferredRenderer_->ExecuteLightPass(
+		renderTexture_->GetRTVHandle(),
+		cameraManager_.get(),
+		lightManager_.get(),
+		shadowMapManager_.get()
+	);
 
-	/////////////////< 描画ここから >////////////////////
+	// === Phase 3: フォワードパス（透明オブジェクト、パーティクルなど） ===
+	// 注: 現在は深度バッファ問題のため、フォワード3D描画は一時的にスキップ
+	// TODO: G-Bufferの深度をrenderTextureに引き継ぐ実装が必要
+	
+	// 3D描画用設定（フォワード用）
+	// Framework::Draw3DSetting();
 
-	// ---------- 3D描画 ---------
+	// 透明オブジェクトはフォワードで描画
+	// sceneManager_->Draw3D();
 
-	//3D描画用設定
-	Framework::Draw3DSetting();
-
-	//3Dオブジェクトの描画
-	sceneManager_->Draw3D();
-
-	//ラインの描画
-	LineManager::GetInstance()->RenderLines();
+	// ラインの描画
+	// LineManager::GetInstance()->RenderLines();
 
 	// Skyboxの描画
-	skybox_->Draw();
+	// skybox_->Draw();
 
-	//パーティクルの描画
-	ParticleManager::GetInstance()->Draw();
+	// パーティクルの描画
+	// ParticleManager::GetInstance()->Draw();
+
 		
-	// ---------- 2D描画 ---------
+	// === 2D描画 ===
+	// 注: 現在は深度バッファ問題のため、一時的にスキップ
+	
+	// 2D描画用設定
+	// Framework::Draw2DSetting();
 
-	//2D描画用設定
-	Framework::Draw2DSetting();
-
-	//スプライトの描画
-	sceneManager_->Draw2D();
-
-	/////////////////< 描画ここまで >////////////////////
+	// スプライトの描画
+	// sceneManager_->Draw2D();
 
 	renderTexture_->EndRender();
+
 	
 #ifdef USE_IMGUI
 	// ポストプロセス処理（シーンテクスチャ -> シーンレンダーテクスチャ）

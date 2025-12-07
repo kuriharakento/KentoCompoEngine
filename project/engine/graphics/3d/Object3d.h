@@ -52,19 +52,31 @@ public:	/*========[ メンバ関数 ]========*/
 	/**
 	 * @brief シャドウマップ用描画
 	 * @details ライトの視点からオブジェクトを描画し、深度情報をシャドウマップに記録する
-	 * @param lightViewProjectionAddress ライトのビュー・プロジェクション行列のGPUアドレス
+	 * @param lightViewProjectionAddress ライトビュープロジェクション行列のGPUアドレス
 	 */
 	void DrawShadow(D3D12_GPU_VIRTUAL_ADDRESS lightViewProjectionAddress);
 
 	/**
-	 * @brief シャドウマップ用描画（行列直接指定）
-	 * @details カスケードシャドウマップ用に行列を直接指定して描画
-	 * @param lightViewProjection ライトのビュー・プロジェクション行列
+	 * @brief シャドウマップ用描画（行列パラメータなし）
+	 * @details 外部で行列が設定されている前提で、オブジェクトの描画のみを行う
+	 */
+	void DrawShadowOnly();
+
+	/**
+	 * @brief シャドウマップ用描画（非推奨）
+	 * @param lightViewProjection ライトビュープロジェクション行列
 	 */
 	void DrawShadowWithMatrix(const Matrix4x4& lightViewProjection);
 
 	/**
+	 * @brief G-Buffer用描画（ディファードレンダリング）
+	 * @details ジオメトリパスでG-Bufferに描画する
+	 */
+	void DrawGBuffer();
+
+	/**
 	 * @brief 行列の更新
+
 	 * @param camera 使用するカメラ（省略時はデフォルトカメラを使用）
 	 */
 	void UpdateMatrix(Camera* camera = nullptr);

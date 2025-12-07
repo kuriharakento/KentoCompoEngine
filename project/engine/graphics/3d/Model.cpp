@@ -86,7 +86,25 @@ void Model::DrawShadow()
 	modelCommon_->GetDXCommon()->GetCommandList()->DrawInstanced(UINT(modelData_.vertices.size()), 1, 0, 0);
 }
 
+void Model::DrawGBuffer()
+{
+	auto* commandList = modelCommon_->GetDXCommon()->GetCommandList();
+	
+	// 頂点バッファを設定
+	commandList->IASetVertexBuffers(0, 1, &vertexBufferView_);
+
+	// マテリアルCBufferの場所を設定（ルートパラメータ2: Material）
+	commandList->SetGraphicsRootConstantBufferView(2, materialResource_->GetGPUVirtualAddress());
+
+	// テクスチャSRVをrootParameter[3]に設定
+	commandList->SetGraphicsRootDescriptorTable(3, TextureManager::GetInstance()->GetSrvHandleGPU(modelData_.material.textureIndex));
+
+	// 描画コマンドを発行
+	commandList->DrawInstanced(UINT(modelData_.vertices.size()), 1, 0, 0);
+}
+
 MaterialData Model::LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename)
+
 {
 	MaterialData materialData;
 	std::string line;

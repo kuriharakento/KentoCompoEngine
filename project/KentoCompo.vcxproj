@@ -159,7 +159,12 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\manager\graphics\LineManager.cpp" />
     <ClCompile Include="engine\audio\Audio.cpp" />
     <ClCompile Include="engine\manager\graphics\ShadowMapManager.cpp" />
+    <ClCompile Include="engine\graphics\deferred\GBuffer.cpp" />
+    <ClCompile Include="engine\graphics\deferred\GBufferPipeline.cpp" />
+    <ClCompile Include="engine\graphics\deferred\LightPassPipeline.cpp" />
+    <ClCompile Include="engine\graphics\deferred\DeferredRenderer.cpp" />
     <ClCompile Include="engine\manager\scene\CameraManager.cpp" />
+
     <ClCompile Include="engine\graphics\2d\Sprite.cpp" />
     <ClCompile Include="engine\graphics\2d\SpriteCommon.cpp" />
     <ClCompile Include="engine\graphics\3d\Model.cpp" />
@@ -336,6 +341,10 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\light\PointLight.h" />
     <ClInclude Include="engine\light\SpotLight.h" />
     <ClInclude Include="engine\manager\graphics\ShadowMapManager.h" />
+    <ClInclude Include="engine\graphics\deferred\GBuffer.h" />
+    <ClInclude Include="engine\graphics\deferred\GBufferPipeline.h" />
+    <ClInclude Include="engine\graphics\deferred\LightPassPipeline.h" />
+    <ClInclude Include="engine\graphics\deferred\DeferredRenderer.h" />
     <ClInclude Include="engine\math\BlendMode.h" />
     <ClInclude Include="engine\math\Sphere.h" />
     <ClInclude Include="engine\math\VectorColorCodes.h" />

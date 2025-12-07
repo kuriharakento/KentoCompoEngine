@@ -81,6 +81,10 @@ void LightManager::Update()
 				light.gpuData.color = Vector4::Lerp(light.startColor, light.endColor, t);
 			}
 		}
+		// シャドウが有効なら行列を更新
+		if (light.shadowEnabled) {
+			UpdatePointLightShadowMatrix(name, 0.1f, light.gpuData.radius);
+		}
 	}
 
 	/*--------------[ スポットライトの更新 ]-----------------*/
@@ -102,6 +106,10 @@ void LightManager::Update()
 			} else {
 				light.gpuData.color = Vector4::Lerp(light.startColor, light.endColor, t);
 			}
+		}
+		// シャドウが有効なら行列を更新
+		if (light.shadowEnabled) {
+			UpdateSpotLightShadowMatrix(name, 0.1f, light.gpuData.distance);
 		}
 	}
 
@@ -183,6 +191,7 @@ void LightManager::AddSpotLight(const std::string& name)
     spotLight.gpuData.decay = 2.0f;
     spotLight.gpuData.cosFalloffStart = 1.0f;
 	spotLight.isGradientActive = false;
+	spotLight.shadowEnabled = true;
 
 	// リストに追加
 	spotLights_.emplace(name, spotLight);
@@ -288,6 +297,22 @@ void LightManager::CreateConstantBuffer()
 	spotLightData_->direction = { 0.0f,-1.0f,0.0f };
 	spotLightData_->cosAngle = 0.0f;
 	spotLightData_->cosFalloffStart = 0.0f;
+
+	/*--------------[ スポットライト用シャドウ行列バッファを作成 ]-----------------*/
+	for (uint32_t i = 0; i < kMaxSpotLightShadows; ++i) {
+		spotLightVPResources_[i] = dxCommon_->CreateBufferResource(256); // 256バイトアライメント
+		spotLightVPResources_[i]->Map(0, nullptr, reinterpret_cast<void**>(&spotLightVPData_[i]));
+		*spotLightVPData_[i] = MakeIdentity4x4();
+	}
+
+	/*--------------[ ポイントライト用シャドウ行列バッファを作成 ]-----------------*/
+	for (uint32_t i = 0; i < kMaxPointLightShadows; ++i) {
+		for (uint32_t face = 0; face < 6; ++face) {
+			pointLightVPResources_[i][face] = dxCommon_->CreateBufferResource(256); // 256バイトアライメント
+			pointLightVPResources_[i][face]->Map(0, nullptr, reinterpret_cast<void**>(&pointLightVPData_[i][face]));
+			*pointLightVPData_[i][face] = MakeIdentity4x4();
+		}
+	}
 }
 
 void LightManager::ImGuiUpdate()
@@ -467,6 +492,7 @@ void LightManager::ImGuiUpdate()
 					ImGui::DragFloat("SpotLight CosAngle", &spotLights_.at(name).gpuData.cosAngle, 0.01f, -3.14f, 3.14f);
 					ImGui::DragFloat("SpotLight Decay", &spotLights_.at(name).gpuData.decay, 0.1f, 0.0f,10.0f);
 					ImGui::DragFloat("SpotLight CosFalloffStart", &spotLights_.at(name).gpuData.cosFalloffStart, 0.01f, -3.14f, 3.14f);
+					ImGui::Checkbox("Shadow Enabled", &spotLights_.at(name).shadowEnabled);
 				}
 				ImGui::PopID();
 			}
@@ -1044,6 +1070,24 @@ void LightManager::UpdateSpotLightShadowMatrix(const std::string& name, float ne
 	// ビュープロジェクション行列
 	light.viewProjectionMatrix = light.viewMatrix * light.projectionMatrix;
 	light.shadowEnabled = true;
+
+	// GPUバッファにコピー
+	auto indexIt = spotLightVPIndices_.find(name);
+	if (indexIt == spotLightVPIndices_.end()) {
+		// 新しいインデックスを割り当て
+		uint32_t newIndex = static_cast<uint32_t>(spotLightVPIndices_.size());
+		if (newIndex < kMaxSpotLightShadows) {
+			spotLightVPIndices_[name] = newIndex;
+			if (spotLightVPData_[newIndex]) {
+				*spotLightVPData_[newIndex] = light.viewProjectionMatrix;
+			}
+		}
+	} else {
+		uint32_t index = indexIt->second;
+		if (index < kMaxSpotLightShadows && spotLightVPData_[index]) {
+			*spotLightVPData_[index] = light.viewProjectionMatrix;
+		}
+	}
 }
 
 const Matrix4x4& LightManager::GetSpotLightShadowMatrix(const std::string& name) const {
@@ -1116,6 +1160,30 @@ void LightManager::UpdatePointLightShadowMatrix(const std::string& name, float n
 	}
 
 	light.shadowEnabled = true;
+
+	// GPUバッファにコピー
+	auto indexIt = pointLightVPIndices_.find(name);
+	if (indexIt == pointLightVPIndices_.end()) {
+		// 新しいインデックスを割り当て
+		uint32_t newIndex = static_cast<uint32_t>(pointLightVPIndices_.size());
+		if (newIndex < kMaxPointLightShadows) {
+			pointLightVPIndices_[name] = newIndex;
+			for (uint32_t face = 0; face < 6; ++face) {
+				if (pointLightVPData_[newIndex][face]) {
+					*pointLightVPData_[newIndex][face] = light.viewProjectionMatrices[face];
+				}
+			}
+		}
+	} else {
+		uint32_t index = indexIt->second;
+		if (index < kMaxPointLightShadows) {
+			for (uint32_t face = 0; face < 6; ++face) {
+				if (pointLightVPData_[index][face]) {
+					*pointLightVPData_[index][face] = light.viewProjectionMatrices[face];
+				}
+			}
+		}
+	}
 }
 
 const Matrix4x4& LightManager::GetPointLightShadowMatrix(const std::string& name, uint32_t faceIndex) const {
@@ -1144,6 +1212,33 @@ bool LightManager::IsPointLightShadowEnabled(const std::string& name) const {
 		return it->second.shadowEnabled;
 	}
 	return false;
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS LightManager::GetSpotLightShadowMatrixGPUAddress(const std::string& name) const {
+	auto indexIt = spotLightVPIndices_.find(name);
+	if (indexIt == spotLightVPIndices_.end()) {
+		return 0;
+	}
+	uint32_t index = indexIt->second;
+	if (index >= kMaxSpotLightShadows || !spotLightVPResources_[index]) {
+		return 0;
+	}
+	return spotLightVPResources_[index]->GetGPUVirtualAddress();
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS LightManager::GetPointLightShadowMatrixGPUAddress(const std::string& name, uint32_t faceIndex) const {
+	if (faceIndex >= 6) {
+		return 0;
+	}
+	auto indexIt = pointLightVPIndices_.find(name);
+	if (indexIt == pointLightVPIndices_.end()) {
+		return 0;
+	}
+	uint32_t index = indexIt->second;
+	if (index >= kMaxPointLightShadows || !pointLightVPResources_[index][faceIndex]) {
+		return 0;
+	}
+	return pointLightVPResources_[index][faceIndex]->GetGPUVirtualAddress();
 }
 
 #pragma endregion

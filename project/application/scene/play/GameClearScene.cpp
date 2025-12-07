@@ -4,12 +4,16 @@
 #include <input/Input.h>
 #include "externals/imgui/imgui.h"
 #include "manager/graphics/ShadowMapManager.h"
+#include "manager/effect/PostProcessManager.h"
 
 void GameClearScene::Initialize()
 {
 	auto* object3dCommon = sceneManager_->GetObject3dCommon();
 	auto* cameraManager = sceneManager_->GetCameraManager();
 	auto* lightManager = sceneManager_->GetLightManager();
+
+	// ブルームを無効化
+	sceneManager_->GetPostProcessManager()->bloomEffect_->SetEnabled(false);
 
 	// 地面オブジェクトの作成
 	ground_ = std::make_unique<Object3d>();
@@ -29,6 +33,10 @@ void GameClearScene::Initialize()
 		obj->SetLightManager(lightManager);
 		testObjects_.push_back(std::move(obj));
 	}
+
+	// デバッグカメラの初期化
+	debugCamera_.Initialize(cameraManager->GetActiveCamera());
+	debugCamera_.Start({ 0.0f, 10.0f, -20.0f }, { 0.5f, 0.0f, 0.0f });
 
 	StartState(SceneState::Playing);
 }
@@ -58,24 +66,29 @@ void GameClearScene::Draw2D()
 
 void GameClearScene::DrawShadow()
 {
-	auto* lightManager = sceneManager_->GetLightManager();
-	auto* shadowMapManager = sceneManager_->GetShadowMapManager();
-	
-	// 現在のカスケードインデックスに対応する行列を取得
-	uint32_t cascadeIndex = shadowMapManager->GetCurrentCascadeIndex();
-	const Matrix4x4& cascadeViewProj = lightManager->GetCascadeViewProjection(cascadeIndex);
-	
-	// 注: 地面はシャドウマップに描画しない（自己シャドウを防ぐため）
-	
-	// テストオブジェクトのシャドウ描画
+	// テストオブジェクトのシャドウ描画（行列は呼び出し元で設定済み）
 	for (auto& obj : testObjects_) {
-		obj->DrawShadowWithMatrix(cascadeViewProj);
+		obj->DrawShadowOnly();
+	}
+}
+
+void GameClearScene::DrawGBuffer()
+{
+	// 地面のG-Buffer描画
+	if (ground_) {
+		ground_->DrawGBuffer();
+	}
+
+	// テストオブジェクトのG-Buffer描画
+	for (auto& obj : testObjects_) {
+		obj->DrawGBuffer();
 	}
 }
 
 
 
 void GameClearScene::OnEnterPlaying()
+
 {
 }
 
@@ -83,20 +96,13 @@ void GameClearScene::OnUpdatePlaying()
 {
 	auto* cameraManager = sceneManager_->GetCameraManager();
 
-	// オブジェクトの回転
-	objectRotation_ += 0.01f;
+	debugCamera_.Update();
+
 	for (size_t i = 0; i < testObjects_.size(); ++i) {
-		testObjects_[i]->SetRotate({ 0.0f, objectRotation_ + static_cast<float>(i) * 0.5f, 0.0f });
 		testObjects_[i]->Update(cameraManager);
 	}
 	if (ground_) {
 		ground_->Update(cameraManager);
-	}
-
-	// スペースキーでタイトルに戻る
-	if (Input::GetInstance()->TriggerKey(DIK_SPACE))
-	{
-		sceneManager_->ChangeScene(SceneNames::Title);
 	}
 }
 

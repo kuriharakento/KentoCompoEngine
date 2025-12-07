@@ -7,6 +7,7 @@
 #include "graphics/3d/Object3d.h"
 // manager
 #include "manager/scene/LightManager.h"
+#include <camerawork/debug/DebugCamera.h>
 
 /**
  * @brief ゲームクリアシーン（シャドウテスト用）
@@ -23,7 +24,11 @@ public:
 	// シャドウ描画（シャドウマップ対象オブジェクトを描画）
 	void DrawShadow() override;
 
+	// G-Buffer描画（ディファードレンダリング用）
+	void DrawGBuffer() override;
+
 protected:
+
 	void OnEnterPlaying() override;
 	void OnUpdatePlaying() override;
 	void OnExitPlaying() override;
@@ -34,6 +39,9 @@ private:
 
 	// テスト用オブジェクト（キューブなど）
 	std::vector<std::unique_ptr<Object3d>> testObjects_;
+
+	// デバッグカメラ
+	DebugCamera debugCamera_;
 
 	// オブジェクトの回転角度
 	float objectRotation_ = 0.0f;

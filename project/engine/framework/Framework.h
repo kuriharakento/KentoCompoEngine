@@ -21,6 +21,8 @@
 // shadow
 #include "manager/graphics/ShadowMapManager.h"
 #include "graphics/shadow/ShadowMapPipeline.h"
+// deferred
+#include "graphics/deferred/DeferredRenderer.h"
 
 /**
  * @brief フレームワーククラス
@@ -126,5 +128,8 @@ protected: // メンバ変数
 	std::unique_ptr<ShadowMapManager> shadowMapManager_;
 	// シャドウマップ描画パイプライン
 	std::unique_ptr<ShadowMapPipeline> shadowMapPipeline_;
+	// ディファードレンダラー
+	std::unique_ptr<DeferredRenderer> deferredRenderer_;
 };
+
 

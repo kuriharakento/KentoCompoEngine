@@ -48,7 +48,14 @@ public:
 	void DrawShadow();
 
 	/**
+	 * @brief G-Buffer用描画（ディファードレンダリング）
+	 * @details GBufferPipelineのルートシグネチャに合わせてバインディングを行う
+	 */
+	void DrawGBuffer();
+
+	/**
 	 * @brief .mtlファイルの読み取り
+
 	 * @param directoryPath ファイルのディレクトリパス
 	 * @param filename ファイル名
 	 * @return マテリアルデータ

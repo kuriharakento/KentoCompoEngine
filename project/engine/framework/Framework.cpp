@@ -181,9 +181,14 @@ void Framework::Initialize()
 	shadowMapPipeline_ = std::make_unique<ShadowMapPipeline>();
 	shadowMapPipeline_->Initialize(dxCommon_.get());
 
+	// ディファードレンダラーの初期化
+	deferredRenderer_ = std::make_unique<DeferredRenderer>();
+	deferredRenderer_->Initialize(dxCommon_.get(), srvManager_.get(), WinApp::kClientWidth, WinApp::kClientHeight);
+
 	// Skyboxの初期化
 	skybox_ = std::make_unique<Skybox>();
 }
+
 
 void Framework::Finalize()
 {
