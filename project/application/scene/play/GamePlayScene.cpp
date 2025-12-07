@@ -410,6 +410,13 @@ void GamePlayScene::Draw3D()
 	splineCamera_->DrawSplineLine();
 }
 
+void GamePlayScene::DrawShadow()
+{
+	BaseScene::DrawShadow();
+
+	stageManager_->DrawShadow();
+}
+
 void GamePlayScene::Draw2D()
 {
 	stageManager_->Draw2D();

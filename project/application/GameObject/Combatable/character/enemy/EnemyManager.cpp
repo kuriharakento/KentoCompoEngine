@@ -125,6 +125,14 @@ void EnemyManager::Draw3D(CameraManager* camera)
 	}
 }
 
+void EnemyManager::DrawShadow()
+{
+	for (auto& enemy : enemies_)
+	{
+		enemy->DrawShadow(); // 各敵キャラクターのシャドウ描画
+	}
+}
+
 void EnemyManager::Draw2D()
 {
 	for (auto& enemy : enemies_)

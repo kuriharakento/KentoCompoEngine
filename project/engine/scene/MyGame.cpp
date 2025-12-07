@@ -197,6 +197,22 @@ void MyGame::Draw()
 	auto rtvHandle = renderTexture_->GetRTVHandle();
 	dxCommon_->GetCommandList()->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
+	// シャドウマップ関連のリソースをForwardパス用にバインド
+	// フォールバック用単一シャドウマップ（念のため）
+	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(10, lightManager_->GetShadowMatrixGPUAddress());
+	// カスケードシャドウデータ（必須）
+	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(11, lightManager_->GetCascadeShadowDataGPUAddress());
+	
+	// カスケードシャドウマップSRV（t6-t9）
+	if (shadowMapManager_->GetCascadeShadowMap().isEnabled) {
+		for (uint32_t i = 0; i < ShadowMapConfig::kCascadeCount; ++i) {
+			dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(
+				12 + i, // RootParameter 12, 13, 14, 15
+				srvManager_->GetGPUDescriptorHandle(shadowMapManager_->GetCascadeShadowMap().srvIndices[i])
+			);
+		}
+	}
+
 	sceneManager_->Draw3D();
 
 	// ラインの描画
