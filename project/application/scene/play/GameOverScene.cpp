@@ -2,6 +2,7 @@
 
 // scene
 #include "engine/scene/manager/SceneManager.h"
+#include "manager/effect/PostProcessManager.h"
 // math
 #include "math/VectorColorCodes.h"
 #include <input/Input.h>
@@ -14,6 +15,9 @@ void GameOverScene::Initialize()
 		22, 16,
 		1280.0f, 720.0f
 	);
+
+	// ブルームを無効化
+	sceneManager_->GetPostProcessManager()->bloomEffect_->SetEnabled(false);
 
 	// カメラの位置を設定
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate(Vector3());
@@ -99,6 +103,7 @@ void GameOverScene::Initialize()
 
 void GameOverScene::Finalize()
 {
+	sceneManager_->GetPostProcessManager()->bloomEffect_->SetEnabled(true);
 }
 
 void GameOverScene::Draw3D()
