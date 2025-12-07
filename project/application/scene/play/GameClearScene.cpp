@@ -75,6 +75,19 @@ void GameClearScene::OnUpdatePlaying()
 	}
 }
 
+void GameClearScene::DrawShadow()
+{
+	// 地面のシャドウ描画
+	if (ground_) {
+		ground_->DrawShadowOnly();
+	}
+
+	// テストオブジェクトのシャドウ描画
+	for (auto& obj : testObjects_) {
+		obj->DrawShadowOnly();
+	}
+}
+
 void GameClearScene::DrawImGui()
 {
 	ImGui::Begin("Shadow Test Scene");

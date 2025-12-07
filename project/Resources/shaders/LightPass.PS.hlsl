@@ -155,7 +155,7 @@ float CalculateCascadeShadow(float3 worldPos, float viewDepth)
         return 1.0f;
     
     float currentDepth = lightSpacePos.z;
-    float bias = 0.02f;
+    float bias = 0.0005f;
     
     float shadow = 0.0f;
     float2 texelSize = 1.0f / 2048.0f;

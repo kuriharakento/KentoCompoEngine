@@ -93,7 +93,7 @@ SamplerState gSampler : register(s0);
 SamplerComparisonState gShadowSampler : register(s1);
 
 // シャドウマップ設定
-static const float SHADOW_BIAS = 0.0001f;
+static const float SHADOW_BIAS = 0.0005f;
 static const float SHADOW_MAP_SIZE = 2048.0f;
 static const int PCF_SAMPLES = 1; // -1 to +1 = 3x3 samples
 

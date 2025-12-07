@@ -812,7 +812,14 @@ void LightManager::UpdateDirectionalLightShadowMatrix(const Vector3& targetCente
 	Vector3 lightPos = targetCenter - lightDir * lightDistance;
 
 	// ビュー行列の計算
-	directionalLightView_ = MakeLookAtMatrix(lightPos, targetCenter, Vector3{ 0.0f, 1.0f, 0.0f });
+	// アップベクトルをライト方向に応じて調整（ロバスト計算）
+	Vector3 right = Vector3::Cross(lightDir, Vector3{ 0.0f, 1.0f, 0.0f });
+	if (right.Length() < 0.001f) {
+		right = Vector3::Cross(lightDir, Vector3{ 1.0f, 0.0f, 0.0f });
+	}
+	right = Vector3::Normalize(right);
+	Vector3 upVector = Vector3::Cross(right, lightDir);
+	directionalLightView_ = MakeLookAtMatrix(lightPos, targetCenter, upVector);
 
 	// 正射影行列の計算
 	directionalLightProjection_ = MakeOrthographicProjectionMatrix(shadowMapSize, shadowMapSize, nearPlane, farPlane);
@@ -861,11 +868,14 @@ void LightManager::UpdateCascadeShadowMatrices(Camera* camera, float nearPlane, 
 	Vector3 lightDir = Vector3::Normalize(directionalLight_.direction);
 	
 	// アップベクトルをライト方向に応じて調整
-	Vector3 upVector = { 0.0f, 1.0f, 0.0f };
-	float dotUp = std::abs(lightDir.y);
-	if (dotUp > 0.99f) {
-		upVector = { 0.0f, 0.0f, 1.0f };
+	// ロバストなアップベクトル計算: ライト方向と平行でない任意のベクトルを選び、直交基底を作る
+	Vector3 right = Vector3::Cross(lightDir, Vector3{ 0.0f, 1.0f, 0.0f });
+	// もし平行で外積がゼロに近い場合、別の軸を選ぶ
+	if (right.Length() < 0.001f) {
+		right = Vector3::Cross(lightDir, Vector3{ 1.0f, 0.0f, 0.0f });
 	}
+	right = Vector3::Normalize(right);
+	Vector3 upVector = Vector3::Cross(right, lightDir);
 	
 	// カメラのビュー行列と逆行列を取得
 	Matrix4x4 cameraView = camera->GetViewMatrix();

@@ -18,6 +18,7 @@ public:
 	void Initialize() override;
 	void Finalize() override;
 	void Draw2D() override;
+	void DrawShadow() override;
 	void DrawImGui() override;
 
 protected:
