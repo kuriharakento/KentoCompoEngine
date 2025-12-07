@@ -6,13 +6,13 @@
 #include "manager/graphics/TextureManager.h"
 
 // ルートパラメータ数
-constexpr int kRootParameterCount = 9;
+constexpr int kRootParameterCount = 11;
 // 入力要素数
 constexpr int kInputElementCount = 3;
 // ディスクリプタレンジ数
 constexpr int kDescriptorRangeCount = 1;
-// サンプラー数
-constexpr int kStaticSamplerCount = 1;
+// サンプラー数（通常サンプラー + シャドウ比較サンプラー）
+constexpr int kStaticSamplerCount = 2;
 // 環境マップ用ルートパラメータインデックス
 constexpr int kEnvMapRootParamIndex = 8;
 
@@ -118,8 +118,27 @@ void Object3dCommon::CreateRootSignature()
 	rootParameters[8].DescriptorTable.pDescriptorRanges = descriptorRangeEnvMap;
 	rootParameters[8].DescriptorTable.NumDescriptorRanges = _countof(descriptorRangeEnvMap);
 
+	// シャドウマップ用ディスクリプタレンジの設定
+	D3D12_DESCRIPTOR_RANGE descriptorRangeShadowMap[kDescriptorRangeCount] = {};
+	descriptorRangeShadowMap[0].BaseShaderRegister = 5; // t5
+	descriptorRangeShadowMap[0].NumDescriptors = 1;
+	descriptorRangeShadowMap[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	descriptorRangeShadowMap[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	// ルートパラメータ9: ピクセルシェーダ用シャドウマップテクスチャ
+	rootParameters[9].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[9].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[9].DescriptorTable.pDescriptorRanges = descriptorRangeShadowMap;
+	rootParameters[9].DescriptorTable.NumDescriptorRanges = _countof(descriptorRangeShadowMap);
+
+	// ルートパラメータ10: ピクセルシェーダ用CBV（シャドウ行列）
+	rootParameters[10].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[10].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[10].Descriptor.ShaderRegister = 6;
+
 	// サンプラーの設定
 	D3D12_STATIC_SAMPLER_DESC staticSamplers[kStaticSamplerCount] = {};
+	// サンプラー0: 通常テクスチャ用
 	staticSamplers[0].Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
 	staticSamplers[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 	staticSamplers[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
@@ -128,6 +147,17 @@ void Object3dCommon::CreateRootSignature()
 	staticSamplers[0].MaxLOD = D3D12_FLOAT32_MAX;
 	staticSamplers[0].ShaderRegister = 0;
 	staticSamplers[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+	// サンプラー1: シャドウマップ比較用
+	staticSamplers[1].Filter = D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+	staticSamplers[1].AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+	staticSamplers[1].AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+	staticSamplers[1].AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+	staticSamplers[1].BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;
+	staticSamplers[1].ComparisonFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+	staticSamplers[1].MaxLOD = D3D12_FLOAT32_MAX;
+	staticSamplers[1].ShaderRegister = 1;
+	staticSamplers[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	descriptionRootSignature.pStaticSamplers = staticSamplers;
 	descriptionRootSignature.NumStaticSamplers = _countof(staticSamplers);
 

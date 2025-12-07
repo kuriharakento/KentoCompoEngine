@@ -6,6 +6,7 @@
 #include "base/Logger.h"
 // math
 #include "math/Easing.h"
+#include "math/MatrixFunc.h"
 // editor
 #include "externals/imgui/imgui.h"
 #include "time/TimeManager.h"
@@ -41,6 +42,9 @@ void LightManager::Initialize(DirectXCommon* dxCommon)
 
 	// 定数バッファの作成
 	CreateConstantBuffer();
+
+	// ディレクショナルライト用バッファの作成
+	CreateDirectionalLightBuffer();
 
 	// デフォルトのイージング関数を設定
 	pEasingFunc_ = EaseInSine<float>;
@@ -758,6 +762,217 @@ float LightManager::GetSpotLightCosFalloffStart(const std::string& name) const
 		Logger::Log("スポットライトが見つかりません: " + name);
 		return spotLights_.begin()->second.gpuData.cosFalloffStart;
 	}
+}
+
+#pragma endregion
+
+#pragma region DirectionalLight
+
+void LightManager::SetDirectionalLight(const DirectionalLight& light) {
+	directionalLight_ = light;
+	// GPUへのデータも更新
+	if (directionalLightData_) {
+		*directionalLightData_ = light;
+	}
+}
+
+void LightManager::UpdateDirectionalLightShadowMatrix(const Vector3& targetCenter, float shadowMapSize, float nearPlane, float farPlane) {
+	// ライトの疑似位置を計算（ターゲットからライトの反対方向に離れた位置）
+	Vector3 lightDir = Vector3::Normalize(directionalLight_.direction);
+	float lightDistance = farPlane * 0.5f;
+	Vector3 lightPos = targetCenter - lightDir * lightDistance;
+
+	// ビュー行列の計算
+	directionalLightView_ = MakeLookAtMatrix(lightPos, targetCenter, Vector3{ 0.0f, 1.0f, 0.0f });
+
+	// 正射影行列の計算
+	directionalLightProjection_ = MakeOrthographicProjectionMatrix(shadowMapSize, shadowMapSize, nearPlane, farPlane);
+
+	// ビュー・プロジェクション行列の合成
+	directionalLightViewProjection_ = directionalLightView_ * directionalLightProjection_;
+
+	// GPUデータを更新（シャドウ有効）
+	if (shadowData_) {
+		shadowData_->lightViewProjection = directionalLightViewProjection_;
+		shadowData_->enableShadow = 1;
+	}
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS LightManager::GetDirectionalLightGPUAddress() const {
+	if (directionalLightResource_) {
+		return directionalLightResource_->GetGPUVirtualAddress();
+	}
+	return 0;
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS LightManager::GetShadowMatrixGPUAddress() const {
+	if (shadowMatrixResource_) {
+		return shadowMatrixResource_->GetGPUVirtualAddress();
+	}
+	return 0;
+}
+
+void LightManager::CreateDirectionalLightBuffer() {
+	/*--------------[ ディレクショナルライトリソースを作成 ]-----------------*/
+	directionalLightResource_ = dxCommon_->CreateBufferResource(sizeof(DirectionalLight));
+
+	/*--------------[ データを書き込むためのアドレスを取得 ]-----------------*/
+	directionalLightResource_->Map(0, nullptr, reinterpret_cast<void**>(&directionalLightData_));
+
+	// デフォルト値を設定
+	directionalLightData_->color = { 1.0f, 1.0f, 1.0f, 1.0f };
+	directionalLightData_->direction = Vector3::Normalize({ 0.0f, -1.0f, 1.0f });
+	directionalLightData_->intensity = 1.0f;
+
+	// CPU側のデータも同期
+	directionalLight_ = *directionalLightData_;
+
+	/*--------------[ シャドウ行列リソースを作成 ]-----------------*/
+	shadowMatrixResource_ = dxCommon_->CreateBufferResource(sizeof(ShadowDataForGPU));
+
+	/*--------------[ データを書き込むためのアドレスを取得 ]-----------------*/
+	shadowMatrixResource_->Map(0, nullptr, reinterpret_cast<void**>(&shadowData_));
+
+	// 初期化（シャドウ無効）
+	shadowData_->lightViewProjection = MakeIdentity4x4();
+	shadowData_->enableShadow = 0;
+	shadowData_->padding[0] = 0.0f;
+	shadowData_->padding[1] = 0.0f;
+	shadowData_->padding[2] = 0.0f;
+}
+
+#pragma endregion
+
+#pragma region SpotLight Shadow
+
+void LightManager::UpdateSpotLightShadowMatrix(const std::string& name, float nearPlane, float farPlane) {
+	auto it = spotLights_.find(name);
+	if (it == spotLights_.end()) {
+		Logger::Log("スポットライトが見つかりません: " + name);
+		return;
+	}
+
+	auto& light = it->second;
+	const auto& gpuData = light.gpuData;
+
+	// ライトの位置とターゲット
+	Vector3 lightPos = gpuData.position;
+	Vector3 lightDir = Vector3::Normalize(gpuData.direction);
+	Vector3 target = lightPos + lightDir;
+
+	// ビュー行列の計算
+	light.viewMatrix = MakeLookAtMatrix(lightPos, target, Vector3{ 0.0f, 1.0f, 0.0f });
+
+	// スポットライトの角度からFOVを計算（cosAngleから角度を逆算して2倍）
+	float halfAngle = std::acos(gpuData.cosAngle);
+	float fov = halfAngle * 2.0f;
+
+	// プロジェクション行列（透視投影）
+	light.projectionMatrix = MakePerspectiveFovMatrix(fov, 1.0f, nearPlane, farPlane);
+
+	// ビュープロジェクション行列
+	light.viewProjectionMatrix = light.viewMatrix * light.projectionMatrix;
+	light.shadowEnabled = true;
+}
+
+const Matrix4x4& LightManager::GetSpotLightShadowMatrix(const std::string& name) const {
+	static Matrix4x4 identity = MakeIdentity4x4();
+	auto it = spotLights_.find(name);
+	if (it == spotLights_.end()) {
+		Logger::Log("スポットライトが見つかりません: " + name);
+		return identity;
+	}
+	return it->second.viewProjectionMatrix;
+}
+
+void LightManager::SetSpotLightShadowEnabled(const std::string& name, bool enabled) {
+	auto it = spotLights_.find(name);
+	if (it != spotLights_.end()) {
+		it->second.shadowEnabled = enabled;
+	}
+}
+
+bool LightManager::IsSpotLightShadowEnabled(const std::string& name) const {
+	auto it = spotLights_.find(name);
+	if (it != spotLights_.end()) {
+		return it->second.shadowEnabled;
+	}
+	return false;
+}
+
+#pragma endregion
+
+#pragma region PointLight Shadow
+
+void LightManager::UpdatePointLightShadowMatrix(const std::string& name, float nearPlane, float farPlane) {
+	auto it = pointLights_.find(name);
+	if (it == pointLights_.end()) {
+		Logger::Log("ポイントライトが見つかりません: " + name);
+		return;
+	}
+
+	auto& light = it->second;
+	const Vector3& pos = light.gpuData.position;
+
+	// キューブマップ用の6方向のビュー行列
+	// +X, -X, +Y, -Y, +Z, -Z
+	Vector3 targets[6] = {
+		pos + Vector3{ 1.0f, 0.0f, 0.0f },   // +X
+		pos + Vector3{ -1.0f, 0.0f, 0.0f },  // -X
+		pos + Vector3{ 0.0f, 1.0f, 0.0f },   // +Y
+		pos + Vector3{ 0.0f, -1.0f, 0.0f },  // -Y
+		pos + Vector3{ 0.0f, 0.0f, 1.0f },   // +Z
+		pos + Vector3{ 0.0f, 0.0f, -1.0f }   // -Z
+	};
+
+	Vector3 ups[6] = {
+		Vector3{ 0.0f, 1.0f, 0.0f },   // +X
+		Vector3{ 0.0f, 1.0f, 0.0f },   // -X
+		Vector3{ 0.0f, 0.0f, -1.0f },  // +Y
+		Vector3{ 0.0f, 0.0f, 1.0f },   // -Y
+		Vector3{ 0.0f, 1.0f, 0.0f },   // +Z
+		Vector3{ 0.0f, 1.0f, 0.0f }    // -Z
+	};
+
+	// 90度FOVのプロジェクション行列（キューブマップ用）
+	constexpr float cubeFov = 3.14159265f / 2.0f; // 90度
+	light.projectionMatrix = MakePerspectiveFovMatrix(cubeFov, 1.0f, nearPlane, farPlane);
+
+	// 各面のビュー・プロジェクション行列を計算
+	for (int i = 0; i < 6; ++i) {
+		light.viewMatrices[i] = MakeLookAtMatrix(pos, targets[i], ups[i]);
+		light.viewProjectionMatrices[i] = light.viewMatrices[i] * light.projectionMatrix;
+	}
+
+	light.shadowEnabled = true;
+}
+
+const Matrix4x4& LightManager::GetPointLightShadowMatrix(const std::string& name, uint32_t faceIndex) const {
+	static Matrix4x4 identity = MakeIdentity4x4();
+	if (faceIndex >= 6) {
+		return identity;
+	}
+	auto it = pointLights_.find(name);
+	if (it == pointLights_.end()) {
+		Logger::Log("ポイントライトが見つかりません: " + name);
+		return identity;
+	}
+	return it->second.viewProjectionMatrices[faceIndex];
+}
+
+void LightManager::SetPointLightShadowEnabled(const std::string& name, bool enabled) {
+	auto it = pointLights_.find(name);
+	if (it != pointLights_.end()) {
+		it->second.shadowEnabled = enabled;
+	}
+}
+
+bool LightManager::IsPointLightShadowEnabled(const std::string& name) const {
+	auto it = pointLights_.find(name);
+	if (it != pointLights_.end()) {
+		return it->second.shadowEnabled;
+	}
+	return false;
 }
 
 #pragma endregion

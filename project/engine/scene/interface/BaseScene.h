@@ -36,6 +36,8 @@ public:
 	// 描画
     virtual void Draw3D() = 0;
     virtual void Draw2D() = 0;
+	// シャドウ描画（シャドウマップ対象オブジェクトを描画）
+	virtual void DrawShadow() {}
 
 	//==========================================
 	// 共通処理

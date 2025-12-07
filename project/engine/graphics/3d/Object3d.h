@@ -13,6 +13,7 @@
 #include "manager/scene/CameraManager.h"
 
 class LightManager;
+class SrvManager;
 // スプライト共通部分のポインタ
 class Object3dCommon;
 
@@ -47,6 +48,13 @@ public:	/*========[ メンバ関数 ]========*/
 	 * @details 座標変換行列、ライティング、カメラ情報を設定して描画する
 	 */
 	void Draw();
+
+	/**
+	 * @brief シャドウマップ用描画
+	 * @details ライトの視点からオブジェクトを描画し、深度情報をシャドウマップに記録する
+	 * @param lightViewProjectionAddress ライトのビュー・プロジェクション行列のGPUアドレス
+	 */
+	void DrawShadow(D3D12_GPU_VIRTUAL_ADDRESS lightViewProjectionAddress);
 
 	/**
 	 * @brief 行列の更新
@@ -241,6 +249,20 @@ public: /*========[ セッター ]========*/
 	 */
 	void SetLightManager(LightManager* lightManager) { lightManager_ = lightManager; }
 
+	/**
+	 * @brief シャドウマップの設定
+	 * @param srvManager SrvManagerへのポインタ
+	 * @param shadowMapSrvIndex シャドウマップのSRVインデックス
+	 * @param shadowMatrixGPUAddress シャドウ行列のGPUアドレス
+	 */
+	void SetShadowMap(SrvManager* srvManager, uint32_t shadowMapSrvIndex, D3D12_GPU_VIRTUAL_ADDRESS shadowMatrixGPUAddress);
+
+	/**
+	 * @brief シャドウの無効化
+	 * @details シャドウマップを使用しない設定にする
+	 */
+	void DisableShadow() { shadowEnabled_ = false; }
+
 private: /*========[ プライベートメンバ関数  ]========*/
 
 	/**
@@ -296,6 +318,12 @@ private: /*========[ メンバ変数 ]========*/
 
 	// ライトマネージャーへのポインタ
 	LightManager* lightManager_ = nullptr;
+
+	// シャドウマップ関連
+	SrvManager* srvManager_ = nullptr;
+	uint32_t shadowMapSrvIndex_ = 0;
+	D3D12_GPU_VIRTUAL_ADDRESS shadowMatrixGPUAddress_ = 0;
+	bool shadowEnabled_ = false;
 
 	// Transform情報
 	Transform transform_;

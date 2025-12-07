@@ -4,6 +4,7 @@
 
 // light
 #include "light/LightConstants.h"
+#include "light/DirectionalLight.h"
 #include "light/PointLight.h"
 #include "light/SpotLight.h"
 // system
@@ -168,6 +169,131 @@ public: // セッター
 	 */
 	void SetSpotLightCosFalloffStart(const std::string& name, float cosFalloffStart);
 
+public: // DirectionalLight関連
+	/**
+	 * @brief ディレクショナルライトを設定
+	 * @param light ディレクショナルライトデータ
+	 */
+	void SetDirectionalLight(const DirectionalLight& light);
+
+	/**
+	 * @brief ディレクショナルライトを取得
+	 * @return ディレクショナルライトデータへの参照
+	 */
+	const DirectionalLight& GetDirectionalLight() const { return directionalLight_; }
+
+	/**
+	 * @brief ディレクショナルライトのシャドウ用行列を更新
+	 * @param targetCenter シャドウを投影する中心位置
+	 * @param shadowMapSize シャドウマップがカバーする範囲（ワールド単位）
+	 * @param nearPlane 近クリップ面
+	 * @param farPlane 遠クリップ面
+	 */
+	void UpdateDirectionalLightShadowMatrix(const Vector3& targetCenter, float shadowMapSize, float nearPlane, float farPlane);
+
+	/**
+	 * @brief ディレクショナルライトのビュー行列を取得
+	 * @return ビュー行列
+	 */
+	const Matrix4x4& GetDirectionalLightViewMatrix() const { return directionalLightView_; }
+
+	/**
+	 * @brief ディレクショナルライトのプロジェクション行列を取得
+	 * @return プロジェクション行列
+	 */
+	const Matrix4x4& GetDirectionalLightProjectionMatrix() const { return directionalLightProjection_; }
+
+	/**
+	 * @brief ディレクショナルライトのビュー・プロジェクション行列を取得
+	 * @return ビュー・プロジェクション行列
+	 */
+	const Matrix4x4& GetDirectionalLightViewProjectionMatrix() const { return directionalLightViewProjection_; }
+
+	/**
+	 * @brief ディレクショナルライトの定数バッファのGPUアドレスを取得
+	 * @return GPUバーチャルアドレス
+	 */
+	D3D12_GPU_VIRTUAL_ADDRESS GetDirectionalLightGPUAddress() const;
+
+	/**
+	 * @brief シャドウ用行列の定数バッファのGPUアドレスを取得
+	 * @return GPUバーチャルアドレス
+	 */
+	D3D12_GPU_VIRTUAL_ADDRESS GetShadowMatrixGPUAddress() const;
+
+public: // SpotLight シャドウ関連
+	/**
+	 * @brief スポットライトのシャドウ用行列を更新
+	 * @param name ライトの名前
+	 * @param nearPlane 近クリップ面
+	 * @param farPlane 遠クリップ面
+	 */
+	void UpdateSpotLightShadowMatrix(const std::string& name, float nearPlane = 0.1f, float farPlane = 100.0f);
+
+	/**
+	 * @brief スポットライトのシャドウ用ビュープロジェクション行列を取得
+	 * @param name ライトの名前
+	 * @return ビュープロジェクション行列
+	 */
+	const Matrix4x4& GetSpotLightShadowMatrix(const std::string& name) const;
+
+	/**
+	 * @brief スポットライトのシャドウを有効化
+	 * @param name ライトの名前
+	 * @param enabled 有効フラグ
+	 */
+	void SetSpotLightShadowEnabled(const std::string& name, bool enabled);
+
+	/**
+	 * @brief スポットライトのシャドウが有効かどうか
+	 * @param name ライトの名前
+	 * @return 有効な場合true
+	 */
+	bool IsSpotLightShadowEnabled(const std::string& name) const;
+
+	/**
+	 * @brief スポットライトマップを取得
+	 * @return スポットライトのマップ
+	 */
+	const std::unordered_map<std::string, CPUSpotLight>& GetSpotLights() const { return spotLights_; }
+
+public: // PointLight シャドウ関連
+	/**
+	 * @brief ポイントライトのシャドウ用行列を更新（6面）
+	 * @param name ライトの名前
+	 * @param nearPlane 近クリップ面
+	 * @param farPlane 遠クリップ面
+	 */
+	void UpdatePointLightShadowMatrix(const std::string& name, float nearPlane = 0.1f, float farPlane = 100.0f);
+
+	/**
+	 * @brief ポイントライトのシャドウ用ビュープロジェクション行列を取得（指定面）
+	 * @param name ライトの名前
+	 * @param faceIndex 面のインデックス（0-5）
+	 * @return ビュープロジェクション行列
+	 */
+	const Matrix4x4& GetPointLightShadowMatrix(const std::string& name, uint32_t faceIndex) const;
+
+	/**
+	 * @brief ポイントライトのシャドウを有効化
+	 * @param name ライトの名前
+	 * @param enabled 有効フラグ
+	 */
+	void SetPointLightShadowEnabled(const std::string& name, bool enabled);
+
+	/**
+	 * @brief ポイントライトのシャドウが有効かどうか
+	 * @param name ライトの名前
+	 * @return 有効な場合true
+	 */
+	bool IsPointLightShadowEnabled(const std::string& name) const;
+
+	/**
+	 * @brief ポイントライトマップを取得
+	 * @return ポイントライトのマップ
+	 */
+	const std::unordered_map<std::string, CPUPointLight>& GetPointLights() const { return pointLights_; }
+
 public: // ゲッター
 	/**
 	 * @brief ポイントライトの数を取得
@@ -293,6 +419,11 @@ private:
 	void ImGuiUpdate();
 
 	/**
+	 * @brief ディレクショナルライト用定数バッファの作成
+	 */
+	void CreateDirectionalLightBuffer();
+
+	/**
 	 * @brief 定数バッファの作成
 	 */
 	void CreateConstantBuffer();
@@ -337,4 +468,27 @@ private:
 	// スポットライトのグラデーション用色
 	Vector4 startSpotLightColor_ = VectorColorCodes::White;   // 開始色
 	Vector4 endSpotLightColor_ = VectorColorCodes::Red;       // 終了色
+
+	// ディレクショナルライトデータ
+	DirectionalLight directionalLight_;
+	// ディレクショナルライト用定数バッファ
+	Microsoft::WRL::ComPtr<ID3D12Resource> directionalLightResource_;
+	// ディレクショナルライトのデータポインタ
+	DirectionalLight* directionalLightData_ = nullptr;
+
+	// シャドウ用行列
+	Matrix4x4 directionalLightView_ = {};
+	Matrix4x4 directionalLightProjection_ = {};
+	Matrix4x4 directionalLightViewProjection_ = {};
+
+	// シャドウ用GPU構造体（シェーダーと同じレイアウト）
+	struct ShadowDataForGPU {
+		Matrix4x4 lightViewProjection;
+		int32_t enableShadow;
+		float padding[3];
+	};
+
+	// シャドウ用行列の定数バッファ
+	Microsoft::WRL::ComPtr<ID3D12Resource> shadowMatrixResource_;
+	ShadowDataForGPU* shadowData_ = nullptr;
 };

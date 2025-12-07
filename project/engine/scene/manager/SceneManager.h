@@ -23,6 +23,8 @@ public: //メンバ関数
 	//描画
 	void Draw3D();
 	void Draw2D();
+	//シャドウ描画
+	void DrawShadow();
 
 	//シーンの変更
 	void ChangeScene(const std::string& sceneName);

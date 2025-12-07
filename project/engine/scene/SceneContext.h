@@ -8,6 +8,7 @@ class LightManager;
 class CameraManager;
 class SpriteCommon;
 class Object3dCommon;
+class ShadowMapManager;
 
 //各シーンで共有するもの
 struct SceneContext
@@ -18,4 +19,5 @@ struct SceneContext
 	LightManager* lightManager;
 	PostProcessManager* postProcessManager;
 	Skybox* skybox;
+	ShadowMapManager* shadowMapManager;
 };

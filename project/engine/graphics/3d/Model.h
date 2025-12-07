@@ -42,6 +42,12 @@ public:
 	void Draw();
 
 	/**
+	 * @brief シャドウマップ用描画
+	 * @details 頂点バッファのみを設定して描画コマンドを発行する（マテリアル設定なし）
+	 */
+	void DrawShadow();
+
+	/**
 	 * @brief .mtlファイルの読み取り
 	 * @param directoryPath ファイルのディレクトリパス
 	 * @param filename ファイル名

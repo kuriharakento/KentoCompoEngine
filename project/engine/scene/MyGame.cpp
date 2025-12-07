@@ -23,6 +23,7 @@ void MyGame::Initialize()
 		lightManager_.get(),
 		postProcessManager_.get(),
 		skybox_.get(),
+		shadowMapManager_.get(),
 	};
 
 	// テクスチャの読み込み
@@ -76,11 +77,31 @@ void MyGame::Update()
 
 void MyGame::Draw()
 {
+	/*----[ シャドウパス描画（オフスクリーン前に実行） ]----*/
+	
+	srvManager_->PreDraw();
+	
+	// シャドウパス開始
+	shadowMapManager_->BeginDirectionalLightShadowPass();
+	shadowMapPipeline_->SetPipeline();
+	
+	// シャドウ行列の更新（シーン中心を基準に、広い範囲をカバー）
+	// 中心点はシーンの中心（固定）、正射影サイズを大きくして広範囲をカバー
+	lightManager_->UpdateDirectionalLightShadowMatrix(
+		cameraManager_->GetActiveCamera()->GetTranslate(),
+		50.0f,
+		0.1f, 200.0f
+	);
+	
+	// 各シーンのシャドウ対象オブジェクトを描画
+	sceneManager_->DrawShadow();
+	
+	// シャドウパス終了
+	shadowMapManager_->EndShadowPass();
+
 	/*----[ オフスクリーン描画 ]----*/
 
 	renderTexture_->BeginRender();
-
-	srvManager_->PreDraw();
 
 	/////////////////< 描画ここから >////////////////////
 

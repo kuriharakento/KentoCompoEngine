@@ -48,4 +48,10 @@ struct CPUSpotLight {
     bool isReversing;        // 補間の方向（往復用）
     bool isGradientActive;   // グラデーションが有効かどうか
     std::function<float(float)> easingFunction; // イージング関数
+
+    // シャドウマップ用
+    Matrix4x4 viewMatrix;           // ライトビュー行列
+    Matrix4x4 projectionMatrix;     // ライトプロジェクション行列
+    Matrix4x4 viewProjectionMatrix; // ビュー・プロジェクション行列
+    bool shadowEnabled = false;     // シャドウ有効フラグ
 };

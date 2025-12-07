@@ -55,16 +55,32 @@ struct LightCounts
     uint gSpotLightCount;
 };
 
+// シャドウ行列データ
+struct ShadowData
+{
+    float4x4 lightViewProjection;
+    int enableShadow;
+    float3 padding;
+};
+
 ConstantBuffer<Material> gMaterial : register(b0);
 ConstantBuffer<DirectionalLight> gDirectionalLight : register(b1);
 ConstantBuffer<Camera> gCamera : register(b2);
 StructuredBuffer<GPUPointLight> gPointLights : register(t3);
 StructuredBuffer<GPUSpotLight> gSpotLights : register(t4);
 ConstantBuffer<LightCounts> gLightCounts : register(b5);
+ConstantBuffer<ShadowData> gShadowData : register(b6);
 
 Texture2D<float4> gTexture : register(t0);
 TextureCube<float4> gEnvironmentTexture : register(t1);
+Texture2D<float> gShadowMap : register(t5);
 SamplerState gSampler : register(s0);
+SamplerComparisonState gShadowSampler : register(s1);
+
+// シャドウマップ設定
+static const float SHADOW_BIAS = 0.005f;
+static const float SHADOW_MAP_SIZE = 2048.0f;
+static const int PCF_SAMPLES = 2; // -2 to +2 = 5x5 samples
 
 struct PixelShaderOutput
 {
@@ -85,6 +101,56 @@ float3 CalculateSpecular(float3 normal, float3 lightDir, float3 toEye, float3 li
     float NdotH = saturate(dot(normal, halfVector));
     float specularPow = pow(NdotH, shininess);
     return lightColor * intensity * specularPow;
+}
+
+// シャドウ計算（PCF使用）
+float CalculateShadow(float3 worldPos)
+{
+    // ワールド座標をライト空間に変換
+    float4 lightSpacePos = mul(float4(worldPos, 1.0f), gShadowData.lightViewProjection);
+    
+    // パースペクティブディバイド
+    float3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
+    
+    // 範囲外チェック（シャドウマップの外は影なし）
+    if (projCoords.x < -1.0f || projCoords.x > 1.0f ||
+        projCoords.y < -1.0f || projCoords.y > 1.0f ||
+        projCoords.z < 0.0f || projCoords.z > 1.0f)
+    {
+        return 1.0f;
+    }
+    
+    // UV座標に変換 [-1,1] -> [0,1]
+    float2 shadowUV;
+    shadowUV.x = projCoords.x * 0.5f + 0.5f;
+    shadowUV.y = -projCoords.y * 0.5f + 0.5f; // Y軸反転
+    
+    float currentDepth = projCoords.z;
+    
+    // PCF (Percentage Closer Filtering)
+    float shadow = 0.0f;
+    float texelSize = 1.0f / SHADOW_MAP_SIZE;
+    int sampleCount = 0;
+    
+    [unroll]
+    for (int x = -PCF_SAMPLES; x <= PCF_SAMPLES; x++)
+    {
+        [unroll]
+        for (int y = -PCF_SAMPLES; y <= PCF_SAMPLES; y++)
+        {
+            float2 offset = float2(x, y) * texelSize;
+            shadow += gShadowMap.SampleCmpLevelZero(
+                gShadowSampler,
+                shadowUV + offset,
+                currentDepth - SHADOW_BIAS
+            );
+            sampleCount++;
+        }
+    }
+    
+    shadow /= (float)sampleCount;
+    
+    return shadow;
 }
 
 PixelShaderOutput main(VertexShaderOutput input)
@@ -113,11 +179,19 @@ PixelShaderOutput main(VertexShaderOutput input)
     float3 toEye = normalize(gCamera.worldPos - input.worldPos);
     float3 baseColor = gMaterial.color.rgb * textureColor.rgb;
 
+    // シャドウ計算（有効な場合のみ）
+    float shadow = 1.0f;
+    if (gShadowData.enableShadow)
+    {
+        shadow = CalculateShadow(input.worldPos);
+    }
+
     /*-----[ ディレクショナルライト ]-----*/
     float3 lightDir = normalize(-gDirectionalLight.direction);
     float NdotL = CalculateHalfLambert(normal, lightDir);
-    float3 diffuse = baseColor * gDirectionalLight.color.rgb * NdotL * gDirectionalLight.intensity;
-    float3 specular = CalculateSpecular(normal, lightDir, toEye, gDirectionalLight.color.rgb, gDirectionalLight.intensity, gMaterial.shininess);
+    // シャドウを適用
+    float3 diffuse = baseColor * gDirectionalLight.color.rgb * NdotL * gDirectionalLight.intensity * shadow;
+    float3 specular = CalculateSpecular(normal, lightDir, toEye, gDirectionalLight.color.rgb, gDirectionalLight.intensity, gMaterial.shininess) * shadow;
 
     /*-----[ ポイントライトの合計（最適化されたループ）]-----*/
     float3 totalPointDiffuse = 0.0f;

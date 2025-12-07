@@ -401,3 +401,54 @@ inline Matrix4x4 MakeViewportMatrix(float left, float top, float width, float he
 	};
 	return m;
 }
+
+/**
+ * @brief LookAt行列を生成（左手座標系）
+ * @param eye カメラ（ライト）の位置
+ * @param target 注視点
+ * @param up 上方向ベクトル
+ * @return ビュー行列
+ */
+inline Matrix4x4 MakeLookAtMatrix(const Vector3& eye, const Vector3& target, const Vector3& up)
+{
+	// Z軸（前方向）
+	Vector3 zAxis = Vector3::Normalize(target - eye);
+	// X軸（右方向）
+	Vector3 xAxis = Vector3::Normalize(Vector3::Cross(up, zAxis));
+	// Y軸（上方向）
+	Vector3 yAxis = Vector3::Cross(zAxis, xAxis);
+
+	Matrix4x4 result = {
+		xAxis.x, yAxis.x, zAxis.x, 0.0f,
+		xAxis.y, yAxis.y, zAxis.y, 0.0f,
+		xAxis.z, yAxis.z, zAxis.z, 0.0f,
+		-Vector3::Dot(xAxis, eye), -Vector3::Dot(yAxis, eye), -Vector3::Dot(zAxis, eye), 1.0f
+	};
+
+	return result;
+}
+
+/**
+ * @brief 正射影行列を生成（シャドウマップ用、DirectX左手座標系）
+ * @param width 幅
+ * @param height 高さ
+ * @param nearPlane 近クリップ面
+ * @param farPlane 遠クリップ面
+ * @return 正射影行列（深度は[0,1]に正規化）
+ */
+inline Matrix4x4 MakeOrthographicProjectionMatrix(float width, float height, float nearPlane, float farPlane)
+{
+	// DirectX標準の正射影行列（左手座標系、深度[0,1]）
+	// https://docs.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixortholh
+	float range = farPlane - nearPlane;
+
+	Matrix4x4 result = {
+		2.0f / width, 0.0f, 0.0f, 0.0f,
+		0.0f, 2.0f / height, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f / range, 0.0f,
+		0.0f, 0.0f, -nearPlane / range, 1.0f
+	};
+
+	return result;
+}
+

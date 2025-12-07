@@ -171,6 +171,15 @@ void Framework::Initialize()
 	// JSONエディターの初期化
 	JsonEditorManager::GetInstance()->Initialize();
 
+	// シャドウマップマネージャーの初期化
+	shadowMapManager_ = std::make_unique<ShadowMapManager>();
+	shadowMapManager_->Initialize(dxCommon_.get(), srvManager_.get());
+	shadowMapManager_->CreateDirectionalLightShadowMap(2048);
+
+	// シャドウマップ描画パイプラインの初期化
+	shadowMapPipeline_ = std::make_unique<ShadowMapPipeline>();
+	shadowMapPipeline_->Initialize(dxCommon_.get());
+
 	// Skyboxの初期化
 	skybox_ = std::make_unique<Skybox>();
 }
@@ -203,6 +212,10 @@ void Framework::Finalize()
 	{
 		blurRT_[i].reset();
 	}
+
+	// シャドウマップ関連の解放
+	shadowMapPipeline_.reset();
+	shadowMapManager_.reset();
 
 	JsonEditorManager::GetInstance()->Finalize();
 }
@@ -248,7 +261,19 @@ void Framework::Draw3DSetting()
 	// 3Dオブジェクト描画の共通設定
 	objectCommon_->CommonRenderingSetting();
 
+	// シャドウマップのグローバル設定
+	if (shadowMapManager_ && shadowMapManager_->HasDirectionalLightShadowMap())
+	{
+		auto* commandList = dxCommon_->GetCommandList();
+		
+		// シャドウマップSRV（ルートパラメータ9）をバインド
+		srvManager_->SetGraphicsRootDescriptorTable(9, shadowMapManager_->GetDirectionalLightShadowMap().srvIndex);
+		
+		// シャドウ行列CBV（ルートパラメータ10）をバインド
+		commandList->SetGraphicsRootConstantBufferView(10, lightManager_->GetShadowMatrixGPUAddress());
+	}
 }
+
 
 void Framework::Draw2DSetting()
 {

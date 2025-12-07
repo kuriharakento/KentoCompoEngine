@@ -154,8 +154,11 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\base\PostProcessPass.cpp" />
     <ClCompile Include="engine\base\RenderTexture.cpp" />
     <ClCompile Include="engine\camerawork\topdown\TopDownCamera.cpp" />
+    <ClCompile Include="engine\graphics\shadow\ShadowMapPipeline.cpp" />
+    <ClCompile Include="engine\graphics\shadow\ShadowSystem.cpp" />
     <ClCompile Include="engine\manager\graphics\LineManager.cpp" />
     <ClCompile Include="engine\audio\Audio.cpp" />
+    <ClCompile Include="engine\manager\graphics\ShadowMapManager.cpp" />
     <ClCompile Include="engine\manager\scene\CameraManager.cpp" />
     <ClCompile Include="engine\graphics\2d\Sprite.cpp" />
     <ClCompile Include="engine\graphics\2d\SpriteCommon.cpp" />
@@ -324,11 +327,15 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\camerawork\base\CameraWorkBase.h" />
     <ClInclude Include="engine\effects\particle\component\interface\IParticleBehaviorComponent.h" />
     <ClInclude Include="engine\camerawork\topdown\TopDownCamera.h" />
+    <ClInclude Include="engine\graphics\shadow\ShadowMap.h" />
+    <ClInclude Include="engine\graphics\shadow\ShadowMapPipeline.h" />
+    <ClInclude Include="engine\graphics\shadow\ShadowSystem.h" />
     <ClInclude Include="engine\manager\graphics\LineManager.h" />
     <ClInclude Include="engine\light\DirectionalLight.h" />
     <ClInclude Include="engine\light\LightConstants.h" />
     <ClInclude Include="engine\light\PointLight.h" />
     <ClInclude Include="engine\light\SpotLight.h" />
+    <ClInclude Include="engine\manager\graphics\ShadowMapManager.h" />
     <ClInclude Include="engine\math\BlendMode.h" />
     <ClInclude Include="engine\math\Sphere.h" />
     <ClInclude Include="engine\math\VectorColorCodes.h" />

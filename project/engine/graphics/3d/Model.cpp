@@ -77,6 +77,15 @@ void Model::Draw()
 	modelCommon_->GetDXCommon()->GetCommandList()->DrawInstanced(UINT(modelData_.vertices.size()), 1, 0, 0);
 }
 
+void Model::DrawShadow()
+{
+	// 頂点バッファのみを設定（マテリアル、テクスチャは不要）
+	modelCommon_->GetDXCommon()->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView_);
+
+	// 描画コマンドを発行
+	modelCommon_->GetDXCommon()->GetCommandList()->DrawInstanced(UINT(modelData_.vertices.size()), 1, 0, 0);
+}
+
 MaterialData Model::LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename)
 {
 	MaterialData materialData;
