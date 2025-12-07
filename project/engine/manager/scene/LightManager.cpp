@@ -848,7 +848,7 @@ void LightManager::UpdateCascadeShadowMatrices(Camera* camera, float nearPlane, 
 	const float shadowMapSize = 2048.0f;
 	
 	// カスケード分割距離を計算（対数/線形ハイブリッド - PSSM方式）
-	const float lambda = 0.75f; // より対数寄りに調整（遠距離での品質向上）
+	const float lambda = 0.5f; // Splitを調整（0.75 -> 0.5）して近距離のカバー率を上げる
 	constexpr uint32_t cascadeCount = 4;
 	
 	for (uint32_t i = 0; i < cascadeCount; ++i) {
@@ -871,9 +871,9 @@ void LightManager::UpdateCascadeShadowMatrices(Camera* camera, float nearPlane, 
 	Matrix4x4 cameraView = camera->GetViewMatrix();
 	Matrix4x4 cameraViewInverse = Inverse(cameraView);
 	
-	// カメラのプロジェクション情報
-	float fov = 45.0f * 3.14159265f / 180.0f;
-	float aspect = 16.0f / 9.0f;
+	// カメラのプロジェクション情報（動的に取得）
+	float fov = camera->GetFovY();
+	float aspect = camera->GetAspectRatio();
 	
 	float prevSplit = nearPlane;
 	
@@ -927,7 +927,9 @@ void LightManager::UpdateCascadeShadowMatrices(Camera* camera, float nearPlane, 
 		radius = std::ceil(radius / texelSize) * texelSize;
 		
 		// ライト位置をシーン後方に配置（十分な深度範囲を確保）
-		float lightDistance = radius * 4.0f;
+		// 近距離カスケード（radiusが小さい）でも、遠くのオブジェクトからの影（Caster）が切れないように
+		// 最低でも一定の距離（例：200.0f）を確保する
+		float lightDistance = (std::max)(radius * 4.0f, 200.0f);
 		Vector3 lightPos = frustumCenter - lightDir * lightDistance;
 		
 		// 【商用エンジン品質】ライト位置をテクセルにスナップ（シマー防止）

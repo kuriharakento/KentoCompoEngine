@@ -69,6 +69,18 @@ public:
 	void SetAspectRatio(float aspectRatio) { aspectRatio_ = aspectRatio; }
 
 	/**
+	 * @brief 水平方向視野角を取得
+	 * @return 視野角（ラジアン）
+	 */
+	float GetFovY() const { return fovY_; }
+
+	/**
+	 * @brief アスペクト比を取得
+	 * @return アスペクト比
+	 */
+	float GetAspectRatio() const { return aspectRatio_; }
+
+	/**
 	 * @brief ニアクリップ距離を設定
 	 * @param nearClip ニアクリップ距離
 	 */
