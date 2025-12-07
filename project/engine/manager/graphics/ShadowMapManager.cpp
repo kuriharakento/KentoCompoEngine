@@ -54,6 +54,72 @@ void ShadowMapManager::CreateDirectionalLightShadowMap(uint32_t resolution) {
     Logger::Log("Created DirectionalLight shadow map: " + std::to_string(resolution) + "x" + std::to_string(resolution) + "\n");
 }
 
+void ShadowMapManager::CreateCascadeShadowMaps(uint32_t resolution) {
+    cascadeShadowMap_.resolution = resolution;
+    
+    // 各カスケードの深度バッファ、DSV、SRVを作成
+    for (uint32_t i = 0; i < ShadowMapConfig::kCascadeCount; ++i) {
+        cascadeShadowMap_.depthBuffers[i] = CreateDepthBuffer(resolution, resolution);
+        cascadeShadowMap_.dsvHandles[i] = CreateDSV(cascadeShadowMap_.depthBuffers[i].Get());
+        cascadeShadowMap_.srvIndices[i] = CreateSRV(cascadeShadowMap_.depthBuffers[i].Get());
+    }
+    
+    cascadeShadowMap_.isEnabled = true;
+    
+    Logger::Log("Created Cascade shadow maps: " + std::to_string(ShadowMapConfig::kCascadeCount) + 
+                " cascades, " + std::to_string(resolution) + "x" + std::to_string(resolution) + " each\n");
+}
+
+void ShadowMapManager::BeginCascadeShadowPass(uint32_t cascadeIndex) {
+    if (!cascadeShadowMap_.isEnabled || cascadeIndex >= ShadowMapConfig::kCascadeCount) {
+        return;
+    }
+    
+    auto* commandList = dxCommon_->GetCommandList();
+    
+    // リソースバリア: GENERIC_READ -> DEPTH_WRITE
+    D3D12_RESOURCE_BARRIER barrier = {};
+    barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    barrier.Transition.pResource = cascadeShadowMap_.depthBuffers[cascadeIndex].Get();
+    barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_GENERIC_READ;
+    barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    commandList->ResourceBarrier(1, &barrier);
+    
+    // レンダーターゲットをクリアしてDSVのみを設定
+    commandList->OMSetRenderTargets(0, nullptr, FALSE, &cascadeShadowMap_.dsvHandles[cascadeIndex]);
+    
+    // 深度バッファをクリア
+    commandList->ClearDepthStencilView(
+        cascadeShadowMap_.dsvHandles[cascadeIndex],
+        D3D12_CLEAR_FLAG_DEPTH,
+        1.0f,
+        0,
+        0,
+        nullptr
+    );
+    
+    // ビューポートとシザー矩形の設定
+    D3D12_VIEWPORT viewport = {};
+    viewport.TopLeftX = 0.0f;
+    viewport.TopLeftY = 0.0f;
+    viewport.Width = static_cast<float>(cascadeShadowMap_.resolution);
+    viewport.Height = static_cast<float>(cascadeShadowMap_.resolution);
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
+    commandList->RSSetViewports(1, &viewport);
+    
+    D3D12_RECT scissorRect = {};
+    scissorRect.left = 0;
+    scissorRect.top = 0;
+    scissorRect.right = static_cast<LONG>(cascadeShadowMap_.resolution);
+    scissorRect.bottom = static_cast<LONG>(cascadeShadowMap_.resolution);
+    commandList->RSSetScissorRects(1, &scissorRect);
+    
+    currentShadowMapResource_ = cascadeShadowMap_.depthBuffers[cascadeIndex].Get();
+    currentCascadeIndex_ = cascadeIndex;
+}
+
 void ShadowMapManager::CreateSpotLightShadowMap(const std::string& name, uint32_t resolution) {
     // 既に存在する場合はスキップ
     if (spotLightShadowMaps_.find(name) != spotLightShadowMaps_.end()) {

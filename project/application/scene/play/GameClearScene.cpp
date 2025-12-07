@@ -3,6 +3,7 @@
 #include "engine/scene/manager/SceneManager.h"
 #include <input/Input.h>
 #include "externals/imgui/imgui.h"
+#include "manager/graphics/ShadowMapManager.h"
 
 void GameClearScene::Initialize()
 {
@@ -55,31 +56,24 @@ void GameClearScene::Draw2D()
 {
 }
 
-void GameClearScene::DrawImGui()
-{
-#ifdef USE_IMGUI
-	ImGui::Begin("Shadow Test");
-	ImGui::Text("Press SPACE to return to title");
-	ImGui::Text("Object rotation: %.2f", objectRotation_);
-	ImGui::End();
-#endif
-}
-
 void GameClearScene::DrawShadow()
 {
 	auto* lightManager = sceneManager_->GetLightManager();
-	D3D12_GPU_VIRTUAL_ADDRESS shadowMatrixAddr = lightManager->GetShadowMatrixGPUAddress();
-
-	// 地面のシャドウ描画
-	if (ground_) {
-		ground_->DrawShadow(shadowMatrixAddr);
-	}
-
+	auto* shadowMapManager = sceneManager_->GetShadowMapManager();
+	
+	// 現在のカスケードインデックスに対応する行列を取得
+	uint32_t cascadeIndex = shadowMapManager->GetCurrentCascadeIndex();
+	const Matrix4x4& cascadeViewProj = lightManager->GetCascadeViewProjection(cascadeIndex);
+	
+	// 注: 地面はシャドウマップに描画しない（自己シャドウを防ぐため）
+	
 	// テストオブジェクトのシャドウ描画
 	for (auto& obj : testObjects_) {
-		obj->DrawShadow(shadowMatrixAddr);
+		obj->DrawShadowWithMatrix(cascadeViewProj);
 	}
 }
+
+
 
 void GameClearScene::OnEnterPlaying()
 {
@@ -104,6 +98,75 @@ void GameClearScene::OnUpdatePlaying()
 	{
 		sceneManager_->ChangeScene(SceneNames::Title);
 	}
+}
+
+void GameClearScene::DrawImGui()
+{
+	ImGui::Begin("Shadow Test Scene");
+
+	if (ImGui::CollapsingHeader("Light Settings")) {
+		auto* lightManager = sceneManager_->GetLightManager();
+		
+		// ライト方向の調整
+		static float lightDir[3] = { 
+			lightManager->GetDirectionalLight().direction.x, 
+			lightManager->GetDirectionalLight().direction.y, 
+			lightManager->GetDirectionalLight().direction.z 
+		};
+		
+		if (ImGui::DragFloat3("Light Direction", lightDir, 0.01f, -1.0f, 1.0f)) {
+			DirectionalLight light = lightManager->GetDirectionalLight();
+			light.direction = { lightDir[0], lightDir[1], lightDir[2] };
+			lightManager->SetDirectionalLight(light);
+		}
+	}
+
+	if (ImGui::CollapsingHeader("Objects")) {
+		// 地面の操作
+		if (ground_) {
+			if (ImGui::TreeNode("Ground")) {
+				Vector3 scale = ground_->GetScale();
+				Vector3 rotate = ground_->GetRotate();
+				Vector3 translate = ground_->GetTranslate();
+
+				bool changed = false;
+				changed |= ImGui::DragFloat3("Scale", &scale.x, 0.1f);
+				changed |= ImGui::DragFloat3("Rotate", &rotate.x, 0.01f);
+				changed |= ImGui::DragFloat3("Translate", &translate.x, 0.1f);
+
+				if (changed) {
+					ground_->SetScale(scale);
+					ground_->SetRotate(rotate);
+					ground_->SetTranslate(translate);
+				}
+				ImGui::TreePop();
+			}
+		}
+
+		// テストオブジェクトの操作
+		for (size_t i = 0; i < testObjects_.size(); ++i) {
+			std::string label = "Object " + std::to_string(i);
+			if (ImGui::TreeNode(label.c_str())) {
+				Vector3 scale = testObjects_[i]->GetScale();
+				Vector3 rotate = testObjects_[i]->GetRotate();
+				Vector3 translate = testObjects_[i]->GetTranslate();
+
+				bool changed = false;
+				changed |= ImGui::DragFloat3("Scale", &scale.x, 0.1f);
+				changed |= ImGui::DragFloat3("Rotate", &rotate.x, 0.01f);
+				changed |= ImGui::DragFloat3("Translate", &translate.x, 0.1f);
+
+				if (changed) {
+					testObjects_[i]->SetScale(scale);
+					testObjects_[i]->SetRotate(rotate);
+					testObjects_[i]->SetTranslate(translate);
+				}
+				ImGui::TreePop();
+			}
+		}
+	}
+
+	ImGui::End();
 }
 
 void GameClearScene::OnExitPlaying()

@@ -126,6 +126,32 @@ void Object3d::DrawShadow(D3D12_GPU_VIRTUAL_ADDRESS lightViewProjectionAddress)
 	model_->DrawShadow();
 }
 
+void Object3d::DrawShadowWithMatrix(const Matrix4x4& lightViewProjection)
+{
+	// 3Dモデルが割り当てられていなければスキップ
+	if (!model_) return;
+
+	auto* commandList = object3dCommon_->GetDXCommon()->GetCommandList();
+
+	// シャドウ用の行列を一時リソースに書き込む
+	// ワールド行列とライトビュープロジェクション行列を合成
+	Matrix4x4 worldMatrix = transformationMatrixData_->World;
+	Matrix4x4 wvp = worldMatrix * lightViewProjection;
+	
+	// 一時的にtransformationMatrixData_のWVPを更新
+	Matrix4x4 originalWVP = transformationMatrixData_->WVP;
+	transformationMatrixData_->WVP = wvp;
+	
+	// ワールド行列を設定（ルートパラメータ1）
+	commandList->SetGraphicsRootConstantBufferView(1, wvpResource_->GetGPUVirtualAddress());
+
+	// モデルの頂点バッファを設定して描画
+	model_->DrawShadow();
+	
+	// WVPを元に戻す
+	transformationMatrixData_->WVP = originalWVP;
+}
+
 ///////////////////////////////////////////////////////////////////////
 ///						>>>その他関数の処理<<<							///
 ///////////////////////////////////////////////////////////////////////

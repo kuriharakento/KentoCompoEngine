@@ -77,27 +77,36 @@ void MyGame::Update()
 
 void MyGame::Draw()
 {
-	/*----[ シャドウパス描画（オフスクリーン前に実行） ]----*/
+	/*----[ カスケードシャドウパス描画（オフスクリーン前に実行） ]----*/
 	
 	srvManager_->PreDraw();
 	
-	// シャドウパス開始
-	shadowMapManager_->BeginDirectionalLightShadowPass();
-	shadowMapPipeline_->SetPipeline();
-	
-	// シャドウ行列の更新（シーン中心を基準に、広い範囲をカバー）
-	// 中心点はシーンの中心（固定）、正射影サイズを大きくして広範囲をカバー
-	lightManager_->UpdateDirectionalLightShadowMatrix(
-		cameraManager_->GetActiveCamera()->GetTranslate(),
-		50.0f,
+	// カスケード行列を先に計算
+	lightManager_->UpdateCascadeShadowMatrices(
+		cameraManager_->GetActiveCamera(),
 		0.1f, 200.0f
 	);
 	
-	// 各シーンのシャドウ対象オブジェクトを描画
-	sceneManager_->DrawShadow();
-	
-	// シャドウパス終了
-	shadowMapManager_->EndShadowPass();
+	// 4つのカスケードシャドウパスを描画
+	for (uint32_t cascade = 0; cascade < 4; ++cascade) {
+		// カスケードシャドウパス開始
+		shadowMapManager_->BeginCascadeShadowPass(cascade);
+		shadowMapPipeline_->SetPipeline();
+		
+		// ルートパラメータ0にカスケードのライトビュープロジェクション行列を設定
+		D3D12_GPU_VIRTUAL_ADDRESS cascadeMatrixAddr = lightManager_->GetCascadeLightViewProjectionGPUAddress(cascade);
+		if (cascadeMatrixAddr != 0) {
+			dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, cascadeMatrixAddr);
+		}
+		
+		// 各シーンのシャドウ対象オブジェクトを描画
+		sceneManager_->DrawShadow();
+		
+		// シャドウパス終了
+		shadowMapManager_->EndShadowPass();
+	}
+
+
 
 	/*----[ オフスクリーン描画 ]----*/
 

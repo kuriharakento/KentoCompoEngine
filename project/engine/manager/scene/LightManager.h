@@ -221,6 +221,34 @@ public: // DirectionalLight関連
 	 */
 	D3D12_GPU_VIRTUAL_ADDRESS GetShadowMatrixGPUAddress() const;
 
+	/**
+	 * @brief カスケードシャドウ用行列を更新
+	 * @param camera カメラポインタ（視錐台分割用）
+	 * @param nearPlane カメラの近クリップ面
+	 * @param farPlane カメラの遠クリップ面
+	 */
+	void UpdateCascadeShadowMatrices(class Camera* camera, float nearPlane = 0.1f, float farPlane = 200.0f);
+
+	/**
+	 * @brief 指定カスケードのビュー・プロジェクション行列を取得
+	 * @param cascadeIndex カスケードインデックス
+	 * @return ビュー・プロジェクション行列
+	 */
+	const Matrix4x4& GetCascadeViewProjection(uint32_t cascadeIndex) const;
+
+	/**
+	 * @brief カスケードシャドウ用GPUデータのアドレスを取得
+	 * @return GPUバーチャルアドレス
+	 */
+	D3D12_GPU_VIRTUAL_ADDRESS GetCascadeShadowDataGPUAddress() const;
+
+	/**
+	 * @brief 指定カスケードのライトビュープロジェクション行列のGPUアドレスを取得
+	 * @param cascadeIndex カスケードインデックス
+	 * @return GPUバーチャルアドレス（CascadeShadowDataForGPU内のオフセット）
+	 */
+	D3D12_GPU_VIRTUAL_ADDRESS GetCascadeLightViewProjectionGPUAddress(uint32_t cascadeIndex) const;
+
 public: // SpotLight シャドウ関連
 	/**
 	 * @brief スポットライトのシャドウ用行列を更新
@@ -491,4 +519,24 @@ private:
 	// シャドウ用行列の定数バッファ
 	Microsoft::WRL::ComPtr<ID3D12Resource> shadowMatrixResource_;
 	ShadowDataForGPU* shadowData_ = nullptr;
+
+	// カスケードシャドウ用GPU構造体
+	struct CascadeShadowDataForGPU {
+		Matrix4x4 lightViewProjections[4];
+		float cascadeSplits[4];
+		int32_t enableShadow;
+		float padding[3];
+	};
+
+	// カスケードシャドウ用行列（CPU側）
+	Matrix4x4 cascadeViewProjections_[4] = {};
+	float cascadeSplits_[4] = {};
+
+	// カスケードシャドウ用定数バッファ（シェーダー用）
+	Microsoft::WRL::ComPtr<ID3D12Resource> cascadeShadowResource_;
+	CascadeShadowDataForGPU* cascadeShadowData_ = nullptr;
+
+	// 各カスケードのライトビュープロジェクション行列用個別バッファ（シャドウパス用、256バイトアライメント）
+	Microsoft::WRL::ComPtr<ID3D12Resource> cascadeLightVPResources_[4];
+	Matrix4x4* cascadeLightVPData_[4] = {};
 };

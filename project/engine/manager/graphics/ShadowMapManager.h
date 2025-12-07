@@ -40,6 +40,12 @@ public:
     void CreateDirectionalLightShadowMap(uint32_t resolution = ShadowMapConfig::kDirectionalLightResolution);
 
     /**
+     * @brief カスケードシャドウマップの作成
+     * @param resolution 各カスケードのシャドウマップ解像度
+     */
+    void CreateCascadeShadowMaps(uint32_t resolution = ShadowMapConfig::kCascadeResolution);
+
+    /**
      * @brief スポットライト用シャドウマップの作成
      * @param name ライトの名前
      * @param resolution シャドウマップの解像度
@@ -57,6 +63,12 @@ public:
      * @brief シャドウパスの開始（ディレクショナルライト）
      */
     void BeginDirectionalLightShadowPass();
+
+    /**
+     * @brief カスケードシャドウパスの開始
+     * @param cascadeIndex カスケードインデックス（0-3）
+     */
+    void BeginCascadeShadowPass(uint32_t cascadeIndex);
 
     /**
      * @brief シャドウパスの開始（スポットライト）
@@ -110,6 +122,25 @@ public: // ゲッター
      * @return 有効な場合true
      */
     bool HasDirectionalLightShadowMap() const { return directionalLightShadowMap_.isEnabled; }
+
+    /**
+     * @brief カスケードシャドウマップが有効か
+     * @return 有効な場合true
+     */
+    bool HasCascadeShadowMaps() const { return cascadeShadowMap_.isEnabled; }
+
+    /**
+     * @brief カスケードシャドウマップの取得
+     * @return カスケードシャドウマップへの参照
+     */
+    const CascadeShadowMap& GetCascadeShadowMap() const { return cascadeShadowMap_; }
+    CascadeShadowMap& GetCascadeShadowMap() { return cascadeShadowMap_; }
+
+    /**
+     * @brief 現在描画中のカスケードインデックスを取得
+     * @return カスケードインデックス（0-3）
+     */
+    uint32_t GetCurrentCascadeIndex() const { return currentCascadeIndex_; }
 
     /**
      * @brief スポットライトシャドウマップが存在するか
@@ -176,6 +207,9 @@ private:
     // ディレクショナルライト用シャドウマップ
     ShadowMap directionalLightShadowMap_;
 
+    // カスケードシャドウマップ
+    CascadeShadowMap cascadeShadowMap_;
+
     // スポットライト用シャドウマップ（名前 -> シャドウマップ）
     std::unordered_map<std::string, ShadowMap> spotLightShadowMaps_;
 
@@ -184,6 +218,9 @@ private:
 
     // 現在描画中のシャドウマップリソース（パス終了時にバリア切り替えに使用）
     ID3D12Resource* currentShadowMapResource_ = nullptr;
+
+    // 現在描画中のカスケードインデックス
+    uint32_t currentCascadeIndex_ = 0;
 
     // 最大DSV数
     static constexpr uint32_t kMaxDSVCount = 64;

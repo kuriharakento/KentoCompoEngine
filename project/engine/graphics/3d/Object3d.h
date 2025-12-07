@@ -57,6 +57,13 @@ public:	/*========[ メンバ関数 ]========*/
 	void DrawShadow(D3D12_GPU_VIRTUAL_ADDRESS lightViewProjectionAddress);
 
 	/**
+	 * @brief シャドウマップ用描画（行列直接指定）
+	 * @details カスケードシャドウマップ用に行列を直接指定して描画
+	 * @param lightViewProjection ライトのビュー・プロジェクション行列
+	 */
+	void DrawShadowWithMatrix(const Matrix4x4& lightViewProjection);
+
+	/**
 	 * @brief 行列の更新
 	 * @param camera 使用するカメラ（省略時はデフォルトカメラを使用）
 	 */

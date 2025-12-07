@@ -13,6 +13,11 @@ namespace ShadowMapConfig {
     constexpr float kDefaultNearPlane = 0.1f;
     constexpr float kDefaultFarPlane = 100.0f;
     constexpr float kDefaultShadowBias = 0.005f;
+    
+    // カスケードシャドウマップ設定
+    constexpr UINT kCascadeCount = 4;                   // カスケード数
+    constexpr UINT kCascadeResolution = 2048;           // 各カスケードの解像度
+    constexpr float kCascadeLambda = 0.5f;              // 対数/線形ハイブリッド係数
 }
 
 /**
@@ -88,4 +93,49 @@ struct PointLightShadowMap {
     
     // 有効フラグ
     bool isEnabled = true;
+};
+
+/**
+ * @brief カスケードシャドウマップ構造体
+ * @details ディレクショナルライト用の複数カスケードシャドウマップ
+ */
+struct CascadeShadowMap {
+    // 各カスケードの深度バッファリソース
+    Microsoft::WRL::ComPtr<ID3D12Resource> depthBuffers[ShadowMapConfig::kCascadeCount];
+    
+    // 各カスケードのDSVハンドル
+    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandles[ShadowMapConfig::kCascadeCount] = {};
+    
+    // 各カスケードのSRVインデックス
+    uint32_t srvIndices[ShadowMapConfig::kCascadeCount] = {};
+    
+    // 各カスケードのビュー・プロジェクション行列
+    Matrix4x4 lightViewProjections[ShadowMapConfig::kCascadeCount] = {};
+    
+    // カスケード分割距離（ビュー空間）
+    float cascadeSplits[ShadowMapConfig::kCascadeCount] = {};
+    
+    // 解像度
+    uint32_t resolution = ShadowMapConfig::kCascadeResolution;
+    
+    // 有効フラグ
+    bool isEnabled = true;
+};
+
+/**
+ * @brief GPU用カスケードシャドウデータ構造体
+ * @details シェーダーに渡すカスケード情報
+ */
+struct CascadeShadowDataForGPU {
+    // 各カスケードのビュー・プロジェクション行列
+    Matrix4x4 lightViewProjections[ShadowMapConfig::kCascadeCount];
+    
+    // カスケード分割距離（float4でパック）
+    float cascadeSplits[ShadowMapConfig::kCascadeCount];
+    
+    // シャドウ有効フラグ
+    int enableShadow;
+    
+    // パディング
+    float padding[3];
 };

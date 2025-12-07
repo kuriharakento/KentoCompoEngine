@@ -174,7 +174,8 @@ void Framework::Initialize()
 	// シャドウマップマネージャーの初期化
 	shadowMapManager_ = std::make_unique<ShadowMapManager>();
 	shadowMapManager_->Initialize(dxCommon_.get(), srvManager_.get());
-	shadowMapManager_->CreateDirectionalLightShadowMap(2048);
+	// カスケードシャドウマップを作成（4カスケード、各2048x2048）
+	shadowMapManager_->CreateCascadeShadowMaps(2048);
 
 	// シャドウマップ描画パイプラインの初期化
 	shadowMapPipeline_ = std::make_unique<ShadowMapPipeline>();
@@ -261,18 +262,27 @@ void Framework::Draw3DSetting()
 	// 3Dオブジェクト描画の共通設定
 	objectCommon_->CommonRenderingSetting();
 
-	// シャドウマップのグローバル設定
-	if (shadowMapManager_ && shadowMapManager_->HasDirectionalLightShadowMap())
+	// カスケードシャドウマップのグローバル設定
+	if (shadowMapManager_ && shadowMapManager_->HasCascadeShadowMaps())
 	{
 		auto* commandList = dxCommon_->GetCommandList();
+		auto& cascadeShadowMap = shadowMapManager_->GetCascadeShadowMap();
 		
-		// シャドウマップSRV（ルートパラメータ9）をバインド
-		srvManager_->SetGraphicsRootDescriptorTable(9, shadowMapManager_->GetDirectionalLightShadowMap().srvIndex);
+		// 4つのカスケードシャドウマップSRVをバインド（ルートパラメータ12-15 = t6-t9）
+		srvManager_->SetGraphicsRootDescriptorTable(12, cascadeShadowMap.srvIndices[0]);
+		srvManager_->SetGraphicsRootDescriptorTable(13, cascadeShadowMap.srvIndices[1]);
+		srvManager_->SetGraphicsRootDescriptorTable(14, cascadeShadowMap.srvIndices[2]);
+		srvManager_->SetGraphicsRootDescriptorTable(15, cascadeShadowMap.srvIndices[3]);
 		
-		// シャドウ行列CBV（ルートパラメータ10）をバインド
-		commandList->SetGraphicsRootConstantBufferView(10, lightManager_->GetShadowMatrixGPUAddress());
+		// カスケードシャドウデータCBV（ルートパラメータ11 = b7）をバインド
+		D3D12_GPU_VIRTUAL_ADDRESS cascadeDataAddr = lightManager_->GetCascadeShadowDataGPUAddress();
+		if (cascadeDataAddr != 0) {
+			commandList->SetGraphicsRootConstantBufferView(11, cascadeDataAddr);
+		}
 	}
 }
+
+
 
 
 void Framework::Draw2DSetting()

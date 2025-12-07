@@ -5,8 +5,8 @@
 #include "base/Logger.h"
 #include "manager/graphics/TextureManager.h"
 
-// ルートパラメータ数
-constexpr int kRootParameterCount = 11;
+// ルートパラメータ数（カスケードシャドウ用に追加）
+constexpr int kRootParameterCount = 16;
 // 入力要素数
 constexpr int kInputElementCount = 3;
 // ディスクリプタレンジ数
@@ -135,6 +135,57 @@ void Object3dCommon::CreateRootSignature()
 	rootParameters[10].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameters[10].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	rootParameters[10].Descriptor.ShaderRegister = 6;
+
+	// ルートパラメータ11: ピクセルシェーダ用CBV（カスケードシャドウデータ）
+	rootParameters[11].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[11].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[11].Descriptor.ShaderRegister = 7;
+
+	// カスケードシャドウマップ用ディスクリプタレンジの設定（t6-t9）
+	D3D12_DESCRIPTOR_RANGE descriptorRangeCascade0[kDescriptorRangeCount] = {};
+	descriptorRangeCascade0[0].BaseShaderRegister = 6; // t6
+	descriptorRangeCascade0[0].NumDescriptors = 1;
+	descriptorRangeCascade0[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	descriptorRangeCascade0[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	D3D12_DESCRIPTOR_RANGE descriptorRangeCascade1[kDescriptorRangeCount] = {};
+	descriptorRangeCascade1[0].BaseShaderRegister = 7; // t7
+	descriptorRangeCascade1[0].NumDescriptors = 1;
+	descriptorRangeCascade1[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	descriptorRangeCascade1[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	D3D12_DESCRIPTOR_RANGE descriptorRangeCascade2[kDescriptorRangeCount] = {};
+	descriptorRangeCascade2[0].BaseShaderRegister = 8; // t8
+	descriptorRangeCascade2[0].NumDescriptors = 1;
+	descriptorRangeCascade2[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	descriptorRangeCascade2[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	D3D12_DESCRIPTOR_RANGE descriptorRangeCascade3[kDescriptorRangeCount] = {};
+	descriptorRangeCascade3[0].BaseShaderRegister = 9; // t9
+	descriptorRangeCascade3[0].NumDescriptors = 1;
+	descriptorRangeCascade3[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	descriptorRangeCascade3[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	// ルートパラメータ12-15: カスケードシャドウマップ（t6-t9）
+	rootParameters[12].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[12].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[12].DescriptorTable.pDescriptorRanges = descriptorRangeCascade0;
+	rootParameters[12].DescriptorTable.NumDescriptorRanges = _countof(descriptorRangeCascade0);
+
+	rootParameters[13].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[13].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[13].DescriptorTable.pDescriptorRanges = descriptorRangeCascade1;
+	rootParameters[13].DescriptorTable.NumDescriptorRanges = _countof(descriptorRangeCascade1);
+
+	rootParameters[14].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[14].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[14].DescriptorTable.pDescriptorRanges = descriptorRangeCascade2;
+	rootParameters[14].DescriptorTable.NumDescriptorRanges = _countof(descriptorRangeCascade2);
+
+	rootParameters[15].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[15].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[15].DescriptorTable.pDescriptorRanges = descriptorRangeCascade3;
+	rootParameters[15].DescriptorTable.NumDescriptorRanges = _countof(descriptorRangeCascade3);
 
 	// サンプラーの設定
 	D3D12_STATIC_SAMPLER_DESC staticSamplers[kStaticSamplerCount] = {};

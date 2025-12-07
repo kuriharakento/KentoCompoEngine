@@ -1,9 +1,12 @@
 #include "LightManager.h"
 
 #include <numbers>
+#include <cmath>
 #include "DirectXTex/d3dx12.h"
 // system
 #include "base/Logger.h"
+// camera
+#include "base/Camera.h"
 // math
 #include "math/Easing.h"
 #include "math/MatrixFunc.h"
@@ -808,6 +811,174 @@ D3D12_GPU_VIRTUAL_ADDRESS LightManager::GetDirectionalLightGPUAddress() const {
 D3D12_GPU_VIRTUAL_ADDRESS LightManager::GetShadowMatrixGPUAddress() const {
 	if (shadowMatrixResource_) {
 		return shadowMatrixResource_->GetGPUVirtualAddress();
+	}
+	return 0;
+}
+
+void LightManager::UpdateCascadeShadowMatrices(Camera* camera, float nearPlane, float farPlane) {
+	if (!camera) return;
+
+	// シャドウマップ解像度（テクセルスナップ計算用）
+	const float shadowMapSize = 2048.0f;
+	
+	// カスケード分割距離を計算（対数/線形ハイブリッド - PSSM方式）
+	const float lambda = 0.75f; // より対数寄りに調整（遠距離での品質向上）
+	constexpr uint32_t cascadeCount = 4;
+	
+	for (uint32_t i = 0; i < cascadeCount; ++i) {
+		float p = static_cast<float>(i + 1) / static_cast<float>(cascadeCount);
+		float logSplit = nearPlane * std::pow(farPlane / nearPlane, p);
+		float linearSplit = nearPlane + (farPlane - nearPlane) * p;
+		cascadeSplits_[i] = lambda * logSplit + (1.0f - lambda) * linearSplit;
+	}
+
+	Vector3 lightDir = Vector3::Normalize(directionalLight_.direction);
+	
+	// アップベクトルをライト方向に応じて調整
+	Vector3 upVector = { 0.0f, 1.0f, 0.0f };
+	float dotUp = std::abs(lightDir.y);
+	if (dotUp > 0.99f) {
+		upVector = { 0.0f, 0.0f, 1.0f };
+	}
+	
+	// カメラのビュー行列と逆行列を取得
+	Matrix4x4 cameraView = camera->GetViewMatrix();
+	Matrix4x4 cameraViewInverse = Inverse(cameraView);
+	
+	// カメラのプロジェクション情報
+	float fov = 45.0f * 3.14159265f / 180.0f;
+	float aspect = 16.0f / 9.0f;
+	
+	float prevSplit = nearPlane;
+	
+	for (uint32_t cascade = 0; cascade < cascadeCount; ++cascade) {
+		float splitNear = prevSplit;
+		float splitFar = cascadeSplits_[cascade];
+		prevSplit = splitFar;
+		
+		// 視錐台のコーナーを計算（ビュー空間）
+		float tanHalfFov = std::tan(fov * 0.5f);
+		float nearHeight = splitNear * tanHalfFov;
+		float nearWidth = nearHeight * aspect;
+		float farHeight = splitFar * tanHalfFov;
+		float farWidth = farHeight * aspect;
+		
+		Vector3 frustumCorners[8] = {
+			// Near plane corners
+			{ -nearWidth, -nearHeight, splitNear },
+			{  nearWidth, -nearHeight, splitNear },
+			{  nearWidth,  nearHeight, splitNear },
+			{ -nearWidth,  nearHeight, splitNear },
+			// Far plane corners
+			{ -farWidth, -farHeight, splitFar },
+			{  farWidth, -farHeight, splitFar },
+			{  farWidth,  farHeight, splitFar },
+			{ -farWidth,  farHeight, splitFar }
+		};
+		
+		// ワールド空間に変換
+		Vector3 frustumCenter = { 0.0f, 0.0f, 0.0f };
+		for (int i = 0; i < 8; ++i) {
+			Vector3 p = frustumCorners[i];
+			float x = p.x * cameraViewInverse.m[0][0] + p.y * cameraViewInverse.m[1][0] + p.z * cameraViewInverse.m[2][0] + cameraViewInverse.m[3][0];
+			float y = p.x * cameraViewInverse.m[0][1] + p.y * cameraViewInverse.m[1][1] + p.z * cameraViewInverse.m[2][1] + cameraViewInverse.m[3][1];
+			float z = p.x * cameraViewInverse.m[0][2] + p.y * cameraViewInverse.m[1][2] + p.z * cameraViewInverse.m[2][2] + cameraViewInverse.m[3][2];
+			frustumCorners[i] = { x, y, z };
+			frustumCenter = frustumCenter + frustumCorners[i];
+		}
+		frustumCenter = frustumCenter * (1.0f / 8.0f);
+		
+		// バウンディングスフィアの半径を計算
+		float radius = 0.0f;
+		for (int i = 0; i < 8; ++i) {
+			Vector3 diff = frustumCorners[i] - frustumCenter;
+			float distance = diff.Length();
+			radius = (std::max)(radius, distance);
+		}
+		
+		// 【商用エンジン品質】テクセルサイズにスナップして安定化
+		float texelSize = (radius * 2.0f) / shadowMapSize;
+		radius = std::ceil(radius / texelSize) * texelSize;
+		
+		// ライト位置をシーン後方に配置（十分な深度範囲を確保）
+		float lightDistance = radius * 4.0f;
+		Vector3 lightPos = frustumCenter - lightDir * lightDistance;
+		
+		// 【商用エンジン品質】ライト位置をテクセルにスナップ（シマー防止）
+		// ライトビュー行列を一時的に作成してスナップ計算
+		Matrix4x4 tempLightView = MakeLookAtMatrix(lightPos, frustumCenter, upVector);
+		
+		// ライト空間でのセンター位置
+		float centerX = frustumCenter.x * tempLightView.m[0][0] + frustumCenter.y * tempLightView.m[1][0] + frustumCenter.z * tempLightView.m[2][0] + tempLightView.m[3][0];
+		float centerY = frustumCenter.x * tempLightView.m[0][1] + frustumCenter.y * tempLightView.m[1][1] + frustumCenter.z * tempLightView.m[2][1] + tempLightView.m[3][1];
+		
+		// テクセル単位にスナップ
+		float snappedX = std::floor(centerX / texelSize) * texelSize;
+		float snappedY = std::floor(centerY / texelSize) * texelSize;
+		
+		// スナップ後のオフセットを適用
+		float offsetX = snappedX - centerX;
+		float offsetY = snappedY - centerY;
+		
+		// スナップされた位置でライトビュー行列を再計算
+		Matrix4x4 lightView = tempLightView;
+		lightView.m[3][0] += offsetX;
+		lightView.m[3][1] += offsetY;
+		
+		// 正射影行列を計算（安定したサイズ）
+		float orthoSize = radius * 2.0f;
+		Matrix4x4 lightProj = MakeOrthographicProjectionMatrix(orthoSize, orthoSize, 0.1f, lightDistance * 2.0f);
+		
+		cascadeViewProjections_[cascade] = lightView * lightProj;
+	}
+	
+	// GPUデータを更新
+	if (!cascadeShadowResource_) {
+		// 初回のみリソース作成
+		cascadeShadowResource_ = dxCommon_->CreateBufferResource(sizeof(CascadeShadowDataForGPU));
+		cascadeShadowResource_->Map(0, nullptr, reinterpret_cast<void**>(&cascadeShadowData_));
+		
+		// 各カスケード用の個別リソースも作成（256バイトアライメント用）
+		for (uint32_t i = 0; i < cascadeCount; ++i) {
+			cascadeLightVPResources_[i] = dxCommon_->CreateBufferResource(sizeof(Matrix4x4));
+			cascadeLightVPResources_[i]->Map(0, nullptr, reinterpret_cast<void**>(&cascadeLightVPData_[i]));
+		}
+	}
+	
+	if (cascadeShadowData_) {
+		for (uint32_t i = 0; i < cascadeCount; ++i) {
+			cascadeShadowData_->lightViewProjections[i] = cascadeViewProjections_[i];
+			cascadeShadowData_->cascadeSplits[i] = cascadeSplits_[i];
+			
+			// 個別バッファにもコピー
+			if (cascadeLightVPData_[i]) {
+				*cascadeLightVPData_[i] = cascadeViewProjections_[i];
+			}
+		}
+		cascadeShadowData_->enableShadow = 1;
+	}
+}
+
+
+const Matrix4x4& LightManager::GetCascadeViewProjection(uint32_t cascadeIndex) const {
+	if (cascadeIndex >= 4) {
+		static Matrix4x4 identity = MakeIdentity4x4();
+		return identity;
+	}
+	return cascadeViewProjections_[cascadeIndex];
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS LightManager::GetCascadeShadowDataGPUAddress() const {
+	if (cascadeShadowResource_) {
+		return cascadeShadowResource_->GetGPUVirtualAddress();
+	}
+	return 0;
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS LightManager::GetCascadeLightViewProjectionGPUAddress(uint32_t cascadeIndex) const {
+	if (cascadeIndex < 4 && cascadeLightVPResources_[cascadeIndex]) {
+		// 個別リソースのアドレスを返す（256バイトアライメント済み）
+		return cascadeLightVPResources_[cascadeIndex]->GetGPUVirtualAddress();
 	}
 	return 0;
 }
