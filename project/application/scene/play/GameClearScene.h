@@ -17,15 +17,8 @@ class GameClearScene : public BaseScene
 public:
 	void Initialize() override;
 	void Finalize() override;
-	void Draw3D() override;
 	void Draw2D() override;
 	void DrawImGui() override;
-	
-	// シャドウ描画（シャドウマップ対象オブジェクトを描画）
-	void DrawShadow() override;
-
-	// G-Buffer描画（ディファードレンダリング用）
-	void DrawGBuffer() override;
 
 protected:
 

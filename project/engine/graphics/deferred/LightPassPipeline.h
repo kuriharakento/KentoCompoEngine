@@ -8,39 +8,40 @@ class DirectXCommon;
  * @brief ライトパス用パイプラインクラス
  * @details ディファードライティングのルートシグネチャとPSOを管理
  */
-class LightPassPipeline {
+class LightPassPipeline
+{
 public:
-    LightPassPipeline() = default;
-    ~LightPassPipeline() = default;
+	LightPassPipeline() = default;
+	~LightPassPipeline() = default;
 
-    /**
-     * @brief 初期化
-     * @param dxCommon DirectXCommonへのポインタ
-     */
-    void Initialize(DirectXCommon* dxCommon);
+	/**
+	 * @brief 初期化
+	 * @param dxCommon DirectXCommonへのポインタ
+	 */
+	void Initialize(DirectXCommon* dxCommon);
 
-    /**
-     * @brief パイプラインをセット
-     */
-    void SetPipeline();
+	/**
+	 * @brief パイプラインをセット
+	 */
+	void SetPipeline();
 
-    /**
-     * @brief ルートシグネチャの取得
-     */
-    ID3D12RootSignature* GetRootSignature() const { return rootSignature_.Get(); }
+	/**
+	 * @brief ルートシグネチャの取得
+	 */
+	ID3D12RootSignature* GetRootSignature() const { return rootSignature_.Get(); }
 
-    /**
-     * @brief PSOの取得
-     */
-    ID3D12PipelineState* GetPipelineState() const { return pipelineState_.Get(); }
-
-private:
-    void CreateRootSignature();
-    void CreatePipelineState();
+	/**
+	 * @brief PSOの取得
+	 */
+	ID3D12PipelineState* GetPipelineState() const { return pipelineState_.Get(); }
 
 private:
-    DirectXCommon* dxCommon_ = nullptr;
+	void CreateRootSignature();
+	void CreatePipelineState();
 
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
-    Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState_;
+private:
+	DirectXCommon* dxCommon_ = nullptr;
+
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState_;
 };

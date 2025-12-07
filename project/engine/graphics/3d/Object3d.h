@@ -18,6 +18,14 @@ class SrvManager;
 class Object3dCommon;
 
 /**
+ * @brief レンダリングタイプ
+ */
+enum class RenderingType {
+	Deferred, // ディファードレンダリング（G-Bufferパス）
+	Forward,  // フォワードレンダリング（Forwardパス）
+};
+
+/**
  * @brief 3Dオブジェクトクラス
  * @details 3Dモデルを持ち、座標変換、ライティング、カメラ情報を管理して描画するクラス
  */
@@ -282,6 +290,18 @@ public: /*========[ セッター ]========*/
 	 */
 	void DisableShadow() { shadowEnabled_ = false; }
 
+	/**
+	 * @brief レンダリングタイプの設定
+	 * @param type レンダリングタイプ
+	 */
+	void SetRenderingType(RenderingType type) { renderingType_ = type; }
+
+	/**
+	 * @brief レンダリングタイプの取得
+	 * @return レンダリングタイプ
+	 */
+	RenderingType GetRenderingType() const { return renderingType_; }
+
 private: /*========[ プライベートメンバ関数  ]========*/
 
 	/**
@@ -346,6 +366,9 @@ private: /*========[ メンバ変数 ]========*/
 
 	// Transform情報
 	Transform transform_;
+
+	// レンダリングタイプ
+	RenderingType renderingType_ = RenderingType::Deferred;
 };
 
 

@@ -1,13 +1,15 @@
 // Light Pass Vertex Shader
 // フルスクリーンクワッド用頂点シェーダー
 
-struct VertexShaderOutput {
+struct VertexShaderOutput
+{
     float4 position : SV_POSITION;
     float2 texcoord : TEXCOORD0;
 };
 
 // 頂点データなしでフルスクリーンクワッドを描画
-VertexShaderOutput main(uint vertexID : SV_VertexID) {
+VertexShaderOutput main(uint vertexID : SV_VertexID)
+{
     VertexShaderOutput output;
     
     // 頂点ID 0,1,2,3 でフルスクリーンクワッドを生成

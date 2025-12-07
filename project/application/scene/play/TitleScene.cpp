@@ -35,6 +35,7 @@ void TitleScene::Initialize()
 	skydome_->SetDirectionalLightIntensity(0.5f);
 	skydome_->SetDirectionalLightDirection({ 0.0f, -1.0f, 0.0f });
 	skydome_->SetScale({ 0.8f, 0.8f, 0.8f });
+	RegisterObject(skydome_.get());
 
 	fireEffect_ = std::make_unique<TitleFireEffect>();
 	fireEffect_->Initialize();
@@ -72,6 +73,7 @@ void TitleScene::Initialize()
 
 void TitleScene::Finalize()
 {
+	ClearObjects();
 	sceneManager_->GetPostProcessManager()->crtEffect_->SetEnabled(false);
 
 	Audio::GetInstance()->StopWave("title_bgm");
@@ -173,7 +175,7 @@ void TitleScene::Draw3D()
 		VectorColorCodes::Cyan
 	);
 
-	skydome_->Draw();
+	BaseScene::Draw3D();
 }
 
 void TitleScene::Draw2D()

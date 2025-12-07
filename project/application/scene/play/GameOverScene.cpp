@@ -30,6 +30,7 @@ void GameOverScene::Initialize()
 	skydome_->SetEnableLighting(true);
 	skydome_->SetDirectionalLightIntensity(0.5f);
 	skydome_->SetDirectionalLightDirection({ 0.0f, -1.0f, 0.0f });
+	RegisterObject(skydome_.get());
 
 	// ゲームオーバーからタイトルUIの初期化
 	gameOverToTitleUI_ = std::make_unique<GameUI>();
@@ -103,12 +104,13 @@ void GameOverScene::Initialize()
 
 void GameOverScene::Finalize()
 {
+	ClearObjects();
 	sceneManager_->GetPostProcessManager()->bloomEffect_->SetEnabled(true);
 }
 
 void GameOverScene::Draw3D()
 {
-	skydome_->Draw();
+	BaseScene::Draw3D();
 }
 
 void GameOverScene::Draw2D()

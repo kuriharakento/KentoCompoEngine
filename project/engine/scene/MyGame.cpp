@@ -186,33 +186,40 @@ void MyGame::Draw()
 	);
 
 	// === Phase 3: フォワードパス（透明オブジェクト、パーティクルなど） ===
-	// 注: 現在は深度バッファ問題のため、フォワード3D描画は一時的にスキップ
-	// TODO: G-Bufferの深度をrenderTextureに引き継ぐ実装が必要
-	
-	// 3D描画用設定（フォワード用）
-	// Framework::Draw3DSetting();
 
-	// 透明オブジェクトはフォワードで描画
-	// sceneManager_->Draw3D();
+	// 3D描画用設定（
+	Framework::Draw3DSetting();
+
+	// 深度バッファを書き込み可能状態に遷移（Forwardパス用）
+	deferredRenderer_->GetGBuffer()->TransitionDepthToDepthWrite();
+	// レンダーターゲットと深度バッファを明示的にセット
+	auto dsvHandle = deferredRenderer_->GetGBuffer()->GetDSVHandle();
+	auto rtvHandle = renderTexture_->GetRTVHandle();
+	dxCommon_->GetCommandList()->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
+
+	sceneManager_->Draw3D();
 
 	// ラインの描画
-	// LineManager::GetInstance()->RenderLines();
+	LineManager::GetInstance()->RenderLines();
 
 	// Skyboxの描画
-	// skybox_->Draw();
+	skybox_->Draw();
 
 	// パーティクルの描画
-	// ParticleManager::GetInstance()->Draw();
-
+	ParticleManager::GetInstance()->Draw();
 		
 	// === 2D描画 ===
-	// 注: 現在は深度バッファ問題のため、一時的にスキップ
 	
 	// 2D描画用設定
-	// Framework::Draw2DSetting();
+	Framework::Draw2DSetting();
 
 	// スプライトの描画
-	// sceneManager_->Draw2D();
+	sceneManager_->Draw2D();
+
+	// 深度バッファをSRV状態に戻す
+	deferredRenderer_->GetGBuffer()->TransitionDepthToSRV();
+
+
 
 	renderTexture_->EndRender();
 

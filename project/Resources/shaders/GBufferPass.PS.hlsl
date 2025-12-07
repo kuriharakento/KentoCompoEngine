@@ -1,7 +1,8 @@
 // G-Buffer Pass Pixel Shader
 // ジオメトリパス用ピクセルシェーダー
 
-struct PixelShaderInput {
+struct PixelShaderInput
+{
     float4 position : SV_POSITION;
     float2 texcoord : TEXCOORD0;
     float3 normal : NORMAL0;
@@ -9,15 +10,17 @@ struct PixelShaderInput {
 };
 
 // G-Buffer出力
-struct GBufferOutput {
-    float4 albedo : SV_TARGET0;   // RGB: Albedo, A: Metallic
-    float4 normal : SV_TARGET1;   // RGB: Normal (encoded), A: unused
+struct GBufferOutput
+{
+    float4 albedo : SV_TARGET0; // RGB: Albedo, A: Metallic
+    float4 normal : SV_TARGET1; // RGB: Normal (encoded), A: unused
     float4 material : SV_TARGET2; // R: Roughness, G: AO, BA: reserved
     float4 emissive : SV_TARGET3; // RGB: Emissive, A: Intensity
 };
 
 // マテリアル（C++側のMaterial構造体に合わせる）
-cbuffer Material : register(b2) {
+cbuffer Material : register(b2)
+{
     float4 materialColor;
     int enableLighting;
     float3 pad1;
@@ -32,18 +35,21 @@ Texture2D<float4> gTexture : register(t0);
 SamplerState gSampler : register(s0);
 
 // 法線をエンコード（-1,1 -> 0,1）
-float3 EncodeNormal(float3 normal) {
+float3 EncodeNormal(float3 normal)
+{
     return normal * 0.5f + 0.5f;
 }
 
-GBufferOutput main(PixelShaderInput input) {
+GBufferOutput main(PixelShaderInput input)
+{
     GBufferOutput output;
     
     // テクスチャカラー
     float4 texColor = gTexture.Sample(gSampler, input.texcoord);
     
     // アルファテスト
-    if (texColor.a < 0.5f) {
+    if (texColor.a < 0.5f)
+    {
         discard;
     }
     

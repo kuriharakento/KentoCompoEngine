@@ -21,7 +21,9 @@ void GameClearScene::Initialize()
 	ground_->SetModel("terrain");
 	ground_->SetScale({ 1.0f, 1.0f, 1.0f });
 	ground_->SetTranslate({ 0.0f, 0.0f, 0.0f });
+	ground_->SetTranslate({ 0.0f, 0.0f, 0.0f });
 	ground_->SetLightManager(lightManager);
+	RegisterObject(ground_.get());
 
 	// テスト用オブジェクト（キューブ）の作成
 	for (int i = 0; i < 3; ++i) {
@@ -31,6 +33,7 @@ void GameClearScene::Initialize()
 		obj->SetScale({ 1.0f, 1.0f, 1.0f });
 		obj->SetTranslate({ static_cast<float>(i - 1) * 3.0f, 5.0f, 0.0f });
 		obj->SetLightManager(lightManager);
+		RegisterObject(obj.get());
 		testObjects_.push_back(std::move(obj));
 	}
 
@@ -43,48 +46,14 @@ void GameClearScene::Initialize()
 
 void GameClearScene::Finalize()
 {
+	ClearObjects();
 	testObjects_.clear();
 	ground_.reset();
-}
-
-void GameClearScene::Draw3D()
-{
-	// 地面の描画
-	if (ground_) {
-		ground_->Draw();
-	}
-
-	// テストオブジェクトの描画
-	for (auto& obj : testObjects_) {
-		obj->Draw();
-	}
 }
 
 void GameClearScene::Draw2D()
 {
 }
-
-void GameClearScene::DrawShadow()
-{
-	// テストオブジェクトのシャドウ描画（行列は呼び出し元で設定済み）
-	for (auto& obj : testObjects_) {
-		obj->DrawShadowOnly();
-	}
-}
-
-void GameClearScene::DrawGBuffer()
-{
-	// 地面のG-Buffer描画
-	if (ground_) {
-		ground_->DrawGBuffer();
-	}
-
-	// テストオブジェクトのG-Buffer描画
-	for (auto& obj : testObjects_) {
-		obj->DrawGBuffer();
-	}
-}
-
 
 
 void GameClearScene::OnEnterPlaying()

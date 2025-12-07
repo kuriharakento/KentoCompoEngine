@@ -22,93 +22,98 @@ class CameraManager;
  * @brief ディファードレンダラークラス
  * @details G-Buffer、ライトパス、シャドウを統合管理
  */
-class DeferredRenderer {
+class DeferredRenderer
+{
 public:
-    // 最大ライト数
-    static constexpr uint32_t kMaxSpotLights = 4;
-    static constexpr uint32_t kMaxPointLights = 2;
+	// 最大ライト数
+	static constexpr uint32_t kMaxSpotLights = 4;
+	static constexpr uint32_t kMaxPointLights = 2;
 
-    DeferredRenderer() = default;
-    ~DeferredRenderer() = default;
+	DeferredRenderer() = default;
+	~DeferredRenderer() = default;
 
-    void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, uint32_t width, uint32_t height);
-    void BeginGeometryPass();
-    void EndGeometryPass();
-    void ExecuteLightPass(
-        D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,
-        CameraManager* cameraManager,
-        LightManager* lightManager,
-        ShadowMapManager* shadowMapManager
-    );
+	void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, uint32_t width, uint32_t height);
+	void BeginGeometryPass();
+	void EndGeometryPass();
+	void ExecuteLightPass(
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,
+		CameraManager* cameraManager,
+		LightManager* lightManager,
+		ShadowMapManager* shadowMapManager
+	);
 
-    GBufferPipeline* GetGBufferPipeline() { return gBufferPipeline_.get(); }
-    GBuffer* GetGBuffer() { return gBuffer_.get(); }
-
-private:
-    void CreateCameraBuffer();
-    void UpdateCameraBuffer(CameraManager* cameraManager);
-    void CreateLightBuffer();
-    void UpdateLightBuffer(LightManager* lightManager, ShadowMapManager* shadowMapManager);
+	GBufferPipeline* GetGBufferPipeline() { return gBufferPipeline_.get(); }
+	GBuffer* GetGBuffer() { return gBuffer_.get(); }
 
 private:
-    DirectXCommon* dxCommon_ = nullptr;
-    SrvManager* srvManager_ = nullptr;
+	void CreateCameraBuffer();
+	void UpdateCameraBuffer(CameraManager* cameraManager);
+	void CreateLightBuffer();
+	void UpdateLightBuffer(LightManager* lightManager, ShadowMapManager* shadowMapManager);
 
-    std::unique_ptr<GBuffer> gBuffer_;
-    std::unique_ptr<GBufferPipeline> gBufferPipeline_;
-    std::unique_ptr<LightPassPipeline> lightPassPipeline_;
+private:
+	DirectXCommon* dxCommon_ = nullptr;
+	SrvManager* srvManager_ = nullptr;
 
-    // カメラデータ
-    Microsoft::WRL::ComPtr<ID3D12Resource> cameraBuffer_;
-    struct CameraDataForGPU {
-        Vector3 worldPos;
-        float padding0;
-        Matrix4x4 viewMatrix;
-        Matrix4x4 projMatrix;
-        Matrix4x4 invViewMatrix;
-        Matrix4x4 invProjMatrix;
-        float nearPlane;
-        float farPlane;
-        float padding1[2];
-    };
-    CameraDataForGPU* cameraData_ = nullptr;
+	std::unique_ptr<GBuffer> gBuffer_;
+	std::unique_ptr<GBufferPipeline> gBufferPipeline_;
+	std::unique_ptr<LightPassPipeline> lightPassPipeline_;
 
-    // スポットライトデータ（シェーダー用）
-    struct SpotLightForGPU {
-        Vector4 color;
-        Vector3 position;
-        float intensity;
-        Vector3 direction;
-        float distance;
-        float decay;
-        float cosAngle;
-        float cosFalloffStart;
-        int32_t shadowEnabled;
-        float padding[4]; // 16バイトアライメント用パディング (全体サイズを16の倍数にするため)
-        Matrix4x4 shadowViewProj;
-    };
+	// カメラデータ
+	Microsoft::WRL::ComPtr<ID3D12Resource> cameraBuffer_;
+	struct CameraDataForGPU
+	{
+		Vector3 worldPos;
+		float padding0;
+		Matrix4x4 viewMatrix;
+		Matrix4x4 projMatrix;
+		Matrix4x4 invViewMatrix;
+		Matrix4x4 invProjMatrix;
+		float nearPlane;
+		float farPlane;
+		float padding1[2];
+	};
+	CameraDataForGPU* cameraData_ = nullptr;
 
-    // ポイントライトデータ（シェーダー用）
-    struct PointLightForGPU {
-        Vector4 color;
-        Vector3 position;
-        float intensity;
-        float radius;
-        float decay;
-        int32_t shadowEnabled;
-        float padding;
-        Matrix4x4 shadowViewProj[6]; // 6面のキューブマップ
-    };
+	// スポットライトデータ（シェーダー用）
+	struct SpotLightForGPU
+	{
+		Vector4 color;
+		Vector3 position;
+		float intensity;
+		Vector3 direction;
+		float distance;
+		float decay;
+		float cosAngle;
+		float cosFalloffStart;
+		int32_t shadowEnabled;
+		float padding[4]; // 16バイトアライメント用パディング (全体サイズを16の倍数にするため)
+		Matrix4x4 shadowViewProj;
+	};
 
-    // ライトバッファ構造体
-    struct LightBufferForGPU {
-        int32_t numSpotLights;
-        int32_t numPointLights;
-        float padding[2];
-        SpotLightForGPU spotLights[kMaxSpotLights];
-        PointLightForGPU pointLights[kMaxPointLights];
-    };
+	// ポイントライトデータ（シェーダー用）
+	struct PointLightForGPU
+	{
+		Vector4 color;
+		Vector3 position;
+		float intensity;
+		float radius;
+		float decay;
+		int32_t shadowEnabled;
+		float padding;
+		Matrix4x4 shadowViewProj[6]; // 6面のキューブマップ
+	};
 
-    Microsoft::WRL::ComPtr<ID3D12Resource> lightBuffer_;
-    LightBufferForGPU* lightBufferData_ = nullptr;
+	// ライトバッファ構造体
+	struct LightBufferForGPU
+	{
+		int32_t numSpotLights;
+		int32_t numPointLights;
+		float padding[2];
+		SpotLightForGPU spotLights[kMaxSpotLights];
+		PointLightForGPU pointLights[kMaxPointLights];
+	};
+
+	Microsoft::WRL::ComPtr<ID3D12Resource> lightBuffer_;
+	LightBufferForGPU* lightBufferData_ = nullptr;
 };

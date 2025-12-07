@@ -1,7 +1,8 @@
 // Light Pass Pixel Shader
 // ディファードライティング（ディレクショナル、スポット、ポイント対応）
 
-struct PixelShaderInput {
+struct PixelShaderInput
+{
     float4 position : SV_POSITION;
     float2 texcoord : TEXCOORD0;
 };
@@ -37,7 +38,8 @@ SamplerState gSampler : register(s0);
 SamplerComparisonState gShadowSampler : register(s1);
 
 // カメラ定数
-cbuffer CameraData : register(b0) {
+cbuffer CameraData : register(b0)
+{
     float3 cameraWorldPos;
     float padding0;
     row_major float4x4 viewMatrix;
@@ -50,14 +52,16 @@ cbuffer CameraData : register(b0) {
 };
 
 // ディレクショナルライト
-cbuffer DirectionalLightData : register(b1) {
+cbuffer DirectionalLightData : register(b1)
+{
     float4 dirLightColor;
     float3 dirLightDirection;
     float dirLightIntensity;
 };
 
 // カスケードシャドウデータ
-cbuffer CascadeShadowData : register(b2) {
+cbuffer CascadeShadowData : register(b2)
+{
     row_major float4x4 cascadeViewProj[4];
     float4 cascadeSplits;
     int enableCascadeShadow;
@@ -65,7 +69,8 @@ cbuffer CascadeShadowData : register(b2) {
 };
 
 // スポットライト構造体
-struct SpotLight {
+struct SpotLight
+{
     float4 color;
     float3 position;
     float intensity;
@@ -80,7 +85,8 @@ struct SpotLight {
 };
 
 // ポイントライト構造体
-struct PointLight {
+struct PointLight
+{
     float4 color;
     float3 position;
     float intensity;
@@ -92,7 +98,8 @@ struct PointLight {
 };
 
 // ライトバッファ
-cbuffer LightBuffer : register(b3) {
+cbuffer LightBuffer : register(b3)
+{
     int numSpotLights;
     int numPointLights;
     float2 lightPadding;
@@ -101,12 +108,14 @@ cbuffer LightBuffer : register(b3) {
 };
 
 // 法線デコード
-float3 DecodeNormal(float3 encoded) {
+float3 DecodeNormal(float3 encoded)
+{
     return encoded * 2.0f - 1.0f;
 }
 
 // ワールド座標を再構築
-float3 ReconstructWorldPosition(float2 texcoord, float depth) {
+float3 ReconstructWorldPosition(float2 texcoord, float depth)
+{
     float4 clipPos;
     clipPos.x = texcoord.x * 2.0f - 1.0f;
     clipPos.y = (1.0f - texcoord.y) * 2.0f - 1.0f;
@@ -121,12 +130,16 @@ float3 ReconstructWorldPosition(float2 texcoord, float depth) {
 }
 
 // カスケードシャドウ計算
-float CalculateCascadeShadow(float3 worldPos, float viewDepth) {
-    if (enableCascadeShadow == 0) return 1.0f;
+float CalculateCascadeShadow(float3 worldPos, float viewDepth)
+{
+    if (enableCascadeShadow == 0)
+        return 1.0f;
     
     int cascadeIndex = 3;
-    for (int i = 0; i < 4; ++i) {
-        if (viewDepth < cascadeSplits[i]) {
+    for (int i = 0; i < 4; ++i)
+    {
+        if (viewDepth < cascadeSplits[i])
+        {
             cascadeIndex = i;
             break;
         }
@@ -142,13 +155,15 @@ float CalculateCascadeShadow(float3 worldPos, float viewDepth) {
         return 1.0f;
     
     float currentDepth = lightSpacePos.z;
-    float bias = 0.005f;
+    float bias = 0.02f;
     
     float shadow = 0.0f;
     float2 texelSize = 1.0f / 2048.0f;
     
-    for (int x = -1; x <= 1; ++x) {
-        for (int y = -1; y <= 1; ++y) {
+    for (int x = -1; x <= 1; ++x)
+    {
+        for (int y = -1; y <= 1; ++y)
+        {
             float2 offset = float2(x, y) * texelSize;
             
             if (cascadeIndex == 0)
@@ -166,7 +181,8 @@ float CalculateCascadeShadow(float3 worldPos, float viewDepth) {
 }
 
 // スポットライトシャドウ計算
-float CalculateSpotShadow(float3 worldPos, int lightIndex, float4x4 shadowVP, float3 normal, float3 lightDir) {
+float CalculateSpotShadow(float3 worldPos, int lightIndex, float4x4 shadowVP, float3 normal, float3 lightDir)
+{
     float4 lightSpacePos = mul(float4(worldPos, 1.0f), shadowVP);
     lightSpacePos /= lightSpacePos.w;
     
@@ -179,7 +195,7 @@ float CalculateSpotShadow(float3 worldPos, int lightIndex, float4x4 shadowVP, fl
     float currentDepth = lightSpacePos.z;
     
     // Adaptive Bias: 法線の角度によってバイアスを調整
-    float bias = max(0.005f * (1.0f - dot(normal, lightDir)), 0.0005f);
+    float bias = max(0.005f * (1.0f - dot(normal, lightDir)), 0.005f);
     
     float shadow = 0.0f;
     if (lightIndex == 0)
@@ -195,7 +211,8 @@ float CalculateSpotShadow(float3 worldPos, int lightIndex, float4x4 shadowVP, fl
 }
 
 // ポイントライトシャドウ計算
-float CalculatePointShadow(float3 worldPos, int lightIndex, float3 lightPos, float lightRadius) {
+float CalculatePointShadow(float3 worldPos, int lightIndex, float3 lightPos, float lightRadius)
+{
     float3 lightToFrag = worldPos - lightPos;
     float3 dir = normalize(lightToFrag);
     
@@ -213,7 +230,7 @@ float CalculatePointShadow(float3 worldPos, int lightIndex, float3 lightPos, flo
     float term2 = (farPlane * nearPlane) / (farPlane - nearPlane);
     float nonLinearDepth = term1 - (term2 / localZ);
     
-    float bias = 0.005f;
+    float bias = 0.02f;
     float shadow = 0.0f;
     
     if (lightIndex == 0)
@@ -225,17 +242,20 @@ float CalculatePointShadow(float3 worldPos, int lightIndex, float3 lightPos, flo
 }
 
 // スポットライトの減衰計算
-float3 CalculateSpotLight(SpotLight light, float3 worldPos, float3 normal, float3 albedo, int lightIndex) {
+float3 CalculateSpotLight(SpotLight light, float3 worldPos, float3 normal, float3 albedo, int lightIndex)
+{
     float3 lightVec = light.position - worldPos;
     float dist = length(lightVec);
     
-    if (dist > light.distance) return float3(0, 0, 0);
+    if (dist > light.distance)
+        return float3(0, 0, 0);
     
     float3 lightDir = lightVec / dist;
     
     // 円錐減衰
     float cosTheta = dot(-lightDir, normalize(light.direction));
-    if (cosTheta < light.cosAngle) return float3(0, 0, 0);
+    if (cosTheta < light.cosAngle)
+        return float3(0, 0, 0);
     
     float spotFactor = saturate((cosTheta - light.cosAngle) / (light.cosFalloffStart - light.cosAngle));
     
@@ -247,7 +267,8 @@ float3 CalculateSpotLight(SpotLight light, float3 worldPos, float3 normal, float
     
     // シャドウ
     float shadow = 1.0f;
-    if (light.shadowEnabled != 0) {
+    if (light.shadowEnabled != 0)
+    {
         shadow = CalculateSpotShadow(worldPos, lightIndex, light.shadowViewProj, normal, lightDir);
     }
     
@@ -255,11 +276,13 @@ float3 CalculateSpotLight(SpotLight light, float3 worldPos, float3 normal, float
 }
 
 // ポイントライトの計算
-float3 CalculatePointLight(PointLight light, float3 worldPos, float3 normal, float3 albedo, int lightIndex) {
+float3 CalculatePointLight(PointLight light, float3 worldPos, float3 normal, float3 albedo, int lightIndex)
+{
     float3 lightVec = light.position - worldPos;
     float dist = length(lightVec);
     
-    if (dist > light.radius) return float3(0, 0, 0);
+    if (dist > light.radius)
+        return float3(0, 0, 0);
     
     float3 lightDir = lightVec / dist;
     
@@ -271,14 +294,16 @@ float3 CalculatePointLight(PointLight light, float3 worldPos, float3 normal, flo
     
     // シャドウ
     float shadow = 1.0f;
-    if (light.shadowEnabled != 0) {
+    if (light.shadowEnabled != 0)
+    {
         shadow = CalculatePointShadow(worldPos, lightIndex, light.position, light.radius);
     }
     
     return albedo * NdotL * light.color.rgb * light.intensity * attenuation * shadow;
 }
 
-float4 main(PixelShaderInput input) : SV_TARGET {
+float4 main(PixelShaderInput input) : SV_TARGET
+{
     // G-Bufferからデータ取得
     float4 albedoMetal = gAlbedo.Sample(gSampler, input.texcoord);
     float4 normalData = gNormal.Sample(gSampler, input.texcoord);
@@ -286,7 +311,8 @@ float4 main(PixelShaderInput input) : SV_TARGET {
     float depth = gDepth.Sample(gSampler, input.texcoord);
     
     // 背景をスキップ
-    if (depth >= 1.0f) {
+    if (depth >= 1.0f)
+    {
         return float4(0.1f, 0.1f, 0.15f, 1.0f);
     }
     
@@ -310,13 +336,15 @@ float4 main(PixelShaderInput input) : SV_TARGET {
     
     // スポットライト
     float3 spotContribution = float3(0, 0, 0);
-    for (int s = 0; s < numSpotLights && s < MAX_SPOT_LIGHTS; ++s) {
+    for (int s = 0; s < numSpotLights && s < MAX_SPOT_LIGHTS; ++s)
+    {
         spotContribution += CalculateSpotLight(spotLights[s], worldPos, normal, albedo, s);
     }
     
     // ポイントライト
     float3 pointContribution = float3(0, 0, 0);
-    for (int p = 0; p < numPointLights && p < MAX_POINT_LIGHTS; ++p) {
+    for (int p = 0; p < numPointLights && p < MAX_POINT_LIGHTS; ++p)
+    {
         pointContribution += CalculatePointLight(pointLights[p], worldPos, normal, albedo, p);
     }
     
