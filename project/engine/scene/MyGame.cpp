@@ -144,7 +144,8 @@ void MyGame::Draw()
 			shadowMapManager_->CreatePointLightShadowMap(name);
 		}
 		
-
+		// ポイントライトのシャドウ行列を更新
+		lightManager_->UpdatePointLightShadowMatrix(name, 0.1f, light.gpuData.radius);
 		
 		// 6面のキューブマップを描画
 		for (uint32_t face = 0; face < 6; ++face) {

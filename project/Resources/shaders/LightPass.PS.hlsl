@@ -194,8 +194,8 @@ float CalculateSpotShadow(float3 worldPos, int lightIndex, float4x4 shadowVP, fl
     
     float currentDepth = lightSpacePos.z;
     
-    // Adaptive Bias: 法線の角度によってバイアスを調整
-    float bias = max(0.005f * (1.0f - dot(normal, lightDir)), 0.005f);
+    // Adaptive Bias: 法線の角度によってバイアスを調整（値を小さくして深度浮きを防止）
+    float bias = max(0.001f * (1.0f - dot(normal, lightDir)), 0.001f);
     
     float shadow = 0.0f;
     if (lightIndex == 0)
@@ -230,7 +230,7 @@ float CalculatePointShadow(float3 worldPos, int lightIndex, float3 lightPos, flo
     float term2 = (farPlane * nearPlane) / (farPlane - nearPlane);
     float nonLinearDepth = term1 - (term2 / localZ);
     
-    float bias = 0.02f;
+    float bias = 0.005f;
     float shadow = 0.0f;
     
     if (lightIndex == 0)
