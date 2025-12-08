@@ -50,7 +50,9 @@ public:
 	// シャドウ描画
 	virtual void DrawShadow() {
 		for (auto* object : objects_) {
-			object->DrawShadowOnly();
+			if (object->GetCastShadow()) {  // 影を落とすオブジェクトのみ
+				object->DrawShadowOnly();
+			}
 		}
 	}
 	

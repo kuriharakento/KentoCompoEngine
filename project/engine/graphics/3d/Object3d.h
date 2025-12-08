@@ -302,6 +302,18 @@ public: /*========[ セッター ]========*/
 	 */
 	RenderingType GetRenderingType() const { return renderingType_; }
 
+	/**
+	 * @brief シャドウを落とすかどうかの設定
+	 * @param cast trueで影を落とす、falseで落とさない
+	 */
+	void SetCastShadow(bool cast) { castShadow_ = cast; }
+
+	/**
+	 * @brief シャドウを落とすかどうかの取得
+	 * @return trueで影を落とす
+	 */
+	bool GetCastShadow() const { return castShadow_; }
+
 private: /*========[ プライベートメンバ関数  ]========*/
 
 	/**
@@ -363,6 +375,9 @@ private: /*========[ メンバ変数 ]========*/
 	uint32_t shadowMapSrvIndex_ = 0;
 	D3D12_GPU_VIRTUAL_ADDRESS shadowMatrixGPUAddress_ = 0;
 	bool shadowEnabled_ = false;
+
+	// 影を落とすかどうか（RegisterObjectシステム用）
+	bool castShadow_ = true;
 
 	// Transform情報
 	Transform transform_;

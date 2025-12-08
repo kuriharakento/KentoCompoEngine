@@ -41,6 +41,7 @@ void TitleScene::Initialize()
 	skydome_->SetDirectionalLightIntensity(0.5f);
 	skydome_->SetDirectionalLightDirection({ 0.0f, -1.0f, 0.0f });
 	skydome_->SetScale({ 0.8f, 0.8f, 0.8f });
+	skydome_->SetCastShadow(false);
 	RegisterObject(skydome_.get());
 
 	fireEffect_ = std::make_unique<TitleFireEffect>();
