@@ -26,7 +26,7 @@ class DeferredRenderer
 {
 public:
 	// 最大ライト数
-	static constexpr uint32_t kMaxSpotLights = 4;
+	static constexpr uint32_t kMaxSpotLights = 8;
 	static constexpr uint32_t kMaxPointLights = 2;
 
 	DeferredRenderer() = default;

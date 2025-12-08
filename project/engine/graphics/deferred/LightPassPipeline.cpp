@@ -29,8 +29,8 @@ void LightPassPipeline::CreateRootSignature()
 	// 3: LightBuffer (CBV, b3) - SpotLights + PointLights
 	// 4: G-Buffer (SRV Table, t0-t4)
 	// 5-8: CascadeShadowMaps (SRV, t5-t8)
-	// 9-12: SpotLightShadowMaps (SRV, t9-t12)
-	// 13-14: PointLightShadowMaps Cubemaps (SRV, t13-t14)
+	// 9-16: SpotLightShadowMaps (SRV, t9-t16) - 8個
+	// 17-18: PointLightShadowMaps Cubemaps (SRV, t17-t18)
 
 	// G-Buffer用SRVレンジ
 	D3D12_DESCRIPTOR_RANGE gBufferRange = {};
@@ -51,12 +51,12 @@ void LightPassPipeline::CreateRootSignature()
 		cascadeRanges[i].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 	}
 
-	D3D12_DESCRIPTOR_RANGE spotRanges[4] = {};
-	for (int i = 0; i < 4; ++i)
+	D3D12_DESCRIPTOR_RANGE spotRanges[8] = {};
+	for (int i = 0; i < 8; ++i)
 	{
 		spotRanges[i].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 		spotRanges[i].NumDescriptors = 1;
-		spotRanges[i].BaseShaderRegister = 9 + i; // t9-t12
+		spotRanges[i].BaseShaderRegister = 9 + i; // t9-t16
 		spotRanges[i].RegisterSpace = 0;
 		spotRanges[i].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 	}
@@ -66,12 +66,12 @@ void LightPassPipeline::CreateRootSignature()
 	{
 		pointRanges[i].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 		pointRanges[i].NumDescriptors = 1;
-		pointRanges[i].BaseShaderRegister = 13 + i; // t13-t14
+		pointRanges[i].BaseShaderRegister = 17 + i; // t17-t18
 		pointRanges[i].RegisterSpace = 0;
 		pointRanges[i].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 	}
 
-	D3D12_ROOT_PARAMETER rootParams[15] = {};
+	D3D12_ROOT_PARAMETER rootParams[19] = {};  // 4 CBVs + 1 GBuffer + 4 Cascade + 8 Spot + 2 Point = 19
 
 	// CBVs (0-3)
 	for (int i = 0; i < 4; ++i)
@@ -96,8 +96,8 @@ void LightPassPipeline::CreateRootSignature()
 		rootParams[5 + i].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	}
 
-	// SpotLight Shadow Maps (9-12)
-	for (int i = 0; i < 4; ++i)
+	// SpotLight Shadow Maps (9-16) - 8個
+	for (int i = 0; i < 8; ++i)
 	{
 		rootParams[9 + i].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 		rootParams[9 + i].DescriptorTable.NumDescriptorRanges = 1;
@@ -105,13 +105,13 @@ void LightPassPipeline::CreateRootSignature()
 		rootParams[9 + i].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	}
 
-	// PointLight Shadow Maps Cubemaps (13-14)
+	// PointLight Shadow Maps Cubemaps (17-18)
 	for (int i = 0; i < 2; ++i)
 	{
-		rootParams[13 + i].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-		rootParams[13 + i].DescriptorTable.NumDescriptorRanges = 1;
-		rootParams[13 + i].DescriptorTable.pDescriptorRanges = &pointRanges[i];
-		rootParams[13 + i].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+		rootParams[17 + i].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		rootParams[17 + i].DescriptorTable.NumDescriptorRanges = 1;
+		rootParams[17 + i].DescriptorTable.pDescriptorRanges = &pointRanges[i];
+		rootParams[17 + i].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	}
 
 	// サンプラー

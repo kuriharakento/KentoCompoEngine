@@ -47,6 +47,9 @@ struct GPUSpotLight
     float decay;
     float cosAngle;
     float cosFalloffStart;
+    int shadowEnabled;
+    float4 padding;
+    row_major float4x4 shadowViewProj;
 };
 
 struct LightCounts

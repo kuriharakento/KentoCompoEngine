@@ -561,8 +561,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> cascadeLightVPResources_[4];
 	Matrix4x4* cascadeLightVPData_[4] = {};
 
-	// スポットライト用シャドウ行列バッファ（シャドウパス用、最大4つ）
-	static constexpr uint32_t kMaxSpotLightShadows = 4;
+	// スポットライト用シャドウ行列バッファ（シャドウパス用、最大8つ）
+	static constexpr uint32_t kMaxSpotLightShadows = 8;
 	Microsoft::WRL::ComPtr<ID3D12Resource> spotLightVPResources_[kMaxSpotLightShadows];
 	Matrix4x4* spotLightVPData_[kMaxSpotLightShadows] = {};
 	std::unordered_map<std::string, uint32_t> spotLightVPIndices_; // ライト名 -> バッファインデックス

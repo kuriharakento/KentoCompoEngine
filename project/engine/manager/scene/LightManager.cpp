@@ -111,7 +111,10 @@ void LightManager::Update()
 		}
 		// シャドウが有効なら行列を更新
 		if (light.shadowEnabled) {
-			UpdateSpotLightShadowMatrix(name, 0.1f, light.gpuData.distance);
+			// 深度バッファの精度を確保するため、Near/Far比を制限（最大500:1）
+			float farPlane = light.gpuData.distance;
+			float nearPlane = (std::max)(farPlane / 500.0f, 0.5f);
+			UpdateSpotLightShadowMatrix(name, nearPlane, farPlane);
 		}
 	}
 
@@ -257,6 +260,9 @@ void LightManager::AddSpotLight(const std::string& name)
     spotLight.gpuData.cosAngle = std::cos(std::numbers::pi_v<float> / 3.0f);
     spotLight.gpuData.decay = 2.0f;
     spotLight.gpuData.cosFalloffStart = 1.0f;
+    spotLight.gpuData.shadowEnabled = 1;  // シャドウ有効
+    spotLight.gpuData.padding = { 0.0f, 0.0f, 0.0f, 0.0f };
+    spotLight.gpuData.shadowViewProj = MakeIdentity4x4();
 	spotLight.isGradientActive = false;
 	spotLight.shadowEnabled = true;
 
@@ -1136,8 +1142,17 @@ void LightManager::UpdateSpotLightShadowMatrix(const std::string& name, float ne
 	Vector3 lightDir = Vector3::Normalize(gpuData.direction);
 	Vector3 target = lightPos + lightDir;
 
+	// ロバストなアップベクトル計算: ライト方向と平行でないベクトルを選び、直交基底を作る
+	Vector3 right = Vector3::Cross(lightDir, Vector3{ 0.0f, 1.0f, 0.0f });
+	// もし平行で外積がゼロに近い場合（真下/真上を向いている時）、別の軸を選ぶ
+	if (right.Length() < 0.001f) {
+		right = Vector3::Cross(lightDir, Vector3{ 1.0f, 0.0f, 0.0f });
+	}
+	right = Vector3::Normalize(right);
+	Vector3 upVector = Vector3::Cross(right, lightDir);
+
 	// ビュー行列の計算
-	light.viewMatrix = MakeLookAtMatrix(lightPos, target, Vector3{ 0.0f, 1.0f, 0.0f });
+	light.viewMatrix = MakeLookAtMatrix(lightPos, target, upVector);
 
 	// スポットライトの角度からFOVを計算（cosAngleから角度を逆算して2倍）
 	float halfAngle = std::acos(gpuData.cosAngle);
@@ -1149,6 +1164,10 @@ void LightManager::UpdateSpotLightShadowMatrix(const std::string& name, float ne
 	// ビュープロジェクション行列
 	light.viewProjectionMatrix = light.viewMatrix * light.projectionMatrix;
 	light.shadowEnabled = true;
+
+	// GPUデータにもシャドウ情報をコピー
+	light.gpuData.shadowViewProj = light.viewProjectionMatrix;
+	light.gpuData.shadowEnabled = 1;
 
 	// GPUバッファにコピー
 	auto indexIt = spotLightVPIndices_.find(name);

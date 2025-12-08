@@ -8,7 +8,7 @@ struct PixelShaderInput
 };
 
 // 定数
-#define MAX_SPOT_LIGHTS 4
+#define MAX_SPOT_LIGHTS 8
 #define MAX_POINT_LIGHTS 2
 
 // G-Bufferテクスチャ
@@ -24,15 +24,19 @@ Texture2D<float> gCascadeShadow1 : register(t6);
 Texture2D<float> gCascadeShadow2 : register(t7);
 Texture2D<float> gCascadeShadow3 : register(t8);
 
-// スポットライトシャドウマップ
+// スポットライトシャドウマップ（8個）
 Texture2D<float> gSpotShadow0 : register(t9);
 Texture2D<float> gSpotShadow1 : register(t10);
 Texture2D<float> gSpotShadow2 : register(t11);
 Texture2D<float> gSpotShadow3 : register(t12);
+Texture2D<float> gSpotShadow4 : register(t13);
+Texture2D<float> gSpotShadow5 : register(t14);
+Texture2D<float> gSpotShadow6 : register(t15);
+Texture2D<float> gSpotShadow7 : register(t16);
 
 // ポイントライトシャドウマップ（キューブマップ）
-TextureCube<float> gPointShadow0 : register(t13);
-TextureCube<float> gPointShadow1 : register(t14);
+TextureCube<float> gPointShadow0 : register(t17);
+TextureCube<float> gPointShadow1 : register(t18);
 
 SamplerState gSampler : register(s0);
 SamplerComparisonState gShadowSampler : register(s1);
@@ -189,13 +193,20 @@ float CalculateSpotShadow(float3 worldPos, int lightIndex, float4x4 shadowVP, fl
     float2 shadowUV = lightSpacePos.xy * 0.5f + 0.5f;
     shadowUV.y = 1.0f - shadowUV.y;
     
+    // UV座標の範囲外チェック
     if (shadowUV.x < 0.0f || shadowUV.x > 1.0f || shadowUV.y < 0.0f || shadowUV.y > 1.0f)
         return 1.0f;
     
     float currentDepth = lightSpacePos.z;
     
-    // Adaptive Bias: 法線の角度によってバイアスを調整（値を小さくして深度浮きを防止）
-    float bias = max(0.001f * (1.0f - dot(normal, lightDir)), 0.001f);
+    // 深度(Z)の範囲外チェック（near plane前、またはfar plane後ろ）
+    if (currentDepth < 0.0f || currentDepth > 1.0f)
+        return 1.0f;
+    
+    // Adaptive Bias: 法線の角度と深度に応じてバイアスを調整
+    // 深度が1.0に近いほど（遠いほど）バイアスを大きくして精度問題を緩和
+    float depthBiasFactor = lerp(1.0f, 3.0f, currentDepth);
+    float bias = max(0.002f * (1.0f - dot(normal, lightDir)) * depthBiasFactor, 0.001f);
     
     float shadow = 0.0f;
     if (lightIndex == 0)
@@ -204,8 +215,16 @@ float CalculateSpotShadow(float3 worldPos, int lightIndex, float4x4 shadowVP, fl
         shadow = gSpotShadow1.SampleCmpLevelZero(gShadowSampler, shadowUV, currentDepth - bias);
     else if (lightIndex == 2)
         shadow = gSpotShadow2.SampleCmpLevelZero(gShadowSampler, shadowUV, currentDepth - bias);
-    else
+    else if (lightIndex == 3)
         shadow = gSpotShadow3.SampleCmpLevelZero(gShadowSampler, shadowUV, currentDepth - bias);
+    else if (lightIndex == 4)
+        shadow = gSpotShadow4.SampleCmpLevelZero(gShadowSampler, shadowUV, currentDepth - bias);
+    else if (lightIndex == 5)
+        shadow = gSpotShadow5.SampleCmpLevelZero(gShadowSampler, shadowUV, currentDepth - bias);
+    else if (lightIndex == 6)
+        shadow = gSpotShadow6.SampleCmpLevelZero(gShadowSampler, shadowUV, currentDepth - bias);
+    else
+        shadow = gSpotShadow7.SampleCmpLevelZero(gShadowSampler, shadowUV, currentDepth - bias);
     
     return shadow;
 }

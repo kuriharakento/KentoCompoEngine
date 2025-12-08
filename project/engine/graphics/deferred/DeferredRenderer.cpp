@@ -198,7 +198,7 @@ void DeferredRenderer::ExecuteLightPass(
 		}
 	}
 
-	// 9-12: SpotLight Shadow Maps
+	// 9-16: SpotLight Shadow Maps (8個)
 	auto& spotLights = lightManager->GetSpotLights();
 	int spotIndex = 0;
 	for (auto& [name, light] : spotLights)
@@ -212,7 +212,7 @@ void DeferredRenderer::ExecuteLightPass(
 		++spotIndex;
 	}
 
-	// 13-14: PointLight Shadow Maps (Cubemaps)
+	// 17-18: PointLight Shadow Maps (Cubemaps)
 	auto& pointLights = lightManager->GetPointLights();
 	int pointIndex = 0;
 	for (auto& [name, light] : pointLights)
@@ -221,7 +221,7 @@ void DeferredRenderer::ExecuteLightPass(
 		if (light.shadowEnabled && shadowMapManager && shadowMapManager->HasPointLightShadowMap(name))
 		{
 			auto& shadowMap = shadowMapManager->GetPointLightShadowMap(name);
-			srvManager_->SetGraphicsRootDescriptorTable(13 + pointIndex, shadowMap.srvIndex);
+			srvManager_->SetGraphicsRootDescriptorTable(17 + pointIndex, shadowMap.srvIndex);
 		}
 		++pointIndex;
 	}
