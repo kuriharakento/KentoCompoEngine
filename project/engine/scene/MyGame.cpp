@@ -9,12 +9,16 @@
 #include "manager/graphics/TextureManager.h"
 #include "manager/graphics/LineManager.h"
 
+///=============================================================================
+///						初期化・終了処理
+///=============================================================================
+
 void MyGame::Initialize()
 {
-	//フレームワークの初期化
+	// フレームワークの初期化
 	Framework::Initialize();
 
-	//シーンコンテキストの作成
+	// シーンコンテキストの作成
 	SceneContext context;
 	context = {
 		spriteCommon_.get(),
@@ -32,14 +36,13 @@ void MyGame::Initialize()
 	// モデルの読み込み
 	LoadModels();
 
-	//ゲームの初期化処理
+	// ゲームの初期化処理
 	sceneManager_->Initialize(context);
 
 	// Skyboxの初期化
 	skybox_->Initialize(dxCommon_.get(), "./Resources/skybox.dds");
 
 	// シーン描画用レンダーテクスチャ（ポストプロセス後）の初期化
-	// DXGI_FORMAT_R8G8B8A8_UNORM_SRGB: 標準的なsRGBフォーマット
 	Vector4 clearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
 	sceneRenderTexture_ = std::make_unique<RenderTexture>();
 	sceneRenderTexture_->Initialize(
@@ -54,131 +57,121 @@ void MyGame::Initialize()
 
 void MyGame::Finalize()
 {
-	//ゲームの終了処理
+	// ゲームの終了処理
 	sceneManager_.reset();
-	//フレームワークの終了処理
+
+	// フレームワークの終了処理
 	Framework::Finalize();
 }
 
+///=============================================================================
+///						更新処理
+///=============================================================================
+
 void MyGame::Update()
 {
-	//フレームワークの更新処理
+	// フレームワークの更新処理
 	Framework::Update();
 
-	//パフォーマンス情報の表示
+	// パフォーマンス情報の表示
 	Framework::ShowPerformanceInfo();
 
-	//ゲームの更新処理
+	// ゲームの更新処理
 	sceneManager_->Update();
 
 	// パーティクルマネージャーの更新
 	ParticleManager::GetInstance()->Update(cameraManager_.get());
 }
 
+///=============================================================================
+///						描画処理
+///=============================================================================
+
 void MyGame::Draw()
 {
-	/*----[ カスケードシャドウパス描画（オフスクリーン前に実行） ]----*/
-	
 	srvManager_->PreDraw();
-	
-	// カスケード行列を先に計算
+
+	///--------------------------------------------------------------
+	///						シャドウマップ生成パス
+	///--------------------------------------------------------------
+
+	// カスケードシャドウ行列を計算
 	lightManager_->UpdateCascadeShadowMatrices(
 		cameraManager_->GetActiveCamera(),
 		0.1f, 200.0f
 	);
-	
-	// 4つのカスケードシャドウパスを描画
+
+	// カスケードシャドウマップ描画（4カスケード）
 	for (uint32_t cascade = 0; cascade < 4; ++cascade) {
-		// カスケードシャドウパス開始
 		shadowMapManager_->BeginCascadeShadowPass(cascade);
 		shadowMapPipeline_->SetPipeline();
-		
-		// ルートパラメータ0にカスケードのライトビュープロジェクション行列を設定
+
 		D3D12_GPU_VIRTUAL_ADDRESS cascadeMatrixAddr = lightManager_->GetCascadeLightViewProjectionGPUAddress(cascade);
 		if (cascadeMatrixAddr != 0) {
 			dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, cascadeMatrixAddr);
 		}
-		
-		// 各シーンのシャドウ対象オブジェクトを描画
+
 		sceneManager_->DrawShadow();
-		
-		// シャドウパス終了
 		shadowMapManager_->EndShadowPass();
 	}
 
-	/*----[ スポットライトシャドウパス描画 ]----*/
+	// スポットライトシャドウマップ描画
 	auto& spotLights = lightManager_->GetSpotLights();
 	for (auto& [name, light] : spotLights) {
 		if (!light.shadowEnabled) continue;
-		
-		// シャドウマップがなければ作成
+
 		if (!shadowMapManager_->HasSpotLightShadowMap(name)) {
 			shadowMapManager_->CreateSpotLightShadowMap(name);
 		}
-		
 
-		
-		// シャドウパス開始
 		shadowMapManager_->BeginSpotLightShadowPass(name);
 		shadowMapPipeline_->SetPipeline();
-		
-		// スポットライトのビュープロジェクション行列を設定
+
 		D3D12_GPU_VIRTUAL_ADDRESS spotMatrixAddr = lightManager_->GetSpotLightShadowMatrixGPUAddress(name);
 		if (spotMatrixAddr != 0) {
 			dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, spotMatrixAddr);
 		}
-		
-		// シャドウキャスターを描画
+
 		sceneManager_->DrawShadow();
-		
 		shadowMapManager_->EndShadowPass();
 	}
 
-	/*----[ ポイントライトシャドウパス描画 ]----*/
+	// ポイントライトシャドウマップ描画（6面キューブマップ）
 	auto& pointLights = lightManager_->GetPointLights();
 	for (auto& [name, light] : pointLights) {
 		if (!light.shadowEnabled) continue;
-		
-		// シャドウマップがなければ作成
+
 		if (!shadowMapManager_->HasPointLightShadowMap(name)) {
 			shadowMapManager_->CreatePointLightShadowMap(name);
 		}
-		
-		// ポイントライトのシャドウ行列を更新
+
 		lightManager_->UpdatePointLightShadowMatrix(name, 0.1f, light.gpuData.radius);
-		
-		// 6面のキューブマップを描画
+
 		for (uint32_t face = 0; face < 6; ++face) {
 			shadowMapManager_->BeginPointLightShadowPass(name, face);
 			shadowMapPipeline_->SetPipeline();
-			
-			// ポイントライトのビュープロジェクション行列を設定
+
 			D3D12_GPU_VIRTUAL_ADDRESS pointMatrixAddr = lightManager_->GetPointLightShadowMatrixGPUAddress(name, face);
 			if (pointMatrixAddr != 0) {
 				dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, pointMatrixAddr);
 			}
-			
-			// シャドウキャスターを描画
+
 			sceneManager_->DrawShadow();
-			
 			shadowMapManager_->EndShadowPass();
 		}
 	}
 
+	///--------------------------------------------------------------
+	///						ディファードレンダリング
+	///--------------------------------------------------------------
 
-	/*----[ ディファードレンダリングパス ]----*/
-
-	// === Phase 1: G-Bufferパス ===
+	// G-Bufferパス
 	deferredRenderer_->BeginGeometryPass();
-	
-	// G-Bufferにジオメトリを描画
 	sceneManager_->DrawGBuffer();
-	
 	deferredRenderer_->EndGeometryPass();
 
-	// === Phase 2: ライトパス（renderTextureに描画） ===
+	// ライトパス
 	renderTexture_->BeginRender();
-	
 	deferredRenderer_->ExecuteLightPass(
 		renderTexture_->GetRTVHandle(),
 		cameraManager_.get(),
@@ -186,66 +179,65 @@ void MyGame::Draw()
 		shadowMapManager_.get()
 	);
 
-	// === Phase 3: フォワードパス（透明オブジェクト、パーティクルなど） ===
+	///--------------------------------------------------------------
+	///						フォワードレンダリング
+	///--------------------------------------------------------------
 
-	// 3D描画用設定（
+	// 3D共通設定
 	Framework::Draw3DSetting();
 
-	// 深度バッファを書き込み可能状態に遷移（Forwardパス用）
+	// 深度バッファを書き込み可能状態に遷移
 	deferredRenderer_->GetGBuffer()->TransitionDepthToDepthWrite();
-	// レンダーターゲットと深度バッファを明示的にセット
+
+	// レンダーターゲットと深度バッファを設定
 	auto dsvHandle = deferredRenderer_->GetGBuffer()->GetDSVHandle();
 	auto rtvHandle = renderTexture_->GetRTVHandle();
 	dxCommon_->GetCommandList()->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
-	// シャドウマップ関連のリソースをForwardパス用にバインド
-	// フォールバック用単一シャドウマップ（念のため）
+	// シャドウマップリソースをバインド
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(10, lightManager_->GetShadowMatrixGPUAddress());
-	// カスケードシャドウデータ（必須）
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(11, lightManager_->GetCascadeShadowDataGPUAddress());
-	
-	// カスケードシャドウマップSRV（t6-t9）
+
 	if (shadowMapManager_->GetCascadeShadowMap().isEnabled) {
 		for (uint32_t i = 0; i < ShadowMapConfig::kCascadeCount; ++i) {
 			dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(
-				12 + i, // RootParameter 12, 13, 14, 15
+				12 + i,
 				srvManager_->GetGPUDescriptorHandle(shadowMapManager_->GetCascadeShadowMap().srvIndices[i])
 			);
 		}
 	}
 
+	// フォワードパス対象オブジェクトの描画
 	sceneManager_->Draw3D();
 
+	// デバッグライン描画
 	lightManager_->DrawDebugLines();
-
-	// ラインの描画
 	LineManager::GetInstance()->RenderLines();
 
-	// Skyboxの描画
+	// Skybox描画
 	skybox_->Draw();
 
-	// パーティクルの描画
+	// パーティクル描画
 	ParticleManager::GetInstance()->Draw();
-		
-	// === 2D描画 ===
-	
-	// 2D描画用設定
-	Framework::Draw2DSetting();
 
-	// スプライトの描画
+	///--------------------------------------------------------------
+	///						2D描画
+	///--------------------------------------------------------------
+
+	Framework::Draw2DSetting();
 	sceneManager_->Draw2D();
 
 	// 深度バッファをSRV状態に戻す
 	deferredRenderer_->GetGBuffer()->TransitionDepthToSRV();
 
-
-
 	renderTexture_->EndRender();
 
-	
+	///--------------------------------------------------------------
+	///						ポストプロセス & ImGui
+	///--------------------------------------------------------------
+
 #ifdef USE_IMGUI
-	// ポストプロセス処理（シーンテクスチャ -> シーンレンダーテクスチャ）
-	// バックバッファではなく、ImGui表示用のテクスチャに出力する
+	// ポストプロセス処理
 	sceneRenderTexture_->BeginRender();
 	postProcessManager_->Draw(renderTexture_.get(), sceneRenderTexture_.get());
 	sceneRenderTexture_->EndRender();
@@ -253,8 +245,7 @@ void MyGame::Draw()
 	// バックバッファのクリア
 	dxCommon_->PreDraw();
 
-	// ドッキングスペースの作成
-	// エラー回避のため、手動でウィンドウを作成してDockSpaceを設定
+	// ImGui ドッキングスペースの作成
 	ImGuiViewport* viewport = ImGui::GetMainViewport();
 	ImGui::SetNextWindowPos(viewport->Pos);
 	ImGui::SetNextWindowSize(viewport->Size);
@@ -268,14 +259,10 @@ void MyGame::Draw()
 	ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 	ImGui::End();
 
-	// シーンウィンドウの作成
+	// シーンウィンドウ
 	ImGui::Begin("Scene");
-	
-	// ウィンドウサイズに合わせて画像を表示
 	ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-	// ポストプロセス後のテクスチャを表示
 	ImGui::Image((ImTextureID)sceneRenderTexture_->GetGPUHandle().ptr, viewportSize);
-
 	ImGui::End();
 
 	// その他のウィンドウ（プレースホルダー）
@@ -297,7 +284,8 @@ void MyGame::Draw()
 #else
 	// バックバッファのクリア
 	dxCommon_->PreDraw();
-	// ポストプロセス処理（シーンテクスチャ -> バックバッファ）
+
+	// ポストプロセス処理
 	postProcessManager_->Draw(renderTexture_.get(), nullptr);
 #endif
 
@@ -305,6 +293,10 @@ void MyGame::Draw()
 	imguiManager_->Draw();
 	dxCommon_->PostDraw();
 }
+
+///=============================================================================
+///						リソース読み込み
+///=============================================================================
 
 void MyGame::LoadTextures()
 {
@@ -334,7 +326,6 @@ void MyGame::LoadTextures()
 void MyGame::LoadModels()
 {
 	ModelManager::GetInstance()->LoadModel("cube");
-	//ModelManager::GetInstance()->LoadModel("plane",".gltf");
 	ModelManager::GetInstance()->LoadModel("terrain");
 	ModelManager::GetInstance()->LoadModel("skydome");
 	ModelManager::GetInstance()->LoadModel("bullet");
