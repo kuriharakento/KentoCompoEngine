@@ -16,6 +16,7 @@ public:
 	void Update();
 	void UpdateTransform(CameraManager* camera);
 	void Draw3D(CameraManager* camera);
+	void DrawShadow();
 	void Draw2D();
 	const std::vector<std::unique_ptr<EnemyBase>>& GetEnemies() const { return enemies_; }
 	uint32_t GetEnemyCount() const { return static_cast<uint32_t>(enemies_.size()); }

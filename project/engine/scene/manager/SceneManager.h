@@ -7,6 +7,7 @@
 #include "scene/SceneContext.h"
 
 class SceneFactory;
+class ShadowMapManager;
 
 class SceneManager
 {
@@ -23,8 +24,13 @@ public: //メンバ関数
 	//描画
 	void Draw3D();
 	void Draw2D();
+	//シャドウ描画
+	void DrawShadow();
+	//G-Buffer描画（ディファードレンダリング）
+	void DrawGBuffer();
 
 	//シーンの変更
+
 	void ChangeScene(const std::string& sceneName);
 
 public: //アクセッサ
@@ -38,6 +44,8 @@ public: //アクセッサ
 	LightManager* GetLightManager() const { return context_.lightManager; }
 	//ポストプロセスパスの取得
 	PostProcessManager* GetPostProcessManager() const { return context_.postProcessManager; }
+	//シャドウマップマネージャーの取得
+	ShadowMapManager* GetShadowMapManager() const { return context_.shadowMapManager; }
 
 private: //メンバ関数
 	//次のシーンが予約されているか

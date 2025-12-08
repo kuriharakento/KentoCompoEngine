@@ -93,7 +93,18 @@ void SceneManager::Draw2D()
 	currentScene_->Draw2D();
 }
 
+void SceneManager::DrawShadow()
+{
+	currentScene_->DrawShadow();
+}
+
+void SceneManager::DrawGBuffer()
+{
+	currentScene_->DrawGBuffer();
+}
+
 void SceneManager::ChangeScene(const std::string& sceneName)
+
 {
 	//nullチェック
 	assert(sceneFactory_);

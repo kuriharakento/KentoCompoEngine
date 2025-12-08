@@ -481,6 +481,9 @@
     <ClCompile Include="application\GameObject\component\action\PlayerUIComponent.cpp">
       <Filter>application\GameObject\component\action</Filter>
     </ClCompile>
+    <ClCompile Include="engine\graphics\shadow\ShadowMapPipeline.cpp" />
+    <ClCompile Include="engine\graphics\shadow\ShadowSystem.cpp" />
+    <ClCompile Include="engine\manager\graphics\ShadowMapManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -1047,6 +1050,10 @@
     <ClInclude Include="application\GameObject\component\action\PlayerUIComponent.h">
       <Filter>application\GameObject\component\action</Filter>
     </ClInclude>
+    <ClInclude Include="engine\graphics\shadow\ShadowMap.h" />
+    <ClInclude Include="engine\graphics\shadow\ShadowMapPipeline.h" />
+    <ClInclude Include="engine\graphics\shadow\ShadowSystem.h" />
+    <ClInclude Include="engine\manager\graphics\ShadowMapManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

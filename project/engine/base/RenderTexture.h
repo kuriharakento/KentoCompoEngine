@@ -66,7 +66,14 @@ public:
     D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle() const;
 
     /**
+     * @brief RTVハンドルを取得
+     * @return RTVハンドル
+     */
+    D3D12_CPU_DESCRIPTOR_HANDLE GetRTVHandle() const { return rtvHandle_; }
+
+    /**
      * @brief SRVインデックスを取得
+
      * @return SRVインデックス
      */
     uint32_t GetSRVIndex() const { return srvIndex_; }

@@ -47,6 +47,9 @@ struct GPUSpotLight
     float decay;
     float cosAngle;
     float cosFalloffStart;
+    int shadowEnabled;
+    float4 padding;
+    row_major float4x4 shadowViewProj;
 };
 
 struct LightCounts
@@ -55,16 +58,47 @@ struct LightCounts
     uint gSpotLightCount;
 };
 
+// シャドウ行列データ（単一シャドウマップ用）
+struct ShadowData
+{
+    float4x4 lightViewProjection;
+    int enableShadow;
+    float3 padding;
+};
+
+// カスケードシャドウデータ
+struct CascadeShadowData
+{
+    float4x4 lightViewProjections[4];
+    float4 cascadeSplits; // x,y,z,w = cascade 0,1,2,3
+    int enableShadow;
+    float3 padding;
+};
+
 ConstantBuffer<Material> gMaterial : register(b0);
 ConstantBuffer<DirectionalLight> gDirectionalLight : register(b1);
 ConstantBuffer<Camera> gCamera : register(b2);
 StructuredBuffer<GPUPointLight> gPointLights : register(t3);
 StructuredBuffer<GPUSpotLight> gSpotLights : register(t4);
 ConstantBuffer<LightCounts> gLightCounts : register(b5);
+ConstantBuffer<ShadowData> gShadowData : register(b6);
+ConstantBuffer<CascadeShadowData> gCascadeShadowData : register(b7);
 
 Texture2D<float4> gTexture : register(t0);
 TextureCube<float4> gEnvironmentTexture : register(t1);
+Texture2D<float> gShadowMap : register(t5);
+// カスケードシャドウマップ（個別テクスチャ）
+Texture2D<float> gCascadeShadowMap0 : register(t6);
+Texture2D<float> gCascadeShadowMap1 : register(t7);
+Texture2D<float> gCascadeShadowMap2 : register(t8);
+Texture2D<float> gCascadeShadowMap3 : register(t9);
 SamplerState gSampler : register(s0);
+SamplerComparisonState gShadowSampler : register(s1);
+
+// シャドウマップ設定
+static const float SHADOW_BIAS = 0.0005f;
+static const float SHADOW_MAP_SIZE = 2048.0f;
+static const int PCF_SAMPLES = 1; // -1 to +1 = 3x3 samples
 
 struct PixelShaderOutput
 {
@@ -86,6 +120,144 @@ float3 CalculateSpecular(float3 normal, float3 lightDir, float3 toEye, float3 li
     float specularPow = pow(NdotH, shininess);
     return lightColor * intensity * specularPow;
 }
+
+// シャドウ計算（カスケードシャドウマップ使用）
+float CalculateCascadeShadow(float3 worldPos, float viewDepth)
+{
+    // カスケードシャドウが無効の場合は影なし
+    if (gCascadeShadowData.enableShadow == 0)
+    {
+        return 1.0f;
+    }
+    
+    // ビュー深度に基づいてカスケードを選択
+    int cascadeIndex = 3; // デフォルトは最遠距離カスケード
+    float4 splits = gCascadeShadowData.cascadeSplits;
+    
+    if (viewDepth < splits.x)
+        cascadeIndex = 0;
+    else if (viewDepth < splits.y)
+        cascadeIndex = 1;
+    else if (viewDepth < splits.z)
+        cascadeIndex = 2;
+    else
+        cascadeIndex = 3;
+    
+    // 選択したカスケードのビュー・プロジェクション行列で変換
+    float4 lightSpacePos = mul(float4(worldPos, 1.0f), gCascadeShadowData.lightViewProjections[cascadeIndex]);
+    
+    // パースペクティブディバイド
+    float3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
+    
+    // UV座標に変換 [-1,1] -> [0,1]
+    float2 shadowUV;
+    shadowUV.x = projCoords.x * 0.5f + 0.5f;
+    shadowUV.y = -projCoords.y * 0.5f + 0.5f;
+    
+    // UV座標ベースの範囲外チェック（より緩和）
+    if (shadowUV.x < 0.0f || shadowUV.x > 1.0f ||
+        shadowUV.y < 0.0f || shadowUV.y > 1.0f)
+    {
+        return 1.0f;
+    }
+    
+    float currentDepth = projCoords.z;
+
+    
+    // PCF (Percentage Closer Filtering)
+    float shadow = 0.0f;
+    float texelSize = 1.0f / SHADOW_MAP_SIZE;
+    int sampleCount = 0;
+    
+    // カスケードに応じたサンプリング（個別テクスチャを使用）
+    [unroll]
+    for (int x = -PCF_SAMPLES; x <= PCF_SAMPLES; x++)
+    {
+        [unroll]
+        for (int y = -PCF_SAMPLES; y <= PCF_SAMPLES; y++)
+        {
+            float2 offset = float2(x, y) * texelSize;
+            float sampledDepth = 0.0f;
+            
+            // カスケードインデックスに応じてテクスチャを選択
+            if (cascadeIndex == 0)
+            {
+                sampledDepth = gCascadeShadowMap0.SampleCmpLevelZero(gShadowSampler, shadowUV + offset, currentDepth - SHADOW_BIAS);
+            }
+            else if (cascadeIndex == 1)
+            {
+                sampledDepth = gCascadeShadowMap1.SampleCmpLevelZero(gShadowSampler, shadowUV + offset, currentDepth - SHADOW_BIAS);
+            }
+            else if (cascadeIndex == 2)
+            {
+                sampledDepth = gCascadeShadowMap2.SampleCmpLevelZero(gShadowSampler, shadowUV + offset, currentDepth - SHADOW_BIAS);
+            }
+            else
+            {
+                sampledDepth = gCascadeShadowMap3.SampleCmpLevelZero(gShadowSampler, shadowUV + offset, currentDepth - SHADOW_BIAS);
+            }
+            
+            shadow += sampledDepth;
+            sampleCount++;
+        }
+    }
+    
+    shadow /= (float)sampleCount;
+    
+    return shadow;
+}
+
+
+// 旧シャドウ計算（後方互換用）
+float CalculateShadow(float3 worldPos)
+{
+    // ワールド座標をライト空間に変換
+    float4 lightSpacePos = mul(float4(worldPos, 1.0f), gShadowData.lightViewProjection);
+    
+    // パースペクティブディバイド
+    float3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
+    
+    // 範囲外チェック（シャドウマップの外は影なし）
+    if (projCoords.x < -1.0f || projCoords.x > 1.0f ||
+        projCoords.y < -1.0f || projCoords.y > 1.0f ||
+        projCoords.z < 0.0f || projCoords.z > 1.0f)
+    {
+        return 1.0f;
+    }
+    
+    // UV座標に変換 [-1,1] -> [0,1]
+    float2 shadowUV;
+    shadowUV.x = projCoords.x * 0.5f + 0.5f;
+    shadowUV.y = -projCoords.y * 0.5f + 0.5f; // Y軸反転
+    
+    float currentDepth = projCoords.z;
+    
+    // PCF (Percentage Closer Filtering)
+    float shadow = 0.0f;
+    float texelSize = 1.0f / SHADOW_MAP_SIZE;
+    int sampleCount = 0;
+    
+    [unroll]
+    for (int x = -PCF_SAMPLES; x <= PCF_SAMPLES; x++)
+    {
+        [unroll]
+        for (int y = -PCF_SAMPLES; y <= PCF_SAMPLES; y++)
+        {
+            float2 offset = float2(x, y) * texelSize;
+            shadow += gShadowMap.SampleCmpLevelZero(
+                gShadowSampler,
+                shadowUV + offset,
+                currentDepth - SHADOW_BIAS
+            );
+            sampleCount++;
+        }
+    }
+    
+    shadow /= (float)sampleCount;
+    
+    return shadow;
+}
+
 
 PixelShaderOutput main(VertexShaderOutput input)
 {
@@ -113,11 +285,28 @@ PixelShaderOutput main(VertexShaderOutput input)
     float3 toEye = normalize(gCamera.worldPos - input.worldPos);
     float3 baseColor = gMaterial.color.rgb * textureColor.rgb;
 
+    // シャドウ計算（カスケードシャドウを使用）
+    float shadow = 1.0f;
+    if (gCascadeShadowData.enableShadow)
+    {
+        // ビュー空間での深度を計算（カスケード選択用）
+        float3 viewPos = input.worldPos - gCamera.worldPos;
+        float viewDepth = length(viewPos);
+        
+        shadow = CalculateCascadeShadow(input.worldPos, viewDepth);
+    }
+    else if (gShadowData.enableShadow)
+    {
+        // フォールバック: 旧単一シャドウマップ
+        shadow = CalculateShadow(input.worldPos);
+    }
+
     /*-----[ ディレクショナルライト ]-----*/
     float3 lightDir = normalize(-gDirectionalLight.direction);
     float NdotL = CalculateHalfLambert(normal, lightDir);
-    float3 diffuse = baseColor * gDirectionalLight.color.rgb * NdotL * gDirectionalLight.intensity;
-    float3 specular = CalculateSpecular(normal, lightDir, toEye, gDirectionalLight.color.rgb, gDirectionalLight.intensity, gMaterial.shininess);
+    // シャドウを適用
+    float3 diffuse = baseColor * gDirectionalLight.color.rgb * NdotL * gDirectionalLight.intensity * shadow;
+    float3 specular = CalculateSpecular(normal, lightDir, toEye, gDirectionalLight.color.rgb, gDirectionalLight.intensity, gMaterial.shininess) * shadow;
 
     /*-----[ ポイントライトの合計（最適化されたループ）]-----*/
     float3 totalPointDiffuse = 0.0f;

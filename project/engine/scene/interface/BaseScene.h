@@ -1,5 +1,7 @@
 #pragma once
 #include "engine/scene/factory/SceneNames.h"
+#include <vector>
+#include "graphics/3d/Object3d.h"
 
  /// シーンの状態（ライフサイクル）
 enum class SceneState
@@ -34,10 +36,53 @@ public:
 	// 終了
 	virtual void Finalize() = 0;
 	// 描画
-    virtual void Draw3D() = 0;
-    virtual void Draw2D() = 0;
+	// 描画（登録されたオブジェクトを自動描画）
+	virtual void Draw3D() {
+		for (auto* object : objects_) {
+			// Forwardパスでは、Forwardタイプのオブジェクトのみを描画
+			if (object->GetRenderingType() == RenderingType::Forward) {
+				object->Draw();
+			}
+		}
+	}
+	virtual void Draw2D() = 0; // 2Dは実装依存（スプライトなど）
+	
+	// シャドウ描画
+	virtual void DrawShadow() {
+		for (auto* object : objects_) {
+			if (object->GetCastShadow()) {  // 影を落とすオブジェクトのみ
+				object->DrawShadowOnly();
+			}
+		}
+	}
+	
+	// G-Buffer描画
+	virtual void DrawGBuffer() {
+		for (auto* object : objects_) {
+			// G-Bufferパスでは、Deferredタイプのオブジェクトのみを描画
+			if (object->GetRenderingType() == RenderingType::Deferred) {
+				object->DrawGBuffer();
+			}
+		}
+	}
+
+	/**
+	 * @brief オブジェクトの登録（描画ループで自動的に処理されるようになる）
+	 * @param object 登録するオブジェクト
+	 */
+	void RegisterObject(Object3d* object) {
+		objects_.push_back(object);
+	}
+
+	/**
+	 * @brief オブジェクトリストのクリア
+	 */
+	void ClearObjects() {
+		objects_.clear();
+	}
 
 	//==========================================
+
 	// 共通処理
 	//==========================================
 
@@ -208,4 +253,7 @@ private:
 	SceneState currentState_ = SceneState::None;
 	// 前のシーン状態（Pause 復帰用）
     SceneState previousState_ = SceneState::None;
+
+	// 描画対象オブジェクトリスト
+	std::vector<Object3d*> objects_;
 };

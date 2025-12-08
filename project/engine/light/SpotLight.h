@@ -2,6 +2,7 @@
 #include <cassert>
 #include <d3d12.h>
 #include <wrl.h>
+#include <functional>
 
 #include "DirectXTex/d3dx12.h"
 #include "math/MatrixFunc.h"
@@ -20,14 +21,17 @@ constexpr float kShadowMapClearDepth = 1.0f;
  */
 struct GPUSpotLight
 {
-	Vector4 color;					// ライトの色（RGBAで指定）
-	Vector3 position;				// ライトの位置（ワールド座標）
-	float intensity;				// ライトの強さ（明るさの倍率）
-	Vector3 direction;				// ライトの向き（正規化されたベクトル）
-	float distance;					// ライトの届く最大距離
-	float decay;					// ライトの減衰率（高いほど早く減衰）
-	float cosAngle;					// ライト円錐角度の余弦（内側境界）
-	float cosFalloffStart;			// フォールオフ開始角度の余弦（外側境界）
+	Vector4 color;				// ライトの色（RGBAで指定）
+	Vector3 position;			// ライトの位置（ワールド座標）
+	float intensity;			// ライトの強さ（明るさの倍率）
+	Vector3 direction;			// ライトの向き（正規化されたベクトル）
+	float distance;				// ライトの届く最大距離
+	float decay;				// ライトの減衰率（高いほど早く減衰）
+	float cosAngle;				// ライト円錐角度の余弦（内側境界）
+	float cosFalloffStart;		// フォールオフ開始角度の余弦（外側境界）
+	int32_t shadowEnabled;		// シャドウ有効フラグ（0:無効、1:有効）
+	Vector4 padding;			// 16バイトアライメント用パディング
+	Matrix4x4 shadowViewProj;	// シャドウマップ用ビュー・プロジェクション行列
 };
 
 /**
@@ -48,4 +52,10 @@ struct CPUSpotLight {
     bool isReversing;        // 補間の方向（往復用）
     bool isGradientActive;   // グラデーションが有効かどうか
     std::function<float(float)> easingFunction; // イージング関数
+
+    // シャドウマップ用（CPU側での計算用、GPUには gpuData.shadowViewProj を使用）
+    Matrix4x4 viewMatrix;           // ライトビュー行列
+    Matrix4x4 projectionMatrix;     // ライトプロジェクション行列
+    Matrix4x4 viewProjectionMatrix; // ビュー・プロジェクション行列
+    bool shadowEnabled = false;     // シャドウ有効フラグ
 };

@@ -18,6 +18,11 @@
 #include "graphics/3d/Skybox.h"
 #include "graphics/2d/SpriteCommon.h"
 #include "graphics/3d/Object3dCommon.h"
+// shadow
+#include "manager/graphics/ShadowMapManager.h"
+#include "graphics/shadow/ShadowMapPipeline.h"
+// deferred
+#include "graphics/deferred/DeferredRenderer.h"
 
 /**
  * @brief フレームワーククラス
@@ -118,7 +123,13 @@ protected: // メンバ変数
 	// ブルーム用ブライトパスレンダーターゲット
 	std::unique_ptr<RenderTexture> brightPassRT_;
 	// ブラー用のレンダーターゲット（ピンポンバッファ）
-	std::unique_ptr<RenderTexture> blurRT_[2];  
+	std::unique_ptr<RenderTexture> blurRT_[2];
+	// シャドウマップマネージャー
+	std::unique_ptr<ShadowMapManager> shadowMapManager_;
+	// シャドウマップ描画パイプライン
+	std::unique_ptr<ShadowMapPipeline> shadowMapPipeline_;
+	// ディファードレンダラー
+	std::unique_ptr<DeferredRenderer> deferredRenderer_;
 };
 
 

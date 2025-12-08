@@ -171,9 +171,24 @@ void Framework::Initialize()
 	// JSONエディターの初期化
 	JsonEditorManager::GetInstance()->Initialize();
 
+	// シャドウマップマネージャーの初期化
+	shadowMapManager_ = std::make_unique<ShadowMapManager>();
+	shadowMapManager_->Initialize(dxCommon_.get(), srvManager_.get());
+	// カスケードシャドウマップを作成（4カスケード、各2048x2048）
+	shadowMapManager_->CreateCascadeShadowMaps(2048);
+
+	// シャドウマップ描画パイプラインの初期化
+	shadowMapPipeline_ = std::make_unique<ShadowMapPipeline>();
+	shadowMapPipeline_->Initialize(dxCommon_.get());
+
+	// ディファードレンダラーの初期化
+	deferredRenderer_ = std::make_unique<DeferredRenderer>();
+	deferredRenderer_->Initialize(dxCommon_.get(), srvManager_.get(), WinApp::kClientWidth, WinApp::kClientHeight);
+
 	// Skyboxの初期化
 	skybox_ = std::make_unique<Skybox>();
 }
+
 
 void Framework::Finalize()
 {
@@ -203,6 +218,10 @@ void Framework::Finalize()
 	{
 		blurRT_[i].reset();
 	}
+
+	// シャドウマップ関連の解放
+	shadowMapPipeline_.reset();
+	shadowMapManager_.reset();
 
 	JsonEditorManager::GetInstance()->Finalize();
 }
@@ -248,7 +267,28 @@ void Framework::Draw3DSetting()
 	// 3Dオブジェクト描画の共通設定
 	objectCommon_->CommonRenderingSetting();
 
+	// カスケードシャドウマップのグローバル設定
+	if (shadowMapManager_ && shadowMapManager_->HasCascadeShadowMaps())
+	{
+		auto* commandList = dxCommon_->GetCommandList();
+		auto& cascadeShadowMap = shadowMapManager_->GetCascadeShadowMap();
+		
+		// 4つのカスケードシャドウマップSRVをバインド（ルートパラメータ12-15 = t6-t9）
+		srvManager_->SetGraphicsRootDescriptorTable(12, cascadeShadowMap.srvIndices[0]);
+		srvManager_->SetGraphicsRootDescriptorTable(13, cascadeShadowMap.srvIndices[1]);
+		srvManager_->SetGraphicsRootDescriptorTable(14, cascadeShadowMap.srvIndices[2]);
+		srvManager_->SetGraphicsRootDescriptorTable(15, cascadeShadowMap.srvIndices[3]);
+		
+		// カスケードシャドウデータCBV（ルートパラメータ11 = b7）をバインド
+		D3D12_GPU_VIRTUAL_ADDRESS cascadeDataAddr = lightManager_->GetCascadeShadowDataGPUAddress();
+		if (cascadeDataAddr != 0) {
+			commandList->SetGraphicsRootConstantBufferView(11, cascadeDataAddr);
+		}
+	}
 }
+
+
+
 
 void Framework::Draw2DSetting()
 {

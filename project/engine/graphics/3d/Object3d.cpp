@@ -6,6 +6,7 @@
 #include "math/MathUtils.h"
 // graphics
 #include "manager/scene/LightManager.h"
+#include "manager/system/SrvManager.h"
 
 // デフォルトのディレクショナルライト強度
 constexpr float kDefaultLightIntensity = 0.5f;
@@ -72,19 +73,31 @@ void Object3d::Update(CameraManager* camera)
 
 void Object3d::Draw()
 {
+	auto* commandList = object3dCommon_->GetDXCommon()->GetCommandList();
+
 	// 座標変換行列CBufferの場所を設定
-	object3dCommon_->GetDXCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(1, wvpResource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(1, wvpResource_->GetGPUVirtualAddress());
 
 	// 平行光源CBufferの場所を設定
-	object3dCommon_->GetDXCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(3, directionalLightResource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(3, directionalLightResource_->GetGPUVirtualAddress());
 
 	// カメラCBufferの場所を設定
-	object3dCommon_->GetDXCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(4, cameraResource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(4, cameraResource_->GetGPUVirtualAddress());
 
 	// ライトマネージャーがあればライトの描画を行う
 	if (lightManager_)
 	{
 		lightManager_->Draw();
+
+		// シャドウ行列CBVは常にバインドする（シェーダーが必ずアクセスするため）
+		// シャドウマップSRVが設定されている場合のみSRVもバインド
+		if (shadowEnabled_ && srvManager_)
+		{
+			// シャドウマップSRV（ルートパラメータ9）
+			srvManager_->SetGraphicsRootDescriptorTable(9, shadowMapSrvIndex_);
+		}
+		// シャドウ行列CBV（ルートパラメータ10）は常にバインド
+		commandList->SetGraphicsRootConstantBufferView(10, lightManager_->GetShadowMatrixGPUAddress());
 	}
 
 	// 3Dモデルが割り当てられていれば描画する
@@ -94,8 +107,63 @@ void Object3d::Draw()
 	}
 }
 
+void Object3d::DrawShadow(D3D12_GPU_VIRTUAL_ADDRESS lightViewProjectionAddress)
+{
+	// 3Dモデルが割り当てられていなければスキップ
+	if (!model_) return;
+
+	auto* commandList = object3dCommon_->GetDXCommon()->GetCommandList();
+
+	// ライトビュープロジェクション行列を設定（ルートパラメータ0）
+	commandList->SetGraphicsRootConstantBufferView(0, lightViewProjectionAddress);
+
+	// 描画実行
+	DrawShadowOnly();
+}
+
+void Object3d::DrawShadowWithMatrix(const Matrix4x4& lightViewProjection)
+{
+	// 非推奨：この関数は使用しないでください
+	// 正しい描画のためには、ライトビュープロジェクション行列のGPUアドレスを渡すDrawShadowを使用するか、
+	// 外部で行列を設定してからDrawShadowOnlyを呼び出してください。
+    (void)lightViewProjection;
+}
+
+void Object3d::DrawShadowOnly()
+{
+	// 3Dモデルが割り当てられていなければスキップ
+	if (!model_) return;
+
+	auto* commandList = object3dCommon_->GetDXCommon()->GetCommandList();
+
+	// ワールド行列を設定（ルートパラメータ1）
+	// TransformationMatrix構造体を渡す（シェーダー側でgWVPをスキップしてgWorldを使用）
+	commandList->SetGraphicsRootConstantBufferView(1, wvpResource_->GetGPUVirtualAddress());
+
+	// モデルの頂点バッファを設定して描画
+	model_->DrawShadow();
+}
+
+void Object3d::DrawGBuffer()
+{
+	// 3Dモデルが割り当てられていなければスキップ
+	if (!model_) return;
+
+	auto* commandList = object3dCommon_->GetDXCommon()->GetCommandList();
+
+	// 座標変換行列CBufferの場所を設定（ルートパラメータ0: TransformationMatrix）
+	commandList->SetGraphicsRootConstantBufferView(0, wvpResource_->GetGPUVirtualAddress());
+
+	// カメラCBufferの場所を設定（ルートパラメータ1: Camera）
+	commandList->SetGraphicsRootConstantBufferView(1, cameraResource_->GetGPUVirtualAddress());
+
+	// モデルをG-Buffer用に描画（ルートパラメータ2=Material、3=Textureはモデル内で設定）
+	model_->DrawGBuffer();
+}
+
+
 ///////////////////////////////////////////////////////////////////////
-///						>>>その他関数の処理<<<							///
+///						>>>その他関数の処理<<<						///
 ///////////////////////////////////////////////////////////////////////
 
 void Object3d::UpdateMatrix(Camera* camera)
@@ -276,4 +344,12 @@ void Object3d::InitializeRenderingSettings()
 
 	// カメラデータの生成
 	CreateCameraData();
+}
+
+void Object3d::SetShadowMap(SrvManager* srvManager, uint32_t shadowMapSrvIndex, D3D12_GPU_VIRTUAL_ADDRESS shadowMatrixGPUAddress)
+{
+	srvManager_ = srvManager;
+	shadowMapSrvIndex_ = shadowMapSrvIndex;
+	shadowMatrixGPUAddress_ = shadowMatrixGPUAddress;
+	shadowEnabled_ = true;
 }

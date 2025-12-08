@@ -71,6 +71,11 @@ public:
 	virtual void Draw2D();
 
 	/**
+	 * @brief シャドウマップへの描画処理
+	 */
+	virtual void DrawShadow();
+
+	/**
 	 * @brief トランスフォーム情報の更新
 	 * @param camera カメラ管理クラス
 	 */

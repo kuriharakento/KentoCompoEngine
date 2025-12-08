@@ -13,8 +13,17 @@
 #include "manager/scene/CameraManager.h"
 
 class LightManager;
+class SrvManager;
 // スプライト共通部分のポインタ
 class Object3dCommon;
+
+/**
+ * @brief レンダリングタイプ
+ */
+enum class RenderingType {
+	Deferred, // ディファードレンダリング（G-Bufferパス）
+	Forward,  // フォワードレンダリング（Forwardパス）
+};
 
 /**
  * @brief 3Dオブジェクトクラス
@@ -49,7 +58,33 @@ public:	/*========[ メンバ関数 ]========*/
 	void Draw();
 
 	/**
+	 * @brief シャドウマップ用描画
+	 * @details ライトの視点からオブジェクトを描画し、深度情報をシャドウマップに記録する
+	 * @param lightViewProjectionAddress ライトビュープロジェクション行列のGPUアドレス
+	 */
+	void DrawShadow(D3D12_GPU_VIRTUAL_ADDRESS lightViewProjectionAddress);
+
+	/**
+	 * @brief シャドウマップ用描画（行列パラメータなし）
+	 * @details 外部で行列が設定されている前提で、オブジェクトの描画のみを行う
+	 */
+	void DrawShadowOnly();
+
+	/**
+	 * @brief シャドウマップ用描画（非推奨）
+	 * @param lightViewProjection ライトビュープロジェクション行列
+	 */
+	void DrawShadowWithMatrix(const Matrix4x4& lightViewProjection);
+
+	/**
+	 * @brief G-Buffer用描画（ディファードレンダリング）
+	 * @details ジオメトリパスでG-Bufferに描画する
+	 */
+	void DrawGBuffer();
+
+	/**
 	 * @brief 行列の更新
+
 	 * @param camera 使用するカメラ（省略時はデフォルトカメラを使用）
 	 */
 	void UpdateMatrix(Camera* camera = nullptr);
@@ -241,6 +276,44 @@ public: /*========[ セッター ]========*/
 	 */
 	void SetLightManager(LightManager* lightManager) { lightManager_ = lightManager; }
 
+	/**
+	 * @brief シャドウマップの設定
+	 * @param srvManager SrvManagerへのポインタ
+	 * @param shadowMapSrvIndex シャドウマップのSRVインデックス
+	 * @param shadowMatrixGPUAddress シャドウ行列のGPUアドレス
+	 */
+	void SetShadowMap(SrvManager* srvManager, uint32_t shadowMapSrvIndex, D3D12_GPU_VIRTUAL_ADDRESS shadowMatrixGPUAddress);
+
+	/**
+	 * @brief シャドウの無効化
+	 * @details シャドウマップを使用しない設定にする
+	 */
+	void DisableShadow() { shadowEnabled_ = false; }
+
+	/**
+	 * @brief レンダリングタイプの設定
+	 * @param type レンダリングタイプ
+	 */
+	void SetRenderingType(RenderingType type) { renderingType_ = type; }
+
+	/**
+	 * @brief レンダリングタイプの取得
+	 * @return レンダリングタイプ
+	 */
+	RenderingType GetRenderingType() const { return renderingType_; }
+
+	/**
+	 * @brief シャドウを落とすかどうかの設定
+	 * @param cast trueで影を落とす、falseで落とさない
+	 */
+	void SetCastShadow(bool cast) { castShadow_ = cast; }
+
+	/**
+	 * @brief シャドウを落とすかどうかの取得
+	 * @return trueで影を落とす
+	 */
+	bool GetCastShadow() const { return castShadow_; }
+
 private: /*========[ プライベートメンバ関数  ]========*/
 
 	/**
@@ -297,8 +370,20 @@ private: /*========[ メンバ変数 ]========*/
 	// ライトマネージャーへのポインタ
 	LightManager* lightManager_ = nullptr;
 
+	// シャドウマップ関連
+	SrvManager* srvManager_ = nullptr;
+	uint32_t shadowMapSrvIndex_ = 0;
+	D3D12_GPU_VIRTUAL_ADDRESS shadowMatrixGPUAddress_ = 0;
+	bool shadowEnabled_ = false;
+
+	// 影を落とすかどうか（RegisterObjectシステム用）
+	bool castShadow_ = true;
+
 	// Transform情報
 	Transform transform_;
+
+	// レンダリングタイプ
+	RenderingType renderingType_ = RenderingType::Deferred;
 };
 
 

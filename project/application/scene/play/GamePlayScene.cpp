@@ -48,6 +48,7 @@ void GamePlayScene::Initialize()
 	skydome_->SetEnableLighting(true);
 	skydome_->SetDirectionalLightIntensity(0.5f);
 	skydome_->SetDirectionalLightDirection({ 0.0f, -1.0f, 0.0f });
+	RegisterObject(skydome_.get());
 
 	// UVスケールで地形テクスチャをタイル状に繰り返し
 	ground_ = std::make_unique<Object3d>();
@@ -56,6 +57,7 @@ void GamePlayScene::Initialize()
 	ground_->SetLightManager(sceneManager_->GetLightManager());
 	ground_->SetEnableLighting(true);
 	ground_->GetModel()->SetUVScale(Vector3(10.0f, 10.0f, 1.0f));
+	RegisterObject(ground_.get());
 
 	CollisionManager::GetInstance()->Initialize();
 
@@ -125,6 +127,7 @@ void GamePlayScene::Initialize()
 
 void GamePlayScene::Finalize()
 {
+	ClearObjects();
 	Audio::GetInstance()->StopWave("game_bgm");
 
 	CollisionManager::GetInstance()->Finalize();
@@ -400,12 +403,18 @@ void GamePlayScene::CommonUpdate()
 
 void GamePlayScene::Draw3D()
 {
-	skydome_->Draw();
-	ground_->Draw();
+	BaseScene::Draw3D();
 
 	stageManager_->Draw3D();
 
 	splineCamera_->DrawSplineLine();
+}
+
+void GamePlayScene::DrawShadow()
+{
+	BaseScene::DrawShadow();
+
+	stageManager_->DrawShadow();
 }
 
 void GamePlayScene::Draw2D()

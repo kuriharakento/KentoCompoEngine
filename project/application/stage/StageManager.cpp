@@ -128,6 +128,23 @@ void StageManager::Draw3D()
 	}
 }
 
+void StageManager::DrawShadow()
+{
+	// プレイヤーのシャドウ描画
+	if (player_)
+	{
+		player_->DrawShadow();
+	}
+
+	// 敵マネージャーのシャドウ描画
+	if (enemyManager_)
+	{
+		enemyManager_->DrawShadow();
+	}
+
+	// 障害物は現状シャドウ無し（必要であれば追加）
+}
+
 void StageManager::Draw2D()
 {
 	// プレイヤーの2D描画

@@ -10,13 +10,19 @@
 #include "manager/effect/PostProcessManager.h"
 #include "manager/graphics/LineManager.h"
 
+
 void TitleScene::Initialize()
 {
 	Audio::GetInstance()->LoadWave("title_bgm", "bgm/title.wav", SoundGroup::BGM);
 	Audio::GetInstance()->PlayWave("title_bgm", true);
 	Audio::GetInstance()->SetVolume("title_bgm", 0.2f);
-
 	Audio::GetInstance()->LoadWave("start_se", "se/tap.wav", SoundGroup::SE);
+
+	// ディレクショナルライトの調整（下向き）
+	DirectionalLight dirLight = sceneManager_->GetLightManager()->GetDirectionalLight();
+	dirLight.direction = { 0.0f, -1.0f, 0.0f };
+	dirLight.intensity = 0.8f;
+	sceneManager_->GetLightManager()->SetDirectionalLight(dirLight);
 
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate(Vector3(0.0f, 1.5f, -15.0f));
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetRotate(Vector3());
@@ -35,6 +41,8 @@ void TitleScene::Initialize()
 	skydome_->SetDirectionalLightIntensity(0.5f);
 	skydome_->SetDirectionalLightDirection({ 0.0f, -1.0f, 0.0f });
 	skydome_->SetScale({ 0.8f, 0.8f, 0.8f });
+	skydome_->SetCastShadow(false);
+	RegisterObject(skydome_.get());
 
 	fireEffect_ = std::make_unique<TitleFireEffect>();
 	fireEffect_->Initialize();
@@ -72,6 +80,7 @@ void TitleScene::Initialize()
 
 void TitleScene::Finalize()
 {
+	ClearObjects();
 	sceneManager_->GetPostProcessManager()->crtEffect_->SetEnabled(false);
 
 	Audio::GetInstance()->StopWave("title_bgm");
@@ -173,7 +182,7 @@ void TitleScene::Draw3D()
 		VectorColorCodes::Cyan
 	);
 
-	skydome_->Draw();
+	BaseScene::Draw3D();
 }
 
 void TitleScene::Draw2D()

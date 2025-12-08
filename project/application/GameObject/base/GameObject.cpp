@@ -130,6 +130,23 @@ void GameObject::Draw2D()
 	}
 }
 
+void GameObject::DrawShadow()
+{
+	if (!object3d_) { return; }
+
+	// Object3dを通してシャドウマップへの描画（深度のみ）を行う
+	object3d_->DrawShadowOnly();
+
+	// 子オブジェクトのシャドウ描画
+	for (auto& [name, child] : children_)
+	{
+		if (child)
+		{
+			child->DrawShadow();
+		}
+	}
+}
+
 void GameObject::UpdateTransform(CameraManager* camera)
 {
 	ApplyTransformToObject3D(camera);

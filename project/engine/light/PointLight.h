@@ -3,6 +3,7 @@
 
 #include "math/Vector3.h"
 #include "math/Vector4.h"
+#include "math/MatrixFunc.h"
 
 /**
  * @brief GPU用ポイントライト構造体
@@ -37,4 +38,10 @@ struct CPUPointLight {
     bool isReversing;        // 補間の方向（往復用）
     bool isGradientActive;   // グラデーションが有効かどうか
     std::function<float(float)> easingFunction; // イージング関数
+
+    // キューブマップシャドウ用（6方向: +X, -X, +Y, -Y, +Z, -Z）
+    Matrix4x4 viewMatrices[6];           // ライトビュー行列（6面）
+    Matrix4x4 projectionMatrix;          // ライトプロジェクション行列（共通）
+    Matrix4x4 viewProjectionMatrices[6]; // ビュー・プロジェクション行列（6面）
+    bool shadowEnabled = false;          // シャドウ有効フラグ
 };

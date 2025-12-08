@@ -65,6 +65,13 @@ public:
      * スカイドーム、地面、ステージ、プレイヤー、敵、障害物などの3Dオブジェクトを描画します。
      */
     void Draw3D() override;
+
+	/**
+	 * @brief シャドウ描画処理
+	 * 
+	 * シャドウマップへの描画を行います。
+	 */
+	void DrawShadow() override;
     
     /**
      * @brief 2D描画処理
