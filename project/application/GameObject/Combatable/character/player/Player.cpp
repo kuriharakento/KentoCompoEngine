@@ -9,6 +9,70 @@
 #include "application/GameObject/component/collision/OBBColliderComponent.h"
 #include "math/VectorColorCodes.h"
 #include "application/GameObject/component/action/PlayerUIComponent.h"
+#include "time/TimerManager.h"
+#include <sstream>
+
+// 定数定義
+const float kHitFlashDuration = 0.05f; // 被弾時の赤色表示時間
+
+// タイマー名を生成するヘルパー
+static std::string GenerateHitTimerName(const Player* player)
+{
+	std::stringstream ss;
+	ss << "Player_HitFlash_" << player;
+	return ss.str();
+}
+
+Player::~Player()
+{
+	TimerManager::GetInstance().RemoveTimer(GenerateHitTimerName(this));
+}
+
+void Player::TakeDamage(float damage)
+{
+	CombatableObject::TakeDamage(damage);
+
+	// ヒット時のフラッシュ処理（TimerManagerを使用）
+	std::string timerName = GenerateHitTimerName(this);
+	Timer* timer = TimerManager::GetInstance().GetTimer(timerName);
+
+	if (timer)
+	{
+		// 既にタイマーがある場合はリセットして延長
+		timer->Reset();
+		timer->Start();
+	}
+	else
+	{
+		// 新しいタイマーを作成
+		auto newTimer = std::make_unique<Timer>(timerName, kHitFlashDuration);
+
+		// 色変更ヘルパーラムダ
+		auto setColorFunc = [this](const Vector4& color) {
+			if (object3d_) {
+				object3d_->SetColor(color);
+			}
+			// 子オブジェクトの色も変更
+			for (auto& [name, child] : GetChildren()) {
+				if (child && child->GetObject3d()) {
+					child->GetObject3d()->SetColor(color);
+				}
+			}
+		};
+
+		// 開始時に赤くする
+		newTimer->SetOnStart([setColorFunc]() {
+			setColorFunc(VectorColorCodes::Red);
+		});
+
+		// 終了時に白に戻す
+		newTimer->SetOnFinish([setColorFunc]() {
+			setColorFunc(VectorColorCodes::White);
+		});
+
+		TimerManager::GetInstance().AddTimer(std::move(newTimer));
+	}
+}
 
 void Player::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, EnemyManager* enemyManager, CameraManager* camera)
 {
@@ -23,7 +87,6 @@ void Player::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteComm
 	armR->SetModel("cube");
 	armR->SetPosition(Vector3(3.0f, 0.0f, 0.0f));
 	armR->AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(armR.get()));
-	armR->GetModel()->SetColor(VectorColorCodes::Red);
 	AddChild(GameObjectTag::Character::PlayerRightArm, std::move(armR));
 
 	// 左腕も追加してみる
@@ -31,7 +94,6 @@ void Player::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteComm
 	armL->Initialize(object3dCommon, lightManager);
 	armL->SetModel("cube");
 	armL->SetPosition(Vector3(-3.0f, 0.0f, 0.0f));
-	armL->GetModel()->SetColor(VectorColorCodes::Blue);
 	armL->AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(armL.get()));
 	AddChild(GameObjectTag::Character::PlayerLeftArm, std::move(armL));
 

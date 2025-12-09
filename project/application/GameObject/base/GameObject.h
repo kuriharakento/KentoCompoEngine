@@ -76,6 +76,12 @@ public:
 	virtual void DrawShadow();
 
 	/**
+	 * @brief 子オブジェクトのリストを取得
+	 * @return 子オブジェクトのマップ
+	 */
+	const std::unordered_map<std::string, std::unique_ptr<GameObject>>& GetChildren() const { return children_; }
+
+	/**
 	 * @brief トランスフォーム情報の更新
 	 * @param camera カメラ管理クラス
 	 */

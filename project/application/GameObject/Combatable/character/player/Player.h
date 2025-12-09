@@ -8,9 +8,10 @@ class EnemyManager;
 class Player : public Character
 {
 public:
-	~Player() = default;
+	~Player() override;
 	Player(std::string tag = GameObjectTag::Character::Player) : Character(tag) {}
 	void Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, EnemyManager* enemyManager, CameraManager* camera);
+	void TakeDamage(float damage) override;
 
 private:
 	void CollisionSettings(ICollisionComponent* collider) override;
