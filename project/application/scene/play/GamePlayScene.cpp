@@ -38,6 +38,12 @@ void GamePlayScene::Initialize()
 	Audio::GetInstance()->PlayWave("game_bgm", true);
 	Audio::GetInstance()->SetVolume("game_bgm", 0.2f);
 
+	// ディレクショナルライトの調整（斜め下向き）
+	DirectionalLight dirLight = sceneManager_->GetLightManager()->GetDirectionalLight();
+	dirLight.direction = { 0.0f, -1.0f, 1.0f };
+	dirLight.intensity = 0.8f;
+	sceneManager_->GetLightManager()->SetDirectionalLight(dirLight);
+
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate(cameraInitialPosition_);
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetRotate(cameraInitialRotation_);
 

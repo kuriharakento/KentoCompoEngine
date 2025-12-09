@@ -48,6 +48,12 @@ public: /*========[ メンバ関数 ]========*/
 	 */
 	Model* FindModel(const std::string& filePath);
 
+	/**
+	 * @brief ModelCommonの取得
+	 * @return ModelCommonへのポインタ
+	 */
+	ModelCommon* GetModelCommon() const { return modelCommon_; }
+
 private: /*========[ シングルトン ]========*/
 	static ModelManager* instance_; // シングルトンインスタンス
 	

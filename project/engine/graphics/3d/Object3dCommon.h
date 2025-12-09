@@ -43,6 +43,12 @@ public: // アクセッサ
 	 */
 	Camera* GetDefaultCamera() const { return defaultCamera_; }
 
+	/**
+	 * @brief SRVマネージャーの取得
+	 * @return SRVマネージャーへのポインタ
+	 */
+	SrvManager* GetSrvManager() const { return srvManager_; }
+
 private: // メンバ関数
 	/**
 	 * @brief ルートシグネチャの生成

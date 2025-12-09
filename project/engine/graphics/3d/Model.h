@@ -14,6 +14,7 @@
  * @brief 3Dモデルクラス
  * @details OBJ/FBXなどの3Dモデルファイルを読み込み、描画するためのクラス。
  *          Assimpライブラリを使用してモデルデータを解析する。
+ *          マルチメッシュ、マルチマテリアル、インデックスバッファに対応。
  */
 class Model
 {
@@ -79,40 +80,40 @@ public:
 
 public: // アクセッサ
 	/**
-	 * @brief 色の取得
+	 * @brief 色の取得（最初のマテリアル）
 	 * @return 現在の色（RGBA）
 	 */
-	Vector4 GetColor() const { return materialData_->color; }
+	Vector4 GetColor() const { return meshResources_.empty() ? Vector4(1,1,1,1) : meshResources_[0].gpuMaterial->color; }
 
 	/**
-	 * @brief 色の設定
+	 * @brief 色の設定（全マテリアルに適用）
 	 * @param color 新しい色（RGBA）
 	 */
-	void SetColor(const Vector4& color) { materialData_->color = color; }
+	void SetColor(const Vector4& color);
 
 	/**
-	 * @brief ライティングの有効/無効の取得
+	 * @brief ライティングの有効/無効の取得（最初のマテリアル）
 	 * @return ライティング有効フラグ
 	 */
-	bool IsEnableLighting() const { return materialData_->enableLighting; }
+	bool IsEnableLighting() const { return meshResources_.empty() ? true : meshResources_[0].gpuMaterial->enableLighting; }
 
 	/**
-	 * @brief ライティングの有効/無効の設定
+	 * @brief ライティングの有効/無効の設定（全マテリアルに適用）
 	 * @param enable ライティング有効フラグ
 	 */
-	void SetEnableLighting(bool enable) { materialData_->enableLighting = enable; }
+	void SetEnableLighting(bool enable);
 
 	/**
-	 * @brief 反射強度の設定
+	 * @brief 反射強度の設定（全マテリアルに適用）
 	 * @param shininess 反射強度
 	 */
-	void SetShininess(float shininess) { materialData_->shininess = shininess; }
+	void SetShininess(float shininess);
 
 	/**
-	 * @brief 反射強度の取得
+	 * @brief 反射強度の取得（最初のマテリアル）
 	 * @return 現在の反射強度
 	 */
-	float GetShininess() const { return materialData_->shininess; }
+	float GetShininess() const { return meshResources_.empty() ? 30.0f : meshResources_[0].gpuMaterial->shininess; }
 
 	/**
 	 * @brief モデルデータの取得
@@ -121,90 +122,110 @@ public: // アクセッサ
 	ModelData& GetModelData() { return modelData_; }
 
 	/**
-	 * @brief マテリアルデータの取得
+	 * @brief マテリアルデータの取得（最初のメッシュのマテリアル）
 	 * @return マテリアルデータへのポインタ
 	 */
-	Material* GetMaterialData() { return materialData_; }
+	Material* GetMaterialData() { return meshResources_.empty() ? nullptr : meshResources_[0].gpuMaterial; }
 
 	/**
 	 * @brief UV移動量の取得
 	 * @return UV移動量
 	 */
-	Vector3 GetUVTranslate() const { return MathUtils::GetTranslateFromMatrix(materialData_->uvTransform); }
+	Vector3 GetUVTranslate() const;
 
 	/**
 	 * @brief UVスケールの取得
 	 * @return UVスケール
 	 */
-	Vector3 GetUVScale() const { return MathUtils::GetScaleFromMatrix(materialData_->uvTransform); }
+	Vector3 GetUVScale() const;
 
 	/**
 	 * @brief UV回転量の取得
 	 * @return UV回転量
 	 */
-	Vector3 GetUVRotate() const { return MathUtils::GetRotateFromMatrix(materialData_->uvTransform); }
+	Vector3 GetUVRotate() const;
 
 	/**
-	 * @brief UV移動量の設定
+	 * @brief UV移動量の設定（全マテリアルに適用）
 	 * @param translate 新しいUV移動量
 	 */
-	void SetUVTranslate(const Vector3& translate) { materialData_->uvTransform = MakeAffineMatrix(GetUVScale(), GetUVRotate(), translate); }
+	void SetUVTranslate(const Vector3& translate);
 
 	/**
-	 * @brief UVスケールの設定
+	 * @brief UVスケールの設定（全マテリアルに適用）
 	 * @param scale 新しいUVスケール
 	 */
-	void SetUVScale(const Vector3& scale) { materialData_->uvTransform = MakeAffineMatrix(scale, GetUVRotate(), GetUVTranslate()); }
+	void SetUVScale(const Vector3& scale);
 
 	/**
-	 * @brief UV回転量の設定
+	 * @brief UV回転量の設定（全マテリアルに適用）
 	 * @param rotate 新しいUV回転量
 	 */
-	void SetUVRotate(const Vector3& rotate) { materialData_->uvTransform = MakeAffineMatrix(GetUVScale(), rotate, GetUVTranslate()); }
+	void SetUVRotate(const Vector3& rotate);
+
+	/**
+	 * @brief メッシュ数の取得
+	 * @return メッシュ数
+	 */
+	size_t GetMeshCount() const { return meshResources_.size(); }
+
+	/**
+	 * @brief マテリアル数の取得
+	 * @return マテリアル数
+	 */
+	size_t GetMaterialCount() const { return modelData_.materials.size(); }
 
 private: // メンバ関数
 	/**
-	 * @brief 頂点データの生成
-	 * @details 頂点バッファを作成してモデルデータをコピーする
+	 * @brief メッシュリソースの生成
+	 * @details 全メッシュの頂点・インデックスバッファを作成
 	 */
-	void CreateVertexData();
+	void CreateMeshResources();
 
 	/**
-	 * @brief マテリアルデータの生成
-	 * @details マテリアルバッファを作成して初期値を設定する
+	 * @brief マテリアルリソースの生成
+	 * @details 全マテリアルのGPUバッファを作成
 	 */
-	void CreateMaterialData();
+	void CreateMaterialResources();
 
 	/**
 	 * @brief 描画設定の初期化
-	 * @details 頂点データとマテリアルデータを生成する
+	 * @details メッシュリソースとマテリアルリソースを生成する
 	 */
 	void InitializeRenderingSettings();
 
-	
-
 private:
+	/**
+	 * @brief メッシュごとのGPUリソース
+	 */
+	struct MeshResource
+	{
+		// 頂点バッファリソース
+		Microsoft::WRL::ComPtr<ID3D12Resource> vertexBuffer;
+		// インデックスバッファリソース
+		Microsoft::WRL::ComPtr<ID3D12Resource> indexBuffer;
+		// マテリアルバッファリソース
+		Microsoft::WRL::ComPtr<ID3D12Resource> materialBuffer;
+		// 頂点バッファビュー
+		D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
+		// インデックスバッファビュー
+		D3D12_INDEX_BUFFER_VIEW indexBufferView{};
+		// インデックス数
+		uint32_t indexCount = 0;
+		// 使用するマテリアルのインデックス
+		uint32_t materialIndex = 0;
+		// テクスチャインデックス
+		uint32_t textureIndex = 0;
+		// GPU用マテリアルデータへのポインタ
+		Material* gpuMaterial = nullptr;
+	};
+
 	// モデル共通部へのポインタ
-	ModelCommon* modelCommon_;
+	ModelCommon* modelCommon_ = nullptr;
 
 	// モデルデータ
 	ModelData modelData_;
 
-	/*-----------------------[ 頂点 ]------------------------*/
-
-	// 頂点バッファリソース
-	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_;
-	// 頂点データへのポインタ
-	VertexData* vertexData_ = nullptr;
-	// 頂点バッファビュー
-	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_;
-
-	/*-----------------------[ マテリアル ]------------------------*/
-
-	// マテリアルバッファリソース
-	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_;
-	// マテリアルデータへのポインタ
-	Material* materialData_ = nullptr;
-
+	// メッシュリソース（マルチメッシュ対応）
+	std::vector<MeshResource> meshResources_;
 };
-

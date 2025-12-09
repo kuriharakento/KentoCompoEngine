@@ -214,6 +214,12 @@ void Object3d::UpdateMatrix(Camera* camera)
 	}
 
 	transformationMatrixData_->WorldInverseTranspose = worldInverseTransposeMatrix;
+
+	// ライト情報を更新（LightManagerからディレクショナルライトを同期）
+	if (directionalLightData_ && lightManager_)
+	{
+		*directionalLightData_ = lightManager_->GetDirectionalLight();
+	}
 }
 
 void Object3d::UpdateWorldMatrix()

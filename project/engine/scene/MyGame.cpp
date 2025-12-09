@@ -325,6 +325,8 @@ void MyGame::LoadTextures()
 
 void MyGame::LoadModels()
 {
+	ModelManager::GetInstance()->LoadModel("multimaterial");
+	ModelManager::GetInstance()->LoadModel("multimesh");
 	ModelManager::GetInstance()->LoadModel("cube");
 	ModelManager::GetInstance()->LoadModel("terrain");
 	ModelManager::GetInstance()->LoadModel("skydome");
@@ -333,4 +335,5 @@ void MyGame::LoadModels()
 	ModelManager::GetInstance()->LoadModel("player");
 	ModelManager::GetInstance()->LoadModel("enemy");
 	ModelManager::GetInstance()->LoadModel("plane", ".gltf");
+	ModelManager::GetInstance()->LoadModel("walk", ".gltf");
 }

@@ -5,6 +5,7 @@
 
 // graphics
 #include "graphics/3d/Object3d.h"
+#include "graphics/3d/SkinnedObject3d.h"
 // manager
 #include "manager/scene/LightManager.h"
 #include <camerawork/debug/DebugCamera.h>
@@ -18,7 +19,9 @@ public:
 	void Initialize() override;
 	void Finalize() override;
 	void Draw2D() override;
+	void Draw3D() override;
 	void DrawShadow() override;
+	void DrawGBuffer() override;
 	void DrawImGui() override;
 
 protected:
@@ -33,6 +36,9 @@ private:
 
 	// テスト用オブジェクト（キューブなど）
 	std::vector<std::unique_ptr<Object3d>> testObjects_;
+
+	// スキニングテスト用オブジェクト
+	std::unique_ptr<SkinnedObject3d> skinnedObject_;
 
 	// デバッグカメラ
 	DebugCamera debugCamera_;

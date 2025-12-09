@@ -29,13 +29,32 @@ void GameClearScene::Initialize()
 	for (int i = 0; i < 3; ++i) {
 		auto obj = std::make_unique<Object3d>();
 		obj->Initialize(object3dCommon);
-		obj->SetModel("cube");
+		if(i == 0){
+			obj->SetModel("plane");
+		}
+		else if(i == 1){
+			obj->SetModel("multimesh");
+		}
+		else{
+			obj->SetModel("multimaterial");
+		}
+
 		obj->SetScale({ 1.0f, 1.0f, 1.0f });
 		obj->SetTranslate({ static_cast<float>(i - 1) * 3.0f, 5.0f, 0.0f });
 		obj->SetLightManager(lightManager);
 		RegisterObject(obj.get());
 		testObjects_.push_back(std::move(obj));
 	}
+
+	// スキニングオブジェクトの作成
+	skinnedObject_ = std::make_unique<SkinnedObject3d>();
+	skinnedObject_->Initialize(object3dCommon);
+	skinnedObject_->SetModel("walk", ".gltf");
+	skinnedObject_->SetCamera(cameraManager->GetActiveCamera());
+	skinnedObject_->SetLightManager(lightManager);
+	skinnedObject_->SetTranslate({ 5.0f, 0.0f, 0.0f }); // 右側に配置
+	skinnedObject_->SetScale({ 1.0f, 1.0f, 1.0f });
+	skinnedObject_->PlayAnimation(0, true);
 
 	// デバッグカメラの初期化
 	debugCamera_.Initialize(cameraManager->GetActiveCamera());
@@ -55,6 +74,28 @@ void GameClearScene::Draw2D()
 {
 }
 
+void GameClearScene::Draw3D()
+{
+	// 基底クラスの描画（登録済みオブジェクト）
+	BaseScene::Draw3D();
+
+	// スキニングオブジェクトの描画（DispatchSkinningはUpdateで実行済み）
+	if (skinnedObject_) {
+		skinnedObject_->Draw();
+	}
+}
+
+void GameClearScene::DrawGBuffer()
+{
+	// 基底クラスのG-Buffer描画（登録済みオブジェクト）
+	BaseScene::DrawGBuffer();
+
+	// スキニングオブジェクトのG-Buffer描画（DispatchSkinningはUpdateで実行済み）
+	if (skinnedObject_) {
+		skinnedObject_->DrawGBuffer();
+	}
+}
+
 
 void GameClearScene::OnEnterPlaying()
 
@@ -64,6 +105,7 @@ void GameClearScene::OnEnterPlaying()
 void GameClearScene::OnUpdatePlaying()
 {
 	auto* cameraManager = sceneManager_->GetCameraManager();
+	float deltaTime = 1.0f / 60.0f; // TODO: TimeManagerから取得
 
 	debugCamera_.Update();
 
@@ -72,6 +114,12 @@ void GameClearScene::OnUpdatePlaying()
 	}
 	if (ground_) {
 		ground_->Update(cameraManager);
+	}
+
+	// スキニングオブジェクトの更新とスキニング計算
+	if (skinnedObject_) {
+		skinnedObject_->Update(deltaTime);
+		skinnedObject_->DispatchSkinning(); // ここで一度だけ実行
 	}
 }
 
@@ -85,6 +133,11 @@ void GameClearScene::DrawShadow()
 	// テストオブジェクトのシャドウ描画
 	for (auto& obj : testObjects_) {
 		obj->DrawShadowOnly();
+	}
+
+	// スキニングオブジェクトのシャドウ描画（DispatchSkinningはUpdateで実行済み）
+	if (skinnedObject_) {
+		skinnedObject_->DrawShadow();
 	}
 }
 
