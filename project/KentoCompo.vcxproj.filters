@@ -484,6 +484,13 @@
     <ClCompile Include="engine\graphics\shadow\ShadowMapPipeline.cpp" />
     <ClCompile Include="engine\graphics\shadow\ShadowSystem.cpp" />
     <ClCompile Include="engine\manager\graphics\ShadowMapManager.cpp" />
+    <ClCompile Include="engine\graphics\deferred\GBuffer.cpp" />
+    <ClCompile Include="engine\graphics\deferred\GBufferPipeline.cpp" />
+    <ClCompile Include="engine\graphics\deferred\LightPassPipeline.cpp" />
+    <ClCompile Include="engine\graphics\deferred\DeferredRenderer.cpp" />
+    <ClCompile Include="engine\graphics\3d\SkinnedModel.cpp" />
+    <ClCompile Include="engine\graphics\3d\SkinnedObject3d.cpp" />
+    <ClCompile Include="engine\graphics\3d\SkinningCompute.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -1054,6 +1061,14 @@
     <ClInclude Include="engine\graphics\shadow\ShadowMapPipeline.h" />
     <ClInclude Include="engine\graphics\shadow\ShadowSystem.h" />
     <ClInclude Include="engine\manager\graphics\ShadowMapManager.h" />
+    <ClInclude Include="engine\graphics\deferred\GBuffer.h" />
+    <ClInclude Include="engine\graphics\deferred\GBufferPipeline.h" />
+    <ClInclude Include="engine\graphics\deferred\LightPassPipeline.h" />
+    <ClInclude Include="engine\graphics\deferred\DeferredRenderer.h" />
+    <ClInclude Include="engine\graphics\3d\SkinnedModel.h" />
+    <ClInclude Include="engine\graphics\3d\SkinnedObject3d.h" />
+    <ClInclude Include="engine\graphics\3d\SkinningCompute.h" />
+    <ClInclude Include="engine\math\Quaternion.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

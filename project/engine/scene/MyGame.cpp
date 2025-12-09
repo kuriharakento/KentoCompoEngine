@@ -335,4 +335,5 @@ void MyGame::LoadModels()
 	ModelManager::GetInstance()->LoadModel("player");
 	ModelManager::GetInstance()->LoadModel("enemy");
 	ModelManager::GetInstance()->LoadModel("plane", ".gltf");
+	ModelManager::GetInstance()->LoadModel("walk", ".gltf");
 }

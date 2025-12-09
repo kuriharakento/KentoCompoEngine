@@ -1,10 +1,21 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 #include "math/MatrixFunc.h"
 #include "math/Vector2.h"
 #include "math/Vector4.h"
+#include "math/Quaternion.h"
+
+/*==========================================================
+ * スキニング用定数
+ *==========================================================*/
+
+// 1頂点あたりの最大ボーン影響数
+constexpr uint32_t kMaxBoneInfluence = 4;
+// モデルあたりの最大ボーン数
+constexpr uint32_t kMaxBones = 256;
 
 /**
  * @brief 頂点データ
@@ -212,4 +223,148 @@ struct CameraForGPU
     Vector3 worldPos;
     // パディング（アラインメント用）
     float padding;
+};
+
+/*==========================================================
+ * スキニング用データ構造
+ *==========================================================*/
+
+/**
+ * @brief スキニング用頂点データ
+ */
+struct SkinnedVertexData
+{
+    // 位置
+    Vector4 position;
+    // テクスチャ座標
+    Vector2 texcoord;
+    // 法線
+    Vector3 normal;
+    // 影響するボーンのインデックス
+    uint32_t boneIndices[kMaxBoneInfluence];
+    // 各ボーンの重み
+    float boneWeights[kMaxBoneInfluence];
+
+    SkinnedVertexData()
+        : position{ 0, 0, 0, 1 }
+        , texcoord{ 0, 0 }
+        , normal{ 0, 1, 0 }
+    {
+        for (uint32_t i = 0; i < kMaxBoneInfluence; ++i)
+        {
+            boneIndices[i] = 0;
+            boneWeights[i] = 0.0f;
+        }
+    }
+};
+
+/**
+ * @brief ボーン情報
+ */
+struct BoneInfo
+{
+    // ボーン名
+    std::string name;
+    // 親ボーンのインデックス（-1でルート）
+    int32_t parentIndex = -1;
+    // オフセット行列（逆バインドポーズ行列）
+    Matrix4x4 offsetMatrix;
+};
+
+/**
+ * @brief スケルトン（ボーン階層）
+ */
+struct Skeleton
+{
+    // 全ボーン情報
+    std::vector<BoneInfo> bones;
+    // ボーン名からインデックスへのマップ
+    std::unordered_map<std::string, uint32_t> boneNameToIndex;
+
+    /**
+     * @brief ボーン名からインデックスを取得
+     * @param name ボーン名
+     * @return ボーンインデックス（見つからない場合は-1）
+     */
+    int32_t GetBoneIndex(const std::string& name) const
+    {
+        auto it = boneNameToIndex.find(name);
+        if (it != boneNameToIndex.end())
+        {
+            return static_cast<int32_t>(it->second);
+        }
+        return -1;
+    }
+};
+
+/**
+ * @brief アニメーションキーフレーム
+ */
+template <typename T>
+struct AnimationKey
+{
+    float time;
+    T value;
+};
+
+/**
+ * @brief アニメーションチャンネル（1つのボーンのアニメーション）
+ */
+struct AnimationChannel
+{
+    // ボーン名
+    std::string boneName;
+    // ボーンインデックス（ランタイムで設定）
+    int32_t boneIndex = -1;
+    // 位置キーフレーム
+    std::vector<AnimationKey<Vector3>> positionKeys;
+    // 回転キーフレーム
+    std::vector<AnimationKey<Quaternion>> rotationKeys;
+    // スケールキーフレーム
+    std::vector<AnimationKey<Vector3>> scaleKeys;
+};
+
+/**
+ * @brief アニメーションクリップ
+ */
+struct AnimationClip
+{
+    // アニメーション名
+    std::string name;
+    // アニメーションの長さ（秒）
+    float duration = 0.0f;
+    // ティック/秒
+    float ticksPerSecond = 25.0f;
+    // 各ボーンのアニメーションチャンネル
+    std::vector<AnimationChannel> channels;
+};
+
+/**
+ * @brief スキニング用メッシュデータ
+ */
+struct SkinnedMeshData
+{
+    // スキニング用頂点データ
+    std::vector<SkinnedVertexData> vertices;
+    // インデックスデータ
+    std::vector<uint32_t> indices;
+    // 使用するマテリアルのインデックス
+    uint32_t materialIndex = 0;
+};
+
+/**
+ * @brief スキニング用モデルデータ
+ */
+struct SkinnedModelData
+{
+    // スキニング用メッシュデータ
+    std::vector<SkinnedMeshData> meshes;
+    // マテリアルデータ
+    std::vector<MaterialData> materials;
+    // スケルトン
+    Skeleton skeleton;
+    // アニメーションクリップ
+    std::vector<AnimationClip> animations;
+    // ルートノード
+    Node rootNode;
 };

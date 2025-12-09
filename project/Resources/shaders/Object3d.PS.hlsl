@@ -122,6 +122,7 @@ float3 CalculateSpecular(float3 normal, float3 lightDir, float3 toEye, float3 li
 }
 
 // シャドウ計算（カスケードシャドウマップ使用）
+// シャドウ計算（カスケードシャドウマップ使用）
 float CalculateCascadeShadow(float3 worldPos, float viewDepth)
 {
     // カスケードシャドウが無効の場合は影なし
@@ -208,6 +209,7 @@ float CalculateCascadeShadow(float3 worldPos, float viewDepth)
 }
 
 
+// 旧シャドウ計算（後方互換用）
 // 旧シャドウ計算（後方互換用）
 float CalculateShadow(float3 worldPos)
 {
