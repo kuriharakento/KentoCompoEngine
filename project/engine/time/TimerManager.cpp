@@ -111,6 +111,16 @@ void TimerManager::Clear()
     timers_.clear();
 }
 
+void TimerManager::RemoveTimer(const std::string& name)
+{
+    // 名前で検索して削除
+    auto it = timers_.find(name);
+    if (it != timers_.end())
+    {
+        timers_.erase(it);
+    }
+}
+
 bool TimerManager::HasTimer(const std::string& name) const
 {
     // 指定名のタイマーが存在するかを確認

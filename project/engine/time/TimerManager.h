@@ -68,6 +68,12 @@ public:
     void Clear();
 
     /**
+     * @brief 指定した名前のタイマーを削除
+     * @param name 削除するタイマーの名前
+     */
+    void RemoveTimer(const std::string& name);
+
+    /**
      * @brief タイマーが存在するかを確認
      * @param name タイマーの識別名
      * @return 存在する場合はtrue
