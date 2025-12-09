@@ -45,4 +45,7 @@ private:
 
 	// オブジェクトの回転角度
 	float objectRotation_ = 0.0f;
+
+	// 選択中のアニメーションインデックス（-1 = バインドポーズ、0以上 = アニメーション）
+	int selectedAnimationIndex_ = -1;
 };

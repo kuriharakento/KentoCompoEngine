@@ -287,6 +287,8 @@ struct Skeleton
     std::vector<BoneInfo> bones;
     // ボーン名からインデックスへのマップ
     std::unordered_map<std::string, uint32_t> boneNameToIndex;
+    // Armatureノードのトランスフォーム行列（スケルトンルートの変換）
+    Matrix4x4 armatureTransform = MakeIdentity4x4();
 
     /**
      * @brief ボーン名からインデックスを取得

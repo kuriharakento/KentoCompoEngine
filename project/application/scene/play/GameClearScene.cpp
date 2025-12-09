@@ -49,12 +49,12 @@ void GameClearScene::Initialize()
 	// スキニングオブジェクトの作成
 	skinnedObject_ = std::make_unique<SkinnedObject3d>();
 	skinnedObject_->Initialize(object3dCommon);
-	skinnedObject_->SetModel("walk", ".gltf");
+	skinnedObject_->SetModel("sneakWalk", ".gltf");
 	skinnedObject_->SetCamera(cameraManager->GetActiveCamera());
 	skinnedObject_->SetLightManager(lightManager);
 	skinnedObject_->SetTranslate({ 5.0f, 0.0f, 0.0f }); // 右側に配置
 	skinnedObject_->SetScale({ 1.0f, 1.0f, 1.0f });
-	skinnedObject_->PlayAnimation(0, true);
+	//skinnedObject_->PlayAnimation(0, true);
 
 	// デバッグカメラの初期化
 	debugCamera_.Initialize(cameraManager->GetActiveCamera());
@@ -203,6 +203,63 @@ void GameClearScene::DrawImGui()
 					testObjects_[i]->SetTranslate(translate);
 				}
 				ImGui::TreePop();
+			}
+		}
+	}
+
+	// スキニングオブジェクトの設定
+	if (ImGui::CollapsingHeader("Skinned Object")) {
+		if (skinnedObject_ && skinnedObject_->GetModel()) {
+			const auto& animations = skinnedObject_->GetModel()->GetAnimations();
+			
+			// アニメーション選択コンボボックスの作成
+			// -1 = バインドポーズ、0以上 = アニメーション
+			std::vector<std::string> animNames;
+			animNames.push_back("Bind Pose");
+			for (const auto& anim : animations) {
+				animNames.push_back(anim.name.empty() ? "Animation " + std::to_string(animNames.size() - 1) : anim.name);
+			}
+			
+			// 現在の選択肢のプレビュー名
+			const char* previewName = (selectedAnimationIndex_ < 0) ? 
+				"Bind Pose" : animNames[selectedAnimationIndex_ + 1].c_str();
+			
+			if (ImGui::BeginCombo("Animation", previewName)) {
+				for (int i = -1; i < static_cast<int>(animations.size()); ++i) {
+					bool isSelected = (selectedAnimationIndex_ == i);
+					const char* name = (i < 0) ? "Bind Pose" : animNames[i + 1].c_str();
+					
+					if (ImGui::Selectable(name, isSelected)) {
+						selectedAnimationIndex_ = i;
+						if (i < 0) {
+							// バインドポーズ
+							skinnedObject_->StopAnimation();
+						} else {
+							// アニメーション再生
+							skinnedObject_->PlayAnimation(i, true);
+						}
+					}
+					if (isSelected) {
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+				ImGui::EndCombo();
+			}
+
+			// トランスフォーム編集
+			Vector3 scale = skinnedObject_->GetScale();
+			Vector3 rotate = skinnedObject_->GetRotate();
+			Vector3 translate = skinnedObject_->GetTranslate();
+
+			bool changed = false;
+			changed |= ImGui::DragFloat3("Scale##Skinned", &scale.x, 0.1f);
+			changed |= ImGui::DragFloat3("Rotate##Skinned", &rotate.x, 0.01f);
+			changed |= ImGui::DragFloat3("Translate##Skinned", &translate.x, 0.1f);
+
+			if (changed) {
+				skinnedObject_->SetScale(scale);
+				skinnedObject_->SetRotate(rotate);
+				skinnedObject_->SetTranslate(translate);
 			}
 		}
 	}
