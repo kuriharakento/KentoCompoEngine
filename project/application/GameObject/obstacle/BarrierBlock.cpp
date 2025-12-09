@@ -16,6 +16,11 @@ void BarrierBlock::Draw(CameraManager* camera)
 	UpdateTransform(camera);
 }
 
+void BarrierBlock::DrawShadow()
+{
+	// 影も描画しない
+}
+
 void BarrierBlock::CollisionSettings(ICollisionComponent* collider)
 {
 	Obstacle::CollisionSettings(collider);

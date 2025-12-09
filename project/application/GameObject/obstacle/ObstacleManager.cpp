@@ -83,6 +83,34 @@ void ObstacleManager::Draw(CameraManager* camera)
 	}
 }
 
+void ObstacleManager::DrawShadow()
+{
+	for (auto& obstacle : obstacles_)
+	{
+		if (obstacle)
+		{
+			if (culling_)
+			{
+				// シャドウマップ描画でもカリングを行うかは要検討だが、
+				// パフォーマンス向上のため同様の距離チェックを入れておく
+				// (カメラからの距離が遠すぎる影は描画しない)
+				// ※ 本来はライト方向からの視点でカリングすべきだが、簡易的にカメラ距離を使用
+				/*
+				// 厳密にはシャドウカリングはライト視点が必要だが、
+				// 簡易実装として通常のDrawと同じ距離制限をかける場合：
+				auto cameraPos = object3dCommon_->GetDefaultCamera()->GetTranslate();
+				float distance = (obstacle->GetPosition() - cameraPos).Length();
+				if (distance > 200.0f)
+				{
+					continue;
+				}
+				*/
+			}
+			obstacle->DrawShadow(); // シャドウ描画
+		}
+	}
+}
+
 void ObstacleManager::Clear()
 {
 	// 障害物のリストをクリア

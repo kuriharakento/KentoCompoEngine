@@ -14,11 +14,14 @@ public:
 	// 初期化
 	void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager);
 	// 更新
+	// ロジック更新
 	void Update();
 	// 行列更新
 	void UpdateTransforms(CameraManager* camera);
 	// 描画
 	void Draw(CameraManager* camera);
+	// シャドウ描画
+	void DrawShadow();
 
 	void Clear();
 	void CreateObstacles();

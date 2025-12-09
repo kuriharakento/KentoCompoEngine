@@ -142,7 +142,11 @@ void StageManager::DrawShadow()
 		enemyManager_->DrawShadow();
 	}
 
-	// 障害物は現状シャドウ無し（必要であれば追加）
+	// 障害物のシャドウ描画
+	if (obstacleManager_)
+	{
+		obstacleManager_->DrawShadow();
+	}
 }
 
 void StageManager::Draw2D()
