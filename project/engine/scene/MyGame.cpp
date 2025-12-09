@@ -332,4 +332,5 @@ void MyGame::LoadModels()
 	ModelManager::GetInstance()->LoadModel("wall");
 	ModelManager::GetInstance()->LoadModel("player");
 	ModelManager::GetInstance()->LoadModel("enemy");
+	ModelManager::GetInstance()->LoadModel("plane", ".gltf");
 }
