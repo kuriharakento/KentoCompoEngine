@@ -49,7 +49,7 @@ void GameClearScene::Initialize()
 	// スキニングオブジェクトの作成
 	skinnedObject_ = std::make_unique<SkinnedObject3d>();
 	skinnedObject_->Initialize(object3dCommon);
-	skinnedObject_->SetModel("simpleSkin", ".gltf");
+	skinnedObject_->SetModel("walk", ".gltf");
 	skinnedObject_->SetCamera(cameraManager->GetActiveCamera());
 	skinnedObject_->SetLightManager(lightManager);
 	skinnedObject_->SetTranslate({ 5.0f, 0.0f, 0.0f }); // 右側に配置

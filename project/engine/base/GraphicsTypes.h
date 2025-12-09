@@ -258,6 +258,9 @@ struct SkinnedVertexData
     }
 };
 
+// HLSLシェーダーとのサイズ一致を確認
+static_assert(sizeof(SkinnedVertexData) == 68, "SkinnedVertexData size must be 68 bytes to match HLSL shader");
+
 /**
  * @brief ボーン情報
  */
@@ -269,6 +272,10 @@ struct BoneInfo
     int32_t parentIndex = -1;
     // オフセット行列（逆バインドポーズ行列）
     Matrix4x4 offsetMatrix;
+    // デフォルトローカル変換（バインドポーズ）
+    Matrix4x4 defaultLocalTransform;
+    
+    BoneInfo() : offsetMatrix(MakeIdentity4x4()), defaultLocalTransform(MakeIdentity4x4()) {}
 };
 
 /**

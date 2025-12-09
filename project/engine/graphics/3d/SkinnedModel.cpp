@@ -1,6 +1,7 @@
 #include "SkinnedModel.h"
 
 #include <cassert>
+#include <cmath>
 
 // Assimp
 #include <assimp/Importer.hpp>
@@ -269,7 +270,37 @@ void SkinnedModel::ExtractBones(const aiScene* scene, SkinnedModelData& modelDat
 		}
 	}
 
-	// 親ボーンインデックスを設定（ノードツリーから）
+	// Armatureノード（スケルトンルート）を探してトランスフォームを取得
+	aiNode* armatureNode = nullptr;
+	if (scene->mRootNode)
+	{
+		for (uint32_t i = 0; i < scene->mRootNode->mNumChildren; ++i)
+		{
+			aiNode* child = scene->mRootNode->mChildren[i];
+			// Armatureノードまたはボーンを子に持つノードを探す
+			std::string childName = child->mName.C_Str();
+			
+			// 子ノードにボーンが含まれているか確認
+			bool hasBoneChild = false;
+			for (uint32_t j = 0; j < child->mNumChildren; ++j)
+			{
+				std::string grandchildName = child->mChildren[j]->mName.C_Str();
+				if (modelData.skeleton.GetBoneIndex(grandchildName) >= 0)
+				{
+					hasBoneChild = true;
+					break;
+				}
+			}
+			
+			if (hasBoneChild || childName.find("Armature") != std::string::npos)
+			{
+				armatureNode = child;
+				break;
+			}
+		}
+	}
+
+	// 親ボーンインデックスとデフォルトローカル変換を設定（ノードツリーから）
 	std::function<void(aiNode*, int32_t)> findParents = [&](aiNode* node, int32_t parentBoneIndex)
 	{
 		std::string nodeName = node->mName.C_Str();
@@ -278,6 +309,28 @@ void SkinnedModel::ExtractBones(const aiScene* scene, SkinnedModelData& modelDat
 		if (currentBoneIndex >= 0)
 		{
 			modelData.skeleton.bones[currentBoneIndex].parentIndex = parentBoneIndex;
+			
+			// ノードのローカル変換をデフォルトローカル変換として保存
+			aiMatrix4x4 aiLocalMatrix = node->mTransformation;
+			aiLocalMatrix.Transpose();
+			Matrix4x4 localTransform;
+			for (int32_t row = 0; row < kMatrixRows; ++row)
+			{
+				for (int32_t col = 0; col < kMatrixColumns; ++col)
+				{
+					localTransform.m[row][col] = aiLocalMatrix[row][col];
+				}
+			}
+			
+			// 左手系座標変換 (X軸反転)
+			localTransform.m[0][1] *= -1.0f;
+			localTransform.m[0][2] *= -1.0f;
+			localTransform.m[1][0] *= -1.0f;
+			localTransform.m[2][0] *= -1.0f;
+			localTransform.m[3][0] *= -1.0f;
+			
+			modelData.skeleton.bones[currentBoneIndex].defaultLocalTransform = localTransform;
+			
 			parentBoneIndex = currentBoneIndex;
 		}
 
@@ -295,6 +348,30 @@ void SkinnedModel::ExtractBones(const aiScene* scene, SkinnedModelData& modelDat
 
 void SkinnedModel::ExtractAnimations(const aiScene* scene, SkinnedModelData& modelData)
 {
+	// ルートノードからスケールを抽出（Armatureのスケールを取得）
+	Vector3 rootScale = { 1.0f, 1.0f, 1.0f };
+	if (scene->mRootNode)
+	{
+		// ルートノードの子（通常はArmature）からスケールを取得
+		for (uint32_t i = 0; i < scene->mRootNode->mNumChildren; ++i)
+		{
+			aiNode* child = scene->mRootNode->mChildren[i];
+			// Armatureまたはメッシュを持たないノード（スケルトンルート）を探す
+			aiVector3D scaling, position;
+			aiQuaternion rotation;
+			child->mTransformation.Decompose(scaling, rotation, position);
+			
+			// スケールが1でない場合、それを使用
+			if (std::abs(scaling.x - 1.0f) > 0.001f || 
+				std::abs(scaling.y - 1.0f) > 0.001f || 
+				std::abs(scaling.z - 1.0f) > 0.001f)
+			{
+				rootScale = { scaling.x, scaling.y, scaling.z };
+				break;
+			}
+		}
+	}
+
 	for (uint32_t animIndex = 0; animIndex < scene->mNumAnimations; ++animIndex)
 	{
 		aiAnimation* aiAnim = scene->mAnimations[animIndex];
@@ -310,13 +387,18 @@ void SkinnedModel::ExtractAnimations(const aiScene* scene, SkinnedModelData& mod
 			channel.boneName = nodeAnim->mNodeName.C_Str();
 			channel.boneIndex = modelData.skeleton.GetBoneIndex(channel.boneName);
 
-			// 位置キーフレーム
+			// 位置キーフレーム（ルートスケールを適用）
 			for (uint32_t i = 0; i < nodeAnim->mNumPositionKeys; ++i)
 			{
 				aiVectorKey& key = nodeAnim->mPositionKeys[i];
 				AnimationKey<Vector3> posKey;
 				posKey.time = static_cast<float>(key.mTime / clip.ticksPerSecond);
-				posKey.value = { key.mValue.x * kLeftHandConversion, key.mValue.y, key.mValue.z };
+				// ルートスケールを適用して座標系を合わせる
+				posKey.value = { 
+					key.mValue.x * kLeftHandConversion * rootScale.x, 
+					key.mValue.y * rootScale.y, 
+					key.mValue.z * rootScale.z 
+				};
 				channel.positionKeys.push_back(posKey);
 			}
 
@@ -326,8 +408,9 @@ void SkinnedModel::ExtractAnimations(const aiScene* scene, SkinnedModelData& mod
 				aiQuatKey& key = nodeAnim->mRotationKeys[i];
 				AnimationKey<Quaternion> rotKey;
 				rotKey.time = static_cast<float>(key.mTime / clip.ticksPerSecond);
-				// 左手系変換：X軸反転
-				rotKey.value = Quaternion(-key.mValue.x, key.mValue.y, key.mValue.z, key.mValue.w);
+				// 左手系変換：X軸ミラーに対応するクォータニオン変換
+				// M' = S * M * S (S = diag(-1,1,1,1)) と一致させるため (x, -y, -z, w) を使用
+				rotKey.value = Quaternion(key.mValue.x, -key.mValue.y, -key.mValue.z, key.mValue.w);
 				channel.rotationKeys.push_back(rotKey);
 			}
 

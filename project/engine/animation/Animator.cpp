@@ -1,5 +1,6 @@
 #include "Animator.h"
 
+#include <functional>
 #include "math/MatrixFunc.h"
 
 void Animator::Initialize(const Skeleton* skeleton)
@@ -104,10 +105,11 @@ void Animator::CalculateBoneTransforms()
 		return;
 	}
 
-	// 各ボーンのローカル変換を計算
+	// 各ボーンのローカル変換をデフォルト値で初期化
 	for (size_t i = 0; i < skeleton_->bones.size(); ++i)
 	{
-		localBoneMatrices_[i] = MakeIdentity4x4();
+		// アニメーションがないボーンはデフォルトローカル変換（バインドポーズ）を使用
+		localBoneMatrices_[i] = skeleton_->bones[i].defaultLocalTransform;
 	}
 
 	// アニメーションチャンネルからローカル変換を設定
@@ -145,21 +147,39 @@ void Animator::CalculateBoneTransforms()
 	}
 
 	// グローバル変換を計算（親→子の順で）
-	for (size_t i = 0; i < skeleton_->bones.size(); ++i)
+	// ボーンリストが親子順に並んでいない可能性があるため、再帰的に計算
+	std::vector<bool> computed(skeleton_->bones.size(), false);
+	
+	std::function<void(size_t)> computeGlobalTransform = [&](size_t boneIndex)
 	{
-		const BoneInfo& bone = skeleton_->bones[i];
-
-		if (bone.parentIndex >= 0)
+		if (computed[boneIndex]) return;
+		
+		const BoneInfo& bone = skeleton_->bones[boneIndex];
+		
+		if (bone.parentIndex >= 0 && bone.parentIndex < static_cast<int32_t>(skeleton_->bones.size()))
 		{
-			globalBoneMatrices_[i] = Multiply(localBoneMatrices_[i], globalBoneMatrices_[bone.parentIndex]);
+			// 親を先に計算
+			computeGlobalTransform(bone.parentIndex);
+			globalBoneMatrices_[boneIndex] = Multiply(localBoneMatrices_[boneIndex], globalBoneMatrices_[bone.parentIndex]);
 		}
 		else
 		{
-			globalBoneMatrices_[i] = localBoneMatrices_[i];
+			globalBoneMatrices_[boneIndex] = localBoneMatrices_[boneIndex];
 		}
+		
+		computed[boneIndex] = true;
+	};
+	
+	for (size_t i = 0; i < skeleton_->bones.size(); ++i)
+	{
+		computeGlobalTransform(i);
 	}
 
 	// 最終ボーン行列を計算（オフセット行列を適用）
+	// DirectXの行ベクトル規約: v' = v * M1 * M2 (左から右へ適用)
+	// skinMatrix = offsetMatrix * globalBoneMatrix
+	// → v * offsetMatrix で頂点をボーンローカル空間へ
+	// → その結果 * globalBoneMatrix でワールド空間へ
 	for (size_t i = 0; i < skeleton_->bones.size(); ++i)
 	{
 		finalBoneMatrices_[i] = Multiply(skeleton_->bones[i].offsetMatrix, globalBoneMatrices_[i]);

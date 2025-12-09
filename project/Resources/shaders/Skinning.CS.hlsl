@@ -24,8 +24,14 @@ struct OutputVertex
     float3 normal;
 };
 
+// ボーン行列データ構造体（C++の行優先レイアウトと一致させる）
+struct BoneMatrix
+{
+    row_major float4x4 matrix;
+};
+
 // ボーン行列バッファ
-StructuredBuffer<float4x4> gBoneMatrices : register(t0);
+StructuredBuffer<BoneMatrix> gBoneMatrices : register(t0);
 
 // 入力頂点バッファ (ByteAddressBuffer で明示的にバイト読み込み)
 ByteAddressBuffer gInputVertices : register(t1);
@@ -95,20 +101,20 @@ void main(uint3 DTid : SV_DispatchThreadID)
     
     // 位置スキニング行列
     float4x4 skinMatrix =
-        gBoneMatrices[boneIndices.x] * boneWeights.x +
-        gBoneMatrices[boneIndices.y] * boneWeights.y +
-        gBoneMatrices[boneIndices.z] * boneWeights.z +
-        gBoneMatrices[boneIndices.w] * boneWeights.w;
+        gBoneMatrices[boneIndices.x].matrix * boneWeights.x +
+        gBoneMatrices[boneIndices.y].matrix * boneWeights.y +
+        gBoneMatrices[boneIndices.z].matrix * boneWeights.z +
+        gBoneMatrices[boneIndices.w].matrix * boneWeights.w;
 
     // 位置変換
     float4 skinnedPosition = mul(position, skinMatrix);
 
     // 法線変換用の3x3行列を抽出
     float3x3 rotMatrix =
-        (float3x3)gBoneMatrices[boneIndices.x] * boneWeights.x +
-        (float3x3)gBoneMatrices[boneIndices.y] * boneWeights.y +
-        (float3x3)gBoneMatrices[boneIndices.z] * boneWeights.z +
-        (float3x3)gBoneMatrices[boneIndices.w] * boneWeights.w;
+        (float3x3)gBoneMatrices[boneIndices.x].matrix * boneWeights.x +
+        (float3x3)gBoneMatrices[boneIndices.y].matrix * boneWeights.y +
+        (float3x3)gBoneMatrices[boneIndices.z].matrix * boneWeights.z +
+        (float3x3)gBoneMatrices[boneIndices.w].matrix * boneWeights.w;
 
     // 逆転置行列を計算（法線変換の正しい方法）
     float3x3 normalMatrix = transpose(Inverse3x3(rotMatrix));

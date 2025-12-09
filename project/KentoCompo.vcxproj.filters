@@ -13,12 +13,6 @@
     <FxCompile Include="Resources\shaders\Skybox.VS.hlsl">
       <Filter>Resources\shader</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\shaders\BrightPass.PS.hlsl">
-      <Filter>Resources\shader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\shaders\GaussianBlur.PS.hlsl">
-      <Filter>Resources\shader</Filter>
-    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -491,6 +485,7 @@
     <ClCompile Include="engine\graphics\3d\SkinnedModel.cpp" />
     <ClCompile Include="engine\graphics\3d\SkinnedObject3d.cpp" />
     <ClCompile Include="engine\graphics\3d\SkinningCompute.cpp" />
+    <ClCompile Include="engine\animation\Animator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">

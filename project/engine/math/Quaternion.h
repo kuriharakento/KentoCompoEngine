@@ -134,7 +134,7 @@ struct Quaternion
             s0 * a.y + s1 * end.y,
             s0 * a.z + s1 * end.z,
             s0 * a.w + s1 * end.w
-        );
+        ).Normalized();
     }
 
     /**
