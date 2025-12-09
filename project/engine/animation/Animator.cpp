@@ -164,7 +164,8 @@ void Animator::CalculateBoneTransforms()
 		}
 		else
 		{
-			globalBoneMatrices_[boneIndex] = localBoneMatrices_[boneIndex];
+			// ルートボーンにはArmatureのトランスフォームを適用
+			globalBoneMatrices_[boneIndex] = Multiply(localBoneMatrices_[boneIndex], skeleton_->armatureTransform);
 		}
 		
 		computed[boneIndex] = true;

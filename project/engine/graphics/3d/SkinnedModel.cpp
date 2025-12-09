@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <Windows.h>
 
 // Assimp
 #include <assimp/Importer.hpp>
@@ -274,30 +275,104 @@ void SkinnedModel::ExtractBones(const aiScene* scene, SkinnedModelData& modelDat
 	aiNode* armatureNode = nullptr;
 	if (scene->mRootNode)
 	{
-		for (uint32_t i = 0; i < scene->mRootNode->mNumChildren; ++i)
+		// ルートノードのスケールを確認
+		aiVector3D rootScaling, rootPosition;
+		aiQuaternion rootRotation;
+		scene->mRootNode->mTransformation.Decompose(rootScaling, rootRotation, rootPosition);
+		
+		char debugMsg[512];
+		sprintf_s(debugMsg, "[SkinnedModel] Root node: '%s', Scale: (%.4f, %.4f, %.4f)\n", 
+			scene->mRootNode->mName.C_Str(), rootScaling.x, rootScaling.y, rootScaling.z);
+		OutputDebugStringA(debugMsg);
+		
+		// ルートノード自体が非1スケールを持つ場合、それがArmature
+		if (std::abs(rootScaling.x - 1.0f) > 0.001f || 
+			std::abs(rootScaling.y - 1.0f) > 0.001f || 
+			std::abs(rootScaling.z - 1.0f) > 0.001f)
 		{
-			aiNode* child = scene->mRootNode->mChildren[i];
-			// Armatureノードまたはボーンを子に持つノードを探す
-			std::string childName = child->mName.C_Str();
-			
-			// 子ノードにボーンが含まれているか確認
-			bool hasBoneChild = false;
-			for (uint32_t j = 0; j < child->mNumChildren; ++j)
+			armatureNode = scene->mRootNode;
+			OutputDebugStringA("[SkinnedModel] Using ROOT NODE as Armature (has non-1 scale)\n");
+		}
+		else
+		{
+			// 子ノードから非1スケールを持つノードを探す
+			for (uint32_t i = 0; i < scene->mRootNode->mNumChildren; ++i)
 			{
-				std::string grandchildName = child->mChildren[j]->mName.C_Str();
-				if (modelData.skeleton.GetBoneIndex(grandchildName) >= 0)
+				aiNode* child = scene->mRootNode->mChildren[i];
+				aiVector3D scaling, position;
+				aiQuaternion rotation;
+				child->mTransformation.Decompose(scaling, rotation, position);
+				
+				if (std::abs(scaling.x - 1.0f) > 0.001f || 
+					std::abs(scaling.y - 1.0f) > 0.001f || 
+					std::abs(scaling.z - 1.0f) > 0.001f)
 				{
-					hasBoneChild = true;
+					armatureNode = child;
 					break;
 				}
 			}
 			
-			if (hasBoneChild || childName.find("Armature") != std::string::npos)
+			// 非1スケールのノードが見つからない場合は、ボーンを持つノードを探す
+			if (!armatureNode)
 			{
-				armatureNode = child;
-				break;
+				for (uint32_t i = 0; i < scene->mRootNode->mNumChildren; ++i)
+				{
+					aiNode* child = scene->mRootNode->mChildren[i];
+					std::string childName = child->mName.C_Str();
+					
+					bool hasBoneChild = false;
+					for (uint32_t j = 0; j < child->mNumChildren; ++j)
+					{
+						std::string grandchildName = child->mChildren[j]->mName.C_Str();
+						if (modelData.skeleton.GetBoneIndex(grandchildName) >= 0)
+						{
+							hasBoneChild = true;
+							break;
+						}
+					}
+					
+					if (hasBoneChild || childName.find("Armature") != std::string::npos)
+					{
+						armatureNode = child;
+						break;
+					}
+				}
 			}
 		}
+	}
+
+	// Armatureノードのトランスフォームをスケルトンに保存
+	if (armatureNode)
+	{
+		// デバッグ: Armatureノード名とスケールを出力
+		aiVector3D scaling, position;
+		aiQuaternion rotation;
+		armatureNode->mTransformation.Decompose(scaling, rotation, position);
+		
+		char debugMsg[256];
+		sprintf_s(debugMsg, "[SkinnedModel] Armature found: '%s', Scale: (%.4f, %.4f, %.4f)\n", 
+			armatureNode->mName.C_Str(), scaling.x, scaling.y, scaling.z);
+		OutputDebugStringA(debugMsg);
+
+		aiMatrix4x4 aiArmatureMatrix = armatureNode->mTransformation;
+		aiArmatureMatrix.Transpose();
+		for (int32_t row = 0; row < kMatrixRows; ++row)
+		{
+			for (int32_t col = 0; col < kMatrixColumns; ++col)
+			{
+				modelData.skeleton.armatureTransform.m[row][col] = aiArmatureMatrix[row][col];
+			}
+		}
+		// 左手系座標変換 (X軸反転)
+		modelData.skeleton.armatureTransform.m[0][1] *= -1.0f;
+		modelData.skeleton.armatureTransform.m[0][2] *= -1.0f;
+		modelData.skeleton.armatureTransform.m[1][0] *= -1.0f;
+		modelData.skeleton.armatureTransform.m[2][0] *= -1.0f;
+		modelData.skeleton.armatureTransform.m[3][0] *= -1.0f;
+	}
+	else
+	{
+		OutputDebugStringA("[SkinnedModel] WARNING: Armature node not found!\n");
 	}
 
 	// 親ボーンインデックスとデフォルトローカル変換を設定（ノードツリーから）
@@ -348,30 +423,6 @@ void SkinnedModel::ExtractBones(const aiScene* scene, SkinnedModelData& modelDat
 
 void SkinnedModel::ExtractAnimations(const aiScene* scene, SkinnedModelData& modelData)
 {
-	// ルートノードからスケールを抽出（Armatureのスケールを取得）
-	Vector3 rootScale = { 1.0f, 1.0f, 1.0f };
-	if (scene->mRootNode)
-	{
-		// ルートノードの子（通常はArmature）からスケールを取得
-		for (uint32_t i = 0; i < scene->mRootNode->mNumChildren; ++i)
-		{
-			aiNode* child = scene->mRootNode->mChildren[i];
-			// Armatureまたはメッシュを持たないノード（スケルトンルート）を探す
-			aiVector3D scaling, position;
-			aiQuaternion rotation;
-			child->mTransformation.Decompose(scaling, rotation, position);
-			
-			// スケールが1でない場合、それを使用
-			if (std::abs(scaling.x - 1.0f) > 0.001f || 
-				std::abs(scaling.y - 1.0f) > 0.001f || 
-				std::abs(scaling.z - 1.0f) > 0.001f)
-			{
-				rootScale = { scaling.x, scaling.y, scaling.z };
-				break;
-			}
-		}
-	}
-
 	for (uint32_t animIndex = 0; animIndex < scene->mNumAnimations; ++animIndex)
 	{
 		aiAnimation* aiAnim = scene->mAnimations[animIndex];
@@ -387,17 +438,17 @@ void SkinnedModel::ExtractAnimations(const aiScene* scene, SkinnedModelData& mod
 			channel.boneName = nodeAnim->mNodeName.C_Str();
 			channel.boneIndex = modelData.skeleton.GetBoneIndex(channel.boneName);
 
-			// 位置キーフレーム（ルートスケールを適用）
+			// 位置キーフレーム（左手系座標変換のみ適用、スケールはarmatureTransformで処理）
 			for (uint32_t i = 0; i < nodeAnim->mNumPositionKeys; ++i)
 			{
 				aiVectorKey& key = nodeAnim->mPositionKeys[i];
 				AnimationKey<Vector3> posKey;
 				posKey.time = static_cast<float>(key.mTime / clip.ticksPerSecond);
-				// ルートスケールを適用して座標系を合わせる
+				// 左手系座標変換のみ適用（スケールはAnimatorでarmatureTransformを適用）
 				posKey.value = { 
-					key.mValue.x * kLeftHandConversion * rootScale.x, 
-					key.mValue.y * rootScale.y, 
-					key.mValue.z * rootScale.z 
+					key.mValue.x * kLeftHandConversion, 
+					key.mValue.y, 
+					key.mValue.z 
 				};
 				channel.positionKeys.push_back(posKey);
 			}
