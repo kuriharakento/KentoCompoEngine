@@ -54,7 +54,7 @@ void GameClearScene::Initialize()
 	skinnedObject_->SetLightManager(lightManager);
 	skinnedObject_->SetTranslate({ 5.0f, 0.0f, 0.0f }); // 右側に配置
 	skinnedObject_->SetScale({ 1.0f, 1.0f, 1.0f });
-	//skinnedObject_->PlayAnimation(0, true);
+	skinnedObject_->PlayAnimation(0, true);
 
 	// デバッグカメラの初期化
 	debugCamera_.Initialize(cameraManager->GetActiveCamera());

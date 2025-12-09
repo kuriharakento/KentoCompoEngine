@@ -77,9 +77,14 @@ void SkinnedObject3d::Update(float deltaTime)
 		cameraData_->worldPos = camera_->GetTranslate();
 	}
 
-	// ライト情報を更新
+	// ライト情報を更新（LightManagerからディレクショナルライトを同期）
 	if (directionalLightData_)
 	{
+		if (lightManager_)
+		{
+			// LightManagerからディレクショナルライトを取得して同期
+			directionalLight_ = lightManager_->GetDirectionalLight();
+		}
 		*directionalLightData_ = directionalLight_;
 	}
 }
