@@ -40,6 +40,38 @@ cbuffer SkinningConstants : register(b0)
     uint3 gPadding;
 };
 
+// 3x3行列の逆行列を計算
+float3x3 Inverse3x3(float3x3 m)
+{
+    float det = determinant(m);
+    
+    // 特異行列の場合は単位行列を返す
+    if (abs(det) < 1e-6)
+    {
+        return float3x3(
+            1, 0, 0,
+            0, 1, 0,
+            0, 0, 1
+        );
+    }
+    
+    float invDet = 1.0 / det;
+    
+    // 余因子行列（転置済み）
+    float3x3 adj;
+    adj[0][0] = (m[1][1] * m[2][2] - m[1][2] * m[2][1]) * invDet;
+    adj[0][1] = (m[0][2] * m[2][1] - m[0][1] * m[2][2]) * invDet;
+    adj[0][2] = (m[0][1] * m[1][2] - m[0][2] * m[1][1]) * invDet;
+    adj[1][0] = (m[1][2] * m[2][0] - m[1][0] * m[2][2]) * invDet;
+    adj[1][1] = (m[0][0] * m[2][2] - m[0][2] * m[2][0]) * invDet;
+    adj[1][2] = (m[0][2] * m[1][0] - m[0][0] * m[1][2]) * invDet;
+    adj[2][0] = (m[1][0] * m[2][1] - m[1][1] * m[2][0]) * invDet;
+    adj[2][1] = (m[0][1] * m[2][0] - m[0][0] * m[2][1]) * invDet;
+    adj[2][2] = (m[0][0] * m[1][1] - m[0][1] * m[1][0]) * invDet;
+    
+    return adj;
+}
+
 [numthreads(256, 1, 1)]
 void main(uint3 DTid : SV_DispatchThreadID)
 {
@@ -61,26 +93,34 @@ void main(uint3 DTid : SV_DispatchThreadID)
     uint4 boneIndices = gInputVertices.Load4(baseOffset + OFFSET_BONE_INDICES);
     float4 boneWeights = asfloat(gInputVertices.Load4(baseOffset + OFFSET_BONE_WEIGHTS));
     
-    // スキニング行列の計算
-    float4x4 skinMatrix = 
+    // 位置スキニング行列
+    float4x4 skinMatrix =
         gBoneMatrices[boneIndices.x] * boneWeights.x +
         gBoneMatrices[boneIndices.y] * boneWeights.y +
         gBoneMatrices[boneIndices.z] * boneWeights.z +
         gBoneMatrices[boneIndices.w] * boneWeights.w;
-    
-    // 位置を変換
+
+    // 位置変換
     float4 skinnedPosition = mul(position, skinMatrix);
-    
-    // 法線を変換（3x3部分のみ使用）
-    float3 transformedNormal = mul(normal, (float3x3)skinMatrix);
-    float normalLen = length(transformedNormal);
-    float3 skinnedNormal = (normalLen > 1e-5) ? transformedNormal / normalLen : normal;
+
+    // 法線変換用の3x3行列を抽出
+    float3x3 rotMatrix =
+        (float3x3)gBoneMatrices[boneIndices.x] * boneWeights.x +
+        (float3x3)gBoneMatrices[boneIndices.y] * boneWeights.y +
+        (float3x3)gBoneMatrices[boneIndices.z] * boneWeights.z +
+        (float3x3)gBoneMatrices[boneIndices.w] * boneWeights.w;
+
+    // 逆転置行列を計算（法線変換の正しい方法）
+    float3x3 normalMatrix = transpose(Inverse3x3(rotMatrix));
+
+    // 法線を変換して正規化
+    float3 skinnedNormal = normalize(mul(normal, normalMatrix));
     
     // 出力
     OutputVertex output;
     output.position = skinnedPosition;
     output.texcoord = texcoord;
-    output.normal = -skinnedNormal; // 法線を反転してライティング修正
+    output.normal = skinnedNormal;
     
     gOutputVertices[vertexIndex] = output;
 }
