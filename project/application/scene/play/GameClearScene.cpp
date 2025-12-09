@@ -29,7 +29,16 @@ void GameClearScene::Initialize()
 	for (int i = 0; i < 3; ++i) {
 		auto obj = std::make_unique<Object3d>();
 		obj->Initialize(object3dCommon);
-		obj->SetModel("cube");
+		if(i == 0){
+			obj->SetModel("plane");
+		}
+		else if(i == 1){
+			obj->SetModel("multimesh");
+		}
+		else{
+			obj->SetModel("multimaterial");
+		}
+
 		obj->SetScale({ 1.0f, 1.0f, 1.0f });
 		obj->SetTranslate({ static_cast<float>(i - 1) * 3.0f, 5.0f, 0.0f });
 		obj->SetLightManager(lightManager);

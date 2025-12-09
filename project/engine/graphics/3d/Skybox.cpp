@@ -121,17 +121,16 @@ void Skybox::Draw()
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, materialResource_->GetGPUVirtualAddress());
 
 	// テクスチャのSRVを設定
-	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetSrvHandleGPU(modelData_.material.textureIndex));
+	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetSrvHandleGPU(textureIndex_));
 
 	// 描画コマンドを発行
-	dxCommon_->GetCommandList()->DrawInstanced(UINT(modelData_.vertices.size()), 1, 0, 0);
+	dxCommon_->GetCommandList()->DrawInstanced(UINT(vertexCount_), 1, 0, 0);
 }
 
 void Skybox::CreateModeldata(const std::string& textureFilePath)
 {
 	// テクスチャファイルパスとインデックスを設定
-	modelData_.material.textureFilePath = textureFilePath;
-	modelData_.material.textureIndex = TextureManager::GetInstance()->GetTextureIndexByFilePath(modelData_.material.textureFilePath);
+	textureIndex_ = TextureManager::GetInstance()->GetTextureIndexByFilePath(textureFilePath);
 
 	// マテリアルリソースの作成
 	materialResource_ = dxCommon_->CreateBufferResource(sizeof(Material));
@@ -210,7 +209,7 @@ void Skybox::CreateVertexData()
 	vertexBuffer_ = dxCommon_->CreateBufferResource(sizeof(VertexData) * vertices.size());
 	vertexBuffer_->Map(0, nullptr, reinterpret_cast<void**>(&vertices_));
 	std::memcpy(vertices_, vertices.data(), sizeof(VertexData) * vertices.size());
-	modelData_.vertices = vertices;
+	vertexCount_ = vertices.size();
 	vertexBuffer_->Unmap(0, nullptr);
 
 	// 頂点バッファビューの設定

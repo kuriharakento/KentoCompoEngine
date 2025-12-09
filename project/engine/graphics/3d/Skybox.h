@@ -104,8 +104,10 @@ private:
 	// マテリアルデータへのポインタ
 	Material* material_ = nullptr;
 
-	// モデルデータ
-	ModelData modelData_;
+	// テクスチャインデックス
+	uint32_t textureIndex_ = 0;
+	// 頂点数
+	size_t vertexCount_ = 0;
 
 	// 座標変換行列リソース
 	Microsoft::WRL::ComPtr<ID3D12Resource> wvpResource_;

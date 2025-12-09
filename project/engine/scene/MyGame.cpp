@@ -325,6 +325,8 @@ void MyGame::LoadTextures()
 
 void MyGame::LoadModels()
 {
+	ModelManager::GetInstance()->LoadModel("multimaterial");
+	ModelManager::GetInstance()->LoadModel("multimesh");
 	ModelManager::GetInstance()->LoadModel("cube");
 	ModelManager::GetInstance()->LoadModel("terrain");
 	ModelManager::GetInstance()->LoadModel("skydome");

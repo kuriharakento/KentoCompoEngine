@@ -118,10 +118,25 @@ struct Transform
  */
 struct MaterialData
 {
+    // マテリアル名
+    std::string name;
     // テクスチャファイルパス
     std::string textureFilePath;
     // テクスチャインデックス
     uint32_t textureIndex = 0;
+};
+
+/**
+ * @brief メッシュデータ（1つのサブメッシュ）
+ */
+struct MeshData
+{
+    // 頂点データ
+    std::vector<VertexData> vertices;
+    // インデックスデータ
+    std::vector<uint32_t> indices;
+    // 使用するマテリアルのインデックス
+    uint32_t materialIndex = 0;
 };
 
 /**
@@ -142,10 +157,10 @@ struct Node
  */
 struct ModelData
 {
-    // 頂点データ
-	std::vector<VertexData> vertices;
-    // マテリアルデータ
-	MaterialData material;
+    // メッシュデータ（マルチメッシュ対応）
+    std::vector<MeshData> meshes;
+    // マテリアルデータ（マルチマテリアル対応）
+    std::vector<MaterialData> materials;
     // ルートノード
 	Node rootNode;
 };
