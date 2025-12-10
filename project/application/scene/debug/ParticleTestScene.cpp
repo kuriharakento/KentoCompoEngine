@@ -11,11 +11,11 @@
 #include "manager/scene/CameraManager.h"
 #include "math/VectorColorCodes.h"
 #include "scene/manager/SceneManager.h"
+#include "base/DirectXCommon.h"
+#include "manager/system/SrvManager.h"
 
 void ParticleTestScene::Initialize()
 {
-	StartState(SceneState::Playing);
-
 	debugCamera_ = std::make_unique<DebugCamera>();
 	debugCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
 	debugCamera_->Start();
@@ -23,65 +23,34 @@ void ParticleTestScene::Initialize()
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate({ 0.0f, 5.0f, -20.0f });
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetRotate({ 0.0f, 0.0f, 0.0f });
 
-	// 新パーティクルシステムでオーラエフェクトを作成
-	{
-		auto emitter = std::make_unique<ParticleEmitter>();
-		emitter->Initialize("auraCylinder");
-		
-		auto renderer = std::make_unique<SpriteRenderer>();
-		renderer->Initialize("./Resources/gradation.png");
-		renderer->SetBlendMode(BlendMode::Additive);
-		emitter->SetRenderer(std::move(renderer));
-		
-		emitter->AddModule(std::make_unique<SpawnRateModule>(1.0f));
-		emitter->AddModule(std::make_unique<InitialLifetimeModule>(2.0f, 2.0f));
-		emitter->AddModule(std::make_unique<InitialScaleModule>(Vector3(0.3f, 10.0f, 0.3f), Vector3(0.3f, 10.0f, 0.3f)));
-		emitter->AddModule(std::make_unique<InitialColorModule>(Vector4(1.0f, 1.0f, 1.0f, 1.0f)));
-		
-		ParticleManager::GetInstance()->AddEmitter(std::move(emitter));
-	}
+	// パーティクルエディタの初期化
+	particleEditor_ = std::make_unique<ParticleEditor>();
+	particleEditor_->Initialize(
+		ParticleManager::GetInstance()->GetDxCommon(),
+		ParticleManager::GetInstance()->GetSrvManager()
+	);
+	particleEditor_->SetVisible(true);  // 最初から表示
 
-	{
-		auto emitter = std::make_unique<ParticleEmitter>();
-		emitter->Initialize("auraMist");
-		
-		auto renderer = std::make_unique<SpriteRenderer>();
-		renderer->Initialize("./Resources/gradation.png");
-		renderer->SetBlendMode(BlendMode::Additive);
-		emitter->SetRenderer(std::move(renderer));
-		
-		emitter->AddModule(std::make_unique<SpawnRateModule>(5.0f));
-		emitter->AddModule(std::make_unique<InitialPositionModule>(Vector3(-0.5f, 0.0f, -0.5f), Vector3(0.5f, 0.0f, 0.5f)));
-		emitter->AddModule(std::make_unique<InitialVelocityModule>(Vector3(0.0f, 0.3f, 0.0f), Vector3(0.0f, 0.5f, 0.0f)));
-		emitter->AddModule(std::make_unique<InitialLifetimeModule>(1.0f, 2.0f));
-		emitter->AddModule(std::make_unique<InitialScaleModule>(Vector3(1.0f, 2.0f, 1.0f), Vector3(1.5f, 3.0f, 1.5f)));
-		emitter->AddModule(std::make_unique<InitialColorModule>(Vector4(1.0f, 1.0f, 1.0f, 0.3f)));
-		emitter->AddModule(std::make_unique<ColorFadeModule>(Vector4(1.0f, 1.0f, 1.0f, 0.3f), Vector4(1.0f, 1.0f, 1.0f, 0.0f)));
-		
-		ParticleManager::GetInstance()->AddEmitter(std::move(emitter));
-	}
-
-	{
-		auto emitter = std::make_unique<ParticleEmitter>();
-		emitter->Initialize("auraFloor");
-		
-		auto renderer = std::make_unique<SpriteRenderer>();
-		renderer->Initialize("./Resources/gradation.png");
-		renderer->SetBlendMode(BlendMode::Additive);
-		emitter->SetRenderer(std::move(renderer));
-		
-		emitter->AddModule(std::make_unique<SpawnRateModule>(1.0f));
-		emitter->AddModule(std::make_unique<InitialLifetimeModule>(1.0f, 1.0f));
-		emitter->AddModule(std::make_unique<InitialColorModule>(Vector4(1.0f, 1.0f, 1.0f, 1.0f)));
-		emitter->AddModule(std::make_unique<ScaleOverLifetimeModule>(Vector3(0.0f, 0.0f, 0.0f), Vector3(3.0f, 3.0f, 3.0f)));
-		emitter->AddModule(std::make_unique<ColorFadeModule>(Vector4(1.0f, 1.0f, 1.0f, 1.0f), Vector4(1.0f, 1.0f, 1.0f, 0.0f)));
-		
-		ParticleManager::GetInstance()->AddEmitter(std::move(emitter));
-	}
+	// スカイドームの初期化
+	skydome_ = std::make_unique<Object3d>();
+	skydome_->Initialize(sceneManager_->GetObject3dCommon());
+	skydome_->SetModel("skydome");
+	skydome_->SetLightManager(sceneManager_->GetLightManager());
+	skydome_->SetEnableLighting(true);
+	skydome_->SetDirectionalLightIntensity(0.5f);
+	skydome_->SetDirectionalLightDirection({ 0.0f, -1.0f, 0.0f });
+	skydome_->SetScale({ 0.8f, 0.8f, 0.8f });
+	skydome_->SetCastShadow(false);
+	
+	StartState(SceneState::Playing);
 }
 
 void ParticleTestScene::Finalize()
 {
+	particleEditor_.reset();
+	
+	// シーン終了時にパーティクルをクリア
+	ParticleManager::GetInstance()->Clear();
 }
 
 // ==================================================
@@ -102,6 +71,18 @@ void ParticleTestScene::OnEnterPlaying()
 void ParticleTestScene::OnUpdatePlaying()
 {
 	if (debugCamera_) debugCamera_->Update();
+
+	// エディタの更新（ImGui描画）
+	if (particleEditor_)
+	{
+		particleEditor_->Update(sceneManager_->GetCameraManager());
+	}
+
+	// スカイドームの更新
+	skydome_->Update(sceneManager_->GetCameraManager());
+
+	// ParticleManager のImGuiを表示
+	ParticleManager::GetInstance()->DrawImGui();
 }
 
 void ParticleTestScene::Draw2D()
@@ -115,4 +96,9 @@ void ParticleTestScene::Draw3D()
 		5.0f,
 		VectorColorCodes::White
 	);
+
+	// スカイドームの描画
+	skydome_->Draw();
+
+	// パーティクルエディタの描画はParticleManagerが行うため不要
 }

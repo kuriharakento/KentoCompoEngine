@@ -18,7 +18,7 @@ public:
 	{
 		for (auto& particle : *context.particles)
 		{
-			if (particle.age == 0.0f)
+			if (particle.age == 0.0f && particle.IsAlive())
 			{
 				Vector3 offset = MathUtils::RandomVector3(minOffset_, maxOffset_);
 				particle.position = context.emitterPosition + offset;
@@ -26,8 +26,9 @@ public:
 		}
 	}
 
-	ModulePhase GetPhase() const override { return ModulePhase::ParticleSpawn; }
+	ModulePhase GetPhase() const override { return ModulePhase::Spawn; }
 	const char* GetName() const override { return "InitialPosition"; }
+	int32_t GetPriority() const override { return 10; } // 位置は早めに設定
 
 	void SetOffsetRange(const Vector3& min, const Vector3& max)
 	{
@@ -53,21 +54,22 @@ public:
 	{
 		for (auto& particle : *context.particles)
 		{
-			if (particle.age == 0.0f)
+			if (particle.age == 0.0f && particle.IsAlive())
 			{
 				particle.velocity = MathUtils::RandomVector3(minVelocity_, maxVelocity_);
 			}
 		}
 	}
 
-	ModulePhase GetPhase() const override { return ModulePhase::ParticleSpawn; }
+	ModulePhase GetPhase() const override { return ModulePhase::Spawn; }
 	const char* GetName() const override { return "InitialVelocity"; }
+	int32_t GetPriority() const override { return 20; }
 
-	void SetVelocityRange(const Vector3& min, const Vector3& max)
-	{
-		minVelocity_ = min;
-		maxVelocity_ = max;
-	}
+	void SetVelocityRange(const Vector3& min, const Vector3& max) { minVelocity_ = min; maxVelocity_ = max; }
+	void SetMinVelocity(const Vector3& v) { minVelocity_ = v; }
+	void SetMaxVelocity(const Vector3& v) { maxVelocity_ = v; }
+	Vector3 GetMinVelocity() const { return minVelocity_; }
+	Vector3 GetMaxVelocity() const { return maxVelocity_; }
 
 private:
 	Vector3 minVelocity_ = {};
@@ -87,21 +89,22 @@ public:
 	{
 		for (auto& particle : *context.particles)
 		{
-			if (particle.age == 0.0f)
+			if (particle.age == 0.0f && particle.IsAlive())
 			{
 				particle.lifetime = MathUtils::RandomFloat(minLifetime_, maxLifetime_);
 			}
 		}
 	}
 
-	ModulePhase GetPhase() const override { return ModulePhase::ParticleSpawn; }
+	ModulePhase GetPhase() const override { return ModulePhase::Spawn; }
 	const char* GetName() const override { return "InitialLifetime"; }
+	int32_t GetPriority() const override { return 5; } // 寿命は最初に設定
 
-	void SetLifetimeRange(float min, float max)
-	{
-		minLifetime_ = min;
-		maxLifetime_ = max;
-	}
+	void SetLifetimeRange(float min, float max) { minLifetime_ = min; maxLifetime_ = max; }
+	void SetMinLifetime(float v) { minLifetime_ = v; }
+	void SetMaxLifetime(float v) { maxLifetime_ = v; }
+	float GetMinLifetime() const { return minLifetime_; }
+	float GetMaxLifetime() const { return maxLifetime_; }
 
 private:
 	float minLifetime_ = 1.0f;
@@ -115,26 +118,36 @@ class InitialColorModule : public IModule
 {
 public:
 	InitialColorModule(const Vector4& color = { 1, 1, 1, 1 })
-		: color_(color) {}
+		: minColor_(color), maxColor_(color) {}
 
 	void Execute(ParticleContext& context) override
 	{
 		for (auto& particle : *context.particles)
 		{
-			if (particle.age == 0.0f)
+			if (particle.age == 0.0f && particle.IsAlive())
 			{
-				particle.color = color_;
+				// min〜maxの間でランダム
+				particle.color.x = minColor_.x + (maxColor_.x - minColor_.x) * (rand() / static_cast<float>(RAND_MAX));
+				particle.color.y = minColor_.y + (maxColor_.y - minColor_.y) * (rand() / static_cast<float>(RAND_MAX));
+				particle.color.z = minColor_.z + (maxColor_.z - minColor_.z) * (rand() / static_cast<float>(RAND_MAX));
+				particle.color.w = minColor_.w + (maxColor_.w - minColor_.w) * (rand() / static_cast<float>(RAND_MAX));
 			}
 		}
 	}
 
-	ModulePhase GetPhase() const override { return ModulePhase::ParticleSpawn; }
+	ModulePhase GetPhase() const override { return ModulePhase::Spawn; }
 	const char* GetName() const override { return "InitialColor"; }
+	int32_t GetPriority() const override { return 30; }
 
-	void SetColor(const Vector4& color) { color_ = color; }
+	void SetColor(const Vector4& color) { minColor_ = color; maxColor_ = color; }
+	void SetMinColor(const Vector4& c) { minColor_ = c; }
+	void SetMaxColor(const Vector4& c) { maxColor_ = c; }
+	Vector4 GetMinColor() const { return minColor_; }
+	Vector4 GetMaxColor() const { return maxColor_; }
 
 private:
-	Vector4 color_ = { 1, 1, 1, 1 };
+	Vector4 minColor_ = { 1, 1, 1, 1 };
+	Vector4 maxColor_ = { 1, 1, 1, 1 };
 };
 
 /**
@@ -150,21 +163,22 @@ public:
 	{
 		for (auto& particle : *context.particles)
 		{
-			if (particle.age == 0.0f)
+			if (particle.age == 0.0f && particle.IsAlive())
 			{
 				particle.scale = MathUtils::RandomVector3(minScale_, maxScale_);
 			}
 		}
 	}
 
-	ModulePhase GetPhase() const override { return ModulePhase::ParticleSpawn; }
+	ModulePhase GetPhase() const override { return ModulePhase::Spawn; }
 	const char* GetName() const override { return "InitialScale"; }
+	int32_t GetPriority() const override { return 25; }
 
-	void SetScaleRange(const Vector3& min, const Vector3& max)
-	{
-		minScale_ = min;
-		maxScale_ = max;
-	}
+	void SetScaleRange(const Vector3& min, const Vector3& max) { minScale_ = min; maxScale_ = max; }
+	void SetMinScale(const Vector3& s) { minScale_ = s; }
+	void SetMaxScale(const Vector3& s) { maxScale_ = s; }
+	Vector3 GetMinScale() const { return minScale_; }
+	Vector3 GetMaxScale() const { return maxScale_; }
 
 private:
 	Vector3 minScale_ = { 1, 1, 1 };

@@ -60,18 +60,35 @@ public:
 
 	const std::string& GetName() const { return name_; }
 
+	// Play/Stop制御
+	void SetEnabled(bool enabled) { enabled_ = enabled; }
+	bool IsEnabled() const { return enabled_; }
+	void Play() { enabled_ = true; }
+	void Stop() { enabled_ = false; }
+	void ClearParticles() { particles_.clear(); }
+
 	std::vector<Particle>& GetParticles() { return particles_; }
 	const std::vector<Particle>& GetParticles() const { return particles_; }
 
 	void SpawnParticle(const Particle& particle);
+
+	// モジュールアクセス
+	size_t GetModuleCount() const { return modules_.size(); }
+	IModule* GetModule(size_t index) { return index < modules_.size() ? modules_[index].get() : nullptr; }
+	const IModule* GetModule(size_t index) const { return index < modules_.size() ? modules_[index].get() : nullptr; }
+	void RemoveModule(size_t index);
+	void MoveModuleUp(size_t index);
+	void MoveModuleDown(size_t index);
+
 	GPUSimulator* GetGPUSimulator() const { return gpuSimulator_.get(); }
 
 private:
 	void UpdateCPU(float deltaTime);
-	void UpdateGPU(float deltaTime);
+	void UpdateGPU(float deltaTime, CameraManager* camera);
 	void RemoveDeadParticles();
 	void ExecuteSpawnModules(ParticleContext& context);
 	void ExecuteUpdateModules(ParticleContext& context);
+	void SortModulesByPriority();
 
 private:
 	std::string name_;
@@ -87,4 +104,6 @@ private:
 	Vector3 position_ = {};
 	Transform* followTarget_ = nullptr;
 	uint32_t nextParticleId_ = 0;
+	bool modulesSorted_ = false;
+	bool enabled_ = true;
 };

@@ -22,6 +22,14 @@ void SrvManager::Initialize(DirectXCommon* dxCommon)
 
 uint32_t SrvManager::Allocate()
 {
+	// フリーリストに空きがあればそれを使う
+	if (!freeList_.empty())
+	{
+		uint32_t index = freeList_.back();
+		freeList_.pop_back();
+		return index;
+	}
+
 	// 最大SRV数を超えていないかチェック（オーバーフロー防止）
 	assert(useIndex_ < kMaxSRVCount);
 
@@ -31,6 +39,11 @@ uint32_t SrvManager::Allocate()
 	useIndex_++;
 	// 確保したインデックスを返す
 	return index;
+}
+
+void SrvManager::Free(uint32_t index)
+{
+	freeList_.push_back(index);
 }
 
 uint32_t SrvManager::AllocateRange(uint32_t count)

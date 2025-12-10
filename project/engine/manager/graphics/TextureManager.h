@@ -3,6 +3,7 @@
 #include <string>
 #include <wrl.h>
 #include <unordered_map>
+#include <vector>
 
 // system
 #include "base/DirectXCommon.h"
@@ -98,6 +99,21 @@ public: // アクセッサ
 	 * @return CPUディスクリプタハンドル
 	 */
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSrvHandleCPU(uint32_t textureIndex) { return textureDatas_[indexToFilePath_[textureIndex]].srvHandleCPU; }
+
+	/**
+	 * @brief 読み込み済みテクスチャのパス一覧を取得
+	 * @return テクスチャパスのベクター
+	 */
+	std::vector<std::string> GetLoadedTexturePaths() const
+	{
+		std::vector<std::string> paths;
+		paths.reserve(textureDatas_.size());
+		for (const auto& pair : textureDatas_)
+		{
+			paths.push_back(pair.first);
+		}
+		return paths;
+	}
 
 private: // 構造体
 	/**

@@ -11,6 +11,7 @@ struct ParticleForGPU
     float32_t4x4 WVP;
     float32_t4x4 World;
     float32_t4 color;
+    float32_t4 uvOffsetScale; // テクスチャシート用 (offsetX, offsetY, scaleX, scaleY)
 };
 
 StructuredBuffer<ParticleForGPU> gParticle : register(t0);

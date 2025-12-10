@@ -135,8 +135,15 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <!-- Particle System -->
     <ClCompile Include="engine\effects\particle\ParticleEmitter.cpp" />
     <ClCompile Include="engine\effects\particle\ParticleManager.cpp" />
+    <ClCompile Include="engine\effects\particle\ParticleEffect.cpp" />
     <ClCompile Include="engine\effects\particle\gpu\GPUSimulator.cpp" />
+    <ClCompile Include="engine\effects\particle\gpu\GPUParticlePipeline.cpp" />
     <ClCompile Include="engine\effects\particle\renderer\SpriteRenderer.cpp" />
+    <ClCompile Include="engine\effects\particle\renderer\RibbonRenderer.cpp" />
+    <ClCompile Include="engine\effects\particle\renderer\MeshRenderer.cpp" />
+    <ClCompile Include="engine\effects\particle\primitive\PrimitiveGenerator.cpp" />
+    <ClCompile Include="engine\effects\particle\editor\ParticleEditor.cpp" />
+    <ClCompile Include="engine\effects\particle\serialization\ParticleEffectSerializer.cpp" />
     <ClCompile Include="engine\effects\postprocess\BloomEffect.cpp" />
     <ClCompile Include="engine\camerawork\debug\DebugCamera.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
@@ -302,13 +309,23 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\effects\particle\ParticleTypes.h" />
     <ClInclude Include="engine\effects\particle\ParticleEmitter.h" />
     <ClInclude Include="engine\effects\particle\ParticleManager.h" />
+    <ClInclude Include="engine\effects\particle\ParticleEffect.h" />
     <ClInclude Include="engine\effects\particle\module\IModule.h" />
     <ClInclude Include="engine\effects\particle\module\spawn\SpawnModules.h" />
     <ClInclude Include="engine\effects\particle\module\spawn\InitialModules.h" />
     <ClInclude Include="engine\effects\particle\module\update\UpdateModules.h" />
+    <ClInclude Include="engine\effects\particle\module\update\TextureSheetModule.h" />
+    <ClInclude Include="engine\effects\particle\module\update\ForceFieldModules.h" />
+    <ClInclude Include="engine\effects\particle\dynamic\DynamicInput.h" />
     <ClInclude Include="engine\effects\particle\renderer\IRenderer.h" />
     <ClInclude Include="engine\effects\particle\renderer\SpriteRenderer.h" />
+    <ClInclude Include="engine\effects\particle\renderer\RibbonRenderer.h" />
+    <ClInclude Include="engine\effects\particle\renderer\MeshRenderer.h" />
+    <ClInclude Include="engine\effects\particle\primitive\PrimitiveGenerator.h" />
     <ClInclude Include="engine\effects\particle\gpu\GPUSimulator.h" />
+    <ClInclude Include="engine\effects\particle\gpu\GPUParticlePipeline.h" />
+    <ClInclude Include="engine\effects\particle\editor\ParticleEditor.h" />
+    <ClInclude Include="engine\effects\particle\serialization\ParticleEffectSerializer.h" />
     <ClInclude Include="engine\effects\postprocess\BloomEffect.h" />
     <ClInclude Include="engine\camerawork\debug\DebugCamera.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>

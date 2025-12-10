@@ -1,5 +1,7 @@
 #pragma once
 
+#include "math/BlendMode.h"
+
 /**
  * @brief シミュレーションモード
  */
@@ -17,8 +19,6 @@ enum class SimulationSpace
 	World, // ワールド空間
 	Local  // ローカル空間
 };
-
-#include "math/BlendMode.h"
 
 /**
  * @brief プリミティブ形状タイプ
@@ -49,12 +49,30 @@ enum class RendererType
 };
 
 /**
- * @brief モジュール実行フェーズ
+ * @brief リボンテクスチャモード
  */
-enum class ModulePhase
+enum class RibbonTextureMode
 {
-	EmitterSpawn,
-	EmitterUpdate,
-	ParticleSpawn,
-	ParticleUpdate
+	Stretch,  // 全体に引き伸ばし
+	Tile      // タイル状に繰り返し
+};
+
+/**
+ * @brief テクスチャシート再生モード
+ */
+enum class TextureSheetPlayMode
+{
+	Loop,     // ループ再生
+	Once,     // 1回のみ
+	PingPong  // 往復
+};
+
+/**
+ * @brief フォースフィールドの減衰タイプ
+ */
+enum class FalloffType
+{
+	None,           // 減衰なし（一定）
+	Linear,         // 線形減衰
+	InverseSquare   // 逆二乗減衰
 };

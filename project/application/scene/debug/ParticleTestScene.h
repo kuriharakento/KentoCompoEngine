@@ -1,6 +1,7 @@
 #pragma once
 #include "camerawork/debug/DebugCamera.h"
 #include "scene/interface/BaseScene.h"
+#include "effects/particle/editor/ParticleEditor.h"
 
 /**
  * @brief パーティクルテストシーン
@@ -19,4 +20,7 @@ protected:
 
 private:
 	std::unique_ptr<DebugCamera> debugCamera_;
+	std::unique_ptr<ParticleEditor> particleEditor_;
+	// スカイドーム（背景天球）
+	std::unique_ptr<Object3d> skydome_;
 };

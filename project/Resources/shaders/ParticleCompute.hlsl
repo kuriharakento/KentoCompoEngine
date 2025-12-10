@@ -1,114 +1,103 @@
-// ParticleCompute.hlsl
-// GPU Particle Simulation Compute Shader
+/**
+ * ParticleCompute.hlsl
+ * GPUパーティクルシミュレーション用 Compute Shader
+ * 
+ * C++側のParticle構造体と完全に同じレイアウト (112 bytes, 16-byte aligned)
+ */
 
-// パーティクルデータ構造
+// パーティクル構造体（C++Particle構造体と完全一致）
 struct Particle
 {
-    float3 position;
-    float3 velocity;
-    float3 scale;
-    float4 rotation; // Quaternion
-    float4 color;
-    float age;
-    float lifetime;
-    float ribbonWidth;
-    uint id;
-    uint flags; // 0bit: alive
+    // Transform (48 bytes)
+    float3 position;    // 12 bytes
+    float pad0;         // 4 bytes
+    
+    float3 velocity;    // 12 bytes
+    float pad1;         // 4 bytes
+    
+    float3 scale;       // 12 bytes
+    float pad2;         // 4 bytes
+    
+    // Rotation (16 bytes)
+    float4 rotation;    // Quaternion XYZW
+    
+    // Appearance (16 bytes)
+    float4 color;       // RGBA
+    
+    // Lifetime (16 bytes)
+    float age;          // 経過時間
+    float lifetime;     // 寿命
+    float ribbonWidth;  // リボン幅
+    uint flags;         // ビットフラグ
+    
+    // IDs (16 bytes)
+    uint id;            // パーティクルID
+    uint ribbonId;      // リボングループID
+    uint spriteIndex;   // テクスチャシートフレーム
+    uint pad3;          // アライメント
 };
 
-// 定数バッファ
-cbuffer SimulationParams : register(b0)
+// 定数バッファ（C++側のGPUParticleConstantsと一致）
+cbuffer Constants : register(b0)
 {
     float deltaTime;
-    float3 gravity;
-    float drag;
+    float totalTime;
+    uint particleCount;
     uint maxParticles;
-    uint activeParticles;
+    
     float3 emitterPosition;
-    float pad0;
+    float padding1;
+    
+    float3 gravity;
+    float padding2;
 };
 
-// パーティクルバッファ (Read/Write)
+// パーティクルバッファ (UAV)
 RWStructuredBuffer<Particle> particles : register(u0);
 
-// 死亡パーティクルカウント (Atomic)
-RWStructuredBuffer<uint> deadCount : register(u1);
+// フラグ定数
+static const uint FLAG_ALIVE = 1 << 0;
+static const uint FLAG_RIBBON_HEAD = 1 << 1;
 
-// スレッドグループサイズ
+/**
+ * メインシミュレーションカーネル
+ */
 [numthreads(256, 1, 1)]
 void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     uint index = dispatchThreadId.x;
     
     // 範囲外チェック
-    if (index >= maxParticles)
+    if (index >= particleCount)
         return;
     
     Particle p = particles[index];
     
-    // 死亡済みはスキップ
-    if ((p.flags & 1) == 0)
+    // 死亡パーティクルはスキップ
+    if ((p.flags & FLAG_ALIVE) == 0)
         return;
+    
+    // 年齢を更新
+    p.age += deltaTime;
     
     // 寿命チェック
     if (p.age >= p.lifetime)
     {
-        // 死亡フラグを立てる
-        p.flags &= ~1u;
+        p.flags &= ~FLAG_ALIVE;
         particles[index] = p;
-        
-        // 死亡カウントをインクリメント
-        uint dummy;
-        InterlockedAdd(deadCount[0], 1, dummy);
         return;
     }
     
-    // 物理シミュレーション
-    // 重力適用
+    // 重力を適用
     p.velocity += gravity * deltaTime;
     
-    // 抵抗適用
-    p.velocity *= (1.0f - drag * deltaTime);
-    
-    // 位置更新
+    // 位置を更新
     p.position += p.velocity * deltaTime;
     
-    // 経過時間更新
-    p.age += deltaTime;
-    
-    // 寿命に応じたアルファフェード
-    float normalizedAge = p.age / p.lifetime;
-    p.color.a = 1.0f - normalizedAge;
+    // カラーフェード（寿命に応じてアルファを減少）
+    float lifeRatio = p.age / p.lifetime;
+    p.color.a = saturate(1.0f - lifeRatio);
     
     // 結果を書き戻し
     particles[index] = p;
-}
-
-// パーティクル生成用シェーダー
-[numthreads(64, 1, 1)]
-void CSSpawn(uint3 dispatchThreadId : SV_DispatchThreadID)
-{
-    uint index = dispatchThreadId.x;
-    
-    if (index >= maxParticles)
-        return;
-    
-    Particle p = particles[index];
-    
-    // 死亡パーティクルを再利用
-    if ((p.flags & 1) == 0)
-    {
-        // 初期化（CPU側で設定される値を使用）
-        p.position = emitterPosition;
-        p.velocity = float3(0, 1, 0); // デフォルト上向き
-        p.scale = float3(1, 1, 1);
-        p.rotation = float4(0, 0, 0, 1);
-        p.color = float4(1, 1, 1, 1);
-        p.age = 0;
-        p.lifetime = 1.0f;
-        p.ribbonWidth = 1.0f;
-        p.flags = 1; // alive
-        
-        particles[index] = p;
-    }
 }

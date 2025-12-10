@@ -16,14 +16,19 @@ public:
 	{
 		for (auto& particle : *context.particles)
 		{
-			particle.velocity += gravity_ * context.deltaTime;
+			if (particle.IsAlive())
+			{
+				particle.velocity += gravity_ * context.deltaTime;
+			}
 		}
 	}
 
-	ModulePhase GetPhase() const override { return ModulePhase::ParticleUpdate; }
+	ModulePhase GetPhase() const override { return ModulePhase::Update; }
 	const char* GetName() const override { return "Gravity"; }
+	int32_t GetPriority() const override { return -50; } // 物理系は早めに
 
 	void SetGravity(const Vector3& gravity) { gravity_ = gravity; }
+	Vector3 GetGravity() const { return gravity_; }
 
 private:
 	Vector3 gravity_ = { 0, -9.8f, 0 };
@@ -42,14 +47,19 @@ public:
 		float factor = 1.0f - drag_ * context.deltaTime;
 		for (auto& particle : *context.particles)
 		{
-			particle.velocity *= factor;
+			if (particle.IsAlive())
+			{
+				particle.velocity *= factor;
+			}
 		}
 	}
 
-	ModulePhase GetPhase() const override { return ModulePhase::ParticleUpdate; }
+	ModulePhase GetPhase() const override { return ModulePhase::Update; }
 	const char* GetName() const override { return "Drag"; }
+	int32_t GetPriority() const override { return -40; }
 
 	void SetDrag(float drag) { drag_ = drag; }
+	float GetDrag() const { return drag_; }
 
 private:
 	float drag_ = 0.1f;
@@ -68,22 +78,26 @@ public:
 	{
 		for (auto& particle : *context.particles)
 		{
-			float t = particle.NormalizedAge();
-			particle.color.x = startColor_.x + (endColor_.x - startColor_.x) * t;
-			particle.color.y = startColor_.y + (endColor_.y - startColor_.y) * t;
-			particle.color.z = startColor_.z + (endColor_.z - startColor_.z) * t;
-			particle.color.w = startColor_.w + (endColor_.w - startColor_.w) * t;
+			if (particle.IsAlive())
+			{
+				float t = particle.NormalizedAge();
+				particle.color.x = startColor_.x + (endColor_.x - startColor_.x) * t;
+				particle.color.y = startColor_.y + (endColor_.y - startColor_.y) * t;
+				particle.color.z = startColor_.z + (endColor_.z - startColor_.z) * t;
+				particle.color.w = startColor_.w + (endColor_.w - startColor_.w) * t;
+			}
 		}
 	}
 
-	ModulePhase GetPhase() const override { return ModulePhase::ParticleUpdate; }
+	ModulePhase GetPhase() const override { return ModulePhase::Update; }
 	const char* GetName() const override { return "ColorFade"; }
+	int32_t GetPriority() const override { return 50; } // 外観系は後で
 
-	void SetColors(const Vector4& start, const Vector4& end)
-	{
-		startColor_ = start;
-		endColor_ = end;
-	}
+	void SetColors(const Vector4& start, const Vector4& end) { startColor_ = start; endColor_ = end; }
+	void SetStartColor(const Vector4& c) { startColor_ = c; }
+	void SetEndColor(const Vector4& c) { endColor_ = c; }
+	Vector4 GetStartColor() const { return startColor_; }
+	Vector4 GetEndColor() const { return endColor_; }
 
 private:
 	Vector4 startColor_ = { 1, 1, 1, 1 };
@@ -103,21 +117,25 @@ public:
 	{
 		for (auto& particle : *context.particles)
 		{
-			float t = particle.NormalizedAge();
-			particle.scale.x = startScale_.x + (endScale_.x - startScale_.x) * t;
-			particle.scale.y = startScale_.y + (endScale_.y - startScale_.y) * t;
-			particle.scale.z = startScale_.z + (endScale_.z - startScale_.z) * t;
+			if (particle.IsAlive())
+			{
+				float t = particle.NormalizedAge();
+				particle.scale.x = startScale_.x + (endScale_.x - startScale_.x) * t;
+				particle.scale.y = startScale_.y + (endScale_.y - startScale_.y) * t;
+				particle.scale.z = startScale_.z + (endScale_.z - startScale_.z) * t;
+			}
 		}
 	}
 
-	ModulePhase GetPhase() const override { return ModulePhase::ParticleUpdate; }
+	ModulePhase GetPhase() const override { return ModulePhase::Update; }
 	const char* GetName() const override { return "ScaleOverLifetime"; }
+	int32_t GetPriority() const override { return 40; }
 
-	void SetScales(const Vector3& start, const Vector3& end)
-	{
-		startScale_ = start;
-		endScale_ = end;
-	}
+	void SetScales(const Vector3& start, const Vector3& end) { startScale_ = start; endScale_ = end; }
+	void SetStartScale(const Vector3& s) { startScale_ = s; }
+	void SetEndScale(const Vector3& s) { endScale_ = s; }
+	Vector3 GetStartScale() const { return startScale_; }
+	Vector3 GetEndScale() const { return endScale_; }
 
 private:
 	Vector3 startScale_ = { 1, 1, 1 };

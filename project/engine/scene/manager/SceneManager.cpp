@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "externals/imgui/imgui.h"
+#include "effects/particle/ParticleManager.h"
 
 SceneManager::~SceneManager()
 {
@@ -124,6 +125,9 @@ void SceneManager::ReserveNextScene()
 		//現在のシーンを終了
 		currentScene_->Finalize();
 		currentScene_.reset();
+
+		// シーン切り替え時にパーティクルをすべてクリア
+		ParticleManager::GetInstance()->Clear();
 
 		//シーンを切り替え
 		currentScene_ = std::move(nextScene_);

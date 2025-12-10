@@ -1,6 +1,7 @@
 #include "SpriteRenderer.h"
 #include <numbers>
 #include "effects/particle/ParticleManager.h"
+#include "manager/effect/ParticlePipelineManager.h"
 #include "manager/scene/CameraManager.h"
 #include "manager/system/SrvManager.h"
 #include "manager/graphics/TextureManager.h"
@@ -20,16 +21,29 @@ SpriteRenderer::~SpriteRenderer()
 		materialResource_.Reset();
 	}
 	vertexResource_.Reset();
+
+	// SRV解放
+	if (instancingSrvIndex_ != 0)
+	{
+		ParticleManager::GetInstance()->GetSrvManager()->Free(instancingSrvIndex_);
+	}
 }
 
 void SpriteRenderer::Initialize(const std::string& texturePath)
 {
+	// デフォルトで白テクスチャをロード
+	// 引数がある場合はそれをロード
+	std::string path = texturePath.empty() ? "white1x1.png" : texturePath;
+	TextureManager::GetInstance()->LoadTexture(path);
+	textureIndex_ = TextureManager::GetInstance()->GetTextureIndexByFilePath(path);
+
 	auto* pm = ParticleManager::GetInstance();
-	auto* dxCommon = pm->GetDxCommon();
+	InitializeBuffers(pm->GetDxCommon(), pm->GetSrvManager());
+}
 
-	TextureManager::GetInstance()->LoadTexture(texturePath);
-	textureIndex_ = TextureManager::GetInstance()->GetTextureIndexByFilePath(texturePath);
 
+void SpriteRenderer::InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvManager)
+{
 	materialResource_ = dxCommon->CreateBufferResource(sizeof(Material));
 	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
 	materialData_->color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -58,8 +72,8 @@ void SpriteRenderer::Initialize(const std::string& texturePath)
 	instancingResource_ = dxCommon->CreateBufferResource(sizeof(ParticleGPU) * kMaxParticles);
 	instancingResource_->Map(0, nullptr, reinterpret_cast<void**>(&instancingData_));
 
-	instancingSrvIndex_ = pm->GetSrvManager()->Allocate();
-	pm->GetSrvManager()->CreateSRVforStructuredBuffer(
+	instancingSrvIndex_ = srvManager->Allocate();
+	srvManager->CreateSRVforStructuredBuffer(
 		instancingSrvIndex_,
 		instancingResource_.Get(),
 		kMaxParticles,
@@ -69,7 +83,11 @@ void SpriteRenderer::Initialize(const std::string& texturePath)
 
 void SpriteRenderer::Update(const std::vector<Particle>& particles, CameraManager* camera)
 {
-	if (particles.empty()) return;
+	if (particles.empty())
+	{
+		instanceCount_ = 0;
+		return;
+	}
 
 	Matrix4x4 backToFrontMatrix = MakeRotateYMatrix(std::numbers::pi_v<float>);
 	Matrix4x4 cameraRotationMatrix = camera->GetActiveCamera()->GetWorldMatrix();
@@ -89,16 +107,64 @@ void SpriteRenderer::Update(const std::vector<Particle>& particles, CameraManage
 	}
 }
 
+void SpriteRenderer::SetTexture(const std::string& texturePath)
+{
+	TextureManager::GetInstance()->LoadTexture(texturePath);
+	textureIndex_ = TextureManager::GetInstance()->GetTextureIndexByFilePath(texturePath);
+}
+
 void SpriteRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
-	if (instanceCount_ == 0) return;
+	uint32_t drawCount = isGPUMode_ ? gpuParticleCount_ : instanceCount_;
+	if (drawCount == 0) return;
 
-	auto* cmdList = dxCommon->GetCommandList();
-	cmdList->IASetVertexBuffers(0, 1, &vertexBufferView_);
-	cmdList->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
-	cmdList->SetGraphicsRootDescriptorTable(1, srvManager->GetGPUDescriptorHandle(instancingSrvIndex_));
-	cmdList->SetGraphicsRootDescriptorTable(2, srvManager->GetGPUDescriptorHandle(textureIndex_));
-	cmdList->DrawInstanced(6, instanceCount_, 0, 0);
+	// コマンドリスト取得
+	auto commandList = dxCommon->GetCommandList();
+	auto pipelineManager = ParticleManager::GetInstance()->GetPipelineManager();
+
+	// パイプライン設定
+	commandList->SetPipelineState(pipelineManager->GetPipelineState(blendMode_));
+	commandList->SetGraphicsRootSignature(pipelineManager->GetRootSignature());
+
+	// プリミティブトポロジ設定
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+	// 頂点バッファ設定 (SpriteRendererはVB不要だが、一応セットするならここ)
+	D3D12_VERTEX_BUFFER_VIEW vbView{};
+	// Assuming VertexPosUv is a type that matches the shader's expected vertex input for a quad strip.
+	// And assuming vertexResource_ is intended to be used here, despite the comment about "VB不要".
+	// The original Initialize sets up vertexResource_ with VertexData, which might differ from VertexPosUv.
+	// For faithful application of the patch, we use vertexResource_ as the buffer.
+	vbView.BufferLocation = vertexResource_->GetGPUVirtualAddress();
+	vbView.SizeInBytes = sizeof(VertexData) * 4; // Assuming 4 vertices for a strip, and using existing VertexData size
+	vbView.StrideInBytes = sizeof(VertexData);   // Using existing VertexData stride
+    
+    commandList->IASetVertexBuffers(0, 1, &vbView);
+
+	// 定数バッファ (Constants)
+	// commandList->SetGraphicsRootConstantBufferView(0, ...); // Manager handles this? No, Renderer doesn't know.
+    // ParticleManager::Draw sets global constants maybe?
+    // Actually SpriteRenderer::Draw usually sets specific things.
+    // Existing code:
+    // commandList->SetGraphicsRootDescriptorTable(2, textureSrv);
+    // commandList->SetGraphicsRootDescriptorTable(3, instanceSrv);
+
+	// テクスチャ (Slot 2)
+	commandList->SetGraphicsRootDescriptorTable(2, srvManager->GetGPUDescriptorHandle(textureIndex_));
+
+	// インスタンシングデータ (Slot 3)
+	uint32_t index = isGPUMode_ ? gpuSrvIndex_ : instancingSrvIndex_;
+	commandList->SetGraphicsRootDescriptorTable(3, srvManager->GetGPUDescriptorHandle(index));
+
+	// 描画
+	commandList->DrawInstanced(4, drawCount, 0, 0);
+}
+
+void SpriteRenderer::SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count)
+{
+	isGPUMode_ = enable;
+	gpuSrvIndex_ = srvIndex;
+	gpuParticleCount_ = count;
 }
 
 void SpriteRenderer::UpdateInstanceData(const Particle& particle, const Matrix4x4& billboardMatrix, CameraManager* camera)

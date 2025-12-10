@@ -172,6 +172,16 @@ private:
 	// 次に使用するSRVインデックス（確保済みの数を追跡）
 	uint32_t useIndex_ = 0;
 
+	// 解放済みインデックスリスト
+	std::vector<uint32_t> freeList_;
+
+public:
+	/**
+	 * @brief SRVインデックスを解放する
+	 * @param index 解放するSRVインデックス
+	 */
+	void Free(uint32_t index);
+
 
 };
 

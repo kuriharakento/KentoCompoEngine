@@ -18,6 +18,13 @@ public:
 	virtual void Update(const std::vector<Particle>& particles, CameraManager* camera) = 0;
 	virtual void Draw(DirectXCommon* dxCommon, SrvManager* srvManager) = 0;
 	virtual RendererType GetType() const = 0;
+	// テクスチャ設定
+	virtual void SetTexture(const std::string& /*texturePath*/) {}
+
+	/**
+	 * @brief GPU描画モードを設定
+	 */
+	virtual void SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count) { (void)enable; (void)srvIndex; (void)count; }
 
 	virtual void SetBlendMode(BlendMode mode) { blendMode_ = mode; }
 	BlendMode GetBlendMode() const { return blendMode_; }

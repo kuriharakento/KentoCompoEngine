@@ -5,7 +5,7 @@
 #include "math/Vector4.h"
 
 /**
- * @brief 基本スポーンモジュール
+ * @brief 基本スポーンモジュール（毎秒N個生成）
  */
 class SpawnRateModule : public IModule
 {
@@ -21,17 +21,19 @@ public:
 		{
 			Particle particle;
 			particle.position = context.emitterPosition;
+			particle.SetAlive(true);
 			context.particles->push_back(particle);
 			context.spawnCount++;
 			timeSinceLastSpawn_ -= spawnInterval;
 		}
 	}
 
-	ModulePhase GetPhase() const override { return ModulePhase::EmitterUpdate; }
+	ModulePhase GetPhase() const override { return ModulePhase::Spawn; }
 	const char* GetName() const override { return "SpawnRate"; }
+	int32_t GetPriority() const override { return 0; }
 
-	void SetSpawnRate(float rate) { spawnRate_ = rate; }
-	float GetSpawnRate() const { return spawnRate_; }
+	void SetRate(float rate) { spawnRate_ = rate; }
+	float GetRate() const { return spawnRate_; }
 
 private:
 	float spawnRate_ = 10.0f;
@@ -39,39 +41,57 @@ private:
 };
 
 /**
- * @brief バーストスポーンモジュール
+ * @brief バーストスポーンモジュール（一度に複数生成）
  */
 class SpawnBurstModule : public IModule
 {
 public:
-	SpawnBurstModule(uint32_t count = 10, float interval = 1.0f)
-		: burstCount_(count), burstInterval_(interval) {}
+	SpawnBurstModule(uint32_t count = 10, float interval = 0.0f, int loops = 1)
+		: burstCount_(count), burstInterval_(interval), loops_(loops) {}
 
 	void Execute(ParticleContext& context) override
 	{
-		timeSinceLastBurst_ += context.deltaTime;
-
-		if (timeSinceLastBurst_ >= burstInterval_)
+		// 初回または繰り返し設定時
+		if (!hasFired_ || (loops_ != 0 && burstInterval_ > 0.0f && (loops_ < 0 || currentLoop_ < loops_)))
 		{
-			for (uint32_t i = 0; i < burstCount_; ++i)
+			timeSinceLastBurst_ += context.deltaTime;
+
+			if (!hasFired_ || timeSinceLastBurst_ >= burstInterval_)
 			{
-				Particle particle;
-				particle.position = context.emitterPosition;
-				context.particles->push_back(particle);
-				context.spawnCount++;
+				for (uint32_t i = 0; i < burstCount_; ++i)
+				{
+					Particle particle;
+					particle.position = context.emitterPosition;
+					particle.SetAlive(true);
+					context.particles->push_back(particle);
+					context.spawnCount++;
+				}
+				timeSinceLastBurst_ = 0.0f;
+				hasFired_ = true;
 			}
-			timeSinceLastBurst_ = 0.0f;
 		}
 	}
 
-	ModulePhase GetPhase() const override { return ModulePhase::EmitterUpdate; }
+	ModulePhase GetPhase() const override { return ModulePhase::Spawn; }
 	const char* GetName() const override { return "SpawnBurst"; }
+	int32_t GetPriority() const override { return 0; }
 
-	void SetBurstCount(uint32_t count) { burstCount_ = count; }
-	void SetBurstInterval(float interval) { burstInterval_ = interval; }
+	void SetCount(uint32_t count) { burstCount_ = count; }
+	uint32_t GetCount() const { return burstCount_; }
+	void SetDelay(float delay) { delay_ = delay; }
+	float GetDelay() const { return delay_; }
+	void SetInterval(float interval) { burstInterval_ = interval; }
+	float GetInterval() const { return burstInterval_; }
+	void SetLoops(int loops) { loops_ = loops; }
+	int GetLoops() const { return loops_; }
+	void Reset() { hasFired_ = false; timeSinceLastBurst_ = 0.0f; currentLoop_ = 0; }
 
 private:
 	uint32_t burstCount_ = 10;
-	float burstInterval_ = 1.0f;
+	float delay_ = 0.0f;
+	float burstInterval_ = 0.0f;
 	float timeSinceLastBurst_ = 0.0f;
+	int loops_ = 1;
+	int currentLoop_ = 0;
+	bool hasFired_ = false;
 };

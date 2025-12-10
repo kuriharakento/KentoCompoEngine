@@ -13,17 +13,19 @@ class SpriteRenderer : public IRenderer
 public:
 	static constexpr uint32_t kMaxParticles = 10000;
 
-	~SpriteRenderer();
-
+	~SpriteRenderer() override;
 	void Initialize(const std::string& texturePath) override;
+	void SetTexture(const std::string& texturePath) override;
 	void Update(const std::vector<Particle>& particles, CameraManager* camera) override;
 	void Draw(DirectXCommon* dxCommon, SrvManager* srvManager) override;
-	RendererType GetType() const override { return RendererType::Sprite; }
+	RendererType GetType() const override { return RendererType::Sprite; } // 22
 
 	void SetBillboard(bool enabled) { isBillboard_ = enabled; }
+	void SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count) override; 
 
 private:
 	void UpdateInstanceData(const Particle& particle, const Matrix4x4& billboardMatrix, CameraManager* camera);
+	void InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvManager);
 
 private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_;
@@ -39,4 +41,9 @@ private:
 	uint32_t instancingSrvIndex_ = 0;
 	uint32_t instanceCount_ = 0;
 	bool isBillboard_ = true;
+
+	// GPU Mode
+	bool isGPUMode_ = false;
+	uint32_t gpuSrvIndex_ = 0;
+	uint32_t gpuParticleCount_ = 0;
 };
