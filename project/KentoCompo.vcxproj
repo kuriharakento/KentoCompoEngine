@@ -59,7 +59,7 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;USE_IMGUI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /FS %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(ProjectDir)engine\;$(ProjectDir);$(ProjectDir)externals\;$(ProjectDir)externals\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -84,7 +84,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /FS %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(ProjectDir)engine\;$(ProjectDir);$(ProjectDir)externals\;$(ProjectDir)externals\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -131,15 +131,18 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\effect\AreaEffect.cpp" />
     <ClCompile Include="application\GameObject\component\action\EnemyUIComponent.cpp" />
     <ClCompile Include="application\UI\Cursor.cpp" />
+    <!-- Particle System -->
+    <ClCompile Include="engine\effects\particle\ParticleEmitter.cpp" />
+    <ClCompile Include="engine\effects\particle\ParticleManager.cpp" />
+    <ClCompile Include="engine\effects\particle\gpu\GPUSimulator.cpp" />
+    <ClCompile Include="engine\effects\particle\renderer\SpriteRenderer.cpp" />
     <ClCompile Include="engine\effects\postprocess\BloomEffect.cpp" />
     <ClCompile Include="engine\camerawork\debug\DebugCamera.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="engine\effects\particle\component\single\BounceComponent.cpp" />
     <ClCompile Include="engine\effects\postprocess\CRTEffect.cpp" />
     <ClCompile Include="engine\effects\postprocess\base\BasePostEffect.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\base\EnemyBase.cpp" />
-    <ClCompile Include="engine\effects\particle\component\single\AccelerationComponent.cpp" />
     <ClCompile Include="application\GameObject\component\collision\AABBColliderComponent.cpp" />
     <ClCompile Include="application\animation\Slide.cpp" />
     <ClCompile Include="application\GameObject\base\GameObject.cpp" />
@@ -148,9 +151,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\GameObject\component\base\ICollisionComponent.cpp" />
     <ClCompile Include="application\GameObject\combatable\weapon\Bullet.cpp" />
     <ClCompile Include="application\GameObject\component\collision\CollisionManager.cpp" />
-    <ClCompile Include="engine\effects\particle\component\single\ColorFadeOutComponent.cpp" />
-    <ClCompile Include="engine\effects\particle\component\single\DragComponent.cpp" />
-    <ClCompile Include="engine\effects\particle\ParticleEmitter.cpp" />
     <ClCompile Include="engine\base\PostProcessPass.cpp" />
     <ClCompile Include="engine\base\RenderTexture.cpp" />
     <ClCompile Include="engine\camerawork\topdown\TopDownCamera.cpp" />
@@ -202,9 +202,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\jsonEditor\JsonEditableBase.cpp" />
     <ClCompile Include="engine\camerawork\follow\FollowCamera.cpp" />
     <ClCompile Include="application\GameObject\component\action\PistolComponent.cpp" />
-    <ClCompile Include="engine\effects\particle\component\single\GravityComponent.cpp" />
     <ClCompile Include="engine\effects\postprocess\GrayscaleEffect.cpp" />
-    <ClCompile Include="engine\effects\particle\component\single\ForceFieldComponent.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\PistolEnemy.cpp" />
     <ClCompile Include="application\GameObject\component\action\GravityPhysicsComponent.cpp" />
     <ClCompile Include="engine\jsonEditor\JsonSerialization.cpp" />
@@ -219,7 +217,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\graphics\2d\FontSprite.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="engine\manager\system\SrvManager.cpp" />
-    <ClCompile Include="engine\manager\effect\ParticleManager.cpp" />
     <ClCompile Include="engine\scene\MyGame.cpp" />
     <ClCompile Include="application\scene\play\TitleScene.cpp" />
     <ClCompile Include="engine\scene\manager\SceneManager.cpp" />
@@ -229,16 +226,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\camerawork\spline\Spline.cpp" />
     <ClCompile Include="engine\camerawork\spline\SplineCamera.cpp" />
     <ClCompile Include="engine\manager\effect\ParticlePipelineManager.cpp" />
-    <ClCompile Include="engine\effects\particle\ParticleGroup.cpp" />
-    <ClCompile Include="engine\effects\particle\component\single\RotationComponent.cpp" />
-    <ClCompile Include="engine\effects\particle\component\single\ScaleOverLifetimeComponent.cpp" />
-    <ClCompile Include="engine\effects\particle\component\single\OrbitComponent.cpp" />
-    <ClCompile Include="engine\effects\particle\component\single\RandomInitialVelocityComponent.cpp" />
-    <ClCompile Include="engine\effects\particle\component\group\UVTranslateComponent.cpp" />
-    <ClCompile Include="engine\effects\particle\component\group\UVScaleComponent.cpp" />
-    <ClCompile Include="engine\effects\particle\component\group\UVRotateComponent.cpp" />
-    <ClCompile Include="engine\effects\particle\component\group\MaterialColorComponent.cpp" />
-    <ClCompile Include="engine\effects\particle\ParticleMath.cpp" />
     <ClCompile Include="application\GameObject\component\action\MoveComponent.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\player\Player.cpp" />
     <ClCompile Include="application\GameObject\component\collision\OBBColliderComponent.cpp" />
@@ -246,7 +233,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\effects\postprocess\VignetteEffect.cpp" />
     <ClCompile Include="engine\effects\postprocess\NoiseEffect.cpp" />
     <ClCompile Include="engine\graphics\3d\Skybox.cpp" />
-    <ClCompile Include="engine\effects\particle\component\single\MoveToTargetComponent.cpp" />
     <ClCompile Include="application\GameObject\component\action\ShotgunComponent.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\ShotgunEnemy.cpp" />
     <ClCompile Include="application\GameObject\obstacle\Obstacle.cpp" />
@@ -269,7 +255,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\GameObject\component\action\StatusComponent.cpp" />
     <ClCompile Include="application\effect\TitleFireEffect.cpp" />
     <ClCompile Include="application\effect\SceneTransitionEffect.cpp" />
-    <ClCompile Include="application\effect\PlayerDeathEffect.cpp" />
+    <ClCompile Include="application\effect\PlayerDeathEffect_v2.cpp" />
     <ClCompile Include="application\GameObject\component\action\PlayerUIComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -294,6 +280,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\BlackBoard.h" />
     <ClInclude Include="application\GameObject\combatable\base\CombatableObject.h" />
     <ClInclude Include="application\GameObject\component\collision\SphereColliderComponent.h" />
+    <ClInclude Include="application\scene\play\GamePlayScene.h" />
     <ClInclude Include="application\stage\Area.h" />
     <ClInclude Include="application\stage\AreaInfo.h" />
     <ClInclude Include="application\stage\GameObjectInfo.h" />
@@ -308,21 +295,24 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\effect\AreaEffect.h" />
     <ClInclude Include="application\GameObject\component\action\EnemyUIComponent.h" />
     <ClInclude Include="application\UI\Cursor.h" />
+    <ClInclude Include="engine\animation\Animator.h" />
+    <ClInclude Include="engine\camerawork\follow\FollowCamera.h" />
+    <!-- Particle System Headers -->
+    <ClInclude Include="engine\effects\particle\Particle.h" />
+    <ClInclude Include="engine\effects\particle\ParticleTypes.h" />
+    <ClInclude Include="engine\effects\particle\ParticleEmitter.h" />
+    <ClInclude Include="engine\effects\particle\ParticleManager.h" />
+    <ClInclude Include="engine\effects\particle\module\IModule.h" />
+    <ClInclude Include="engine\effects\particle\module\spawn\SpawnModules.h" />
+    <ClInclude Include="engine\effects\particle\module\spawn\InitialModules.h" />
+    <ClInclude Include="engine\effects\particle\module\update\UpdateModules.h" />
+    <ClInclude Include="engine\effects\particle\renderer\IRenderer.h" />
+    <ClInclude Include="engine\effects\particle\renderer\SpriteRenderer.h" />
+    <ClInclude Include="engine\effects\particle\gpu\GPUSimulator.h" />
     <ClInclude Include="engine\effects\postprocess\BloomEffect.h" />
     <ClInclude Include="engine\camerawork\debug\DebugCamera.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\single\BounceComponent.h" />
-    <ClInclude Include="engine\effects\postprocess\CRTEffect.h" />
-    <ClInclude Include="engine\effects\postprocess\base\BasePostEffect.h" />
-    <ClInclude Include="application\GameObject\combatable\character\enemy\base\EnemyBase.h" />
-    <ClInclude Include="engine\effects\particle\component\single\AccelerationComponent.h" />
-    <ClInclude Include="application\animation\Slide.h" />
-    <ClInclude Include="engine\effects\particle\component\single\ColorFadeOutComponent.h" />
-    <ClInclude Include="engine\effects\particle\component\single\DragComponent.h" />
-    <ClInclude Include="engine\effects\particle\component\interface\IParticleComponent.h" />
-    <ClInclude Include="engine\effects\particle\component\interface\IParticleGroupComponent.h" />
-    <ClInclude Include="engine\effects\particle\ParticleEmitter.h" />
     <ClInclude Include="engine\base\PostProcessPass.h" />
     <ClInclude Include="engine\base\RenderTexture.h" />
     <ClInclude Include="application\GameObject\base\GameObject.h" />
@@ -331,10 +321,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\GameObject\component\action\BulletComponent.h" />
     <ClInclude Include="application\GameObject\component\base\ICollisionComponent.h" />
     <ClInclude Include="application\GameObject\combatable\weapon\Bullet.h" />
-    <ClInclude Include="application\GameObject\component\collision\CollisionManager.h" />
     <ClInclude Include="engine\camerawork\base\CameraWorkBase.h" />
-    <ClInclude Include="engine\effects\particle\component\interface\IParticleBehaviorComponent.h" />
     <ClInclude Include="engine\camerawork\topdown\TopDownCamera.h" />
+    <ClInclude Include="engine\effects\postprocess\CRTEffect.h" />
     <ClInclude Include="engine\graphics\3d\SkinnedModel.h" />
     <ClInclude Include="engine\graphics\3d\SkinnedObject3d.h" />
     <ClInclude Include="engine\graphics\3d\SkinningCompute.h" />
@@ -395,10 +384,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="externals\imgui\imstb_truetype.h" />
     <ClInclude Include="engine\manager\system\SrvManager.h" />
     <ClInclude Include="engine\manager\editor\ImGuiManager.h" />
-    <ClInclude Include="engine\manager\effect\ParticleManager.h" />
     <ClInclude Include="engine\scene\MyGame.h" />
     <ClInclude Include="engine\framework\Framework.h" />
-    <ClInclude Include="application\scene\play\GamePlayScene.h" />
+    <ClInclude Include="engine\manager\effect\ParticlePipelineManager.h" />
     <ClInclude Include="engine\scene\interface\BaseScene.h" />
     <ClInclude Include="application\scene\play\TitleScene.h" />
     <ClInclude Include="engine\scene\manager\SceneManager.h" />
@@ -413,20 +401,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\manager\editor\JsonEditorManager.h" />
     <ClInclude Include="engine\camerawork\spline\SplineCamera.h" />
     <ClInclude Include="engine\jsonEditor\JsonEditableBase.h" />
-    <ClInclude Include="engine\manager\effect\ParticlePipelineManager.h" />
-    <ClInclude Include="engine\effects\particle\ParticleGroup.h" />
-    <ClInclude Include="engine\effects\particle\component\single\GravityComponent.h" />
-    <ClInclude Include="engine\effects\particle\component\single\RotationComponent.h" />
-    <ClInclude Include="engine\effects\particle\component\single\ScaleOverLifetimeComponent.h" />
-    <ClInclude Include="engine\effects\particle\component\single\OrbitComponent.h" />
-    <ClInclude Include="engine\effects\particle\component\single\RandomInitialVelocityComponent.h" />
-    <ClInclude Include="engine\effects\particle\component\group\UVTranslateComponent.h" />
-    <ClInclude Include="engine\effects\particle\component\group\UVScaleComponent.h" />
-    <ClInclude Include="engine\effects\particle\component\group\UVRotateComponent.h" />
-    <ClInclude Include="engine\effects\particle\component\group\MaterialColorComponent.h" />
-    <ClInclude Include="engine\effects\particle\ParticleMath.h" />
     <ClInclude Include="application\GameObject\component\action\MoveComponent.h" />
-    <ClInclude Include="engine\camerawork\follow\FollowCamera.h" />
     <ClInclude Include="application\GameObject\combatable\character\player\Player.h" />
     <ClInclude Include="application\GameObject\component\action\PistolComponent.h" />
     <ClInclude Include="application\GameObject\component\base\IActionComponent.h" />
@@ -436,9 +411,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\manager\effect\PostProcessManager.h" />
     <ClInclude Include="engine\effects\postprocess\VignetteEffect.h" />
     <ClInclude Include="engine\effects\postprocess\NoiseEffect.h" />
-    <ClInclude Include="engine\effects\particle\component\single\ForceFieldComponent.h" />
     <ClInclude Include="engine\graphics\3d\Skybox.h" />
-    <ClInclude Include="engine\effects\particle\component\single\MoveToTargetComponent.h" />
     <ClInclude Include="application\GameObject\combatable\character\enemy\PistolEnemy.h" />
     <ClInclude Include="application\GameObject\component\action\ShotgunComponent.h" />
     <ClInclude Include="application\GameObject\combatable\character\enemy\ShotgunEnemy.h" />

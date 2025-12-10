@@ -3,9 +3,9 @@
 #include "application/GameObject/Combatable/character/player/Player.h"
 #include "effects/particle/ParticleManager.h"
 #include "effects/particle/renderer/SpriteRenderer.h"
-#include "effects/particle/module/spawn/NPSSpawnModules.h"
-#include "effects/particle/module/spawn/NPSInitialModules.h"
-#include "effects/particle/module/update/NPSUpdateModules.h"
+#include "effects/particle/module/spawn/SpawnModules.h"
+#include "effects/particle/module/spawn/InitialModules.h"
+#include "effects/particle/module/update/UpdateModules.h"
 #include "math/Easing.h"
 #include "math/VectorColorCodes.h"
 #include "time/TimeManager.h"
@@ -15,7 +15,7 @@ void PlayerDeathEffect::Initialize(Player* player)
 	player_ = player;
 	initialScale_ = player->GetScale();
 
-	// 破牁E��ミッターの初期匁E
+	// パーティクルエミッターの初期化
 	auto emitter = std::make_unique<ParticleEmitter>();
 	emitter->Initialize(emitterName_);
 	
@@ -76,4 +76,3 @@ bool PlayerDeathEffect::IsFinished() const
 {
 	return elapsed_ >= duration_;
 }
-

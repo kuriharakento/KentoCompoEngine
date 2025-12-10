@@ -211,51 +211,6 @@
     <ClCompile Include="engine\camerawork\spline\SplineData.cpp">
       <Filter>engine\camerawork\spline</Filter>
     </ClCompile>
-    <ClCompile Include="engine\effects\particle\component\group\MaterialColorComponent.cpp">
-      <Filter>engine\effect\particle\component\group</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\effects\particle\component\group\UVRotateComponent.cpp">
-      <Filter>engine\effect\particle\component\group</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\effects\particle\component\group\UVScaleComponent.cpp">
-      <Filter>engine\effect\particle\component\group</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\effects\particle\component\group\UVTranslateComponent.cpp">
-      <Filter>engine\effect\particle\component\group</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\effects\particle\component\single\AccelerationComponent.cpp">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\effects\particle\component\single\BounceComponent.cpp">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\effects\particle\component\single\ColorFadeOutComponent.cpp">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\effects\particle\component\single\DragComponent.cpp">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\effects\particle\component\single\ForceFieldComponent.cpp">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\effects\particle\component\single\GravityComponent.cpp">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\effects\particle\component\single\MoveToTargetComponent.cpp">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\effects\particle\component\single\OrbitComponent.cpp">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\effects\particle\component\single\RandomInitialVelocityComponent.cpp">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\effects\particle\component\single\RotationComponent.cpp">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\effects\particle\component\single\ScaleOverLifetimeComponent.cpp">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClCompile>
     <ClCompile Include="engine\framework\Framework.cpp">
       <Filter>engine\framework</Filter>
     </ClCompile>
@@ -316,9 +271,6 @@
     <ClCompile Include="engine\manager\editor\JsonEditorManager.cpp">
       <Filter>engine\manager\editor</Filter>
     </ClCompile>
-    <ClCompile Include="engine\manager\effect\ParticleManager.cpp">
-      <Filter>engine\manager\effect</Filter>
-    </ClCompile>
     <ClCompile Include="engine\manager\effect\ParticlePipelineManager.cpp">
       <Filter>engine\manager\effect</Filter>
     </ClCompile>
@@ -344,12 +296,6 @@
       <Filter>engine\manager\system</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\ParticleEmitter.cpp">
-      <Filter>engine\effect\particle</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\effects\particle\ParticleGroup.cpp">
-      <Filter>engine\effect\particle</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\effects\particle\ParticleMath.cpp">
       <Filter>engine\effect\particle</Filter>
     </ClCompile>
     <ClCompile Include="application\stage\StageData.cpp">
@@ -454,9 +400,6 @@
     <ClCompile Include="application\scene\play\GameOverScene.cpp">
       <Filter>application\scene</Filter>
     </ClCompile>
-    <ClCompile Include="application\effect\PlayerDeathEffect.cpp">
-      <Filter>application\effect</Filter>
-    </ClCompile>
     <ClCompile Include="application\effect\AreaEffect.cpp">
       <Filter>application\effect</Filter>
     </ClCompile>
@@ -486,6 +429,10 @@
     <ClCompile Include="engine\graphics\3d\SkinnedObject3d.cpp" />
     <ClCompile Include="engine\graphics\3d\SkinningCompute.cpp" />
     <ClCompile Include="engine\animation\Animator.cpp" />
+    <ClCompile Include="engine\effects\particle\ParticleManager.cpp" />
+    <ClCompile Include="engine\effects\particle\renderer\SpriteRenderer.cpp" />
+    <ClCompile Include="engine\effects\particle\gpu\GPUSimulator.cpp" />
+    <ClCompile Include="application\effect\PlayerDeathEffect_v2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -496,9 +443,6 @@
     </ClInclude>
     <ClInclude Include="application\GameObject\combatable\character\player\Player.h">
       <Filter>application\GameObject\combatable\character\player</Filter>
-    </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\enemy\base\EnemyBase.h">
-      <Filter>application\GameObject\combatable\character\enemy\base</Filter>
     </ClInclude>
     <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\ActionNode.h">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
@@ -566,9 +510,6 @@
     <ClInclude Include="application\GameObject\component\collision\AABBColliderComponent.h">
       <Filter>application\GameObject\component\collision</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\collision\CollisionManager.h">
-      <Filter>application\GameObject\component\collision</Filter>
-    </ClInclude>
     <ClInclude Include="application\GameObject\component\collision\CollisionUtils.h">
       <Filter>application\GameObject\component\collision</Filter>
     </ClInclude>
@@ -587,9 +528,6 @@
     <ClInclude Include="application\GameObject\combatable\weapon\Bullet.h">
       <Filter>application\GameObject\combatable\weapon</Filter>
     </ClInclude>
-    <ClInclude Include="application\animation\Slide.h">
-      <Filter>application\animation</Filter>
-    </ClInclude>
     <ClInclude Include="application\effect\AssaultRifleHitEffect.h">
       <Filter>application\effect</Filter>
     </ClInclude>
@@ -598,9 +536,6 @@
     </ClInclude>
     <ClInclude Include="application\effect\EnemyDeathEffect.h">
       <Filter>application\effect</Filter>
-    </ClInclude>
-    <ClInclude Include="application\scene\play\GamePlayScene.h">
-      <Filter>application\scene</Filter>
     </ClInclude>
     <ClInclude Include="application\scene\debug\StageEditScene.h">
       <Filter>application\scene</Filter>
@@ -701,60 +636,6 @@
     <ClInclude Include="engine\camerawork\spline\SplineData.h">
       <Filter>engine\camerawork\spline</Filter>
     </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\group\MaterialColorComponent.h">
-      <Filter>engine\effect\particle\component\group</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\group\UVRotateComponent.h">
-      <Filter>engine\effect\particle\component\group</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\group\UVScaleComponent.h">
-      <Filter>engine\effect\particle\component\group</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\group\UVTranslateComponent.h">
-      <Filter>engine\effect\particle\component\group</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\interface\IParticleComponent.h">
-      <Filter>engine\effect\particle\component\interface</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\interface\IParticleBehaviorComponent.h">
-      <Filter>engine\effect\particle\component\interface</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\interface\IParticleGroupComponent.h">
-      <Filter>engine\effect\particle\component\interface</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\single\AccelerationComponent.h">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\single\BounceComponent.h">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\single\ColorFadeOutComponent.h">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\single\DragComponent.h">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\single\ForceFieldComponent.h">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\single\GravityComponent.h">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\single\MoveToTargetComponent.h">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\single\OrbitComponent.h">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\single\RandomInitialVelocityComponent.h">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\single\RotationComponent.h">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\component\single\ScaleOverLifetimeComponent.h">
-      <Filter>engine\effect\particle\component\single</Filter>
-    </ClInclude>
     <ClInclude Include="engine\framework\Framework.h">
       <Filter>engine\framework</Filter>
     </ClInclude>
@@ -818,12 +699,6 @@
     <ClInclude Include="engine\math\Vector4.h">
       <Filter>engine\math</Filter>
     </ClInclude>
-    <ClInclude Include="engine\effects\postprocess\base\BasePostEffect.h">
-      <Filter>engine\effect\postprocess</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\postprocess\CRTEffect.h">
-      <Filter>engine\effect\postprocess</Filter>
-    </ClInclude>
     <ClInclude Include="engine\effects\postprocess\GrayscaleEffect.h">
       <Filter>engine\effect\postprocess</Filter>
     </ClInclude>
@@ -857,17 +732,11 @@
     <ClInclude Include="engine\camerawork\debug\DebugCamera.h">
       <Filter>engine\camerawork\debug</Filter>
     </ClInclude>
-    <ClInclude Include="engine\camerawork\follow\FollowCamera.h">
-      <Filter>engine\camerawork\follow</Filter>
-    </ClInclude>
     <ClInclude Include="engine\manager\editor\ImGuiManager.h">
       <Filter>engine\manager\editor</Filter>
     </ClInclude>
     <ClInclude Include="engine\manager\editor\JsonEditorManager.h">
       <Filter>engine\manager\editor</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\manager\effect\ParticleManager.h">
-      <Filter>engine\manager\effect</Filter>
     </ClInclude>
     <ClInclude Include="engine\manager\effect\ParticlePipelineManager.h">
       <Filter>engine\manager\effect</Filter>
@@ -894,12 +763,6 @@
       <Filter>engine\manager\system</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\ParticleEmitter.h">
-      <Filter>engine\effect\particle</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\ParticleGroup.h">
-      <Filter>engine\effect\particle</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\ParticleMath.h">
       <Filter>engine\effect\particle</Filter>
     </ClInclude>
     <ClInclude Include="application\stage\StageData.h">
@@ -1064,6 +927,20 @@
     <ClInclude Include="engine\graphics\3d\SkinnedObject3d.h" />
     <ClInclude Include="engine\graphics\3d\SkinningCompute.h" />
     <ClInclude Include="engine\math\Quaternion.h" />
+    <ClInclude Include="engine\effects\particle\ParticleManager.h" />
+    <ClInclude Include="engine\effects\particle\renderer\SpriteRenderer.h" />
+    <ClInclude Include="engine\effects\particle\module\spawn\InitialModules.h" />
+    <ClInclude Include="engine\effects\particle\module\spawn\SpawnModules.h" />
+    <ClInclude Include="engine\effects\particle\module\update\UpdateModules.h" />
+    <ClInclude Include="engine\effects\particle\Particle.h" />
+    <ClInclude Include="engine\effects\particle\ParticleTypes.h" />
+    <ClInclude Include="engine\effects\particle\module\IModule.h" />
+    <ClInclude Include="engine\effects\particle\renderer\IRenderer.h" />
+    <ClInclude Include="engine\effects\particle\gpu\GPUSimulator.h" />
+    <ClInclude Include="application\scene\play\GamePlayScene.h" />
+    <ClInclude Include="engine\animation\Animator.h" />
+    <ClInclude Include="engine\camerawork\follow\FollowCamera.h" />
+    <ClInclude Include="engine\effects\postprocess\CRTEffect.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

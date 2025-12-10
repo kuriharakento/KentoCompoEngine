@@ -2,10 +2,11 @@
 
 #include <numbers>
 
-#include "effects/particle/component/group/UVTranslateComponent.h"
-#include "effects/particle/component/single/ColorFadeOutComponent.h"
-#include "effects/particle/component/single/GravityComponent.h"
-#include "effects/particle/component/single/ScaleOverLifetimeComponent.h"
+#include "effects/particle/ParticleManager.h"
+#include "effects/particle/renderer/SpriteRenderer.h"
+#include "effects/particle/module/spawn/SpawnModules.h"
+#include "effects/particle/module/spawn/InitialModules.h"
+#include "effects/particle/module/update/UpdateModules.h"
 #include "manager/graphics/LineManager.h"
 #include "manager/scene/CameraManager.h"
 #include "math/VectorColorCodes.h"
@@ -22,45 +23,61 @@ void ParticleTestScene::Initialize()
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate({ 0.0f, 5.0f, -20.0f });
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetRotate({ 0.0f, 0.0f, 0.0f });
 
-	auraCylinder_ = std::make_unique<ParticleEmitter>();
-	auraMist_ = std::make_unique<ParticleEmitter>();
-	auraFloor_ = std::make_unique<ParticleEmitter>();
-	auraLeak_ = std::make_unique<ParticleEmitter>();
-	auraCylinder_->Initialize("auraCylinder", "./Resources/gradation.png");
-	auraMist_->Initialize("auraMist", "./Resources/gradation.png");
-	auraFloor_->Initialize("auraFloor", "./Resources/gradation.png");
-	auraLeak_->Initialize("auraLeak", "./Resources/gradation.png");
+	// 新パーティクルシステムでオーラエフェクトを作成
+	{
+		auto emitter = std::make_unique<ParticleEmitter>();
+		emitter->Initialize("auraCylinder");
+		
+		auto renderer = std::make_unique<SpriteRenderer>();
+		renderer->Initialize("./Resources/gradation.png");
+		renderer->SetBlendMode(BlendMode::Additive);
+		emitter->SetRenderer(std::move(renderer));
+		
+		emitter->AddModule(std::make_unique<SpawnRateModule>(1.0f));
+		emitter->AddModule(std::make_unique<InitialLifetimeModule>(2.0f, 2.0f));
+		emitter->AddModule(std::make_unique<InitialScaleModule>(Vector3(0.3f, 10.0f, 0.3f), Vector3(0.3f, 10.0f, 0.3f)));
+		emitter->AddModule(std::make_unique<InitialColorModule>(Vector4(1.0f, 1.0f, 1.0f, 1.0f)));
+		
+		ParticleManager::GetInstance()->AddEmitter(std::move(emitter));
+	}
 
-	// 白い円柱エフェクトの設定（垂直に立つオーラ）
-	auraCylinder_->SetModelType(ParticleGroup::ParticleType::Cylinder);
-	auraCylinder_->SetEmitRange(Vector3(), Vector3());
-	auraCylinder_->SetBillborad(false);
-	auraCylinder_->SetInitialLifeTime(2.0f);
-	auraCylinder_->SetEmitRate(1.0f);
-	auraCylinder_->SetInitialRotation(Vector3(std::numbers::pi_v<float>, 0.0f, 0.0f));
-	auraCylinder_->SetInitialScale(Vector3(0.3f, 10.0f, 0.3f));
+	{
+		auto emitter = std::make_unique<ParticleEmitter>();
+		emitter->Initialize("auraMist");
+		
+		auto renderer = std::make_unique<SpriteRenderer>();
+		renderer->Initialize("./Resources/gradation.png");
+		renderer->SetBlendMode(BlendMode::Additive);
+		emitter->SetRenderer(std::move(renderer));
+		
+		emitter->AddModule(std::make_unique<SpawnRateModule>(5.0f));
+		emitter->AddModule(std::make_unique<InitialPositionModule>(Vector3(-0.5f, 0.0f, -0.5f), Vector3(0.5f, 0.0f, 0.5f)));
+		emitter->AddModule(std::make_unique<InitialVelocityModule>(Vector3(0.0f, 0.3f, 0.0f), Vector3(0.0f, 0.5f, 0.0f)));
+		emitter->AddModule(std::make_unique<InitialLifetimeModule>(1.0f, 2.0f));
+		emitter->AddModule(std::make_unique<InitialScaleModule>(Vector3(1.0f, 2.0f, 1.0f), Vector3(1.5f, 3.0f, 1.5f)));
+		emitter->AddModule(std::make_unique<InitialColorModule>(Vector4(1.0f, 1.0f, 1.0f, 0.3f)));
+		emitter->AddModule(std::make_unique<ColorFadeModule>(Vector4(1.0f, 1.0f, 1.0f, 0.3f), Vector4(1.0f, 1.0f, 1.0f, 0.0f)));
+		
+		ParticleManager::GetInstance()->AddEmitter(std::move(emitter));
+	}
 
-	// モヤモヤエフェクトの設定（上昇する煙のようなエフェクト）
-	auraMist_->SetModelType(ParticleGroup::ParticleType::Plane);
-	auraMist_->SetBillborad(true);
-	auraMist_->SetEmitRange(Vector3(), Vector3());
-	auraMist_->SetInitialLifeTime(1.5f);
-	auraMist_->SetEmitRate(0.2f);
-	auraMist_->SetInitialScale(Vector3(1.0f, 2.0f, 1.0f));
-	auraMist_->SetInitialVelocity(Vector3(0.0f, 0.3f, 0.0f));
-	auraMist_->SetInitialColor(VectorColorCodes::White - Vector4(0.0f, 0.0f, 0.0f, 0.7f));
-	// UV移動コンポーネントでテクスチャをスクロール
-	auraMist_->AddComponent(std::make_shared<UVTranslateComponent>(Vector3(0.0f, 0.3f, 0.0f)));
-
-	// 床に広がる光エフェクトの設定（リング状に拡大）
-	auraFloor_->SetModelType(ParticleGroup::ParticleType::Ring);
-	auraFloor_->SetEmitRange(Vector3(), Vector3());
-	auraFloor_->SetInitialLifeTime(1.0f);
-	auraFloor_->SetEmitRate(1.0f);
-	auraFloor_->SetRandomRotationRange(AABB{ Vector3{ std::numbers::pi_v<float> / 2.0f, -3.14f, 0.0f }, Vector3{ std::numbers::pi_v<float> / 2.0f, 3.14f, 0.0f } });
-	// スケールとフェードアウトコンポーネントで拡大しながら消える演出
-	auraFloor_->AddComponent(std::make_shared<ScaleOverLifetimeComponent>(0.0f, 3.0f));
-	auraFloor_->AddComponent(std::make_shared<ColorFadeOutComponent>());
+	{
+		auto emitter = std::make_unique<ParticleEmitter>();
+		emitter->Initialize("auraFloor");
+		
+		auto renderer = std::make_unique<SpriteRenderer>();
+		renderer->Initialize("./Resources/gradation.png");
+		renderer->SetBlendMode(BlendMode::Additive);
+		emitter->SetRenderer(std::move(renderer));
+		
+		emitter->AddModule(std::make_unique<SpawnRateModule>(1.0f));
+		emitter->AddModule(std::make_unique<InitialLifetimeModule>(1.0f, 1.0f));
+		emitter->AddModule(std::make_unique<InitialColorModule>(Vector4(1.0f, 1.0f, 1.0f, 1.0f)));
+		emitter->AddModule(std::make_unique<ScaleOverLifetimeModule>(Vector3(0.0f, 0.0f, 0.0f), Vector3(3.0f, 3.0f, 3.0f)));
+		emitter->AddModule(std::make_unique<ColorFadeModule>(Vector4(1.0f, 1.0f, 1.0f, 1.0f), Vector4(1.0f, 1.0f, 1.0f, 0.0f)));
+		
+		ParticleManager::GetInstance()->AddEmitter(std::move(emitter));
+	}
 }
 
 void ParticleTestScene::Finalize()
@@ -73,26 +90,13 @@ void ParticleTestScene::Finalize()
 
 void ParticleTestScene::OnEnterPlaying()
 {
-	auraCylinder_->Start(
-		Vector3(0.0f, 10.0f, 0.0f),
-		1,
-		0.0f,
-		true
-	);
+	auto* cylinder = ParticleManager::GetInstance()->GetEmitter("auraCylinder");
+	auto* mist = ParticleManager::GetInstance()->GetEmitter("auraMist");
+	auto* floor = ParticleManager::GetInstance()->GetEmitter("auraFloor");
 
-	auraMist_->Start(
-		Vector3(0.0f, 0.0f, 0.0f),
-		1,
-		0.0f,
-		true
-	);
-
-	auraFloor_->Start(
-		Vector3(0.0f, 0.0f, 0.0f),
-		1,
-		0.0f,
-		true
-	);
+	if (cylinder) cylinder->SetPosition(Vector3(0.0f, 10.0f, 0.0f));
+	if (mist) mist->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
+	if (floor) floor->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
 }
 
 void ParticleTestScene::OnUpdatePlaying()

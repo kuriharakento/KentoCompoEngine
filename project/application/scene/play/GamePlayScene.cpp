@@ -18,17 +18,6 @@
 // components
 #include "application/combo/ComboManager.h"
 #include "application/GameObject/component/action/PistolComponent.h"
-#include "effects/particle/component/group/MaterialColorComponent.h"
-#include "effects/particle/component/group/UVTranslateComponent.h"
-#include "effects/particle/component/single/AccelerationComponent.h"
-#include "effects/particle/component/single/BounceComponent.h"
-#include "effects/particle/component/single/ColorFadeOutComponent.h"
-#include "effects/particle/component/single/DragComponent.h"
-#include "effects/particle/component/single/GravityComponent.h"
-#include "effects/particle/component/single/OrbitComponent.h"
-#include "effects/particle/component/single/RandomInitialVelocityComponent.h"
-#include "effects/particle/component/single/RotationComponent.h"
-#include "effects/particle/component/single/ScaleOverLifetimeComponent.h"
 #include "time/TimeManager.h"
 #include "time/TimerManager.h"
 

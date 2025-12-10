@@ -177,44 +177,6 @@ struct ModelData
 };
 
 /**
- * @brief パーティクル
- */
-struct Particle
-{
-    // トランスフォーム
-    Transform transform;
-    // 速度
-    Vector3 velocity;
-    // 色
-    Vector4 color;
-    // 寿命
-    float lifeTime;
-    // 現在の時間
-    float currentTime;
-    // 開始位置
-	Vector3 startPos;
-
-    /**
-     * @brief パーティクルが生存しているかを判定
-     * @return 生存している場合はtrue
-     */
-	bool isAlive() const { return currentTime < lifeTime; }
-};
-
-/**
- * @brief GPU用パーティクルデータ
- */
-struct ParticleForGPU
-{
-    // ワールドビュープロジェクション行列
-    Matrix4x4 WVP;
-    // ワールド行列
-    Matrix4x4 World;
-    // 色
-    Vector4 color;
-};
-
-/**
  * @brief GPU用カメラデータ
  */
 struct CameraForGPU

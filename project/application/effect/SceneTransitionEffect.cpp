@@ -1,4 +1,4 @@
-#include "SceneTransitionEffect.h"
+﻿#include "SceneTransitionEffect.h"
 #include <algorithm>
 #include <cmath>
 #include "imgui/imgui.h"
@@ -18,7 +18,7 @@ void SceneTransitionEffect::Initialize(SpriteCommon* spriteCommon, const std::st
 	float cellWidth = screenWidth_ / gridX_;
 	float cellHeight = screenHeight_ / gridY_;
 
-	// グリッド状にスプライトを配置
+	// 繧ｰ繝ｪ繝・ラ迥ｶ縺ｫ繧ｹ繝励Λ繧､繝医ｒ驟咲ｽｮ
 	for (int y = 0; y < gridY_; ++y)
 	{
 		gridSprites_[y].resize(gridX_);
@@ -30,7 +30,7 @@ void SceneTransitionEffect::Initialize(SpriteCommon* spriteCommon, const std::st
 			gridSprites_[y][x]->SetPosition({ x * cellWidth, y * cellHeight });
 			gridSprites_[y][x]->SetAnchorPoint({ 0.0f, 0.0f });
 			
-			// 各グリッドにグラデーションカラーを適用
+			// 蜷・げ繝ｪ繝・ラ縺ｫ繧ｰ繝ｩ繝・・繧ｷ繝ｧ繝ｳ繧ｫ繝ｩ繝ｼ繧帝←逕ｨ
 			float gridProgress = CalcGridProgress(x, y);
 			Vector4 color = LerpColor(startColor_, endColor_, gridProgress);
 			color.w = 1.0f;
@@ -48,14 +48,14 @@ void SceneTransitionEffect::Start(float duration, const Vector4& startColor, con
 	startColor_ = startColor;
 	endColor_ = endColor;
 	
-	// 新しい色設定でグラデーションを再適用
+	// 譁ｰ縺励＞濶ｲ險ｭ螳壹〒繧ｰ繝ｩ繝・・繧ｷ繝ｧ繝ｳ繧貞・驕ｩ逕ｨ
 	for (int y = 0; y < gridY_; ++y)
 	{
 		for (int x = 0; x < gridX_; ++x)
 		{
 			float gridProgress = CalcGridProgress(x, y);
 			Vector4 color = LerpColor(startColor_, endColor_, gridProgress);
-			color.w = (fadeType_ == FadeType::FadeOut) ? 1.0f : 0.0f;  // フェードタイプに応じた初期透明度
+			color.w = (fadeType_ == FadeType::FadeOut) ? 1.0f : 0.0f;  // 繝輔ぉ繝ｼ繝峨ち繧､繝励↓蠢懊§縺溷・譛滄乗・蠎ｦ
 			gridSprites_[y][x]->SetColor(color);
 		}
 	}
@@ -67,7 +67,7 @@ void SceneTransitionEffect::Update()
 
 	float deltaTime = TimeManager::GetInstance().GetUIContext().deltaTime;
 
-	// 再生中の場合、進行度を更新
+	// 蜀咲函荳ｭ縺ｮ蝣ｴ蜷医・ｲ陦悟ｺｦ繧呈峩譁ｰ
 	if (state_ == TransitionState::Playing)
 	{
 		elapsed_ += deltaTime;
@@ -78,20 +78,20 @@ void SceneTransitionEffect::Update()
 		}
 	}
 
-	// 各グリッドセルの透明度を計算して更新
+	// 蜷・げ繝ｪ繝・ラ繧ｻ繝ｫ縺ｮ騾乗・蠎ｦ繧定ｨ育ｮ励＠縺ｦ譖ｴ譁ｰ
 	for (int y = 0; y < gridY_; ++y)
 	{
 		for (int x = 0; x < gridX_; ++x)
 		{
-			// このグリッドの開始タイミングを取得
+			// 縺薙・繧ｰ繝ｪ繝・ラ縺ｮ髢句ｧ九ち繧､繝溘Φ繧ｰ繧貞叙蠕・
 			float gridProgress = CalcGridProgress(x, y);
-			// グリッド固有の進行度を計算（全体進行度からグリッド開始点を差し引く）
+			// 繧ｰ繝ｪ繝・ラ蝗ｺ譛峨・騾ｲ陦悟ｺｦ繧定ｨ育ｮ暦ｼ亥・菴馴ｲ陦悟ｺｦ縺九ｉ繧ｰ繝ｪ繝・ラ髢句ｧ狗せ繧貞ｷｮ縺怜ｼ輔￥・・
 			float fadeProgress = (transitionRate_ - gridProgress) / (1.0f - gridProgress);
 			fadeProgress = std::clamp(fadeProgress, 0.0f, 1.0f);
 
-			// イージングを適用
+			// 繧､繝ｼ繧ｸ繝ｳ繧ｰ繧帝←逕ｨ
 			float baseAlpha = ApplyEasing(fadeProgress);
-			// フェードタイプに応じて透明度を反転
+			// 繝輔ぉ繝ｼ繝峨ち繧､繝励↓蠢懊§縺ｦ騾乗・蠎ｦ繧貞渚霆｢
 			float alpha = (fadeType_ == FadeType::FadeOut) ? 1.0f - baseAlpha : baseAlpha;
 
 			Vector4 color = gridSprites_[y][x]->GetColor();
@@ -104,12 +104,12 @@ void SceneTransitionEffect::Update()
 
 void SceneTransitionEffect::Draw()
 {
-	// 待機中は描画しない
+	// 蠕・ｩ滉ｸｭ縺ｯ謠冗判縺励↑縺・
 	if (state_ == TransitionState::Idle)
 	{
 		return;
 	}
-	// 描画
+	// 謠冗判
 	for (int y = 0; y < gridY_; ++y)
 	{
 		for (int x = 0; x < gridX_; ++x)
@@ -117,7 +117,7 @@ void SceneTransitionEffect::Draw()
 			float alpha = gridSprites_[y][x]->GetColor().w;
 			if (alpha <= 0.0f)
 			{
-				continue; // 透明なら描画しない
+				continue; // 騾乗・縺ｪ繧画緒逕ｻ縺励↑縺・
 			}
 			gridSprites_[y][x]->Draw();
 		}
@@ -168,7 +168,7 @@ Vector4 SceneTransitionEffect::LerpColor(const Vector4& c0, const Vector4& c1, f
 		c0.x + (c1.x - c0.x) * t,
 		c0.y + (c1.y - c0.y) * t,
 		c0.z + (c1.z - c0.z) * t,
-		1.0f // αは下で合成する
+		1.0f // ﾎｱ縺ｯ荳九〒蜷域・縺吶ｋ
 	);
 }
 
@@ -229,14 +229,14 @@ void SceneTransitionEffect::ShowImGui()
 
 		static int modeIdx = static_cast<int>(mode_);
 		const char* modeNames[] = {
-			"LeftTop → RightBottom",
-			"RightBottom → LeftTop",
-			"RightTop → LeftBottom",
-			"LeftBottom → RightTop",
-			"Top → Bottom",
-			"Bottom → Top",
-			"Center → Edges",
-			"Edges → Center"
+			"LeftTop 竊・RightBottom",
+			"RightBottom 竊・LeftTop",
+			"RightTop 竊・LeftBottom",
+			"LeftBottom 竊・RightTop",
+			"Top 竊・Bottom",
+			"Bottom 竊・Top",
+			"Center 竊・Edges",
+			"Edges 竊・Center"
 		};
 		if (ImGui::Combo("Transition Mode", &modeIdx, modeNames, IM_ARRAYSIZE(modeNames)))
 		{
@@ -267,3 +267,4 @@ void SceneTransitionEffect::ShowImGui()
 	ImGui::End();
 #endif
 }
+

@@ -8,7 +8,7 @@
 /**
  * @brief シーン遷移の方向パターン
  * 
- * グリッド状のスプライトがどの方向から順に変化していくかを定義します。
+ * グリチE��状のスプライトがどの方向から頁E��変化してぁE��かを定義します、E
  */
 enum class TransitionMode
 {
@@ -18,81 +18,81 @@ enum class TransitionMode
     LeftBottomToRightTop,      ///< 左下から右上へ遷移
     TopToBottom,               ///< 上から下へ遷移
     BottomToTop,               ///< 下から上へ遷移
-    CenterToEdges,             ///< 中央から外側へ遷移
-    EdgesToCenter              ///< 外側から中央へ遷移
+    CenterToEdges,             ///< 中央から外�Eへ遷移
+    EdgesToCenter              ///< 外�Eから中央へ遷移
 };
 
 /**
- * @brief フェードの種類
+ * @brief フェード�E種顁E
  */
 enum class FadeType
 {
-    FadeIn,     ///< フェードイン（透明→不透明）
-    FadeOut     ///< フェードアウト（不透明→透明）
+    FadeIn,     ///< フェードイン�E�透�E→不透�E�E�E
+    FadeOut     ///< フェードアウト（不透�E→透�E�E�E
 };
 
 /**
- * @brief シーン遷移のイージングタイプ
+ * @brief シーン遷移のイージングタイチE
  * 
- * グリッドの透明度変化に適用するイージング関数の種類を定義します。
+ * グリチE��の透�E度変化に適用するイージング関数の種類を定義します、E
  */
 enum class SceneTransitionEase
 {
     Linear,         ///< 線形補間
-    InSine,         ///< サイン加速
-    OutSine,        ///< サイン減速
-    InOutSine,      ///< サイン加速減速
-    InQuint,        ///< 5乗加速
-    OutQuint,       ///< 5乗減速
-    InOutQuint,     ///< 5乗加速減速
-    InCirc,         ///< 円形加速
-    OutCirc,        ///< 円形減速
-    InOutCirc,      ///< 円形加速減速
-    InElastic,      ///< 弾性加速
-    OutElastic,     ///< 弾性減速
-    InOutElastic,   ///< 弾性加速減速
-    InExpo,         ///< 指数加速
-    OutExpo,        ///< 指数減速
-    InOutExpo,      ///< 指数加速減速
-    OutQuad,        ///< 2乗減速
-    InOutQuart,     ///< 4乗加速減速
-    InBack,         ///< 後退加速
-    OutBack,        ///< 後退減速
-    InOutBack,      ///< 後退加速減速
-    OutBounce,      ///< バウンド減速
-    InBounce,       ///< バウンド加速
-    InOutBounce     ///< バウンド加速減速
+    InSine,         ///< サイン加送E
+    OutSine,        ///< サイン減送E
+    InOutSine,      ///< サイン加速減送E
+    InQuint,        ///< 5乗加送E
+    OutQuint,       ///< 5乗減送E
+    InOutQuint,     ///< 5乗加速減送E
+    InCirc,         ///< 冁E��加送E
+    OutCirc,        ///< 冁E��減送E
+    InOutCirc,      ///< 冁E��加速減送E
+    InElastic,      ///< 弾性加送E
+    OutElastic,     ///< 弾性減送E
+    InOutElastic,   ///< 弾性加速減送E
+    InExpo,         ///< 持E��加送E
+    OutExpo,        ///< 持E��減送E
+    InOutExpo,      ///< 持E��加速減送E
+    OutQuad,        ///< 2乗減送E
+    InOutQuart,     ///< 4乗加速減送E
+    InBack,         ///< 後退加送E
+    OutBack,        ///< 後退減送E
+    InOutBack,      ///< 後退加速減送E
+    OutBounce,      ///< バウンド減送E
+    InBounce,       ///< バウンド加送E
+    InOutBounce     ///< バウンド加速減送E
 };
 
 /**
- * @brief 遷移エフェクトの状態
+ * @brief 遷移エフェクト�E状慁E
  */
 enum class TransitionState { 
-    Idle,       ///< 待機中（再生前）
+    Idle,       ///< 征E��中�E��E生前�E�E
     Playing,    ///< 再生中
-    Done        ///< 完了
+    Done        ///< 完亁E
 };
 
 /**
  * @brief シーン遷移エフェクトクラス
  * 
- * 画面全体をグリッド状に分割し、各セルが順次フェードイン/アウトすることで
- * 視覚的に美しいシーン遷移演出を実現します。
+ * 画面全体をグリチE��状に刁E��し、各セルが頁E��フェードイン/アウトすることで
+ * 視覚的に美しぁE��ーン遷移演�Eを実現します、E
  * 
- * 主な機能:
- * - カスタマイズ可能なグリッドサイズ
- * - 8種類の遷移方向パターン
- * - グラデーションカラー対応
+ * 主な機�E:
+ * - カスタマイズ可能なグリチE��サイズ
+ * - 8種類�E遷移方向パターン
+ * - グラチE�Eションカラー対忁E
  * - 多様なイージング関数
- * - フェードイン/フェードアウト切り替え
+ * - フェードイン/フェードアウト�Eり替ぁE
  * 
  * @code
- * // 使用例
+ * // 使用侁E
  * SceneTransitionEffect transition;
  * transition.Initialize(spriteCommon, texPath, 6, 4, 1280.0f, 720.0f);
  * transition.SetMode(TransitionMode::CenterToEdges);
  * transition.SetFadeType(FadeType::FadeOut);
- * transition.Start(1.5f, {1,1,1,1}, {0,0,0,1});  // 白から黒へグラデーション
+ * transition.Start(1.5f, {1,1,1,1}, {0,0,0,1});  // 白から黒へグラチE�Eション
  * @endcode
  */
 class SceneTransitionEffect
@@ -102,120 +102,120 @@ public:
     ~SceneTransitionEffect();
 
     /**
-     * @brief エフェクトの初期化
+     * @brief エフェクト�E初期匁E
      * 
-     * グリッド状のスプライトを生成し、画面全体を覆うように配置します。
+     * グリチE��状のスプライトを生�Eし、画面全体を要E��ように配置します、E
      * 
-     * @param spriteCommon スプライト共通設定
-     * @param texturePath 使用するテクスチャパス
-     * @param gridX 横方向のグリッド分割数
-     * @param gridY 縦方向のグリッド分割数
-     * @param screenWidth 画面幅（ピクセル）
-     * @param screenHeight 画面高さ（ピクセル）
+     * @param spriteCommon スプライト�E通設宁E
+     * @param texturePath 使用するチE��スチャパス
+     * @param gridX 横方向�EグリチE��刁E��数
+     * @param gridY 縦方向�EグリチE��刁E��数
+     * @param screenWidth 画面幁E��ピクセル�E�E
+     * @param screenHeight 画面高さ�E�ピクセル�E�E
      */
     void Initialize(SpriteCommon* spriteCommon, const std::string& texturePath, int gridX, int gridY, float screenWidth, float screenHeight);
 
     /**
-     * @brief グラデーションカラー付き遷移の開始
+     * @brief グラチE�Eションカラー付き遷移の開姁E
      * 
-     * 開始色から終了色へのグラデーションを適用した遷移エフェクトを開始します。
+     * 開始色から終亁E��へのグラチE�Eションを適用した遷移エフェクトを開始します、E
      * 
-     * @param duration 遷移時間（秒）
-     * @param startColor 開始時の色（RGBA）
-     * @param endColor 終了時の色（RGBA）
+     * @param duration 遷移時間�E�秒！E
+     * @param startColor 開始時の色�E�EGBA�E�E
+     * @param endColor 終亁E��の色�E�EGBA�E�E
      */
     void Start(float duration, const Vector4& startColor, const Vector4& endColor);
 
     /**
-     * @brief エフェクトの更新
+     * @brief エフェクト�E更新
      * 
-     * 毎フレーム呼び出され、グリッドの透明度を更新します。
+     * 毎フレーム呼び出され、グリチE��の透�E度を更新します、E
      */
     void Update();
     
     /**
-     * @brief エフェクトの描画
+     * @brief エフェクト�E描画
      * 
-     * 全てのグリッドスプライトを描画します。
+     * 全てのグリチE��スプライトを描画します、E
      */
     void Draw();
 
     /**
-     * @brief 現在の状態を取得
-     * @return 遷移エフェクトの状態
+     * @brief 現在の状態を取征E
+     * @return 遷移エフェクト�E状慁E
      */
     TransitionState GetState() const;
     
     /**
-     * @brief 状態を設定
-     * @param state 設定する状態
+     * @brief 状態を設宁E
+     * @param state 設定する状慁E
      */
 	void SetState(TransitionState state);
     
     /**
-     * @brief イージングタイプを設定
-     * @param type 適用するイージングタイプ
+     * @brief イージングタイプを設宁E
+     * @param type 適用するイージングタイチE
      */
     void SetEaseType(SceneTransitionEase type);
     
     /**
-     * @brief 遷移モードを設定
+     * @brief 遷移モードを設宁E
      * @param mode 遷移の方向パターン
      */
     void SetMode(TransitionMode mode);
     
     /**
-     * @brief フェードタイプを設定
-     * @param type フェードイン/フェードアウトの選択
+     * @brief フェードタイプを設宁E
+     * @param type フェードイン/フェードアウト�E選抁E
      */
     void SetFadeType(FadeType type);
 
     /**
-     * @brief ImGuiデバッグウィンドウの表示
+     * @brief ImGuiチE��チE��ウィンドウの表示
      */
     void ShowImGui();
 
 private:
     /**
      * @brief イージング関数を適用
-     * @param t 正規化された時間（0.0〜1.0）
-     * @return イージング適用後の値
+     * @param t 正規化された時間！E.0、E.0�E�E
+     * @return イージング適用後�E値
      */
     float ApplyEasing(float t) const;
     
     /**
      * @brief 色の線形補間
      * @param c0 開始色
-     * @param c1 終了色
-     * @param t 補間係数（0.0〜1.0）
+     * @param c1 終亁E��
+     * @param t 補間係数�E�E.0、E.0�E�E
      * @return 補間された色
      */
     Vector4 LerpColor(const Vector4& c0, const Vector4& c1, float t) const;
     
     /**
-     * @brief グリッド位置に基づく進行度を計算
+     * @brief グリチE��位置に基づく進行度を計箁E
      * 
-     * 遷移モードに応じて、各グリッドセルの変化開始タイミングを決定します。
+     * 遷移モードに応じて、各グリチE��セルの変化開始タイミングを決定します、E
      * 
-     * @param x グリッドのX座標
-     * @param y グリッドのY座標
-     * @return グリッド進行度（0.0〜1.0）
+     * @param x グリチE��のX座樁E
+     * @param y グリチE��のY座樁E
+     * @return グリチE��進行度�E�E.0、E.0�E�E
      */
     float CalcGridProgress(int x, int y) const;
 
-    int gridX_ = 6;                                         ///< 横方向のグリッド分割数
-    int gridY_ = 4;                                         ///< 縦方向のグリッド分割数
-    float screenWidth_ = 1280.0f;                           ///< 画面幅
+    int gridX_ = 6;                                         ///< 横方向�EグリチE��刁E��数
+    int gridY_ = 4;                                         ///< 縦方向�EグリチE��刁E��数
+    float screenWidth_ = 1280.0f;                           ///< 画面幁E
     float screenHeight_ = 720.0f;                           ///< 画面高さ
-    float transitionRate_ = 0.0f;                           ///< 全体の遷移進行度（0.0〜1.0）
-    SceneTransitionEase easeType_ = SceneTransitionEase::Linear;  ///< イージングタイプ
-    float duration_ = 1.0f;                                 ///< 遷移時間（秒）
-    float elapsed_ = 0.0f;                                  ///< 経過時間（秒）
-    TransitionState state_ = TransitionState::Idle;         ///< 現在の状態
+    float transitionRate_ = 0.0f;                           ///< 全体�E遷移進行度�E�E.0、E.0�E�E
+    SceneTransitionEase easeType_ = SceneTransitionEase::Linear;  ///< イージングタイチE
+    float duration_ = 1.0f;                                 ///< 遷移時間�E�秒！E
+    float elapsed_ = 0.0f;                                  ///< 経過時間�E�秒！E
+    TransitionState state_ = TransitionState::Idle;         ///< 現在の状慁E
     Vector4 startColor_ = { 1.0f,1.0f,1.0f,1.0f };          ///< 開始時の色
-    Vector4 endColor_ = { 1.0f,1.0f,1.0f,1.0f };            ///< 終了時の色
-    TransitionMode mode_ = TransitionMode::LeftTopToRightBottom;  ///< 遷移モード
-    FadeType fadeType_ = FadeType::FadeOut;                 ///< フェードタイプ
+    Vector4 endColor_ = { 1.0f,1.0f,1.0f,1.0f };            ///< 終亁E��の色
+    TransitionMode mode_ = TransitionMode::LeftTopToRightBottom;  ///< 遷移モーチE
+    FadeType fadeType_ = FadeType::FadeOut;                 ///< フェードタイチE
 
-    std::vector<std::vector<std::unique_ptr<Sprite>>> gridSprites_;  ///< グリッド状に配置されたスプライト群
+    std::vector<std::vector<std::unique_ptr<Sprite>>> gridSprites_;  ///< グリチE��状に配置されたスプライト群
 };

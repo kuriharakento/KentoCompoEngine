@@ -34,3 +34,13 @@ void to_json(nlohmann::json& j, Vector3 const& v);
  * @param v デシリアライズ先のVector3
  */
 void from_json(nlohmann::json const& j, Vector3& v);
+
+/**
+ * @brief Vector4をJSONにシリアライズ
+ */
+void to_json(nlohmann::json& j, Vector4 const& v);
+
+/**
+ * @brief JSONからVector4にデシリアライズ
+ */
+void from_json(nlohmann::json const& j, Vector4& v);
