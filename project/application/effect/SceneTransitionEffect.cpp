@@ -1,4 +1,4 @@
-﻿#include "SceneTransitionEffect.h"
+#include "SceneTransitionEffect.h"
 #include <algorithm>
 #include <cmath>
 #include "imgui/imgui.h"

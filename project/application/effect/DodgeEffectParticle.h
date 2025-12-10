@@ -4,7 +4,7 @@
 #include "effects/particle/ParticleEmitter.h"
 
 /**
- * @brief 回避アクション時�Eパ�EチE��クルエフェクト！EPS版！E
+ * @brief 蝗樣∩繧｢繧ｯ繧ｷ繝ｧ繝ｳ譎ゅ・繝代・繝・ぅ繧ｯ繝ｫ繧ｨ繝輔ぉ繧ｯ繝茨ｼ・PS迚茨ｼ・
  */
 class DodgeEffectParticle
 {

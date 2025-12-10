@@ -104,6 +104,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="application\effect\PlayerDeathEffect.cpp" />
     <ClCompile Include="application\GameObject\Combatable\base\StatusSystem.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\ActionNode.cpp" />
     <ClCompile Include="application\GameObject\component\action\AssaultRifleComponent.cpp" />
@@ -255,7 +256,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\GameObject\component\action\StatusComponent.cpp" />
     <ClCompile Include="application\effect\TitleFireEffect.cpp" />
     <ClCompile Include="application\effect\SceneTransitionEffect.cpp" />
-    <ClCompile Include="application\effect\PlayerDeathEffect_v2.cpp" />
     <ClCompile Include="application\GameObject\component\action\PlayerUIComponent.cpp" />
   </ItemGroup>
   <ItemGroup>

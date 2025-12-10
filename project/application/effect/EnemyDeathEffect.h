@@ -4,7 +4,7 @@
 #include "effects/particle/ParticleEmitter.h"
 
 /**
- * @brief 敵死亡時�Eビジュアルエフェクト管琁E��ラス�E�EPS版！E
+ * @brief 謨ｵ豁ｻ莠｡譎ゅ・繝薙ず繝･繧｢繝ｫ繧ｨ繝輔ぉ繧ｯ繝育ｮ｡逅・け繝ｩ繧ｹ・・PS迚茨ｼ・
  */
 class EnemyDeathEffect
 {

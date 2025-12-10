@@ -3,7 +3,7 @@
 #include "effects/particle/ParticleEmitter.h"
 
 /**
- * @brief プレイヤー死亡時�Eビジュアルエフェクトクラス�E�EPS版！E
+ * @brief 繝励Ξ繧､繝､繝ｼ豁ｻ莠｡譎ゅ・繝薙ず繝･繧｢繝ｫ繧ｨ繝輔ぉ繧ｯ繝医け繝ｩ繧ｹ・・PS迚茨ｼ・
  */
 class PlayerDeathEffect
 {

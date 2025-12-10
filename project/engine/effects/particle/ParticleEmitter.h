@@ -4,6 +4,7 @@
 #include <string>
 #include "Particle.h"
 #include "ParticleTypes.h"
+#include <base/GraphicsTypes.h>
 
 // 前方宣言
 class IModule;
@@ -11,7 +12,6 @@ class IRenderer;
 class CameraManager;
 class DirectXCommon;
 class SrvManager;
-class Transform;
 class GPUSimulator;
 
 /**

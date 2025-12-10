@@ -1,21 +1,20 @@
 #include "PlayerDeathEffect.h"
-
 #include "application/GameObject/Combatable/character/player/Player.h"
 #include "effects/particle/ParticleManager.h"
 #include "effects/particle/renderer/SpriteRenderer.h"
-#include "effects/particle/module/spawn/NPSSpawnModules.h"
-#include "effects/particle/module/spawn/NPSInitialModules.h"
-#include "effects/particle/module/update/NPSUpdateModules.h"
 #include "math/Easing.h"
 #include "math/VectorColorCodes.h"
 #include "time/TimeManager.h"
+#include <effects/particle/module/spawn/SpawnModules.h>
+#include <effects/particle/module/spawn/InitialModules.h>
+#include <effects/particle/module/update/UpdateModules.h>
 
 void PlayerDeathEffect::Initialize(Player* player)
 {
 	player_ = player;
 	initialScale_ = player->GetScale();
 
-	// 破牁E��ミッターの初期匁E
+	// 遐ｴ迚・お繝溘ャ繧ｿ繝ｼ縺ｮ蛻晄悄蛹・
 	auto emitter = std::make_unique<ParticleEmitter>();
 	emitter->Initialize(emitterName_);
 	
@@ -24,7 +23,7 @@ void PlayerDeathEffect::Initialize(Player* player)
 	renderer->SetBlendMode(BlendMode::Additive);
 	emitter->SetRenderer(std::move(renderer));
 	
-	// モジュール追加
+	// 繝｢繧ｸ繝･繝ｼ繝ｫ霑ｽ蜉
 	emitter->AddModule(std::make_unique<SpawnBurstModule>(10, 0.1f));
 	emitter->AddModule(std::make_unique<InitialPositionModule>(Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.5f, 0.5f, 0.5f)));
 	emitter->AddModule(std::make_unique<InitialVelocityModule>(Vector3(-8.0f, -8.0f, -8.0f), Vector3(8.0f, 8.0f, 8.0f)));

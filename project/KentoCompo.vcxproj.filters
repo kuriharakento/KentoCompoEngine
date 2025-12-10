@@ -432,7 +432,7 @@
     <ClCompile Include="engine\effects\particle\ParticleManager.cpp" />
     <ClCompile Include="engine\effects\particle\renderer\SpriteRenderer.cpp" />
     <ClCompile Include="engine\effects\particle\gpu\GPUSimulator.cpp" />
-    <ClCompile Include="application\effect\PlayerDeathEffect_v2.cpp" />
+    <ClCompile Include="application\effect\PlayerDeathEffect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
