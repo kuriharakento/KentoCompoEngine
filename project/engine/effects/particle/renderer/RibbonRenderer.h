@@ -3,6 +3,7 @@
 #include "effects/particle/Particle.h"
 #include "effects/particle/ParticleTypes.h"
 #include "math/Vector2.h"
+#include "math/MatrixFunc.h"
 #include <d3d12.h>
 #include <wrl/client.h>
 #include <string>
@@ -51,6 +52,12 @@ public:
 
 	void SetMinSegmentLength(float length) { minSegmentLength_ = length; }
 
+	/**
+	 * @brief ビルボード設定（リボンでは通常使用しないが、互換性のため提供）
+	 */
+	void SetBillboard(bool enable) { useBillboard_ = enable; }
+	bool GetBillboard() const { return useBillboard_; }
+
 	void InitializeBuffers(DirectXCommon* dxCommon);
 
 private:
@@ -82,8 +89,17 @@ private:
 	uint32_t vertexCount_ = 0;
 	uint32_t textureIndex_ = 0;
 
+	// マテリアルリソース
+	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_;
+	struct Material* materialData_ = nullptr;
+
+	// ビュープロジェクション行列バッファ
+	Microsoft::WRL::ComPtr<ID3D12Resource> viewProjResource_;
+	Matrix4x4* viewProjData_ = nullptr;
+
 	float ribbonWidth_ = 0.5f;
 	float tileScale_ = 1.0f;
 	float minSegmentLength_ = 0.01f;
 	RibbonTextureMode textureMode_ = RibbonTextureMode::Stretch;
+	bool useBillboard_ = false;
 };

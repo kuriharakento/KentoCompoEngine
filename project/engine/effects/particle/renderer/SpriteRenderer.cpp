@@ -33,7 +33,7 @@ void SpriteRenderer::Initialize(const std::string& texturePath)
 {
 	// デフォルトで白テクスチャをロード
 	// 引数がある場合はそれをロード
-	std::string path = texturePath.empty() ? "white1x1.png" : texturePath;
+	std::string path = texturePath.empty() ? "./Resources/uvChecker.png" : texturePath;
 	TextureManager::GetInstance()->LoadTexture(path);
 	textureIndex_ = TextureManager::GetInstance()->GetTextureIndexByFilePath(path);
 
@@ -50,13 +50,12 @@ void SpriteRenderer::InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvM
 	materialData_->uvTransform = MakeIdentity4x4();
 	materialData_->enableLighting = false;
 
+	// TRIANGLE_STRIP用の4頂点（順序: 左上, 右上, 左下, 右下）
 	std::vector<VertexData> vertices = {
-		{ {  1.0f,  1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } },
-		{ { -1.0f,  1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } },
-		{ {  1.0f, -1.0f, 0.0f, 1.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f } },
-		{ { -1.0f,  1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } },
-		{ { -1.0f, -1.0f, 0.0f, 1.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f } },
-		{ {  1.0f, -1.0f, 0.0f, 1.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f } }
+		{ { -1.0f,  1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } }, // 左上
+		{ {  1.0f,  1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } }, // 右上
+		{ { -1.0f, -1.0f, 0.0f, 1.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f } }, // 左下
+		{ {  1.0f, -1.0f, 0.0f, 1.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f } }, // 右下
 	};
 
 	vertexResource_ = dxCommon->CreateBufferResource(sizeof(VertexData) * vertices.size());
@@ -149,12 +148,15 @@ void SpriteRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
     // commandList->SetGraphicsRootDescriptorTable(2, textureSrv);
     // commandList->SetGraphicsRootDescriptorTable(3, instanceSrv);
 
+	// マテリアル (Slot 0 - CBV)
+	commandList->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
+
 	// テクスチャ (Slot 2)
 	commandList->SetGraphicsRootDescriptorTable(2, srvManager->GetGPUDescriptorHandle(textureIndex_));
 
-	// インスタンシングデータ (Slot 3)
+	// インスタンシングデータ (Slot 1 - VertexShader用)
 	uint32_t index = isGPUMode_ ? gpuSrvIndex_ : instancingSrvIndex_;
-	commandList->SetGraphicsRootDescriptorTable(3, srvManager->GetGPUDescriptorHandle(index));
+	commandList->SetGraphicsRootDescriptorTable(1, srvManager->GetGPUDescriptorHandle(index));
 
 	// 描画
 	commandList->DrawInstanced(4, drawCount, 0, 0);

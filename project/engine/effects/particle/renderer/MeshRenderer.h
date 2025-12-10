@@ -59,6 +59,12 @@ public:
 	void SetScale(float scale) { baseScale_ = scale; }
 	float GetScale() const { return baseScale_; }
 
+	/**
+	 * @brief ビルボード設定
+	 */
+	void SetBillboard(bool enable) { useBillboard_ = enable; }
+	bool GetBillboard() const { return useBillboard_; }
+
 	void InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvManager);
 
 private:
@@ -78,6 +84,10 @@ private:
 
 	uint32_t textureIndex_ = 0;
 
+	// マテリアルリソース
+	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_;
+	struct Material* materialData_ = nullptr;
+
 	// プリミティブメッシュデータ
 	PrimitiveMesh primitiveMesh_;
 	Microsoft::WRL::ComPtr<ID3D12Resource> primitiveVertexResource_;
@@ -90,4 +100,5 @@ private:
 	PrimitiveOptions options_{};
 	float baseScale_ = 1.0f;
 	bool needsRebuild_ = true;
+	bool useBillboard_ = false;
 };

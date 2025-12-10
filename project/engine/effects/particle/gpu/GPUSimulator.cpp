@@ -309,6 +309,10 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera)
 	// 1. Simulation Phase (Particle Buffer Update)
 	//----------------------------------------
 
+	// ディスクリプタヒープを設定（SetComputeRootDescriptorTableの前に必要）
+	ID3D12DescriptorHeap* heaps[] = { srvManager_->GetSrvHeap() };
+	commandList->SetDescriptorHeaps(1, heaps);
+
 	commandList->SetPipelineState(pipeline->GetPipelineState());
 	commandList->SetComputeRootSignature(pipeline->GetRootSignature());
 	commandList->SetComputeRootConstantBufferView(0, constantBuffer_->GetGPUVirtualAddress());
@@ -351,9 +355,10 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera)
 
 	// b1: Camera
 	if (camera && camera->GetActiveCamera()) {
-		// TODO: CameraクラスにGetConstantBufferが存在しないため一時的にコメントアウト
-		// 以前の実装ではここでカメラの定数バッファをGPUに渡していたと思われます
-		// commandList->SetComputeRootConstantBufferView(1, camera->GetActiveCamera()->GetConstantBuffer()->GetGPUVirtualAddress());
+		D3D12_GPU_VIRTUAL_ADDRESS cameraAddress = camera->GetActiveCamera()->GetConstantBufferAddress();
+		if (cameraAddress != 0) {
+			commandList->SetComputeRootConstantBufferView(1, cameraAddress);
+		}
 	}
 	
 	// t0: Particle Buffer SRV

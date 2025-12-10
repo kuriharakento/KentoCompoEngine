@@ -34,23 +34,23 @@ PrimitiveMesh PrimitiveGenerator::GeneratePlane(bool doubleSided)
 {
 	PrimitiveMesh mesh;
 
-	// 表面
+	// X-Y平面（正面向き、Z+方向を向く）(順序: position, texcoord, normal)
 	mesh.vertices = {
-		{{ -0.5f, 0.0f, -0.5f }, { 0, 1, 0 }, { 0, 1 }},
-		{{  0.5f, 0.0f, -0.5f }, { 0, 1, 0 }, { 1, 1 }},
-		{{  0.5f, 0.0f,  0.5f }, { 0, 1, 0 }, { 1, 0 }},
-		{{ -0.5f, 0.0f,  0.5f }, { 0, 1, 0 }, { 0, 0 }},
+		{{ -0.5f, -0.5f, 0.0f, 1.0f }, { 0, 1 }, { 0, 0, 1 }},
+		{{  0.5f, -0.5f, 0.0f, 1.0f }, { 1, 1 }, { 0, 0, 1 }},
+		{{  0.5f,  0.5f, 0.0f, 1.0f }, { 1, 0 }, { 0, 0, 1 }},
+		{{ -0.5f,  0.5f, 0.0f, 1.0f }, { 0, 0 }, { 0, 0, 1 }},
 	};
 
 	mesh.indices = { 0, 1, 2, 0, 2, 3 };
 
 	if (doubleSided)
 	{
-		// 裏面
-		mesh.vertices.push_back({{ -0.5f, 0.0f, -0.5f }, { 0, -1, 0 }, { 0, 1 }});
-		mesh.vertices.push_back({{  0.5f, 0.0f,  0.5f }, { 0, -1, 0 }, { 1, 0 }});
-		mesh.vertices.push_back({{  0.5f, 0.0f, -0.5f }, { 0, -1, 0 }, { 1, 1 }});
-		mesh.vertices.push_back({{ -0.5f, 0.0f,  0.5f }, { 0, -1, 0 }, { 0, 0 }});
+		// 裏面（Z-方向を向く）
+		mesh.vertices.push_back({{ -0.5f, -0.5f, 0.0f, 1.0f }, { 0, 1 }, { 0, 0, -1 }});
+		mesh.vertices.push_back({{  0.5f,  0.5f, 0.0f, 1.0f }, { 1, 0 }, { 0, 0, -1 }});
+		mesh.vertices.push_back({{  0.5f, -0.5f, 0.0f, 1.0f }, { 1, 1 }, { 0, 0, -1 }});
+		mesh.vertices.push_back({{ -0.5f,  0.5f, 0.0f, 1.0f }, { 0, 0 }, { 0, 0, -1 }});
 
 		mesh.indices.push_back(4);
 		mesh.indices.push_back(5);
@@ -77,16 +77,17 @@ PrimitiveMesh PrimitiveGenerator::GenerateSphere(uint32_t segments, uint32_t rin
 			float u = static_cast<float>(x) / segments;
 			float theta = u * kTwoPi;
 
-			PrimitiveVertex vertex;
+		PrimitiveVertex vertex;
 			vertex.position.x = std::sin(phi) * std::cos(theta) * 0.5f;
 			vertex.position.y = std::cos(phi) * 0.5f;
 			vertex.position.z = std::sin(phi) * std::sin(theta) * 0.5f;
+			vertex.position.w = 1.0f;
+
+			vertex.texcoord = { u, v };
 
 			vertex.normal.x = std::sin(phi) * std::cos(theta);
 			vertex.normal.y = std::cos(phi);
 			vertex.normal.z = std::sin(phi) * std::sin(theta);
-
-			vertex.texcoord = { u, v };
 
 			mesh.vertices.push_back(vertex);
 		}
@@ -126,10 +127,10 @@ PrimitiveMesh PrimitiveGenerator::GenerateCylinder(uint32_t segments, bool withC
 		float x = std::cos(theta) * radius;
 		float z = std::sin(theta) * radius;
 
-		// 下端
-		mesh.vertices.push_back({{ x, -halfHeight, z }, { std::cos(theta), 0, std::sin(theta) }, { u, 1 }});
+		// 下端 (position, texcoord, normal)
+		mesh.vertices.push_back({{ x, -halfHeight, z, 1.0f }, { u, 1 }, { std::cos(theta), 0, std::sin(theta) }});
 		// 上端
-		mesh.vertices.push_back({{ x,  halfHeight, z }, { std::cos(theta), 0, std::sin(theta) }, { u, 0 }});
+		mesh.vertices.push_back({{ x,  halfHeight, z, 1.0f }, { u, 0 }, { std::cos(theta), 0, std::sin(theta) }});
 	}
 
 	// 側面インデックス
@@ -150,11 +151,11 @@ PrimitiveMesh PrimitiveGenerator::GenerateCylinder(uint32_t segments, bool withC
 	{
 		// 上面の中心
 		uint32_t topCenterIndex = static_cast<uint32_t>(mesh.vertices.size());
-		mesh.vertices.push_back({{ 0,  halfHeight, 0 }, { 0, 1, 0 }, { 0.5f, 0.5f }});
+		mesh.vertices.push_back({{ 0,  halfHeight, 0, 1.0f }, { 0.5f, 0.5f }, { 0, 1, 0 }});
 
 		// 下面の中心
 		uint32_t bottomCenterIndex = static_cast<uint32_t>(mesh.vertices.size());
-		mesh.vertices.push_back({{ 0, -halfHeight, 0 }, { 0, -1, 0 }, { 0.5f, 0.5f }});
+		mesh.vertices.push_back({{ 0, -halfHeight, 0, 1.0f }, { 0.5f, 0.5f }, { 0, -1, 0 }});
 
 		// 蓋の頂点
 		uint32_t capStartIndex = static_cast<uint32_t>(mesh.vertices.size());
@@ -166,9 +167,9 @@ PrimitiveMesh PrimitiveGenerator::GenerateCylinder(uint32_t segments, bool withC
 			float z = std::sin(theta) * radius;
 
 			// 上蓋
-			mesh.vertices.push_back({{ x,  halfHeight, z }, { 0, 1, 0 }, { x + 0.5f, z + 0.5f }});
+			mesh.vertices.push_back({{ x,  halfHeight, z, 1.0f }, { x + 0.5f, z + 0.5f }, { 0, 1, 0 }});
 			// 下蓋
-			mesh.vertices.push_back({{ x, -halfHeight, z }, { 0, -1, 0 }, { x + 0.5f, z + 0.5f }});
+			mesh.vertices.push_back({{ x, -halfHeight, z, 1.0f }, { x + 0.5f, z + 0.5f }, { 0, -1, 0 }});
 		}
 
 		// 蓋インデックス
@@ -195,9 +196,9 @@ PrimitiveMesh PrimitiveGenerator::GenerateCone(uint32_t segments, bool withCap)
 	float height = 1.0f;
 	float radius = 0.5f;
 
-	// 頂点
+	// 頂点 (position, texcoord, normal)
 	uint32_t tipIndex = 0;
-	mesh.vertices.push_back({{ 0, height * 0.5f, 0 }, { 0, 1, 0 }, { 0.5f, 0 }});
+	mesh.vertices.push_back({{ 0, height * 0.5f, 0, 1.0f }, { 0.5f, 0 }, { 0, 1, 0 }});
 
 	// 底面の頂点
 	for (uint32_t i = 0; i <= segments; ++i)
@@ -211,7 +212,7 @@ PrimitiveMesh PrimitiveGenerator::GenerateCone(uint32_t segments, bool withCap)
 		float nxz = 1.0f / std::sqrt(1 + ny * ny);
 		ny *= nxz;
 
-		mesh.vertices.push_back({{ x, -height * 0.5f, z }, { std::cos(theta) * nxz, ny, std::sin(theta) * nxz }, { u, 1 }});
+		mesh.vertices.push_back({{ x, -height * 0.5f, z, 1.0f }, { u, 1 }, { std::cos(theta) * nxz, ny, std::sin(theta) * nxz }});
 	}
 
 	// 側面インデックス
@@ -226,7 +227,7 @@ PrimitiveMesh PrimitiveGenerator::GenerateCone(uint32_t segments, bool withCap)
 	if (withCap)
 	{
 		uint32_t bottomCenterIndex = static_cast<uint32_t>(mesh.vertices.size());
-		mesh.vertices.push_back({{ 0, -height * 0.5f, 0 }, { 0, -1, 0 }, { 0.5f, 0.5f }});
+		mesh.vertices.push_back({{ 0, -height * 0.5f, 0, 1.0f }, { 0.5f, 0.5f }, { 0, -1, 0 }});
 
 		for (uint32_t i = 0; i < segments; ++i)
 		{
@@ -250,10 +251,10 @@ PrimitiveMesh PrimitiveGenerator::GenerateRing(uint32_t segments, float innerRad
 		float cosT = std::cos(theta);
 		float sinT = std::sin(theta);
 
-		// 外側
-		mesh.vertices.push_back({{ cosT * outerRadius, 0, sinT * outerRadius }, { 0, 1, 0 }, { u, 0 }});
+		// 外側 (position, texcoord, normal)
+		mesh.vertices.push_back({{ cosT * outerRadius, 0, sinT * outerRadius, 1.0f }, { u, 0 }, { 0, 1, 0 }});
 		// 内側
-		mesh.vertices.push_back({{ cosT * innerRadius, 0, sinT * innerRadius }, { 0, 1, 0 }, { u, 1 }});
+		mesh.vertices.push_back({{ cosT * innerRadius, 0, sinT * innerRadius, 1.0f }, { u, 1 }, { 0, 1, 0 }});
 	}
 
 	for (uint32_t i = 0; i < segments; ++i)
@@ -298,7 +299,7 @@ PrimitiveMesh PrimitiveGenerator::GenerateTorus(uint32_t segments, uint32_t tube
 			float ny = sinPhi;
 			float nz = cosPhi * sinT;
 
-			mesh.vertices.push_back({{ x, y, z }, { nx, ny, nz }, { u, v }});
+			mesh.vertices.push_back({{ x, y, z, 1.0f }, { u, v }, { nx, ny, nz }});
 		}
 	}
 
@@ -327,42 +328,42 @@ PrimitiveMesh PrimitiveGenerator::GenerateCube()
 	PrimitiveMesh mesh;
 	float s = 0.5f;
 
-	// 各面（6面 × 4頂点）
+	// 各面（6面 × 4頂点）(position, texcoord, normal)
 	// 前面
-	mesh.vertices.push_back({{ -s, -s,  s }, { 0, 0, 1 }, { 0, 1 }});
-	mesh.vertices.push_back({{  s, -s,  s }, { 0, 0, 1 }, { 1, 1 }});
-	mesh.vertices.push_back({{  s,  s,  s }, { 0, 0, 1 }, { 1, 0 }});
-	mesh.vertices.push_back({{ -s,  s,  s }, { 0, 0, 1 }, { 0, 0 }});
+	mesh.vertices.push_back({{ -s, -s,  s, 1.0f }, { 0, 1 }, { 0, 0, 1 }});
+	mesh.vertices.push_back({{  s, -s,  s, 1.0f }, { 1, 1 }, { 0, 0, 1 }});
+	mesh.vertices.push_back({{  s,  s,  s, 1.0f }, { 1, 0 }, { 0, 0, 1 }});
+	mesh.vertices.push_back({{ -s,  s,  s, 1.0f }, { 0, 0 }, { 0, 0, 1 }});
 
 	// 後面
-	mesh.vertices.push_back({{  s, -s, -s }, { 0, 0, -1 }, { 0, 1 }});
-	mesh.vertices.push_back({{ -s, -s, -s }, { 0, 0, -1 }, { 1, 1 }});
-	mesh.vertices.push_back({{ -s,  s, -s }, { 0, 0, -1 }, { 1, 0 }});
-	mesh.vertices.push_back({{  s,  s, -s }, { 0, 0, -1 }, { 0, 0 }});
+	mesh.vertices.push_back({{  s, -s, -s, 1.0f }, { 0, 1 }, { 0, 0, -1 }});
+	mesh.vertices.push_back({{ -s, -s, -s, 1.0f }, { 1, 1 }, { 0, 0, -1 }});
+	mesh.vertices.push_back({{ -s,  s, -s, 1.0f }, { 1, 0 }, { 0, 0, -1 }});
+	mesh.vertices.push_back({{  s,  s, -s, 1.0f }, { 0, 0 }, { 0, 0, -1 }});
 
 	// 上面
-	mesh.vertices.push_back({{ -s,  s,  s }, { 0, 1, 0 }, { 0, 1 }});
-	mesh.vertices.push_back({{  s,  s,  s }, { 0, 1, 0 }, { 1, 1 }});
-	mesh.vertices.push_back({{  s,  s, -s }, { 0, 1, 0 }, { 1, 0 }});
-	mesh.vertices.push_back({{ -s,  s, -s }, { 0, 1, 0 }, { 0, 0 }});
+	mesh.vertices.push_back({{ -s,  s,  s, 1.0f }, { 0, 1 }, { 0, 1, 0 }});
+	mesh.vertices.push_back({{  s,  s,  s, 1.0f }, { 1, 1 }, { 0, 1, 0 }});
+	mesh.vertices.push_back({{  s,  s, -s, 1.0f }, { 1, 0 }, { 0, 1, 0 }});
+	mesh.vertices.push_back({{ -s,  s, -s, 1.0f }, { 0, 0 }, { 0, 1, 0 }});
 
 	// 下面
-	mesh.vertices.push_back({{ -s, -s, -s }, { 0, -1, 0 }, { 0, 1 }});
-	mesh.vertices.push_back({{  s, -s, -s }, { 0, -1, 0 }, { 1, 1 }});
-	mesh.vertices.push_back({{  s, -s,  s }, { 0, -1, 0 }, { 1, 0 }});
-	mesh.vertices.push_back({{ -s, -s,  s }, { 0, -1, 0 }, { 0, 0 }});
+	mesh.vertices.push_back({{ -s, -s, -s, 1.0f }, { 0, 1 }, { 0, -1, 0 }});
+	mesh.vertices.push_back({{  s, -s, -s, 1.0f }, { 1, 1 }, { 0, -1, 0 }});
+	mesh.vertices.push_back({{  s, -s,  s, 1.0f }, { 1, 0 }, { 0, -1, 0 }});
+	mesh.vertices.push_back({{ -s, -s,  s, 1.0f }, { 0, 0 }, { 0, -1, 0 }});
 
 	// 右面
-	mesh.vertices.push_back({{  s, -s,  s }, { 1, 0, 0 }, { 0, 1 }});
-	mesh.vertices.push_back({{  s, -s, -s }, { 1, 0, 0 }, { 1, 1 }});
-	mesh.vertices.push_back({{  s,  s, -s }, { 1, 0, 0 }, { 1, 0 }});
-	mesh.vertices.push_back({{  s,  s,  s }, { 1, 0, 0 }, { 0, 0 }});
+	mesh.vertices.push_back({{  s, -s,  s, 1.0f }, { 0, 1 }, { 1, 0, 0 }});
+	mesh.vertices.push_back({{  s, -s, -s, 1.0f }, { 1, 1 }, { 1, 0, 0 }});
+	mesh.vertices.push_back({{  s,  s, -s, 1.0f }, { 1, 0 }, { 1, 0, 0 }});
+	mesh.vertices.push_back({{  s,  s,  s, 1.0f }, { 0, 0 }, { 1, 0, 0 }});
 
 	// 左面
-	mesh.vertices.push_back({{ -s, -s, -s }, { -1, 0, 0 }, { 0, 1 }});
-	mesh.vertices.push_back({{ -s, -s,  s }, { -1, 0, 0 }, { 1, 1 }});
-	mesh.vertices.push_back({{ -s,  s,  s }, { -1, 0, 0 }, { 1, 0 }});
-	mesh.vertices.push_back({{ -s,  s, -s }, { -1, 0, 0 }, { 0, 0 }});
+	mesh.vertices.push_back({{ -s, -s, -s, 1.0f }, { 0, 1 }, { -1, 0, 0 }});
+	mesh.vertices.push_back({{ -s, -s,  s, 1.0f }, { 1, 1 }, { -1, 0, 0 }});
+	mesh.vertices.push_back({{ -s,  s,  s, 1.0f }, { 1, 0 }, { -1, 0, 0 }});
+	mesh.vertices.push_back({{ -s,  s, -s, 1.0f }, { 0, 0 }, { -1, 0, 0 }});
 
 	// インデックス
 	for (uint32_t face = 0; face < 6; ++face)
@@ -384,8 +385,8 @@ PrimitiveMesh PrimitiveGenerator::GenerateStar(uint32_t points, float innerRadiu
 	PrimitiveMesh mesh;
 	float outerRadius = 0.5f;
 
-	// 中心
-	mesh.vertices.push_back({{ 0, 0, 0 }, { 0, 0, 1 }, { 0.5f, 0.5f }});
+	// 中心 (position, texcoord, normal)
+	mesh.vertices.push_back({{ 0, 0, 0, 1.0f }, { 0.5f, 0.5f }, { 0, 0, 1 }});
 
 	// 星の頂点
 	for (uint32_t i = 0; i <= points * 2; ++i)
@@ -395,7 +396,7 @@ PrimitiveMesh PrimitiveGenerator::GenerateStar(uint32_t points, float innerRadiu
 		float x = std::cos(angle) * r;
 		float y = std::sin(angle) * r;
 
-		mesh.vertices.push_back({{ x, y, 0 }, { 0, 0, 1 }, { x + 0.5f, 0.5f - y }});
+		mesh.vertices.push_back({{ x, y, 0, 1.0f }, { x + 0.5f, 0.5f - y }, { 0, 0, 1 }});
 	}
 
 	// インデックス
@@ -413,8 +414,8 @@ PrimitiveMesh PrimitiveGenerator::GenerateHeart(uint32_t segments)
 {
 	PrimitiveMesh mesh;
 
-	// 中心
-	mesh.vertices.push_back({{ 0, 0, 0 }, { 0, 0, 1 }, { 0.5f, 0.5f }});
+	// 中心 (position, texcoord, normal)
+	mesh.vertices.push_back({{ 0, 0, 0, 1.0f }, { 0.5f, 0.5f }, { 0, 0, 1 }});
 
 	// ハート形状
 	for (uint32_t i = 0; i <= segments; ++i)
@@ -429,7 +430,7 @@ PrimitiveMesh PrimitiveGenerator::GenerateHeart(uint32_t segments)
 		x *= 0.03f;
 		y *= 0.03f;
 
-		mesh.vertices.push_back({{ x, y, 0 }, { 0, 0, 1 }, { x + 0.5f, 0.5f - y }});
+		mesh.vertices.push_back({{ x, y, 0, 1.0f }, { x + 0.5f, 0.5f - y }, { 0, 0, 1 }});
 	}
 
 	// インデックス
@@ -461,8 +462,8 @@ PrimitiveMesh PrimitiveGenerator::GenerateSpiral(uint32_t segments, float turns)
 		float ox = std::cos(angle) * (radius + width);
 		float oy = std::sin(angle) * (radius + width);
 
-		mesh.vertices.push_back({{ x, y, 0 }, { 0, 0, 1 }, { t, 0 }});
-		mesh.vertices.push_back({{ ox, oy, 0 }, { 0, 0, 1 }, { t, 1 }});
+		mesh.vertices.push_back({{ x, y, 0, 1.0f }, { t, 0 }, { 0, 0, 1 }});
+		mesh.vertices.push_back({{ ox, oy, 0, 1.0f }, { t, 1 }, { 0, 0, 1 }});
 	}
 
 	for (uint32_t i = 0; i < segments; ++i)

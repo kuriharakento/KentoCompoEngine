@@ -1,5 +1,6 @@
 #include "RibbonRenderer.h"
 #include "base/DirectXCommon.h"
+#include "base/GraphicsTypes.h"
 #include "manager/system/SrvManager.h"
 #include "manager/scene/CameraManager.h"
 #include "manager/graphics/TextureManager.h"
@@ -20,7 +21,7 @@ RibbonRenderer::~RibbonRenderer()
 void RibbonRenderer::Initialize(const std::string& texturePath)
 {
 	// テクスチャ読み込み
-	std::string path = texturePath.empty() ? "white1x1.png" : texturePath;
+	std::string path = texturePath.empty() ? "./Resources/uvChecker.png" : texturePath;
 	TextureManager::GetInstance()->LoadTexture(path);
 	textureIndex_ = TextureManager::GetInstance()->GetTextureIndexByFilePath(path);
 
@@ -59,6 +60,18 @@ void RibbonRenderer::InitializeBuffers(DirectXCommon* dxCommon)
 	vertexBufferView_.BufferLocation = vertexResource_->GetGPUVirtualAddress();
 	vertexBufferView_.SizeInBytes = sizeof(RibbonVertex) * kMaxVertices;
 	vertexBufferView_.StrideInBytes = sizeof(RibbonVertex);
+
+	// マテリアルリソースの初期化
+	materialResource_ = dxCommon->CreateBufferResource(sizeof(Material));
+	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
+	materialData_->color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	materialData_->uvTransform = MakeIdentity4x4();
+	materialData_->enableLighting = false;
+
+	// ビュープロジェクションバッファの初期化
+	viewProjResource_ = dxCommon->CreateBufferResource(sizeof(Matrix4x4));
+	viewProjResource_->Map(0, nullptr, reinterpret_cast<void**>(&viewProjData_));
+	*viewProjData_ = MakeIdentity4x4();
 }
 
 void RibbonRenderer::Update(const std::vector<Particle>& particles, CameraManager* camera)
@@ -70,15 +83,22 @@ void RibbonRenderer::Update(const std::vector<Particle>& particles, CameraManage
 	for (const auto& particle : particles)
 	{
 		if (!particle.IsAlive()) continue;
-		if (particle.ribbonId == 0) continue; // RibbonID 0は無効
 
 		RibbonSegment segment;
 		segment.position = particle.position;
-		segment.width = particle.ribbonWidth;
+		segment.width = particle.ribbonWidth > 0.0f ? particle.ribbonWidth : ribbonWidth_;
 		segment.color = particle.color;
 		segment.age = particle.age;
 
-		ribbonSegments_[particle.ribbonId].push_back(segment);
+		// ribbonId==0の場合はデフォルトグループ(1)として扱う
+		uint32_t groupId = particle.ribbonId > 0 ? particle.ribbonId : 1;
+		ribbonSegments_[groupId].push_back(segment);
+	}
+
+	// ビュープロジェクション行列を更新
+	if (viewProjData_ && camera && camera->GetActiveCamera())
+	{
+		*viewProjData_ = camera->GetActiveCamera()->GetViewProjectionMatrix();
 	}
 
 	// リボンメッシュを構築
@@ -98,16 +118,23 @@ void RibbonRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 
 	if (vertexCount_ == 0) return;
 
-	// パイプラインステートの設定（ブレンドモード反映）
+	// リボン用パイプラインステートの設定
 	auto* pm = ParticleManager::GetInstance();
 	auto* plm = pm->GetPipelineManager();
-	dxCommon->GetCommandList()->SetPipelineState(plm->GetPipelineState(blendMode_));
+	dxCommon->GetCommandList()->SetPipelineState(plm->GetRibbonPipelineState(blendMode_));
+	dxCommon->GetCommandList()->SetGraphicsRootSignature(plm->GetRibbonRootSignature());
 
 	// 頂点バッファ設定
 	dxCommon->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView_);
 	dxCommon->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-	// テクスチャ設定
+	// ViewProjection CBV (Slot 0 - VertexShader)
+	dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(0, viewProjResource_->GetGPUVirtualAddress());
+
+	// Material CBV (Slot 1 - PixelShader)
+	dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(1, materialResource_->GetGPUVirtualAddress());
+
+	// Texture SRV (Slot 2 - PixelShader)
 	srvManager->SetGraphicsRootDescriptorTable(2, textureIndex_);
 
 	// 描画
@@ -172,6 +199,11 @@ void RibbonRenderer::GenerateTriangleStrip(
 	{
 		const auto& seg = segments[i];
 
+		// スムーズなアルファグラデーション（古いセグメントほど透明に）
+		// 0.0 = 最古（透明）, 1.0 = 最新（不透明）
+		float normalizedIndex = static_cast<float>(i) / static_cast<float>(segments.size() - 1);
+		float alphaMultiplier = normalizedIndex; // 線形フェード（カスタマイズ可能）
+
 		// 接線方向を計算
 		Vector3 tangent;
 		if (i == 0)
@@ -233,7 +265,9 @@ void RibbonRenderer::GenerateTriangleStrip(
 		leftVert.position.y = seg.position.y - right.y * halfWidth;
 		leftVert.position.z = seg.position.z - right.z * halfWidth;
 		leftVert.texcoord = { u, 0.0f };
+		// アルファグラデーションを適用
 		leftVert.color = seg.color;
+		leftVert.color.w *= alphaMultiplier;
 		outVertices.push_back(leftVert);
 
 		// 右側の頂点
@@ -242,7 +276,9 @@ void RibbonRenderer::GenerateTriangleStrip(
 		rightVert.position.y = seg.position.y + right.y * halfWidth;
 		rightVert.position.z = seg.position.z + right.z * halfWidth;
 		rightVert.texcoord = { u, 1.0f };
+		// アルファグラデーションを適用
 		rightVert.color = seg.color;
+		rightVert.color.w *= alphaMultiplier;
 		outVertices.push_back(rightVert);
 	}
 }

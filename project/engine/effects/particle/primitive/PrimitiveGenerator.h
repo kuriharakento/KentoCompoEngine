@@ -8,12 +8,13 @@
 
 /**
  * @brief プリミティブ頂点データ
+ * @note Particle.VS.hlslのVertexShaderInputと一致するレイアウト
  */
 struct PrimitiveVertex
 {
-	Vector3 position;
-	Vector3 normal;
-	Vector2 texcoord;
+	Vector4 position;  // POSITION0 (float4)
+	Vector2 texcoord;  // TEXCOORD0 (float2)
+	Vector3 normal;    // NORMAL0 (float3)
 };
 
 /**

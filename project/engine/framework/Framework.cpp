@@ -93,6 +93,7 @@ void Framework::Initialize()
 
 	// カメラマネージャーの初期化
 	cameraManager_ = std::make_unique<CameraManager>();
+	cameraManager_->Initialize(dxCommon_.get());
 	cameraManager_->AddCamera("main");
 	cameraManager_->SetActiveCamera("main");
 	cameraManager_->GetActiveCamera()->SetTranslate({ 0.0f, kDefaultCameraY, kDefaultCameraZ });

@@ -8,6 +8,11 @@
 #include "externals/imgui/imgui.h"
 #endif
 
+void CameraManager::Initialize(DirectXCommon* dxCommon)
+{
+	dxCommon_ = dxCommon;
+}
+
 void CameraManager::AddCamera(const std::string& name) {
     // 名前で重複を避けてカメラを追加
     if (cameras_.find(name) == cameras_.end()) {
@@ -15,6 +20,11 @@ void CameraManager::AddCamera(const std::string& name) {
         cameras_[name] = std::make_unique<Camera>();
         Logger::Log("Add Camera: " + name + "\n");
 
+		// GPU定数バッファを初期化
+		if (dxCommon_)
+		{
+			cameras_[name]->InitializeConstantBuffer(dxCommon_);
+		}
     }
 }
 

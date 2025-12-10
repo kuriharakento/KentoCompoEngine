@@ -1,6 +1,7 @@
 #include "effects/particle/renderer/MeshRenderer.h"
 #include "effects/particle/gpu/GPUParticlePipeline.h"
 #include "base/DirectXCommon.h"
+#include "base/GraphicsTypes.h"
 #include "manager/system/SrvManager.h"
 #include "manager/scene/CameraManager.h"
 #include "base/Camera.h"
@@ -10,6 +11,7 @@
 // #include "externals/DirectXTex/d3dx12.h" // Assuming this is where it is, or use local if configured
 #include "manager/effect/ParticlePipelineManager.h"
 #include <d3d12.h>
+#include <numbers>
 
 MeshRenderer::~MeshRenderer()
 {
@@ -89,12 +91,22 @@ void MeshRenderer::InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvMan
 		&srvDesc,
 		srvManager->GetCPUDescriptorHandle(instanceSrvIndex_)
 	);
+
+	// マテリアルリソースの初期化
+	materialResource_ = dxCommon->CreateBufferResource(sizeof(Material));
+	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
+	materialData_->color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	materialData_->uvTransform = MakeIdentity4x4();
+	materialData_->enableLighting = false;
 }
 
 void MeshRenderer::CreatePrimitiveBuffers(DirectXCommon* dxCommon)
 {
 	if (needsRebuild_)
 	{
+		// 既存バッファをリセットして再作成を可能にする
+		primitiveVertexResource_.Reset();
+		primitiveIndexResource_.Reset();
 		RegeneratePrimitive();
 	}
 
@@ -172,6 +184,18 @@ void MeshRenderer::Update(const std::vector<Particle>& particles, CameraManager*
 	Camera* activeCamera = camera->GetActiveCamera();
 	if (!activeCamera) return;
 
+	// ビルボード用の回転行列（カメラの逆回転）
+	Matrix4x4 billboardMatrix = MakeIdentity4x4();
+	if (useBillboard_)
+	{
+		Matrix4x4 backToFrontMatrix = MakeRotateYMatrix(std::numbers::pi_v<float>);
+		Matrix4x4 cameraRotationMatrix = activeCamera->GetWorldMatrix();
+		cameraRotationMatrix.m[3][0] = 0.0f;
+		cameraRotationMatrix.m[3][1] = 0.0f;
+		cameraRotationMatrix.m[3][2] = 0.0f;
+		billboardMatrix = Multiply(backToFrontMatrix, cameraRotationMatrix);
+	}
+
 	for (const auto& particle : particles)
 	{
 		if (!particle.IsAlive()) continue;
@@ -183,9 +207,18 @@ void MeshRenderer::Update(const std::vector<Particle>& particles, CameraManager*
 			particle.scale.z * baseScale_
 		});
 
-		// クォータニオンから回転行列を作成
-		Quaternion q(particle.rotation.x, particle.rotation.y, particle.rotation.z, particle.rotation.w);
-		Matrix4x4 rotateMatrix = q.ToMatrix();
+		Matrix4x4 rotateMatrix;
+		if (useBillboard_)
+		{
+			// ビルボード回転を使用
+			rotateMatrix = billboardMatrix;
+		}
+		else
+		{
+			// クォータニオンから回転行列を作成
+			Quaternion q(particle.rotation.x, particle.rotation.y, particle.rotation.z, particle.rotation.w);
+			rotateMatrix = q.ToMatrix();
+		}
 
 		Matrix4x4 translateMatrix = MakeTranslateMatrix(particle.position);
 
@@ -210,11 +243,8 @@ void MeshRenderer::Update(const std::vector<Particle>& particles, CameraManager*
 
 void MeshRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
-	// InitializeBuffers(dxCommon, srvManager); // Moved to Initialize
-	// CreatePrimitiveBuffers(dxCommon); // Moved to Initialize
-
-	// InitializeBuffers(dxCommon, srvManager); // Duplicate call removed
-	// CreatePrimitiveBuffers(dxCommon); // Duplicate call removed
+	// プリミティブバッファの作成/再作成（needsRebuild_時）
+	CreatePrimitiveBuffers(dxCommon);
 
 	uint32_t drawCount = isGPUMode_ ? gpuParticleCount_ : instanceCount_;
 	if (drawCount == 0) return;
@@ -230,14 +260,15 @@ void MeshRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 	dxCommon->GetCommandList()->IASetIndexBuffer(&primitiveIndexView_);
 	dxCommon->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	// マテリアル (Slot 0 - CBV)
+	dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
+
 	// テクスチャ (Slot 2)
 	dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(2, srvManager->GetGPUDescriptorHandle(textureIndex_));
 
-	// インスタンシングデータ (Slot 3)
-	// MeshRendererはテクスチャ(Slot 2)使わない？今は省略?
-	// Slot 3は必須
+	// インスタンシングデータ (Slot 1 - VertexShader用)
 	uint32_t index = isGPUMode_ ? gpuSrvIndex_ : instanceSrvIndex_;
-	dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(3, srvManager->GetGPUDescriptorHandle(index));
+	dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(1, srvManager->GetGPUDescriptorHandle(index));
 
 	dxCommon->GetCommandList()->DrawIndexedInstanced(
 		static_cast<UINT>(primitiveMesh_.indices.size()),
@@ -249,7 +280,7 @@ void MeshRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 void MeshRenderer::Initialize(const std::string& texturePath)
 {
 	// 初期化時にデフォルトテクスチャを設定
-	std::string path = texturePath.empty() ? "white1x1.png" : texturePath;
+	std::string path = texturePath.empty() ? "./Resources/uvChecker.png" : texturePath;
 	TextureManager::GetInstance()->LoadTexture(path);
 	textureIndex_ = TextureManager::GetInstance()->GetTextureIndexByFilePath(path);
 
