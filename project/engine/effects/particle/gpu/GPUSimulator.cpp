@@ -15,10 +15,7 @@ GPUSimulator::~GPUSimulator()
 	{
 		constantBuffer_->Unmap(0, nullptr);
 	}
-	if (cameraConstantBuffer_)
-	{
-		cameraConstantBuffer_->Unmap(0, nullptr);
-	}
+
 	if (srvManager_)
 	{
 		if (particleSrvIndex_ != 0) srvManager_->Free(particleSrvIndex_);
@@ -146,31 +143,7 @@ void GPUSimulator::CreateBuffers()
 		constantBuffer_->Map(0, nullptr, reinterpret_cast<void**>(&constantData_));
 	}
 
-	// カメラバッファ
-	{
-		D3D12_HEAP_PROPERTIES heapProps{};
-		heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
 
-		D3D12_RESOURCE_DESC resourceDesc{};
-		resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-		resourceDesc.Width = (sizeof(GPUCameraData) + 255) & ~255;
-		resourceDesc.Height = 1;
-		resourceDesc.DepthOrArraySize = 1;
-		resourceDesc.MipLevels = 1;
-		resourceDesc.SampleDesc.Count = 1;
-		resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-		dxCommon_->GetDevice()->CreateCommittedResource(
-			&heapProps,
-			D3D12_HEAP_FLAG_NONE,
-			&resourceDesc,
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&cameraConstantBuffer_)
-		);
-
-		cameraConstantBuffer_->Map(0, nullptr, reinterpret_cast<void**>(&cameraData_));
-	}
 
 	// レンダリング用バッファ (UAV/SRV)
 	{
@@ -378,15 +351,9 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera)
 
 	// b1: Camera
 	if (camera && camera->GetActiveCamera()) {
-		// カメラデータを更新
-		Camera* activeCamera = camera->GetActiveCamera();
-		if (cameraData_)
-		{
-			cameraData_->view = activeCamera->GetViewMatrix();
-			cameraData_->projection = activeCamera->GetProjectionMatrix();
-			cameraData_->eye = activeCamera->GetTranslate();
-		}
-		commandList->SetComputeRootConstantBufferView(1, cameraConstantBuffer_->GetGPUVirtualAddress());
+		// TODO: CameraクラスにGetConstantBufferが存在しないため一時的にコメントアウト
+		// 以前の実装ではここでカメラの定数バッファをGPUに渡していたと思われます
+		// commandList->SetComputeRootConstantBufferView(1, camera->GetActiveCamera()->GetConstantBuffer()->GetGPUVirtualAddress());
 	}
 	
 	// t0: Particle Buffer SRV

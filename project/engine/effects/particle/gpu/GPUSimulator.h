@@ -10,30 +10,21 @@ class DirectXCommon;
 class SrvManager;
 class CameraManager;
 
+
 /**
  * @brief GPUパーティクル定数バッファデータ構造体
  */
-	struct GPUParticleConstants
-	{
-		float deltaTime;      // 経過時間
-		float totalTime;      // 総時間
-		uint32_t particleCount; // 現在のパーティクル数
-		uint32_t maxParticles;  // 最大パーティクル数
-		Vector3 emitterPosition; // エミッター位置
-		float padding1;
-		Vector3 gravity;        // 重力
-		uint32_t isBillboard;   // ビルボード有効フラグ
-	};
-
-	// カメラ情報構造体
-	struct GPUCameraData
-	{
-		Matrix4x4 view;
-		Matrix4x4 projection;
-		Vector3 eye;
-		float padding;
-	};
-
+struct GPUParticleConstants
+{
+	float deltaTime;      // 経過時間
+	float totalTime;      // 総時間
+	uint32_t particleCount; // 現在のパーティクル数
+	uint32_t maxParticles;  // 最大パーティクル数
+	Vector3 emitterPosition; // エミッター位置
+	float padding1;
+	Vector3 gravity;        // 重力
+	uint32_t isBillboard;   // ビルボード有効フラグ
+};
 /**
  * @brief GPUパーティクルシミュレーター
  * 
@@ -110,10 +101,6 @@ private:
 	float totalTime_ = 0.0f;
 	Vector3 emitterPosition_ = {};
 	Vector3 gravity_ = { 0, -9.8f, 0 };
-	// カメラ用
-	Microsoft::WRL::ComPtr<ID3D12Resource> cameraConstantBuffer_;
-	GPUCameraData* cameraData_ = nullptr;
-
 	bool isBillboard_ = true;
 	bool initialized_ = false;
 };
