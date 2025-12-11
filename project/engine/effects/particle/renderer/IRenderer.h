@@ -20,6 +20,7 @@ public:
 	virtual RendererType GetType() const = 0;
 	// テクスチャ設定
 	virtual void SetTexture(const std::string& /*texturePath*/) {}
+	virtual std::string GetTexturePath() const { return ""; }
 
 	/**
 	 * @brief GPU描画モードを設定

@@ -100,5 +100,9 @@ void ParticleTestScene::Draw3D()
 	// スカイドームの描画
 	skydome_->Draw();
 
-	// パーティクルエディタの描画はParticleManagerが行うため不要
+	// パーティクルエディタのデバッグ描画（エミッター・パーティクル位置表示）
+	if (particleEditor_)
+	{
+		particleEditor_->DrawDebug();
+	}
 }

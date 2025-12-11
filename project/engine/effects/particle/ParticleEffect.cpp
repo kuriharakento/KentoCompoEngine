@@ -1,5 +1,6 @@
 #include "ParticleEffect.h"
 #include "ParticleEmitter.h"
+#include "serialization/ParticleEffectSerializer.h"
 #include <algorithm>
 
 ParticleEffect::ParticleEffect() = default;
@@ -10,10 +11,7 @@ ParticleEffect& ParticleEffect::operator=(ParticleEffect&&) noexcept = default;
 
 std::unique_ptr<ParticleEffect> ParticleEffect::LoadFromFile(const std::string& jsonPath)
 {
-	auto effect = std::make_unique<ParticleEffect>();
-	// TODO: JSONから読み込み（ParticleEffectSerializerで実装）
-	(void)jsonPath;
-	return effect;
+	return ParticleEffectSerializer::Load(jsonPath);
 }
 
 void ParticleEffect::Initialize(const std::string& name)
@@ -44,6 +42,14 @@ void ParticleEffect::AddEmitter(std::unique_ptr<ParticleEmitter> emitter)
 	emitters_.push_back(std::move(emitter));
 }
 
+void ParticleEffect::RemoveEmitter(size_t index)
+{
+	if (index < emitters_.size())
+	{
+		emitters_.erase(emitters_.begin() + index);
+	}
+}
+
 ParticleEmitter* ParticleEffect::GetEmitter(const std::string& name)
 {
 	auto it = std::find_if(emitters_.begin(), emitters_.end(),
@@ -54,6 +60,11 @@ ParticleEmitter* ParticleEffect::GetEmitter(const std::string& name)
 }
 
 ParticleEmitter* ParticleEffect::GetEmitter(size_t index)
+{
+	return (index < emitters_.size()) ? emitters_[index].get() : nullptr;
+}
+
+const ParticleEmitter* ParticleEffect::GetEmitter(size_t index) const
 {
 	return (index < emitters_.size()) ? emitters_[index].get() : nullptr;
 }
@@ -110,6 +121,5 @@ bool ParticleEffect::IsFinished() const
 
 void ParticleEffect::SaveToFile(const std::string& jsonPath)
 {
-	// TODO: JSONに保存（ParticleEffectSerializerで実装）
-	(void)jsonPath;
+	ParticleEffectSerializer::Save(*this, jsonPath);
 }

@@ -7,11 +7,14 @@
 #include "effects/particle/module/update/UpdateModules.h"
 #include <fstream>
 
-// nlohmann/json が利用可能な場合のみ有効
-#ifdef USE_NLOHMANN_JSON
-#include <nlohmann/json.hpp>
+// nlohmann/json を有効化
+#define USE_NLOHMANN_JSON
+#include "externals/nlohmann/json.hpp"
 using json = nlohmann::json;
-#endif
+
+// 前方宣言（プライベートヘルパー関数）
+static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data);
+static void SaveEmitter(const ParticleEmitter& emitter, json& data);
 
 std::unique_ptr<ParticleEffect> ParticleEffectSerializer::Load(const std::string& path)
 {
@@ -106,7 +109,7 @@ bool ParticleEffectSerializer::Save(const ParticleEffect& effect, const std::str
 }
 
 #ifdef USE_NLOHMANN_JSON
-std::unique_ptr<ParticleEmitter> ParticleEffectSerializer::LoadEmitter(const json& data)
+static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 {
 	auto emitter = std::make_unique<ParticleEmitter>();
 	emitter->Initialize(data.value("name", "UnnamedEmitter"));
@@ -133,13 +136,13 @@ std::unique_ptr<ParticleEmitter> ParticleEffectSerializer::LoadEmitter(const jso
 			if (type == "SpawnRate")
 			{
 				auto m = std::make_unique<SpawnRateModule>();
-				m->SetSpawnRate(moduleData.value("rate", 10.0f));
+				m->SetRate(moduleData.value("rate", 10.0f));
 				emitter->AddModule(std::move(m));
 			}
 			else if (type == "SpawnBurst")
 			{
 				auto m = std::make_unique<SpawnBurstModule>();
-				m->SetBurstCount(moduleData.value("count", 10u));
+				m->SetCount(moduleData.value("count", 10u));
 				emitter->AddModule(std::move(m));
 			}
 			else if (type == "InitialLifetime")
@@ -193,7 +196,7 @@ std::unique_ptr<ParticleEmitter> ParticleEffectSerializer::LoadEmitter(const jso
 		if (type == "Sprite")
 		{
 			auto renderer = std::make_unique<SpriteRenderer>();
-			renderer->Initialize(rendererData.value("texture", "Resources/images/particle.png"));
+			renderer->Initialize(rendererData.value("texture", "./Resources/uvChecker.png"));
 			emitter->SetRenderer(std::move(renderer));
 		}
 		// Ribbon, Mesh も同様に追加
@@ -202,14 +205,14 @@ std::unique_ptr<ParticleEmitter> ParticleEffectSerializer::LoadEmitter(const jso
 	{
 		// デフォルトレンダラー
 		auto renderer = std::make_unique<SpriteRenderer>();
-		renderer->Initialize("Resources/images/particle.png");
+		renderer->Initialize("./Resources/uvChecker.png");
 		emitter->SetRenderer(std::move(renderer));
 	}
 
 	return emitter;
 }
 
-void ParticleEffectSerializer::SaveEmitter(const ParticleEmitter& emitter, json& data)
+static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 {
 	data["name"] = emitter.GetName();
 	data["maxParticles"] = emitter.GetMaxParticles();
@@ -221,15 +224,98 @@ void ParticleEffectSerializer::SaveEmitter(const ParticleEmitter& emitter, json&
 
 	// モジュール
 	data["modules"] = json::array();
-	// TODO: モジュールリストへのアクセス方法が必要
+	for (size_t i = 0; i < emitter.GetModuleCount(); ++i)
+	{
+		const auto* module = emitter.GetModule(i);
+		if (!module) continue;
+
+		json moduleData;
+		std::string type = module->GetName();
+		moduleData["type"] = type;
+
+		// 各モジュールタイプ別にパラメータを保存
+		if (auto* m = dynamic_cast<const SpawnRateModule*>(module))
+		{
+			moduleData["rate"] = m->GetRate();
+		}
+		else if (auto* m = dynamic_cast<const SpawnBurstModule*>(module))
+		{
+			moduleData["count"] = m->GetCount();
+			moduleData["delay"] = m->GetDelay();
+			moduleData["interval"] = m->GetInterval();
+			moduleData["loops"] = m->GetLoops();
+		}
+		else if (auto* m = dynamic_cast<const InitialLifetimeModule*>(module))
+		{
+			moduleData["min"] = m->GetMinLifetime();
+			moduleData["max"] = m->GetMaxLifetime();
+		}
+		else if (auto* m = dynamic_cast<const InitialVelocityModule*>(module))
+		{
+			Vector3 minV = m->GetMinVelocity();
+			Vector3 maxV = m->GetMaxVelocity();
+			moduleData["min"] = {{"x", minV.x}, {"y", minV.y}, {"z", minV.z}};
+			moduleData["max"] = {{"x", maxV.x}, {"y", maxV.y}, {"z", maxV.z}};
+		}
+		else if (auto* m = dynamic_cast<const InitialScaleModule*>(module))
+		{
+			Vector3 minS = m->GetMinScale();
+			Vector3 maxS = m->GetMaxScale();
+			moduleData["min"] = {{"x", minS.x}, {"y", minS.y}, {"z", minS.z}};
+			moduleData["max"] = {{"x", maxS.x}, {"y", maxS.y}, {"z", maxS.z}};
+		}
+		else if (auto* m = dynamic_cast<const InitialColorModule*>(module))
+		{
+			Vector4 minC = m->GetMinColor();
+			Vector4 maxC = m->GetMaxColor();
+			moduleData["min"] = {{"r", minC.x}, {"g", minC.y}, {"b", minC.z}, {"a", minC.w}};
+			moduleData["max"] = {{"r", maxC.x}, {"g", maxC.y}, {"b", maxC.z}, {"a", maxC.w}};
+		}
+		else if (auto* m = dynamic_cast<const GravityModule*>(module))
+		{
+			Vector3 g = m->GetGravity();
+			moduleData["gravity"] = {{"x", g.x}, {"y", g.y}, {"z", g.z}};
+		}
+		else if (auto* m = dynamic_cast<const DragModule*>(module))
+		{
+			moduleData["drag"] = m->GetDrag();
+		}
+		else if (auto* m = dynamic_cast<const ColorFadeModule*>(module))
+		{
+			moduleData["useInitialColor"] = m->GetUseInitialColor();
+			Vector4 start = m->GetStartColor();
+			Vector4 end = m->GetEndColor();
+			moduleData["start"] = {{"r", start.x}, {"g", start.y}, {"b", start.z}, {"a", start.w}};
+			moduleData["end"] = {{"r", end.x}, {"g", end.y}, {"b", end.z}, {"a", end.w}};
+		}
+		else if (auto* m = dynamic_cast<const ScaleOverLifetimeModule*>(module))
+		{
+			Vector3 start = m->GetStartScale();
+			Vector3 end = m->GetEndScale();
+			moduleData["start"] = {{"x", start.x}, {"y", start.y}, {"z", start.z}};
+			moduleData["end"] = {{"x", end.x}, {"y", end.y}, {"z", end.z}};
+		}
+
+		data["modules"].push_back(moduleData);
+	}
 
 	// レンダラー
 	auto* renderer = emitter.GetRenderer();
 	if (renderer)
 	{
+		std::string typeStr;
+		switch (renderer->GetType())
+		{
+		case RendererType::Sprite: typeStr = "Sprite"; break;
+		case RendererType::Ribbon: typeStr = "Ribbon"; break;
+		case RendererType::Mesh: typeStr = "Mesh"; break;
+		default: typeStr = "Sprite"; break;
+		}
+
 		data["renderer"] = {
-			{"type", renderer->GetType() == RendererType::Sprite ? "Sprite" : 
-			         renderer->GetType() == RendererType::Ribbon ? "Ribbon" : "Mesh"}
+			{"type", typeStr},
+			{"texture", renderer->GetTexturePath()},
+			{"blendMode", static_cast<int>(renderer->GetBlendMode())}
 		};
 	}
 }

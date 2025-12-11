@@ -34,6 +34,7 @@ void SpriteRenderer::Initialize(const std::string& texturePath)
 	// デフォルトで白テクスチャをロード
 	// 引数がある場合はそれをロード
 	std::string path = texturePath.empty() ? "./Resources/uvChecker.png" : texturePath;
+	texturePath_ = path;
 	TextureManager::GetInstance()->LoadTexture(path);
 	textureIndex_ = TextureManager::GetInstance()->GetTextureIndexByFilePath(path);
 
@@ -108,6 +109,7 @@ void SpriteRenderer::Update(const std::vector<Particle>& particles, CameraManage
 
 void SpriteRenderer::SetTexture(const std::string& texturePath)
 {
+	texturePath_ = texturePath;
 	TextureManager::GetInstance()->LoadTexture(texturePath);
 	textureIndex_ = TextureManager::GetInstance()->GetTextureIndexByFilePath(texturePath);
 }

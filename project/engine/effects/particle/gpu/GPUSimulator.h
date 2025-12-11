@@ -103,4 +103,7 @@ private:
 	Vector3 gravity_ = { 0, -9.8f, 0 };
 	bool isBillboard_ = true;
 	bool initialized_ = false;
+	
+	// リソース状態追跡
+	D3D12_RESOURCE_STATES particleBufferState_ = D3D12_RESOURCE_STATE_COMMON;
 };

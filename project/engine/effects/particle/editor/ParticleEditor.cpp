@@ -7,17 +7,21 @@
 #include "effects/particle/renderer/MeshRenderer.h"
 #include "effects/particle/module/spawn/SpawnModules.h"
 #include "effects/particle/module/spawn/InitialModules.h"
+#include "effects/particle/module/spawn/SpawnShapeModules.h"
 #include "effects/particle/module/update/UpdateModules.h"
 #include "effects/particle/module/update/TextureSheetModule.h"
 #include "effects/particle/module/update/ForceFieldModules.h"
 #include "effects/particle/module/update/RibbonModules.h"
+#include "effects/particle/module/update/AdvancedModules.h"
 #include "base/DirectXCommon.h"
 #include "manager/system/SrvManager.h"
 #include "manager/scene/CameraManager.h"
 #include "manager/graphics/TextureManager.h"
+#include "manager/graphics/LineManager.h"
 #include "manager/effect/ParticlePipelineManager.h"
 #include "math/BlendMode.h"
 #include "time/TimeManager.h"
+#include <filesystem>
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
@@ -94,6 +98,210 @@ void ParticleEditor::Draw()
 	// 描画はParticleManagerが行うため、ここでは何もしない
 }
 
+void ParticleEditor::DrawDebug()
+{
+#ifdef USE_IMGUI
+	if (!isVisible_ || !showDebug_ || !currentEffect_) return;
+
+	auto* lineManager = LineManager::GetInstance();
+	if (!lineManager) return;
+
+	// エミッター位置を表示（黄色の座標軸）
+	for (size_t i = 0; i < currentEffect_->GetEmitterCount(); ++i)
+	{
+		auto* emitter = currentEffect_->GetEmitter(i);
+		if (!emitter) continue;
+
+		Vector3 emitterPos = emitter->GetPosition() + currentEffect_->GetPosition();
+		
+		// 座標軸を表示
+		lineManager->DrawAxis(emitterPos, 0.5f);
+
+		// モジュールごとのデバッグ表示
+		for (size_t m = 0; m < emitter->GetModuleCount(); ++m)
+		{
+			const auto* module = emitter->GetModule(m);
+			if (!module) continue;
+
+			// SpawnShape - 形状を可視化
+			if (auto* shape = dynamic_cast<const SpawnShapeModule*>(module))
+			{
+				Vector4 shapeColor = { 0.0f, 1.0f, 0.0f, 1.0f }; // 緑
+				SpawnShapeType type = shape->GetShapeType();
+				float outerR = shape->GetOuterRadius();
+				float innerR = shape->GetInnerRadius();
+
+				// Point - ダイアモンドマーカー
+				if (type == SpawnShapeType::Point)
+				{
+					float sz = 0.3f;
+					lineManager->DrawLine({ emitterPos.x - sz, emitterPos.y, emitterPos.z }, { emitterPos.x + sz, emitterPos.y, emitterPos.z }, shapeColor);
+					lineManager->DrawLine({ emitterPos.x, emitterPos.y - sz, emitterPos.z }, { emitterPos.x, emitterPos.y + sz, emitterPos.z }, shapeColor);
+					lineManager->DrawLine({ emitterPos.x, emitterPos.y, emitterPos.z - sz }, { emitterPos.x, emitterPos.y, emitterPos.z + sz }, shapeColor);
+					// ダイアモンド形状
+					Vector3 top = { emitterPos.x, emitterPos.y + sz, emitterPos.z };
+					Vector3 bot = { emitterPos.x, emitterPos.y - sz, emitterPos.z };
+					lineManager->DrawLine({ emitterPos.x - sz * 0.5f, emitterPos.y, emitterPos.z }, top, shapeColor);
+					lineManager->DrawLine({ emitterPos.x + sz * 0.5f, emitterPos.y, emitterPos.z }, top, shapeColor);
+					lineManager->DrawLine({ emitterPos.x - sz * 0.5f, emitterPos.y, emitterPos.z }, bot, shapeColor);
+					lineManager->DrawLine({ emitterPos.x + sz * 0.5f, emitterPos.y, emitterPos.z }, bot, shapeColor);
+				}
+				// Line - 始点から終点への線
+				else if (type == SpawnShapeType::Line)
+				{
+					Vector3 lineStart = shape->GetLineStart();
+					Vector3 lineEnd = shape->GetLineEnd();
+					Vector3 start = emitterPos + lineStart;
+					Vector3 end = emitterPos + lineEnd;
+					
+					// ライン本体
+					lineManager->DrawLine(start, end, shapeColor);
+					
+					// 始点と終点のマーカー
+					float sz = 0.15f;
+					lineManager->DrawLine({ start.x - sz, start.y, start.z }, { start.x + sz, start.y, start.z }, shapeColor);
+					lineManager->DrawLine({ start.x, start.y - sz, start.z }, { start.x, start.y + sz, start.z }, shapeColor);
+					lineManager->DrawLine({ end.x - sz, end.y, end.z }, { end.x + sz, end.y, end.z }, { 1.0f, 1.0f, 0.0f, 1.0f }); // 終点は黄色
+					lineManager->DrawLine({ end.x, end.y - sz, end.z }, { end.x, end.y + sz, end.z }, { 1.0f, 1.0f, 0.0f, 1.0f });
+				}
+				else if (type == SpawnShapeType::Sphere || type == SpawnShapeType::Circle)
+				{
+					// 円を描画（16セグメント）
+					int segments = 16;
+					for (int s = 0; s < segments; ++s)
+					{
+						float a1 = (s / static_cast<float>(segments)) * 2.0f * 3.14159f;
+						float a2 = ((s + 1) / static_cast<float>(segments)) * 2.0f * 3.14159f;
+						
+						// XZ平面の円
+						lineManager->DrawLine(
+							{ emitterPos.x + outerR * std::cos(a1), emitterPos.y, emitterPos.z + outerR * std::sin(a1) },
+							{ emitterPos.x + outerR * std::cos(a2), emitterPos.y, emitterPos.z + outerR * std::sin(a2) },
+							shapeColor
+						);
+						if (innerR > 0)
+						{
+							lineManager->DrawLine(
+								{ emitterPos.x + innerR * std::cos(a1), emitterPos.y, emitterPos.z + innerR * std::sin(a1) },
+								{ emitterPos.x + innerR * std::cos(a2), emitterPos.y, emitterPos.z + innerR * std::sin(a2) },
+								shapeColor
+							);
+						}
+					}
+				}
+				else if (type == SpawnShapeType::Box)
+				{
+					Vector3 boxSize = shape->GetBoxSize();
+					Vector3 half = boxSize * 0.5f;
+					
+					// ボックスの8頂点
+					Vector3 v0 = { emitterPos.x - half.x, emitterPos.y - half.y, emitterPos.z - half.z };
+					Vector3 v1 = { emitterPos.x + half.x, emitterPos.y - half.y, emitterPos.z - half.z };
+					Vector3 v2 = { emitterPos.x + half.x, emitterPos.y + half.y, emitterPos.z - half.z };
+					Vector3 v3 = { emitterPos.x - half.x, emitterPos.y + half.y, emitterPos.z - half.z };
+					Vector3 v4 = { emitterPos.x - half.x, emitterPos.y - half.y, emitterPos.z + half.z };
+					Vector3 v5 = { emitterPos.x + half.x, emitterPos.y - half.y, emitterPos.z + half.z };
+					Vector3 v6 = { emitterPos.x + half.x, emitterPos.y + half.y, emitterPos.z + half.z };
+					Vector3 v7 = { emitterPos.x - half.x, emitterPos.y + half.y, emitterPos.z + half.z };
+					
+					// 底面
+					lineManager->DrawLine(v0, v1, shapeColor);
+					lineManager->DrawLine(v1, v2, shapeColor);
+					lineManager->DrawLine(v2, v3, shapeColor);
+					lineManager->DrawLine(v3, v0, shapeColor);
+					// 上面
+					lineManager->DrawLine(v4, v5, shapeColor);
+					lineManager->DrawLine(v5, v6, shapeColor);
+					lineManager->DrawLine(v6, v7, shapeColor);
+					lineManager->DrawLine(v7, v4, shapeColor);
+					// 縦線
+					lineManager->DrawLine(v0, v4, shapeColor);
+					lineManager->DrawLine(v1, v5, shapeColor);
+					lineManager->DrawLine(v2, v6, shapeColor);
+					lineManager->DrawLine(v3, v7, shapeColor);
+				}
+				else if (type == SpawnShapeType::Cone)
+				{
+					float height = shape->GetConeHeight();
+					// コーンの底面円と頂点への線
+					int segments = 8;
+					for (int s = 0; s < segments; ++s)
+					{
+						float a1 = (s / static_cast<float>(segments)) * 2.0f * 3.14159f;
+						float a2 = ((s + 1) / static_cast<float>(segments)) * 2.0f * 3.14159f;
+						
+						Vector3 p1 = { emitterPos.x + outerR * std::cos(a1), emitterPos.y, emitterPos.z + outerR * std::sin(a1) };
+						Vector3 p2 = { emitterPos.x + outerR * std::cos(a2), emitterPos.y, emitterPos.z + outerR * std::sin(a2) };
+						Vector3 top = { emitterPos.x, emitterPos.y + height, emitterPos.z };
+						
+						lineManager->DrawLine(p1, p2, shapeColor);
+						lineManager->DrawLine(p1, top, shapeColor);
+					}
+				}
+			}
+			// Attractor - ターゲット点への線
+			else if (auto* attractor = dynamic_cast<const AttractorModule*>(module))
+			{
+				Vector3 target = attractor->GetTarget();
+				Vector4 attractorColor = { 1.0f, 0.0f, 1.0f, 1.0f }; // マゼンタ
+				lineManager->DrawLine(emitterPos, target, attractorColor);
+				lineManager->DrawAxis(target, 0.3f);
+			}
+			// Vortex - 回転軸を表示
+			else if (auto* vortex = dynamic_cast<const VortexModule*>(module))
+			{
+				Vector3 axis = vortex->GetAxis();
+				Vector3 center = vortex->GetCenter();
+				Vector4 vortexColor = { 1.0f, 0.5f, 0.0f, 1.0f }; // オレンジ
+				
+				Vector3 axisStart = center - axis * 2.0f;
+				Vector3 axisEnd = center + axis * 2.0f;
+				lineManager->DrawLine(axisStart, axisEnd, vortexColor);
+			}
+			// Orbit - 軌道軸を表示
+			else if (auto* orbit = dynamic_cast<const OrbitModule*>(module))
+			{
+				Vector3 axis = orbit->GetOrbitAxis();
+				Vector4 orbitColor = { 0.0f, 0.5f, 1.0f, 1.0f }; // 水色
+				
+				Vector3 axisStart = emitterPos - axis * 1.5f;
+				Vector3 axisEnd = emitterPos + axis * 1.5f;
+				lineManager->DrawLine(axisStart, axisEnd, orbitColor);
+			}
+		}
+
+		// パーティクル位置を表示（青い点として線で表示）
+		const auto& particles = emitter->GetParticles();
+		for (const auto& particle : particles)
+		{
+			if (!particle.IsAlive()) continue;
+
+			// パーティクル位置に小さなクロスを描画
+			Vector3 pos = particle.position;
+			float size = 0.05f;
+			Vector4 color = { 0.0f, 1.0f, 1.0f, 1.0f };  // シアン
+
+			lineManager->DrawLine(
+				{ pos.x - size, pos.y, pos.z },
+				{ pos.x + size, pos.y, pos.z },
+				color
+			);
+			lineManager->DrawLine(
+				{ pos.x, pos.y - size, pos.z },
+				{ pos.x, pos.y + size, pos.z },
+				color
+			);
+			lineManager->DrawLine(
+				{ pos.x, pos.y, pos.z - size },
+				{ pos.x, pos.y, pos.z + size },
+				color
+			);
+		}
+	}
+#endif
+}
+
+
 void ParticleEditor::NewEffect()
 {
 	if (currentEffect_)
@@ -144,8 +352,27 @@ void ParticleEditor::SaveEffect(const std::string& path)
 {
 	if (currentEffect_)
 	{
-		currentEffect_->SaveToFile(path);
-		effectPath_ = path;
+		// 編集中の名前をエフェクトに反映
+		if (effectNameBuffer_[0] != '\0')
+		{
+			currentEffect_->SetName(effectNameBuffer_);
+		}
+
+		// パスが空の場合はデフォルトパスを使用
+		std::string savePath = path;
+		if (savePath.empty())
+		{
+			// Resources/json/particle フォルダにエフェクト名で保存
+			std::filesystem::path dir("Resources/json/particle");
+			if (!std::filesystem::exists(dir))
+			{
+				std::filesystem::create_directories(dir);
+			}
+			savePath = (dir / (currentEffect_->GetName() + ".json")).string();
+		}
+		
+		currentEffect_->SaveToFile(savePath);
+		effectPath_ = savePath;
 	}
 }
 
@@ -157,7 +384,40 @@ void ParticleEditor::DrawMenuBar()
 		if (ImGui::BeginMenu("File"))
 		{
 			if (ImGui::MenuItem("New")) { NewEffect(); }
-			if (ImGui::MenuItem("Save")) { if (!effectPath_.empty()) SaveEffect(effectPath_); }
+			
+			// Load サブメニュー
+			if (ImGui::BeginMenu("Load..."))
+			{
+				std::filesystem::path dir("Resources/Json/particle");
+				if (std::filesystem::exists(dir))
+				{
+					for (const auto& entry : std::filesystem::directory_iterator(dir))
+					{
+						if (entry.path().extension() == ".json")
+						{
+							std::string filename = entry.path().filename().string();
+							if (ImGui::MenuItem(filename.c_str()))
+							{
+								LoadEffect(entry.path().string());
+							}
+						}
+					}
+				}
+				else
+				{
+					ImGui::TextDisabled("(No particle files found)");
+				}
+				ImGui::EndMenu();
+			}
+			
+			ImGui::Separator();
+			if (ImGui::MenuItem("Save")) { SaveEffect(effectPath_); }
+			if (ImGui::MenuItem("Save As...")) 
+			{ 
+				// パスを空にして保存（デフォルトパスが使用される）
+				effectPath_.clear();
+				SaveEffect(""); 
+			}
 			ImGui::Separator();
 			if (ImGui::MenuItem("Close")) { isVisible_ = false; }
 			ImGui::EndMenu();
@@ -171,6 +431,7 @@ void ParticleEditor::DrawMenuBar()
 
 		if (ImGui::BeginMenu("View"))
 		{
+			ImGui::MenuItem("Show Debug Lines", nullptr, &showDebug_);
 			if (ImGui::MenuItem("Reset View")) { if (currentEffect_) { currentEffect_->Reset(); currentEffect_->Play(); } }
 			ImGui::EndMenu();
 		}
@@ -183,20 +444,27 @@ void ParticleEditor::DrawEffectPanel()
 {
 	if (ImGui::CollapsingHeader("Effect", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		ImGui::Columns(2, "EffectParams", false);
-		ImGui::SetColumnWidth(0, 100);
-
-		ImGui::Text("Name"); ImGui::NextColumn();
-		ImGui::InputText("##Name", effectNameBuffer_, sizeof(effectNameBuffer_)); ImGui::NextColumn();
+		// エフェクト名
+		ImGui::Text("Name:");
+		ImGui::SameLine(80);
+		ImGui::SetNextItemWidth(-1);
+		ImGui::InputText("##Name", effectNameBuffer_, sizeof(effectNameBuffer_));
 
 		if (currentEffect_)
 		{
+			// 位置
 			Vector3 pos = currentEffect_->GetPosition();
-			ImGui::Text("Position"); ImGui::NextColumn();
-			if (ImGui::DragFloat3("##Position", &pos.x, 0.1f)) { currentEffect_->SetPosition(pos); }
-			ImGui::NextColumn();
+			ImGui::Text("Position:");
+			ImGui::SameLine(80);
+			ImGui::SetNextItemWidth(-1);
+			if (ImGui::DragFloat3("##Position", &pos.x, 0.1f)) 
+			{
+				currentEffect_->SetPosition(pos);
+			}
 
-			ImGui::Text("Status"); ImGui::NextColumn();
+			// 再生状態
+			ImGui::Text("Status:");
+			ImGui::SameLine(80);
 			bool isPlaying = currentEffect_->IsPlaying();
 			if (ImGui::Checkbox("Playing", &isPlaying))
 			{
@@ -204,13 +472,46 @@ void ParticleEditor::DrawEffectPanel()
 				else currentEffect_->Stop();
 			}
 			ImGui::SameLine();
-			if (ImGui::Button("Reset")) { currentEffect_->Reset(); currentEffect_->Play(); }
-			ImGui::NextColumn();
+			if (ImGui::Button("Reset")) 
+			{ 
+				currentEffect_->Reset(); 
+				currentEffect_->Play(); 
+			}
 
-			ImGui::Text("Emitters"); ImGui::NextColumn();
-			ImGui::Text("%d", static_cast<int>(currentEffect_->GetEmitterCount())); ImGui::NextColumn();
+			// エミッター数
+			ImGui::Text("Emitters:");
+			ImGui::SameLine(80);
+			ImGui::Text("%d", static_cast<int>(currentEffect_->GetEmitterCount()));
+
+			ImGui::Separator();
+
+			// 保存パス表示
+			ImGui::Text("Path:");
+			ImGui::SameLine(80);
+			if (effectPath_.empty())
+			{
+				ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "(not saved)");
+			}
+			else
+			{
+				ImGui::TextWrapped("%s", effectPath_.c_str());
+			}
+
+			// 保存ボタン
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.2f, 1.0f));
+			if (ImGui::Button("Save Effect"))
+			{
+				SaveEffect(effectPath_);
+			}
+			ImGui::PopStyleColor();
+			
+			ImGui::SameLine();
+			if (ImGui::Button("Save As..."))
+			{
+				effectPath_.clear();
+				SaveEffect("");
+			}
 		}
-		ImGui::Columns(1);
 	}
 }
 
@@ -220,22 +521,69 @@ void ParticleEditor::DrawEmitterPanel()
 
 	if (ImGui::CollapsingHeader("Emitters", ImGuiTreeNodeFlags_DefaultOpen))
 	{
+		int emitterToDelete = -1;
+
+		// エミッターリスト
+		ImGui::BeginChild("EmitterList", ImVec2(0, 150), true);
 		for (size_t i = 0; i < currentEffect_->GetEmitterCount(); ++i)
 		{
 			auto* emitter = currentEffect_->GetEmitter(i);
 			bool isSelected = (selectedEmitterIndex_ == static_cast<int>(i));
 
 			ImGui::PushID(static_cast<int>(i));
+			
+			// 選択可能なアイテム
 			if (ImGui::Selectable(emitter->GetName().c_str(), isSelected))
 			{
 				selectedEmitterIndex_ = static_cast<int>(i);
 				selectedModuleIndex_ = -1;
 			}
+
+			// 右クリックコンテキストメニュー
+			if (ImGui::BeginPopupContextItem())
+			{
+				if (ImGui::MenuItem("Delete"))
+				{
+					emitterToDelete = static_cast<int>(i);
+				}
+				ImGui::EndPopup();
+			}
+
 			ImGui::PopID();
 		}
+		ImGui::EndChild();
 
-		ImGui::Separator();
+		// 削除処理（ループ外で行う）
+		if (emitterToDelete >= 0)
+		{
+			currentEffect_->RemoveEmitter(static_cast<size_t>(emitterToDelete));
+			if (selectedEmitterIndex_ == emitterToDelete)
+			{
+				selectedEmitterIndex_ = -1;
+				selectedModuleIndex_ = -1;
+			}
+			else if (selectedEmitterIndex_ > emitterToDelete)
+			{
+				selectedEmitterIndex_--;
+			}
+		}
+
+		// ボタン行
 		if (ImGui::Button("+ Add Emitter")) { showAddEmitterDialog_ = true; }
+		
+		// 選択中のエミッターがあれば削除ボタンを表示
+		if (selectedEmitterIndex_ >= 0)
+		{
+			ImGui::SameLine();
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.2f, 0.2f, 1.0f));
+			if (ImGui::Button("Delete Selected"))
+			{
+				currentEffect_->RemoveEmitter(static_cast<size_t>(selectedEmitterIndex_));
+				selectedEmitterIndex_ = -1;
+				selectedModuleIndex_ = -1;
+			}
+			ImGui::PopStyleColor();
+		}
 	}
 }
 
@@ -455,6 +803,70 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 
 		float range = m->GetRange();
 		if (ImGui::DragFloat("Range", &range, 0.1f, 0.0f, 100.0f)) { m->SetRange(range); }
+	}
+	else if (auto* m = dynamic_cast<SpawnShapeModule*>(module))
+	{
+		const char* shapeTypes[] = { "Point", "Sphere", "Circle", "Box", "Cone", "Line" };
+		int shape = static_cast<int>(m->GetShapeType());
+		if (ImGui::Combo("Shape Type", &shape, shapeTypes, 6))
+		{
+			m->SetShapeType(static_cast<SpawnShapeType>(shape));
+		}
+
+		float innerRadius = m->GetInnerRadius();
+		float outerRadius = m->GetOuterRadius();
+		if (ImGui::DragFloat("Inner Radius", &innerRadius, 0.1f, 0.0f, 100.0f)) { m->SetInnerRadius(innerRadius); }
+		if (ImGui::DragFloat("Outer Radius", &outerRadius, 0.1f, 0.0f, 100.0f)) { m->SetOuterRadius(outerRadius); }
+
+		Vector3 boxSize = m->GetBoxSize();
+		if (ImGui::DragFloat3("Box Size", &boxSize.x, 0.1f)) { m->SetBoxSize(boxSize); }
+
+		float coneHeight = m->GetConeHeight();
+		if (ImGui::DragFloat("Cone Height", &coneHeight, 0.1f, 0.0f, 100.0f)) { m->SetConeHeight(coneHeight); }
+
+		bool emitFromSurface = m->GetEmitFromSurface();
+		if (ImGui::Checkbox("Emit From Surface", &emitFromSurface)) { m->SetEmitFromSurface(emitFromSurface); }
+
+		float initialSpeed = m->GetInitialSpeed();
+		if (ImGui::DragFloat("Initial Speed", &initialSpeed, 0.1f, 0.0f, 100.0f)) { m->SetInitialSpeed(initialSpeed); }
+
+		// Line用パラメータ
+		Vector3 lineStart = m->GetLineStart();
+		Vector3 lineEnd = m->GetLineEnd();
+		if (ImGui::DragFloat3("Line Start", &lineStart.x, 0.1f)) { m->SetLine(lineStart, lineEnd); }
+		if (ImGui::DragFloat3("Line End", &lineEnd.x, 0.1f)) { m->SetLine(lineStart, lineEnd); }
+	}
+	else if (auto* m = dynamic_cast<InitialRotationModule*>(module))
+	{
+		float minAngle = m->GetMinAngle();
+		float maxAngle = m->GetMaxAngle();
+		if (ImGui::DragFloat("Min Angle", &minAngle, 1.0f, 0.0f, 360.0f)) { m->SetRotationRange(minAngle, maxAngle); }
+		if (ImGui::DragFloat("Max Angle", &maxAngle, 1.0f, 0.0f, 360.0f)) { m->SetRotationRange(minAngle, maxAngle); }
+	}
+	else if (auto* m = dynamic_cast<RotationOverLifetimeModule*>(module))
+	{
+		float speed = m->GetRotationSpeed();
+		if (ImGui::DragFloat("Rotation Speed (deg/s)", &speed, 1.0f, -1000.0f, 1000.0f)) { m->SetRotationSpeed(speed); }
+	}
+	else if (auto* m = dynamic_cast<OrbitModule*>(module))
+	{
+		float speed = m->GetOrbitSpeed();
+		if (ImGui::DragFloat("Orbit Speed (deg/s)", &speed, 1.0f, -360.0f, 360.0f)) { m->SetOrbitSpeed(speed); }
+
+		Vector3 axis = m->GetOrbitAxis();
+		if (ImGui::DragFloat3("Orbit Axis", &axis.x, 0.01f)) { m->SetOrbitAxis(axis); }
+	}
+	else if (auto* m = dynamic_cast<NoiseModule*>(module))
+	{
+		float strength = m->GetStrength();
+		float frequency = m->GetFrequency();
+		if (ImGui::DragFloat("Strength", &strength, 0.1f, 0.0f, 100.0f)) { m->SetStrength(strength); }
+		if (ImGui::DragFloat("Frequency", &frequency, 0.1f, 0.0f, 10.0f)) { m->SetFrequency(frequency); }
+	}
+	else if (auto* m = dynamic_cast<VelocityLimitModule*>(module))
+	{
+		float maxSpeed = m->GetMaxSpeed();
+		if (ImGui::DragFloat("Max Speed", &maxSpeed, 0.1f, 0.0f, 100.0f)) { m->SetMaxSpeed(maxSpeed); }
 	}
 	else
 	{
@@ -772,7 +1184,7 @@ void ParticleEditor::DrawRendererPanel()
 			if (ImGui::Button("Create Sprite Renderer"))
 			{
 				auto newRenderer = std::make_unique<SpriteRenderer>();
-				newRenderer->Initialize("Resources/images/particle.png");
+				newRenderer->Initialize("./Resources/uvChecker.png");
 				emitter->SetRenderer(std::move(newRenderer));
 			}
 		}
@@ -798,7 +1210,7 @@ void ParticleEditor::AddEmitterDialog()
 			emitter->Initialize(emitterNameBuffer_);
 
 			auto renderer = std::make_unique<SpriteRenderer>();
-			renderer->Initialize("Resources/uvChecker.png");
+			renderer->Initialize("./Resources/uvChecker.png");
 			emitter->SetRenderer(std::move(renderer));
 
 			emitter->AddModule(std::make_unique<SpawnRateModule>(10.0f));
@@ -829,10 +1241,10 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 	if (ImGui::BeginPopupModal("Add Module", &showAddModuleDialog_, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		const char* moduleTypes[] = {
-			"Spawn Rate", "Spawn Burst",
-			"Initial Lifetime", "Initial Velocity", "Initial Scale", "Initial Color",
-			"Gravity", "Drag", "Color Fade", "Scale Over Lifetime",
-			"Texture Sheet", "Attractor", "Vortex"
+			"Spawn Rate", "Spawn Burst", "Spawn Shape",
+			"Initial Lifetime", "Initial Velocity", "Initial Scale", "Initial Color", "Initial Rotation",
+			"Gravity", "Drag", "Color Fade", "Scale Over Lifetime", "Rotation Over Lifetime",
+			"Texture Sheet", "Attractor", "Vortex", "Orbit", "Noise", "Velocity Limit"
 		};
 
 		static int selectedModule = 0;
@@ -844,17 +1256,23 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 			{
 			case 0: emitter->AddModule(std::make_unique<SpawnRateModule>()); break;
 			case 1: emitter->AddModule(std::make_unique<SpawnBurstModule>()); break;
-			case 2: emitter->AddModule(std::make_unique<InitialLifetimeModule>()); break;
-			case 3: emitter->AddModule(std::make_unique<InitialVelocityModule>()); break;
-			case 4: emitter->AddModule(std::make_unique<InitialScaleModule>()); break;
-			case 5: emitter->AddModule(std::make_unique<InitialColorModule>()); break;
-			case 6: emitter->AddModule(std::make_unique<GravityModule>()); break;
-			case 7: emitter->AddModule(std::make_unique<DragModule>()); break;
-			case 8: emitter->AddModule(std::make_unique<ColorFadeModule>()); break;
-			case 9: emitter->AddModule(std::make_unique<ScaleOverLifetimeModule>()); break;
-			case 10: emitter->AddModule(std::make_unique<TextureSheetModule>()); break;
-			case 11: emitter->AddModule(std::make_unique<AttractorModule>()); break;
-			case 12: emitter->AddModule(std::make_unique<VortexModule>()); break;
+			case 2: emitter->AddModule(std::make_unique<SpawnShapeModule>()); break;
+			case 3: emitter->AddModule(std::make_unique<InitialLifetimeModule>()); break;
+			case 4: emitter->AddModule(std::make_unique<InitialVelocityModule>()); break;
+			case 5: emitter->AddModule(std::make_unique<InitialScaleModule>()); break;
+			case 6: emitter->AddModule(std::make_unique<InitialColorModule>()); break;
+			case 7: emitter->AddModule(std::make_unique<InitialRotationModule>()); break;
+			case 8: emitter->AddModule(std::make_unique<GravityModule>()); break;
+			case 9: emitter->AddModule(std::make_unique<DragModule>()); break;
+			case 10: emitter->AddModule(std::make_unique<ColorFadeModule>()); break;
+			case 11: emitter->AddModule(std::make_unique<ScaleOverLifetimeModule>()); break;
+			case 12: emitter->AddModule(std::make_unique<RotationOverLifetimeModule>()); break;
+			case 13: emitter->AddModule(std::make_unique<TextureSheetModule>()); break;
+			case 14: emitter->AddModule(std::make_unique<AttractorModule>()); break;
+			case 15: emitter->AddModule(std::make_unique<VortexModule>()); break;
+			case 16: emitter->AddModule(std::make_unique<OrbitModule>()); break;
+			case 17: emitter->AddModule(std::make_unique<NoiseModule>()); break;
+			case 18: emitter->AddModule(std::make_unique<VelocityLimitModule>()); break;
 			}
 			showAddModuleDialog_ = false;
 		}

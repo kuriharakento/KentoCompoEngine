@@ -63,7 +63,7 @@ void GPUSimulator::CreateBuffers()
 			&heapProps,
 			D3D12_HEAP_FLAG_NONE,
 			&resourceDesc,
-			D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+			D3D12_RESOURCE_STATE_COMMON,  // バッファはCOMMON状態で作成（D3D12仕様）
 			nullptr,
 			IID_PPV_ARGS(&particleBuffer_)
 		);
@@ -256,10 +256,11 @@ void GPUSimulator::SpawnParticles(const std::vector<Particle>& newParticles)
 
 	auto* cmdList = dxCommon_->GetCommandList();
 
+	// 現在の状態からCOPY_DESTへ遷移
 	D3D12_RESOURCE_BARRIER barrier{};
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Transition.pResource = particleBuffer_.Get();
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+	barrier.Transition.StateBefore = particleBufferState_;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
 	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	cmdList->ResourceBarrier(1, &barrier);
@@ -272,10 +273,12 @@ void GPUSimulator::SpawnParticles(const std::vector<Particle>& newParticles)
 		copyCount * sizeof(Particle)
 	);
 
+	// COPY_DESTからUAVへ遷移
 	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 	cmdList->ResourceBarrier(1, &barrier);
 
+	particleBufferState_ = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 	particleCount_ += static_cast<uint32_t>(copyCount);
 }
 
@@ -297,13 +300,27 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera)
 {
 	if (!initialized_) return;
 
-	totalTime_ += deltaTime; // Moved from old Dispatch
+	totalTime_ += deltaTime;
 	UpdateConstantBuffer(deltaTime);
 
 	auto* commandList = dxCommon_->GetCommandList();
 	auto* pipeline = GPUParticlePipeline::GetInstance();
 
 	if (!pipeline->IsValid()) return;
+
+	//----------------------------------------
+	// 0. Ensure particle buffer is in UAV state
+	//----------------------------------------
+	if (particleBufferState_ != D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+	{
+		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+			particleBuffer_.Get(),
+			particleBufferState_,
+			D3D12_RESOURCE_STATE_UNORDERED_ACCESS
+		);
+		commandList->ResourceBarrier(1, &barrier);
+		particleBufferState_ = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+	}
 
 	//----------------------------------------
 	// 1. Simulation Phase (Particle Buffer Update)
@@ -390,6 +407,9 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera)
 	);
 
 	commandList->ResourceBarrier(2, barriers);
+	
+	// 状態追跡を更新
+	particleBufferState_ = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 }
 
 void GPUSimulator::ReadbackParticles(std::vector<Particle>& outParticles)
@@ -413,7 +433,7 @@ void GPUSimulator::ReadbackParticles(std::vector<Particle>& outParticles)
 	D3D12_RESOURCE_BARRIER barrier{};
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Transition.pResource = particleBuffer_.Get();
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+	barrier.Transition.StateBefore = particleBufferState_;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_SOURCE;
 	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	cmdList->ResourceBarrier(1, &barrier);
@@ -423,4 +443,6 @@ void GPUSimulator::ReadbackParticles(std::vector<Particle>& outParticles)
 	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_SOURCE;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 	cmdList->ResourceBarrier(1, &barrier);
+	
+	particleBufferState_ = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 }

@@ -1,0 +1,175 @@
+{
+    "emitters": [
+        {
+            "maxParticles": 1000,
+            "modules": [
+                {
+                    "rate": 30.700000762939453,
+                    "type": "SpawnRate"
+                },
+                {
+                    "max": 2.0,
+                    "min": 1.0,
+                    "type": "InitialLifetime"
+                },
+                {
+                    "type": "SpawnShape"
+                },
+                {
+                    "max": {
+                        "x": 1.0,
+                        "y": 3.0,
+                        "z": 1.0
+                    },
+                    "min": {
+                        "x": -1.0,
+                        "y": 1.0,
+                        "z": -1.0
+                    },
+                    "type": "InitialVelocity"
+                },
+                {
+                    "gravity": {
+                        "x": 0.0,
+                        "y": -9.800000190734863,
+                        "z": 0.0
+                    },
+                    "type": "Gravity"
+                },
+                {
+                    "end": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "start": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "type": "ScaleOverLifetime"
+                },
+                {
+                    "type": "RotationOverLifetime"
+                },
+                {
+                    "end": {
+                        "a": 0.0,
+                        "b": 1.0,
+                        "g": 1.0,
+                        "r": 1.0
+                    },
+                    "start": {
+                        "a": 1.0,
+                        "b": 1.0,
+                        "g": 1.0,
+                        "r": 1.0
+                    },
+                    "type": "ColorFade",
+                    "useInitialColor": false
+                }
+            ],
+            "name": "t1",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "renderer": {
+                "blendMode": 1,
+                "texture": "",
+                "type": "Mesh"
+            }
+        },
+        {
+            "maxParticles": 1000,
+            "modules": [
+                {
+                    "rate": 10.0,
+                    "type": "SpawnRate"
+                },
+                {
+                    "max": 2.0,
+                    "min": 1.0,
+                    "type": "InitialLifetime"
+                },
+                {
+                    "type": "SpawnShape"
+                },
+                {
+                    "max": {
+                        "x": 1.0,
+                        "y": 3.0,
+                        "z": 1.0
+                    },
+                    "min": {
+                        "x": -1.0,
+                        "y": 1.0,
+                        "z": -1.0
+                    },
+                    "type": "InitialVelocity"
+                },
+                {
+                    "gravity": {
+                        "x": 0.0,
+                        "y": -9.800000190734863,
+                        "z": 0.0
+                    },
+                    "type": "Gravity"
+                },
+                {
+                    "type": "Noise"
+                },
+                {
+                    "type": "Orbit"
+                },
+                {
+                    "end": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "start": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "type": "ScaleOverLifetime"
+                },
+                {
+                    "end": {
+                        "a": 0.0,
+                        "b": 1.0,
+                        "g": 1.0,
+                        "r": 1.0
+                    },
+                    "start": {
+                        "a": 1.0,
+                        "b": 1.0,
+                        "g": 1.0,
+                        "r": 1.0
+                    },
+                    "type": "ColorFade",
+                    "useInitialColor": false
+                }
+            ],
+            "name": "t2",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "renderer": {
+                "blendMode": 1,
+                "texture": "",
+                "type": "Mesh"
+            }
+        }
+    ],
+    "name": "NewEffect",
+    "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    }
+}

@@ -36,6 +36,11 @@ public:
 	void Draw();
 
 	/**
+	 * @brief デバッグ表示描画（エミッター位置、パーティクル位置をライン描画）
+	 */
+	void DrawDebug();
+
+	/**
 	 * @brief エディタを表示/非表示
 	 */
 	void SetVisible(bool visible) { isVisible_ = visible; }
@@ -83,6 +88,7 @@ private:
 	SrvManager* srvManager_ = nullptr;
 
 	bool isVisible_ = false;
+	bool showDebug_ = true;  // デバッグ表示ON/OFF
 	bool showAddEmitterDialog_ = false;
 	bool showAddModuleDialog_ = false;
 	int selectedEmitterIndex_ = -1;
@@ -92,3 +98,4 @@ private:
 	char effectNameBuffer_[256] = {};
 	char emitterNameBuffer_[256] = {};
 };
+

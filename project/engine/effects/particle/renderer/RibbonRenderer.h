@@ -124,6 +124,16 @@ private:
 	// 一時的なセグメントリスト（描画用）
 	std::unordered_map<uint32_t, std::vector<RibbonSegment>> ribbonSegments_;
 
+	/**
+	 * @brief パーティクルごとの位置履歴（トレイル描画用）
+	 */
+	struct ParticleTrailHistory {
+		std::vector<Vector3> positions;      // 位置履歴
+		std::vector<Vector4> colors;         // 色履歴
+		float lastRecordTime = 0.0f;         // 最後に記録した時刻（particle.age）
+	};
+	std::unordered_map<uint32_t, ParticleTrailHistory> particleHistories_;
+
 	void BuildRibbonMesh(CameraManager* camera);
 	void BuildRibbonMeshFromTrails(CameraManager* camera);
 	void UpdateTrails(const std::vector<Particle>& particles, float deltaTime);

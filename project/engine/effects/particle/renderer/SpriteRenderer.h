@@ -41,6 +41,10 @@ private:
 	uint32_t instancingSrvIndex_ = 0;
 	uint32_t instanceCount_ = 0;
 	bool isBillboard_ = true;
+	std::string texturePath_;
+
+public:
+	std::string GetTexturePath() const override { return texturePath_; }
 
 	// GPU Mode
 	bool isGPUMode_ = false;

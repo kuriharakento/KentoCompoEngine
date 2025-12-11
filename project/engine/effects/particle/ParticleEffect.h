@@ -59,6 +59,11 @@ public:
 	void AddEmitter(std::unique_ptr<ParticleEmitter> emitter);
 
 	/**
+	 * @brief エミッターを削除
+	 */
+	void RemoveEmitter(size_t index);
+
+	/**
 	 * @brief 名前でエミッターを取得
 	 */
 	ParticleEmitter* GetEmitter(const std::string& name);
@@ -67,6 +72,7 @@ public:
 	 * @brief インデックスでエミッターを取得
 	 */
 	ParticleEmitter* GetEmitter(size_t index);
+	const ParticleEmitter* GetEmitter(size_t index) const;
 
 	/**
 	 * @brief エミッター数を取得
@@ -119,6 +125,7 @@ public:
 	//===== プロパティ =====//
 
 	const std::string& GetName() const { return name_; }
+	void SetName(const std::string& name) { name_ = name; }
 	const Vector3& GetPosition() const { return position_; }
 
 	/**
