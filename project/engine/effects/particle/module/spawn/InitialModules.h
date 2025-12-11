@@ -131,6 +131,9 @@ public:
 				particle.color.y = minColor_.y + (maxColor_.y - minColor_.y) * (rand() / static_cast<float>(RAND_MAX));
 				particle.color.z = minColor_.z + (maxColor_.z - minColor_.z) * (rand() / static_cast<float>(RAND_MAX));
 				particle.color.w = minColor_.w + (maxColor_.w - minColor_.w) * (rand() / static_cast<float>(RAND_MAX));
+				
+				// 初期カラーを保存（ColorFadeModule等で使用）
+				particle.initialColor = particle.color;
 			}
 		}
 	}

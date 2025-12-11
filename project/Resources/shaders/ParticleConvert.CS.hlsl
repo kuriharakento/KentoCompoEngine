@@ -1,6 +1,6 @@
 #include "Particle.hlsli"
 
-// シミュレーション用パーティクル構造体 (112 bytes)
+// シミュレーション用パーティクル構造体 (128 bytes - CPU Particle構造体と一致)
 struct Particle
 {
     float3 position; float pad0;
@@ -8,6 +8,7 @@ struct Particle
     float3 scale;    float pad2;
     float4 rotation;
     float4 color;
+    float4 initialColor; // InitialColorModuleで設定された初期カラー
     float age; float lifetime; float ribbonWidth; uint flags;
     uint id; uint ribbonId; uint spriteIndex; uint pad3;
 };
@@ -42,7 +43,13 @@ cbuffer Constants : register(b0)
 }
 
 // カメラ定数
-ConstantBuffer<Camera> gCamera : register(b1);
+cbuffer CameraBuffer : register(b1)
+{
+    float4x4 cameraView;
+    float4x4 cameraProjection;
+    float3 cameraEye;
+    float cameraPad;
+}
 
 // クォータニオン -> 回転行列
 float4x4 QuaternionToMatrix(float4 q)
@@ -107,7 +114,7 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     float4x4 rotMat;
     if (isBillboard)
     {
-        rotMat = CalculateBillboardMatrix(p.position, gCamera.eye);
+        rotMat = CalculateBillboardMatrix(p.position, cameraEye);
         // Z回転のみ適用する？（通常ビルボードはZ回転許容）
         // ここでは簡易ビルボードとする
     }
@@ -127,7 +134,7 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     float4x4 world = mul(scaleMat, mul(rotMat, transMat));
 
     // WVP行列
-    float4x4 viewProj = mul(gCamera.view, gCamera.projection);
+    float4x4 viewProj = mul(cameraView, cameraProjection);
     float4x4 wvp = mul(world, viewProj);
 
     // 出力

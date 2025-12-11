@@ -62,11 +62,12 @@ void RibbonRenderer::InitializeBuffers(DirectXCommon* dxCommon)
 	vertexBufferView_.StrideInBytes = sizeof(RibbonVertex);
 
 	// マテリアルリソースの初期化
-	materialResource_ = dxCommon->CreateBufferResource(sizeof(Material));
+	materialResource_ = dxCommon->CreateBufferResource(sizeof(RibbonMaterial));
 	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
 	materialData_->color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 	materialData_->uvTransform = MakeIdentity4x4();
-	materialData_->enableLighting = false;
+	materialData_->enableLighting = 0;
+	materialData_->useTextureColor = 0;
 
 	// ビュープロジェクションバッファの初期化
 	viewProjResource_ = dxCommon->CreateBufferResource(sizeof(Matrix4x4));
@@ -78,7 +79,7 @@ void RibbonRenderer::Update(const std::vector<Particle>& particles, CameraManage
 {
 	// RibbonIDごとにパーティクルをグループ化
 	ribbonSegments_.clear();
-	vertexCount_ = 0; // Reset vertex count when clearing
+	vertexCount_ = 0;
 
 	for (const auto& particle : particles)
 	{
@@ -86,9 +87,10 @@ void RibbonRenderer::Update(const std::vector<Particle>& particles, CameraManage
 
 		RibbonSegment segment;
 		segment.position = particle.position;
-		segment.width = particle.ribbonWidth > 0.0f ? particle.ribbonWidth : ribbonWidth_;
+		segment.width = ribbonWidth_;
 		segment.color = particle.color;
 		segment.age = particle.age;
+		segment.timestamp = particle.age; // ageをtimestampとして使用
 
 		// ribbonId==0の場合はデフォルトグループ(1)として扱う
 		uint32_t groupId = particle.ribbonId > 0 ? particle.ribbonId : 1;
@@ -117,6 +119,12 @@ void RibbonRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 	InitializeBuffers(dxCommon);
 
 	if (vertexCount_ == 0) return;
+	
+	// マテリアル設定を更新
+	if (materialData_)
+	{
+		materialData_->useTextureColor = useTextureColor_ ? 1 : 0;
+	}
 
 	// リボン用パイプラインステートの設定
 	auto* pm = ParticleManager::GetInstance();
@@ -152,11 +160,17 @@ void RibbonRenderer::BuildRibbonMesh(CameraManager* camera)
 	{
 		if (segments.size() < 2) continue;
 
-		// 古い順にソート（ageが大きいほど古い）
+		// ageでソート（古い→新しい = 尾→頭）
 		std::sort(segments.begin(), segments.end(),
 			[](const RibbonSegment& a, const RibbonSegment& b) {
-				return a.age > b.age;
+				return a.age > b.age;  // ageが大きいほど古い
 			});
+
+		// セグメント補間（滑らかさ向上）
+		if (enableInterpolation_)
+		{
+			InterpolateSegments(segments);
+		}
 
 		GenerateTriangleStrip(segments, cameraPos, allVertices);
 	}
@@ -199,10 +213,12 @@ void RibbonRenderer::GenerateTriangleStrip(
 	{
 		const auto& seg = segments[i];
 
-		// スムーズなアルファグラデーション（古いセグメントほど透明に）
-		// 0.0 = 最古（透明）, 1.0 = 最新（不透明）
-		float normalizedIndex = static_cast<float>(i) / static_cast<float>(segments.size() - 1);
-		float alphaMultiplier = normalizedIndex; // 線形フェード（カスタマイズ可能）
+		// 距離ベースのアルファグラデーション（末端が透明、先頭が不透明）
+		// より自然なフェードアウトを実現
+		float normalizedDistance = (totalLength > 0.0f) 
+			? segmentLengths[i] / totalLength 
+			: 1.0f;
+		float alphaMultiplier = normalizedDistance;
 
 		// 接線方向を計算
 		Vector3 tangent;
@@ -225,17 +241,29 @@ void RibbonRenderer::GenerateTriangleStrip(
 			tangent.z = segments[i + 1].position.z - segments[i - 1].position.z;
 		}
 
-		// カメラへの方向
-		Vector3 toCamera;
-		toCamera.x = cameraPosition.x - seg.position.x;
-		toCamera.y = cameraPosition.y - seg.position.y;
-		toCamera.z = cameraPosition.z - seg.position.z;
-
-		// 外積で横方向を計算
+		// 横方向の計算（ビルボードモードに応じて変更）
 		Vector3 right;
-		right.x = tangent.y * toCamera.z - tangent.z * toCamera.y;
-		right.y = tangent.z * toCamera.x - tangent.x * toCamera.z;
-		right.z = tangent.x * toCamera.y - tangent.y * toCamera.x;
+		if (useBillboard_)
+		{
+			// ビルボード: カメラへの方向を使用
+			Vector3 toCamera;
+			toCamera.x = cameraPosition.x - seg.position.x;
+			toCamera.y = cameraPosition.y - seg.position.y;
+			toCamera.z = cameraPosition.z - seg.position.z;
+
+			// 外積で横方向を計算
+			right.x = tangent.y * toCamera.z - tangent.z * toCamera.y;
+			right.y = tangent.z * toCamera.x - tangent.x * toCamera.z;
+			right.z = tangent.x * toCamera.y - tangent.y * toCamera.x;
+		}
+		else
+		{
+			// 固定: ワールドのY-up方向を使用
+			Vector3 worldUp = { 0.0f, 1.0f, 0.0f };
+			right.x = tangent.y * worldUp.z - tangent.z * worldUp.y;
+			right.y = tangent.z * worldUp.x - tangent.x * worldUp.z;
+			right.z = tangent.x * worldUp.y - tangent.y * worldUp.x;
+		}
 
 		// 正規化
 		float rightLen = std::sqrt(right.x * right.x + right.y * right.y + right.z * right.z);
@@ -282,3 +310,80 @@ void RibbonRenderer::GenerateTriangleStrip(
 		outVertices.push_back(rightVert);
 	}
 }
+
+void RibbonRenderer::InterpolateSegments(std::vector<RibbonSegment>& segments)
+{
+	if (segments.size() < 2) return;
+	
+	std::vector<RibbonSegment> interpolated;
+	interpolated.reserve(segments.size() * 10);
+	
+	// Catmull-Rom スプライン補間用ラムダ
+	auto catmullRom = [](float p0, float p1, float p2, float p3, float t) -> float {
+		float t2 = t * t;
+		float t3 = t2 * t;
+		return 0.5f * (
+			(2.0f * p1) +
+			(-p0 + p2) * t +
+			(2.0f * p0 - 5.0f * p1 + 4.0f * p2 - p3) * t2 +
+			(-p0 + 3.0f * p1 - 3.0f * p2 + p3) * t3
+		);
+	};
+	
+	for (size_t i = 0; i < segments.size() - 1; ++i)
+	{
+		// Catmull-Rom用に4点を取得（境界はクランプ）
+		size_t i0 = (i > 0) ? i - 1 : 0;
+		size_t i1 = i;
+		size_t i2 = i + 1;
+		size_t i3 = (i + 2 < segments.size()) ? i + 2 : segments.size() - 1;
+		
+		const auto& p0 = segments[i0];
+		const auto& p1 = segments[i1];
+		const auto& p2 = segments[i2];
+		const auto& p3 = segments[i3];
+		
+		// 現在のセグメントを追加
+		interpolated.push_back(p1);
+		
+		// 距離を計算
+		float dx = p2.position.x - p1.position.x;
+		float dy = p2.position.y - p1.position.y;
+		float dz = p2.position.z - p1.position.z;
+		float distance = std::sqrt(dx * dx + dy * dy + dz * dz);
+		
+		// 距離に基づいて補間点の数を計算（最低3つ）
+		int numInterpolations = (std::max)(3, static_cast<int>(std::ceil(distance / maxSegmentDistance_)));
+		
+		// Catmull-Rom補間点を追加
+		for (int j = 1; j <= numInterpolations; ++j)
+		{
+			float t = static_cast<float>(j) / static_cast<float>(numInterpolations + 1);
+			
+			RibbonSegment interp;
+			// 位置のCatmull-Rom補間（滑らかな曲線）
+			interp.position.x = catmullRom(p0.position.x, p1.position.x, p2.position.x, p3.position.x, t);
+			interp.position.y = catmullRom(p0.position.y, p1.position.y, p2.position.y, p3.position.y, t);
+			interp.position.z = catmullRom(p0.position.z, p1.position.z, p2.position.z, p3.position.z, t);
+			// 幅の線形補間
+			interp.width = p1.width + (p2.width - p1.width) * t;
+			// 色の線形補間
+			interp.color.x = p1.color.x + (p2.color.x - p1.color.x) * t;
+			interp.color.y = p1.color.y + (p2.color.y - p1.color.y) * t;
+			interp.color.z = p1.color.z + (p2.color.z - p1.color.z) * t;
+			interp.color.w = p1.color.w + (p2.color.w - p1.color.w) * t;
+			// ageの線形補間
+			interp.age = p1.age + (p2.age - p1.age) * t;
+			interp.timestamp = p1.timestamp + (p2.timestamp - p1.timestamp) * t;
+			
+			interpolated.push_back(interp);
+		}
+	}
+	
+	// 最後のセグメントを追加
+	interpolated.push_back(segments.back());
+	
+	// 結果で置き換え
+	segments = std::move(interpolated);
+}
+

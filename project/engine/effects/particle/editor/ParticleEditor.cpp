@@ -391,9 +391,19 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 	}
 	else if (auto* m = dynamic_cast<ColorFadeModule*>(module))
 	{
-		Vector4 start = m->GetStartColor();
+		bool useInitial = m->GetUseInitialColor();
+		if (ImGui::Checkbox("Use Initial Color", &useInitial)) 
+		{ 
+			m->SetUseInitialColor(useInitial); 
+		}
+		ImGui::SetItemTooltip("When enabled, fades from the color set by InitialColor module instead of Start Color");
+		
+		if (!useInitial)
+		{
+			Vector4 start = m->GetStartColor();
+			if (ImGui::ColorEdit4("Start Color", &start.x)) { m->SetStartColor(start); }
+		}
 		Vector4 end = m->GetEndColor();
-		if (ImGui::ColorEdit4("Start Color", &start.x)) { m->SetStartColor(start); }
 		if (ImGui::ColorEdit4("End Color", &end.x)) { m->SetEndColor(end); }
 	}
 	else if (auto* m = dynamic_cast<ScaleOverLifetimeModule*>(module))
@@ -554,158 +564,218 @@ void ParticleEditor::DrawRendererPanel()
 						ImGui::EndCombo();
 					}
 				}
+			}
+			// Ribbon Renderer特有の設定
+			else if (auto* ribbonRenderer = dynamic_cast<RibbonRenderer*>(renderer))
+			{
+				ImGui::Separator();
+				ImGui::Text("Ribbon Settings:");
 
-				// Ribbon Renderer特有の設定
-				if (auto* ribbonRenderer = dynamic_cast<RibbonRenderer*>(renderer))
+				// リボン幅
+				float width = ribbonRenderer->GetRibbonWidth();
+				if (ImGui::DragFloat("Ribbon Width", &width, 0.01f, 0.01f, 10.0f))
 				{
-					ImGui::Separator();
-					ImGui::Text("Ribbon Settings:");
+					ribbonRenderer->SetRibbonWidth(width);
+				}
 
-					// リボン幅
-					float width = ribbonRenderer->GetRibbonWidth();
-					if (ImGui::DragFloat("Ribbon Width", &width, 0.01f, 0.01f, 10.0f))
+				// セグメント補間設定
+				bool enableInterp = ribbonRenderer->GetEnableInterpolation();
+				if (ImGui::Checkbox("Enable Interpolation", &enableInterp))
+				{
+					ribbonRenderer->SetEnableInterpolation(enableInterp);
+				}
+				ImGui::SetItemTooltip("Smooth ribbon by adding interpolation points between segments");
+				
+				if (enableInterp)
+				{
+					float maxDist = ribbonRenderer->GetMaxSegmentDistance();
+					if (ImGui::DragFloat("Max Segment Distance", &maxDist, 0.01f, 0.01f, 5.0f))
 					{
-						ribbonRenderer->SetRibbonWidth(width);
+						ribbonRenderer->SetMaxSegmentDistance(maxDist);
 					}
+					ImGui::SetItemTooltip("Add interpolation points when segments are further apart than this");
+				}
 
-					// テクスチャモード
-					const char* textureModes[] = { "Stretch", "Tile" };
-					int texMode = static_cast<int>(ribbonRenderer->GetTextureMode());
-					if (ImGui::Combo("Texture Mode", &texMode, textureModes, 2))
+				// テクスチャモード
+				const char* textureModes[] = { "Stretch", "Tile" };
+				int texMode = static_cast<int>(ribbonRenderer->GetTextureMode());
+				if (ImGui::Combo("Texture Mode", &texMode, textureModes, 2))
+				{
+					ribbonRenderer->SetTextureMode(static_cast<RibbonTextureMode>(texMode));
+				}
+
+				// タイルスケール（Tileモードのみ）
+				if (ribbonRenderer->GetTextureMode() == RibbonTextureMode::Tile)
+				{
+					float tileScale = ribbonRenderer->GetTileScale();
+					if (ImGui::DragFloat("Tile Scale", &tileScale, 0.1f, 0.1f, 100.0f))
 					{
-						ribbonRenderer->SetTextureMode(static_cast<RibbonTextureMode>(texMode));
-					}
-
-					// タイルスケール（Tileモードのみ）
-					if (ribbonRenderer->GetTextureMode() == RibbonTextureMode::Tile)
-					{
-						float tileScale = ribbonRenderer->GetTileScale();
-						if (ImGui::DragFloat("Tile Scale", &tileScale, 0.1f, 0.1f, 100.0f))
-						{
-							ribbonRenderer->SetTileScale(tileScale);
-						}
-					}
-
-					// TextureManagerから読み込み済みテクスチャを取得
-					auto texturePaths = TextureManager::GetInstance()->GetLoadedTexturePaths();
-
-					if (!texturePaths.empty())
-					{
-						ImGui::Text("Texture:");
-
-						static int selectedRibbonTextureIdx = 0;
-
-						if (ImGui::BeginCombo("##RibbonTexture", texturePaths.empty() ? "(None)" : texturePaths[selectedRibbonTextureIdx].c_str()))
-						{
-							for (int i = 0; i < static_cast<int>(texturePaths.size()); ++i)
-							{
-								bool isSelected = (selectedRibbonTextureIdx == i);
-
-								std::string displayName = texturePaths[i];
-								size_t lastSlash = displayName.find_last_of("/\\");
-								if (lastSlash != std::string::npos)
-								{
-									displayName = displayName.substr(lastSlash + 1);
-								}
-								if (displayName.empty()) displayName = "Unknown";
-
-								std::string label = displayName + "##ribbon" + std::to_string(i);
-
-								if (ImGui::Selectable(label.c_str(), isSelected))
-								{
-									selectedRibbonTextureIdx = i;
-									ribbonRenderer->SetTexture(texturePaths[i]);
-								}
-
-								if (isSelected)
-								{
-									ImGui::SetItemDefaultFocus();
-								}
-							}
-							ImGui::EndCombo();
-						}
+						ribbonRenderer->SetTileScale(tileScale);
 					}
 				}
 
-				// Mesh Renderer特有の設定
-				if (auto* meshRenderer = dynamic_cast<MeshRenderer*>(renderer))
+				// アルファ閾値（透明部分のカットオフ）
+				float alphaThreshold = ribbonRenderer->GetAlphaThreshold();
+				if (ImGui::DragFloat("Alpha Threshold", &alphaThreshold, 0.01f, 0.0f, 1.0f))
 				{
-					ImGui::Separator();
-					ImGui::Text("Mesh Settings:");
+					ribbonRenderer->SetAlphaThreshold(alphaThreshold);
+				}
+				
+				ImGui::Separator();
+				ImGui::Text("Trail Settings:");
+				
+				// トレイル寿命
+				float trailLifetime = ribbonRenderer->GetTrailLifetime();
+				if (ImGui::DragFloat("Trail Lifetime", &trailLifetime, 0.1f, 0.1f, 10.0f))
+				{
+					ribbonRenderer->SetTrailLifetime(trailLifetime);
+				}
+				ImGui::SetItemTooltip("How long the trail persists (seconds)");
+				
+				// サンプリングレート
+				float pps = ribbonRenderer->GetPointsPerSecond();
+				if (ImGui::DragFloat("Points Per Second", &pps, 5.0f, 10.0f, 240.0f))
+				{
+					ribbonRenderer->SetPointsPerSecond(pps);
+				}
+				ImGui::SetItemTooltip("Higher = smoother trail, more vertices");
+				ImGui::SetItemTooltip("Alpha below this threshold will not be rendered (reduces visible edges)");
 
-					const char* primitiveTypes[] = { "Plane", "Ring", "Cylinder", "Sphere", "Torus", "Star", "Heart", "Spiral", "Cone", "Cube" };
-					int primType = static_cast<int>(meshRenderer->GetPrimitiveType());
-					if (ImGui::Combo("Primitive", &primType, primitiveTypes, 10))
+				// テクスチャカラー使用オプション
+				bool useTextureColor = ribbonRenderer->GetUseTextureColor();
+				if (ImGui::Checkbox("Use Texture Color", &useTextureColor))
+				{
+					ribbonRenderer->SetUseTextureColor(useTextureColor);
+				}
+				ImGui::SetItemTooltip("OFF: Smooth gradient using vertex color only. ON: Apply texture RGB pattern.");
+
+				// ビルボード設定
+				bool billboard = ribbonRenderer->GetBillboard();
+				if (ImGui::Checkbox("Billboard", &billboard))
+				{
+					ribbonRenderer->SetBillboard(billboard);
+				}
+				ImGui::SetItemTooltip("Enable billboard facing for ribbon segments");
+
+				// TextureManagerから読み込み済みテクスチャを取得
+				auto texturePaths = TextureManager::GetInstance()->GetLoadedTexturePaths();
+
+				if (!texturePaths.empty())
+				{
+					ImGui::Text("Texture:");
+
+					static int selectedRibbonTextureIdx = 0;
+
+					if (ImGui::BeginCombo("##RibbonTexture", texturePaths.empty() ? "(None)" : texturePaths[selectedRibbonTextureIdx].c_str()))
 					{
-						meshRenderer->SetPrimitive(static_cast<PrimitiveType>(primType));
-					}
-
-					float scale = meshRenderer->GetScale();
-					if (ImGui::DragFloat("Scale", &scale, 0.01f, 0.01f, 10.0f))
-					{
-						meshRenderer->SetScale(scale);
-					}
-
-					// ビルボード設定
-					bool useBillboard = meshRenderer->GetBillboard();
-					if (ImGui::Checkbox("Billboard", &useBillboard))
-					{
-						meshRenderer->SetBillboard(useBillboard);
-					}
-
-					// TextureManagerから読み込み済みテクスチャを取得
-					auto texturePaths = TextureManager::GetInstance()->GetLoadedTexturePaths();
-
-					if (!texturePaths.empty())
-					{
-						ImGui::Text("Texture:");
-
-						static int selectedMeshTextureIdx = 0;
-
-						if (ImGui::BeginCombo("##MeshTexture", texturePaths.empty() ? "(None)" : texturePaths[selectedMeshTextureIdx].c_str()))
+						for (int i = 0; i < static_cast<int>(texturePaths.size()); ++i)
 						{
-							for (int i = 0; i < static_cast<int>(texturePaths.size()); ++i)
+							bool isSelected = (selectedRibbonTextureIdx == i);
+
+							std::string displayName = texturePaths[i];
+							size_t lastSlash = displayName.find_last_of("/\\");
+							if (lastSlash != std::string::npos)
 							{
-								bool isSelected = (selectedMeshTextureIdx == i);
-
-								std::string displayName = texturePaths[i];
-								size_t lastSlash = displayName.find_last_of("/\\");
-								if (lastSlash != std::string::npos)
-								{
-									displayName = displayName.substr(lastSlash + 1);
-								}
-								if (displayName.empty()) displayName = "Unknown";
-
-								std::string label = displayName + "##mesh" + std::to_string(i);
-
-								if (ImGui::Selectable(label.c_str(), isSelected))
-								{
-									selectedMeshTextureIdx = i;
-									meshRenderer->SetTexture(texturePaths[i]);
-								}
-
-								if (isSelected)
-								{
-									ImGui::SetItemDefaultFocus();
-								}
+								displayName = displayName.substr(lastSlash + 1);
 							}
-							ImGui::EndCombo();
+							if (displayName.empty()) displayName = "Unknown";
+
+							std::string label = displayName + "##ribbon" + std::to_string(i);
+
+							if (ImGui::Selectable(label.c_str(), isSelected))
+							{
+								selectedRibbonTextureIdx = i;
+								ribbonRenderer->SetTexture(texturePaths[i]);
+							}
+
+							if (isSelected)
+							{
+								ImGui::SetItemDefaultFocus();
+							}
 						}
+						ImGui::EndCombo();
 					}
 				}
 			}
-			else
+			// Mesh Renderer特有の設定
+			else if (auto* meshRenderer = dynamic_cast<MeshRenderer*>(renderer))
 			{
-				ImGui::Text("No renderer assigned");
+				ImGui::Separator();
+				ImGui::Text("Mesh Settings:");
 
-				if (ImGui::Button("Create Sprite Renderer"))
+				const char* primitiveTypes[] = { "Plane", "Ring", "Cylinder", "Sphere", "Torus", "Star", "Heart", "Spiral", "Cone", "Cube" };
+				int primType = static_cast<int>(meshRenderer->GetPrimitiveType());
+				if (ImGui::Combo("Primitive", &primType, primitiveTypes, 10))
 				{
-					auto newRenderer = std::make_unique<SpriteRenderer>();
-					newRenderer->Initialize("Resources/images/particle.png");
-					emitter->SetRenderer(std::move(newRenderer));
+					meshRenderer->SetPrimitive(static_cast<PrimitiveType>(primType));
+				}
+
+				float scale = meshRenderer->GetScale();
+				if (ImGui::DragFloat("Scale", &scale, 0.01f, 0.01f, 10.0f))
+				{
+					meshRenderer->SetScale(scale);
+				}
+
+				// ビルボード設定
+				bool useBillboard = meshRenderer->GetBillboard();
+				if (ImGui::Checkbox("Billboard", &useBillboard))
+				{
+					meshRenderer->SetBillboard(useBillboard);
+				}
+
+				// TextureManagerから読み込み済みテクスチャを取得
+				auto texturePaths = TextureManager::GetInstance()->GetLoadedTexturePaths();
+
+				if (!texturePaths.empty())
+				{
+					ImGui::Text("Texture:");
+
+					static int selectedMeshTextureIdx = 0;
+
+					if (ImGui::BeginCombo("##MeshTexture", texturePaths.empty() ? "(None)" : texturePaths[selectedMeshTextureIdx].c_str()))
+					{
+						for (int i = 0; i < static_cast<int>(texturePaths.size()); ++i)
+						{
+							bool isSelected = (selectedMeshTextureIdx == i);
+
+							std::string displayName = texturePaths[i];
+							size_t lastSlash = displayName.find_last_of("/\\");
+							if (lastSlash != std::string::npos)
+							{
+								displayName = displayName.substr(lastSlash + 1);
+							}
+							if (displayName.empty()) displayName = "Unknown";
+
+							std::string label = displayName + "##mesh" + std::to_string(i);
+
+							if (ImGui::Selectable(label.c_str(), isSelected))
+							{
+								selectedMeshTextureIdx = i;
+								meshRenderer->SetTexture(texturePaths[i]);
+							}
+
+							if (isSelected)
+							{
+								ImGui::SetItemDefaultFocus();
+							}
+						}
+						ImGui::EndCombo();
+					}
 				}
 			}
 		}
+		else
+		{
+			ImGui::Text("No renderer assigned");
+
+			if (ImGui::Button("Create Sprite Renderer"))
+			{
+				auto newRenderer = std::make_unique<SpriteRenderer>();
+				newRenderer->Initialize("Resources/images/particle.png");
+				emitter->SetRenderer(std::move(newRenderer));
+			}
+		}
+		
 	}
 }
 

@@ -188,6 +188,10 @@ void ParticleEmitter::UpdateGPU(float deltaTime, CameraManager* camera)
 	{
 		gpuSimulator_->SetEmitterPosition(position_);
 		gpuSimulator_->Dispatch(deltaTime, camera);
+		
+		// GPUからパーティクルデータを読み戻してCPU側に反映
+		// これによりレンダラーがパーティクルを描画できる
+		gpuSimulator_->ReadbackParticles(particles_);
 	}
 	else
 	{

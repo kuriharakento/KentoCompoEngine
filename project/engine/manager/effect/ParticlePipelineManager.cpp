@@ -382,15 +382,16 @@ void ParticlePipelineManager::CreateRibbonPipelineState(BlendMode mode)
 	switch (mode)
 	{
 	case BlendMode::Alpha:
-		blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+		// Premultiplied Alpha ブレンド（黒縁問題を防ぐ）
+		blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;  // 事前乗算済みなのでONE
 		blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 		blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
 		blendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
 		blendDesc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
-		blendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
+		blendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
 		break;
 	case BlendMode::Additive:
-		blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+		blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;  // 加算も事前乗算対応
 		blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 		blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
 		blendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
@@ -398,12 +399,13 @@ void ParticlePipelineManager::CreateRibbonPipelineState(BlendMode mode)
 		blendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
 		break;
 	default:
-		blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+		// デフォルトもPremultiplied Alpha
+		blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
 		blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 		blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
 		blendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
 		blendDesc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
-		blendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
+		blendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
 		break;
 	}
 

@@ -81,10 +81,20 @@ public:
 			if (particle.IsAlive())
 			{
 				float t = particle.NormalizedAge();
-				particle.color.x = startColor_.x + (endColor_.x - startColor_.x) * t;
-				particle.color.y = startColor_.y + (endColor_.y - startColor_.y) * t;
-				particle.color.z = startColor_.z + (endColor_.z - startColor_.z) * t;
-				particle.color.w = startColor_.w + (endColor_.w - startColor_.w) * t;
+				
+				// 開始カラーを決定
+				Vector4 effectiveStartColor = startColor_;
+				if (useInitialColor_)
+				{
+					// InitialColorModuleで設定された初期カラーを使用
+					effectiveStartColor = particle.initialColor;
+				}
+				
+				// 線形補間でフェード
+				particle.color.x = effectiveStartColor.x + (endColor_.x - effectiveStartColor.x) * t;
+				particle.color.y = effectiveStartColor.y + (endColor_.y - effectiveStartColor.y) * t;
+				particle.color.z = effectiveStartColor.z + (endColor_.z - effectiveStartColor.z) * t;
+				particle.color.w = effectiveStartColor.w + (endColor_.w - effectiveStartColor.w) * t;
 			}
 		}
 	}
@@ -98,10 +108,14 @@ public:
 	void SetEndColor(const Vector4& c) { endColor_ = c; }
 	Vector4 GetStartColor() const { return startColor_; }
 	Vector4 GetEndColor() const { return endColor_; }
+	
+	void SetUseInitialColor(bool use) { useInitialColor_ = use; }
+	bool GetUseInitialColor() const { return useInitialColor_; }
 
 private:
 	Vector4 startColor_ = { 1, 1, 1, 1 };
 	Vector4 endColor_ = { 1, 1, 1, 0 };
+	bool useInitialColor_ = false; // trueの場合、パーティクルの初期カラーからフェード
 };
 
 /**

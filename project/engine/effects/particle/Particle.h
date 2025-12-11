@@ -28,6 +28,9 @@ struct alignas(16) Particle
 
 	//===== Appearance (16 bytes) =====//
 	Vector4 color = { 1, 1, 1, 1 }; // カラー (RGBA)
+	
+	//===== Initial Color (16 bytes) =====//
+	Vector4 initialColor = { 1, 1, 1, 1 }; // InitialColorModuleで設定された初期カラー
 
 	//===== Lifetime (16 bytes) =====//
 	float age = 0.0f;            // 経過時間
@@ -59,7 +62,7 @@ struct alignas(16) Particle
 
 	float NormalizedAge() const { return lifetime > 0.0f ? age / lifetime : 1.0f; }
 };
-// Total: 112 bytes (16バイトの倍数)
+// Total: 128 bytes (16バイトの倍数) - initialColorフィールド追加
 
 /**
  * @brief GPU転送用パーティクルインスタンスデータ

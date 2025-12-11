@@ -6,13 +6,9 @@ struct TransformationMatrix
     float4x4 World;
 };
 
-struct ParticleForGPU
-{
-    float4x4 WVP;
-    float4x4 World;
-    float4 color;
-    float4 uvOffsetScale; // テクスチャシート用 (offsetX, offsetY, scaleX, scaleY)
-};
+// ParticleForGPUはParticle.hlsliで定義済み
+
+
 
 StructuredBuffer<ParticleForGPU> gParticle : register(t0);
 

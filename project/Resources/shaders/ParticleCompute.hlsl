@@ -5,7 +5,7 @@
  * C++側のParticle構造体と完全に同じレイアウト (112 bytes, 16-byte aligned)
  */
 
-// パーティクル構造体（C++Particle構造体と完全一致）
+// パーティクル構造体（C++Particle構造体と完全一致 - 128 bytes）
 struct Particle
 {
     // Transform (48 bytes)
@@ -23,6 +23,9 @@ struct Particle
     
     // Appearance (16 bytes)
     float4 color;       // RGBA
+    
+    // Initial Color (16 bytes)
+    float4 initialColor; // InitialColorModuleで設定された初期カラー
     
     // Lifetime (16 bytes)
     float age;          // 経過時間
