@@ -10,6 +10,7 @@
 #include "effects/particle/module/update/UpdateModules.h"
 #include "effects/particle/module/update/TextureSheetModule.h"
 #include "effects/particle/module/update/ForceFieldModules.h"
+#include "effects/particle/module/update/RibbonModules.h"
 #include "base/DirectXCommon.h"
 #include "manager/system/SrvManager.h"
 #include "manager/scene/CameraManager.h"
@@ -578,13 +579,13 @@ void ParticleEditor::DrawRendererPanel()
 					ribbonRenderer->SetRibbonWidth(width);
 				}
 
-				// セグメント補間設定
+				// セグメント補間設定（レンダラー側）
 				bool enableInterp = ribbonRenderer->GetEnableInterpolation();
-				if (ImGui::Checkbox("Enable Interpolation", &enableInterp))
+				if (ImGui::Checkbox("Renderer Interpolation", &enableInterp))
 				{
 					ribbonRenderer->SetEnableInterpolation(enableInterp);
 				}
-				ImGui::SetItemTooltip("Smooth ribbon by adding interpolation points between segments");
+				ImGui::SetItemTooltip("Interpolate segments in renderer (causes shape changes). Use Spawn-Time Interpolation module instead for stable shapes.");
 				
 				if (enableInterp)
 				{
@@ -620,6 +621,7 @@ void ParticleEditor::DrawRendererPanel()
 				{
 					ribbonRenderer->SetAlphaThreshold(alphaThreshold);
 				}
+				ImGui::SetItemTooltip("Alpha below this threshold will not be rendered (reduces visible edges)");
 				
 				ImGui::Separator();
 				ImGui::Text("Trail Settings:");
@@ -639,7 +641,6 @@ void ParticleEditor::DrawRendererPanel()
 					ribbonRenderer->SetPointsPerSecond(pps);
 				}
 				ImGui::SetItemTooltip("Higher = smoother trail, more vertices");
-				ImGui::SetItemTooltip("Alpha below this threshold will not be rendered (reduces visible edges)");
 
 				// テクスチャカラー使用オプション
 				bool useTextureColor = ribbonRenderer->GetUseTextureColor();

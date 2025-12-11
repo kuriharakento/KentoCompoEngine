@@ -98,10 +98,12 @@ private:
 	struct RibbonSegment
 	{
 		Vector3 position;
+		Vector3 tangent;          // 接線方向（生成時に固定）
 		float width;
 		Vector4 color;
-		float age;
-		float timestamp; // 記録された時刻
+		float normalizedAge;      // 0.0(新しい) ～ 1.0(古い)
+		float timestamp;          // 記録された時刻
+		bool isInterpolated = false;  // 補間で生成されたセグメントか
 	};
 
 	/**
@@ -123,6 +125,7 @@ private:
 	std::unordered_map<uint32_t, std::vector<RibbonSegment>> ribbonSegments_;
 
 	void BuildRibbonMesh(CameraManager* camera);
+	void BuildRibbonMeshFromTrails(CameraManager* camera);
 	void UpdateTrails(const std::vector<Particle>& particles, float deltaTime);
 	void GenerateTriangleStrip(const std::vector<RibbonSegment>& segments, 
 	                           const Vector3& cameraPosition,
@@ -150,7 +153,7 @@ private:
 	float maxSegmentDistance_ = 0.02f; // この距離を超えたら補間点を作成（小さいほど滑らか）
 	float alphaThreshold_ = 0.05f; // この値以下のアルファを持つセグメントは描画しない
 	bool useTextureColor_ = false; // true: テクスチャカラーも使用, false: 頂点カラーのみ
-	bool enableInterpolation_ = true; // セグメント補間を有効にする
+	bool enableInterpolation_ = false; // セグメント補間を無効（スポーン時補間を使用）
 	RibbonTextureMode textureMode_ = RibbonTextureMode::Stretch;
 	bool useBillboard_ = true; // デフォルトでビルボードON
 	
@@ -161,4 +164,7 @@ private:
 	
 	// セグメント補間
 	void InterpolateSegments(std::vector<RibbonSegment>& segments);
+	
+	// 先頭セグメントとの補間（新規追加時のみ）
+	std::vector<RibbonSegment> InterpolateWithHead(const RibbonSegment& head, const RibbonSegment& newSegment);
 };

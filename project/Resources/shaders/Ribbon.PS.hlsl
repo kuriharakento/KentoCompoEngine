@@ -1,6 +1,6 @@
 // Ribbon.PS.hlsl
 // リボンレンダラー用のピクセルシェーダー
-// Premultiplied Alpha対応
+// Premultiplied Alpha対応（強化版）
 
 #include "Ribbon.hlsli"
 
@@ -33,28 +33,33 @@ PixelShaderOutput main(VertexShaderOutput input)
     // 頂点アルファを取得
     float vertexAlpha = input.color.a;
     
-    if (useTextureColor)
-    {
-        // テクスチャカラーも使用
-        output.color.rgb = materialColor.rgb * textureColor.rgb * input.color.rgb;
-        output.color.a = materialColor.a * textureColor.a * vertexAlpha;
-    }
-    else
-    {
-        // 頂点カラーベース、テクスチャのアルファのみ使用
-        output.color.rgb = input.color.rgb * materialColor.rgb;
-        output.color.a = vertexAlpha * materialColor.a * textureColor.a;
-    }
+    // 最終アルファを計算
+    float finalAlpha = vertexAlpha * materialColor.a * textureColor.a;
     
-    // アルファが非常に低い場合は破棄
-    if (output.color.a < 0.01)
+    // アルファが非常に低い場合は早期に破棄
+    if (finalAlpha < 0.001)
     {
         discard;
     }
     
-    // ★ Premultiplied Alpha: RGBにアルファを事前乗算
-    // これが黒縁問題を解決する最重要ポイント
-    output.color.rgb *= output.color.a;
+    // ベースカラーを計算
+    float3 baseColor;
+    if (useTextureColor)
+    {
+        // テクスチャカラーも使用
+        baseColor = materialColor.rgb * textureColor.rgb * input.color.rgb;
+    }
+    else
+    {
+        // 頂点カラーベース（テクスチャのアルファのみ使用）
+        baseColor = input.color.rgb * materialColor.rgb;
+    }
+    
+    // ★ Premultiplied Alpha出力
+    // RGB = baseColor * finalAlpha（事前乗算）
+    // A = finalAlpha
+    output.color.rgb = baseColor * finalAlpha;
+    output.color.a = finalAlpha;
     
     return output;
 }

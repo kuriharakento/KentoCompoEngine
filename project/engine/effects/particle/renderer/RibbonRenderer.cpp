@@ -9,6 +9,7 @@
 #include "manager/effect/ParticlePipelineManager.h"
 #include <cmath>
 #include <algorithm>
+#include <unordered_set>
 
 RibbonRenderer::~RibbonRenderer()
 {
@@ -87,10 +88,12 @@ void RibbonRenderer::Update(const std::vector<Particle>& particles, CameraManage
 
 		RibbonSegment segment;
 		segment.position = particle.position;
+		segment.tangent = { 0.0f, 0.0f, 1.0f };  // 後で計算
 		segment.width = ribbonWidth_;
 		segment.color = particle.color;
-		segment.age = particle.age;
-		segment.timestamp = particle.age; // ageをtimestampとして使用
+		segment.normalizedAge = particle.NormalizedAge();  // 0.0～1.0
+		segment.timestamp = particle.age;
+		segment.isInterpolated = false;
 
 		// ribbonId==0の場合はデフォルトグループ(1)として扱う
 		uint32_t groupId = particle.ribbonId > 0 ? particle.ribbonId : 1;
@@ -160,10 +163,10 @@ void RibbonRenderer::BuildRibbonMesh(CameraManager* camera)
 	{
 		if (segments.size() < 2) continue;
 
-		// ageでソート（古い→新しい = 尾→頭）
+		// normalizedAgeでソート（古い→新しい = 尾→頭）
 		std::sort(segments.begin(), segments.end(),
 			[](const RibbonSegment& a, const RibbonSegment& b) {
-				return a.age > b.age;  // ageが大きいほど古い
+				return a.normalizedAge > b.normalizedAge;  // normalizedAgeが大きいほど古い
 			});
 
 		// セグメント補間（滑らかさ向上）
@@ -173,6 +176,31 @@ void RibbonRenderer::BuildRibbonMesh(CameraManager* camera)
 		}
 
 		GenerateTriangleStrip(segments, cameraPos, allVertices);
+	}
+
+	// 頂点バッファにコピー
+	vertexCount_ = (std::min)(static_cast<uint32_t>(allVertices.size()), kMaxVertices);
+	if (vertexCount_ > 0 && vertexData_)
+	{
+		memcpy(vertexData_, allVertices.data(), sizeof(RibbonVertex) * vertexCount_);
+	}
+}
+
+void RibbonRenderer::BuildRibbonMeshFromTrails(CameraManager* camera)
+{
+	std::vector<RibbonVertex> allVertices;
+	allVertices.reserve(kMaxVertices);
+
+	Vector3 cameraPos = camera->GetActiveCamera()->GetTranslate();
+
+	// トレイルからメッシュを構築（セグメントは既にタイムスタンプ順）
+	for (auto& [ribbonId, trail] : ribbonTrails_)
+	{
+		if (trail.segments.size() < 2) continue;
+
+		// トレイルのセグメントからトライアングルストリップを生成
+		// セグメントは追加順（新しいものが後ろ）なので、描画時は逆順（古い→新しい）
+		GenerateTriangleStrip(trail.segments, cameraPos, allVertices);
 	}
 
 	// 頂点バッファにコピー
@@ -208,19 +236,10 @@ void RibbonRenderer::GenerateTriangleStrip(
 		segmentLengths.push_back(totalLength);
 	}
 
-	// トライアングルストリップを生成
+	// まず全セグメントの接線を計算
+	std::vector<Vector3> tangents(segments.size());
 	for (size_t i = 0; i < segments.size(); ++i)
 	{
-		const auto& seg = segments[i];
-
-		// 距離ベースのアルファグラデーション（末端が透明、先頭が不透明）
-		// より自然なフェードアウトを実現
-		float normalizedDistance = (totalLength > 0.0f) 
-			? segmentLengths[i] / totalLength 
-			: 1.0f;
-		float alphaMultiplier = normalizedDistance;
-
-		// 接線方向を計算
 		Vector3 tangent;
 		if (i == 0)
 		{
@@ -240,29 +259,88 @@ void RibbonRenderer::GenerateTriangleStrip(
 			tangent.y = segments[i + 1].position.y - segments[i - 1].position.y;
 			tangent.z = segments[i + 1].position.z - segments[i - 1].position.z;
 		}
-
-		// 横方向の計算（ビルボードモードに応じて変更）
-		Vector3 right;
-		if (useBillboard_)
+		
+		// 正規化
+		float tangentLen = std::sqrt(tangent.x * tangent.x + tangent.y * tangent.y + tangent.z * tangent.z);
+		if (tangentLen > 0.0001f)
 		{
-			// ビルボード: カメラへの方向を使用
-			Vector3 toCamera;
-			toCamera.x = cameraPosition.x - seg.position.x;
-			toCamera.y = cameraPosition.y - seg.position.y;
-			toCamera.z = cameraPosition.z - seg.position.z;
+			tangent.x /= tangentLen;
+			tangent.y /= tangentLen;
+			tangent.z /= tangentLen;
+		}
+		tangents[i] = tangent;
+	}
 
-			// 外積で横方向を計算
-			right.x = tangent.y * toCamera.z - tangent.z * toCamera.y;
-			right.y = tangent.z * toCamera.x - tangent.x * toCamera.z;
-			right.z = tangent.x * toCamera.y - tangent.y * toCamera.x;
+	// Double-Reflection法: 前セグメントのrightを次に伝播させる
+	Vector3 prevRight = { 0.0f, 0.0f, 0.0f };
+	
+	for (size_t i = 0; i < segments.size(); ++i)
+	{
+		const auto& seg = segments[i];
+		const Vector3& tangent = tangents[i];
+
+		// 年齢ベースのアルファグラデーション（正規化年齢が1に近いほど透明）
+		float alphaMultiplier = 1.0f - seg.normalizedAge;
+
+		// 横方向の計算
+		Vector3 right;
+		
+		if (i == 0)
+		{
+			// 最初のセグメント: 通常の計算で初期化
+			if (useBillboard_)
+			{
+				Vector3 toCamera;
+				toCamera.x = cameraPosition.x - seg.position.x;
+				toCamera.y = cameraPosition.y - seg.position.y;
+				toCamera.z = cameraPosition.z - seg.position.z;
+				
+				// 外積で横方向を計算
+				right.x = tangent.y * toCamera.z - tangent.z * toCamera.y;
+				right.y = tangent.z * toCamera.x - tangent.x * toCamera.z;
+				right.z = tangent.x * toCamera.y - tangent.y * toCamera.x;
+			}
+			else
+			{
+				Vector3 worldUp = { 0.0f, 1.0f, 0.0f };
+				right.x = tangent.y * worldUp.z - tangent.z * worldUp.y;
+				right.y = tangent.z * worldUp.x - tangent.x * worldUp.z;
+				right.z = tangent.x * worldUp.y - tangent.y * worldUp.x;
+			}
 		}
 		else
 		{
-			// 固定: ワールドのY-up方向を使用
-			Vector3 worldUp = { 0.0f, 1.0f, 0.0f };
-			right.x = tangent.y * worldUp.z - tangent.z * worldUp.y;
-			right.y = tangent.z * worldUp.x - tangent.x * worldUp.z;
-			right.z = tangent.x * worldUp.y - tangent.y * worldUp.x;
+			// Double-Reflection: 前のrightを現在の接線に対して直交するように調整
+			// 1. 前のrightから接線成分を除去（Gram-Schmidt直交化）
+			float dot = prevRight.x * tangent.x + prevRight.y * tangent.y + prevRight.z * tangent.z;
+			right.x = prevRight.x - dot * tangent.x;
+			right.y = prevRight.y - dot * tangent.y;
+			right.z = prevRight.z - dot * tangent.z;
+			
+			// 2. 直交化後のベクトルが小さすぎる場合（接線とほぼ平行だった場合）
+			float rightLen = std::sqrt(right.x * right.x + right.y * right.y + right.z * right.z);
+			if (rightLen < 0.001f)
+			{
+				// フォールバック: カメラ方向またはワールドアップから再計算
+				if (useBillboard_)
+				{
+					Vector3 toCamera;
+					toCamera.x = cameraPosition.x - seg.position.x;
+					toCamera.y = cameraPosition.y - seg.position.y;
+					toCamera.z = cameraPosition.z - seg.position.z;
+					
+					right.x = tangent.y * toCamera.z - tangent.z * toCamera.y;
+					right.y = tangent.z * toCamera.x - tangent.x * toCamera.z;
+					right.z = tangent.x * toCamera.y - tangent.y * toCamera.x;
+				}
+				else
+				{
+					Vector3 worldUp = { 0.0f, 1.0f, 0.0f };
+					right.x = tangent.y * worldUp.z - tangent.z * worldUp.y;
+					right.y = tangent.z * worldUp.x - tangent.x * worldUp.z;
+					right.z = tangent.x * worldUp.y - tangent.y * worldUp.x;
+				}
+			}
 		}
 
 		// 正規化
@@ -273,6 +351,9 @@ void RibbonRenderer::GenerateTriangleStrip(
 			right.y /= rightLen;
 			right.z /= rightLen;
 		}
+		
+		// 次のセグメントのために保存
+		prevRight = right;
 
 		float halfWidth = seg.width * 0.5f;
 
@@ -352,7 +433,7 @@ void RibbonRenderer::InterpolateSegments(std::vector<RibbonSegment>& segments)
 		float dz = p2.position.z - p1.position.z;
 		float distance = std::sqrt(dx * dx + dy * dy + dz * dz);
 		
-		// 距離に基づいて補間点の数を計算（最低3つ）
+		// 距離に基づいて補間点の数を計算（最侎3つ）
 		int numInterpolations = (std::max)(3, static_cast<int>(std::ceil(distance / maxSegmentDistance_)));
 		
 		// Catmull-Rom補間点を追加
@@ -365,6 +446,10 @@ void RibbonRenderer::InterpolateSegments(std::vector<RibbonSegment>& segments)
 			interp.position.x = catmullRom(p0.position.x, p1.position.x, p2.position.x, p3.position.x, t);
 			interp.position.y = catmullRom(p0.position.y, p1.position.y, p2.position.y, p3.position.y, t);
 			interp.position.z = catmullRom(p0.position.z, p1.position.z, p2.position.z, p3.position.z, t);
+			// 接線の線形補間
+			interp.tangent.x = p1.tangent.x + (p2.tangent.x - p1.tangent.x) * t;
+			interp.tangent.y = p1.tangent.y + (p2.tangent.y - p1.tangent.y) * t;
+			interp.tangent.z = p1.tangent.z + (p2.tangent.z - p1.tangent.z) * t;
 			// 幅の線形補間
 			interp.width = p1.width + (p2.width - p1.width) * t;
 			// 色の線形補間
@@ -372,9 +457,10 @@ void RibbonRenderer::InterpolateSegments(std::vector<RibbonSegment>& segments)
 			interp.color.y = p1.color.y + (p2.color.y - p1.color.y) * t;
 			interp.color.z = p1.color.z + (p2.color.z - p1.color.z) * t;
 			interp.color.w = p1.color.w + (p2.color.w - p1.color.w) * t;
-			// ageの線形補間
-			interp.age = p1.age + (p2.age - p1.age) * t;
+			// normalizedAgeの線形補間
+			interp.normalizedAge = p1.normalizedAge + (p2.normalizedAge - p1.normalizedAge) * t;
 			interp.timestamp = p1.timestamp + (p2.timestamp - p1.timestamp) * t;
+			interp.isInterpolated = true;  // 補間セグメントをマーク
 			
 			interpolated.push_back(interp);
 		}
@@ -385,5 +471,54 @@ void RibbonRenderer::InterpolateSegments(std::vector<RibbonSegment>& segments)
 	
 	// 結果で置き換え
 	segments = std::move(interpolated);
+}
+
+// 先頭セグメントとの補間（新規追加時のみ）
+std::vector<RibbonRenderer::RibbonSegment> RibbonRenderer::InterpolateWithHead(
+	const RibbonSegment& head, const RibbonSegment& newSegment)
+{
+	std::vector<RibbonSegment> result;
+	
+	// 距離を計算
+	float dx = newSegment.position.x - head.position.x;
+	float dy = newSegment.position.y - head.position.y;
+	float dz = newSegment.position.z - head.position.z;
+	float distance = std::sqrt(dx * dx + dy * dy + dz * dz);
+	
+	// 距離が短すぎる場合は補間不要
+	if (distance < maxSegmentDistance_) return result;
+	
+	// 距離に基づいて補間点の数を計算
+	int numInterpolations = static_cast<int>(std::ceil(distance / maxSegmentDistance_)) - 1;
+	
+	for (int j = 1; j <= numInterpolations; ++j)
+	{
+		float t = static_cast<float>(j) / static_cast<float>(numInterpolations + 1);
+		
+		RibbonSegment interp;
+		// 位置の線形補間
+		interp.position.x = head.position.x + (newSegment.position.x - head.position.x) * t;
+		interp.position.y = head.position.y + (newSegment.position.y - head.position.y) * t;
+		interp.position.z = head.position.z + (newSegment.position.z - head.position.z) * t;
+		// 接線の線形補間
+		interp.tangent.x = head.tangent.x + (newSegment.tangent.x - head.tangent.x) * t;
+		interp.tangent.y = head.tangent.y + (newSegment.tangent.y - head.tangent.y) * t;
+		interp.tangent.z = head.tangent.z + (newSegment.tangent.z - head.tangent.z) * t;
+		// 幅の線形補間
+		interp.width = head.width + (newSegment.width - head.width) * t;
+		// 色の線形補間
+		interp.color.x = head.color.x + (newSegment.color.x - head.color.x) * t;
+		interp.color.y = head.color.y + (newSegment.color.y - head.color.y) * t;
+		interp.color.z = head.color.z + (newSegment.color.z - head.color.z) * t;
+		interp.color.w = head.color.w + (newSegment.color.w - head.color.w) * t;
+		// normalizedAgeの線形補間
+		interp.normalizedAge = head.normalizedAge + (newSegment.normalizedAge - head.normalizedAge) * t;
+		interp.timestamp = head.timestamp + (newSegment.timestamp - head.timestamp) * t;
+		interp.isInterpolated = true;
+		
+		result.push_back(interp);
+	}
+	
+	return result;
 }
 
