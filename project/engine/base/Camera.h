@@ -1,6 +1,22 @@
 #pragma once
 #include "base/GraphicsTypes.h"
 #include "base/WinApp.h"
+#include <d3d12.h>
+#include <wrl/client.h>
+
+class DirectXCommon;
+
+/**
+ * @brief GPU用カメラ定数バッファデータ
+ * ParticleConvert.CS.hlslのCamera構造体と一致
+ */
+struct CameraGPUData
+{
+	Matrix4x4 view;
+	Matrix4x4 projection;
+	Vector3 eye;
+	float padding;
+};
 
 /**
  * @brief カメラクラス
@@ -112,6 +128,18 @@ public:
 	 */
 	void StartShake(float intensity, float duration);
 
+	/**
+	 * @brief GPU定数バッファを初期化
+	 * @param dxCommon DirectXCommonへのポインタ
+	 */
+	void InitializeConstantBuffer(DirectXCommon* dxCommon);
+
+	/**
+	 * @brief GPU定数バッファのGPU仮想アドレスを取得
+	 * @return GPU仮想アドレス（バッファ未初期化時は0）
+	 */
+	D3D12_GPU_VIRTUAL_ADDRESS GetConstantBufferAddress() const;
+
 private:
 	// カメラのトランスフォーム
 	Transform transform_ = {
@@ -147,5 +175,8 @@ private:
 	// シェイクの強度
 	float shakeIntensity_ = 0.0f;
 
+	// GPU定数バッファ
+	Microsoft::WRL::ComPtr<ID3D12Resource> constantBuffer_;
+	CameraGPUData* constantData_ = nullptr;
 };
 

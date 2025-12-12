@@ -4,6 +4,8 @@
 #include <memory>
 #include "base/Camera.h"
 
+class DirectXCommon;
+
 /**
  * @brief カメラマネージャークラス
  * @details 複数のカメラを名前で管理し、アクティブカメラの切り替えを行う
@@ -11,6 +13,12 @@
  */
 class CameraManager {
 public:
+	/**
+	 * @brief 初期化
+	 * @param dxCommon DirectXCommonへのポインタ（カメラのGPUバッファ初期化用）
+	 */
+	void Initialize(DirectXCommon* dxCommon);
+
 	/**
 	 * @brief カメラの追加
 	 * @param name カメラの名前
@@ -57,4 +65,7 @@ private:
 
 	// 現在のアクティブカメラの名前
 	std::string activeCameraName_;
+
+	// DirectXCommonへのポインタ（カメラのGPUバッファ初期化用）
+	DirectXCommon* dxCommon_ = nullptr;
 };

@@ -12,7 +12,7 @@
 // manager
 #include "manager/editor/JsonEditorManager.h"
 #include "manager/graphics/TextureManager.h"
-#include "manager/effect/ParticleManager.h"
+#include "effects/particle/ParticleManager.h"
 #include "manager/graphics/ModelManager.h"
 #include "manager/graphics/LineManager.h"
 #include "time/TimeManager.h"
@@ -93,6 +93,7 @@ void Framework::Initialize()
 
 	// カメラマネージャーの初期化
 	cameraManager_ = std::make_unique<CameraManager>();
+	cameraManager_->Initialize(dxCommon_.get());
 	cameraManager_->AddCamera("main");
 	cameraManager_->SetActiveCamera("main");
 	cameraManager_->GetActiveCamera()->SetTranslate({ 0.0f, kDefaultCameraY, kDefaultCameraZ });

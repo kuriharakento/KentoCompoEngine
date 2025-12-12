@@ -1,4 +1,5 @@
 #include "Camera.h"
+#include "DirectXCommon.h"
 
 // フレームレート（FPS）
 constexpr float kFrameRate = 60.0f;
@@ -50,6 +51,14 @@ void Camera::Update()
 	// ビュープロジェクション行列の更新
 	viewProjectionMatrix_ = viewMatrix_ * projectionMatrix_;
 
+	// GPU定数バッファの更新
+	if (constantData_)
+	{
+		constantData_->view = viewMatrix_;
+		constantData_->projection = projectionMatrix_;
+		constantData_->eye = transform_.translate + shakeOffset_;
+		constantData_->padding = 0.0f;
+	}
 }
 
 void Camera::StartShake(float intensity, float duration)
@@ -57,4 +66,30 @@ void Camera::StartShake(float intensity, float duration)
 	shakeIntensity_ = intensity;
 	shakeDuration_ = duration;
 	shakeTimer_ = duration;
+}
+
+void Camera::InitializeConstantBuffer(DirectXCommon* dxCommon)
+{
+	if (constantBuffer_) return; // 既に初期化済み
+
+	constantBuffer_ = dxCommon->CreateBufferResource(sizeof(CameraGPUData));
+	constantBuffer_->Map(0, nullptr, reinterpret_cast<void**>(&constantData_));
+
+	// 初期値を設定
+	if (constantData_)
+	{
+		constantData_->view = viewMatrix_;
+		constantData_->projection = projectionMatrix_;
+		constantData_->eye = transform_.translate;
+		constantData_->padding = 0.0f;
+	}
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS Camera::GetConstantBufferAddress() const
+{
+	if (constantBuffer_)
+	{
+		return constantBuffer_->GetGPUVirtualAddress();
+	}
+	return 0;
 }

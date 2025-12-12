@@ -4,7 +4,7 @@
 #include <chrono>
 #include "manager/graphics/ModelManager.h"
 #include "base/Logger.h"
-#include "manager/effect/ParticleManager.h"
+#include "effects/particle/ParticleManager.h"
 #include "ImGui/imgui_internal.h"
 #include "manager/graphics/TextureManager.h"
 #include "manager/graphics/LineManager.h"

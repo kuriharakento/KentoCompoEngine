@@ -1,38 +1,40 @@
-#include "AssaultRifleHitEffect.h"
-
-// component
-#include "effects/particle/component/group/UVTranslateComponent.h"
-#include "effects/particle/component/single/ColorFadeOutComponent.h"
-#include "effects/particle/component/single/RotationComponent.h"
-#include "effects/particle/component/single/ScaleOverLifetimeComponent.h"
-#include "AreaEffect.h"
-
-static uint32_t effectCount = 0;  // 複数のエフェクトを識別するためのカウンター
+﻿#include "AssaultRifleHitEffect.h"
+#include "effects/particle/ParticleManager.h"
+#include "effects/particle/renderer/SpriteRenderer.h"
+#include "effects/particle/module/spawn/SpawnModules.h"
+#include "effects/particle/module/spawn/InitialModules.h"
+#include "effects/particle/module/update/UpdateModules.h"
 
 void AssaultRifleHitEffect::Initialize()
 {
-	// ユニークなエフェクト名を生成
-	impactEmitter_ = std::make_unique<ParticleEmitter>();
-	impactEmitter_->Initialize("AssaultRifleHitEffect" + std::to_string(effectCount), "./Resources/gradationLine.png");
-	effectCount++;
+	emitterName_ = "AssaultRifleHitEffect" + std::to_string(effectCount_++);
 	
-	// リング型パーティクルの基本設定
-	impactEmitter_->SetEmitRange({}, {});
-	impactEmitter_->SetInitialLifeTime(0.4f);
-	impactEmitter_->SetBillborad(true);
-	impactEmitter_->SetRandomRotation(true);
-	impactEmitter_->SetRandomRotationRange(AABB{ Vector3{ -3.14f, 3.14f, 0.0f }, Vector3{ 3.14f, 3.14f, 0.0f } });
-	impactEmitter_->SetModelType(ParticleGroup::ParticleType::Ring);
-
-	// エフェクトコンポーネントの追加（回転、拡大、フェード、UVスクロール）
-	impactEmitter_->AddComponent(std::make_shared<RotationComponent>(Vector3(0.05f,0.03f,0.0f)));
-	impactEmitter_->AddComponent(std::make_shared<ScaleOverLifetimeComponent>(0.0f, 3.0f));  // 小さい状態から急速に拡大
-	impactEmitter_->AddComponent(std::make_shared<ColorFadeOutComponent>());
-	impactEmitter_->AddComponent(std::make_shared<UVTranslateComponent>(Vector3{ 0.1f, 0.0f, 0.0f }));
+	auto emitter = std::make_unique<ParticleEmitter>();
+	emitter->Initialize(emitterName_);
+	
+	auto renderer = std::make_unique<SpriteRenderer>();
+	renderer->Initialize("./Resources/gradationLine.png");
+	renderer->SetBlendMode(BlendMode::Additive);
+	emitter->SetRenderer(std::move(renderer));
+	
+	emitter->AddModule(std::make_unique<SpawnBurstModule>(5, 0.5f));
+	emitter->AddModule(std::make_unique<InitialPositionModule>(Vector3(-0.1f, -0.1f, -0.1f), Vector3(0.1f, 0.1f, 0.1f)));
+	emitter->AddModule(std::make_unique<InitialLifetimeModule>(0.3f, 0.5f));
+	emitter->AddModule(std::make_unique<InitialScaleModule>(Vector3(0.1f, 0.1f, 0.1f), Vector3(0.3f, 0.3f, 0.3f)));
+	emitter->AddModule(std::make_unique<InitialColorModule>(Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
+	emitter->AddModule(std::make_unique<ColorFadeModule>(Vector4(1.0f, 0.8f, 0.3f, 1.0f), Vector4(1.0f, 0.5f, 0.0f, 0.0f)));
+	emitter->AddModule(std::make_unique<ScaleOverLifetimeModule>(Vector3(0.1f, 0.1f, 0.1f), Vector3(3.0f, 3.0f, 3.0f)));
+	
+	ParticleManager::GetInstance()->AddEmitter(std::move(emitter));
 }
 
 void AssaultRifleHitEffect::Play(const Vector3& position)
 {
-	// 一度だけ複数のリングを放出（バースト型）
-	impactEmitter_->Start(position, 5, 0.0f, false);
+	auto* emitter = ParticleManager::GetInstance()->GetEmitter(emitterName_);
+	if (emitter)
+	{
+		emitter->SetPosition(position);
+	}
 }
+
+

@@ -73,3 +73,31 @@ void from_json(nlohmann::json const& j, Vector3& v)
         v.z = j[2].get<float>();
     }
 }
+
+void to_json(nlohmann::json& j, Vector4 const& v)
+{
+    j = { {"x", v.x}, {"y", v.y}, {"z", v.z}, {"w", v.w} };
+}
+
+void from_json(nlohmann::json const& j, Vector4& v)
+{
+    if (j.is_object())
+    {
+        if (j.contains("x")) v.x = j.at("x").get<float>();
+        if (j.contains("y")) v.y = j.at("y").get<float>();
+        if (j.contains("z")) v.z = j.at("z").get<float>();
+        if (j.contains("w")) v.w = j.at("w").get<float>();
+        // RGBA形式にも対応
+        if (j.contains("r")) v.x = j.at("r").get<float>();
+        if (j.contains("g")) v.y = j.at("g").get<float>();
+        if (j.contains("b")) v.z = j.at("b").get<float>();
+        if (j.contains("a")) v.w = j.at("a").get<float>();
+    }
+    else if (j.is_array() && j.size() == 4)
+    {
+        v.x = j[0].get<float>();
+        v.y = j[1].get<float>();
+        v.z = j[2].get<float>();
+        v.w = j[3].get<float>();
+    }
+}
