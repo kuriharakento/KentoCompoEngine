@@ -45,6 +45,10 @@ namespace
 	// デフォルトウィンドウサイズ
 	constexpr float kDefaultWindowWidth = 400.0f;
 	constexpr float kDefaultWindowHeight = 800.0f;
+	
+	// 数学定数
+	constexpr float kPi = 3.14159f;
+	constexpr float kTwoPi = 2.0f * kPi;
 }
 
 ParticleEditor::ParticleEditor() = default;
@@ -188,8 +192,8 @@ void ParticleEditor::DrawDebug()
 					// 円を描画（XZ平面）
 					for (int s = 0; s < kCircleSegments; ++s)
 					{
-						float a1 = (s / static_cast<float>(kCircleSegments)) * 2.0f * 3.14159f;
-						float a2 = ((s + 1) / static_cast<float>(kCircleSegments)) * 2.0f * 3.14159f;
+						float a1 = (s / static_cast<float>(kCircleSegments)) * kTwoPi;
+						float a2 = ((s + 1) / static_cast<float>(kCircleSegments)) * kTwoPi;
 						
 						// XZ平面の円
 						lineManager->DrawLine(
@@ -244,8 +248,8 @@ void ParticleEditor::DrawDebug()
 					// コーンの底面円と頂点への線
 					for (int s = 0; s < kConeSegments; ++s)
 					{
-						float a1 = (s / static_cast<float>(kConeSegments)) * 2.0f * 3.14159f;
-						float a2 = ((s + 1) / static_cast<float>(kConeSegments)) * 2.0f * 3.14159f;
+						float a1 = (s / static_cast<float>(kConeSegments)) * kTwoPi;
+						float a2 = ((s + 1) / static_cast<float>(kConeSegments)) * kTwoPi;
 						
 						Vector3 p1 = { emitterPos.x + outerR * std::cos(a1), emitterPos.y, emitterPos.z + outerR * std::sin(a1) };
 						Vector3 p2 = { emitterPos.x + outerR * std::cos(a2), emitterPos.y, emitterPos.z + outerR * std::sin(a2) };

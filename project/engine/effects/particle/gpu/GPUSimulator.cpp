@@ -14,9 +14,6 @@ namespace
 	
 	// デフォルト重力（Y軸下向き）
 	constexpr float kDefaultGravityY = -9.8f;
-	
-	// パーティクル履歴保持最大数
-	constexpr size_t kMaxParticleHistorySize = 4;
 }
 
 GPUSimulator::GPUSimulator() = default;
