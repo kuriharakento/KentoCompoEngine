@@ -40,16 +40,22 @@ void MeshRenderer::SetPrimitive(PrimitiveType type, const PrimitiveOptions& opti
 
 void MeshRenderer::RegeneratePrimitive()
 {
+	// プリミティブメッシュを再生成
 	primitiveMesh_ = PrimitiveGenerator::Generate(primitiveType_, options_);
+
+	// 既存のバッファをリセット（次回Update時に再作成）
 	primitiveVertexResource_.Reset();
 	primitiveIndexResource_.Reset();
+
 	needsRebuild_ = false;
 }
 
 void MeshRenderer::InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
+	// 既に初期化済みの場合はスキップ
 	if (instanceResource_) return;
 
+	// インスタンシングバッファの作成（CPUからの書き込み用）
 	D3D12_HEAP_PROPERTIES heapProps{};
 	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
 
@@ -57,8 +63,6 @@ void MeshRenderer::InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvMan
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 	resourceDesc.Width = sizeof(ParticleGPU) * kMaxInstances;
 	resourceDesc.Height = 1;
-
-	// ... (Skipping unchanged lines 56-59)
 	resourceDesc.DepthOrArraySize = 1;
 	resourceDesc.MipLevels = 1;
 	resourceDesc.SampleDesc.Count = 1;
@@ -73,10 +77,13 @@ void MeshRenderer::InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvMan
 		IID_PPV_ARGS(&instanceResource_)
 	);
 
+	// インスタンスデータを永続的にマップ
 	instanceResource_->Map(0, nullptr, reinterpret_cast<void**>(&instanceData_));
 
+	// SRVディスクリプタを確保
 	instanceSrvIndex_ = srvManager->Allocate();
 
+	// 構造化バッファのSRVを作成
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -92,7 +99,7 @@ void MeshRenderer::InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvMan
 		srvManager->GetCPUDescriptorHandle(instanceSrvIndex_)
 	);
 
-	// マテリアルリソースの初期化
+	// マテリアルバッファの初期化
 	materialResource_ = dxCommon->CreateBufferResource(sizeof(Material));
 	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
 	materialData_->color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);

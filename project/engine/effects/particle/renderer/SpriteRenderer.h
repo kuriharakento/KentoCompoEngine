@@ -21,17 +21,67 @@ public:
 	static constexpr uint32_t kMaxParticles = 10000;
 
 	~SpriteRenderer() override;
-	void Initialize(const std::string& texturePath) override;
-	void SetTexture(const std::string& texturePath) override;
-	void Update(const std::vector<Particle>& particles, CameraManager* camera) override;
-	void Draw(DirectXCommon* dxCommon, SrvManager* srvManager) override;
-	RendererType GetType() const override { return RendererType::Sprite; } // 22
 
+	/**
+	 * @brief 初期化
+	 * @param texturePath テクスチャファイルパス
+	 */
+	void Initialize(const std::string& texturePath) override;
+
+	/**
+	 * @brief テクスチャを設定
+	 * @param texturePath テクスチャファイルパス
+	 */
+	void SetTexture(const std::string& texturePath) override;
+
+	/**
+	 * @brief パーティクルデータを更新
+	 * @param particles パーティクルリスト
+	 * @param camera カメラマネージャー
+	 */
+	void Update(const std::vector<Particle>& particles, CameraManager* camera) override;
+
+	/**
+	 * @brief 描画
+	 * @param dxCommon DirectXCommonポインタ
+	 * @param srvManager SrvManagerポインタ
+	 */
+	void Draw(DirectXCommon* dxCommon, SrvManager* srvManager) override;
+
+	/**
+	 * @brief レンダラータイプを取得
+	 * @return Spriteタイプ
+	 */
+	RendererType GetType() const override { return RendererType::Sprite; }
+
+	/**
+	 * @brief ビルボード有効化を設定
+	 * @param enabled ビルボード有効化フラグ
+	 */
 	void SetBillboard(bool enabled) { isBillboard_ = enabled; }
+
+	/**
+	 * @brief GPU描画モードを設定
+	 * @param enable GPU描画モード有効化フラグ
+	 * @param srvIndex GPUパーティクルバッファのSRVインデックス
+	 * @param count GPUパーティクル数
+	 */
 	void SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count) override; 
 
 private:
+	/**
+	 * @brief インスタンスデータを更新
+	 * @param particle パーティクルデータ
+	 * @param billboardMatrix ビルボード行列
+	 * @param camera カメラマネージャー
+	 */
 	void UpdateInstanceData(const Particle& particle, const Matrix4x4& billboardMatrix, CameraManager* camera);
+
+	/**
+	 * @brief バッファを初期化
+	 * @param dxCommon DirectXCommonポインタ
+	 * @param srvManager SrvManagerポインタ
+	 */
 	void InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvManager);
 
 private:
