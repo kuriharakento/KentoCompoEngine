@@ -49,36 +49,89 @@ public:
 
 	/**
 	 * @brief 初期化（バッファのみ作成、パイプラインは共有）
+	 * @param dxCommon DirectXCommonインスタンス
+	 * @param srvManager SRVマネージャー
+	 * @param maxParticles 最大パーティクル数（デフォルト: kDefaultMaxParticles）
 	 */
 	void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, uint32_t maxParticles = kDefaultMaxParticles);
 
 	/**
 	 * @brief パーティクルを生成
+	 * @param newParticles 生成する新規パーティクルの配列
 	 */
 	void SpawnParticles(const std::vector<Particle>& newParticles);
 
 	/**
 	 * @brief GPU上でシミュレーションを実行
+	 * @param deltaTime デルタタイム（秒）
+	 * @param camera カメラマネージャー
 	 */
 	void Dispatch(float deltaTime, CameraManager* camera);
 
 	/**
 	 * @brief GPUデータをCPUに読み戻し
+	 * @param outParticles 出力先パーティクル配列
 	 */
 	void ReadbackParticles(std::vector<Particle>& outParticles);
 
+	/**
+	 * @brief エミッター位置を設定
+	 * @param position 位置ベクトル
+	 */
 	void SetEmitterPosition(const Vector3& position) { emitterPosition_ = position; }
+	
+	/**
+	 * @brief 重力を設定
+	 * @param gravity 重力ベクトル
+	 */
 	void SetGravity(const Vector3& gravity) { gravity_ = gravity; }
+	
+	/**
+	 * @brief ビルボード有効フラグを設定
+	 * @param isBillboard ビルボードを有効にする場合true
+	 */
 	void SetIsBillboard(bool isBillboard) { isBillboard_ = isBillboard; }
 
+	/**
+	 * @brief パーティクルバッファのSRVインデックスを取得
+	 * @return SRVインデックス
+	 */
 	uint32_t GetParticleSRVIndex() const { return particleSrvIndex_; }
+	
+	/**
+	 * @brief レンダリングバッファのSRVインデックスを取得
+	 * @return SRVインデックス
+	 */
 	uint32_t GetRenderSrvIndex() const { return renderSrvIndex_; }
+	
+	/**
+	 * @brief 現在のパーティクル数を取得
+	 * @return パーティクル数
+	 */
 	uint32_t GetParticleCount() const { return particleCount_; }
+	
+	/**
+	 * @brief 最大パーティクル数を取得
+	 * @return 最大パーティクル数
+	 */
 	uint32_t GetMaxParticles() const { return maxParticles_; }
+	
+	/**
+	 * @brief 初期化済みかどうかを判定
+	 * @return 初期化済みの場合true
+	 */
 	bool IsInitialized() const { return initialized_; }
 
 private:
+	/**
+	 * @brief バッファを作成
+	 */
 	void CreateBuffers();
+	
+	/**
+	 * @brief 定数バッファを更新
+	 * @param deltaTime デルタタイム（秒）
+	 */
 	void UpdateConstantBuffer(float deltaTime);
 
 private:
