@@ -29,11 +29,14 @@ public:
 
 	/**
 	 * @brief 初期化
+	 * @param dxCommon DirectXCommonポインタ
+	 * @param srvManager SrvManagerポインタ
 	 */
 	void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager);
 
 	/**
 	 * @brief 更新（ImGui描画）
+	 * @param camera カメラマネージャー
 	 */
 	void Update(CameraManager* camera);
 
@@ -43,44 +46,101 @@ public:
 	void DrawDebug();
 
 	/**
-	 * @brief エディタを表示/非表示
+	 * @brief エディタの表示状態を設定
+	 * @param visible 表示するか
 	 */
 	void SetVisible(bool visible) { isVisible_ = visible; }
+
+	/**
+	 * @brief エディタが表示中か判定
+	 * @return 表示中の場合true
+	 */
 	bool IsVisible() const { return isVisible_; }
+
+	/**
+	 * @brief エディタの表示状態を切り替え
+	 */
 	void ToggleVisible() { isVisible_ = !isVisible_; }
 
 	/**
-	 * @brief 新規エフェクト作成
+	 * @brief 新規エフェクトを作成
 	 */
 	void NewEffect();
 
 	/**
 	 * @brief エフェクトを読み込み
+	 * @param path JSONファイルパス
 	 */
 	void LoadEffect(const std::string& path);
 
 	/**
 	 * @brief エフェクトを保存
+	 * @param path 保存先JSONファイルパス
 	 */
 	void SaveEffect(const std::string& path);
 
 	/**
 	 * @brief 編集中のエフェクトを取得
+	 * @return 現在のエフェクト（nullptrの可能性あり）
 	 */
 	ParticleEffect* GetCurrentEffect() const { return currentEffect_; }
 
 private:
+	/**
+	 * @brief メニューバーを描画
+	 */
 	void DrawMenuBar();
+
+	/**
+	 * @brief エフェクト設定パネルを描画
+	 */
 	void DrawEffectPanel();
+
+	/**
+	 * @brief エミッター設定パネルを描画
+	 */
 	void DrawEmitterPanel();
+
+	/**
+	 * @brief モジュール設定パネルを描画
+	 */
 	void DrawModulePanel();
+
+	/**
+	 * @brief レンダラー設定パネルを描画
+	 */
 	void DrawRendererPanel();
+
+	/**
+	 * @brief プレビューパネルを描画
+	 */
 	void DrawPreviewPanel();
+
+	/**
+	 * @brief カーブエディタを描画
+	 */
 	void DrawCurveEditor();
+
+	/**
+	 * @brief グラデーションエディタを描画
+	 */
 	void DrawGradientEditor();
+
+	/**
+	 * @brief モジュールのプロパティUIを描画
+	 * @param module モジュールポインタ
+	 */
 	void DrawModuleProperties(class IModule* module);
 
+	/**
+	 * @brief エミッター追加ダイアログを表示
+	 */
 	void AddEmitterDialog();
+
+	/**
+	 * @brief モジュール追加ダイアログを表示
+	 * @param emitter 対象エミッター
+	 */
 	void AddModuleDialog(ParticleEmitter* emitter);
 
 private:
