@@ -30,9 +30,31 @@
 #include "externals/imgui/imgui.h"
 #endif
 
+namespace
+{
+	// デバッグ表示用のサイズ定数
+	constexpr float kAxisSize = 0.5f;
+	constexpr float kMarkerSize = 0.3f;
+	constexpr float kSmallMarkerSize = 0.15f;
+	constexpr float kParticleMarkerSize = 0.05f;
+	
+	// デバッグ線描画のセグメント数
+	constexpr int kCircleSegments = 16;
+	constexpr int kConeSegments = 8;
+	
+	// デフォルトウィンドウサイズ
+	constexpr float kDefaultWindowWidth = 400.0f;
+	constexpr float kDefaultWindowHeight = 800.0f;
+	
+	// 数学定数
+	constexpr float kPi = 3.14159f;
+	constexpr float kTwoPi = 2.0f * kPi;
+}
+
 ParticleEditor::ParticleEditor() = default;
 ParticleEditor::~ParticleEditor()
 {
+	// 現在編集中のエフェクトをマネージャーから削除
 	if (currentEffect_)
 	{
 		ParticleManager::GetInstance()->RemoveEffect(currentEffect_);
@@ -43,24 +65,29 @@ void ParticleEditor::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
 	dxCommon_ = dxCommon;
 	srvManager_ = srvManager;
+	
+	// 初期エフェクトを作成
 	NewEffect();
 }
 
 void ParticleEditor::Update(CameraManager* camera)
 {
 #ifdef USE_IMGUI
+	// 非表示時は処理をスキップ
 	if (!isVisible_) return;
 
-	ImGui::SetNextWindowSize(ImVec2(400, 800), ImGuiCond_FirstUseEver);
+	// ウィンドウサイズを初回のみ設定
+	ImGui::SetNextWindowSize(ImVec2(kDefaultWindowWidth, kDefaultWindowHeight), ImGuiCond_FirstUseEver);
 	ImGui::Begin("Particle Editor", &isVisible_, ImGuiWindowFlags_MenuBar);
 
+	// メニューバー描画
 	DrawMenuBar();
 
-	// 縦に並べる（1カラムレイアウト）
+	// エフェクト全体のパネル
 	DrawEffectPanel();
 	DrawEmitterPanel();
 	
-	// エミッターが選択されていればモジュールとレンダラーを表示
+	// エミッター選択時のみモジュールとレンダラーを表示
 	if (selectedEmitterIndex_ >= 0)
 	{
 		DrawModulePanel();
@@ -69,11 +96,13 @@ void ParticleEditor::Update(CameraManager* camera)
 
 	ImGui::End();
 
-	// ダイアログ
+	// エミッター追加ダイアログ
 	if (showAddEmitterDialog_)
 	{
 		AddEmitterDialog();
 	}
+	
+	// モジュール追加ダイアログ
 	if (showAddModuleDialog_ && selectedEmitterIndex_ >= 0)
 	{
 		AddModuleDialog(currentEffect_->GetEmitter(static_cast<size_t>(selectedEmitterIndex_)));
@@ -99,8 +128,8 @@ void ParticleEditor::DrawDebug()
 
 		Vector3 emitterPos = emitter->GetPosition() + currentEffect_->GetPosition();
 		
-		// 座標軸を表示
-		lineManager->DrawAxis(emitterPos, 0.5f);
+		// エミッター位置に座標軸を表示
+		lineManager->DrawAxis(emitterPos, kAxisSize);
 
 		// モジュールごとのデバッグ表示
 		for (size_t m = 0; m < emitter->GetModuleCount(); ++m)
@@ -119,17 +148,16 @@ void ParticleEditor::DrawDebug()
 				// Point - ダイアモンドマーカー
 				if (type == SpawnShapeType::Point)
 				{
-					float sz = 0.3f;
-					lineManager->DrawLine({ emitterPos.x - sz, emitterPos.y, emitterPos.z }, { emitterPos.x + sz, emitterPos.y, emitterPos.z }, shapeColor);
-					lineManager->DrawLine({ emitterPos.x, emitterPos.y - sz, emitterPos.z }, { emitterPos.x, emitterPos.y + sz, emitterPos.z }, shapeColor);
-					lineManager->DrawLine({ emitterPos.x, emitterPos.y, emitterPos.z - sz }, { emitterPos.x, emitterPos.y, emitterPos.z + sz }, shapeColor);
+					lineManager->DrawLine({ emitterPos.x - kMarkerSize, emitterPos.y, emitterPos.z }, { emitterPos.x + kMarkerSize, emitterPos.y, emitterPos.z }, shapeColor);
+					lineManager->DrawLine({ emitterPos.x, emitterPos.y - kMarkerSize, emitterPos.z }, { emitterPos.x, emitterPos.y + kMarkerSize, emitterPos.z }, shapeColor);
+					lineManager->DrawLine({ emitterPos.x, emitterPos.y, emitterPos.z - kMarkerSize }, { emitterPos.x, emitterPos.y, emitterPos.z + kMarkerSize }, shapeColor);
 					// ダイアモンド形状
-					Vector3 top = { emitterPos.x, emitterPos.y + sz, emitterPos.z };
-					Vector3 bot = { emitterPos.x, emitterPos.y - sz, emitterPos.z };
-					lineManager->DrawLine({ emitterPos.x - sz * 0.5f, emitterPos.y, emitterPos.z }, top, shapeColor);
-					lineManager->DrawLine({ emitterPos.x + sz * 0.5f, emitterPos.y, emitterPos.z }, top, shapeColor);
-					lineManager->DrawLine({ emitterPos.x - sz * 0.5f, emitterPos.y, emitterPos.z }, bot, shapeColor);
-					lineManager->DrawLine({ emitterPos.x + sz * 0.5f, emitterPos.y, emitterPos.z }, bot, shapeColor);
+					Vector3 top = { emitterPos.x, emitterPos.y + kMarkerSize, emitterPos.z };
+					Vector3 bot = { emitterPos.x, emitterPos.y - kMarkerSize, emitterPos.z };
+					lineManager->DrawLine({ emitterPos.x - kMarkerSize * 0.5f, emitterPos.y, emitterPos.z }, top, shapeColor);
+					lineManager->DrawLine({ emitterPos.x + kMarkerSize * 0.5f, emitterPos.y, emitterPos.z }, top, shapeColor);
+					lineManager->DrawLine({ emitterPos.x - kMarkerSize * 0.5f, emitterPos.y, emitterPos.z }, bot, shapeColor);
+					lineManager->DrawLine({ emitterPos.x + kMarkerSize * 0.5f, emitterPos.y, emitterPos.z }, bot, shapeColor);
 				}
 				// Line - 始点から終点への線
 				else if (type == SpawnShapeType::Line)
@@ -142,12 +170,13 @@ void ParticleEditor::DrawDebug()
 					// ライン本体
 					lineManager->DrawLine(start, end, shapeColor);
 					
-					// 始点と終点のマーカー
-					float sz = 0.15f;
-					lineManager->DrawLine({ start.x - sz, start.y, start.z }, { start.x + sz, start.y, start.z }, shapeColor);
-					lineManager->DrawLine({ start.x, start.y - sz, start.z }, { start.x, start.y + sz, start.z }, shapeColor);
-					lineManager->DrawLine({ end.x - sz, end.y, end.z }, { end.x + sz, end.y, end.z }, { 1.0f, 1.0f, 0.0f, 1.0f }); // 終点は黄色
-					lineManager->DrawLine({ end.x, end.y - sz, end.z }, { end.x, end.y + sz, end.z }, { 1.0f, 1.0f, 0.0f, 1.0f });
+					// 始点マーカー（緑）
+					lineManager->DrawLine({ start.x - kSmallMarkerSize, start.y, start.z }, { start.x + kSmallMarkerSize, start.y, start.z }, shapeColor);
+					lineManager->DrawLine({ start.x, start.y - kSmallMarkerSize, start.z }, { start.x, start.y + kSmallMarkerSize, start.z }, shapeColor);
+					
+					// 終点マーカー（黄色）
+					lineManager->DrawLine({ end.x - kSmallMarkerSize, end.y, end.z }, { end.x + kSmallMarkerSize, end.y, end.z }, { 1.0f, 1.0f, 0.0f, 1.0f });
+					lineManager->DrawLine({ end.x, end.y - kSmallMarkerSize, end.z }, { end.x, end.y + kSmallMarkerSize, end.z }, { 1.0f, 1.0f, 0.0f, 1.0f });
 				}
 				else if (type == SpawnShapeType::Sphere)
 				{
@@ -160,12 +189,11 @@ void ParticleEditor::DrawDebug()
 				}
 				else if (type == SpawnShapeType::Circle)
 				{
-					// 円を描画（XZ平面、16セグメント）
-					int segments = 16;
-					for (int s = 0; s < segments; ++s)
+					// 円を描画（XZ平面）
+					for (int s = 0; s < kCircleSegments; ++s)
 					{
-						float a1 = (s / static_cast<float>(segments)) * 2.0f * 3.14159f;
-						float a2 = ((s + 1) / static_cast<float>(segments)) * 2.0f * 3.14159f;
+						float a1 = (s / static_cast<float>(kCircleSegments)) * kTwoPi;
+						float a2 = ((s + 1) / static_cast<float>(kCircleSegments)) * kTwoPi;
 						
 						// XZ平面の円
 						lineManager->DrawLine(
@@ -218,11 +246,10 @@ void ParticleEditor::DrawDebug()
 				{
 					float height = shape->GetConeHeight();
 					// コーンの底面円と頂点への線
-					int segments = 8;
-					for (int s = 0; s < segments; ++s)
+					for (int s = 0; s < kConeSegments; ++s)
 					{
-						float a1 = (s / static_cast<float>(segments)) * 2.0f * 3.14159f;
-						float a2 = ((s + 1) / static_cast<float>(segments)) * 2.0f * 3.14159f;
+						float a1 = (s / static_cast<float>(kConeSegments)) * kTwoPi;
+						float a2 = ((s + 1) / static_cast<float>(kConeSegments)) * kTwoPi;
 						
 						Vector3 p1 = { emitterPos.x + outerR * std::cos(a1), emitterPos.y, emitterPos.z + outerR * std::sin(a1) };
 						Vector3 p2 = { emitterPos.x + outerR * std::cos(a2), emitterPos.y, emitterPos.z + outerR * std::sin(a2) };
@@ -239,7 +266,7 @@ void ParticleEditor::DrawDebug()
 				Vector3 target = attractor->GetTarget();
 				Vector4 attractorColor = { 1.0f, 0.0f, 1.0f, 1.0f }; // マゼンタ
 				lineManager->DrawLine(emitterPos, target, attractorColor);
-				lineManager->DrawAxis(target, 0.3f);
+				lineManager->DrawAxis(target, kMarkerSize);
 			}
 			// Vortex - 回転軸を表示
 			else if (auto* vortex = dynamic_cast<const VortexModule*>(module))
@@ -264,7 +291,7 @@ void ParticleEditor::DrawDebug()
 			}
 		}
 
-		// パーティクル位置を表示（青い点として線で表示）
+		// パーティクル位置を表示（クロスマーカー）
 		const auto& particles = emitter->GetParticles();
 		for (const auto& particle : particles)
 		{
@@ -272,22 +299,21 @@ void ParticleEditor::DrawDebug()
 
 			// パーティクル位置に小さなクロスを描画
 			Vector3 pos = particle.position;
-			float size = 0.05f;
 			Vector4 color = { 0.0f, 1.0f, 1.0f, 1.0f };  // シアン
 
 			lineManager->DrawLine(
-				{ pos.x - size, pos.y, pos.z },
-				{ pos.x + size, pos.y, pos.z },
+				{ pos.x - kParticleMarkerSize, pos.y, pos.z },
+				{ pos.x + kParticleMarkerSize, pos.y, pos.z },
 				color
 			);
 			lineManager->DrawLine(
-				{ pos.x, pos.y - size, pos.z },
-				{ pos.x, pos.y + size, pos.z },
+				{ pos.x, pos.y - kParticleMarkerSize, pos.z },
+				{ pos.x, pos.y + kParticleMarkerSize, pos.z },
 				color
 			);
 			lineManager->DrawLine(
-				{ pos.x, pos.y, pos.z - size },
-				{ pos.x, pos.y, pos.z + size },
+				{ pos.x, pos.y, pos.z - kParticleMarkerSize },
+				{ pos.x, pos.y, pos.z + kParticleMarkerSize },
 				color
 			);
 		}
@@ -298,12 +324,14 @@ void ParticleEditor::DrawDebug()
 
 void ParticleEditor::NewEffect()
 {
+	// 既存のエフェクトを削除
 	if (currentEffect_)
 	{
 		ParticleManager::GetInstance()->RemoveEffect(currentEffect_);
 		currentEffect_ = nullptr;
 	}
 
+	// 新規エフェクトを作成
 	auto effect = std::make_unique<ParticleEffect>();
 	effect->Initialize("NewEffect");
 	effect->Play();
@@ -311,10 +339,11 @@ void ParticleEditor::NewEffect()
 	// エディタ用なので自動削除しない
 	effect->SetAutoRemove(false);
 
-	// Managerに登録し、ポインタを保持
+	// マネージャーに登録してポインタを保持
 	currentEffect_ = effect.get();
 	ParticleManager::GetInstance()->AddEffect(std::move(effect));
 
+	// 選択状態とパスをリセット
 	selectedEmitterIndex_ = -1;
 	selectedModuleIndex_ = -1;
 	effectPath_.clear();
@@ -323,9 +352,11 @@ void ParticleEditor::NewEffect()
 
 void ParticleEditor::LoadEffect(const std::string& path)
 {
+	// ファイルからエフェクトを読み込み
 	auto effect = ParticleEffect::LoadFromFile(path);
 	if (effect)
 	{
+		// 既存のエフェクトを削除
 		if (currentEffect_)
 		{
 			ParticleManager::GetInstance()->RemoveEffect(currentEffect_);
@@ -337,6 +368,7 @@ void ParticleEditor::LoadEffect(const std::string& path)
 		strcpy_s(effectNameBuffer_, effect->GetName().c_str());
 		effect->Play();
 
+		// マネージャーに登録してポインタを保持
 		currentEffect_ = effect.get();
 		ParticleManager::GetInstance()->AddEffect(std::move(effect));
 	}
@@ -365,6 +397,7 @@ void ParticleEditor::SaveEffect(const std::string& path)
 			savePath = (dir / (currentEffect_->GetName() + ".json")).string();
 		}
 		
+		// ファイルに保存
 		currentEffect_->SaveToFile(savePath);
 		effectPath_ = savePath;
 	}
