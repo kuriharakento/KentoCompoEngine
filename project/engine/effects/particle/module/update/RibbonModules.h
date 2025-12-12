@@ -27,6 +27,10 @@ class RibbonInterpolationModule : public IModule
 public:
 	RibbonInterpolationModule(float maxDistance = 0.1f) : maxDistance_(maxDistance) {}
 
+	/**
+	 * @brief モジュール実行（補間パーティクル生成）
+	 * @param context パーティクルコンテキスト
+	 */
 	void Execute(ParticleContext& context) override
 	{
 		if (!context.particles) return;
@@ -123,10 +127,21 @@ public:
 	const char* GetName() const override { return "RibbonInterpolation"; }
 	int32_t GetPriority() const override { return 100; }  // 他のSpawnモジュールの後に実行
 
+	/**
+	 * @brief 最大補間距離を設定
+	 * @param distance 最大距離（この距離を超えると補間パーティクルを生成）
+	 */
 	void SetMaxDistance(float distance) { maxDistance_ = distance; }
+
+	/**
+	 * @brief 最大補間距離を取得
+	 * @return 最大距離
+	 */
 	float GetMaxDistance() const { return maxDistance_; }
 
-	// 履歴をクリア（エフェクト再開時など）
+	/**
+	 * @brief パーティクル履歴をクリア（エフェクト再開時など）
+	 */
 	void ClearHistory() { particleHistory_.clear(); }
 
 private:

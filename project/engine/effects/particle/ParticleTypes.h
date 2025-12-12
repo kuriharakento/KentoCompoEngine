@@ -7,8 +7,8 @@
  */
 enum class SimulationMode
 {
-	CPU, // CPU計算
-	GPU  // GPU計算
+	CPU, ///< CPU計算
+	GPU  ///< GPU計算（コンピュートシェーダー）
 };
 
 /**
@@ -16,8 +16,8 @@ enum class SimulationMode
  */
 enum class SimulationSpace
 {
-	World, // ワールド空間
-	Local  // ローカル空間
+	World, ///< ワールド空間（エミッター移動に追従しない）
+	Local  ///< ローカル空間（エミッター移動に追従）
 };
 
 /**
@@ -25,17 +25,17 @@ enum class SimulationSpace
  */
 enum class PrimitiveType
 {
-	Plane,
-	Ring,
-	Cylinder,
-	Sphere,
-	Torus,
-	Star,
-	Heart,
-	Spiral,
-	Cone,
-	Cube,
-	Custom
+	Plane,     ///< 平面
+	Ring,      ///< リング（ドーナツ形状）
+	Cylinder,  ///< 円柱
+	Sphere,    ///< 球体
+	Torus,     ///< トーラス（チューブ付きドーナツ）
+	Star,      ///< 星形
+	Heart,     ///< ハート形
+	Spiral,    ///< スパイラル（螺旋）
+	Cone,      ///< 円錐
+	Cube,      ///< 立方体
+	Custom     ///< カスタムメッシュ
 };
 
 /**
@@ -43,9 +43,9 @@ enum class PrimitiveType
  */
 enum class RendererType
 {
-	Sprite,
-	Ribbon,
-	Mesh
+	Sprite, ///< スプライト（ビルボード）
+	Ribbon, ///< リボン（軌跡）
+	Mesh    ///< メッシュ（3Dプリミティブ）
 };
 
 /**
@@ -53,8 +53,8 @@ enum class RendererType
  */
 enum class RibbonTextureMode
 {
-	Stretch,  // 全体に引き伸ばし
-	Tile      // タイル状に繰り返し
+	Stretch,  ///< 全体に引き伸ばし
+	Tile      ///< タイル状に繰り返し
 };
 
 /**
@@ -62,9 +62,9 @@ enum class RibbonTextureMode
  */
 enum class TextureSheetPlayMode
 {
-	Loop,     // ループ再生
-	Once,     // 1回のみ
-	PingPong  // 往復
+	Loop,     ///< ループ再生
+	Once,     ///< 1回のみ再生
+	PingPong  ///< 往復再生
 };
 
 /**
@@ -72,7 +72,7 @@ enum class TextureSheetPlayMode
  */
 enum class FalloffType
 {
-	None,           // 減衰なし（一定）
-	Linear,         // 線形減衰
-	InverseSquare   // 逆二乗減衰
+	None,           ///< 減衰なし（一定の力）
+	Linear,         ///< 線形減衰（距離に比例）
+	InverseSquare   ///< 逆二乗減衰（物理的な重力・電磁力）
 };
