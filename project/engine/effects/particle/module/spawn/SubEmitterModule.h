@@ -96,6 +96,9 @@ public:
 
 	/**
 	 * @brief トリガー条件に一致するサブエミッターをスポーン
+	 * @param trigger トリガー条件
+	 * @param particle トリガー元のパーティクル
+	 * @param manager パーティクルマネージャー
 	 */
 	void TriggerSubEmitters(SubEmitterTrigger trigger, const Particle& particle, 
 	                        ParticleManager* manager)
@@ -131,6 +134,9 @@ public:
 
 	/**
 	 * @brief Continuousモード用の更新
+	 * @param deltaTime デルタタイム（秒）
+	 * @param particles パーティクル配列
+	 * @param manager パーティクルマネージャー
 	 */
 	void UpdateContinuous(float deltaTime, const std::vector<Particle>& particles,
 	                      ParticleManager* manager)

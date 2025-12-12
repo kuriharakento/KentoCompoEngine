@@ -9,8 +9,10 @@ void SubEmitterModule::TriggerSubEmitters(SubEmitterTrigger trigger, const Parti
 {
 	if (!manager) return;
 
+	// 設定に一致するサブエミッターを検索して発生
 	for (const auto& config : configs_)
 	{
+		// トリガー条件とパスをチェック
 		if (config.trigger != trigger) continue;
 		if (config.effectPath.empty()) continue;
 
@@ -23,7 +25,7 @@ void SubEmitterModule::TriggerSubEmitters(SubEmitterTrigger trigger, const Parti
 			if (dist(gen) > config.probability) continue;
 		}
 
-		// サブエフェクトをロードして生成
+		// サブエフェクトをロード
 		auto subEffect = ParticleEffectSerializer::Load(config.effectPath);
 		if (!subEffect) continue;
 
@@ -33,11 +35,7 @@ void SubEmitterModule::TriggerSubEmitters(SubEmitterTrigger trigger, const Parti
 			subEffect->SetPosition(particle.position);
 		}
 
-		// 速度継承（各エミッターのパーティクルに対して）
-		// Note: 速度継承はエフェクトレベルでは難しいので、
-		// ParticleManagerに登録する際に考慮する必要がある
-		// 現在の実装では位置のみ
-
+		// エフェクトを追加
 		manager->AddEffect(std::move(subEffect));
 	}
 }
@@ -47,19 +45,22 @@ void SubEmitterModule::UpdateContinuous(float deltaTime, const std::vector<Parti
 {
 	if (!manager) return;
 
+	// 生存中のパーティクルごとにサブエミッターを継続発生
 	for (const auto& particle : particles)
 	{
 		if (!particle.IsAlive()) continue;
 
 		for (const auto& config : configs_)
 		{
+			// Continuousトリガーのみ処理
 			if (config.trigger != SubEmitterTrigger::Continuous) continue;
 			if (config.effectPath.empty()) continue;
 
-			// アキュムレータ更新
+			// パーティクルごとのアキュムレータを更新
 			float& accum = continuousAccumulators_[particle.id];
 			accum += deltaTime;
 
+			// 発生間隔に達したらサブエフェクトを生成
 			float interval = 1.0f / config.continuousRate;
 			while (accum >= interval)
 			{
@@ -74,21 +75,23 @@ void SubEmitterModule::UpdateContinuous(float deltaTime, const std::vector<Parti
 					if (dist(gen) > config.probability) continue;
 				}
 
-				// サブエフェクトをロードして生成
+				// サブエフェクトをロード
 				auto subEffect = ParticleEffectSerializer::Load(config.effectPath);
 				if (!subEffect) continue;
 
+				// 位置継承
 				if (config.inheritPosition)
 				{
 					subEffect->SetPosition(particle.position);
 				}
 
+				// エフェクトを追加
 				manager->AddEffect(std::move(subEffect));
 			}
 		}
 	}
 
-	// 死んだパーティクルのアキュムレータを削除
+	// 死んだパーティクルのアキュムレータをクリーンアップ
 	for (auto it = continuousAccumulators_.begin(); it != continuousAccumulators_.end();)
 	{
 		bool found = false;
