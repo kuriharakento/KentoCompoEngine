@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file ParticleManager.h
+ * @brief パーティクルマネージャー
+ * 
+ * エミッターとエフェクトの一元管理。
+ * Play() APIでエフェクトを簡単に再生可能。
+ */
 #include <memory>
 #include <vector>
 #include <string>

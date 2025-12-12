@@ -1,5 +1,13 @@
 #pragma once
+/**
+ * @file RibbonModules.h
+ * @brief リボン専用モジュール
+ * 
+ * リボンパーティクルの生成時補間など、
+ * リボンレンダー専用の処理を提供。
+ */
 #include "effects/particle/module/IModule.h"
+#include "effects/particle/module/ModulePriorities.h"
 #include "effects/particle/ParticleEmitter.h"
 #include "math/Vector3.h"
 #include "math/Vector4.h"

@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file ParticleEffect.h
+ * @brief パーティクルエフェクト
+ * 
+ * 複数のエミッターを1つのエフェクトとしてグループ化。
+ * JSONファイルからの読み込み・保存に対応。
+ */
 #include <memory>
 #include <vector>
 #include <string>

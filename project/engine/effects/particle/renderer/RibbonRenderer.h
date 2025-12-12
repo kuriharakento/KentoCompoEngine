@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file RibbonRenderer.h
+ * @brief リボンパーティクルレンダラー
+ * 
+ * パーティクルの軌跡をリボン状に描画。
+ * 同一RibbonIDを持つパーティクルを連結してトライアングルストリップを生成。
+ */
 #include "IRenderer.h"
 #include "effects/particle/Particle.h"
 #include "effects/particle/ParticleTypes.h"
@@ -142,39 +149,36 @@ private:
 	                           std::vector<RibbonVertex>& outVertices);
 
 
-	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_;
-	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_{};
+	//===== GPUリソース =====//
+	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_;     ///< 頂点バッファリソース
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_{};               ///< 頂点バッファビュー
 
-	RibbonVertex* vertexData_ = nullptr;
-	uint32_t vertexCount_ = 0;
-	uint32_t textureIndex_ = 0;
+	RibbonVertex* vertexData_ = nullptr;                        ///< 頂点データ（マップ済みポインタ）
+	uint32_t vertexCount_ = 0;                                  ///< 描画する頂点数
+	uint32_t textureIndex_ = 0;                                 ///< テクスチャのSRVインデックス
 
-	// マテリアルリソース
-	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_;
-	RibbonMaterial* materialData_ = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_;   ///< マテリアルバッファリソース
+	RibbonMaterial* materialData_ = nullptr;                    ///< マテリアルデータ（マップ済みポインタ）
 
-	// ビュープロジェクション行列バッファ
-	Microsoft::WRL::ComPtr<ID3D12Resource> viewProjResource_;
-	Matrix4x4* viewProjData_ = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Resource> viewProjResource_;   ///< ビュープロジェクション行列バッファ
+	Matrix4x4* viewProjData_ = nullptr;                         ///< ビュープロジェクション行列（マップ済みポインタ）
 
-	float ribbonWidth_ = 0.5f;
-	float tileScale_ = 1.0f;
-	float minSegmentLength_ = 0.01f;
-	float maxSegmentDistance_ = 0.02f; // この距離を超えたら補間点を作成（小さいほど滑らか）
-	float alphaThreshold_ = 0.05f; // この値以下のアルファを持つセグメントは描画しない
-	bool useTextureColor_ = false; // true: テクスチャカラーも使用, false: 頂点カラーのみ
-	bool enableInterpolation_ = false; // セグメント補間を無効（スポーン時補間を使用）
-	RibbonTextureMode textureMode_ = RibbonTextureMode::Stretch;
-	bool useBillboard_ = true; // デフォルトでビルボードON
+	//===== リボン設定 =====//
+	float ribbonWidth_ = 0.5f;                                  ///< リボンの幅
+	float tileScale_ = 1.0f;                                    ///< タイルモード時のスケール
+	float minSegmentLength_ = 0.01f;                            ///< 最小セグメント長
+	float maxSegmentDistance_ = 0.02f;                          ///< 補間を行う最大セグメント距離
+	float alphaThreshold_ = 0.05f;                              ///< 描画しないアルファ閾値
+	bool useTextureColor_ = false;                              ///< テクスチャカラー使用フラグ
+	bool enableInterpolation_ = false;                          ///< セグメント補間有効フラグ
+	RibbonTextureMode textureMode_ = RibbonTextureMode::Stretch; ///< テクスチャモード
+	bool useBillboard_ = true;                                  ///< ビルボード有効フラグ
 	
-	// トレイル設定
-	float pointsPerSecond_ = 120.0f; // 1秒あたりに記録する点の数（高いほど滑らか）
-	float trailLifetime_ = 2.0f;     // トレイルの寿命（秒）
-	float currentTime_ = 0.0f;       // 現在時刻
+	//===== トレイル設定 =====//
+	float pointsPerSecond_ = 120.0f;                            ///< 1秒あたりに記録する点の数
+	float trailLifetime_ = 2.0f;                                ///< トレイルの寿命（秒）
+	float currentTime_ = 0.0f;                                  ///< 内部時刻
 	
-	// セグメント補間
 	void InterpolateSegments(std::vector<RibbonSegment>& segments);
-	
-	// 先頭セグメントとの補間（新規追加時のみ）
 	std::vector<RibbonSegment> InterpolateWithHead(const RibbonSegment& head, const RibbonSegment& newSegment);
 };

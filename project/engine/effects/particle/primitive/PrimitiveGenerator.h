@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file PrimitiveGenerator.h
+ * @brief プリミティブ形状生成ユーティリティ
+ * 
+ * Plane, Sphere, Cube, Cone, Torus, Star, Heart等の
+ * 各種プリミティブメッシュを動的に生成。
+ */
 #include "math/Vector3.h"
 #include "math/Vector2.h"
 #include "math/Vector4.h"

@@ -1,5 +1,13 @@
 #pragma once
+/**
+ * @file ForceFieldModules.h
+ * @brief フォースフィールドモジュール
+ * 
+ * アトラクター、ボルテックスなどの
+ * 力場ベースのパーティクル制御。
+ */
 #include "effects/particle/module/IModule.h"
+#include "effects/particle/module/ModulePriorities.h"
 #include "effects/particle/ParticleEmitter.h"
 #include "effects/particle/ParticleTypes.h"
 #include "math/Vector3.h"
@@ -49,7 +57,7 @@ public:
 
 	ModulePhase GetPhase() const override { return ModulePhase::Update; }
 	const char* GetName() const override { return "Attractor"; }
-	int32_t GetPriority() const override { return -30; } // 重力と同じくらい
+	int32_t GetPriority() const override { return ParticleModulePriority::kForceField; }
 
 	void SetTarget(const Vector3& target) { target_ = target; }
 	Vector3 GetTarget() const { return target_; }
@@ -128,7 +136,7 @@ public:
 
 	ModulePhase GetPhase() const override { return ModulePhase::Update; }
 	const char* GetName() const override { return "Vortex"; }
-	int32_t GetPriority() const override { return -25; }
+	int32_t GetPriority() const override { return ParticleModulePriority::kCurlNoise; }
 
 	void SetAxis(const Vector3& axis) { axis_ = axis; NormalizeAxis(); }
 	Vector3 GetAxis() const { return axis_; }

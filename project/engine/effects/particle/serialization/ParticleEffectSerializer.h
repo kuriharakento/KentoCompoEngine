@@ -1,4 +1,10 @@
 #pragma once
+/**
+ * @file ParticleEffectSerializer.h
+ * @brief パーティクルエフェクトシリアライザ
+ * 
+ * JSON形式でエフェクトの保存/読み込みを行う。
+ */
 #include <string>
 #include <memory>
 

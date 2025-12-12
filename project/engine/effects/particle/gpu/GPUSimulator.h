@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file GPUSimulator.h
+ * @brief GPUパーティクルシミュレーター
+ * 
+ * コンピュートシェーダーによるパーティクルシミュレーション。
+ * エミッターごとのバッファを管理し、GPUで並列計算。
+ */
 #include "effects/particle/Particle.h"
 #include "math/Vector3.h"
 #include <d3d12.h>

@@ -1,5 +1,13 @@
 #pragma once
+/**
+ * @file AdvancedModules.h
+ * @brief 高度なパーティクルモジュール
+ * 
+ * 回転、オービット、ノイズ、速度制限などの
+ * 高度なパーティクル制御。
+ */
 #include "effects/particle/module/IModule.h"
+#include "effects/particle/module/ModulePriorities.h"
 #include "effects/particle/ParticleEmitter.h"
 #include "math/Vector3.h"
 #include "math/Vector4.h"
@@ -43,7 +51,7 @@ public:
 
 	ModulePhase GetPhase() const override { return ModulePhase::Update; }
 	const char* GetName() const override { return "RotationOverLifetime"; }
-	int32_t GetPriority() const override { return 45; }
+	int32_t GetPriority() const override { return ParticleModulePriority::kRotationOverLifetime; }
 
 	void SetRotationSpeed(float speed) { rotationSpeed_ = speed; }
 	float GetRotationSpeed() const { return rotationSpeed_; }
@@ -96,7 +104,7 @@ public:
 
 	ModulePhase GetPhase() const override { return ModulePhase::Update; }
 	const char* GetName() const override { return "Orbit"; }
-	int32_t GetPriority() const override { return -20; }
+	int32_t GetPriority() const override { return ParticleModulePriority::kForceField; }
 
 	void SetOrbitSpeed(float speed) { orbitSpeed_ = speed; }
 	float GetOrbitSpeed() const { return orbitSpeed_; }
@@ -141,7 +149,7 @@ public:
 
 	ModulePhase GetPhase() const override { return ModulePhase::Update; }
 	const char* GetName() const override { return "Noise"; }
-	int32_t GetPriority() const override { return -25; }
+	int32_t GetPriority() const override { return ParticleModulePriority::kCurlNoise; }
 
 	void SetStrength(float strength) { strength_ = strength; }
 	float GetStrength() const { return strength_; }
@@ -182,7 +190,7 @@ public:
 
 	ModulePhase GetPhase() const override { return ModulePhase::Update; }
 	const char* GetName() const override { return "VelocityLimit"; }
-	int32_t GetPriority() const override { return 100; } // 最後に適用
+	int32_t GetPriority() const override { return ParticleModulePriority::kVelocityLimit; }
 
 	void SetMaxSpeed(float speed) { maxSpeed_ = speed; }
 	float GetMaxSpeed() const { return maxSpeed_; }

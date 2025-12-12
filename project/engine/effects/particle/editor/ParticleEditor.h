@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file ParticleEditor.h
+ * @brief パーティクルエディタ
+ * 
+ * ImGuiベースのリアルタイムパーティクル編集UI。
+ * エフェクトの作成、編集、保存、読み込みが可能。
+ */
 #include <string>
 #include <memory>
 
@@ -29,11 +36,6 @@ public:
 	 * @brief 更新（ImGui描画）
 	 */
 	void Update(CameraManager* camera);
-
-	/**
-	 * @brief プレビュー描画
-	 */
-	void Draw();
 
 	/**
 	 * @brief デバッグ表示描画（エミッター位置、パーティクル位置をライン描画）

@@ -1,5 +1,6 @@
 #include "ParticleEmitter.h"
 #include "effects/particle/module/IModule.h"
+#include "effects/particle/module/spawn/SubEmitterModule.h"
 #include "effects/particle/renderer/IRenderer.h"
 #include "effects/particle/gpu/GPUSimulator.h"
 #include "effects/particle/ParticleManager.h"
@@ -16,9 +17,15 @@ void ParticleEmitter::Initialize(const std::string& name)
 
 void ParticleEmitter::Update(float deltaTime, CameraManager* camera)
 {
+	// Transform追従
 	if (followTarget_)
 	{
-		// TODO: Transformから位置を取得
+		position_ = followTarget_->translate + followOffset_;
+	}
+	// 同じエフェクト内の別エミッター追従（ParticleEffectが位置を設定）
+	else if (followingEmitter_)
+	{
+		position_ = followEmitterPosition_ + followOffset_;
 	}
 
 	if (simulationMode_ == SimulationMode::CPU)
@@ -201,6 +208,28 @@ void ParticleEmitter::UpdateGPU(float deltaTime, CameraManager* camera)
 
 void ParticleEmitter::RemoveDeadParticles()
 {
+	// SubEmitter OnDeath trigger
+	SubEmitterModule* subEmitter = nullptr;
+	for (auto& module : modules_)
+	{
+		if ((subEmitter = dynamic_cast<SubEmitterModule*>(module.get())))
+		{
+			break;
+		}
+	}
+
+	if (subEmitter)
+	{
+		auto* manager = ParticleManager::GetInstance();
+		for (const auto& particle : particles_)
+		{
+			if (!particle.IsAlive())
+			{
+				subEmitter->TriggerSubEmitters(SubEmitterTrigger::OnDeath, particle, manager);
+			}
+		}
+	}
+
 	particles_.erase(
 		std::remove_if(particles_.begin(), particles_.end(),
 			[](const Particle& p) { return !p.IsAlive(); }),

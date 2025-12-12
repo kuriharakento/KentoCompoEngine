@@ -1,5 +1,13 @@
 #pragma once
+/**
+ * @file SpawnShapeModules.h
+ * @brief スポーン形状モジュール
+ * 
+ * Point, Sphere, Circle, Box, Cone, Lineなど
+ * 形状ベースのパーティクル発生位置制御。
+ */
 #include "effects/particle/module/IModule.h"
+#include "effects/particle/module/ModulePriorities.h"
 #include "effects/particle/ParticleEmitter.h"
 #include "math/Vector3.h"
 #include "math/MathUtils.h"
@@ -17,6 +25,16 @@ enum class SpawnShapeType
 	Box,        // ボックス
 	Cone,       // コーン
 	Line        // ライン
+};
+
+/**
+ * @brief スポーン位置モード
+ */
+enum class SpawnLocation
+{
+	Volume,     // 内部全体（デフォルト）
+	Surface,    // 表面のみ
+	Edge        // エッジのみ（Box用）
 };
 
 /**
@@ -49,7 +67,15 @@ public:
 					// 球面上のランダムな点
 					float theta = MathUtils::RandomFloat(0, 2.0f * std::numbers::pi_v<float>);
 					float phi = MathUtils::RandomFloat(0, std::numbers::pi_v<float>);
-					float r = MathUtils::RandomFloat(innerRadius_, outerRadius_);
+					float r;
+					if (spawnLocation_ == SpawnLocation::Surface)
+					{
+						r = outerRadius_; // 表面のみ
+					}
+					else
+					{
+						r = MathUtils::RandomFloat(innerRadius_, outerRadius_);
+					}
 					offset.x = r * std::sin(phi) * std::cos(theta);
 					offset.y = r * std::cos(phi);
 					offset.z = r * std::sin(phi) * std::sin(theta);
@@ -64,7 +90,15 @@ public:
 				{
 					// XZ平面上の円
 					float angle = MathUtils::RandomFloat(0, 2.0f * std::numbers::pi_v<float>);
-					float r = MathUtils::RandomFloat(innerRadius_, outerRadius_);
+					float r;
+					if (spawnLocation_ == SpawnLocation::Surface || spawnLocation_ == SpawnLocation::Edge)
+					{
+						r = outerRadius_; // 縁のみ
+					}
+					else
+					{
+						r = MathUtils::RandomFloat(innerRadius_, outerRadius_);
+					}
 					offset.x = r * std::cos(angle);
 					offset.y = 0;
 					offset.z = r * std::sin(angle);
@@ -77,9 +111,57 @@ public:
 
 				case SpawnShapeType::Box:
 				{
-					offset.x = MathUtils::RandomFloat(-boxSize_.x * 0.5f, boxSize_.x * 0.5f);
-					offset.y = MathUtils::RandomFloat(-boxSize_.y * 0.5f, boxSize_.y * 0.5f);
-					offset.z = MathUtils::RandomFloat(-boxSize_.z * 0.5f, boxSize_.z * 0.5f);
+					Vector3 half = boxSize_ * 0.5f;
+					
+					if (spawnLocation_ == SpawnLocation::Edge)
+					{
+						// エッジ上のみ（12本のエッジからランダムに選択）
+						int edge = rand() % 12;
+						float t = MathUtils::RandomFloat(0.0f, 1.0f);
+						
+						switch (edge)
+						{
+						// 底面の4エッジ
+						case 0: offset = { -half.x + t * boxSize_.x, -half.y, -half.z }; break;
+						case 1: offset = { half.x, -half.y, -half.z + t * boxSize_.z }; break;
+						case 2: offset = { half.x - t * boxSize_.x, -half.y, half.z }; break;
+						case 3: offset = { -half.x, -half.y, half.z - t * boxSize_.z }; break;
+						// 上面の4エッジ
+						case 4: offset = { -half.x + t * boxSize_.x, half.y, -half.z }; break;
+						case 5: offset = { half.x, half.y, -half.z + t * boxSize_.z }; break;
+						case 6: offset = { half.x - t * boxSize_.x, half.y, half.z }; break;
+						case 7: offset = { -half.x, half.y, half.z - t * boxSize_.z }; break;
+						// 垂直の4エッジ
+						case 8: offset = { -half.x, -half.y + t * boxSize_.y, -half.z }; break;
+						case 9: offset = { half.x, -half.y + t * boxSize_.y, -half.z }; break;
+						case 10: offset = { half.x, -half.y + t * boxSize_.y, half.z }; break;
+						case 11: offset = { -half.x, -half.y + t * boxSize_.y, half.z }; break;
+						}
+					}
+					else if (spawnLocation_ == SpawnLocation::Surface)
+					{
+						// 表面のみ（6面からランダムに選択）
+						int face = rand() % 6;
+						float u = MathUtils::RandomFloat(-1.0f, 1.0f);
+						float v = MathUtils::RandomFloat(-1.0f, 1.0f);
+						
+						switch (face)
+						{
+						case 0: offset = { half.x, u * half.y, v * half.z }; direction = { 1, 0, 0 }; break;  // +X
+						case 1: offset = { -half.x, u * half.y, v * half.z }; direction = { -1, 0, 0 }; break; // -X
+						case 2: offset = { u * half.x, half.y, v * half.z }; direction = { 0, 1, 0 }; break;  // +Y
+						case 3: offset = { u * half.x, -half.y, v * half.z }; direction = { 0, -1, 0 }; break; // -Y
+						case 4: offset = { u * half.x, v * half.y, half.z }; direction = { 0, 0, 1 }; break;  // +Z
+						case 5: offset = { u * half.x, v * half.y, -half.z }; direction = { 0, 0, -1 }; break; // -Z
+						}
+					}
+					else
+					{
+						// Volume（内部全体）
+						offset.x = MathUtils::RandomFloat(-half.x, half.x);
+						offset.y = MathUtils::RandomFloat(-half.y, half.y);
+						offset.z = MathUtils::RandomFloat(-half.z, half.z);
+					}
 					break;
 				}
 
@@ -105,6 +187,7 @@ public:
 
 				case SpawnShapeType::Line:
 				{
+					// lineStart_からlineEnd_への線上のランダムな点をオフセットとして使用
 					float t = MathUtils::RandomFloat(0, 1);
 					offset.x = lineStart_.x + (lineEnd_.x - lineStart_.x) * t;
 					offset.y = lineStart_.y + (lineEnd_.y - lineStart_.y) * t;
@@ -128,7 +211,7 @@ public:
 
 	ModulePhase GetPhase() const override { return ModulePhase::Spawn; }
 	const char* GetName() const override { return "SpawnShape"; }
-	int32_t GetPriority() const override { return 8; }
+	int32_t GetPriority() const override { return 15; } // InitialPositionModule(10)より後に実行
 
 	// Setters/Getters
 	void SetShapeType(SpawnShapeType type) { shapeType_ = type; }
@@ -156,8 +239,12 @@ public:
 	void SetInitialSpeed(float speed) { initialSpeed_ = speed; }
 	float GetInitialSpeed() const { return initialSpeed_; }
 
+	void SetSpawnLocation(SpawnLocation loc) { spawnLocation_ = loc; }
+	SpawnLocation GetSpawnLocation() const { return spawnLocation_; }
+
 private:
 	SpawnShapeType shapeType_ = SpawnShapeType::Point;
+	SpawnLocation spawnLocation_ = SpawnLocation::Volume;
 	float innerRadius_ = 0.0f;
 	float outerRadius_ = 1.0f;
 	Vector3 boxSize_ = { 1, 1, 1 };

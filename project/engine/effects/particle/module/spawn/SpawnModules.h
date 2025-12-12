@@ -1,5 +1,12 @@
 #pragma once
+/**
+ * @file SpawnModules.h
+ * @brief パーティクルスポーンモジュール
+ * 
+ * レートベースの連続生成とバーストによる一括生成。
+ */
 #include "effects/particle/module/IModule.h"
+#include "effects/particle/module/ModulePriorities.h"
 #include "effects/particle/ParticleEmitter.h"
 #include "math/Vector3.h"
 #include "math/Vector4.h"

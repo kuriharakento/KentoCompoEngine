@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file GPUParticlePipeline.h
+ * @brief GPUパーティクルパイプラインマネージャー
+ * 
+ * コンピュートシェーダー、ルートシグネチャ、PSOなどの
+ * 共有リソースを管理。シングルトン実装。
+ */
 #include <d3d12.h>
 #include <wrl/client.h>
 #include <string>

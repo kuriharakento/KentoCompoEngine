@@ -1,5 +1,13 @@
 #pragma once
+/**
+ * @file InitialModules.h
+ * @brief パーティクル初期値設定モジュール
+ * 
+ * 生成時の位置、速度、寿命、カラー、スケールなどの
+ * 初期パラメータを設定するモジュール群。
+ */
 #include "effects/particle/module/IModule.h"
+#include "effects/particle/module/ModulePriorities.h"
 #include "effects/particle/ParticleEmitter.h"
 #include "math/Vector3.h"
 #include "math/Vector4.h"

@@ -433,6 +433,13 @@
     <ClCompile Include="engine\effects\particle\renderer\SpriteRenderer.cpp" />
     <ClCompile Include="engine\effects\particle\gpu\GPUSimulator.cpp" />
     <ClCompile Include="application\effect\PlayerDeathEffect.cpp" />
+    <ClCompile Include="engine\effects\particle\ParticleEffect.cpp" />
+    <ClCompile Include="engine\effects\particle\gpu\GPUParticlePipeline.cpp" />
+    <ClCompile Include="engine\effects\particle\renderer\RibbonRenderer.cpp" />
+    <ClCompile Include="engine\effects\particle\renderer\MeshRenderer.cpp" />
+    <ClCompile Include="engine\effects\particle\primitive\PrimitiveGenerator.cpp" />
+    <ClCompile Include="engine\effects\particle\editor\ParticleEditor.cpp" />
+    <ClCompile Include="engine\effects\particle\serialization\ParticleEffectSerializer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -941,6 +948,19 @@
     <ClInclude Include="engine\animation\Animator.h" />
     <ClInclude Include="engine\camerawork\follow\FollowCamera.h" />
     <ClInclude Include="engine\effects\postprocess\CRTEffect.h" />
+    <ClInclude Include="engine\effects\particle\ParticleEffect.h" />
+    <ClInclude Include="engine\effects\particle\module\update\TextureSheetModule.h" />
+    <ClInclude Include="engine\effects\particle\module\update\ForceFieldModules.h" />
+    <ClInclude Include="engine\effects\particle\dynamic\DynamicInput.h" />
+    <ClInclude Include="engine\effects\particle\renderer\RibbonRenderer.h" />
+    <ClInclude Include="engine\effects\particle\renderer\MeshRenderer.h" />
+    <ClInclude Include="engine\effects\particle\primitive\PrimitiveGenerator.h" />
+    <ClInclude Include="engine\effects\particle\gpu\GPUParticlePipeline.h" />
+    <ClInclude Include="engine\effects\particle\editor\ParticleEditor.h" />
+    <ClInclude Include="engine\effects\particle\serialization\ParticleEffectSerializer.h" />
+    <ClInclude Include="engine\effects\particle\module\spawn\SpawnShapeModules.h" />
+    <ClInclude Include="engine\effects\particle\module\update\AdvancedModules.h" />
+    <ClInclude Include="engine\effects\particle\module\update\RibbonModules.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

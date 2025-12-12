@@ -1,5 +1,13 @@
 #pragma once
+/**
+ * @file TextureSheetModule.h
+ * @brief テクスチャシートアニメーションモジュール
+ * 
+ * スプライトシートのフリップブックアニメーション制御。
+ * Loop, Once, PingPong等の再生モードに対応。
+ */
 #include "effects/particle/module/IModule.h"
+#include "effects/particle/module/ModulePriorities.h"
 #include "effects/particle/ParticleEmitter.h"
 #include "effects/particle/ParticleTypes.h"
 #include <algorithm>

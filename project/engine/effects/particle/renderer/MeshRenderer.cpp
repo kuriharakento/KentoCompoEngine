@@ -260,6 +260,12 @@ void MeshRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 	dxCommon->GetCommandList()->IASetIndexBuffer(&primitiveIndexView_);
 	dxCommon->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	// ティントカラーをマテリアルに適用
+	if (materialData_)
+	{
+		materialData_->color = tintColor_;
+	}
+
 	// マテリアル (Slot 0 - CBV)
 	dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
 

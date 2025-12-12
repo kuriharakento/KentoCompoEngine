@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file ParticleEmitter.h
+ * @brief パーティクルエミッター
+ * 
+ * 単一のパーティクル発生源。モジュールによる挙動制御と
+ * レンダラーによる描画を管理。CPU/GPUシミュレーション対応。
+ */
 #include <memory>
 #include <vector>
 #include <string>
@@ -58,6 +65,17 @@ public:
 	void SetFollowTarget(Transform* target) { followTarget_ = target; }
 	Transform* GetFollowTarget() const { return followTarget_; }
 
+	void SetFollowOffset(const Vector3& offset) { followOffset_ = offset; }
+	const Vector3& GetFollowOffset() const { return followOffset_; }
+
+	// 同じエフェクト内の別エミッターを追従 (-1 = 追従しない)
+	void SetFollowEmitterIndex(int index) { followEmitterIndex_ = index; }
+	int GetFollowEmitterIndex() const { return followEmitterIndex_; }
+	
+	// 追従対象のエミッター位置を設定（ParticleEffectから呼ばれる）
+	void SetFollowEmitterPosition(const Vector3& pos) { followEmitterPosition_ = pos; followingEmitter_ = true; }
+	void ClearFollowEmitterPosition() { followingEmitter_ = false; }
+
 	const std::string& GetName() const { return name_; }
 
 	// Play/Stop制御
@@ -91,19 +109,28 @@ private:
 	void SortModulesByPriority();
 
 private:
-	std::string name_;
-	std::vector<Particle> particles_;
-	std::vector<std::unique_ptr<IModule>> modules_;
-	std::unique_ptr<IRenderer> renderer_;
-	std::unique_ptr<GPUSimulator> gpuSimulator_;
+	//===== 基本情報 =====//
+	std::string name_;                              ///< エミッター名
+	std::vector<Particle> particles_;               ///< アクティブなパーティクルリスト
+	std::vector<std::unique_ptr<IModule>> modules_; ///< モジュールリスト（優先度順）
+	std::unique_ptr<IRenderer> renderer_;           ///< レンダラー（描画担当）
+	std::unique_ptr<GPUSimulator> gpuSimulator_;    ///< GPUシミュレーター（GPUモード時に使用）
 
-	uint32_t maxParticles_ = 1000;
-	SimulationMode simulationMode_ = SimulationMode::CPU;
-	SimulationSpace simulationSpace_ = SimulationSpace::World;
+	//===== シミュレーション設定 =====//
+	uint32_t maxParticles_ = 1000;                  ///< 最大パーティクル数
+	SimulationMode simulationMode_ = SimulationMode::CPU;   ///< シミュレーションモード（CPU/GPU）
+	SimulationSpace simulationSpace_ = SimulationSpace::World; ///< シミュレーション空間（World/Local）
 
-	Vector3 position_ = {};
-	Transform* followTarget_ = nullptr;
-	uint32_t nextParticleId_ = 0;
-	bool modulesSorted_ = false;
-	bool enabled_ = true;
+	//===== 位置・追従 =====//
+	Vector3 position_ = {};                         ///< エミッター位置
+	Vector3 followOffset_ = {};                     ///< 追従時のオフセット
+	Transform* followTarget_ = nullptr;             ///< 追従対象のTransform（外部オブジェクト追従）
+	int followEmitterIndex_ = -1;                   ///< 同じエフェクト内の別エミッターインデックス（-1:追従なし）
+	Vector3 followEmitterPosition_ = {};            ///< 追従対象エミッターの位置（ParticleEffectが設定）
+	bool followingEmitter_ = false;                 ///< エミッター追従中フラグ
+
+	//===== 内部状態 =====//
+	uint32_t nextParticleId_ = 0;                   ///< 次に生成するパーティクルのID
+	bool modulesSorted_ = false;                    ///< モジュールが優先度順にソート済みか
+	bool enabled_ = true;                           ///< エミッター有効フラグ
 };

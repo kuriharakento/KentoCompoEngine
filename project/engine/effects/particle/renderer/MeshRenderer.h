@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file MeshRenderer.h
+ * @brief メッシュパーティクルレンダラー
+ * 
+ * プリミティブ形状（Plane, Sphere, Cube, Cone等）を
+ * パーティクルとしてインスタンシング描画。
+ */
 #include "IRenderer.h"
 #include "effects/particle/Particle.h"
 #include "effects/particle/ParticleTypes.h"
@@ -65,40 +72,47 @@ public:
 	void SetBillboard(bool enable) { useBillboard_ = enable; }
 	bool GetBillboard() const { return useBillboard_; }
 
+	/**
+	 * @brief ティントカラー設定
+	 */
+	void SetTintColor(const Vector4& color) { tintColor_ = color; }
+	Vector4 GetTintColor() const { return tintColor_; }
+
 	void InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvManager);
 
 private:
 	void CreatePrimitiveBuffers(DirectXCommon* dxCommon);
 	void RegeneratePrimitive();
 
-	// インスタンシングリソース
-	Microsoft::WRL::ComPtr<ID3D12Resource> instanceResource_;
-	ParticleGPU* instanceData_ = nullptr;
-	uint32_t instanceSrvIndex_ = 0;
-	uint32_t instanceCount_ = 0;
+	//===== インスタンシングリソース =====//
+	Microsoft::WRL::ComPtr<ID3D12Resource> instanceResource_;   ///< インスタンシングバッファリソース
+	ParticleGPU* instanceData_ = nullptr;                       ///< インスタンスデータ（マップ済みポインタ）
+	uint32_t instanceSrvIndex_ = 0;                             ///< インスタンスバッファのSRVインデックス
+	uint32_t instanceCount_ = 0;                                ///< 描画するインスタンス数
 
-	// GPU Mode
-	bool isGPUMode_ = false;
-	uint32_t gpuSrvIndex_ = 0;
-	uint32_t gpuParticleCount_ = 0;
+	//===== GPUモード設定 =====//
+	bool isGPUMode_ = false;                                    ///< GPUシミュレーションモードフラグ
+	uint32_t gpuSrvIndex_ = 0;                                  ///< GPUパーティクルバッファのSRVインデックス
+	uint32_t gpuParticleCount_ = 0;                             ///< GPUパーティクル数
 
-	uint32_t textureIndex_ = 0;
+	uint32_t textureIndex_ = 0;                                 ///< テクスチャのSRVインデックス
 
-	// マテリアルリソース
-	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_;
-	struct Material* materialData_ = nullptr;
+	//===== マテリアルリソース =====//
+	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_;   ///< マテリアルバッファリソース
+	struct Material* materialData_ = nullptr;                   ///< マテリアルデータ（マップ済みポインタ）
 
-	// プリミティブメッシュデータ
-	PrimitiveMesh primitiveMesh_;
-	Microsoft::WRL::ComPtr<ID3D12Resource> primitiveVertexResource_;
-	Microsoft::WRL::ComPtr<ID3D12Resource> primitiveIndexResource_;
-	D3D12_VERTEX_BUFFER_VIEW primitiveVertexView_{};
-	D3D12_INDEX_BUFFER_VIEW primitiveIndexView_{};
+	//===== プリミティブメッシュデータ =====//
+	PrimitiveMesh primitiveMesh_;                               ///< 生成されたプリミティブメッシュ
+	Microsoft::WRL::ComPtr<ID3D12Resource> primitiveVertexResource_; ///< プリミティブ頂点バッファ
+	Microsoft::WRL::ComPtr<ID3D12Resource> primitiveIndexResource_;  ///< プリミティブインデックスバッファ
+	D3D12_VERTEX_BUFFER_VIEW primitiveVertexView_{};            ///< プリミティブ頂点バッファビュー
+	D3D12_INDEX_BUFFER_VIEW primitiveIndexView_{};              ///< プリミティブインデックスバッファビュー
 
-	// プリミティブ設定
-	PrimitiveType primitiveType_ = PrimitiveType::Plane;
-	PrimitiveOptions options_{};
-	float baseScale_ = 1.0f;
-	bool needsRebuild_ = true;
-	bool useBillboard_ = false;
+	//===== プリミティブ設定 =====//
+	PrimitiveType primitiveType_ = PrimitiveType::Plane;        ///< プリミティブ形状タイプ
+	PrimitiveOptions options_{};                                ///< プリミティブ生成オプション
+	float baseScale_ = 1.0f;                                    ///< 基本スケール
+	bool needsRebuild_ = true;                                  ///< プリミティブ再生成フラグ
+	bool useBillboard_ = false;                                 ///< ビルボード有効フラグ
+	Vector4 tintColor_ = { 1.0f, 1.0f, 1.0f, 1.0f };           ///< ティントカラー（RGBA）
 };

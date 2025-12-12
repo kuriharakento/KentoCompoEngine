@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file IRenderer.h
+ * @brief パーティクルレンダラーインターフェース
+ * 
+ * すべてのパーティクルレンダラーの基底クラス。
+ * 描画方式（Sprite, Ribbon, Mesh）の共通インターフェースを定義。
+ */
 #include "effects/particle/Particle.h"
 #include "effects/particle/ParticleTypes.h"
 #include <vector>

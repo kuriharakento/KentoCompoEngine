@@ -23,6 +23,22 @@ void ParticleEffect::Update(float deltaTime, CameraManager* camera)
 {
 	if (!isPlaying_) return;
 
+	// エミッター間追従の位置を先に設定
+	for (auto& emitter : emitters_)
+	{
+		int followIdx = emitter->GetFollowEmitterIndex();
+		if (followIdx >= 0 && followIdx < static_cast<int>(emitters_.size()))
+		{
+			// 追従対象のエミッター位置を設定
+			emitter->SetFollowEmitterPosition(emitters_[followIdx]->GetPosition());
+		}
+		else
+		{
+			emitter->ClearFollowEmitterPosition();
+		}
+	}
+
+	// 各エミッターを更新
 	for (auto& emitter : emitters_)
 	{
 		emitter->Update(deltaTime, camera);

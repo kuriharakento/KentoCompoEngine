@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file SpriteRenderer.h
+ * @brief スプライトパーティクルレンダラー
+ * 
+ * ビルボードスプライトとしてパーティクルを描画。
+ * インスタンシング描画に対応。
+ */
 #include "IRenderer.h"
 #include "effects/particle/Particle.h"
 #include <d3d12.h>
@@ -28,26 +35,28 @@ private:
 	void InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvManager);
 
 private:
-	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_;
-	Microsoft::WRL::ComPtr<ID3D12Resource> instancingResource_;
-	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_;
+	//===== GPUリソース =====//
+	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_;     ///< 頂点バッファリソース
+	Microsoft::WRL::ComPtr<ID3D12Resource> instancingResource_; ///< インスタンシングバッファリソース
+	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_;   ///< マテリアルバッファリソース
 	
-	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_{};
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_{};               ///< 頂点バッファビュー
 
-	ParticleGPU* instancingData_ = nullptr;
-	struct Material* materialData_ = nullptr;
+	ParticleGPU* instancingData_ = nullptr;                     ///< インスタンスデータ（マップ済みポインタ）
+	struct Material* materialData_ = nullptr;                   ///< マテリアルデータ（マップ済みポインタ）
 
-	uint32_t textureIndex_ = 0;
-	uint32_t instancingSrvIndex_ = 0;
-	uint32_t instanceCount_ = 0;
-	bool isBillboard_ = true;
-	std::string texturePath_;
+	//===== 描画設定 =====//
+	uint32_t textureIndex_ = 0;                                 ///< テクスチャのSRVインデックス
+	uint32_t instancingSrvIndex_ = 0;                           ///< インスタンシングバッファのSRVインデックス
+	uint32_t instanceCount_ = 0;                                ///< 描画するインスタンス数
+	bool isBillboard_ = true;                                   ///< ビルボード有効フラグ
+	std::string texturePath_;                                   ///< テクスチャファイルパス
 
 public:
 	std::string GetTexturePath() const override { return texturePath_; }
 
-	// GPU Mode
-	bool isGPUMode_ = false;
-	uint32_t gpuSrvIndex_ = 0;
-	uint32_t gpuParticleCount_ = 0;
+	//===== GPUモード設定 =====//
+	bool isGPUMode_ = false;                                    ///< GPUシミュレーションモードフラグ
+	uint32_t gpuSrvIndex_ = 0;                                  ///< GPUパーティクルバッファのSRVインデックス
+	uint32_t gpuParticleCount_ = 0;                             ///< GPUパーティクル数
 };

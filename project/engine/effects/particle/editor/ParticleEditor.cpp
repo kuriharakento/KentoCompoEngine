@@ -13,6 +13,8 @@
 #include "effects/particle/module/update/ForceFieldModules.h"
 #include "effects/particle/module/update/RibbonModules.h"
 #include "effects/particle/module/update/AdvancedModules.h"
+#include "effects/particle/module/update/BehaviorModules.h"
+#include "effects/particle/module/spawn/SubEmitterModule.h"
 #include "base/DirectXCommon.h"
 #include "manager/system/SrvManager.h"
 #include "manager/scene/CameraManager.h"
@@ -22,6 +24,7 @@
 #include "math/BlendMode.h"
 #include "time/TimeManager.h"
 #include <filesystem>
+#include <algorithm>
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
@@ -48,35 +51,22 @@ void ParticleEditor::Update(CameraManager* camera)
 #ifdef USE_IMGUI
 	if (!isVisible_) return;
 
-	// エフェクトの更新はParticleManagerが行うため、ここでは呼び出さない
-	/*
-	if (currentEffect_)
-	{
-		float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
-		currentEffect_->Update(deltaTime, camera);
-	}
-	*/
-
-	ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(400, 800), ImGuiCond_FirstUseEver);
 	ImGui::Begin("Particle Editor", &isVisible_, ImGuiWindowFlags_MenuBar);
 
 	DrawMenuBar();
 
-	// 左右分割
-	ImGui::Columns(2, "EditorColumns");
-	ImGui::SetColumnWidth(0, 300);
-
-	// 左側：エフェクト/エミッター設定
+	// 縦に並べる（1カラムレイアウト）
 	DrawEffectPanel();
 	DrawEmitterPanel();
+	
+	// エミッターが選択されていればモジュールとレンダラーを表示
+	if (selectedEmitterIndex_ >= 0)
+	{
+		DrawModulePanel();
+		DrawRendererPanel();
+	}
 
-	ImGui::NextColumn();
-
-	// 右側：モジュール/レンダラー設定
-	DrawModulePanel();
-	DrawRendererPanel();
-
-	ImGui::Columns(1);
 	ImGui::End();
 
 	// ダイアログ
@@ -91,11 +81,6 @@ void ParticleEditor::Update(CameraManager* camera)
 #else
 	(void)camera;
 #endif
-}
-
-void ParticleEditor::Draw()
-{
-	// 描画はParticleManagerが行うため、ここでは何もしない
 }
 
 void ParticleEditor::DrawDebug()
@@ -164,9 +149,18 @@ void ParticleEditor::DrawDebug()
 					lineManager->DrawLine({ end.x - sz, end.y, end.z }, { end.x + sz, end.y, end.z }, { 1.0f, 1.0f, 0.0f, 1.0f }); // 終点は黄色
 					lineManager->DrawLine({ end.x, end.y - sz, end.z }, { end.x, end.y + sz, end.z }, { 1.0f, 1.0f, 0.0f, 1.0f });
 				}
-				else if (type == SpawnShapeType::Sphere || type == SpawnShapeType::Circle)
+				else if (type == SpawnShapeType::Sphere)
 				{
-					// 円を描画（16セグメント）
+					// 球体を描画（DrawSphereを使用）
+					lineManager->DrawSphere(emitterPos, outerR, shapeColor);
+					if (innerR > 0)
+					{
+						lineManager->DrawSphere(emitterPos, innerR, { shapeColor.x, shapeColor.y, shapeColor.z, 0.5f });
+					}
+				}
+				else if (type == SpawnShapeType::Circle)
+				{
+					// 円を描画（XZ平面、16セグメント）
 					int segments = 16;
 					for (int s = 0; s < segments; ++s)
 					{
@@ -585,6 +579,86 @@ void ParticleEditor::DrawEmitterPanel()
 			ImGui::PopStyleColor();
 		}
 	}
+
+	// Emitter Settings
+	if (selectedEmitterIndex_ >= 0)
+	{
+		auto* emitter = currentEffect_->GetEmitter(static_cast<size_t>(selectedEmitterIndex_));
+		if (emitter && ImGui::CollapsingHeader("Emitter Settings", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			// Position
+			Vector3 pos = emitter->GetPosition();
+			if (ImGui::DragFloat3("Position", &pos.x, 0.1f))
+			{
+				emitter->SetPosition(pos);
+			}
+
+			// Max Particles
+			int maxP = static_cast<int>(emitter->GetMaxParticles());
+			if (ImGui::InputInt("Max Particles", &maxP))
+			{
+				emitter->SetMaxParticles(static_cast<uint32_t>((std::max)(100, maxP)));
+			}
+
+			// Follow Offset
+			Vector3 offset = emitter->GetFollowOffset();
+			if (ImGui::DragFloat3("Follow Offset##emitterSettings", &offset.x, 0.1f))
+			{
+				emitter->SetFollowOffset(offset);
+			}
+			ImGui::SetItemTooltip("Offset applied when following a target Transform or Emitter");
+
+			// Follow Emitter (同じエフェクト内の別エミッターを追従)
+			ImGui::Separator();
+			ImGui::Text("Follow Other Emitter:");
+			int followIdx = emitter->GetFollowEmitterIndex();
+			
+			// エミッターリストを作成（現在選択中のエミッター以外）
+			std::vector<const char*> emitterNames;
+			std::vector<int> emitterIndices;
+			emitterNames.push_back("None");
+			emitterIndices.push_back(-1);
+			
+			for (size_t i = 0; i < currentEffect_->GetEmitterCount(); ++i)
+			{
+				if (static_cast<int>(i) != selectedEmitterIndex_) // 自分自身は除外
+				{
+					auto* e = currentEffect_->GetEmitter(i);
+					if (e)
+					{
+						emitterNames.push_back(e->GetName().c_str());
+						emitterIndices.push_back(static_cast<int>(i));
+					}
+				}
+			}
+			
+			// 現在の選択を見つける
+			int currentSelection = 0;
+			for (size_t i = 0; i < emitterIndices.size(); ++i)
+			{
+				if (emitterIndices[i] == followIdx)
+				{
+					currentSelection = static_cast<int>(i);
+					break;
+				}
+			}
+			
+			if (ImGui::Combo("Follow Emitter##emitterSettings", &currentSelection, emitterNames.data(), 
+			                 static_cast<int>(emitterNames.size())))
+			{
+				emitter->SetFollowEmitterIndex(emitterIndices[currentSelection]);
+			}
+			ImGui::SetItemTooltip("Select another emitter to follow within this effect");
+
+			// Simulation Space
+			const char* spaces[] = { "World", "Local" };
+			int space = static_cast<int>(emitter->GetSimulationSpace());
+			if (ImGui::Combo("Simulation Space##emitterSettings", &space, spaces, 2))
+			{
+				emitter->SetSimulationSpace(static_cast<SimulationSpace>(space));
+			}
+		}
+	}
 }
 
 void ParticleEditor::DrawModulePanel()
@@ -594,51 +668,46 @@ void ParticleEditor::DrawModulePanel()
 	auto* emitter = currentEffect_->GetEmitter(static_cast<size_t>(selectedEmitterIndex_));
 	if (!emitter) return;
 
-	// エミッター基本設定
-	if (ImGui::CollapsingHeader("Emitter Settings", ImGuiTreeNodeFlags_DefaultOpen))
-	{
-		int maxParticles = static_cast<int>(emitter->GetMaxParticles());
-		if (ImGui::InputInt("Max Particles", &maxParticles))
-		{
-			emitter->SetMaxParticles(static_cast<uint32_t>((std::max)(1, maxParticles)));
-		}
+	// Active Particles表示（シンプルに）
+	ImGui::Text("Active Particles: %d", static_cast<int>(emitter->GetParticles().size()));
+	ImGui::Separator();
 
-		Vector3 pos = emitter->GetPosition();
-		if (ImGui::DragFloat3("Position", &pos.x, 0.1f))
-		{
-			emitter->SetPosition(pos);
-		}
-
-		// シミュレーションモード
-		const char* simModes[] = { "CPU", "GPU" };
-		int currentMode = static_cast<int>(emitter->GetSimulationMode());
-		if (ImGui::Combo("Simulation", &currentMode, simModes, 2))
-		{
-			emitter->SetSimulationMode(static_cast<SimulationMode>(currentMode));
-		}
-
-		ImGui::Text("Active Particles: %d", static_cast<int>(emitter->GetParticles().size()));
-	}
-
-	// モジュールリスト
+	// モジュールリスト（Spawn/Updateで分離）
 	if (ImGui::CollapsingHeader("Modules", ImGuiTreeNodeFlags_DefaultOpen))
 	{
+		int moduleToDelete = -1;
+
+		// Spawnモジュール
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 1.0f, 0.4f, 1.0f));
+		ImGui::SeparatorText("Spawn Modules");
+		ImGui::PopStyleColor();
+		
+		bool hasSpawnModules = false;
 		for (size_t i = 0; i < emitter->GetModuleCount(); ++i)
 		{
 			auto* module = emitter->GetModule(i);
-			if (!module) continue;
+			if (!module || module->GetPhase() != ModulePhase::Spawn) continue;
+			hasSpawnModules = true;
 
 			ImGui::PushID(static_cast<int>(i));
 
 			bool isSelected = (selectedModuleIndex_ == static_cast<int>(i));
-			const char* phaseName = module->GetPhase() == ModulePhase::Spawn ? "[Spawn]" : "[Update]";
-
+			
+			// 選択可能なモジュール名
 			char label[256];
-			snprintf(label, sizeof(label), "%s %s", phaseName, module->GetName());
-
-			if (ImGui::Selectable(label, isSelected))
+			snprintf(label, sizeof(label), "  %s", module->GetName());
+			
+			if (ImGui::Selectable(label, isSelected, ImGuiSelectableFlags_AllowItemOverlap))
 			{
-				selectedModuleIndex_ = static_cast<int>(i);
+				// 既に選択されている場合はトグルで閉じる
+				if (isSelected)
+				{
+					selectedModuleIndex_ = -1;
+				}
+				else
+				{
+					selectedModuleIndex_ = static_cast<int>(i);
+				}
 			}
 
 			// 右クリックコンテキストメニュー
@@ -647,26 +716,127 @@ void ParticleEditor::DrawModulePanel()
 				if (ImGui::MenuItem("Move Up") && i > 0) { emitter->MoveModuleUp(i); }
 				if (ImGui::MenuItem("Move Down") && i < emitter->GetModuleCount() - 1) { emitter->MoveModuleDown(i); }
 				ImGui::Separator();
-				if (ImGui::MenuItem("Delete")) { emitter->RemoveModule(i); selectedModuleIndex_ = -1; }
+				if (ImGui::MenuItem("Delete")) { moduleToDelete = static_cast<int>(i); }
 				ImGui::EndPopup();
+			}
+
+			// 削除ボタン（行の右端に配置）
+			ImGui::SameLine(ImGui::GetWindowWidth() - 40);
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.2f, 0.2f, 1.0f));
+			if (ImGui::SmallButton("X"))
+			{
+				moduleToDelete = static_cast<int>(i);
+			}
+			ImGui::PopStyleColor();
+
+			// 選択中のモジュールのプロパティをすぐ下に表示
+			if (isSelected)
+			{
+				ImGui::Indent(16.0f);
+				ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.2f, 0.15f, 1.0f));
+				ImGui::BeginChild("SpawnModuleProps", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Borders);
+				DrawModuleProperties(module);
+				ImGui::EndChild();
+				ImGui::PopStyleColor();
+				ImGui::Unindent(16.0f);
 			}
 
 			ImGui::PopID();
 		}
-
-		ImGui::Separator();
-		if (ImGui::Button("+ Add Module")) { showAddModuleDialog_ = true; }
-
-		// 選択中のモジュールのプロパティ編集
-		if (selectedModuleIndex_ >= 0)
+		if (!hasSpawnModules)
 		{
-			auto* selectedModule = emitter->GetModule(static_cast<size_t>(selectedModuleIndex_));
-			if (selectedModule)
+			ImGui::TextDisabled("  (No spawn modules)");
+		}
+
+		ImGui::Spacing();
+
+		// Updateモジュール
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.7f, 1.0f, 1.0f));
+		ImGui::SeparatorText("Update Modules");
+		ImGui::PopStyleColor();
+		
+		bool hasUpdateModules = false;
+		for (size_t i = 0; i < emitter->GetModuleCount(); ++i)
+		{
+			auto* module = emitter->GetModule(i);
+			if (!module || module->GetPhase() != ModulePhase::Update) continue;
+			hasUpdateModules = true;
+
+			ImGui::PushID(static_cast<int>(i) + 1000); // 別のIDを使用
+
+			bool isSelected = (selectedModuleIndex_ == static_cast<int>(i));
+			
+			char label[256];
+			snprintf(label, sizeof(label), "  %s", module->GetName());
+			
+			if (ImGui::Selectable(label, isSelected, ImGuiSelectableFlags_AllowItemOverlap))
 			{
+				// 既に選択されている場合はトグルで閉じる
+				if (isSelected)
+				{
+					selectedModuleIndex_ = -1;
+				}
+				else
+				{
+					selectedModuleIndex_ = static_cast<int>(i);
+				}
+			}
+
+			// 右クリックコンテキストメニュー
+			if (ImGui::BeginPopupContextItem())
+			{
+				if (ImGui::MenuItem("Move Up") && i > 0) { emitter->MoveModuleUp(i); }
+				if (ImGui::MenuItem("Move Down") && i < emitter->GetModuleCount() - 1) { emitter->MoveModuleDown(i); }
 				ImGui::Separator();
-				DrawModuleProperties(selectedModule);
+				if (ImGui::MenuItem("Delete")) { moduleToDelete = static_cast<int>(i); }
+				ImGui::EndPopup();
+			}
+
+			// 削除ボタン
+			ImGui::SameLine(ImGui::GetWindowWidth() - 40);
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.2f, 0.2f, 1.0f));
+			if (ImGui::SmallButton("X"))
+			{
+				moduleToDelete = static_cast<int>(i);
+			}
+			ImGui::PopStyleColor();
+
+			// 選択中のモジュールのプロパティをすぐ下に表示
+			if (isSelected)
+			{
+				ImGui::Indent(16.0f);
+				ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.15f, 0.2f, 1.0f));
+				ImGui::BeginChild("UpdateModuleProps", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Borders);
+				DrawModuleProperties(module);
+				ImGui::EndChild();
+				ImGui::PopStyleColor();
+				ImGui::Unindent(16.0f);
+			}
+
+			ImGui::PopID();
+		}
+		if (!hasUpdateModules)
+		{
+			ImGui::TextDisabled("  (No update modules)");
+		}
+
+		// 削除処理（ループ外で実行）
+		if (moduleToDelete >= 0)
+		{
+			emitter->RemoveModule(static_cast<size_t>(moduleToDelete));
+			if (selectedModuleIndex_ == moduleToDelete)
+			{
+				selectedModuleIndex_ = -1;
+			}
+			else if (selectedModuleIndex_ > moduleToDelete)
+			{
+				selectedModuleIndex_--;
 			}
 		}
+
+		ImGui::Spacing();
+		ImGui::Separator();
+		if (ImGui::Button("+ Add Module")) { showAddModuleDialog_ = true; }
 	}
 }
 
@@ -813,6 +983,21 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 			m->SetShapeType(static_cast<SpawnShapeType>(shape));
 		}
 
+		// SpawnLocation (Volume/Surface/Edge)
+		SpawnShapeType currentShape = m->GetShapeType();
+		if (currentShape == SpawnShapeType::Sphere || currentShape == SpawnShapeType::Circle || 
+		    currentShape == SpawnShapeType::Box)
+		{
+			const char* spawnLocations[] = { "Volume", "Surface", "Edge" };
+			int loc = static_cast<int>(m->GetSpawnLocation());
+			if (ImGui::Combo("Spawn Location", &loc, spawnLocations, 
+			    (currentShape == SpawnShapeType::Box) ? 3 : 2)) // Edge only for Box
+			{
+				m->SetSpawnLocation(static_cast<SpawnLocation>(loc));
+			}
+			ImGui::SetItemTooltip("Volume: Fill interior, Surface: Outer shell only, Edge: Box edges only");
+		}
+
 		float innerRadius = m->GetInnerRadius();
 		float outerRadius = m->GetOuterRadius();
 		if (ImGui::DragFloat("Inner Radius", &innerRadius, 0.1f, 0.0f, 100.0f)) { m->SetInnerRadius(innerRadius); }
@@ -868,6 +1053,204 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 		float maxSpeed = m->GetMaxSpeed();
 		if (ImGui::DragFloat("Max Speed", &maxSpeed, 0.1f, 0.0f, 100.0f)) { m->SetMaxSpeed(maxSpeed); }
 	}
+	// Phase 3: New modules
+	else if (auto* m = dynamic_cast<AccelerationModule*>(module))
+	{
+		Vector3 acc = m->GetAcceleration();
+		if (ImGui::DragFloat3("Acceleration", &acc.x, 0.1f)) { m->SetAcceleration(acc); }
+	}
+	else if (auto* m = dynamic_cast<CurlNoiseModule*>(module))
+	{
+		float strength = m->GetStrength();
+		if (ImGui::DragFloat("Strength", &strength, 0.1f, 0.0f, 50.0f)) { m->SetStrength(strength); }
+		
+		float frequency = m->GetFrequency();
+		if (ImGui::DragFloat("Frequency", &frequency, 0.1f, 0.01f, 10.0f)) { m->SetFrequency(frequency); }
+		
+		int octaves = m->GetOctaves();
+		if (ImGui::SliderInt("Octaves", &octaves, 1, 8)) { m->SetOctaves(octaves); }
+		
+		float scroll = m->GetScrollSpeed();
+		if (ImGui::DragFloat("Scroll Speed", &scroll, 0.1f, 0.0f, 10.0f)) { m->SetScrollSpeed(scroll); }
+	}
+	else if (auto* m = dynamic_cast<SizeBySpeedModule*>(module))
+	{
+		float minSpd = m->GetMinSpeed();
+		float maxSpd = m->GetMaxSpeed();
+		if (ImGui::DragFloat("Min Speed", &minSpd, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpd, maxSpd); }
+		if (ImGui::DragFloat("Max Speed", &maxSpd, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpd, maxSpd); }
+		
+		Vector3 minScale = m->GetMinScale();
+		Vector3 maxScale = m->GetMaxScale();
+		if (ImGui::DragFloat3("Min Scale", &minScale.x, 0.01f)) { m->SetScaleRange(minScale, maxScale); }
+		if (ImGui::DragFloat3("Max Scale", &maxScale.x, 0.01f)) { m->SetScaleRange(minScale, maxScale); }
+	}
+	else if (auto* m = dynamic_cast<ColorBySpeedModule*>(module))
+	{
+		float minSpd = m->GetMinSpeed();
+		float maxSpd = m->GetMaxSpeed();
+		if (ImGui::DragFloat("Min Speed", &minSpd, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpd, maxSpd); }
+		if (ImGui::DragFloat("Max Speed", &maxSpd, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpd, maxSpd); }
+		
+		Vector4 minColor = m->GetMinColor();
+		Vector4 maxColor = m->GetMaxColor();
+		if (ImGui::ColorEdit4("Min Color", &minColor.x)) { m->SetColorRange(minColor, maxColor); }
+		if (ImGui::ColorEdit4("Max Color", &maxColor.x)) { m->SetColorRange(minColor, maxColor); }
+	}
+	else if (auto* m = dynamic_cast<CollisionModule*>(module))
+	{
+		const char* modes[] = { "Plane", "World", "Box" };
+		int mode = static_cast<int>(m->GetMode());
+		if (ImGui::Combo("Mode", &mode, modes, 3)) { m->SetMode(static_cast<CollisionMode>(mode)); }
+		
+		float bounce = m->GetBounce();
+		if (ImGui::DragFloat("Bounce", &bounce, 0.01f, 0.0f, 1.0f)) { m->SetBounce(bounce); }
+		
+		float friction = m->GetFriction();
+		if (ImGui::DragFloat("Friction", &friction, 0.01f, 0.0f, 1.0f)) { m->SetFriction(friction); }
+		
+		if (m->GetMode() == CollisionMode::Plane || m->GetMode() == CollisionMode::World)
+		{
+			float height = m->GetPlaneHeight();
+			if (ImGui::DragFloat("Plane Height", &height, 0.1f)) { m->SetPlaneHeight(height); }
+		}
+		else if (m->GetMode() == CollisionMode::Box)
+		{
+			Vector3 center = m->GetBoxCenter();
+			Vector3 size = m->GetBoxSize();
+			if (ImGui::DragFloat3("Box Center", &center.x, 0.1f)) { m->SetBoxCenter(center); }
+			if (ImGui::DragFloat3("Box Size", &size.x, 0.1f)) { m->SetBoxSize(size); }
+		}
+		
+		bool killOnCol = m->GetKillOnCollision();
+		if (ImGui::Checkbox("Kill On Collision", &killOnCol)) { m->SetKillOnCollision(killOnCol); }
+	}
+	else if (auto* m = dynamic_cast<KillZoneModule*>(module))
+	{
+		const char* zoneTypes[] = { "Box", "Sphere" };
+		int zType = static_cast<int>(m->GetZoneType());
+		if (ImGui::Combo("Zone Type", &zType, zoneTypes, 2)) { m->SetZoneType(static_cast<KillZoneType>(zType)); }
+		
+		Vector3 center = m->GetCenter();
+		if (ImGui::DragFloat3("Center", &center.x, 0.1f)) { m->SetCenter(center); }
+		
+		if (m->GetZoneType() == KillZoneType::Box)
+		{
+			Vector3 size = m->GetBoxSize();
+			if (ImGui::DragFloat3("Size", &size.x, 0.1f)) { m->SetBoxSize(size); }
+		}
+		else
+		{
+			float radius = m->GetRadius();
+			if (ImGui::DragFloat("Radius", &radius, 0.1f, 0.0f, 100.0f)) { m->SetRadius(radius); }
+		}
+		
+		bool killInside = m->GetKillInside();
+		if (ImGui::Checkbox("Kill Inside", &killInside)) { m->SetKillInside(killInside); }
+		ImGui::SetItemTooltip("ON: Kill particles inside zone, OFF: Kill particles outside zone");
+	}
+	else if (auto* m = dynamic_cast<SprintToTargetModule*>(module))
+	{
+		Vector3 target = m->GetTarget();
+		if (ImGui::DragFloat3("Target", &target.x, 0.1f)) { m->SetTarget(target); }
+		
+		float acc = m->GetAcceleration();
+		if (ImGui::DragFloat("Acceleration", &acc, 0.1f, 0.0f, 50.0f)) { m->SetAcceleration(acc); }
+		
+		float arriveRad = m->GetArriveRadius();
+		if (ImGui::DragFloat("Arrive Radius", &arriveRad, 0.1f, 0.0f, 10.0f)) { m->SetArriveRadius(arriveRad); }
+		
+		bool killOnArrive = m->GetKillOnArrive();
+		if (ImGui::Checkbox("Kill On Arrive", &killOnArrive)) { m->SetKillOnArrive(killOnArrive); }
+		
+		bool useSpeedCurve = m->GetUseSpeedCurve();
+		if (ImGui::Checkbox("Use Speed Curve", &useSpeedCurve)) { m->SetUseSpeedCurve(useSpeedCurve); }
+		
+		if (useSpeedCurve)
+		{
+			float maxDist = m->GetMaxDistance();
+			if (ImGui::DragFloat("Max Distance", &maxDist, 0.1f, 1.0f, 100.0f)) { m->SetMaxDistance(maxDist); }
+			
+			float speedBoost = m->GetSpeedBoost();
+			if (ImGui::DragFloat("Speed Boost", &speedBoost, 0.1f, 0.0f, 10.0f)) { m->SetSpeedBoost(speedBoost); }
+		}
+	}
+	// Phase 4: Sub-Emitters
+	else if (auto* m = dynamic_cast<SubEmitterModule*>(module))
+	{
+		ImGui::Text("Sub Emitter Configurations: %d", static_cast<int>(m->GetConfigCount()));
+		
+		// 既存設定の編集
+		for (size_t i = 0; i < m->GetConfigCount(); ++i)
+		{
+			auto* config = m->GetConfig(i);
+			if (!config) continue;
+			
+			ImGui::PushID(static_cast<int>(i));
+			ImGui::Separator();
+			ImGui::Text("Config %d", static_cast<int>(i + 1));
+			
+			// Effect Path
+			static char pathBuffer[256];
+			strncpy_s(pathBuffer, config->effectPath.c_str(), sizeof(pathBuffer) - 1);
+			if (ImGui::InputText("Effect Path", pathBuffer, sizeof(pathBuffer)))
+			{
+				config->effectPath = pathBuffer;
+			}
+			ImGui::SetItemTooltip("Path to sub-effect JSON file");
+			
+			// Trigger
+			const char* triggers[] = { "OnSpawn", "OnDeath", "OnCollision", "Continuous" };
+			int trigger = static_cast<int>(config->trigger);
+			if (ImGui::Combo("Trigger", &trigger, triggers, 4))
+			{
+				config->trigger = static_cast<SubEmitterTrigger>(trigger);
+			}
+			
+			// Probability
+			if (ImGui::DragFloat("Probability", &config->probability, 0.01f, 0.0f, 1.0f))
+			{
+				config->probability = std::clamp(config->probability, 0.0f, 1.0f);
+			}
+			
+			// Continuous rate (only for Continuous trigger)
+			if (config->trigger == SubEmitterTrigger::Continuous)
+			{
+				ImGui::DragFloat("Rate (per sec)", &config->continuousRate, 0.1f, 0.1f, 100.0f);
+			}
+			
+			// Inheritance settings
+			ImGui::Checkbox("Inherit Position", &config->inheritPosition);
+			ImGui::Checkbox("Inherit Velocity", &config->inheritVelocity);
+			if (config->inheritVelocity)
+			{
+				ImGui::DragFloat("Velocity Scale", &config->inheritVelocityScale, 0.1f, 0.0f, 2.0f);
+			}
+			ImGui::Checkbox("Inherit Color", &config->inheritColor);
+			ImGui::Checkbox("Inherit Scale", &config->inheritScale);
+			
+			// Delete button
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.2f, 0.2f, 1.0f));
+			if (ImGui::Button("Delete Config"))
+			{
+				m->RemoveConfig(i);
+				ImGui::PopStyleColor();
+				ImGui::PopID();
+				break; // List changed, exit loop
+			}
+			ImGui::PopStyleColor();
+			
+			ImGui::PopID();
+		}
+		
+		ImGui::Separator();
+		if (ImGui::Button("+ Add Config"))
+		{
+			SubEmitterConfig newConfig;
+			newConfig.effectPath = "./Resources/json/particle/sub_effect.json";
+			m->AddConfig(newConfig);
+		}
+	}
 	else
 	{
 		ImGui::TextDisabled("(No properties available)");
@@ -881,7 +1264,11 @@ void ParticleEditor::DrawRendererPanel()
 	auto* emitter = currentEffect_->GetEmitter(static_cast<size_t>(selectedEmitterIndex_));
 	if (!emitter) return;
 
-	if (ImGui::CollapsingHeader("Renderer", ImGuiTreeNodeFlags_DefaultOpen))
+	ImGui::Spacing();
+	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.6f, 0.2f, 1.0f));
+	ImGui::SeparatorText("Renderer");
+	ImGui::PopStyleColor();
+	
 	{
 		auto* renderer = emitter->GetRenderer();
 		if (renderer)
@@ -1116,11 +1503,105 @@ void ParticleEditor::DrawRendererPanel()
 				ImGui::Separator();
 				ImGui::Text("Mesh Settings:");
 
-				const char* primitiveTypes[] = { "Plane", "Ring", "Cylinder", "Sphere", "Torus", "Star", "Heart", "Spiral", "Cone", "Cube" };
+				const char* primitiveTypes[] = { "Plane", "Sphere", "Cylinder", "Cone", "Ring", "Torus", "Cube", "Star", "Heart", "Spiral" };
 				int primType = static_cast<int>(meshRenderer->GetPrimitiveType());
+				PrimitiveOptions options = meshRenderer->GetOptions();
+				bool optionsChanged = false;
+
 				if (ImGui::Combo("Primitive", &primType, primitiveTypes, 10))
 				{
-					meshRenderer->SetPrimitive(static_cast<PrimitiveType>(primType));
+					meshRenderer->SetPrimitive(static_cast<PrimitiveType>(primType), options);
+				}
+
+				// プリミティブタイプに応じたオプションを表示
+				PrimitiveType currentType = static_cast<PrimitiveType>(primType);
+				
+				// Segments (共通)
+				if (currentType != PrimitiveType::Plane && currentType != PrimitiveType::Cube)
+				{
+					int segments = static_cast<int>(options.segments);
+					if (ImGui::SliderInt("Segments", &segments, 4, 64))
+					{
+						options.segments = static_cast<uint32_t>(segments);
+						optionsChanged = true;
+					}
+				}
+
+				// Rings (Sphere)
+				if (currentType == PrimitiveType::Sphere)
+				{
+					int rings = static_cast<int>(options.rings);
+					if (ImGui::SliderInt("Rings", &rings, 4, 32))
+					{
+						options.rings = static_cast<uint32_t>(rings);
+						optionsChanged = true;
+					}
+				}
+
+				// Inner/Outer Radius (Ring, Star, Torus)
+				if (currentType == PrimitiveType::Ring || currentType == PrimitiveType::Star)
+				{
+					if (ImGui::DragFloat("Inner Radius", &options.innerRadius, 0.01f, 0.0f, 1.0f))
+					{
+						optionsChanged = true;
+					}
+					if (ImGui::DragFloat("Outer Radius", &options.outerRadius, 0.01f, 0.1f, 2.0f))
+					{
+						optionsChanged = true;
+					}
+				}
+
+				// Tube Radius (Torus)
+				if (currentType == PrimitiveType::Torus)
+				{
+					if (ImGui::DragFloat("Tube Radius", &options.tubeRadius, 0.01f, 0.05f, 0.5f))
+					{
+						optionsChanged = true;
+					}
+				}
+
+				// Points (Star)
+				if (currentType == PrimitiveType::Star)
+				{
+					int points = static_cast<int>(options.points);
+					if (ImGui::SliderInt("Points", &points, 3, 12))
+					{
+						options.points = static_cast<uint32_t>(points);
+						optionsChanged = true;
+					}
+				}
+
+				// Turns (Spiral)
+				if (currentType == PrimitiveType::Spiral)
+				{
+					if (ImGui::DragFloat("Turns", &options.turns, 0.1f, 0.5f, 10.0f))
+					{
+						optionsChanged = true;
+					}
+				}
+
+				// Caps (Cylinder, Cone)
+				if (currentType == PrimitiveType::Cylinder || currentType == PrimitiveType::Cone)
+				{
+					if (ImGui::Checkbox("With Caps", &options.withCaps))
+					{
+						optionsChanged = true;
+					}
+				}
+
+				// Double Sided (Plane)
+				if (currentType == PrimitiveType::Plane)
+				{
+					if (ImGui::Checkbox("Double Sided", &options.doubleSided))
+					{
+						optionsChanged = true;
+					}
+				}
+
+				// オプション変更適用
+				if (optionsChanged)
+				{
+					meshRenderer->SetPrimitive(currentType, options);
 				}
 
 				float scale = meshRenderer->GetScale();
@@ -1134,6 +1615,13 @@ void ParticleEditor::DrawRendererPanel()
 				if (ImGui::Checkbox("Billboard", &useBillboard))
 				{
 					meshRenderer->SetBillboard(useBillboard);
+				}
+
+				// ティントカラー
+				Vector4 tintColor = meshRenderer->GetTintColor();
+				if (ImGui::ColorEdit4("Tint Color", &tintColor.x))
+				{
+					meshRenderer->SetTintColor(tintColor);
 				}
 
 				// TextureManagerから読み込み済みテクスチャを取得
@@ -1213,11 +1701,7 @@ void ParticleEditor::AddEmitterDialog()
 			renderer->Initialize("./Resources/uvChecker.png");
 			emitter->SetRenderer(std::move(renderer));
 
-			emitter->AddModule(std::make_unique<SpawnRateModule>(10.0f));
-			emitter->AddModule(std::make_unique<InitialLifetimeModule>(1.0f, 2.0f));
-			emitter->AddModule(std::make_unique<InitialVelocityModule>(Vector3{ -1, 1, -1 }, Vector3{ 1, 3, 1 }));
-			emitter->AddModule(std::make_unique<GravityModule>());
-			emitter->AddModule(std::make_unique<ColorFadeModule>());
+			// モジュールは手動で追加する（初期モジュールなし）
 
 			currentEffect_->AddEmitter(std::move(emitter));
 
@@ -1240,41 +1724,140 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 
 	if (ImGui::BeginPopupModal("Add Module", &showAddModuleDialog_, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		const char* moduleTypes[] = {
-			"Spawn Rate", "Spawn Burst", "Spawn Shape",
-			"Initial Lifetime", "Initial Velocity", "Initial Scale", "Initial Color", "Initial Rotation",
-			"Gravity", "Drag", "Color Fade", "Scale Over Lifetime", "Rotation Over Lifetime",
-			"Texture Sheet", "Attractor", "Vortex", "Orbit", "Noise", "Velocity Limit"
-		};
+		static int selectedCategory = 0; // 0=Spawn, 1=Update
+		ImGui::RadioButton("Spawn", &selectedCategory, 0);
+		ImGui::SameLine();
+		ImGui::RadioButton("Update", &selectedCategory, 1);
+		ImGui::Separator();
 
 		static int selectedModule = 0;
-		ImGui::Combo("Module Type", &selectedModule, moduleTypes, IM_ARRAYSIZE(moduleTypes));
 
-		if (ImGui::Button("Add"))
+		if (selectedCategory == 0)
 		{
-			switch (selectedModule)
+			// Spawn モジュール
+			const char* spawnModules[] = {
+				"Spawn Rate",
+				"Spawn Burst",
+				"Spawn Shape",
+				"Initial Lifetime",
+				"Initial Velocity",
+				"Initial Scale",
+				"Initial Color",
+				"Initial Rotation"
+			};
+			const char* spawnDescriptions[] = {
+				"Spawn particles at a constant rate",
+				"Spawn multiple particles at once at intervals",
+				"Spawn particles from shapes (Box, Sphere, Cone, etc.)",
+				"Set initial lifetime of particles",
+				"Set initial velocity and direction",
+				"Set initial size of particles",
+				"Set initial color (RGBA)",
+				"Set initial rotation angle"
+			};
+			
+			ImGui::Combo("Spawn Module", &selectedModule, spawnModules, IM_ARRAYSIZE(spawnModules));
+			
+			// 説明表示
+			ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s", 
+				(selectedModule >= 0 && selectedModule < IM_ARRAYSIZE(spawnDescriptions)) 
+				? spawnDescriptions[selectedModule] : "");
+
+			if (ImGui::Button("Add"))
 			{
-			case 0: emitter->AddModule(std::make_unique<SpawnRateModule>()); break;
-			case 1: emitter->AddModule(std::make_unique<SpawnBurstModule>()); break;
-			case 2: emitter->AddModule(std::make_unique<SpawnShapeModule>()); break;
-			case 3: emitter->AddModule(std::make_unique<InitialLifetimeModule>()); break;
-			case 4: emitter->AddModule(std::make_unique<InitialVelocityModule>()); break;
-			case 5: emitter->AddModule(std::make_unique<InitialScaleModule>()); break;
-			case 6: emitter->AddModule(std::make_unique<InitialColorModule>()); break;
-			case 7: emitter->AddModule(std::make_unique<InitialRotationModule>()); break;
-			case 8: emitter->AddModule(std::make_unique<GravityModule>()); break;
-			case 9: emitter->AddModule(std::make_unique<DragModule>()); break;
-			case 10: emitter->AddModule(std::make_unique<ColorFadeModule>()); break;
-			case 11: emitter->AddModule(std::make_unique<ScaleOverLifetimeModule>()); break;
-			case 12: emitter->AddModule(std::make_unique<RotationOverLifetimeModule>()); break;
-			case 13: emitter->AddModule(std::make_unique<TextureSheetModule>()); break;
-			case 14: emitter->AddModule(std::make_unique<AttractorModule>()); break;
-			case 15: emitter->AddModule(std::make_unique<VortexModule>()); break;
-			case 16: emitter->AddModule(std::make_unique<OrbitModule>()); break;
-			case 17: emitter->AddModule(std::make_unique<NoiseModule>()); break;
-			case 18: emitter->AddModule(std::make_unique<VelocityLimitModule>()); break;
+				switch (selectedModule)
+				{
+				case 0: emitter->AddModule(std::make_unique<SpawnRateModule>()); break;
+				case 1: emitter->AddModule(std::make_unique<SpawnBurstModule>()); break;
+				case 2: emitter->AddModule(std::make_unique<SpawnShapeModule>()); break;
+				case 3: emitter->AddModule(std::make_unique<InitialLifetimeModule>()); break;
+				case 4: emitter->AddModule(std::make_unique<InitialVelocityModule>()); break;
+				case 5: emitter->AddModule(std::make_unique<InitialScaleModule>()); break;
+				case 6: emitter->AddModule(std::make_unique<InitialColorModule>()); break;
+				case 7: emitter->AddModule(std::make_unique<InitialRotationModule>()); break;
+				}
+				showAddModuleDialog_ = false;
 			}
-			showAddModuleDialog_ = false;
+		}
+		else
+		{
+			// Update モジュール
+			const char* updateModules[] = {
+				"Gravity",
+				"Drag",
+				"Color Fade",
+				"Scale Over Lifetime",
+				"Rotation Over Lifetime",
+				"Texture Sheet",
+				"Attractor",
+				"Vortex",
+				"Orbit",
+				"Noise",
+				"Velocity Limit",
+				"Acceleration",
+				"Curl Noise",
+				"Size By Speed",
+				"Color By Speed",
+				"Collision",
+				"Kill Zone",
+				"Sprint To Target",
+				"Sub Emitter"
+			};
+			const char* updateDescriptions[] = {
+				"Apply gravity (downward Y-axis)",
+				"Apply air resistance to slow particles",
+				"Fade color over lifetime",
+				"Change scale over lifetime",
+				"Rotate over lifetime",
+				"UV animation for sprite sheets",
+				"Attract/repel to a point",
+				"Swirl particles in a vortex",
+				"Orbit around a center point",
+				"Add random noise movement",
+				"Limit maximum speed",
+				"Apply constant acceleration",
+				"Add turbulence with 3D curl noise",
+				"Change size based on speed",
+				"Change color based on speed",
+				"Collide and bounce off planes/boxes",
+				"Kill particles inside/outside a zone",
+				"Accelerate toward a target position",
+				"Spawn sub-effects on particle events"
+			};
+			
+			ImGui::Combo("Update Module", &selectedModule, updateModules, IM_ARRAYSIZE(updateModules));
+			
+			// 説明表示
+			ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s",
+				(selectedModule >= 0 && selectedModule < IM_ARRAYSIZE(updateDescriptions))
+				? updateDescriptions[selectedModule] : "");
+
+			if (ImGui::Button("Add"))
+			{
+				switch (selectedModule)
+				{
+				case 0: emitter->AddModule(std::make_unique<GravityModule>()); break;
+				case 1: emitter->AddModule(std::make_unique<DragModule>()); break;
+				case 2: emitter->AddModule(std::make_unique<ColorFadeModule>()); break;
+				case 3: emitter->AddModule(std::make_unique<ScaleOverLifetimeModule>()); break;
+				case 4: emitter->AddModule(std::make_unique<RotationOverLifetimeModule>()); break;
+				case 5: emitter->AddModule(std::make_unique<TextureSheetModule>()); break;
+				case 6: emitter->AddModule(std::make_unique<AttractorModule>()); break;
+				case 7: emitter->AddModule(std::make_unique<VortexModule>()); break;
+				case 8: emitter->AddModule(std::make_unique<OrbitModule>()); break;
+				case 9: emitter->AddModule(std::make_unique<NoiseModule>()); break;
+				case 10: emitter->AddModule(std::make_unique<VelocityLimitModule>()); break;
+				case 11: emitter->AddModule(std::make_unique<AccelerationModule>()); break;
+				case 12: emitter->AddModule(std::make_unique<CurlNoiseModule>()); break;
+				case 13: emitter->AddModule(std::make_unique<SizeBySpeedModule>()); break;
+				case 14: emitter->AddModule(std::make_unique<ColorBySpeedModule>()); break;
+				case 15: emitter->AddModule(std::make_unique<CollisionModule>()); break;
+				case 16: emitter->AddModule(std::make_unique<KillZoneModule>()); break;
+				case 17: emitter->AddModule(std::make_unique<SprintToTargetModule>()); break;
+				case 18: emitter->AddModule(std::make_unique<SubEmitterModule>()); break;
+				}
+				showAddModuleDialog_ = false;
+			}
 		}
 
 		ImGui::SameLine();

@@ -1,5 +1,13 @@
 #pragma once
+/**
+ * @file UpdateModules.h
+ * @brief 基本的なパーティクル更新モジュール
+ * 
+ * 重力、ドラッグ、カラーフェード、スケール変化などの
+ * 標準的なパーティクル更新処理。
+ */
 #include "effects/particle/module/IModule.h"
+#include "effects/particle/module/ModulePriorities.h"
 #include "effects/particle/ParticleEmitter.h"
 #include "math/Vector3.h"
 
@@ -25,7 +33,7 @@ public:
 
 	ModulePhase GetPhase() const override { return ModulePhase::Update; }
 	const char* GetName() const override { return "Gravity"; }
-	int32_t GetPriority() const override { return -50; } // 物理系は早めに
+	int32_t GetPriority() const override { return ParticleModulePriority::kGravity; }
 
 	void SetGravity(const Vector3& gravity) { gravity_ = gravity; }
 	Vector3 GetGravity() const { return gravity_; }
@@ -56,7 +64,7 @@ public:
 
 	ModulePhase GetPhase() const override { return ModulePhase::Update; }
 	const char* GetName() const override { return "Drag"; }
-	int32_t GetPriority() const override { return -40; }
+	int32_t GetPriority() const override { return ParticleModulePriority::kDrag; }
 
 	void SetDrag(float drag) { drag_ = drag; }
 	float GetDrag() const { return drag_; }
@@ -101,7 +109,7 @@ public:
 
 	ModulePhase GetPhase() const override { return ModulePhase::Update; }
 	const char* GetName() const override { return "ColorFade"; }
-	int32_t GetPriority() const override { return 50; } // 外観系は後で
+	int32_t GetPriority() const override { return ParticleModulePriority::kColorFade; }
 
 	void SetColors(const Vector4& start, const Vector4& end) { startColor_ = start; endColor_ = end; }
 	void SetStartColor(const Vector4& c) { startColor_ = c; }
@@ -143,7 +151,7 @@ public:
 
 	ModulePhase GetPhase() const override { return ModulePhase::Update; }
 	const char* GetName() const override { return "ScaleOverLifetime"; }
-	int32_t GetPriority() const override { return 40; }
+	int32_t GetPriority() const override { return ParticleModulePriority::kScaleOverLifetime; }
 
 	void SetScales(const Vector3& start, const Vector3& end) { startScale_ = start; endScale_ = end; }
 	void SetStartScale(const Vector3& s) { startScale_ = s; }

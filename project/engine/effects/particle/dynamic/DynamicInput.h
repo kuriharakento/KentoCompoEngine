@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file DynamicInput.h
+ * @brief 動的入力システム
+ * 
+ * アニメーションカーブ、カラーグラデーション、ランダム範囲など
+ * 時間やランダム性に基づく動的な値入力を提供。
+ */
 #include "math/Vector3.h"
 #include "math/Vector4.h"
 #include <vector>
