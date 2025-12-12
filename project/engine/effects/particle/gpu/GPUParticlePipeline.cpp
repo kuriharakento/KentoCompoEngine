@@ -29,17 +29,17 @@ GPUParticlePipeline* GPUParticlePipeline::GetInstance()
 
 void GPUParticlePipeline::Initialize(DirectXCommon* dxCommon)
 {
-	// 既に初期化済みの場合は処理をスキップ
+	// 既に初期化済みの場合は何もしない
 	if (pipelineState_) return;
 
 	dxCommon_ = dxCommon;
-	
-	// シミュレーション用パイプラインの構築
+
+	// シミュレーション用パイプラインを構築
 	CreateRootSignature();
 	CompileShader();
 	CreatePipelineState();
 
-	// コンバーター用パイプラインの構築
+	// レンダリング変換用パイプラインを構築
 	CreateConverterRootSignature();
 	CompileConverterShader();
 	CreateConverterPipelineState();
@@ -47,17 +47,17 @@ void GPUParticlePipeline::Initialize(DirectXCommon* dxCommon)
 
 void GPUParticlePipeline::Finalize()
 {
-	// シミュレーション用リソースの解放
+	// シミュレーション用リソースを解放
 	pipelineState_.Reset();
 	rootSignature_.Reset();
 	shaderBlob_.Reset();
 
-	// コンバーター用リソースの解放
+	// レンダリング変換用リソースを解放
 	converterPipelineState_.Reset();
 	converterRootSignature_.Reset();
 	converterShaderBlob_.Reset();
 
-	// シングルトンインスタンスの削除
+	// シングルトンインスタンスを削除
 	delete instance_;
 	instance_ = nullptr;
 }
@@ -66,7 +66,7 @@ void GPUParticlePipeline::CreateRootSignature()
 {
 	auto* device = dxCommon_->GetDevice();
 
-	// UAVレンジの設定（パーティクルバッファ）
+	// UAVディスクリプタレンジを定義（パーティクルバッファ用）
 	D3D12_DESCRIPTOR_RANGE uavRange{};
 	uavRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
 	uavRange.NumDescriptors = kSimulationDescriptorRangeCount;
@@ -74,21 +74,22 @@ void GPUParticlePipeline::CreateRootSignature()
 	uavRange.RegisterSpace = 0;
 	uavRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-	D3D12_ROOT_PARAMETER rootParams[kSimulationRootParamCount]{};
+	// ルートパラメータを定義（CBV + UAV）
+	D3D12_ROOT_PARAMETER rootParams[2]{};
 
-	// CBV（定数バッファ b0）
+	// ルートパラメータ0: 定数バッファ（シミュレーションパラメータ）
 	rootParams[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParams[0].Descriptor.ShaderRegister = 0;
 	rootParams[0].Descriptor.RegisterSpace = 0;
 	rootParams[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
-	// UAV（パーティクルバッファ u0）
+	// ルートパラメータ1: UAVディスクリプタテーブル（パーティクルバッファ）
 	rootParams[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 	rootParams[1].DescriptorTable.NumDescriptorRanges = kSimulationDescriptorRangeCount;
 	rootParams[1].DescriptorTable.pDescriptorRanges = &uavRange;
 	rootParams[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
-	// ルートシグネチャデスクの構築
+	// ルートシグネチャをシリアライズして作成
 	D3D12_ROOT_SIGNATURE_DESC desc{};
 	desc.NumParameters = kSimulationRootParamCount;
 	desc.pParameters = rootParams;
@@ -110,13 +111,13 @@ void GPUParticlePipeline::CompileShader()
 {
 	Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
 
-	// デバッグビルドではシェーダーのデバッグ情報を含める
+	// デバッグビルド時のみデバッグ情報を含める
 	UINT compileFlags = 0;
 #ifdef _DEBUG
 	compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
-	// パーティクルシミュレーション用コンピュートシェーダーをコンパイル
+	// コンピュートシェーダーをコンパイル
 	HRESULT hr = D3DCompileFromFile(
 		L"Resources/shaders/ParticleCompute.hlsl",
 		nullptr,
@@ -129,7 +130,7 @@ void GPUParticlePipeline::CompileShader()
 		&errorBlob
 	);
 
-	// コンパイルエラー時はデバッグ出力
+	// コンパイルエラーの場合はログ出力
 	if (FAILED(hr))
 	{
 		if (errorBlob)
@@ -141,12 +142,12 @@ void GPUParticlePipeline::CompileShader()
 
 void GPUParticlePipeline::CreatePipelineState()
 {
-	// シェーダーまたはルートシグネチャが未作成の場合は処理をスキップ
+	// シェーダーまたはルートシグネチャが無効な場合は作成しない
 	if (!shaderBlob_ || !rootSignature_) return;
 
 	auto* device = dxCommon_->GetDevice();
 
-	// コンピュートパイプラインステートデスクの構築
+	// コンピュートパイプラインステートを設定
 	D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
 	psoDesc.pRootSignature = rootSignature_.Get();
 	psoDesc.CS.pShaderBytecode = shaderBlob_->GetBufferPointer();
@@ -156,7 +157,7 @@ void GPUParticlePipeline::CreatePipelineState()
 	psoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
 	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
-	// パイプラインステートの作成
+	// パイプラインステートオブジェクトを作成
 	HRESULT hr = device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState_));
 	if (FAILED(hr))
 	{
@@ -168,13 +169,13 @@ void GPUParticlePipeline::CompileConverterShader()
 {
 	Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
 
-	// デバッグビルドではシェーダーのデバッグ情報を含める
+	// デバッグビルド時のみデバッグ情報を含める
 	UINT compileFlags = 0;
 #ifdef _DEBUG
 	compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
-	// パーティクル変換用コンピュートシェーダーをコンパイル
+	// パーティクル→レンダリングデータ変換用コンピュートシェーダーをコンパイル
 	HRESULT hr = D3DCompileFromFile(
 		L"Resources/shaders/ParticleConvert.CS.hlsl",
 		nullptr,
@@ -187,7 +188,7 @@ void GPUParticlePipeline::CompileConverterShader()
 		&errorBlob
 	);
 
-	// コンパイルエラー時はデバッグ出力
+	// コンパイルエラーの場合はログ出力
 	if (FAILED(hr))
 	{
 		if (errorBlob)
@@ -201,50 +202,51 @@ void GPUParticlePipeline::CreateConverterRootSignature()
 {
 	auto* device = dxCommon_->GetDevice();
 
-	// デスクリプタレンジの設定（入力SRVと出力UAV）
-	D3D12_DESCRIPTOR_RANGE ranges[kConverterDescriptorRangeCount]{};
-	
-	// SRV (Input) t0 - パーティクルバッファ読み取り用
+	// ディスクリプタレンジを定義（入力SRVと出力UAV）
+	D3D12_DESCRIPTOR_RANGE ranges[2]{};
+
+	// 入力: パーティクルバッファ（SRV t0）
 	ranges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	ranges[0].NumDescriptors = 1;
 	ranges[0].BaseShaderRegister = 0;
 	ranges[0].RegisterSpace = 0;
 	ranges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-	// UAV (Output) u0 - レンダリングバッファ書き込み用
+	// 出力: レンダリング用バッファ（UAV u0）
 	ranges[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
 	ranges[1].NumDescriptors = 1;
 	ranges[1].BaseShaderRegister = 0;
 	ranges[1].RegisterSpace = 0;
 	ranges[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-	D3D12_ROOT_PARAMETER rootParams[kConverterRootParamCount]{};
+	// ルートパラメータを定義（CBV×2 + SRV + UAV）
+	D3D12_ROOT_PARAMETER rootParams[4]{};
 
-	// CBV (Constants) b0 - パーティクル定数バッファ
+	// ルートパラメータ0: 定数バッファ（パーティクルパラメータ b0）
 	rootParams[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParams[0].Descriptor.ShaderRegister = 0;
 	rootParams[0].Descriptor.RegisterSpace = 0;
 	rootParams[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
-	// CBV (Camera) b1 - カメラ定数バッファ
+	// ルートパラメータ1: 定数バッファ（カメラ情報 b1）
 	rootParams[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParams[1].Descriptor.ShaderRegister = 1;
 	rootParams[1].Descriptor.RegisterSpace = 0;
 	rootParams[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
-	// SRV Table (Input) - パーティクルバッファ
+	// ルートパラメータ2: SRVディスクリプタテーブル（入力バッファ）
 	rootParams[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 	rootParams[2].DescriptorTable.NumDescriptorRanges = 1;
 	rootParams[2].DescriptorTable.pDescriptorRanges = &ranges[0];
 	rootParams[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
-	// UAV Table (Output) - レンダリングバッファ
+	// ルートパラメータ3: UAVディスクリプタテーブル（出力バッファ）
 	rootParams[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 	rootParams[3].DescriptorTable.NumDescriptorRanges = 1;
 	rootParams[3].DescriptorTable.pDescriptorRanges = &ranges[1];
 	rootParams[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
-	// ルートシグネチャデスクの構築
+	// ルートシグネチャをシリアライズして作成
 	D3D12_ROOT_SIGNATURE_DESC desc{};
 	desc.NumParameters = kConverterRootParamCount;
 	desc.pParameters = rootParams;
@@ -262,12 +264,12 @@ void GPUParticlePipeline::CreateConverterRootSignature()
 
 void GPUParticlePipeline::CreateConverterPipelineState()
 {
-	// シェーダーまたはルートシグネチャが未作成の場合は処理をスキップ
+	// シェーダーまたはルートシグネチャが無効な場合は作成しない
 	if (!converterShaderBlob_ || !converterRootSignature_) return;
 
 	auto* device = dxCommon_->GetDevice();
 
-	// コンピュートパイプラインステートデスクの構築
+	// コンバーター用コンピュートパイプラインステートを設定
 	D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
 	psoDesc.pRootSignature = converterRootSignature_.Get();
 	psoDesc.CS.pShaderBytecode = converterShaderBlob_->GetBufferPointer();
@@ -277,7 +279,7 @@ void GPUParticlePipeline::CreateConverterPipelineState()
 	psoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
 	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
-	// パイプラインステートの作成
+	// パイプラインステートオブジェクトを作成
 	HRESULT hr = device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&converterPipelineState_));
 	if (FAILED(hr))
 	{

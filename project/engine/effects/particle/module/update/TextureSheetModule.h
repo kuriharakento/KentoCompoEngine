@@ -37,6 +37,10 @@ public:
 		totalFrames_ = columns_ * rows_;
 	}
 
+	/**
+	 * @brief モジュール実行（フレームインデックス更新）
+	 * @param context パーティクルコンテキスト
+	 */
 	void Execute(ParticleContext& context) override
 	{
 		for (auto& particle : *context.particles)
@@ -81,8 +85,8 @@ public:
 
 	/**
 	 * @brief グリッドサイズを設定
-	 * @param columns 列数
-	 * @param rows 行数
+	 * @param columns 列数（横方向のフレーム数）
+	 * @param rows 行数（縦方向のフレーム数）
 	 */
 	void SetGridSize(uint32_t columns, uint32_t rows)
 	{
@@ -93,46 +97,48 @@ public:
 
 	/**
 	 * @brief フレームレートを設定
-	 * @param fps フレームレート
+	 * @param fps フレームレート（1秒あたりのフレーム数）
 	 */
 	void SetFrameRate(float fps) { frameRate_ = fps; }
-	
+
 	/**
 	 * @brief 再生モードを設定
 	 * @param mode 再生モード
 	 */
 	void SetPlayMode(TextureSheetPlayMode mode) { playMode_ = mode; }
-	
+
 	/**
 	 * @brief 開始フレームを設定
-	 * @param frame 開始フレーム番号
+	 * @param frame 開始フレームインデックス
 	 */
 	void SetStartFrame(uint32_t frame) { startFrame_ = frame; }
 
+	//===== 取得 =====//
+
 	/**
-	 * @brief グリッド列数を取得
+	 * @brief 列数を取得
 	 * @return 列数
 	 */
 	uint32_t GetColumns() const { return columns_; }
-	
+
 	/**
-	 * @brief グリッド行数を取得
+	 * @brief 行数を取得
 	 * @return 行数
 	 */
 	uint32_t GetRows() const { return rows_; }
-	
+
 	/**
 	 * @brief 総フレーム数を取得
 	 * @return 総フレーム数
 	 */
 	uint32_t GetTotalFrames() const { return totalFrames_; }
-	
+
 	/**
 	 * @brief フレームレートを取得
 	 * @return フレームレート
 	 */
 	float GetFrameRate() const { return frameRate_; }
-	
+
 	/**
 	 * @brief 再生モードを取得
 	 * @return 再生モード

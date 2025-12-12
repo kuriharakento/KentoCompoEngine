@@ -67,17 +67,19 @@ PrimitiveMesh PrimitiveGenerator::GenerateSphere(uint32_t segments, uint32_t rin
 {
 	PrimitiveMesh mesh;
 
+	// 頂点生成: 球面座標系で位置・法線・UVを計算
 	for (uint32_t y = 0; y <= rings; ++y)
 	{
 		float v = static_cast<float>(y) / rings;
-		float phi = v * kPi;
+		float phi = v * kPi;  // 垂直角（0～π）
 
 		for (uint32_t x = 0; x <= segments; ++x)
 		{
 			float u = static_cast<float>(x) / segments;
-			float theta = u * kTwoPi;
+			float theta = u * kTwoPi;  // 水平角（0～2π）
 
 		PrimitiveVertex vertex;
+			// 球面座標→直交座標変換（半径0.5）
 			vertex.position.x = std::sin(phi) * std::cos(theta) * 0.5f;
 			vertex.position.y = std::cos(phi) * 0.5f;
 			vertex.position.z = std::sin(phi) * std::sin(theta) * 0.5f;
@@ -85,6 +87,7 @@ PrimitiveMesh PrimitiveGenerator::GenerateSphere(uint32_t segments, uint32_t rin
 
 			vertex.texcoord = { u, v };
 
+			// 法線は球の中心から外向き（正規化済み）
 			vertex.normal.x = std::sin(phi) * std::cos(theta);
 			vertex.normal.y = std::cos(phi);
 			vertex.normal.z = std::sin(phi) * std::sin(theta);
@@ -93,6 +96,7 @@ PrimitiveMesh PrimitiveGenerator::GenerateSphere(uint32_t segments, uint32_t rin
 		}
 	}
 
+	// インデックス生成: 四角形を2つの三角形に分割
 	for (uint32_t y = 0; y < rings; ++y)
 	{
 		for (uint32_t x = 0; x < segments; ++x)
@@ -100,10 +104,12 @@ PrimitiveMesh PrimitiveGenerator::GenerateSphere(uint32_t segments, uint32_t rin
 			uint32_t current = y * (segments + 1) + x;
 			uint32_t next = current + segments + 1;
 
+			// 下三角形
 			mesh.indices.push_back(current);
 			mesh.indices.push_back(next);
 			mesh.indices.push_back(current + 1);
 
+			// 上三角形
 			mesh.indices.push_back(current + 1);
 			mesh.indices.push_back(next);
 			mesh.indices.push_back(next + 1);
@@ -119,7 +125,7 @@ PrimitiveMesh PrimitiveGenerator::GenerateCylinder(uint32_t segments, bool withC
 	float halfHeight = 0.5f;
 	float radius = 0.5f;
 
-	// 側面
+	// 側面の頂点生成: 各セグメントで上下2つの頂点を生成
 	for (uint32_t i = 0; i <= segments; ++i)
 	{
 		float u = static_cast<float>(i) / segments;
@@ -127,13 +133,13 @@ PrimitiveMesh PrimitiveGenerator::GenerateCylinder(uint32_t segments, bool withC
 		float x = std::cos(theta) * radius;
 		float z = std::sin(theta) * radius;
 
-		// 下端 (position, texcoord, normal)
+		// 下端の頂点
 		mesh.vertices.push_back({{ x, -halfHeight, z, 1.0f }, { u, 1 }, { std::cos(theta), 0, std::sin(theta) }});
-		// 上端
+		// 上端の頂点
 		mesh.vertices.push_back({{ x,  halfHeight, z, 1.0f }, { u, 0 }, { std::cos(theta), 0, std::sin(theta) }});
 	}
 
-	// 側面インデックス
+	// 側面のインデックス生成: 四角形を2つの三角形に分割
 	for (uint32_t i = 0; i < segments; ++i)
 	{
 		uint32_t base = i * 2;
@@ -146,18 +152,18 @@ PrimitiveMesh PrimitiveGenerator::GenerateCylinder(uint32_t segments, bool withC
 		mesh.indices.push_back(base + 2);
 	}
 
-	// 蓋
+	// 上下の蓋を生成
 	if (withCaps)
 	{
-		// 上面の中心
+		// 上面の中心頂点
 		uint32_t topCenterIndex = static_cast<uint32_t>(mesh.vertices.size());
 		mesh.vertices.push_back({{ 0,  halfHeight, 0, 1.0f }, { 0.5f, 0.5f }, { 0, 1, 0 }});
 
-		// 下面の中心
+		// 下面の中心頂点
 		uint32_t bottomCenterIndex = static_cast<uint32_t>(mesh.vertices.size());
 		mesh.vertices.push_back({{ 0, -halfHeight, 0, 1.0f }, { 0.5f, 0.5f }, { 0, -1, 0 }});
 
-		// 蓋の頂点
+		// 蓋用の頂点（法線が上下を向く）
 		uint32_t capStartIndex = static_cast<uint32_t>(mesh.vertices.size());
 		for (uint32_t i = 0; i <= segments; ++i)
 		{
@@ -166,21 +172,21 @@ PrimitiveMesh PrimitiveGenerator::GenerateCylinder(uint32_t segments, bool withC
 			float x = std::cos(theta) * radius;
 			float z = std::sin(theta) * radius;
 
-			// 上蓋
+			// 上蓋の頂点
 			mesh.vertices.push_back({{ x,  halfHeight, z, 1.0f }, { x + 0.5f, z + 0.5f }, { 0, 1, 0 }});
-			// 下蓋
+			// 下蓋の頂点
 			mesh.vertices.push_back({{ x, -halfHeight, z, 1.0f }, { x + 0.5f, z + 0.5f }, { 0, -1, 0 }});
 		}
 
-		// 蓋インデックス
+		// 蓋のインデックス生成: 扇形に三角形を配置
 		for (uint32_t i = 0; i < segments; ++i)
 		{
-			// 上蓋
+			// 上蓋の三角形
 			mesh.indices.push_back(topCenterIndex);
 			mesh.indices.push_back(capStartIndex + i * 2);
 			mesh.indices.push_back(capStartIndex + (i + 1) * 2);
 
-			// 下蓋
+			// 下蓋の三角形（巻き順反転）
 			mesh.indices.push_back(bottomCenterIndex);
 			mesh.indices.push_back(capStartIndex + (i + 1) * 2 + 1);
 			mesh.indices.push_back(capStartIndex + i * 2 + 1);
@@ -196,11 +202,11 @@ PrimitiveMesh PrimitiveGenerator::GenerateCone(uint32_t segments, bool withCap)
 	float height = 1.0f;
 	float radius = 0.5f;
 
-	// 頂点 (position, texcoord, normal)
+	// 頂点（円錐の先端）
 	uint32_t tipIndex = 0;
 	mesh.vertices.push_back({{ 0, height * 0.5f, 0, 1.0f }, { 0.5f, 0 }, { 0, 1, 0 }});
 
-	// 底面の頂点
+	// 底面の円周上の頂点を生成
 	for (uint32_t i = 0; i <= segments; ++i)
 	{
 		float u = static_cast<float>(i) / segments;
@@ -208,6 +214,7 @@ PrimitiveMesh PrimitiveGenerator::GenerateCone(uint32_t segments, bool withCap)
 		float x = std::cos(theta) * radius;
 		float z = std::sin(theta) * radius;
 
+		// 円錐の側面法線を計算（傾斜を考慮）
 		float ny = radius / height;
 		float nxz = 1.0f / std::sqrt(1 + ny * ny);
 		ny *= nxz;
@@ -215,7 +222,7 @@ PrimitiveMesh PrimitiveGenerator::GenerateCone(uint32_t segments, bool withCap)
 		mesh.vertices.push_back({{ x, -height * 0.5f, z, 1.0f }, { u, 1 }, { std::cos(theta) * nxz, ny, std::sin(theta) * nxz }});
 	}
 
-	// 側面インデックス
+	// 側面のインデックス生成: 頂点から各底面頂点へ三角形を生成
 	for (uint32_t i = 0; i < segments; ++i)
 	{
 		mesh.indices.push_back(tipIndex);
@@ -223,12 +230,14 @@ PrimitiveMesh PrimitiveGenerator::GenerateCone(uint32_t segments, bool withCap)
 		mesh.indices.push_back(1 + i);
 	}
 
-	// 底面
+	// 底面の蓋を生成
 	if (withCap)
 	{
+		// 底面の中心頂点
 		uint32_t bottomCenterIndex = static_cast<uint32_t>(mesh.vertices.size());
 		mesh.vertices.push_back({{ 0, -height * 0.5f, 0, 1.0f }, { 0.5f, 0.5f }, { 0, -1, 0 }});
 
+		// 底面の三角形インデックス（扇形配置）
 		for (uint32_t i = 0; i < segments; ++i)
 		{
 			mesh.indices.push_back(bottomCenterIndex);

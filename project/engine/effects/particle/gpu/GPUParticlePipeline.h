@@ -23,47 +23,47 @@ class GPUParticlePipeline
 public:
 	/**
 	 * @brief シングルトンインスタンスを取得
-	 * @return GPUParticlePipelineインスタンス
+	 * @return GPUParticlePipelineのインスタンス
 	 */
 	static GPUParticlePipeline* GetInstance();
 
 	/**
-	 * @brief パイプラインを初期化
-	 * @param dxCommon DirectXCommonインスタンス
+	 * @brief 初期化
+	 * @param dxCommon DirectXCommonポインタ
 	 */
 	void Initialize(DirectXCommon* dxCommon);
-	
+
 	/**
-	 * @brief パイプラインを終了・解放
+	 * @brief 終了処理
 	 */
 	void Finalize();
 
 	/**
 	 * @brief ルートシグネチャを取得
-	 * @return ルートシグネチャポインタ
+	 * @return ルートシグネチャ
 	 */
 	ID3D12RootSignature* GetRootSignature() const { return rootSignature_.Get(); }
-	
+
 	/**
 	 * @brief パイプラインステートを取得
-	 * @return パイプラインステートポインタ
+	 * @return パイプラインステート
 	 */
 	ID3D12PipelineState* GetPipelineState() const { return pipelineState_.Get(); }
-	
+
 	/**
 	 * @brief コンバーター用ルートシグネチャを取得
-	 * @return ルートシグネチャポインタ
+	 * @return コンバーター用ルートシグネチャ
 	 */
 	ID3D12RootSignature* GetConverterRootSignature() const { return converterRootSignature_.Get(); }
-	
+
 	/**
 	 * @brief コンバーター用パイプラインステートを取得
-	 * @return パイプラインステートポインタ
+	 * @return コンバーター用パイプラインステート
 	 */
 	ID3D12PipelineState* GetConverterPipelineState() const { return converterPipelineState_.Get(); }
-	
+
 	/**
-	 * @brief パイプラインが有効かどうかを判定
+	 * @brief パイプラインが有効か判定
 	 * @return 有効な場合true
 	 */
 	bool IsValid() const { return pipelineState_ != nullptr; }
@@ -75,32 +75,32 @@ private:
 	GPUParticlePipeline& operator=(const GPUParticlePipeline&) = delete;
 
 	/**
-	 * @brief シミュレーション用シェーダーをコンパイル
+	 * @brief シミュレーション用コンピュートシェーダーをコンパイル
 	 */
 	void CompileShader();
-	
+
 	/**
 	 * @brief シミュレーション用ルートシグネチャを作成
 	 */
 	void CreateRootSignature();
-	
+
 	/**
 	 * @brief シミュレーション用パイプラインステートを作成
 	 */
 	void CreatePipelineState();
 
 	/**
-	 * @brief コンバーター用シェーダーをコンパイル
+	 * @brief レンダリング変換用コンピュートシェーダーをコンパイル
 	 */
 	void CompileConverterShader();
-	
+
 	/**
-	 * @brief コンバーター用ルートシグネチャを作成
+	 * @brief レンダリング変換用ルートシグネチャを作成
 	 */
 	void CreateConverterRootSignature();
-	
+
 	/**
-	 * @brief コンバーター用パイプラインステートを作成
+	 * @brief レンダリング変換用パイプラインステートを作成
 	 */
 	void CreateConverterPipelineState();
 

@@ -29,8 +29,8 @@ public:
 
 	/**
 	 * @brief 初期化
-	 * @param dxCommon DirectXCommonインスタンス
-	 * @param srvManager SRVマネージャー
+	 * @param dxCommon DirectXCommonポインタ
+	 * @param srvManager SrvManagerポインタ
 	 */
 	void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager);
 
@@ -69,19 +69,19 @@ public:
 
 	/**
 	 * @brief エフェクトを読み込み
-	 * @param path エフェクトファイルのパス
+	 * @param path JSONファイルパス
 	 */
 	void LoadEffect(const std::string& path);
 
 	/**
 	 * @brief エフェクトを保存
-	 * @param path 保存先パス
+	 * @param path 保存先JSONファイルパス
 	 */
 	void SaveEffect(const std::string& path);
 
 	/**
 	 * @brief 編集中のエフェクトを取得
-	 * @return 現在編集中のエフェクトポインタ
+	 * @return 現在のエフェクト（nullptrの可能性あり）
 	 */
 	ParticleEffect* GetCurrentEffect() const { return currentEffect_; }
 
@@ -90,45 +90,45 @@ private:
 	 * @brief メニューバーを描画
 	 */
 	void DrawMenuBar();
-	
+
 	/**
-	 * @brief エフェクトパネルを描画
+	 * @brief エフェクト設定パネルを描画
 	 */
 	void DrawEffectPanel();
-	
+
 	/**
-	 * @brief エミッターパネルを描画
+	 * @brief エミッター設定パネルを描画
 	 */
 	void DrawEmitterPanel();
-	
+
 	/**
-	 * @brief モジュールパネルを描画
+	 * @brief モジュール設定パネルを描画
 	 */
 	void DrawModulePanel();
-	
+
 	/**
-	 * @brief レンダラーパネルを描画
+	 * @brief レンダラー設定パネルを描画
 	 */
 	void DrawRendererPanel();
-	
+
 	/**
 	 * @brief プレビューパネルを描画
 	 */
 	void DrawPreviewPanel();
-	
+
 	/**
-	 * @brief カーブエディターを描画
+	 * @brief カーブエディタを描画
 	 */
 	void DrawCurveEditor();
-	
+
 	/**
-	 * @brief グラデーションエディターを描画
+	 * @brief グラデーションエディタを描画
 	 */
 	void DrawGradientEditor();
-	
+
 	/**
-	 * @brief モジュールプロパティを描画
-	 * @param module 描画対象のモジュール
+	 * @brief モジュールのプロパティUIを描画
+	 * @param module モジュールポインタ
 	 */
 	void DrawModuleProperties(class IModule* module);
 
@@ -136,10 +136,10 @@ private:
 	 * @brief エミッター追加ダイアログを表示
 	 */
 	void AddEmitterDialog();
-	
+
 	/**
 	 * @brief モジュール追加ダイアログを表示
-	 * @param emitter 追加先のエミッター
+	 * @param emitter 対象エミッター
 	 */
 	void AddModuleDialog(ParticleEmitter* emitter);
 

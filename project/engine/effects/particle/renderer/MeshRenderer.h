@@ -26,62 +26,133 @@ public:
 
 	~MeshRenderer() override;
 
-	// IRenderer Interface
+	/**
+	 * @brief 初期化
+	 * @param texturePath テクスチャファイルパス
+	 */
 	void Initialize(const std::string& texturePath) override;
+
+	/**
+	 * @brief パーティクルデータを更新
+	 * @param particles パーティクルリスト
+	 * @param camera カメラマネージャー
+	 */
 	void Update(const std::vector<Particle>& particles, CameraManager* camera) override;
+
+	/**
+	 * @brief 描画
+	 * @param dxCommon DirectXCommonポインタ
+	 * @param srvManager SrvManagerポインタ
+	 */
 	void Draw(DirectXCommon* dxCommon, SrvManager* srvManager) override;
+
+	/**
+	 * @brief レンダラータイプを取得
+	 * @return Meshタイプ
+	 */
 	RendererType GetType() const override { return RendererType::Mesh; }
 
+	/**
+	 * @brief テクスチャを設定
+	 * @param texturePath テクスチャファイルパス
+	 */
 	void SetTexture(const std::string& texturePath) override;
+
+	/**
+	 * @brief GPU描画モードを設定
+	 * @param enable GPU描画モード有効化フラグ
+	 * @param srvIndex GPUパーティクルバッファのSRVインデックス
+	 * @param count GPUパーティクル数
+	 */
 	void SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count) override;
 
-	// MeshRenderer Specific
+	/**
+	 * @brief モデルパスを設定（外部メッシュファイル用）
+	 * @param directory ディレクトリパス
+	 * @param filename ファイル名
+	 */
 	void SetModelPath(const std::string& directory, const std::string& filename);
 
 	//===== プリミティブ設定 =====//
 
 	/**
 	 * @brief プリミティブタイプを設定
+	 * @param type プリミティブタイプ
 	 */
 	void SetPrimitive(PrimitiveType type);
 
 	/**
-	 * @brief プリミティブオプション付きで設定
+	 * @brief プリミティブをオプション付きで設定
+	 * @param type プリミティブタイプ
+	 * @param options プリミティブ生成オプション
 	 */
 	void SetPrimitive(PrimitiveType type, const PrimitiveOptions& options);
 
 	/**
 	 * @brief 現在のプリミティブタイプを取得
+	 * @return プリミティブタイプ
 	 */
 	PrimitiveType GetPrimitiveType() const { return primitiveType_; }
 
 	/**
-	 * @brief オプションを取得
+	 * @brief プリミティブオプションを取得
+	 * @return プリミティブオプション
 	 */
 	const PrimitiveOptions& GetOptions() const { return options_; }
 
 	/**
-	 * @brief スケールを設定
+	 * @brief 基本スケールを設定
+	 * @param scale スケール値
 	 */
 	void SetScale(float scale) { baseScale_ = scale; }
+
+	/**
+	 * @brief 基本スケールを取得
+	 * @return スケール値
+	 */
 	float GetScale() const { return baseScale_; }
 
 	/**
 	 * @brief ビルボード設定
+	 * @param enable ビルボード有効化フラグ
 	 */
 	void SetBillboard(bool enable) { useBillboard_ = enable; }
+
+	/**
+	 * @brief ビルボード設定を取得
+	 * @return ビルボード有効フラグ
+	 */
 	bool GetBillboard() const { return useBillboard_; }
 
 	/**
-	 * @brief ティントカラー設定
+	 * @brief ティントカラーを設定
+	 * @param color ティントカラー（RGBA）
 	 */
 	void SetTintColor(const Vector4& color) { tintColor_ = color; }
+
+	/**
+	 * @brief ティントカラーを取得
+	 * @return ティントカラー（RGBA）
+	 */
 	Vector4 GetTintColor() const { return tintColor_; }
 
+	/**
+	 * @brief バッファを初期化
+	 * @param dxCommon DirectXCommonポインタ
+	 * @param srvManager SrvManagerポインタ
+	 */
 	void InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvManager);
 
 private:
+	/**
+	 * @brief プリミティブ用のバッファを作成
+	 * @param dxCommon DirectXCommonポインタ
+	 */
 	void CreatePrimitiveBuffers(DirectXCommon* dxCommon);
+
+	/**
+	 * @brief プリミティブメッシュを再生成
+	 */
 	void RegeneratePrimitive();
 
 	//===== インスタンシングリソース =====//

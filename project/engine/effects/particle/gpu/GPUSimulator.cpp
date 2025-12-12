@@ -42,10 +42,11 @@ void GPUSimulator::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, u
 	srvManager_ = srvManager;
 	maxParticles_ = maxParticles;
 
-	// 共有パイプラインを初期化（既に初期化済みの場合はスキップ）
+	// 共有GPUパイプラインを初期化（既に初期化済みならスキップ）
 	GPUParticlePipeline::GetInstance()->Initialize(dxCommon);
 
-	// エミッター専用バッファの作成
+	// このシミュレーター用のバッファを作成
+	// （パーティクルバッファ、定数バッファ、レンダリングバッファ）
 	CreateBuffers();
 
 	initialized_ = true;
@@ -55,7 +56,8 @@ void GPUSimulator::CreateBuffers()
 {
 	auto* device = dxCommon_->GetDevice();
 
-	// パーティクルバッファ（UAV、GPU上でシミュレーション）
+	// パーティクルバッファ（UAV対応）
+	// GPUシミュレーションで読み書きするメインバッファ
 	{
 		D3D12_HEAP_PROPERTIES heapProps{};
 		heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
@@ -81,7 +83,8 @@ void GPUSimulator::CreateBuffers()
 		);
 	}
 
-	// アップロードバッファ（CPU→GPU転送用）
+	// アップロードバッファ
+	// CPU→GPU転送用の中間バッファ（SpawnParticles時に使用）
 	{
 		D3D12_HEAP_PROPERTIES heapProps{};
 		heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
@@ -105,7 +108,8 @@ void GPUSimulator::CreateBuffers()
 		);
 	}
 
-	// リードバックバッファ（GPU→CPU読み取り用）
+	// リードバックバッファ
+	// GPU→CPU読み戻し用バッファ（ReadbackParticles時に使用）
 	{
 		D3D12_HEAP_PROPERTIES heapProps{};
 		heapProps.Type = D3D12_HEAP_TYPE_READBACK;
@@ -129,14 +133,15 @@ void GPUSimulator::CreateBuffers()
 		);
 	}
 
-	// 定数バッファ（256バイト境界にアライン）
+	// 定数バッファ
+	// シミュレーションパラメータを格納（deltaTime, 重力, エミッター位置など）
 	{
 		D3D12_HEAP_PROPERTIES heapProps{};
 		heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
 
 		D3D12_RESOURCE_DESC resourceDesc{};
 		resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-		resourceDesc.Width = (sizeof(GPUParticleConstants) + kConstantBufferAlignment - 1) & ~(kConstantBufferAlignment - 1);
+		resourceDesc.Width = (sizeof(GPUParticleConstants) + 255) & ~255;  // 256バイト境界にアライン
 		resourceDesc.Height = 1;
 		resourceDesc.DepthOrArraySize = 1;
 		resourceDesc.MipLevels = 1;
@@ -152,13 +157,12 @@ void GPUSimulator::CreateBuffers()
 			IID_PPV_ARGS(&constantBuffer_)
 		);
 
-		// CPU側から書き込み可能にするためマップ
+		// 定数バッファを永続的にマップ
 		constantBuffer_->Map(0, nullptr, reinterpret_cast<void**>(&constantData_));
 	}
 
-
-
-	// レンダリング用バッファ（変換後のParticleGPU構造体格納用）
+	// レンダリング用バッファ（UAV/SRV対応）
+	// コンバートシェーダーで変換したレンダリングデータを格納
 	{
 		D3D12_HEAP_PROPERTIES heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 		D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(
@@ -171,19 +175,19 @@ void GPUSimulator::CreateBuffers()
 			&heapProps,
 			D3D12_HEAP_FLAG_NONE,
 			&resourceDesc,
-			D3D12_RESOURCE_STATE_COMMON,
+			D3D12_RESOURCE_STATE_COMMON, // 初期状態はコモン（SRVとして使う直前にバリア）
 			nullptr,
 			IID_PPV_ARGS(&renderBuffer_)
 		);
 	}
 
-	// SRV/UAVディスクリプタの確保
-	particleSrvIndex_ = srvManager_->Allocate();
-	particleUavIndex_ = srvManager_->Allocate();
-	renderSrvIndex_ = srvManager_->Allocate();
-	renderUavIndex_ = srvManager_->Allocate();
+	// ディスクリプタヒープからスロットを確保
+	particleSrvIndex_ = srvManager_->Allocate();  // パーティクルバッファSRV
+	particleUavIndex_ = srvManager_->Allocate();  // パーティクルバッファUAV
+	renderSrvIndex_ = srvManager_->Allocate();    // レンダリングバッファSRV
+	renderUavIndex_ = srvManager_->Allocate();    // レンダリングバッファUAV
 
-	// パーティクルバッファのSRV作成（読み取り用）
+	// パーティクルバッファ用SRV作成（構造化バッファビュー）
 	{
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 		srvDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -201,7 +205,7 @@ void GPUSimulator::CreateBuffers()
 		);
 	}
 
-	// パーティクルバッファのUAV作成（書き込み用）
+	// パーティクルバッファ用UAV作成（書き込み用ビュー）
 	{
 		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
 		uavDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -220,7 +224,7 @@ void GPUSimulator::CreateBuffers()
 		);
 	}
 
-	// レンダリングバッファのSRV作成（描画時の読み取り用）
+	// レンダリングバッファ用SRV作成（描画時に参照）
 	{
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 		srvDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -238,7 +242,7 @@ void GPUSimulator::CreateBuffers()
 		);
 	}
 
-	// レンダリングバッファのUAV作成（変換時の書き込み用）
+	// レンダリングバッファ用UAV作成（コンバートシェーダーが書き込む）
 	{
 		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
 		uavDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -262,7 +266,7 @@ void GPUSimulator::SpawnParticles(const std::vector<Particle>& newParticles)
 {
 	if (newParticles.empty()) return;
 
-	// アップロードバッファにパーティクルデータをコピー
+	// アップロードバッファにパーティクルデータを書き込む
 	void* data = nullptr;
 	particleUploadBuffer_->Map(0, nullptr, &data);
 	size_t copyCount = (std::min)(newParticles.size(), static_cast<size_t>(maxParticles_ - particleCount_));
@@ -271,7 +275,7 @@ void GPUSimulator::SpawnParticles(const std::vector<Particle>& newParticles)
 
 	auto* cmdList = dxCommon_->GetCommandList();
 
-	// 現在の状態からCOPY_DESTへ遷移
+	// パーティクルバッファをコピー可能状態に遷移
 	D3D12_RESOURCE_BARRIER barrier{};
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Transition.pResource = particleBuffer_.Get();
@@ -280,7 +284,7 @@ void GPUSimulator::SpawnParticles(const std::vector<Particle>& newParticles)
 	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	cmdList->ResourceBarrier(1, &barrier);
 
-	// GPUバッファへコピー
+	// アップロードバッファからGPUバッファへコピー
 	cmdList->CopyBufferRegion(
 		particleBuffer_.Get(),
 		particleCount_ * sizeof(Particle),
@@ -289,7 +293,7 @@ void GPUSimulator::SpawnParticles(const std::vector<Particle>& newParticles)
 		copyCount * sizeof(Particle)
 	);
 
-	// COPY_DESTからUAVへ遷移
+	// パーティクルバッファをUAV状態に遷移（シミュレーション用）
 	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 	cmdList->ResourceBarrier(1, &barrier);
@@ -301,7 +305,7 @@ void GPUSimulator::SpawnParticles(const std::vector<Particle>& newParticles)
 
 void GPUSimulator::UpdateConstantBuffer(float deltaTime)
 {
-	// 定数バッファにシミュレーションパラメータを書き込み
+	// 定数バッファにシミュレーションパラメータを書き込む
 	if (constantData_)
 	{
 		constantData_->deltaTime = deltaTime;
@@ -319,7 +323,7 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera)
 	// 未初期化の場合は処理をスキップ
 	if (!initialized_) return;
 
-	// 経過時間を累積して定数バッファを更新
+	// 総時間を更新し、定数バッファを更新
 	totalTime_ += deltaTime;
 	UpdateConstantBuffer(deltaTime);
 
@@ -329,7 +333,7 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera)
 	// パイプラインが無効な場合は処理をスキップ
 	if (!pipeline->IsValid()) return;
 
-	// パーティクルバッファをUAV状態にする
+	// フェーズ0: パーティクルバッファをUAV状態に遷移
 	if (particleBufferState_ != D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
 	{
 		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
@@ -341,10 +345,7 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera)
 		particleBufferState_ = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 	}
 
-	// ========================================
-	// フェーズ1: シミュレーション（パーティクルバッファ更新）
-	// ========================================
-
+	// フェーズ1: シミュレーション実行（パーティクル更新）
 	// ディスクリプタヒープを設定
 	ID3D12DescriptorHeap* heaps[] = { srvManager_->GetSrvHeap() };
 	commandList->SetDescriptorHeaps(1, heaps);
@@ -355,11 +356,11 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera)
 	commandList->SetComputeRootConstantBufferView(0, constantBuffer_->GetGPUVirtualAddress());
 	commandList->SetComputeRootDescriptorTable(1, srvManager_->GetGPUDescriptorHandle(particleUavIndex_));
 
-	// コンピュートシェーダーをディスパッチ
+	// スレッドグループ数を計算してディスパッチ
 	uint32_t groupCount = (maxParticles_ + GPUSimulator::kThreadGroupSize - 1) / GPUSimulator::kThreadGroupSize;
 	commandList->Dispatch(groupCount, 1, 1);
 
-	// パーティクルバッファをUAVからSRVへ遷移（コンバーター用）
+	// パーティクルバッファをSRV状態に遷移（コンバータが読み取る）
 	{
 		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
 			particleBuffer_.Get(),
@@ -369,11 +370,8 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera)
 		commandList->ResourceBarrier(1, &barrier);
 	}
 
-	// ========================================
-	// フェーズ2: 変換（Particle → ParticleGPU）
-	// ========================================
-
-	// レンダリングバッファをSRVからUAVへ遷移（書き込み用）
+	// フェーズ2: レンダリングデータ変換（Particle → ParticleGPU）
+	// レンダリングバッファをUAV状態に遷移（コンバータが書き込む）
 	{
 		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
 			renderBuffer_.Get(),
@@ -383,14 +381,14 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera)
 		commandList->ResourceBarrier(1, &barrier);
 	}
 
-	// コンバーター用パイプラインとルートシグネチャを設定
+	// コンバータパイプラインを設定
 	commandList->SetPipelineState(pipeline->GetConverterPipelineState());
 	commandList->SetComputeRootSignature(pipeline->GetConverterRootSignature());
 	
-	// b0: パーティクル定数バッファ
+	// ルートパラメータ0: 定数バッファ（パーティクルパラメータ）
 	commandList->SetComputeRootConstantBufferView(0, constantBuffer_->GetGPUVirtualAddress());
 
-	// b1: カメラ定数バッファ
+	// ルートパラメータ1: 定数バッファ（カメラ情報）
 	if (camera && camera->GetActiveCamera()) {
 		D3D12_GPU_VIRTUAL_ADDRESS cameraAddress = camera->GetActiveCamera()->GetConstantBufferAddress();
 		if (cameraAddress != 0) {
@@ -398,29 +396,26 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera)
 		}
 	}
 	
-	// t0: パーティクルバッファ（SRV、読み取り用）
+	// ルートパラメータ2: パーティクルバッファSRV（入力）
 	commandList->SetComputeRootDescriptorTable(2, srvManager_->GetGPUDescriptorHandle(particleSrvIndex_));
 
-	// u0: レンダリングバッファ（UAV、書き込み用）
+	// ルートパラメータ3: レンダリングバッファUAV（出力）
 	commandList->SetComputeRootDescriptorTable(3, srvManager_->GetGPUDescriptorHandle(renderUavIndex_));
 
-	// コンピュートシェーダーをディスパッチ
+	// コンバータを実行
 	commandList->Dispatch(groupCount, 1, 1);
 
-	// ========================================
-	// フェーズ3: 変換後のバリア処理
-	// ========================================
-
+	// フェーズ3: バリアで各バッファを次のフレーム用の状態に遷移
 	D3D12_RESOURCE_BARRIER barriers[2];
 	
-	// パーティクルバッファをSRVからUAVへ遷移（次フレームのシミュレーション用）
+	// パーティクルバッファをUAV状態に戻す（次フレームのシミュレーション用）
 	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(
 		particleBuffer_.Get(),
 		D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
 		D3D12_RESOURCE_STATE_UNORDERED_ACCESS
 	);
 
-	// レンダリングバッファをUAVからSRVへ遷移（描画用）
+	// レンダリングバッファをSRV状態に遷移（描画用）
 	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(
 		renderBuffer_.Get(),
 		D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
@@ -437,7 +432,8 @@ void GPUSimulator::ReadbackParticles(std::vector<Particle>& outParticles)
 {
 	if (particleCount_ == 0) return;
 
-	// 前フレームのデータを読み出す（1フレーム遅延）
+	// ステップ1: 前フレームのデータを読み出す（1フレーム遅延）
+	// リードバックバッファから前回コピー済みのデータを取得
 	void* data = nullptr;
 	HRESULT hr = particleReadbackBuffer_->Map(0, nullptr, &data);
 	if (SUCCEEDED(hr))
@@ -447,10 +443,10 @@ void GPUSimulator::ReadbackParticles(std::vector<Particle>& outParticles)
 		particleReadbackBuffer_->Unmap(0, nullptr);
 	}
 
-	// 次フレーム用にGPU→CPUコピーをスケジューリング
+	// ステップ2: 次フレームのためのコピーをスケジューリング
 	auto* cmdList = dxCommon_->GetCommandList();
 
-	// パーティクルバッファをCOPY_SOURCE状態へ遷移
+	// パーティクルバッファをコピーソース状態に遷移
 	D3D12_RESOURCE_BARRIER barrier{};
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Transition.pResource = particleBuffer_.Get();
@@ -459,10 +455,10 @@ void GPUSimulator::ReadbackParticles(std::vector<Particle>& outParticles)
 	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	cmdList->ResourceBarrier(1, &barrier);
 
-	// リードバックバッファへコピー
+	// GPU→CPUへコピー（リードバックバッファへ）
 	cmdList->CopyResource(particleReadbackBuffer_.Get(), particleBuffer_.Get());
 
-	// パーティクルバッファをUAV状態へ戻す
+	// パーティクルバッファをUAV状態に戻す
 	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_SOURCE;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 	cmdList->ResourceBarrier(1, &barrier);
