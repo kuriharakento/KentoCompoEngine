@@ -21,7 +21,17 @@
 class TextureSheetModule : public IModule
 {
 public:
-	TextureSheetModule(uint32_t columns = 4, uint32_t rows = 4, float fps = 30.0f)
+	static constexpr uint32_t kDefaultColumns = 4;
+	static constexpr uint32_t kDefaultRows = 4;
+	static constexpr float kDefaultFrameRate = 30.0f;
+	
+	/**
+	 * @brief コンストラクタ
+	 * @param columns グリッド列数
+	 * @param rows グリッド行数
+	 * @param fps フレームレート
+	 */
+	TextureSheetModule(uint32_t columns = kDefaultColumns, uint32_t rows = kDefaultRows, float fps = kDefaultFrameRate)
 		: columns_(columns), rows_(rows), frameRate_(fps)
 	{
 		totalFrames_ = columns_ * rows_;
@@ -71,9 +81,7 @@ public:
 
 	ModulePhase GetPhase() const override { return ModulePhase::Update; }
 	const char* GetName() const override { return "TextureSheet"; }
-	int32_t GetPriority() const override { return 80; } // 描画直前
-
-	//===== 設定 =====//
+	int32_t GetPriority() const override { return 80; }
 
 	/**
 	 * @brief グリッドサイズを設定
@@ -138,10 +146,10 @@ public:
 	TextureSheetPlayMode GetPlayMode() const { return playMode_; }
 
 private:
-	uint32_t columns_ = 4;
-	uint32_t rows_ = 4;
-	uint32_t totalFrames_ = 16;
-	float frameRate_ = 30.0f;
+	uint32_t columns_ = kDefaultColumns;
+	uint32_t rows_ = kDefaultRows;
+	uint32_t totalFrames_ = kDefaultColumns * kDefaultRows;
+	float frameRate_ = kDefaultFrameRate;
 	uint32_t startFrame_ = 0;
 	TextureSheetPlayMode playMode_ = TextureSheetPlayMode::Loop;
 };

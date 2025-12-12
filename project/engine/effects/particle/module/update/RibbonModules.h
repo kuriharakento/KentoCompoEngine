@@ -25,7 +25,14 @@
 class RibbonInterpolationModule : public IModule
 {
 public:
-	RibbonInterpolationModule(float maxDistance = 0.1f) : maxDistance_(maxDistance) {}
+	static constexpr float kDefaultMaxDistance = 0.1f;
+	static constexpr size_t kMaxHistorySize = 4;
+	
+	/**
+	 * @brief コンストラクタ
+	 * @param maxDistance 補間を開始する最大距離
+	 */
+	RibbonInterpolationModule(float maxDistance = kDefaultMaxDistance) : maxDistance_(maxDistance) {}
 
 	/**
 	 * @brief モジュール実行（補間パーティクル生成）
@@ -108,9 +115,9 @@ public:
 				}
 			}
 
-			// 履歴に追加（最大4つまで保持）
+			// 履歴に追加（最大サイズまで保持）
 			history.push_back(particle);
-			if (history.size() > 4)
+			if (history.size() > kMaxHistorySize)
 			{
 				history.erase(history.begin());
 			}
@@ -125,7 +132,7 @@ public:
 
 	ModulePhase GetPhase() const override { return ModulePhase::Spawn; }
 	const char* GetName() const override { return "RibbonInterpolation"; }
-	int32_t GetPriority() const override { return 100; }  // 他のSpawnモジュールの後に実行
+	int32_t GetPriority() const override { return 100; }
 
 	/**
 	 * @brief 最大補間距離を設定
@@ -145,15 +152,26 @@ public:
 	void ClearHistory() { particleHistory_.clear(); }
 
 private:
-	float maxDistance_ = 0.1f;
+	float maxDistance_ = kDefaultMaxDistance;
 	std::unordered_map<uint32_t, std::vector<Particle>> particleHistory_;
 
-	// Catmull-Rom補間
+	// Catmull-Rom補間係数
+	static constexpr float kCatmullRomScale = 0.5f;
+	
+	/**
+	 * @brief Catmull-Rom補間を計算
+	 * @param p0 制御点0
+	 * @param p1 制御点1
+	 * @param p2 制御点2
+	 * @param p3 制御点3
+	 * @param t 補間パラメータ（0-1）
+	 * @return 補間値
+	 */
 	static float CatmullRom(float p0, float p1, float p2, float p3, float t)
 	{
 		float t2 = t * t;
 		float t3 = t2 * t;
-		return 0.5f * (
+		return kCatmullRomScale * (
 			(2.0f * p1) +
 			(-p0 + p2) * t +
 			(2.0f * p0 - 5.0f * p1 + 4.0f * p2 - p3) * t2 +

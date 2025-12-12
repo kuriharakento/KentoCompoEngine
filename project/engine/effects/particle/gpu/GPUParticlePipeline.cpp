@@ -4,10 +4,22 @@
 
 #pragma comment(lib, "d3dcompiler.lib")
 
+namespace
+{
+	// ルートパラメータ数
+	constexpr uint32_t kSimulationRootParamCount = 2;
+	constexpr uint32_t kConverterRootParamCount = 4;
+	
+	// デスクリプタレンジ数
+	constexpr uint32_t kSimulationDescriptorRangeCount = 1;
+	constexpr uint32_t kConverterDescriptorRangeCount = 2;
+}
+
 GPUParticlePipeline* GPUParticlePipeline::instance_ = nullptr;
 
 GPUParticlePipeline* GPUParticlePipeline::GetInstance()
 {
+	// シングルトンインスタンス生成
 	if (!instance_)
 	{
 		instance_ = new GPUParticlePipeline();
@@ -57,7 +69,7 @@ void GPUParticlePipeline::CreateRootSignature()
 	// UAVディスクリプタレンジを定義（パーティクルバッファ用）
 	D3D12_DESCRIPTOR_RANGE uavRange{};
 	uavRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-	uavRange.NumDescriptors = 1;
+	uavRange.NumDescriptors = kSimulationDescriptorRangeCount;
 	uavRange.BaseShaderRegister = 0;
 	uavRange.RegisterSpace = 0;
 	uavRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -73,18 +85,19 @@ void GPUParticlePipeline::CreateRootSignature()
 
 	// ルートパラメータ1: UAVディスクリプタテーブル（パーティクルバッファ）
 	rootParams[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParams[1].DescriptorTable.NumDescriptorRanges = 1;
+	rootParams[1].DescriptorTable.NumDescriptorRanges = kSimulationDescriptorRangeCount;
 	rootParams[1].DescriptorTable.pDescriptorRanges = &uavRange;
 	rootParams[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
 	// ルートシグネチャをシリアライズして作成
 	D3D12_ROOT_SIGNATURE_DESC desc{};
-	desc.NumParameters = 2;
+	desc.NumParameters = kSimulationRootParamCount;
 	desc.pParameters = rootParams;
 	desc.NumStaticSamplers = 0;
 	desc.pStaticSamplers = nullptr;
 	desc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
 
+	// シリアライズと作成
 	Microsoft::WRL::ComPtr<ID3DBlob> signatureBlob;
 	Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
 	HRESULT hr = D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &errorBlob);
@@ -235,10 +248,11 @@ void GPUParticlePipeline::CreateConverterRootSignature()
 
 	// ルートシグネチャをシリアライズして作成
 	D3D12_ROOT_SIGNATURE_DESC desc{};
-	desc.NumParameters = 4;
+	desc.NumParameters = kConverterRootParamCount;
 	desc.pParameters = rootParams;
 	desc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
 
+	// シリアライズと作成
 	Microsoft::WRL::ComPtr<ID3DBlob> signatureBlob;
 	Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
 	HRESULT hr = D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &errorBlob);

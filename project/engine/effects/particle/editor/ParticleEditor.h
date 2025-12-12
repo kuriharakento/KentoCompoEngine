@@ -47,18 +47,18 @@ public:
 
 	/**
 	 * @brief エディタの表示状態を設定
-	 * @param visible 表示するか
+	 * @param visible 表示する場合true
 	 */
 	void SetVisible(bool visible) { isVisible_ = visible; }
-
+	
 	/**
-	 * @brief エディタが表示中か判定
+	 * @brief エディタの表示状態を取得
 	 * @return 表示中の場合true
 	 */
 	bool IsVisible() const { return isVisible_; }
-
+	
 	/**
-	 * @brief エディタの表示状態を切り替え
+	 * @brief エディタの表示/非表示を切り替え
 	 */
 	void ToggleVisible() { isVisible_ = !isVisible_; }
 

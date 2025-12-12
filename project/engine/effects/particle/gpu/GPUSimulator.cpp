@@ -7,15 +7,26 @@
 #include <algorithm>
 #include <DirectXTex/d3dx12.h>
 
+namespace
+{
+	// 定数バッファのアライメント（256バイト境界）
+	constexpr size_t kConstantBufferAlignment = 256;
+	
+	// デフォルト重力（Y軸下向き）
+	constexpr float kDefaultGravityY = -9.8f;
+}
+
 GPUSimulator::GPUSimulator() = default;
 
 GPUSimulator::~GPUSimulator()
 {
+	// 定数バッファのアンマップ
 	if (constantBuffer_)
 	{
 		constantBuffer_->Unmap(0, nullptr);
 	}
 
+	// SRV/UAVディスクリプタの解放
 	if (srvManager_)
 	{
 		if (particleSrvIndex_ != 0) srvManager_->Free(particleSrvIndex_);
@@ -61,11 +72,12 @@ void GPUSimulator::CreateBuffers()
 		resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 		resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
+		// バッファはCOMMON状態で作成（D3D12仕様）
 		device->CreateCommittedResource(
 			&heapProps,
 			D3D12_HEAP_FLAG_NONE,
 			&resourceDesc,
-			D3D12_RESOURCE_STATE_COMMON,  // バッファはCOMMON状態で作成（D3D12仕様）
+			D3D12_RESOURCE_STATE_COMMON,
 			nullptr,
 			IID_PPV_ARGS(&particleBuffer_)
 		);
@@ -149,8 +161,6 @@ void GPUSimulator::CreateBuffers()
 		constantBuffer_->Map(0, nullptr, reinterpret_cast<void**>(&constantData_));
 	}
 
-
-
 	// レンダリング用バッファ（UAV/SRV対応）
 	// コンバートシェーダーで変換したレンダリングデータを格納
 	{
@@ -160,6 +170,7 @@ void GPUSimulator::CreateBuffers()
 			D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS
 		);
 
+		// 初期状態はCOMMON（SRVとして使う直前にバリア遷移）
 		dxCommon_->GetDevice()->CreateCommittedResource(
 			&heapProps,
 			D3D12_HEAP_FLAG_NONE,
@@ -287,6 +298,7 @@ void GPUSimulator::SpawnParticles(const std::vector<Particle>& newParticles)
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 	cmdList->ResourceBarrier(1, &barrier);
 
+	// 状態とカウントを更新
 	particleBufferState_ = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 	particleCount_ += static_cast<uint32_t>(copyCount);
 }
@@ -308,6 +320,7 @@ void GPUSimulator::UpdateConstantBuffer(float deltaTime)
 
 void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera)
 {
+	// 未初期化の場合は処理をスキップ
 	if (!initialized_) return;
 
 	// 総時間を更新し、定数バッファを更新
@@ -317,6 +330,7 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera)
 	auto* commandList = dxCommon_->GetCommandList();
 	auto* pipeline = GPUParticlePipeline::GetInstance();
 
+	// パイプラインが無効な場合は処理をスキップ
 	if (!pipeline->IsValid()) return;
 
 	// フェーズ0: パーティクルバッファをUAV状態に遷移
