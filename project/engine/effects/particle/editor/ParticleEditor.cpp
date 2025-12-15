@@ -691,6 +691,24 @@ void ParticleEditor::DrawEmitterPanel()
 			{
 				emitter->SetSimulationSpace(static_cast<SimulationSpace>(space));
 			}
+
+			// 移動時のみ生成
+			bool spawnOnlyWhenMoving = emitter->GetSpawnOnlyWhenMoving();
+			if (ImGui::Checkbox("Spawn Only When Moving", &spawnOnlyWhenMoving))
+			{
+				emitter->SetSpawnOnlyWhenMoving(spawnOnlyWhenMoving);
+			}
+			ImGui::SetItemTooltip("Only spawn particles when the emitter is moving (good for trails)");
+
+			if (spawnOnlyWhenMoving)
+			{
+				float minDist = emitter->GetMinMoveDistance();
+				if (ImGui::DragFloat("Min Move Distance", &minDist, 0.01f, 0.001f, 1.0f))
+				{
+					emitter->SetMinMoveDistance(minDist);
+				}
+				ImGui::SetItemTooltip("Minimum distance the emitter must move to spawn particles");
+			}
 		}
 	}
 }
@@ -1357,7 +1375,7 @@ void ParticleEditor::DrawRendererPanel()
 		auto* renderer = emitter->GetRenderer();
 		if (renderer)
 		{
-			const char* typeNames[] = { "Sprite", "Ribbon", "Mesh" };
+			const char* typeNames[] = { "Sprite", "Trail", "Mesh" };
 			int currentType = static_cast<int>(renderer->GetType());
 			if (ImGui::Combo("Type", &currentType, typeNames, 3))
 			{
