@@ -2,13 +2,14 @@
 #include "effects/particle/ParticleEffect.h"
 #include "effects/particle/ParticleEmitter.h"
 #include "effects/particle/renderer/SpriteRenderer.h"
-#include "effects/particle/renderer/RibbonRenderer.h"
+#include "effects/particle/renderer/TrailRenderer.h"
 #include "effects/particle/renderer/MeshRenderer.h"
 #include "effects/particle/module/spawn/SpawnModules.h"
 #include "effects/particle/module/spawn/InitialModules.h"
 #include "effects/particle/module/spawn/SpawnShapeModules.h"
 #include "effects/particle/module/update/UpdateModules.h"
 #include "effects/particle/module/update/BehaviorModules.h"
+#include "effects/particle/module/update/TrailModule.h"
 #include <fstream>
 
 // nlohmann/json を有効化
@@ -455,6 +456,25 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 				m->SetUseSpeedCurve(moduleData.value("useSpeedCurve", false));
 				emitter->AddModule(std::move(m));
 			}
+			else if (type == "Trail")
+			{
+				auto m = std::make_unique<TrailModule>();
+				m->SetTrailRate(moduleData.value("trailRate", 60.0f));
+				m->SetTrailLifetime(moduleData.value("trailLifetime", 1.0f));
+				m->SetTrailWidth(moduleData.value("trailWidth", 0.5f));
+				m->SetMinDistance(moduleData.value("minDistance", 0.05f));
+				m->SetInheritColor(moduleData.value("inheritColor", true));
+				if (moduleData.contains("trailColor"))
+				{
+					Vector4 c;
+					c.x = moduleData["trailColor"].value("r", 1.0f);
+					c.y = moduleData["trailColor"].value("g", 1.0f);
+					c.z = moduleData["trailColor"].value("b", 1.0f);
+					c.w = moduleData["trailColor"].value("a", 1.0f);
+					m->SetTrailColor(c);
+				}
+				emitter->AddModule(std::move(m));
+			}
 		}
 	}
 
@@ -475,10 +495,14 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 		}
 		else if (type == "Ribbon")
 		{
-			auto renderer = std::make_unique<RibbonRenderer>();
+			auto renderer = std::make_unique<TrailRenderer>();
 			renderer->Initialize(texturePath);
 			renderer->SetBlendMode(blendMode);
 			renderer->SetBillboard(rendererData.value("billboard", true));
+			renderer->SetTrailWidth(rendererData.value("trailWidth", 0.5f));
+			renderer->SetTrailLifetime(rendererData.value("trailLifetime", 1.0f));
+			renderer->SetWidthFade(rendererData.value("widthFade", true));
+			renderer->SetAlphaFade(rendererData.value("alphaFade", true));
 			emitter->SetRenderer(std::move(renderer));
 		}
 		else if (type == "Mesh")
@@ -696,6 +720,16 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 			moduleData["speedBoost"] = m->GetSpeedBoost();
 			moduleData["useSpeedCurve"] = m->GetUseSpeedCurve();
 		}
+		else if (auto* m = dynamic_cast<const TrailModule*>(module))
+		{
+			moduleData["trailRate"] = m->GetTrailRate();
+			moduleData["trailLifetime"] = m->GetTrailLifetime();
+			moduleData["trailWidth"] = m->GetTrailWidth();
+			moduleData["minDistance"] = m->GetMinDistance();
+			moduleData["inheritColor"] = m->GetInheritColor();
+			Vector4 tc = m->GetTrailColor();
+			moduleData["trailColor"] = {{"r", tc.x}, {"g", tc.y}, {"b", tc.z}, {"a", tc.w}};
+		}
 
 		data["modules"].push_back(moduleData);
 	}
@@ -719,10 +753,14 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 			{"blendMode", static_cast<int>(renderer->GetBlendMode())}
 		};
 
-		// Ribbon固有の設定
-		if (auto* ribbonRenderer = dynamic_cast<const RibbonRenderer*>(renderer))
+		// Trail(Ribbon)固有の設定
+		if (auto* trailRenderer = dynamic_cast<const TrailRenderer*>(renderer))
 		{
-			data["renderer"]["billboard"] = ribbonRenderer->GetBillboard();
+			data["renderer"]["billboard"] = trailRenderer->GetBillboard();
+			data["renderer"]["trailWidth"] = trailRenderer->GetTrailWidth();
+			data["renderer"]["trailLifetime"] = trailRenderer->GetTrailLifetime();
+			data["renderer"]["widthFade"] = trailRenderer->GetWidthFade();
+			data["renderer"]["alphaFade"] = trailRenderer->GetAlphaFade();
 		}
 		// Mesh固有の設定
 		else if (auto* meshRenderer = dynamic_cast<const MeshRenderer*>(renderer))

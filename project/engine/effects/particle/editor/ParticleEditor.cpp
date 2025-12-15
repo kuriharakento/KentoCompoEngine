@@ -3,7 +3,7 @@
 #include "effects/particle/ParticleEmitter.h"
 #include "effects/particle/ParticleManager.h"
 #include "effects/particle/renderer/SpriteRenderer.h"
-#include "effects/particle/renderer/RibbonRenderer.h"
+#include "effects/particle/renderer/TrailRenderer.h"
 #include "effects/particle/renderer/MeshRenderer.h"
 #include "effects/particle/module/spawn/SpawnModules.h"
 #include "effects/particle/module/spawn/InitialModules.h"
@@ -14,6 +14,7 @@
 #include "effects/particle/module/update/RibbonModules.h"
 #include "effects/particle/module/update/AdvancedModules.h"
 #include "effects/particle/module/update/BehaviorModules.h"
+#include "effects/particle/module/update/TrailModule.h"
 #include "effects/particle/module/spawn/SubEmitterModule.h"
 #include "base/DirectXCommon.h"
 #include "manager/system/SrvManager.h"
@@ -1243,7 +1244,7 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 			// Probability
 			if (ImGui::DragFloat("Probability", &config->probability, 0.01f, 0.0f, 1.0f))
 			{
-				config->probability = std::clamp(config->probability, 0.0f, 1.0f);
+				config->probability = (std::clamp)(config->probability, 0.0f, 1.0f);
 			}
 			
 			// Continuous rate (only for Continuous trigger)
@@ -1282,6 +1283,56 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 			SubEmitterConfig newConfig;
 			newConfig.effectPath = "./Resources/json/particle/sub_effect.json";
 			m->AddConfig(newConfig);
+		}
+	}
+	// Trail Module
+	else if (auto* m = dynamic_cast<TrailModule*>(module))
+	{
+		// トレイル生成レート
+		float trailRate = m->GetTrailRate();
+		if (ImGui::DragFloat("Trail Rate", &trailRate, 1.0f, 1.0f, 120.0f))
+		{
+			m->SetTrailRate(trailRate);
+		}
+		ImGui::SetItemTooltip("Trail particles per second");
+
+		// トレイル寿命
+		float trailLifetime = m->GetTrailLifetime();
+		if (ImGui::DragFloat("Trail Lifetime", &trailLifetime, 0.1f, 0.1f, 10.0f))
+		{
+			m->SetTrailLifetime(trailLifetime);
+		}
+
+		// トレイル幅
+		float trailWidth = m->GetTrailWidth();
+		if (ImGui::DragFloat("Trail Width", &trailWidth, 0.01f, 0.01f, 5.0f))
+		{
+			m->SetTrailWidth(trailWidth);
+		}
+
+		// 最小距離
+		float minDistance = m->GetMinDistance();
+		if (ImGui::DragFloat("Min Distance", &minDistance, 0.01f, 0.01f, 1.0f))
+		{
+			m->SetMinDistance(minDistance);
+		}
+		ImGui::SetItemTooltip("Minimum distance before spawning a new trail point");
+
+		// 色継承
+		bool inheritColor = m->GetInheritColor();
+		if (ImGui::Checkbox("Inherit Color", &inheritColor))
+		{
+			m->SetInheritColor(inheritColor);
+		}
+
+		// トレイル色（inheritColor=false時のみ）
+		if (!inheritColor)
+		{
+			Vector4 trailColor = m->GetTrailColor();
+			if (ImGui::ColorEdit4("Trail Color", &trailColor.x))
+			{
+				m->SetTrailColor(trailColor);
+			}
 		}
 	}
 	else
@@ -1327,7 +1378,7 @@ void ParticleEditor::DrawRendererPanel()
 					}
 					else if (newType == RendererType::Ribbon)
 					{
-						auto newRenderer = std::make_unique<RibbonRenderer>();
+						auto newRenderer = std::make_unique<TrailRenderer>();
 						newRenderer->Initialize("./Resources/uvChecker.png");
 						newRenderer->SetBlendMode(renderer->GetBlendMode());
 						emitter->SetRenderer(std::move(newRenderer));
@@ -1398,112 +1449,102 @@ void ParticleEditor::DrawRendererPanel()
 					}
 				}
 			}
-			// Ribbon Renderer特有の設定
-			else if (auto* ribbonRenderer = dynamic_cast<RibbonRenderer*>(renderer))
+			// Trail Renderer特有の設定
+			else if (auto* trailRenderer = dynamic_cast<TrailRenderer*>(renderer))
 			{
 				ImGui::Separator();
-				ImGui::Text("Ribbon Settings:");
+				ImGui::Text("Trail Settings:");
 
-				// リボン幅
-				float width = ribbonRenderer->GetRibbonWidth();
-				if (ImGui::DragFloat("Ribbon Width", &width, 0.01f, 0.01f, 10.0f))
+				// トレイル幅
+				float width = trailRenderer->GetTrailWidth();
+				if (ImGui::DragFloat("Trail Width", &width, 0.01f, 0.01f, 10.0f))
 				{
-					ribbonRenderer->SetRibbonWidth(width);
+					trailRenderer->SetTrailWidth(width);
 				}
 
-				// セグメント補間設定（レンダラー側）
-				bool enableInterp = ribbonRenderer->GetEnableInterpolation();
-				if (ImGui::Checkbox("Renderer Interpolation", &enableInterp))
+				// トレイル寿命
+				float trailLifetime = trailRenderer->GetTrailLifetime();
+				if (ImGui::DragFloat("Trail Lifetime", &trailLifetime, 0.1f, 0.1f, 10.0f))
 				{
-					ribbonRenderer->SetEnableInterpolation(enableInterp);
+					trailRenderer->SetTrailLifetime(trailLifetime);
 				}
-				ImGui::SetItemTooltip("Interpolate segments in renderer (causes shape changes). Use Spawn-Time Interpolation module instead for stable shapes.");
-				
-				if (enableInterp)
+				ImGui::SetItemTooltip("How long the trail persists (seconds)");
+
+				// 記録間隔
+				float recordInterval = trailRenderer->GetRecordInterval();
+				if (ImGui::DragFloat("Record Interval", &recordInterval, 0.001f, 0.001f, 0.1f))
 				{
-					float maxDist = ribbonRenderer->GetMaxSegmentDistance();
-					if (ImGui::DragFloat("Max Segment Distance", &maxDist, 0.01f, 0.01f, 5.0f))
-					{
-						ribbonRenderer->SetMaxSegmentDistance(maxDist);
-					}
-					ImGui::SetItemTooltip("Add interpolation points when segments are further apart than this");
+					trailRenderer->SetRecordInterval(recordInterval);
+				}
+				ImGui::SetItemTooltip("Time between position samples (lower = smoother)");
+
+				// 最小セグメント距離
+				float minDist = trailRenderer->GetMinSegmentDistance();
+				if (ImGui::DragFloat("Min Segment Distance", &minDist, 0.01f, 0.01f, 1.0f))
+				{
+					trailRenderer->SetMinSegmentDistance(minDist);
 				}
 
 				// テクスチャモード
 				const char* textureModes[] = { "Stretch", "Tile" };
-				int texMode = static_cast<int>(ribbonRenderer->GetTextureMode());
+				int texMode = static_cast<int>(trailRenderer->GetTextureMode());
 				if (ImGui::Combo("Texture Mode", &texMode, textureModes, 2))
 				{
-					ribbonRenderer->SetTextureMode(static_cast<RibbonTextureMode>(texMode));
+					trailRenderer->SetTextureMode(static_cast<RibbonTextureMode>(texMode));
 				}
 
 				// タイルスケール（Tileモードのみ）
-				if (ribbonRenderer->GetTextureMode() == RibbonTextureMode::Tile)
+				if (trailRenderer->GetTextureMode() == RibbonTextureMode::Tile)
 				{
-					float tileScale = ribbonRenderer->GetTileScale();
+					float tileScale = trailRenderer->GetTileScale();
 					if (ImGui::DragFloat("Tile Scale", &tileScale, 0.1f, 0.1f, 100.0f))
 					{
-						ribbonRenderer->SetTileScale(tileScale);
+						trailRenderer->SetTileScale(tileScale);
 					}
 				}
 
-				// アルファ閾値（透明部分のカットオフ）
-				float alphaThreshold = ribbonRenderer->GetAlphaThreshold();
-				if (ImGui::DragFloat("Alpha Threshold", &alphaThreshold, 0.01f, 0.0f, 1.0f))
-				{
-					ribbonRenderer->SetAlphaThreshold(alphaThreshold);
-				}
-				ImGui::SetItemTooltip("Alpha below this threshold will not be rendered (reduces visible edges)");
-				
 				ImGui::Separator();
-				ImGui::Text("Trail Settings:");
-				
-				// トレイル寿命
-				float trailLifetime = ribbonRenderer->GetTrailLifetime();
-				if (ImGui::DragFloat("Trail Lifetime", &trailLifetime, 0.1f, 0.1f, 10.0f))
-				{
-					ribbonRenderer->SetTrailLifetime(trailLifetime);
-				}
-				ImGui::SetItemTooltip("How long the trail persists (seconds)");
-				
-				// サンプリングレート
-				float pps = ribbonRenderer->GetPointsPerSecond();
-				if (ImGui::DragFloat("Points Per Second", &pps, 5.0f, 10.0f, 240.0f))
-				{
-					ribbonRenderer->SetPointsPerSecond(pps);
-				}
-				ImGui::SetItemTooltip("Higher = smoother trail, more vertices");
+				ImGui::Text("Fade Settings:");
 
-				// テクスチャカラー使用オプション
-				bool useTextureColor = ribbonRenderer->GetUseTextureColor();
-				if (ImGui::Checkbox("Use Texture Color", &useTextureColor))
+				// 幅フェード
+				bool widthFade = trailRenderer->GetWidthFade();
+				if (ImGui::Checkbox("Width Fade", &widthFade))
 				{
-					ribbonRenderer->SetUseTextureColor(useTextureColor);
+					trailRenderer->SetWidthFade(widthFade);
 				}
-				ImGui::SetItemTooltip("OFF: Smooth gradient using vertex color only. ON: Apply texture RGB pattern.");
+				ImGui::SetItemTooltip("Trail gets thinner towards the end");
+
+				// アルファフェード
+				bool alphaFade = trailRenderer->GetAlphaFade();
+				if (ImGui::Checkbox("Alpha Fade", &alphaFade))
+				{
+					trailRenderer->SetAlphaFade(alphaFade);
+				}
+				ImGui::SetItemTooltip("Trail becomes transparent towards the end");
 
 				// ビルボード設定
-				bool billboard = ribbonRenderer->GetBillboard();
+				bool billboard = trailRenderer->GetBillboard();
 				if (ImGui::Checkbox("Billboard", &billboard))
 				{
-					ribbonRenderer->SetBillboard(billboard);
+					trailRenderer->SetBillboard(billboard);
 				}
-				ImGui::SetItemTooltip("Enable billboard facing for ribbon segments");
+				ImGui::SetItemTooltip("Enable billboard facing for trail segments");
 
 				// TextureManagerから読み込み済みテクスチャを取得
 				auto texturePaths = TextureManager::GetInstance()->GetLoadedTexturePaths();
 
 				if (!texturePaths.empty())
 				{
+					ImGui::Separator();
 					ImGui::Text("Texture:");
 
-					static int selectedRibbonTextureIdx = 0;
+					static int selectedTrailTextureIdx = 0;
 
-					if (ImGui::BeginCombo("##RibbonTexture", texturePaths.empty() ? "(None)" : texturePaths[selectedRibbonTextureIdx].c_str()))
+					if (ImGui::BeginCombo("##TrailTexture", texturePaths.empty() ? "(None)" : texturePaths[selectedTrailTextureIdx].c_str()))
 					{
 						for (int i = 0; i < static_cast<int>(texturePaths.size()); ++i)
 						{
-							bool isSelected = (selectedRibbonTextureIdx == i);
+							bool isSelected = (selectedTrailTextureIdx == i);
 
 							std::string displayName = texturePaths[i];
 							size_t lastSlash = displayName.find_last_of("/\\");
@@ -1513,12 +1554,12 @@ void ParticleEditor::DrawRendererPanel()
 							}
 							if (displayName.empty()) displayName = "Unknown";
 
-							std::string label = displayName + "##ribbon" + std::to_string(i);
+							std::string label = displayName + "##trail" + std::to_string(i);
 
 							if (ImGui::Selectable(label.c_str(), isSelected))
 							{
-								selectedRibbonTextureIdx = i;
-								ribbonRenderer->SetTexture(texturePaths[i]);
+								selectedTrailTextureIdx = i;
+								trailRenderer->SetTexture(texturePaths[i]);
 							}
 
 							if (isSelected)
@@ -1536,7 +1577,7 @@ void ParticleEditor::DrawRendererPanel()
 				ImGui::Separator();
 				ImGui::Text("Mesh Settings:");
 
-				const char* primitiveTypes[] = { "Plane", "Sphere", "Cylinder", "Cone", "Ring", "Torus", "Cube", "Star", "Heart", "Spiral" };
+				const char* primitiveTypes[] = { "Plane", "Ring", "Cylinder", "Sphere", "Torus", "Star", "Heart", "Spiral", "Cone", "Cube" };
 				int primType = static_cast<int>(meshRenderer->GetPrimitiveType());
 				PrimitiveOptions options = meshRenderer->GetOptions();
 				bool optionsChanged = false;
@@ -1834,7 +1875,8 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Collision",
 				"Kill Zone",
 				"Sprint To Target",
-				"Sub Emitter"
+				"Sub Emitter",
+				"Trail"
 			};
 			const char* updateDescriptions[] = {
 				"Apply gravity (downward Y-axis)",
@@ -1855,7 +1897,8 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Collide and bounce off planes/boxes",
 				"Kill particles inside/outside a zone",
 				"Accelerate toward a target position",
-				"Spawn sub-effects on particle events"
+				"Spawn sub-effects on particle events",
+				"Generate trail particles following parent"
 			};
 			
 			ImGui::Combo("Update Module", &selectedModule, updateModules, IM_ARRAYSIZE(updateModules));
@@ -1888,6 +1931,7 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				case 16: emitter->AddModule(std::make_unique<KillZoneModule>()); break;
 				case 17: emitter->AddModule(std::make_unique<SprintToTargetModule>()); break;
 				case 18: emitter->AddModule(std::make_unique<SubEmitterModule>()); break;
+				case 19: emitter->AddModule(std::make_unique<TrailModule>()); break;
 				}
 				showAddModuleDialog_ = false;
 			}
