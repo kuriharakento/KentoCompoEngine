@@ -55,6 +55,8 @@ void ParticleEffect::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 
 void ParticleEffect::AddEmitter(std::unique_ptr<ParticleEmitter> emitter)
 {
+	// 新しいエミッタにエフェクトの現在位置を設定
+	emitter->SetPosition(position_);
 	emitters_.push_back(std::move(emitter));
 }
 

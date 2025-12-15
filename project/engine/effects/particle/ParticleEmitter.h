@@ -85,6 +85,12 @@ public:
 	void Stop() { enabled_ = false; }
 	void ClearParticles() { particles_.clear(); }
 
+	// 移動時のみパーティクル生成
+	void SetSpawnOnlyWhenMoving(bool enable) { spawnOnlyWhenMoving_ = enable; }
+	bool GetSpawnOnlyWhenMoving() const { return spawnOnlyWhenMoving_; }
+	void SetMinMoveDistance(float distance) { minMoveDistance_ = distance; }
+	float GetMinMoveDistance() const { return minMoveDistance_; }
+
 	std::vector<Particle>& GetParticles() { return particles_; }
 	const std::vector<Particle>& GetParticles() const { return particles_; }
 
@@ -133,4 +139,10 @@ private:
 	uint32_t nextParticleId_ = 0;                   ///< 次に生成するパーティクルのID
 	bool modulesSorted_ = false;                    ///< モジュールが優先度順にソート済みか
 	bool enabled_ = true;                           ///< エミッター有効フラグ
+
+	//===== 移動検出 =====//
+	bool spawnOnlyWhenMoving_ = false;              ///< 移動時のみパーティクル生成するか
+	float minMoveDistance_ = 0.05f;                 ///< 生成に必要な最小移動距離
+	Vector3 previousPosition_ = {};                 ///< 前フレームの位置
+	bool hasPreviousPosition_ = false;              ///< 前フレームの位置が有効か
 };

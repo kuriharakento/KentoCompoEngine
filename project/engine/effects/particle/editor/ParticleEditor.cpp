@@ -3,7 +3,7 @@
 #include "effects/particle/ParticleEmitter.h"
 #include "effects/particle/ParticleManager.h"
 #include "effects/particle/renderer/SpriteRenderer.h"
-#include "effects/particle/renderer/RibbonRenderer.h"
+#include "effects/particle/renderer/TrailRenderer.h"
 #include "effects/particle/renderer/MeshRenderer.h"
 #include "effects/particle/module/spawn/SpawnModules.h"
 #include "effects/particle/module/spawn/InitialModules.h"
@@ -15,6 +15,7 @@
 #include "effects/particle/module/update/AdvancedModules.h"
 #include "effects/particle/module/update/BehaviorModules.h"
 #include "effects/particle/module/spawn/SubEmitterModule.h"
+#include "effects/particle/module/update/MotionEffectModules.h"
 #include "base/DirectXCommon.h"
 #include "manager/system/SrvManager.h"
 #include "manager/scene/CameraManager.h"
@@ -126,7 +127,7 @@ void ParticleEditor::DrawDebug()
 		auto* emitter = currentEffect_->GetEmitter(i);
 		if (!emitter) continue;
 
-		Vector3 emitterPos = emitter->GetPosition() + currentEffect_->GetPosition();
+		Vector3 emitterPos = emitter->GetPosition();
 		
 		// エミッター位置に座標軸を表示
 		lineManager->DrawAxis(emitterPos, kAxisSize);
@@ -690,6 +691,24 @@ void ParticleEditor::DrawEmitterPanel()
 			{
 				emitter->SetSimulationSpace(static_cast<SimulationSpace>(space));
 			}
+
+			// 移動時のみ生成
+			bool spawnOnlyWhenMoving = emitter->GetSpawnOnlyWhenMoving();
+			if (ImGui::Checkbox("Spawn Only When Moving", &spawnOnlyWhenMoving))
+			{
+				emitter->SetSpawnOnlyWhenMoving(spawnOnlyWhenMoving);
+			}
+			ImGui::SetItemTooltip("Only spawn particles when the emitter is moving (good for trails)");
+
+			if (spawnOnlyWhenMoving)
+			{
+				float minDist = emitter->GetMinMoveDistance();
+				if (ImGui::DragFloat("Min Move Distance", &minDist, 0.01f, 0.001f, 1.0f))
+				{
+					emitter->SetMinMoveDistance(minDist);
+				}
+				ImGui::SetItemTooltip("Minimum distance the emitter must move to spawn particles");
+			}
 		}
 	}
 }
@@ -1243,7 +1262,7 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 			// Probability
 			if (ImGui::DragFloat("Probability", &config->probability, 0.01f, 0.0f, 1.0f))
 			{
-				config->probability = std::clamp(config->probability, 0.0f, 1.0f);
+				config->probability = (std::clamp)(config->probability, 0.0f, 1.0f);
 			}
 			
 			// Continuous rate (only for Continuous trigger)
@@ -1284,6 +1303,137 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 			m->AddConfig(newConfig);
 		}
 	}
+	// Motion Effect Modules - Phase 5
+	else if (auto* m = dynamic_cast<RadialVelocityModule*>(module))
+	{
+		float minSpeed = m->GetMinSpeed();
+		float maxSpeed = m->GetMaxSpeed();
+		if (ImGui::DragFloat("Min Speed", &minSpeed, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpeed, maxSpeed); }
+		if (ImGui::DragFloat("Max Speed", &maxSpeed, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpeed, maxSpeed); }
+	}
+	else if (auto* m = dynamic_cast<VelocityOverLifetimeModule*>(module))
+	{
+		float startMul = m->GetStartMultiplier();
+		float endMul = m->GetEndMultiplier();
+		if (ImGui::DragFloat("Start Multiplier", &startMul, 0.01f, 0.0f, 2.0f)) { m->SetStartMultiplier(startMul); }
+		if (ImGui::DragFloat("End Multiplier", &endMul, 0.01f, 0.0f, 2.0f)) { m->SetEndMultiplier(endMul); }
+	}
+	else if (auto* m = dynamic_cast<StretchByVelocityModule*>(module))
+	{
+		float factor = m->GetStretchFactor();
+		if (ImGui::DragFloat("Stretch Factor", &factor, 0.01f, 0.0f, 1.0f)) { m->SetStretchFactor(factor); }
+		
+		float minS = m->GetMinStretch();
+		float maxS = m->GetMaxStretch();
+		if (ImGui::DragFloat("Min Stretch", &minS, 0.1f, 0.1f, 10.0f)) { m->SetMinStretch(minS); }
+		if (ImGui::DragFloat("Max Stretch", &maxS, 0.1f, 0.1f, 10.0f)) { m->SetMaxStretch(maxS); }
+		
+		bool preserve = m->GetPreserveVolume();
+		if (ImGui::Checkbox("Preserve Volume", &preserve)) { m->SetPreserveVolume(preserve); }
+		ImGui::SetItemTooltip("Shrink X/Z when stretching Y to maintain volume");
+	}
+	else if (auto* m = dynamic_cast<WindModule*>(module))
+	{
+		Vector3 dir = m->GetDirection();
+		if (ImGui::DragFloat3("Direction", &dir.x, 0.01f)) { m->SetDirection(dir); }
+		
+		float strength = m->GetStrength();
+		if (ImGui::DragFloat("Strength", &strength, 0.1f, 0.0f, 50.0f)) { m->SetStrength(strength); }
+		
+		float turb = m->GetTurbulence();
+		if (ImGui::DragFloat("Turbulence", &turb, 0.01f, 0.0f, 1.0f)) { m->SetTurbulence(turb); }
+		
+		float turbFreq = m->GetTurbulenceFrequency();
+		if (ImGui::DragFloat("Turbulence Freq", &turbFreq, 0.1f, 0.1f, 10.0f)) { m->SetTurbulenceFrequency(turbFreq); }
+	}
+	else if (auto* m = dynamic_cast<FlickerModule*>(module))
+	{
+		float freq = m->GetFrequency();
+		if (ImGui::DragFloat("Frequency", &freq, 0.1f, 0.1f, 50.0f)) { m->SetFrequency(freq); }
+		
+		float minA = m->GetMinAlpha();
+		float maxA = m->GetMaxAlpha();
+		if (ImGui::DragFloat("Min Alpha", &minA, 0.01f, 0.0f, 1.0f)) { m->SetMinAlpha(minA); }
+		if (ImGui::DragFloat("Max Alpha", &maxA, 0.01f, 0.0f, 1.0f)) { m->SetMaxAlpha(maxA); }
+		
+		bool randPhase = m->GetRandomPhase();
+		if (ImGui::Checkbox("Random Phase", &randPhase)) { m->SetRandomPhase(randPhase); }
+		
+		bool useNoise = m->GetUseNoise();
+		if (ImGui::Checkbox("Use Noise", &useNoise)) { m->SetUseNoise(useNoise); }
+	}
+	else if (auto* m = dynamic_cast<AlphaFadeModule*>(module))
+	{
+		float startA = m->GetStartAlpha();
+		float endA = m->GetEndAlpha();
+		if (ImGui::DragFloat("Start Alpha", &startA, 0.01f, 0.0f, 1.0f)) { m->SetStartAlpha(startA); }
+		if (ImGui::DragFloat("End Alpha", &endA, 0.01f, 0.0f, 1.0f)) { m->SetEndAlpha(endA); }
+		
+		bool easeIn = m->GetEaseIn();
+		bool easeOut = m->GetEaseOut();
+		if (ImGui::Checkbox("Ease In", &easeIn)) { m->SetEaseIn(easeIn); }
+		ImGui::SameLine();
+		if (ImGui::Checkbox("Ease Out", &easeOut)) { m->SetEaseOut(easeOut); }
+	}
+	else if (auto* m = dynamic_cast<RotationBySpeedModule*>(module))
+	{
+		float rotPerSpeed = m->GetRotationPerSpeed();
+		if (ImGui::DragFloat("Rotation/Speed (deg)", &rotPerSpeed, 1.0f, -360.0f, 360.0f)) { m->SetRotationPerSpeed(rotPerSpeed); }
+		
+		float minSpd = m->GetMinSpeed();
+		float maxSpd = m->GetMaxSpeed();
+		if (ImGui::DragFloat("Min Speed", &minSpd, 0.1f, 0.0f, 100.0f)) { m->SetMinSpeed(minSpd); }
+		if (ImGui::DragFloat("Max Speed (0=unlimited)", &maxSpd, 0.1f, 0.0f, 100.0f)) { m->SetMaxSpeed(maxSpd); }
+	}
+	else if (auto* m = dynamic_cast<SineWaveModule*>(module))
+	{
+		float amp = m->GetAmplitude();
+		if (ImGui::DragFloat("Amplitude", &amp, 0.1f, 0.0f, 10.0f)) { m->SetAmplitude(amp); }
+		
+		float freq = m->GetFrequency();
+		if (ImGui::DragFloat("Frequency", &freq, 0.1f, 0.1f, 20.0f)) { m->SetFrequency(freq); }
+		
+		Vector3 axis = m->GetAxis();
+		if (ImGui::DragFloat3("Axis", &axis.x, 0.01f)) { m->SetAxis(axis); }
+		
+		bool randPhase = m->GetRandomPhase();
+		if (ImGui::Checkbox("Random Phase", &randPhase)) { m->SetRandomPhase(randPhase); }
+	}
+	else if (auto* m = dynamic_cast<SpiralModule*>(module))
+	{
+		float radius = m->GetRadius();
+		if (ImGui::DragFloat("Radius", &radius, 0.1f, 0.01f, 10.0f)) { m->SetRadius(radius); }
+		
+		float speed = m->GetSpeed();
+		if (ImGui::DragFloat("Speed (deg/s)", &speed, 1.0f, -720.0f, 720.0f)) { m->SetSpeed(speed); }
+		
+		float lift = m->GetLift();
+		if (ImGui::DragFloat("Lift", &lift, 0.1f, -10.0f, 10.0f)) { m->SetLift(lift); }
+		
+		bool randPhase = m->GetRandomPhase();
+		if (ImGui::Checkbox("Random Phase", &randPhase)) { m->SetRandomPhase(randPhase); }
+		
+		bool expand = m->GetExpandRadius();
+		if (ImGui::Checkbox("Expand Radius", &expand)) { m->SetExpandRadius(expand); }
+		
+		if (expand)
+		{
+			float expRate = m->GetExpansionRate();
+			if (ImGui::DragFloat("Expansion Rate", &expRate, 0.1f, 0.0f, 5.0f)) { m->SetExpansionRate(expRate); }
+		}
+	}
+	else if (auto* m = dynamic_cast<TwistModule*>(module))
+	{
+		float twistSpeed = m->GetTwistSpeed();
+		if (ImGui::DragFloat("Twist Speed (deg/s)", &twistSpeed, 1.0f, -360.0f, 360.0f)) { m->SetTwistSpeed(twistSpeed); }
+		
+		float twistStrength = m->GetTwistStrength();
+		if (ImGui::DragFloat("Twist Strength", &twistStrength, 0.1f, 0.0f, 10.0f)) { m->SetTwistStrength(twistStrength); }
+		
+		const char* axes[] = { "X", "Y", "Z" };
+		int axis = m->GetHeightAxis();
+		if (ImGui::Combo("Height Axis", &axis, axes, 3)) { m->SetHeightAxis(axis); }
+	}
 	else
 	{
 		ImGui::TextDisabled("(No properties available)");
@@ -1306,7 +1456,7 @@ void ParticleEditor::DrawRendererPanel()
 		auto* renderer = emitter->GetRenderer();
 		if (renderer)
 		{
-			const char* typeNames[] = { "Sprite", "Ribbon", "Mesh" };
+			const char* typeNames[] = { "Sprite", "Trail", "Mesh" };
 			int currentType = static_cast<int>(renderer->GetType());
 			if (ImGui::Combo("Type", &currentType, typeNames, 3))
 			{
@@ -1327,7 +1477,7 @@ void ParticleEditor::DrawRendererPanel()
 					}
 					else if (newType == RendererType::Ribbon)
 					{
-						auto newRenderer = std::make_unique<RibbonRenderer>();
+						auto newRenderer = std::make_unique<TrailRenderer>();
 						newRenderer->Initialize("./Resources/uvChecker.png");
 						newRenderer->SetBlendMode(renderer->GetBlendMode());
 						emitter->SetRenderer(std::move(newRenderer));
@@ -1398,112 +1548,102 @@ void ParticleEditor::DrawRendererPanel()
 					}
 				}
 			}
-			// Ribbon Renderer特有の設定
-			else if (auto* ribbonRenderer = dynamic_cast<RibbonRenderer*>(renderer))
+			// Trail Renderer特有の設定
+			else if (auto* trailRenderer = dynamic_cast<TrailRenderer*>(renderer))
 			{
 				ImGui::Separator();
-				ImGui::Text("Ribbon Settings:");
+				ImGui::Text("Trail Settings:");
 
-				// リボン幅
-				float width = ribbonRenderer->GetRibbonWidth();
-				if (ImGui::DragFloat("Ribbon Width", &width, 0.01f, 0.01f, 10.0f))
+				// トレイル幅
+				float width = trailRenderer->GetTrailWidth();
+				if (ImGui::DragFloat("Trail Width", &width, 0.01f, 0.01f, 10.0f))
 				{
-					ribbonRenderer->SetRibbonWidth(width);
+					trailRenderer->SetTrailWidth(width);
 				}
 
-				// セグメント補間設定（レンダラー側）
-				bool enableInterp = ribbonRenderer->GetEnableInterpolation();
-				if (ImGui::Checkbox("Renderer Interpolation", &enableInterp))
+				// トレイル寿命
+				float trailLifetime = trailRenderer->GetTrailLifetime();
+				if (ImGui::DragFloat("Trail Lifetime", &trailLifetime, 0.1f, 0.1f, 10.0f))
 				{
-					ribbonRenderer->SetEnableInterpolation(enableInterp);
+					trailRenderer->SetTrailLifetime(trailLifetime);
 				}
-				ImGui::SetItemTooltip("Interpolate segments in renderer (causes shape changes). Use Spawn-Time Interpolation module instead for stable shapes.");
-				
-				if (enableInterp)
+				ImGui::SetItemTooltip("How long the trail persists (seconds)");
+
+				// 記録間隔
+				float recordInterval = trailRenderer->GetRecordInterval();
+				if (ImGui::DragFloat("Record Interval", &recordInterval, 0.001f, 0.001f, 0.1f))
 				{
-					float maxDist = ribbonRenderer->GetMaxSegmentDistance();
-					if (ImGui::DragFloat("Max Segment Distance", &maxDist, 0.01f, 0.01f, 5.0f))
-					{
-						ribbonRenderer->SetMaxSegmentDistance(maxDist);
-					}
-					ImGui::SetItemTooltip("Add interpolation points when segments are further apart than this");
+					trailRenderer->SetRecordInterval(recordInterval);
+				}
+				ImGui::SetItemTooltip("Time between position samples (lower = smoother)");
+
+				// 最小セグメント距離
+				float minDist = trailRenderer->GetMinSegmentDistance();
+				if (ImGui::DragFloat("Min Segment Distance", &minDist, 0.01f, 0.01f, 1.0f))
+				{
+					trailRenderer->SetMinSegmentDistance(minDist);
 				}
 
 				// テクスチャモード
 				const char* textureModes[] = { "Stretch", "Tile" };
-				int texMode = static_cast<int>(ribbonRenderer->GetTextureMode());
+				int texMode = static_cast<int>(trailRenderer->GetTextureMode());
 				if (ImGui::Combo("Texture Mode", &texMode, textureModes, 2))
 				{
-					ribbonRenderer->SetTextureMode(static_cast<RibbonTextureMode>(texMode));
+					trailRenderer->SetTextureMode(static_cast<RibbonTextureMode>(texMode));
 				}
 
 				// タイルスケール（Tileモードのみ）
-				if (ribbonRenderer->GetTextureMode() == RibbonTextureMode::Tile)
+				if (trailRenderer->GetTextureMode() == RibbonTextureMode::Tile)
 				{
-					float tileScale = ribbonRenderer->GetTileScale();
+					float tileScale = trailRenderer->GetTileScale();
 					if (ImGui::DragFloat("Tile Scale", &tileScale, 0.1f, 0.1f, 100.0f))
 					{
-						ribbonRenderer->SetTileScale(tileScale);
+						trailRenderer->SetTileScale(tileScale);
 					}
 				}
 
-				// アルファ閾値（透明部分のカットオフ）
-				float alphaThreshold = ribbonRenderer->GetAlphaThreshold();
-				if (ImGui::DragFloat("Alpha Threshold", &alphaThreshold, 0.01f, 0.0f, 1.0f))
-				{
-					ribbonRenderer->SetAlphaThreshold(alphaThreshold);
-				}
-				ImGui::SetItemTooltip("Alpha below this threshold will not be rendered (reduces visible edges)");
-				
 				ImGui::Separator();
-				ImGui::Text("Trail Settings:");
-				
-				// トレイル寿命
-				float trailLifetime = ribbonRenderer->GetTrailLifetime();
-				if (ImGui::DragFloat("Trail Lifetime", &trailLifetime, 0.1f, 0.1f, 10.0f))
-				{
-					ribbonRenderer->SetTrailLifetime(trailLifetime);
-				}
-				ImGui::SetItemTooltip("How long the trail persists (seconds)");
-				
-				// サンプリングレート
-				float pps = ribbonRenderer->GetPointsPerSecond();
-				if (ImGui::DragFloat("Points Per Second", &pps, 5.0f, 10.0f, 240.0f))
-				{
-					ribbonRenderer->SetPointsPerSecond(pps);
-				}
-				ImGui::SetItemTooltip("Higher = smoother trail, more vertices");
+				ImGui::Text("Fade Settings:");
 
-				// テクスチャカラー使用オプション
-				bool useTextureColor = ribbonRenderer->GetUseTextureColor();
-				if (ImGui::Checkbox("Use Texture Color", &useTextureColor))
+				// 幅フェード
+				bool widthFade = trailRenderer->GetWidthFade();
+				if (ImGui::Checkbox("Width Fade", &widthFade))
 				{
-					ribbonRenderer->SetUseTextureColor(useTextureColor);
+					trailRenderer->SetWidthFade(widthFade);
 				}
-				ImGui::SetItemTooltip("OFF: Smooth gradient using vertex color only. ON: Apply texture RGB pattern.");
+				ImGui::SetItemTooltip("Trail gets thinner towards the end");
+
+				// アルファフェード
+				bool alphaFade = trailRenderer->GetAlphaFade();
+				if (ImGui::Checkbox("Alpha Fade", &alphaFade))
+				{
+					trailRenderer->SetAlphaFade(alphaFade);
+				}
+				ImGui::SetItemTooltip("Trail becomes transparent towards the end");
 
 				// ビルボード設定
-				bool billboard = ribbonRenderer->GetBillboard();
+				bool billboard = trailRenderer->GetBillboard();
 				if (ImGui::Checkbox("Billboard", &billboard))
 				{
-					ribbonRenderer->SetBillboard(billboard);
+					trailRenderer->SetBillboard(billboard);
 				}
-				ImGui::SetItemTooltip("Enable billboard facing for ribbon segments");
+				ImGui::SetItemTooltip("Enable billboard facing for trail segments");
 
 				// TextureManagerから読み込み済みテクスチャを取得
 				auto texturePaths = TextureManager::GetInstance()->GetLoadedTexturePaths();
 
 				if (!texturePaths.empty())
 				{
+					ImGui::Separator();
 					ImGui::Text("Texture:");
 
-					static int selectedRibbonTextureIdx = 0;
+					static int selectedTrailTextureIdx = 0;
 
-					if (ImGui::BeginCombo("##RibbonTexture", texturePaths.empty() ? "(None)" : texturePaths[selectedRibbonTextureIdx].c_str()))
+					if (ImGui::BeginCombo("##TrailTexture", texturePaths.empty() ? "(None)" : texturePaths[selectedTrailTextureIdx].c_str()))
 					{
 						for (int i = 0; i < static_cast<int>(texturePaths.size()); ++i)
 						{
-							bool isSelected = (selectedRibbonTextureIdx == i);
+							bool isSelected = (selectedTrailTextureIdx == i);
 
 							std::string displayName = texturePaths[i];
 							size_t lastSlash = displayName.find_last_of("/\\");
@@ -1513,12 +1653,12 @@ void ParticleEditor::DrawRendererPanel()
 							}
 							if (displayName.empty()) displayName = "Unknown";
 
-							std::string label = displayName + "##ribbon" + std::to_string(i);
+							std::string label = displayName + "##trail" + std::to_string(i);
 
 							if (ImGui::Selectable(label.c_str(), isSelected))
 							{
-								selectedRibbonTextureIdx = i;
-								ribbonRenderer->SetTexture(texturePaths[i]);
+								selectedTrailTextureIdx = i;
+								trailRenderer->SetTexture(texturePaths[i]);
 							}
 
 							if (isSelected)
@@ -1536,7 +1676,7 @@ void ParticleEditor::DrawRendererPanel()
 				ImGui::Separator();
 				ImGui::Text("Mesh Settings:");
 
-				const char* primitiveTypes[] = { "Plane", "Sphere", "Cylinder", "Cone", "Ring", "Torus", "Cube", "Star", "Heart", "Spiral" };
+				const char* primitiveTypes[] = { "Plane", "Ring", "Cylinder", "Sphere", "Torus", "Star", "Heart", "Spiral", "Cone", "Cube" };
 				int primType = static_cast<int>(meshRenderer->GetPrimitiveType());
 				PrimitiveOptions options = meshRenderer->GetOptions();
 				bool optionsChanged = false;
@@ -1776,7 +1916,8 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Initial Velocity",
 				"Initial Scale",
 				"Initial Color",
-				"Initial Rotation"
+				"Initial Rotation",
+				"Radial Velocity"
 			};
 			const char* spawnDescriptions[] = {
 				"Spawn particles at a constant rate",
@@ -1786,7 +1927,8 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Set initial velocity and direction",
 				"Set initial size of particles",
 				"Set initial color (RGBA)",
-				"Set initial rotation angle"
+				"Set initial rotation angle",
+				"Apply radial velocity from emitter center (explosion)"
 			};
 			
 			ImGui::Combo("Spawn Module", &selectedModule, spawnModules, IM_ARRAYSIZE(spawnModules));
@@ -1808,6 +1950,7 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				case 5: emitter->AddModule(std::make_unique<InitialScaleModule>()); break;
 				case 6: emitter->AddModule(std::make_unique<InitialColorModule>()); break;
 				case 7: emitter->AddModule(std::make_unique<InitialRotationModule>()); break;
+				case 8: emitter->AddModule(std::make_unique<RadialVelocityModule>()); break;
 				}
 				showAddModuleDialog_ = false;
 			}
@@ -1834,7 +1977,16 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Collision",
 				"Kill Zone",
 				"Sprint To Target",
-				"Sub Emitter"
+				"Sub Emitter",
+				"Velocity Over Lifetime",
+				"Stretch By Velocity",
+				"Wind",
+				"Flicker",
+				"Alpha Fade",
+				"Rotation By Speed",
+				"Sine Wave",
+				"Spiral",
+				"Twist"
 			};
 			const char* updateDescriptions[] = {
 				"Apply gravity (downward Y-axis)",
@@ -1855,7 +2007,16 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Collide and bounce off planes/boxes",
 				"Kill particles inside/outside a zone",
 				"Accelerate toward a target position",
-				"Spawn sub-effects on particle events"
+				"Spawn sub-effects on particle events",
+				"Multiply velocity over particle lifetime",
+				"Stretch particles in velocity direction (bullets, rain)",
+				"Apply directional wind force with turbulence",
+				"Flicker/blink alpha for fire, sparks",
+				"Simple alpha fade over lifetime",
+				"Rotate based on movement speed",
+				"Oscillate position with sine wave",
+				"Move in spiral pattern",
+				"Twist position around an axis"
 			};
 			
 			ImGui::Combo("Update Module", &selectedModule, updateModules, IM_ARRAYSIZE(updateModules));
@@ -1888,6 +2049,16 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				case 16: emitter->AddModule(std::make_unique<KillZoneModule>()); break;
 				case 17: emitter->AddModule(std::make_unique<SprintToTargetModule>()); break;
 				case 18: emitter->AddModule(std::make_unique<SubEmitterModule>()); break;
+				// Motion effect modules
+				case 19: emitter->AddModule(std::make_unique<VelocityOverLifetimeModule>()); break;
+				case 20: emitter->AddModule(std::make_unique<StretchByVelocityModule>()); break;
+				case 21: emitter->AddModule(std::make_unique<WindModule>()); break;
+				case 22: emitter->AddModule(std::make_unique<FlickerModule>()); break;
+				case 23: emitter->AddModule(std::make_unique<AlphaFadeModule>()); break;
+				case 24: emitter->AddModule(std::make_unique<RotationBySpeedModule>()); break;
+				case 25: emitter->AddModule(std::make_unique<SineWaveModule>()); break;
+				case 26: emitter->AddModule(std::make_unique<SpiralModule>()); break;
+				case 27: emitter->AddModule(std::make_unique<TwistModule>()); break;
 				}
 				showAddModuleDialog_ = false;
 			}

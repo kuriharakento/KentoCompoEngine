@@ -160,8 +160,24 @@ void ParticleEmitter::UpdateCPU(float deltaTime)
 	context.followTarget = followTarget_;
 	context.spawnCount = 0;
 
-	// Spawnフェーズのモジュールを実行（有効時のみ）
-	if (enabled_)
+	// 移動検出
+	bool isMoving = true;
+	if (spawnOnlyWhenMoving_)
+	{
+		if (hasPreviousPosition_)
+		{
+			float dx = position_.x - previousPosition_.x;
+			float dy = position_.y - previousPosition_.y;
+			float dz = position_.z - previousPosition_.z;
+			float distance = std::sqrt(dx * dx + dy * dy + dz * dz);
+			isMoving = distance >= minMoveDistance_;
+		}
+		previousPosition_ = position_;
+		hasPreviousPosition_ = true;
+	}
+
+	// Spawnフェーズのモジュールを実行（有効時かつ移動時のみ）
+	if (enabled_ && isMoving)
 	{
 		ExecuteSpawnModules(context);
 	}

@@ -74,4 +74,35 @@ namespace ParticleModulePriority
 	//===== Other =====//
 	/** @brief サブエミッター（最後に評価） */
 	constexpr int32_t kSubEmitter = 200;
+
+	//===== Motion Effect Modules =====//
+	/** @brief 放射状初期速度 */
+	constexpr int32_t kRadialVelocity = -85;
+	
+	/** @brief 速度オーバーライフタイム */
+	constexpr int32_t kVelocityOverLifetime = -45;
+	
+	/** @brief 速度によるストレッチ */
+	constexpr int32_t kStretchByVelocity = 44;
+	
+	/** @brief 風 */
+	constexpr int32_t kWind = -25;
+	
+	/** @brief フリッカー（点滅） */
+	constexpr int32_t kFlicker = 55;
+	
+	/** @brief アルファフェード */
+	constexpr int32_t kAlphaFade = 48;
+	
+	/** @brief 速度による回転 */
+	constexpr int32_t kRotationBySpeed = 62;
+	
+	/** @brief 正弦波 */
+	constexpr int32_t kSineWave = -28;
+	
+	/** @brief 螺旋 */
+	constexpr int32_t kSpiral = -22;
+	
+	/** @brief ツイスト */
+	constexpr int32_t kTwist = -18;
 }
