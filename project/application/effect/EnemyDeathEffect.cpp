@@ -48,7 +48,6 @@ InitializeSmokeEmitter();
 void EnemyDeathEffect::InitializeBloodEmitter()
 {
     // 血飛沫エミッターの作成と初期化
-{
     auto emitter = std::make_unique<ParticleEmitter>();
     emitter->Initialize("enemy_blood");
     
