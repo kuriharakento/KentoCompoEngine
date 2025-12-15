@@ -13,6 +13,7 @@
 #include "effects/particle/module/update/ForceFieldModules.h"
 #include "effects/particle/module/update/RibbonModules.h"
 #include "effects/particle/module/update/TextureSheetModule.h"
+#include "effects/particle/module/update/MotionEffectModules.h"
 #include <fstream>
 
 // nlohmann/json を有効化
@@ -563,6 +564,109 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 				m->SetStartFrame(moduleData.value("startFrame", 0u));
 				emitter->AddModule(std::move(m));
 			}
+			// Motion Effect Modules
+			else if (type == "RadialVelocity")
+			{
+				auto m = std::make_unique<RadialVelocityModule>();
+				float minSpeed = moduleData.value("minSpeed", 5.0f);
+				float maxSpeed = moduleData.value("maxSpeed", 5.0f);
+				m->SetSpeedRange(minSpeed, maxSpeed);
+				emitter->AddModule(std::move(m));
+			}
+			else if (type == "VelocityOverLifetime")
+			{
+				auto m = std::make_unique<VelocityOverLifetimeModule>();
+				m->SetStartMultiplier(moduleData.value("startMultiplier", 1.0f));
+				m->SetEndMultiplier(moduleData.value("endMultiplier", 0.0f));
+				emitter->AddModule(std::move(m));
+			}
+			else if (type == "StretchByVelocity")
+			{
+				auto m = std::make_unique<StretchByVelocityModule>();
+				m->SetStretchFactor(moduleData.value("stretchFactor", 0.1f));
+				m->SetMinStretch(moduleData.value("minStretch", 1.0f));
+				m->SetMaxStretch(moduleData.value("maxStretch", 5.0f));
+				m->SetPreserveVolume(moduleData.value("preserveVolume", false));
+				emitter->AddModule(std::move(m));
+			}
+			else if (type == "Wind")
+			{
+				auto m = std::make_unique<WindModule>();
+				if (moduleData.contains("direction"))
+				{
+					Vector3 dir;
+					dir.x = moduleData["direction"].value("x", 1.0f);
+					dir.y = moduleData["direction"].value("y", 0.0f);
+					dir.z = moduleData["direction"].value("z", 0.0f);
+					m->SetDirection(dir);
+				}
+				m->SetStrength(moduleData.value("strength", 1.0f));
+				m->SetTurbulence(moduleData.value("turbulence", 0.0f));
+				m->SetTurbulenceFrequency(moduleData.value("turbulenceFrequency", 1.0f));
+				emitter->AddModule(std::move(m));
+			}
+			else if (type == "Flicker")
+			{
+				auto m = std::make_unique<FlickerModule>();
+				m->SetFrequency(moduleData.value("frequency", 10.0f));
+				m->SetMinAlpha(moduleData.value("minAlpha", 0.3f));
+				m->SetMaxAlpha(moduleData.value("maxAlpha", 1.0f));
+				m->SetRandomPhase(moduleData.value("randomPhase", true));
+				m->SetUseNoise(moduleData.value("useNoise", false));
+				emitter->AddModule(std::move(m));
+			}
+			else if (type == "AlphaFade")
+			{
+				auto m = std::make_unique<AlphaFadeModule>();
+				m->SetStartAlpha(moduleData.value("startAlpha", 1.0f));
+				m->SetEndAlpha(moduleData.value("endAlpha", 0.0f));
+				m->SetEaseIn(moduleData.value("easeIn", false));
+				m->SetEaseOut(moduleData.value("easeOut", true));
+				emitter->AddModule(std::move(m));
+			}
+			else if (type == "RotationBySpeed")
+			{
+				auto m = std::make_unique<RotationBySpeedModule>();
+				m->SetRotationPerSpeed(moduleData.value("rotationPerSpeed", 90.0f));
+				m->SetMinSpeed(moduleData.value("minSpeed", 0.0f));
+				m->SetMaxSpeed(moduleData.value("maxSpeed", 0.0f));
+				emitter->AddModule(std::move(m));
+			}
+			else if (type == "SineWave")
+			{
+				auto m = std::make_unique<SineWaveModule>();
+				m->SetAmplitude(moduleData.value("amplitude", 1.0f));
+				m->SetFrequency(moduleData.value("frequency", 2.0f));
+				if (moduleData.contains("axis"))
+				{
+					Vector3 axis;
+					axis.x = moduleData["axis"].value("x", 1.0f);
+					axis.y = moduleData["axis"].value("y", 0.0f);
+					axis.z = moduleData["axis"].value("z", 0.0f);
+					m->SetAxis(axis);
+				}
+				m->SetRandomPhase(moduleData.value("randomPhase", true));
+				emitter->AddModule(std::move(m));
+			}
+			else if (type == "Spiral")
+			{
+				auto m = std::make_unique<SpiralModule>();
+				m->SetRadius(moduleData.value("radius", 1.0f));
+				m->SetSpeed(moduleData.value("speed", 180.0f));
+				m->SetLift(moduleData.value("lift", 1.0f));
+				m->SetRandomPhase(moduleData.value("randomPhase", true));
+				m->SetExpandRadius(moduleData.value("expandRadius", false));
+				m->SetExpansionRate(moduleData.value("expansionRate", 0.5f));
+				emitter->AddModule(std::move(m));
+			}
+			else if (type == "Twist")
+			{
+				auto m = std::make_unique<TwistModule>();
+				m->SetTwistSpeed(moduleData.value("twistSpeed", 90.0f));
+				m->SetTwistStrength(moduleData.value("twistStrength", 1.0f));
+				m->SetHeightAxis(moduleData.value("heightAxis", 1));
+				emitter->AddModule(std::move(m));
+			}
 		}
 	}
 
@@ -870,6 +974,76 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 			moduleData["rows"] = m->GetRows();
 			moduleData["frameRate"] = m->GetFrameRate();
 			moduleData["playMode"] = static_cast<int>(m->GetPlayMode());
+		}
+		// Motion Effect Modules
+		else if (auto* m = dynamic_cast<const RadialVelocityModule*>(module))
+		{
+			moduleData["minSpeed"] = m->GetMinSpeed();
+			moduleData["maxSpeed"] = m->GetMaxSpeed();
+		}
+		else if (auto* m = dynamic_cast<const VelocityOverLifetimeModule*>(module))
+		{
+			moduleData["startMultiplier"] = m->GetStartMultiplier();
+			moduleData["endMultiplier"] = m->GetEndMultiplier();
+		}
+		else if (auto* m = dynamic_cast<const StretchByVelocityModule*>(module))
+		{
+			moduleData["stretchFactor"] = m->GetStretchFactor();
+			moduleData["minStretch"] = m->GetMinStretch();
+			moduleData["maxStretch"] = m->GetMaxStretch();
+			moduleData["preserveVolume"] = m->GetPreserveVolume();
+		}
+		else if (auto* m = dynamic_cast<const WindModule*>(module))
+		{
+			Vector3 dir = m->GetDirection();
+			moduleData["direction"] = {{"x", dir.x}, {"y", dir.y}, {"z", dir.z}};
+			moduleData["strength"] = m->GetStrength();
+			moduleData["turbulence"] = m->GetTurbulence();
+			moduleData["turbulenceFrequency"] = m->GetTurbulenceFrequency();
+		}
+		else if (auto* m = dynamic_cast<const FlickerModule*>(module))
+		{
+			moduleData["frequency"] = m->GetFrequency();
+			moduleData["minAlpha"] = m->GetMinAlpha();
+			moduleData["maxAlpha"] = m->GetMaxAlpha();
+			moduleData["randomPhase"] = m->GetRandomPhase();
+			moduleData["useNoise"] = m->GetUseNoise();
+		}
+		else if (auto* m = dynamic_cast<const AlphaFadeModule*>(module))
+		{
+			moduleData["startAlpha"] = m->GetStartAlpha();
+			moduleData["endAlpha"] = m->GetEndAlpha();
+			moduleData["easeIn"] = m->GetEaseIn();
+			moduleData["easeOut"] = m->GetEaseOut();
+		}
+		else if (auto* m = dynamic_cast<const RotationBySpeedModule*>(module))
+		{
+			moduleData["rotationPerSpeed"] = m->GetRotationPerSpeed();
+			moduleData["minSpeed"] = m->GetMinSpeed();
+			moduleData["maxSpeed"] = m->GetMaxSpeed();
+		}
+		else if (auto* m = dynamic_cast<const SineWaveModule*>(module))
+		{
+			moduleData["amplitude"] = m->GetAmplitude();
+			moduleData["frequency"] = m->GetFrequency();
+			Vector3 axis = m->GetAxis();
+			moduleData["axis"] = {{"x", axis.x}, {"y", axis.y}, {"z", axis.z}};
+			moduleData["randomPhase"] = m->GetRandomPhase();
+		}
+		else if (auto* m = dynamic_cast<const SpiralModule*>(module))
+		{
+			moduleData["radius"] = m->GetRadius();
+			moduleData["speed"] = m->GetSpeed();
+			moduleData["lift"] = m->GetLift();
+			moduleData["randomPhase"] = m->GetRandomPhase();
+			moduleData["expandRadius"] = m->GetExpandRadius();
+			moduleData["expansionRate"] = m->GetExpansionRate();
+		}
+		else if (auto* m = dynamic_cast<const TwistModule*>(module))
+		{
+			moduleData["twistSpeed"] = m->GetTwistSpeed();
+			moduleData["twistStrength"] = m->GetTwistStrength();
+			moduleData["heightAxis"] = m->GetHeightAxis();
 		}
 
 		data["modules"].push_back(moduleData);

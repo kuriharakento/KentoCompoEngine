@@ -15,6 +15,7 @@
 #include "effects/particle/module/update/AdvancedModules.h"
 #include "effects/particle/module/update/BehaviorModules.h"
 #include "effects/particle/module/spawn/SubEmitterModule.h"
+#include "effects/particle/module/update/MotionEffectModules.h"
 #include "base/DirectXCommon.h"
 #include "manager/system/SrvManager.h"
 #include "manager/scene/CameraManager.h"
@@ -1302,6 +1303,137 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 			m->AddConfig(newConfig);
 		}
 	}
+	// Motion Effect Modules - Phase 5
+	else if (auto* m = dynamic_cast<RadialVelocityModule*>(module))
+	{
+		float minSpeed = m->GetMinSpeed();
+		float maxSpeed = m->GetMaxSpeed();
+		if (ImGui::DragFloat("Min Speed", &minSpeed, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpeed, maxSpeed); }
+		if (ImGui::DragFloat("Max Speed", &maxSpeed, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpeed, maxSpeed); }
+	}
+	else if (auto* m = dynamic_cast<VelocityOverLifetimeModule*>(module))
+	{
+		float startMul = m->GetStartMultiplier();
+		float endMul = m->GetEndMultiplier();
+		if (ImGui::DragFloat("Start Multiplier", &startMul, 0.01f, 0.0f, 2.0f)) { m->SetStartMultiplier(startMul); }
+		if (ImGui::DragFloat("End Multiplier", &endMul, 0.01f, 0.0f, 2.0f)) { m->SetEndMultiplier(endMul); }
+	}
+	else if (auto* m = dynamic_cast<StretchByVelocityModule*>(module))
+	{
+		float factor = m->GetStretchFactor();
+		if (ImGui::DragFloat("Stretch Factor", &factor, 0.01f, 0.0f, 1.0f)) { m->SetStretchFactor(factor); }
+		
+		float minS = m->GetMinStretch();
+		float maxS = m->GetMaxStretch();
+		if (ImGui::DragFloat("Min Stretch", &minS, 0.1f, 0.1f, 10.0f)) { m->SetMinStretch(minS); }
+		if (ImGui::DragFloat("Max Stretch", &maxS, 0.1f, 0.1f, 10.0f)) { m->SetMaxStretch(maxS); }
+		
+		bool preserve = m->GetPreserveVolume();
+		if (ImGui::Checkbox("Preserve Volume", &preserve)) { m->SetPreserveVolume(preserve); }
+		ImGui::SetItemTooltip("Shrink X/Z when stretching Y to maintain volume");
+	}
+	else if (auto* m = dynamic_cast<WindModule*>(module))
+	{
+		Vector3 dir = m->GetDirection();
+		if (ImGui::DragFloat3("Direction", &dir.x, 0.01f)) { m->SetDirection(dir); }
+		
+		float strength = m->GetStrength();
+		if (ImGui::DragFloat("Strength", &strength, 0.1f, 0.0f, 50.0f)) { m->SetStrength(strength); }
+		
+		float turb = m->GetTurbulence();
+		if (ImGui::DragFloat("Turbulence", &turb, 0.01f, 0.0f, 1.0f)) { m->SetTurbulence(turb); }
+		
+		float turbFreq = m->GetTurbulenceFrequency();
+		if (ImGui::DragFloat("Turbulence Freq", &turbFreq, 0.1f, 0.1f, 10.0f)) { m->SetTurbulenceFrequency(turbFreq); }
+	}
+	else if (auto* m = dynamic_cast<FlickerModule*>(module))
+	{
+		float freq = m->GetFrequency();
+		if (ImGui::DragFloat("Frequency", &freq, 0.1f, 0.1f, 50.0f)) { m->SetFrequency(freq); }
+		
+		float minA = m->GetMinAlpha();
+		float maxA = m->GetMaxAlpha();
+		if (ImGui::DragFloat("Min Alpha", &minA, 0.01f, 0.0f, 1.0f)) { m->SetMinAlpha(minA); }
+		if (ImGui::DragFloat("Max Alpha", &maxA, 0.01f, 0.0f, 1.0f)) { m->SetMaxAlpha(maxA); }
+		
+		bool randPhase = m->GetRandomPhase();
+		if (ImGui::Checkbox("Random Phase", &randPhase)) { m->SetRandomPhase(randPhase); }
+		
+		bool useNoise = m->GetUseNoise();
+		if (ImGui::Checkbox("Use Noise", &useNoise)) { m->SetUseNoise(useNoise); }
+	}
+	else if (auto* m = dynamic_cast<AlphaFadeModule*>(module))
+	{
+		float startA = m->GetStartAlpha();
+		float endA = m->GetEndAlpha();
+		if (ImGui::DragFloat("Start Alpha", &startA, 0.01f, 0.0f, 1.0f)) { m->SetStartAlpha(startA); }
+		if (ImGui::DragFloat("End Alpha", &endA, 0.01f, 0.0f, 1.0f)) { m->SetEndAlpha(endA); }
+		
+		bool easeIn = m->GetEaseIn();
+		bool easeOut = m->GetEaseOut();
+		if (ImGui::Checkbox("Ease In", &easeIn)) { m->SetEaseIn(easeIn); }
+		ImGui::SameLine();
+		if (ImGui::Checkbox("Ease Out", &easeOut)) { m->SetEaseOut(easeOut); }
+	}
+	else if (auto* m = dynamic_cast<RotationBySpeedModule*>(module))
+	{
+		float rotPerSpeed = m->GetRotationPerSpeed();
+		if (ImGui::DragFloat("Rotation/Speed (deg)", &rotPerSpeed, 1.0f, -360.0f, 360.0f)) { m->SetRotationPerSpeed(rotPerSpeed); }
+		
+		float minSpd = m->GetMinSpeed();
+		float maxSpd = m->GetMaxSpeed();
+		if (ImGui::DragFloat("Min Speed", &minSpd, 0.1f, 0.0f, 100.0f)) { m->SetMinSpeed(minSpd); }
+		if (ImGui::DragFloat("Max Speed (0=unlimited)", &maxSpd, 0.1f, 0.0f, 100.0f)) { m->SetMaxSpeed(maxSpd); }
+	}
+	else if (auto* m = dynamic_cast<SineWaveModule*>(module))
+	{
+		float amp = m->GetAmplitude();
+		if (ImGui::DragFloat("Amplitude", &amp, 0.1f, 0.0f, 10.0f)) { m->SetAmplitude(amp); }
+		
+		float freq = m->GetFrequency();
+		if (ImGui::DragFloat("Frequency", &freq, 0.1f, 0.1f, 20.0f)) { m->SetFrequency(freq); }
+		
+		Vector3 axis = m->GetAxis();
+		if (ImGui::DragFloat3("Axis", &axis.x, 0.01f)) { m->SetAxis(axis); }
+		
+		bool randPhase = m->GetRandomPhase();
+		if (ImGui::Checkbox("Random Phase", &randPhase)) { m->SetRandomPhase(randPhase); }
+	}
+	else if (auto* m = dynamic_cast<SpiralModule*>(module))
+	{
+		float radius = m->GetRadius();
+		if (ImGui::DragFloat("Radius", &radius, 0.1f, 0.01f, 10.0f)) { m->SetRadius(radius); }
+		
+		float speed = m->GetSpeed();
+		if (ImGui::DragFloat("Speed (deg/s)", &speed, 1.0f, -720.0f, 720.0f)) { m->SetSpeed(speed); }
+		
+		float lift = m->GetLift();
+		if (ImGui::DragFloat("Lift", &lift, 0.1f, -10.0f, 10.0f)) { m->SetLift(lift); }
+		
+		bool randPhase = m->GetRandomPhase();
+		if (ImGui::Checkbox("Random Phase", &randPhase)) { m->SetRandomPhase(randPhase); }
+		
+		bool expand = m->GetExpandRadius();
+		if (ImGui::Checkbox("Expand Radius", &expand)) { m->SetExpandRadius(expand); }
+		
+		if (expand)
+		{
+			float expRate = m->GetExpansionRate();
+			if (ImGui::DragFloat("Expansion Rate", &expRate, 0.1f, 0.0f, 5.0f)) { m->SetExpansionRate(expRate); }
+		}
+	}
+	else if (auto* m = dynamic_cast<TwistModule*>(module))
+	{
+		float twistSpeed = m->GetTwistSpeed();
+		if (ImGui::DragFloat("Twist Speed (deg/s)", &twistSpeed, 1.0f, -360.0f, 360.0f)) { m->SetTwistSpeed(twistSpeed); }
+		
+		float twistStrength = m->GetTwistStrength();
+		if (ImGui::DragFloat("Twist Strength", &twistStrength, 0.1f, 0.0f, 10.0f)) { m->SetTwistStrength(twistStrength); }
+		
+		const char* axes[] = { "X", "Y", "Z" };
+		int axis = m->GetHeightAxis();
+		if (ImGui::Combo("Height Axis", &axis, axes, 3)) { m->SetHeightAxis(axis); }
+	}
 	else
 	{
 		ImGui::TextDisabled("(No properties available)");
@@ -1784,7 +1916,8 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Initial Velocity",
 				"Initial Scale",
 				"Initial Color",
-				"Initial Rotation"
+				"Initial Rotation",
+				"Radial Velocity"
 			};
 			const char* spawnDescriptions[] = {
 				"Spawn particles at a constant rate",
@@ -1794,7 +1927,8 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Set initial velocity and direction",
 				"Set initial size of particles",
 				"Set initial color (RGBA)",
-				"Set initial rotation angle"
+				"Set initial rotation angle",
+				"Apply radial velocity from emitter center (explosion)"
 			};
 			
 			ImGui::Combo("Spawn Module", &selectedModule, spawnModules, IM_ARRAYSIZE(spawnModules));
@@ -1816,6 +1950,7 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				case 5: emitter->AddModule(std::make_unique<InitialScaleModule>()); break;
 				case 6: emitter->AddModule(std::make_unique<InitialColorModule>()); break;
 				case 7: emitter->AddModule(std::make_unique<InitialRotationModule>()); break;
+				case 8: emitter->AddModule(std::make_unique<RadialVelocityModule>()); break;
 				}
 				showAddModuleDialog_ = false;
 			}
@@ -1842,7 +1977,16 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Collision",
 				"Kill Zone",
 				"Sprint To Target",
-				"Sub Emitter"
+				"Sub Emitter",
+				"Velocity Over Lifetime",
+				"Stretch By Velocity",
+				"Wind",
+				"Flicker",
+				"Alpha Fade",
+				"Rotation By Speed",
+				"Sine Wave",
+				"Spiral",
+				"Twist"
 			};
 			const char* updateDescriptions[] = {
 				"Apply gravity (downward Y-axis)",
@@ -1863,7 +2007,16 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Collide and bounce off planes/boxes",
 				"Kill particles inside/outside a zone",
 				"Accelerate toward a target position",
-				"Spawn sub-effects on particle events"
+				"Spawn sub-effects on particle events",
+				"Multiply velocity over particle lifetime",
+				"Stretch particles in velocity direction (bullets, rain)",
+				"Apply directional wind force with turbulence",
+				"Flicker/blink alpha for fire, sparks",
+				"Simple alpha fade over lifetime",
+				"Rotate based on movement speed",
+				"Oscillate position with sine wave",
+				"Move in spiral pattern",
+				"Twist position around an axis"
 			};
 			
 			ImGui::Combo("Update Module", &selectedModule, updateModules, IM_ARRAYSIZE(updateModules));
@@ -1896,6 +2049,16 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				case 16: emitter->AddModule(std::make_unique<KillZoneModule>()); break;
 				case 17: emitter->AddModule(std::make_unique<SprintToTargetModule>()); break;
 				case 18: emitter->AddModule(std::make_unique<SubEmitterModule>()); break;
+				// Motion effect modules
+				case 19: emitter->AddModule(std::make_unique<VelocityOverLifetimeModule>()); break;
+				case 20: emitter->AddModule(std::make_unique<StretchByVelocityModule>()); break;
+				case 21: emitter->AddModule(std::make_unique<WindModule>()); break;
+				case 22: emitter->AddModule(std::make_unique<FlickerModule>()); break;
+				case 23: emitter->AddModule(std::make_unique<AlphaFadeModule>()); break;
+				case 24: emitter->AddModule(std::make_unique<RotationBySpeedModule>()); break;
+				case 25: emitter->AddModule(std::make_unique<SineWaveModule>()); break;
+				case 26: emitter->AddModule(std::make_unique<SpiralModule>()); break;
+				case 27: emitter->AddModule(std::make_unique<TwistModule>()); break;
 				}
 				showAddModuleDialog_ = false;
 			}
