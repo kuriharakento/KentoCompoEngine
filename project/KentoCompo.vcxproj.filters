@@ -380,7 +380,7 @@
       <Filter>application\GameObject\combatable\base</Filter>
     </ClCompile>
     <ClCompile Include="application\carnage\CarnageMode.cpp">
-      <Filter>application\carmage</Filter>
+      <Filter>application\carnage</Filter>
     </ClCompile>
     <ClCompile Include="application\effect\TitleFireEffect.cpp">
       <Filter>application\effect</Filter>
@@ -435,7 +435,6 @@
     <ClCompile Include="application\effect\PlayerDeathEffect.cpp" />
     <ClCompile Include="engine\effects\particle\ParticleEffect.cpp" />
     <ClCompile Include="engine\effects\particle\gpu\GPUParticlePipeline.cpp" />
-    <ClCompile Include="engine\effects\particle\renderer\RibbonRenderer.cpp" />
     <ClCompile Include="engine\effects\particle\renderer\MeshRenderer.cpp" />
     <ClCompile Include="engine\effects\particle\primitive\PrimitiveGenerator.cpp" />
     <ClCompile Include="engine\effects\particle\editor\ParticleEditor.cpp" />
@@ -879,7 +878,7 @@
       <Filter>application\GameObject\component\action</Filter>
     </ClInclude>
     <ClInclude Include="application\carnage\CarnageMode.h">
-      <Filter>application\carmage</Filter>
+      <Filter>application\carnage</Filter>
     </ClInclude>
     <ClInclude Include="application\effect\TitleFireEffect.h">
       <Filter>application\effect</Filter>
@@ -1168,7 +1167,7 @@
     <Filter Include="application\combo">
       <UniqueIdentifier>{8eb73a21-4a73-44dd-9af9-7f5d5aae6a4c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="application\carmage">
+    <Filter Include="application\carnage">
       <UniqueIdentifier>{51744ab4-a2cc-4e74-ab4a-82e8dddc911a}</UniqueIdentifier>
     </Filter>
     <Filter Include="application\UI">

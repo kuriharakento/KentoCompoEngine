@@ -323,7 +323,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\effects\particle\renderer\IRenderer.h" />
     <ClInclude Include="engine\effects\particle\renderer\SpriteRenderer.h" />
     <ClInclude Include="engine\effects\particle\renderer\MeshRenderer.h" />
-    <ClInclude Include="engine\effects\particle\module\update\TrailModule.h" />
     <ClInclude Include="engine\effects\particle\primitive\PrimitiveGenerator.h" />
     <ClInclude Include="engine\effects\particle\gpu\GPUSimulator.h" />
     <ClInclude Include="engine\effects\particle\gpu\GPUParticlePipeline.h" />

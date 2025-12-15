@@ -9,7 +9,6 @@
 #include "effects/particle/module/spawn/SpawnShapeModules.h"
 #include "effects/particle/module/update/UpdateModules.h"
 #include "effects/particle/module/update/BehaviorModules.h"
-#include "effects/particle/module/update/TrailModule.h"
 #include "effects/particle/module/update/AdvancedModules.h"
 #include "effects/particle/module/update/ForceFieldModules.h"
 #include "effects/particle/module/update/RibbonModules.h"
@@ -464,25 +463,6 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 				m->SetUseSpeedCurve(moduleData.value("useSpeedCurve", false));
 				emitter->AddModule(std::move(m));
 			}
-			else if (type == "Trail")
-			{
-				auto m = std::make_unique<TrailModule>();
-				m->SetTrailRate(moduleData.value("trailRate", 60.0f));
-				m->SetTrailLifetime(moduleData.value("trailLifetime", 1.0f));
-				m->SetTrailWidth(moduleData.value("trailWidth", 0.5f));
-				m->SetMinDistance(moduleData.value("minDistance", 0.05f));
-				m->SetInheritColor(moduleData.value("inheritColor", true));
-				if (moduleData.contains("trailColor"))
-				{
-					Vector4 c;
-					c.x = moduleData["trailColor"].value("r", 1.0f);
-					c.y = moduleData["trailColor"].value("g", 1.0f);
-					c.z = moduleData["trailColor"].value("b", 1.0f);
-					c.w = moduleData["trailColor"].value("a", 1.0f);
-					m->SetTrailColor(c);
-				}
-				emitter->AddModule(std::move(m));
-			}
 			// AdvancedModules
 			else if (type == "RotationOverLifetime")
 			{
@@ -835,16 +815,6 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 			moduleData["maxDistance"] = m->GetMaxDistance();
 			moduleData["speedBoost"] = m->GetSpeedBoost();
 			moduleData["useSpeedCurve"] = m->GetUseSpeedCurve();
-		}
-		else if (auto* m = dynamic_cast<const TrailModule*>(module))
-		{
-			moduleData["trailRate"] = m->GetTrailRate();
-			moduleData["trailLifetime"] = m->GetTrailLifetime();
-			moduleData["trailWidth"] = m->GetTrailWidth();
-			moduleData["minDistance"] = m->GetMinDistance();
-			moduleData["inheritColor"] = m->GetInheritColor();
-			Vector4 tc = m->GetTrailColor();
-			moduleData["trailColor"] = {{"r", tc.x}, {"g", tc.y}, {"b", tc.z}, {"a", tc.w}};
 		}
 		// AdvancedModules
 		else if (auto* m = dynamic_cast<const RotationOverLifetimeModule*>(module))

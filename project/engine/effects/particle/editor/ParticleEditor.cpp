@@ -14,7 +14,6 @@
 #include "effects/particle/module/update/RibbonModules.h"
 #include "effects/particle/module/update/AdvancedModules.h"
 #include "effects/particle/module/update/BehaviorModules.h"
-#include "effects/particle/module/update/TrailModule.h"
 #include "effects/particle/module/spawn/SubEmitterModule.h"
 #include "base/DirectXCommon.h"
 #include "manager/system/SrvManager.h"
@@ -1303,56 +1302,6 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 			m->AddConfig(newConfig);
 		}
 	}
-	// Trail Module
-	else if (auto* m = dynamic_cast<TrailModule*>(module))
-	{
-		// トレイル生成レート
-		float trailRate = m->GetTrailRate();
-		if (ImGui::DragFloat("Trail Rate", &trailRate, 1.0f, 1.0f, 120.0f))
-		{
-			m->SetTrailRate(trailRate);
-		}
-		ImGui::SetItemTooltip("Trail particles per second");
-
-		// トレイル寿命
-		float trailLifetime = m->GetTrailLifetime();
-		if (ImGui::DragFloat("Trail Lifetime", &trailLifetime, 0.1f, 0.1f, 10.0f))
-		{
-			m->SetTrailLifetime(trailLifetime);
-		}
-
-		// トレイル幅
-		float trailWidth = m->GetTrailWidth();
-		if (ImGui::DragFloat("Trail Width", &trailWidth, 0.01f, 0.01f, 5.0f))
-		{
-			m->SetTrailWidth(trailWidth);
-		}
-
-		// 最小距離
-		float minDistance = m->GetMinDistance();
-		if (ImGui::DragFloat("Min Distance", &minDistance, 0.01f, 0.01f, 1.0f))
-		{
-			m->SetMinDistance(minDistance);
-		}
-		ImGui::SetItemTooltip("Minimum distance before spawning a new trail point");
-
-		// 色継承
-		bool inheritColor = m->GetInheritColor();
-		if (ImGui::Checkbox("Inherit Color", &inheritColor))
-		{
-			m->SetInheritColor(inheritColor);
-		}
-
-		// トレイル色（inheritColor=false時のみ）
-		if (!inheritColor)
-		{
-			Vector4 trailColor = m->GetTrailColor();
-			if (ImGui::ColorEdit4("Trail Color", &trailColor.x))
-			{
-				m->SetTrailColor(trailColor);
-			}
-		}
-	}
 	else
 	{
 		ImGui::TextDisabled("(No properties available)");
@@ -1893,8 +1842,7 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Collision",
 				"Kill Zone",
 				"Sprint To Target",
-				"Sub Emitter",
-				"Trail"
+				"Sub Emitter"
 			};
 			const char* updateDescriptions[] = {
 				"Apply gravity (downward Y-axis)",
@@ -1915,8 +1863,7 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Collide and bounce off planes/boxes",
 				"Kill particles inside/outside a zone",
 				"Accelerate toward a target position",
-				"Spawn sub-effects on particle events",
-				"Generate trail particles following parent"
+				"Spawn sub-effects on particle events"
 			};
 			
 			ImGui::Combo("Update Module", &selectedModule, updateModules, IM_ARRAYSIZE(updateModules));
@@ -1949,7 +1896,6 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				case 16: emitter->AddModule(std::make_unique<KillZoneModule>()); break;
 				case 17: emitter->AddModule(std::make_unique<SprintToTargetModule>()); break;
 				case 18: emitter->AddModule(std::make_unique<SubEmitterModule>()); break;
-				case 19: emitter->AddModule(std::make_unique<TrailModule>()); break;
 				}
 				showAddModuleDialog_ = false;
 			}
