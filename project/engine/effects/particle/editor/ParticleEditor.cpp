@@ -127,7 +127,7 @@ void ParticleEditor::DrawDebug()
 		auto* emitter = currentEffect_->GetEmitter(i);
 		if (!emitter) continue;
 
-		Vector3 emitterPos = emitter->GetPosition() + currentEffect_->GetPosition();
+		Vector3 emitterPos = emitter->GetPosition();
 		
 		// エミッター位置に座標軸を表示
 		lineManager->DrawAxis(emitterPos, kAxisSize);
