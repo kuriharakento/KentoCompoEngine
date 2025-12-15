@@ -48,8 +48,8 @@ void DodgeEffectParticle::Initialize()
         emitter->AddModule(std::make_unique<InitialPositionModule>(Vector3(-0.1f, -0.1f, -0.1f), Vector3(0.1f, 0.1f, 0.1f)));
         emitter->AddModule(std::make_unique<InitialLifetimeModule>(0.15f, 0.25f));
         emitter->AddModule(std::make_unique<InitialScaleModule>(Vector3(0.4f, 0.4f, 0.4f), Vector3(0.6f, 0.6f, 0.6f)));
-        emitter->AddModule(std::make_unique<InitialColorModule>(Vector4(kHeightOffset, kHeightOffset, kHeightOffset, 0.8f)));
-        emitter->AddModule(std::make_unique<ColorFadeModule>(Vector4(kHeightOffset, kHeightOffset, kHeightOffset, 0.8f), Vector4(kHeightOffset, kHeightOffset, kHeightOffset, 0.0f)));
+        emitter->AddModule(std::make_unique<InitialColorModule>(Vector4(1.0f, 1.0f, 1.0f, 0.8f)));
+        emitter->AddModule(std::make_unique<ColorFadeModule>(Vector4(1.0f, 1.0f, 1.0f, 0.8f), Vector4(1.0f, 1.0f, 1.0f, 0.0f)));
         emitter->AddModule(std::make_unique<DragModule>(kAfterImageDragCoefficient));
         
         // マネージャーに登録
@@ -70,11 +70,11 @@ void DodgeEffectParticle::Initialize()
         // 高頻度生成とパラメータ設定（重力とドラッグで自然な軌跡）
         emitter->AddModule(std::make_unique<SpawnRateModule>(kTrailSpawnRate));
         emitter->AddModule(std::make_unique<InitialPositionModule>(Vector3(-0.2f, -0.2f, -0.2f), Vector3(0.2f, 0.2f, 0.2f)));
-        emitter->AddModule(std::make_unique<InitialVelocityModule>(Vector3(-kHeightOffset, -kHeightOffset, -kHeightOffset), Vector3(kHeightOffset, kHeightOffset, kHeightOffset)));
+        emitter->AddModule(std::make_unique<InitialVelocityModule>(Vector3(-1.0f, -1.0f, -1.0f), Vector3(1.0f, 1.0f, 1.0f)));
         emitter->AddModule(std::make_unique<InitialLifetimeModule>(0.15f, 0.25f));
         emitter->AddModule(std::make_unique<InitialScaleModule>(Vector3(0.3f, 0.3f, 0.3f), Vector3(0.8f, 0.8f, 0.8f)));
-        emitter->AddModule(std::make_unique<InitialColorModule>(Vector4(0.1f, 0.1f, 0.1f, kHeightOffset)));
-        emitter->AddModule(std::make_unique<ColorFadeModule>(Vector4(0.1f, 0.1f, 0.1f, kHeightOffset), Vector4(0.0f, 0.0f, 0.0f, 0.0f)));
+        emitter->AddModule(std::make_unique<InitialColorModule>(Vector4(0.1f, 0.1f, 0.1f, 1.0f)));
+        emitter->AddModule(std::make_unique<ColorFadeModule>(Vector4(0.1f, 0.1f, 0.1f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, 0.0f)));
         emitter->AddModule(std::make_unique<DragModule>(kTrailDragCoefficient));
         emitter->AddModule(std::make_unique<GravityModule>(Vector3(0.0f, 0.05f, 0.0f)));
         
@@ -99,8 +99,8 @@ void DodgeEffectParticle::Initialize()
         emitter->AddModule(std::make_unique<InitialVelocityModule>(Vector3(-3.0f, 0.0f, -3.0f), Vector3(3.0f, 2.0f, 3.0f)));
         emitter->AddModule(std::make_unique<InitialLifetimeModule>(0.4f, 0.6f));
         emitter->AddModule(std::make_unique<InitialScaleModule>(Vector3(0.4f, 0.4f, 0.4f), Vector3(1.2f, 1.2f, 1.2f)));
-        emitter->AddModule(std::make_unique<InitialColorModule>(Vector4(kHeightOffset, kHeightOffset, kHeightOffset, kHeightOffset)));
-        emitter->AddModule(std::make_unique<ColorFadeModule>(Vector4(kHeightOffset, kHeightOffset, kHeightOffset, kHeightOffset), Vector4(kHeightOffset, kHeightOffset, kHeightOffset, 0.0f)));
+        emitter->AddModule(std::make_unique<InitialColorModule>(Vector4(1.0f, 1.0f, 1.0f, 1.0f)));
+        emitter->AddModule(std::make_unique<ColorFadeModule>(Vector4(1.0f, 1.0f, 1.0f, 1.0f), Vector4(1.0f, 1.0f, 1.0f, 0.0f)));
         emitter->AddModule(std::make_unique<GravityModule>(Vector3(0.0f, -0.05f, 0.0f)));
         
         // マネージャーに登録
