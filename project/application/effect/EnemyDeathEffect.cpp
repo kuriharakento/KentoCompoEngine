@@ -1,34 +1,66 @@
-﻿#include "EnemyDeathEffect.h"
+#include "EnemyDeathEffect.h"
 #include "effects/particle/ParticleManager.h"
 #include "effects/particle/renderer/SpriteRenderer.h"
 #include "effects/particle/module/spawn/SpawnModules.h"
 #include "effects/particle/module/spawn/InitialModules.h"
 #include "effects/particle/module/update/UpdateModules.h"
 
+namespace
+{
+// 血飛沫エフェクト設定
+constexpr int kBloodBurstCount = 15;
+constexpr float kBloodBurstDuration = 0.05f;
+
+// 破片エフェクト設定
+constexpr int kFragmentBurstCount = 8;
+constexpr float kFragmentBurstDuration = 0.1f;
+
+// 爆発エフェクト設定
+constexpr int kExplosionBurstCount = 20;
+constexpr float kExplosionBurstDuration = 0.05f;
+
+// 電撃エフェクト設定
+constexpr int kElectricBurstCount = 12;
+constexpr float kElectricBurstDuration = 0.03f;
+
+// 溶解エフェクト設定
+constexpr float kDissolveSpawnRate = 30.0f;
+
+// 煙エフェクト設定
+constexpr int kSmokeBurstCount = 5;
+constexpr float kSmokeBurstDuration = 0.1f;
+}
+
 EnemyDeathEffect::EnemyDeathEffect() = default;
 EnemyDeathEffect::~EnemyDeathEffect() = default;
 
 void EnemyDeathEffect::Initialize()
 {
-    InitializeBloodEmitter();
-    InitializeFragmentEmitter();
-    InitializeExplosionEmitter();
-    InitializeElectricEmitter();
-    InitializeDissolveEmitter();
-    InitializeSmokeEmitter();
+// 各エミッターを初期化
+InitializeBloodEmitter();
+InitializeFragmentEmitter();
+InitializeExplosionEmitter();
+InitializeElectricEmitter();
+InitializeDissolveEmitter();
+InitializeSmokeEmitter();
 }
 
 void EnemyDeathEffect::InitializeBloodEmitter()
 {
+    // 血飛沫エミッターの作成と初期化
+{
     auto emitter = std::make_unique<ParticleEmitter>();
     emitter->Initialize("enemy_blood");
+    
+    // レンダラー設定（アルファブレンドで赤い血を表現）
     
     auto renderer = std::make_unique<SpriteRenderer>();
     renderer->Initialize(bloodTexturePath_);
     renderer->SetBlendMode(BlendMode::Alpha);
     emitter->SetRenderer(std::move(renderer));
     
-    emitter->AddModule(std::make_unique<SpawnBurstModule>(15, 0.05f));
+    // バースト生成とパラメータ設定（上向きに飛散して重力で落ちる）
+    emitter->AddModule(std::make_unique<SpawnBurstModule>(kBloodBurstCount, kBloodBurstDuration));
     emitter->AddModule(std::make_unique<InitialPositionModule>(Vector3(-0.3f, -0.3f, -0.3f), Vector3(0.3f, 0.3f, 0.3f)));
     emitter->AddModule(std::make_unique<InitialVelocityModule>(Vector3(-3.0f, 1.0f, -3.0f), Vector3(3.0f, 5.0f, 3.0f)));
     emitter->AddModule(std::make_unique<InitialLifetimeModule>(0.3f, 0.6f));

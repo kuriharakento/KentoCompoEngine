@@ -1,4 +1,4 @@
-﻿#include "TitleFireEffect.h"
+#include "TitleFireEffect.h"
 #include "effects/particle/ParticleManager.h"
 #include "effects/particle/renderer/SpriteRenderer.h"
 #include "effects/particle/module/spawn/SpawnModules.h"
@@ -6,20 +6,34 @@
 #include "effects/particle/module/update/UpdateModules.h"
 #include "time/TimeManager.h"
 
+namespace
+{
+// 炎エフェクト設定
+constexpr float kFireSpawnRate = 10.0f;
+constexpr float kFireDragCoefficient = 0.13f;
+
+// 床面エフェクト設定
+constexpr float kFloorSpawnRate = 20.0f;
+constexpr float kFloorDragCoefficient = 0.05f;
+
+// 配置設定
+constexpr float kFireForwardOffset = 10.0f;
+}
+
 void TitleFireEffect::Initialize()
 {
-    // 蟾ｦ蛛ｴ縺ｮ轤取浤繧ｨ繝溘ャ繧ｿ繝ｼ
+    // 左側の炎エミッターの初期化
     fireEmitterLeft_ = std::make_unique<ParticleEmitter>();
     fireEmitterLeft_->Initialize("TitleFire_Left");
     
-    // 繝ｬ繝ｳ繝繝ｩ繝ｼ險ｭ螳・
+    // レンダラー設定（加算合成で赤く燃える炎）
     auto leftRenderer = std::make_unique<SpriteRenderer>();
     leftRenderer->Initialize(fireTexturePath_);
     leftRenderer->SetBlendMode(BlendMode::Additive);
     fireEmitterLeft_->SetRenderer(std::move(leftRenderer));
     
-    // 繝｢繧ｸ繝･繝ｼ繝ｫ霑ｽ蜉
-    fireEmitterLeft_->AddModule(std::make_unique<SpawnRateModule>(10.0f)); // 豈守ｧ・0繝代・繝・ぅ繧ｯ繝ｫ
+    // モジュール追加（連続生成、上向きの速度、重力で上昇）
+    fireEmitterLeft_->AddModule(std::make_unique<SpawnRateModule>(kFireSpawnRate));
     fireEmitterLeft_->AddModule(std::make_unique<InitialPositionModule>(
         Vector3(-0.3f, 0.0f, -2.0f), Vector3(0.3f, 0.0f, 2.0f)));
     fireEmitterLeft_->AddModule(std::make_unique<InitialVelocityModule>(
@@ -30,19 +44,21 @@ void TitleFireEffect::Initialize()
     fireEmitterLeft_->AddModule(std::make_unique<InitialColorModule>(Vector4(0.8f, 0.1f, 0.1f, 0.95f)));
     fireEmitterLeft_->AddModule(std::make_unique<ColorFadeModule>(
         Vector4(0.8f, 0.1f, 0.1f, 0.95f), Vector4(0.8f, 0.1f, 0.1f, 0.0f)));
-    fireEmitterLeft_->AddModule(std::make_unique<DragModule>(0.13f)); // 1.0 - 0.87 = 0.13
-    fireEmitterLeft_->AddModule(std::make_unique<GravityModule>(Vector3(0.0f, 1.0f, 0.0f))); // 荳頑・
+    fireEmitterLeft_->AddModule(std::make_unique<DragModule>(kFireDragCoefficient));
+    fireEmitterLeft_->AddModule(std::make_unique<GravityModule>(Vector3(0.0f, 1.0f, 0.0f)));
     
-    // 蜿ｳ蛛ｴ縺ｮ轤取浤繧ｨ繝溘ャ繧ｿ繝ｼ
+    // 右側の炎エミッターの初期化
     fireEmitterRight_ = std::make_unique<ParticleEmitter>();
     fireEmitterRight_->Initialize("TitleFire_Right");
     
+    // レンダラー設定（左側と同じ設定）
     auto rightRenderer = std::make_unique<SpriteRenderer>();
     rightRenderer->Initialize(fireTexturePath_);
     rightRenderer->SetBlendMode(BlendMode::Additive);
     fireEmitterRight_->SetRenderer(std::move(rightRenderer));
     
-    fireEmitterRight_->AddModule(std::make_unique<SpawnRateModule>(10.0f));
+    // モジュール追加（左側と同様のパラメータ）
+    fireEmitterRight_->AddModule(std::make_unique<SpawnRateModule>(kFireSpawnRate));
     fireEmitterRight_->AddModule(std::make_unique<InitialPositionModule>(
         Vector3(-0.3f, 0.0f, -2.0f), Vector3(0.3f, 0.0f, 2.0f)));
     fireEmitterRight_->AddModule(std::make_unique<InitialVelocityModule>(
@@ -53,19 +69,21 @@ void TitleFireEffect::Initialize()
     fireEmitterRight_->AddModule(std::make_unique<InitialColorModule>(Vector4(0.8f, 0.1f, 0.1f, 0.95f)));
     fireEmitterRight_->AddModule(std::make_unique<ColorFadeModule>(
         Vector4(0.8f, 0.1f, 0.1f, 0.95f), Vector4(0.8f, 0.1f, 0.1f, 0.0f)));
-    fireEmitterRight_->AddModule(std::make_unique<DragModule>(0.13f));
+    fireEmitterRight_->AddModule(std::make_unique<DragModule>(kFireDragCoefficient));
     fireEmitterRight_->AddModule(std::make_unique<GravityModule>(Vector3(0.0f, 1.0f, 0.0f)));
 
-    // 蠎企擇繧ｨ繝輔ぉ繧ｯ繝・
+    // 床面エフェクトの初期化
     floorEmitter_ = std::make_unique<ParticleEmitter>();
     floorEmitter_->Initialize("TitleFloorParticle");
     
+    // レンダラー設定（加算合成で床に光る粒子）
     auto floorRenderer = std::make_unique<SpriteRenderer>();
     floorRenderer->Initialize("./Resources/circle2.png");
     floorRenderer->SetBlendMode(BlendMode::Additive);
     floorEmitter_->SetRenderer(std::move(floorRenderer));
     
-    floorEmitter_->AddModule(std::make_unique<SpawnRateModule>(20.0f));
+    // モジュール追加（広範囲に連続生成、上向きの重力）
+    floorEmitter_->AddModule(std::make_unique<SpawnRateModule>(kFloorSpawnRate));
     floorEmitter_->AddModule(std::make_unique<InitialPositionModule>(
         Vector3(-30.0f, 0.0f, 0.0f), Vector3(30.0f, 1.0f, 60.0f)));
     floorEmitter_->AddModule(std::make_unique<InitialLifetimeModule>(0.8f, 1.2f));
@@ -74,10 +92,10 @@ void TitleFireEffect::Initialize()
     floorEmitter_->AddModule(std::make_unique<InitialColorModule>(Vector4(0.8f, 0.2f, 0.2f, 1.0f)));
     floorEmitter_->AddModule(std::make_unique<ColorFadeModule>(
         Vector4(0.8f, 0.2f, 0.2f, 1.0f), Vector4(0.8f, 0.2f, 0.2f, 0.0f)));
-    floorEmitter_->AddModule(std::make_unique<DragModule>(0.05f));
+    floorEmitter_->AddModule(std::make_unique<DragModule>(kFloorDragCoefficient));
     floorEmitter_->AddModule(std::make_unique<GravityModule>(Vector3(0.0f, 0.3f, 0.0f)));
 
-    // ParticleManager縺ｫ逋ｻ骭ｲ
+    // ParticleManagerに登録
     ParticleManager::GetInstance()->AddEmitter(std::move(fireEmitterLeft_));
     ParticleManager::GetInstance()->AddEmitter(std::move(fireEmitterRight_));
     ParticleManager::GetInstance()->AddEmitter(std::move(floorEmitter_));
@@ -87,18 +105,18 @@ void TitleFireEffect::Initialize()
 
 void TitleFireEffect::Update(const Vector3& cameraPos)
 {
-    // 蠎企擇繧ｨ繝輔ぉ繧ｯ繝医ｒ繧ｫ繝｡繝ｩ菴咲ｽｮ縺ｫ霑ｽ蠕・
+    // 床面エフェクトをカメラ位置に追従
     floorPos_ = cameraPos;
     floorPos_.y = groundY_;
     
-    // 蠎企擇繧ｨ繝溘ャ繧ｿ繝ｼ縺ｮ菴咲ｽｮ繧呈峩譁ｰ
+    // 床面エミッターの位置を更新
     auto* floorEmitter = ParticleManager::GetInstance()->GetEmitter("TitleFloorParticle");
     if (floorEmitter)
     {
         floorEmitter->SetPosition(floorPos_);
     }
     
-    // 繧ｿ繧､繝槭・譖ｴ譁ｰ縺ｨ轤守匱逕溷愛螳・
+    // タイマー更新と炎発生判定
     float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
     if (time_ > 0.0f)
     {
@@ -106,6 +124,7 @@ void TitleFireEffect::Update(const Vector3& cameraPos)
     }
     else
     {
+        // タイマーリセットと炎発生
         time_ = interval_;
         EmitFire(cameraPos);
         lastFireZ_ = cameraPos.z;
@@ -114,10 +133,11 @@ void TitleFireEffect::Update(const Vector3& cameraPos)
 
 void TitleFireEffect::EmitFire(const Vector3& position)
 {
-    // 繧ｫ繝｡繝ｩ蜑肴婿縺ｮ蟾ｦ蜿ｳ菴咲ｽｮ縺ｫ轤取浤繧帝・鄂ｮ
-    Vector3 leftPos = position + Vector3(-laneOffset_, groundY_, 10.0f);
-    Vector3 rightPos = position + Vector3(laneOffset_, groundY_, 10.0f);
+    // カメラ前方の左右位置に炎を配置
+    Vector3 leftPos = position + Vector3(-laneOffset_, groundY_, kFireForwardOffset);
+    Vector3 rightPos = position + Vector3(laneOffset_, groundY_, kFireForwardOffset);
     
+    // エミッターを取得して位置を設定
     auto* leftEmitter = ParticleManager::GetInstance()->GetEmitter("TitleFire_Left");
     auto* rightEmitter = ParticleManager::GetInstance()->GetEmitter("TitleFire_Right");
     
@@ -130,4 +150,3 @@ void TitleFireEffect::EmitFire(const Vector3& position)
         rightEmitter->SetPosition(rightPos);
     }
 }
-
