@@ -21,10 +21,10 @@ namespace
 	constexpr float kBurstDuration = 0.5f;
 
 	// 位置オフセット
-	constexpr float kHeightOffset = kHeightOffset;
+	constexpr float kHeightOffset = 1.0f;
 
 	// 停止時の移動先Y座標
-	constexpr float kHiddenPositionY = kHiddenPositionY.0f;
+	constexpr float kHiddenPositionY = -1000.0f;
 }
 
 DodgeEffectParticle::DodgeEffectParticle() = default;

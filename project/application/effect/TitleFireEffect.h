@@ -48,7 +48,7 @@ private:
     const float interval_ = 1.0f;                        ///< 炎発生の時間間隔（秒）
     const float laneOffset_ = 1.5f;                      ///< 左右のレーンオフセット
     const float groundY_ = -0.5f;                        ///< 地面のY座標
-float time_ = 0.0f;                                  ///< タイマー（秒）
-const std::string fireTexturePath_ = "./Resources/gradation.png";  ///< 炎用テクスチャパス
-bool firstUpdate_ = true;                            ///< 初回更新フラグ
+	float time_ = 0.0f;                                  ///< タイマー（秒）
+	const std::string fireTexturePath_ = "./Resources/gradation.png";  ///< 炎用テクスチャパス
+	bool firstUpdate_ = true;                            ///< 初回更新フラグ
 };
