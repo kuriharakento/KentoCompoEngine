@@ -131,8 +131,8 @@ void DodgeEffectParticle::CreateAfterImage(const Vector3& position, const Vector
 
 void DodgeEffectParticle::PlayFadeOutEffect(const Vector3& position)
 {
-    // NPS縺ｧ縺ｯ迴ｾ蝨ｨStopEmit逶ｸ蠖薙・讖溯・縺後↑縺・◆繧√∽ｽ咲ｽｮ繧偵Μ繧ｻ繝・ヨ
+    // 現在StopEmit相当の機能がないため、画面外に移動させて停止
     auto* trail = ParticleManager::GetInstance()->GetEmitter("dodge_trail");
-    if (trail) trail->SetPosition(Vector3(0, kHiddenPositionY, 0)); // 
+    if (trail) trail->SetPosition(Vector3(0, kHiddenPositionY, 0));
 }
 
