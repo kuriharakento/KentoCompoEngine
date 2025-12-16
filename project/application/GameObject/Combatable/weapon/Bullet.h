@@ -5,6 +5,8 @@
 
 #include "application/GameObject/combatable/base/CombatableObject.h"
 
+struct Transform;
+
 /**
  * @brief 弾丸を表すクラス
  * 
@@ -29,4 +31,25 @@ public:
 	 * @param position 弾丸の初期位置
 	 */
 	void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, const Vector3& position);
+
+	/**
+	 * @brief Transformを取得
+	 * @return Transform*
+	 */
+	Transform* GetTransform() const;
+
+	/**
+	 * @brief トレイルIDを設定
+	 * @param id トレイルID
+	 */
+	void SetTrailId(uint32_t id) { trailId_ = id; }
+
+	/**
+	 * @brief トレイルIDを取得
+	 * @return トレイルID
+	 */
+	uint32_t GetTrailId() const { return trailId_; }
+
+private:
+	uint32_t trailId_ = 0;  ///< トレイルエフェクトのID
 };

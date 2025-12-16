@@ -950,6 +950,15 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 		if (ImGui::ColorEdit4("Min Color", &min.x)) { m->SetMinColor(min); }
 		if (ImGui::ColorEdit4("Max Color", &max.x)) { m->SetMaxColor(max); }
 	}
+	else if (auto* m = dynamic_cast<AssignRibbonIdModule*>(module))
+	{
+		int groupCount = static_cast<int>(m->GetGroupCount());
+		if (ImGui::InputInt("Group Count", &groupCount, 1, 5))
+		{
+			m->SetGroupCount(static_cast<uint32_t>((std::max)(1, groupCount)));
+		}
+		ImGui::SetItemTooltip("Number of ribbon groups. Each group forms a separate trail.");
+	}
 	else if (auto* m = dynamic_cast<GravityModule*>(module))
 	{
 		Vector3 g = m->GetGravity();
@@ -1917,7 +1926,8 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Initial Scale",
 				"Initial Color",
 				"Initial Rotation",
-				"Radial Velocity"
+				"Radial Velocity",
+				"Assign Ribbon ID"
 			};
 			const char* spawnDescriptions[] = {
 				"Spawn particles at a constant rate",
@@ -1928,7 +1938,8 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Set initial size of particles",
 				"Set initial color (RGBA)",
 				"Set initial rotation angle",
-				"Apply radial velocity from emitter center (explosion)"
+				"Apply radial velocity from emitter center (explosion)",
+				"Assign RibbonId for multi-trail (Niagara-style partition)"
 			};
 			
 			ImGui::Combo("Spawn Module", &selectedModule, spawnModules, IM_ARRAYSIZE(spawnModules));
@@ -1951,6 +1962,7 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				case 6: emitter->AddModule(std::make_unique<InitialColorModule>()); break;
 				case 7: emitter->AddModule(std::make_unique<InitialRotationModule>()); break;
 				case 8: emitter->AddModule(std::make_unique<RadialVelocityModule>()); break;
+				case 9: emitter->AddModule(std::make_unique<AssignRibbonIdModule>()); break;
 				}
 				showAddModuleDialog_ = false;
 			}

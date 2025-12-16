@@ -52,6 +52,9 @@ void ParticleManager::Update(CameraManager* camera)
 
 	// 終了したエフェクトを削除
 	RemoveFinishedEffects();
+
+	// ImGuiを表示
+	DrawImGui();
 }
 
 void ParticleManager::Draw()

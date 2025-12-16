@@ -319,3 +319,7 @@ DirectXGame/imgui.ini
 
 # DirectXTex Compiled Shaders
 **/DirectXTex/Shaders/Compiled/
+
+# AI Agent configuration (Gemini/Antigravity)
+.agent/
+.gemini/

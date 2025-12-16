@@ -4,6 +4,7 @@
 #include <application/GameObject/base/GameObject.h>
 #include "application/GameObject/Combatable/character/player/Player.h"
 #include "application/GameObject/Combatable/character/enemy/base/EnemyBase.h"
+#include "application/effect/BulletTrailManager.h"
 // system
 #include "graphics/3d/Object3dCommon.h"
 #include "input/Input.h"
@@ -85,10 +86,12 @@ void AssaultRifleComponent::Update(GameObject* owner)
 	for (const auto& bullet : bullets_)
 		if (bullet->IsAlive()) bullet->Update();
 
-	// 死んだ弾を削除
+	// 死んだ弾を削除（トレイルも解除）
 	for (auto it = bullets_.begin(); it != bullets_.end();)
 		if (!(*it)->IsAlive())
 		{
+			// トレイルを解除
+			BulletTrailManager::GetInstance().UnregisterBullet((*it)->GetTrailId());
 			it = bullets_.erase(it);
 		}
 		else ++it;
@@ -97,9 +100,9 @@ void AssaultRifleComponent::Update(GameObject* owner)
 // 描画処理
 void AssaultRifleComponent::Draw3D(CameraManager* camera)
 {
-	// 生存している弾のみ描画
-	for (const auto& bullet : bullets_)
-		if (bullet->IsAlive()) bullet->Draw3D(camera);
+	// 弾のモデル描画は行わない（トレイルエフェクトで表現）
+	// トレイルはBulletTrailManagerで一括描画される
+	(void)camera;  // 未使用警告回避
 }
 
 // 敵クラスから呼び出す発射メソッド
@@ -173,13 +176,15 @@ void AssaultRifleComponent::FireBullet(GameObject* owner)
 	horizontalDir = Vector3::Normalize(horizontalDir);
 	float rotationY = atan2f(horizontalDir.x, horizontalDir.z);
 
-	// 弾の初期化
+	// 弾の初期化（モデルは使わない）
 	bullet->Initialize(object3dCommon_, lightManager_, playerPos);
-	bullet->SetModel("bullet");
 	bullet->SetPosition(playerPos);
 	bullet->SetRotation({ 0.0f, rotationY, 0.0f });
 	bullet->SetScale(Vector3(kBulletScale, kBulletScale, 1.0f));
-	bullet->GetObject3d()->UpdateWorldMatrix();
+
+	// トレイルを登録
+	uint32_t trailId = BulletTrailManager::GetInstance().RegisterBullet(bullet->GetTransform());
+	bullet->SetTrailId(trailId);
 
 	// BulletComponentを追加
 	auto bulletComp = std::make_unique<BulletComponent>();
@@ -227,11 +232,14 @@ void AssaultRifleComponent::FireBullet(GameObject* owner, const Vector3& targetP
 	// 水平方向の角度を計算
 	float rotationY = atan2f(direction.x, direction.z);
 
-	// 弾の初期化
+	// 弾の初期化（モデルは使わない）
 	bullet->Initialize(object3dCommon_, lightManager_, startPos);
-	bullet->SetModel("bullet");
 	bullet->SetRotation({ 0.0f, rotationY, 0.0f });
 	bullet->SetScale(Vector3(kBulletScale, kBulletScale, 1.0f));
+
+	// トレイルを登録
+	uint32_t trailId = BulletTrailManager::GetInstance().RegisterBullet(bullet->GetTransform());
+	bullet->SetTrailId(trailId);
 
 	// BulletComponentを追加
 	auto bulletComp = std::make_unique<BulletComponent>();
