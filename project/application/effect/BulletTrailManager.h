@@ -1,23 +1,26 @@
 #pragma once
 /**
  * @file BulletTrailManager.h
- * @brief 弾道トレイル管理マネージャー
+ * @brief 弾道トレイル管理マネージャー（最適化版）
  *
- * ParticleManagerと連携して弾丸トレイルエフェクトを管理。
- * JSONで定義されたエフェクトを使用し、弾丸ごとにエフェクトを再生。
+ * 単一のParticleEffect内のMultiSourceRibbonModuleを使用して、
+ * 複数の弾丸トレイルを1回のドローコールで描画。
  */
 #include <unordered_map>
 #include <string>
 #include "math/Vector3.h"
 
 class ParticleEffect;
+class ParticleEmitter;
+class MultiSourceRibbonModule;
 struct Transform;
 
 /**
- * @brief 弾道トレイル管理マネージャー
+ * @brief 弾道トレイル管理マネージャー（最適化版）
  *
- * ParticleManagerのエフェクト再生機能を使用して、
- * 弾丸のTransformに追従するトレイルエフェクトを管理。
+ * 単一のエフェクト内のMultiSourceRibbonModuleを使用して、
+ * 複数の弾丸トレイルを効率的に管理。
+ * 1回のドローコールで全トレイルを描画可能。
  */
 class BulletTrailManager
 {
@@ -31,24 +34,25 @@ public:
 	/**
 	 * @brief 初期化
 	 * 
-	 * JSONからエフェクト定義を読み込む。
+	 * JSONからエフェクト定義を読み込み、MultiSourceRibbonModuleを取得。
 	 */
 	void Initialize();
 
 	/**
 	 * @brief 弾を登録
 	 * 
-	 * 弾丸のTransformに追従するトレイルエフェクトを再生。
+	 * 弾丸のTransformをMultiSourceRibbonModuleに登録。
 	 * 
 	 * @param bulletTransform 追従対象のTransform
-	 * @return トレイルID（解除時に必要）
+	 * @return トレイルID（解除時に必要）= ribbonId
 	 */
 	uint32_t RegisterBullet(Transform* bulletTransform);
 
 	/**
 	 * @brief 弾を登録解除
 	 * 
-	 * トレイルエフェクトを停止する。
+	 * MultiSourceRibbonModuleからソースを解除。
+	 * 既存のパーティクルは自然に消滅。
 	 * 
 	 * @param trailId 登録時に返されたID
 	 */
@@ -71,10 +75,10 @@ private:
 	// JSONファイルパス
 	static constexpr const char* kEffectJsonPath = "./Resources/json/particle/bulletTrail.json";
 
-	// トレイルID → ParticleEffectのマップ
-	std::unordered_map<uint32_t, ParticleEffect*> activeTrails_;
-	// 次に割り当てるトレイルID
-	uint32_t nextId_ = 1;
+	// エフェクト（単一インスタンス、自動削除されないように保持）
+	ParticleEffect* effect_ = nullptr;
+	// MultiSourceRibbonModuleへの参照
+	MultiSourceRibbonModule* multiSourceModule_ = nullptr;
 	// 初期化済みフラグ
 	bool initialized_ = false;
 };

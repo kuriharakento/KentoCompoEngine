@@ -11,6 +11,7 @@
 #include "effects/particle/ParticleEmitter.h"
 #include "math/Vector3.h"
 #include "math/Vector4.h"
+#include "base/GraphicsTypes.h"
 #include <cmath>
 #include <algorithm>
 #include <unordered_map>
@@ -232,4 +233,167 @@ private:
 		
 		return result;
 	}
+};
+
+/**
+ * @brief 複数ソース対応リボンスポーンモジュール
+ * 
+ * 複数のTransformを追跡し、各位置でパーティクルをスポーン。
+ * 各ソースに固有のribbonIdを割り当て、TrailRendererで個別のリボンとして描画。
+ * BulletTrailManagerなど、動的に追加/削除されるトレイル用途向け。
+ */
+class MultiSourceRibbonModule : public IModule
+{
+public:
+	/**
+	 * @brief コンストラクタ
+	 * @param spawnRate 1秒あたりのパーティクル生成数
+	 */
+	MultiSourceRibbonModule(float spawnRate = 60.0f) : spawnRate_(spawnRate) {}
+
+	/**
+	 * @brief ソースを登録
+	 * @param transform 追従対象のTransform
+	 * @return ribbonId（解除時に必要）
+	 */
+	uint32_t RegisterSource(Transform* transform)
+	{
+		uint32_t ribbonId = nextRibbonId_++;
+		SourceInfo info;
+		info.transform = transform;
+		info.spawnAccumulator = 0.0f;
+		info.previousPosition = transform ? transform->translate : Vector3{};
+		info.hasPreviousPosition = false;
+		sources_[ribbonId] = info;
+		return ribbonId;
+	}
+
+	/**
+	 * @brief ソースを解除
+	 * @param ribbonId 登録時に返されたID
+	 */
+	void UnregisterSource(uint32_t ribbonId)
+	{
+		sources_.erase(ribbonId);
+	}
+
+	/**
+	 * @brief 全ソースをクリア
+	 */
+	void ClearSources()
+	{
+		sources_.clear();
+	}
+
+	/**
+	 * @brief モジュール実行（各ソース位置でパーティクルをスポーン）
+	 * @param context パーティクルコンテキスト
+	 */
+	void Execute(ParticleContext& context) override
+	{
+		if (!context.particles || spawnRate_ <= 0.0f) return;
+		if (sources_.empty()) return;
+
+		float spawnInterval = 1.0f / spawnRate_;
+
+		// ソースIDのリストを先にコピー（ループ中のマップ変更対策）
+		std::vector<uint32_t> sourceIds;
+		sourceIds.reserve(sources_.size());
+		for (const auto& [id, info] : sources_)
+		{
+			sourceIds.push_back(id);
+		}
+
+		for (uint32_t ribbonId : sourceIds)
+		{
+			// ソースがまだ存在するか確認
+			auto it = sources_.find(ribbonId);
+			if (it == sources_.end()) continue;
+
+			SourceInfo& info = it->second;
+			if (!info.transform) continue;
+
+			Vector3 currentPos = info.transform->translate;
+
+			// 移動検出（オプション）
+			if (spawnOnlyWhenMoving_ && info.hasPreviousPosition)
+			{
+				float dx = currentPos.x - info.previousPosition.x;
+				float dy = currentPos.y - info.previousPosition.y;
+				float dz = currentPos.z - info.previousPosition.z;
+				float distance = std::sqrt(dx * dx + dy * dy + dz * dz);
+				if (distance < minMoveDistance_)
+				{
+					continue;
+				}
+			}
+
+			// スポーン蓄積
+			info.spawnAccumulator += context.deltaTime;
+
+			while (info.spawnAccumulator >= spawnInterval)
+			{
+				info.spawnAccumulator -= spawnInterval;
+
+				// パーティクルを生成
+				Particle particle;
+				particle.position = currentPos;
+				particle.velocity = Vector3{};
+				particle.scale = Vector3{ 1.0f, 1.0f, 1.0f };
+				particle.color = initialColor_;
+				particle.initialColor = initialColor_;
+				particle.age = 0.0f;
+				particle.lifetime = particleLifetime_;
+				particle.ribbonId = ribbonId;
+				particle.ribbonWidth = 1.0f;
+				particle.SetAlive(true);
+
+				context.particles->push_back(particle);
+				context.spawnCount++;
+			}
+
+			info.previousPosition = currentPos;
+			info.hasPreviousPosition = true;
+		}
+	}
+
+	ModulePhase GetPhase() const override { return ModulePhase::Spawn; }
+	const char* GetName() const override { return "MultiSourceRibbon"; }
+	int32_t GetPriority() const override { return ParticleModulePriority::kSpawnRate; }
+
+	//===== 設定 =====//
+
+	void SetSpawnRate(float rate) { spawnRate_ = rate; }
+	float GetSpawnRate() const { return spawnRate_; }
+
+	void SetParticleLifetime(float lifetime) { particleLifetime_ = lifetime; }
+	float GetParticleLifetime() const { return particleLifetime_; }
+
+	void SetInitialColor(const Vector4& color) { initialColor_ = color; }
+	Vector4 GetInitialColor() const { return initialColor_; }
+
+	void SetSpawnOnlyWhenMoving(bool enable) { spawnOnlyWhenMoving_ = enable; }
+	bool GetSpawnOnlyWhenMoving() const { return spawnOnlyWhenMoving_; }
+
+	void SetMinMoveDistance(float distance) { minMoveDistance_ = distance; }
+	float GetMinMoveDistance() const { return minMoveDistance_; }
+
+	size_t GetSourceCount() const { return sources_.size(); }
+
+private:
+	struct SourceInfo
+	{
+		Transform* transform = nullptr;
+		float spawnAccumulator = 0.0f;
+		Vector3 previousPosition = {};
+		bool hasPreviousPosition = false;
+	};
+
+	std::unordered_map<uint32_t, SourceInfo> sources_;
+	float spawnRate_ = 60.0f;
+	float particleLifetime_ = 0.2f;
+	Vector4 initialColor_ = { 1.0f, 0.8f, 0.2f, 1.0f };
+	bool spawnOnlyWhenMoving_ = true;
+	float minMoveDistance_ = 0.05f;
+	uint32_t nextRibbonId_ = 1;
 };

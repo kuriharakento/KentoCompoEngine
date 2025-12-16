@@ -559,6 +559,24 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 				m->SetMaxDistance(moduleData.value("maxDistance", 0.1f));
 				emitter->AddModule(std::move(m));
 			}
+			else if (type == "MultiSourceRibbon")
+			{
+				auto m = std::make_unique<MultiSourceRibbonModule>();
+				m->SetSpawnRate(moduleData.value("spawnRate", 60.0f));
+				m->SetParticleLifetime(moduleData.value("particleLifetime", 0.2f));
+				m->SetSpawnOnlyWhenMoving(moduleData.value("spawnOnlyWhenMoving", true));
+				m->SetMinMoveDistance(moduleData.value("minMoveDistance", 0.05f));
+				if (moduleData.contains("initialColor"))
+				{
+					Vector4 color;
+					color.x = moduleData["initialColor"].value("r", 1.0f);
+					color.y = moduleData["initialColor"].value("g", 0.8f);
+					color.z = moduleData["initialColor"].value("b", 0.2f);
+					color.w = moduleData["initialColor"].value("a", 1.0f);
+					m->SetInitialColor(color);
+				}
+				emitter->AddModule(std::move(m));
+			}
 			else if (type == "TextureSheet")
 			{
 				auto m = std::make_unique<TextureSheetModule>();
@@ -977,6 +995,15 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 		else if (auto* m = dynamic_cast<const RibbonInterpolationModule*>(module))
 		{
 			moduleData["maxDistance"] = m->GetMaxDistance();
+		}
+		else if (auto* m = dynamic_cast<const MultiSourceRibbonModule*>(module))
+		{
+			moduleData["spawnRate"] = m->GetSpawnRate();
+			moduleData["particleLifetime"] = m->GetParticleLifetime();
+			moduleData["spawnOnlyWhenMoving"] = m->GetSpawnOnlyWhenMoving();
+			moduleData["minMoveDistance"] = m->GetMinMoveDistance();
+			Vector4 color = m->GetInitialColor();
+			moduleData["initialColor"] = {{"r", color.x}, {"g", color.y}, {"b", color.z}, {"a", color.w}};
 		}
 		else if (auto* m = dynamic_cast<const TextureSheetModule*>(module))
 		{
