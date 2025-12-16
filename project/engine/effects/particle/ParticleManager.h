@@ -21,8 +21,7 @@ class ParticleEffect;
 /**
  * @brief パーティクルマネージャー
  * 
- * エミッターとエフェクトの両方を管理する。
- * シンプルなPlay() APIでエフェクトを再生可能。
+ * エミッターとエフェクトの両方を管理する
  */
 class ParticleManager
 {
