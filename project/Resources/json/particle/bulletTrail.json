@@ -15,8 +15,8 @@
                     "type": "SpawnRate"
                 },
                 {
-                    "max": 0.30000001192092896,
-                    "min": 0.30000001192092896,
+                    "max": 0.20000000298023224,
+                    "min": 0.20000000298023224,
                     "type": "InitialLifetime"
                 },
                 {
@@ -53,12 +53,12 @@
             ],
             "name": "BulletTrail",
             "position": {
-                "x": -0.4000000059604645,
-                "y": 3.200000047683716,
+                "x": -3.700000047683716,
+                "y": 2.0999999046325684,
                 "z": 0.0
             },
             "renderer": {
-                "alphaFade": true,
+                "alphaFade": false,
                 "billboard": true,
                 "blendMode": 2,
                 "minSegmentDistance": 0.10000000149011612,
@@ -69,14 +69,14 @@
                 "trailLifetime": 0.30000001192092896,
                 "trailWidth": 0.20000000298023224,
                 "type": "Ribbon",
-                "widthFade": true
+                "widthFade": false
             },
             "spawnOnlyWhenMoving": true
         }
     ],
     "name": "BulletTrailEffect",
     "position": {
-        "x": 0.4000000059604645,
+        "x": 0.6000000238418579,
         "y": 2.0999999046325684,
         "z": 0.0
     }
