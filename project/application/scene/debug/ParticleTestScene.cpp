@@ -80,9 +80,6 @@ void ParticleTestScene::OnUpdatePlaying()
 
 	// スカイドームの更新
 	skydome_->Update(sceneManager_->GetCameraManager());
-
-	// ParticleManager のImGuiを表示
-	ParticleManager::GetInstance()->DrawImGui();
 }
 
 void ParticleTestScene::Draw2D()
