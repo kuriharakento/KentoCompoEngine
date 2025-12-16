@@ -89,7 +89,7 @@ void ParticleTestScene::Draw2D()
 void ParticleTestScene::Draw3D()
 {
 	LineManager::GetInstance()->DrawGrid(
-		30.0f,
+		100.0f,
 		5.0f,
 		VectorColorCodes::White
 	);
