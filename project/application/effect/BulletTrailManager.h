@@ -69,7 +69,7 @@ private:
 	// エフェクト定義名
 	static constexpr const char* kEffectName = "BulletTrail";
 	// JSONファイルパス
-	static constexpr const char* kEffectJsonPath = "./Resources/effects/bulletTrail.json";
+	static constexpr const char* kEffectJsonPath = "./Resources/json/particle/bulletTrail.json";
 
 	// トレイルID → ParticleEffectのマップ
 	std::unordered_map<uint32_t, ParticleEffect*> activeTrails_;
