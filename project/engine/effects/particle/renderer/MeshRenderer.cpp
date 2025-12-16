@@ -293,6 +293,7 @@ void MeshRenderer::Initialize(const std::string& texturePath)
 {
 	// 初期化時にデフォルトテクスチャを設定
 	std::string path = texturePath.empty() ? "./Resources/uvChecker.png" : texturePath;
+	texturePath_ = path;
 	TextureManager::GetInstance()->LoadTexture(path);
 	textureIndex_ = TextureManager::GetInstance()->GetTextureIndexByFilePath(path);
 
@@ -305,6 +306,7 @@ void MeshRenderer::SetTexture(const std::string& texturePath)
 {
 	if (texturePath.empty()) return;
 
+	texturePath_ = texturePath;
 	TextureManager::GetInstance()->LoadTexture(texturePath);
 	textureIndex_ = TextureManager::GetInstance()->GetTextureIndexByFilePath(texturePath);
 }

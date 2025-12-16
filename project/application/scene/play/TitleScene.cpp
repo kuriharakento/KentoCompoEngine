@@ -9,7 +9,8 @@
 // graphics / manager
 #include "manager/effect/PostProcessManager.h"
 #include "manager/graphics/LineManager.h"
-
+#include <effects/particle/ParticleManager.h>
+#include "effects/particle/ParticleEffect.h"
 
 void TitleScene::Initialize()
 {
@@ -17,6 +18,10 @@ void TitleScene::Initialize()
 	Audio::GetInstance()->PlayWave("title_bgm", true);
 	Audio::GetInstance()->SetVolume("title_bgm", 0.2f);
 	Audio::GetInstance()->LoadWave("start_se", "se/tap.wav", SoundGroup::SE);
+
+	// パーティクルをJsonから読み込み
+	ParticleManager::GetInstance()->LoadEffectDefinition("title_particle", "./Resources/json/particle/title_particle.json");
+	auto particleEffect = ParticleManager::GetInstance()->Play("title_particle", Vector3());
 
 	// ディレクショナルライトの調整（下向き）
 	DirectionalLight dirLight = sceneManager_->GetLightManager()->GetDirectionalLight();
@@ -43,9 +48,6 @@ void TitleScene::Initialize()
 	skydome_->SetScale({ 0.8f, 0.8f, 0.8f });
 	skydome_->SetCastShadow(false);
 	RegisterObject(skydome_.get());
-
-	fireEffect_ = std::make_unique<TitleFireEffect>();
-	fireEffect_->Initialize();
 
 	cube_.center = Vector3(0.0f, 1.0f, 10.0f);
 	cube_.size = Vector3(1.0f, 1.0f, 1.0f);
@@ -122,8 +124,10 @@ void TitleScene::OnUpdatePlaying()
 		camera->SetTranslate({ 0.0f, 1.5f, -15.0f });
 	}
 
+	auto particleEffect = ParticleManager::GetInstance()->GetEffect("title_particle");
+	particleEffect->SetPosition(cube_.center);
+
 	transitionEffect_.Update();
-	fireEffect_->Update(camera->GetTranslate());
 	titleLogo_->Update();
 	skydome_->Update(sceneManager_->GetCameraManager());
 

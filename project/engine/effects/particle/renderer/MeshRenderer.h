@@ -167,6 +167,16 @@ private:
 	uint32_t gpuParticleCount_ = 0;                             ///< GPUパーティクル数
 
 	uint32_t textureIndex_ = 0;                                 ///< テクスチャのSRVインデックス
+	std::string texturePath_;                                   ///< テクスチャファイルパス
+
+public:
+	/**
+	 * @brief テクスチャパスを取得
+	 * @return テクスチャファイルパス
+	 */
+	std::string GetTexturePath() const override { return texturePath_; }
+
+private:
 
 	//===== マテリアルリソース =====//
 	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_;   ///< マテリアルバッファリソース
