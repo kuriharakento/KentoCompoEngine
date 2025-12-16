@@ -487,6 +487,7 @@
     <ClCompile Include="application\effect\BulletTrailManager.cpp">
       <Filter>application\effect</Filter>
     </ClCompile>
+    <ClCompile Include="engine\effects\particle\module\spawn\SubEmitterModule.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -1092,15 +1093,9 @@
     <ClInclude Include="engine\effects\particle\module\ModulePriorities.h">
       <Filter>engine\effects\particle\module</Filter>
     </ClInclude>
-    <ClInclude Include="engine\effects\particle\module\update\BehaviorModules.h">
-      <Filter>engine\effects\particle\module\update</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\module\update\MotionEffectModules.h">
-      <Filter>engine\effects\particle\module\update</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\effects\particle\module\spawn\SubEmitterModule.h">
-      <Filter>engine\effects\particle\module\spawn</Filter>
-    </ClInclude>
+    <ClInclude Include="engine\effects\particle\module\spawn\SubEmitterModule.h" />
+    <ClInclude Include="engine\effects\particle\module\update\BehaviorModules.h" />
+    <ClInclude Include="engine\effects\particle\module\update\MotionEffectModules.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

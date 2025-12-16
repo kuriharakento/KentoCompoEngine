@@ -7,32 +7,21 @@
                 "y": 0.0,
                 "z": 0.0
             },
-            "maxParticles": 500,
+            "maxParticles": 5000,
             "minMoveDistance": 0.05000000074505806,
             "modules": [
                 {
-                    "rate": 40.0,
-                    "type": "SpawnRate"
-                },
-                {
-                    "max": 0.20000000298023224,
-                    "min": 0.20000000298023224,
-                    "type": "InitialLifetime"
-                },
-                {
-                    "max": {
+                    "initialColor": {
                         "a": 1.0,
                         "b": 0.20000000298023224,
                         "g": 0.800000011920929,
                         "r": 1.0
                     },
-                    "min": {
-                        "a": 1.0,
-                        "b": 0.20000000298023224,
-                        "g": 0.800000011920929,
-                        "r": 1.0
-                    },
-                    "type": "InitialColor"
+                    "minMoveDistance": 0.05000000074505806,
+                    "particleLifetime": 0.20000000298023224,
+                    "spawnOnlyWhenMoving": true,
+                    "spawnRate": 60.0,
+                    "type": "MultiSourceRibbon"
                 },
                 {
                     "end": {
@@ -53,12 +42,12 @@
             ],
             "name": "BulletTrail",
             "position": {
-                "x": -3.700000047683716,
-                "y": 2.0999999046325684,
+                "x": 0.0,
+                "y": 0.0,
                 "z": 0.0
             },
             "renderer": {
-                "alphaFade": false,
+                "alphaFade": true,
                 "billboard": true,
                 "blendMode": 2,
                 "minSegmentDistance": 0.10000000149011612,
@@ -66,18 +55,18 @@
                 "texture": "./Resources/white.png",
                 "textureMode": 0,
                 "tileScale": 1.0,
-                "trailLifetime": 0.30000001192092896,
+                "trailLifetime": 0.20000000298023224,
                 "trailWidth": 0.20000000298023224,
                 "type": "Ribbon",
-                "widthFade": false
+                "widthFade": true
             },
-            "spawnOnlyWhenMoving": true
+            "spawnOnlyWhenMoving": false
         }
     ],
     "name": "BulletTrailEffect",
     "position": {
-        "x": 0.6000000238418579,
-        "y": 2.0999999046325684,
+        "x": 0.0,
+        "y": 0.0,
         "z": 0.0
     }
 }

@@ -133,6 +133,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\effect\AreaEffect.cpp" />
     <ClCompile Include="application\GameObject\component\action\EnemyUIComponent.cpp" />
     <ClCompile Include="application\UI\Cursor.cpp" />
+    <ClCompile Include="engine\effects\particle\module\spawn\SubEmitterModule.cpp" />
     <!-- Particle System -->
     <ClCompile Include="engine\effects\particle\ParticleEmitter.cpp" />
     <ClCompile Include="engine\effects\particle\ParticleManager.cpp" />
@@ -308,7 +309,10 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\camerawork\follow\FollowCamera.h" />
     <ClInclude Include="engine\effects\particle\module\ModulePriorities.h" />
     <ClInclude Include="engine\effects\particle\module\spawn\SpawnShapeModules.h" />
+    <ClInclude Include="engine\effects\particle\module\spawn\SubEmitterModule.h" />
     <ClInclude Include="engine\effects\particle\module\update\AdvancedModules.h" />
+    <ClInclude Include="engine\effects\particle\module\update\BehaviorModules.h" />
+    <ClInclude Include="engine\effects\particle\module\update\MotionEffectModules.h" />
     <ClInclude Include="engine\effects\particle\module\update\RibbonModules.h" />
     <!-- Particle System Headers -->
     <ClInclude Include="engine\effects\particle\Particle.h" />

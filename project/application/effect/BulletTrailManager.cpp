@@ -1,6 +1,8 @@
 #include "BulletTrailManager.h"
 #include "effects/particle/ParticleManager.h"
 #include "effects/particle/ParticleEffect.h"
+#include "effects/particle/ParticleEmitter.h"
+#include "effects/particle/module/update/RibbonModules.h"
 
 BulletTrailManager& BulletTrailManager::GetInstance()
 {
@@ -15,6 +17,32 @@ void BulletTrailManager::Initialize()
 	// JSONからエフェクト定義を読み込み
 	ParticleManager::GetInstance()->LoadEffectDefinition(kEffectName, kEffectJsonPath);
 
+	// 単一のエフェクトを作成（自動削除無効）
+	effect_ = ParticleManager::GetInstance()->Play(kEffectName, Vector3(0, 0, 0));
+	if (effect_)
+	{
+		effect_->SetAutoRemove(false);  // 自動削除を無効化
+
+		// 最初のエミッターからMultiSourceRibbonModuleを取得
+		if (effect_->GetEmitterCount() > 0)
+		{
+			ParticleEmitter* emitter = effect_->GetEmitter(static_cast<size_t>(0));
+			if (emitter)
+			{
+				// モジュールを探索してMultiSourceRibbonModuleを取得
+				for (size_t i = 0; i < emitter->GetModuleCount(); ++i)
+				{
+					IModule* module = emitter->GetModule(i);
+					if (auto* msrModule = dynamic_cast<MultiSourceRibbonModule*>(module))
+					{
+						multiSourceModule_ = msrModule;
+						break;
+					}
+				}
+			}
+		}
+	}
+
 	initialized_ = true;
 }
 
@@ -22,43 +50,47 @@ uint32_t BulletTrailManager::RegisterBullet(Transform* bulletTransform)
 {
 	if (!initialized_) Initialize();
 
-	// エフェクトを再生（Transform追従）
-	ParticleEffect* effect = ParticleManager::GetInstance()->Play(kEffectName, bulletTransform);
-	
-	if (!effect) return 0;
+	if (!multiSourceModule_)
+	{
+		// MultiSourceRibbonModuleがない場合は0を返す（エラー）
+		return 0;
+	}
 
-	// IDを割り当てて管理
-	uint32_t trailId = nextId_++;
-	activeTrails_[trailId] = effect;
-
-	return trailId;
+	// MultiSourceRibbonModuleにソースを登録
+	// 戻り値のribbonIdをそのままtrailIdとして使用
+	return multiSourceModule_->RegisterSource(bulletTransform);
 }
 
 void BulletTrailManager::UnregisterBullet(uint32_t trailId)
 {
-	auto it = activeTrails_.find(trailId);
-	if (it != activeTrails_.end())
+	if (multiSourceModule_ && trailId > 0)
 	{
-		// エフェクトを停止
-		if (it->second)
-		{
-			it->second->Stop();
-			ParticleManager::GetInstance()->RemoveEffect(it->second);
-		}
-		activeTrails_.erase(it);
+		// MultiSourceRibbonModuleからソースを解除
+		multiSourceModule_->UnregisterSource(trailId);
 	}
 }
 
 void BulletTrailManager::Clear()
 {
-	// 全エフェクトを停止
-	for (auto& [id, effect] : activeTrails_)
+	if (multiSourceModule_)
 	{
-		if (effect)
+		multiSourceModule_->ClearSources();
+	}
+
+	// エミッター内のパーティクルもクリア
+	if (effect_ && effect_->GetEmitterCount() > 0)
+	{
+		ParticleEmitter* emitter = effect_->GetEmitter(static_cast<size_t>(0));
+		if (emitter)
 		{
-			effect->Stop();
-			ParticleManager::GetInstance()->RemoveEffect(effect);
+			emitter->ClearParticles();
 		}
 	}
-	activeTrails_.clear();
+
+	// シーン終了時にポインタをクリア
+	// ParticleManagerがエフェクトを削除する可能性があるため、
+	// 次回Initialize()で再取得する必要がある
+	effect_ = nullptr;
+	multiSourceModule_ = nullptr;
+	initialized_ = false;
 }
