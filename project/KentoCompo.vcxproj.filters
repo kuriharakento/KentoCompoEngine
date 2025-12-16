@@ -440,6 +440,7 @@
     <ClCompile Include="engine\effects\particle\editor\ParticleEditor.cpp" />
     <ClCompile Include="engine\effects\particle\serialization\ParticleEffectSerializer.cpp" />
     <ClCompile Include="engine\effects\particle\renderer\TrailRenderer.cpp" />
+    <ClCompile Include="application\effect\BulletTrailManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -952,7 +953,6 @@
     <ClInclude Include="engine\effects\particle\module\update\TextureSheetModule.h" />
     <ClInclude Include="engine\effects\particle\module\update\ForceFieldModules.h" />
     <ClInclude Include="engine\effects\particle\dynamic\DynamicInput.h" />
-    <ClInclude Include="engine\effects\particle\renderer\RibbonRenderer.h" />
     <ClInclude Include="engine\effects\particle\renderer\MeshRenderer.h" />
     <ClInclude Include="engine\effects\particle\primitive\PrimitiveGenerator.h" />
     <ClInclude Include="engine\effects\particle\gpu\GPUParticlePipeline.h" />
@@ -962,6 +962,8 @@
     <ClInclude Include="engine\effects\particle\module\update\AdvancedModules.h" />
     <ClInclude Include="engine\effects\particle\module\update\RibbonModules.h" />
     <ClInclude Include="engine\effects\particle\renderer\TrailRenderer.h" />
+    <ClInclude Include="application\effect\BulletTrailManager.h" />
+    <ClInclude Include="engine\effects\particle\module\ModulePriorities.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

@@ -306,6 +306,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\UI\Cursor.h" />
     <ClInclude Include="engine\animation\Animator.h" />
     <ClInclude Include="engine\camerawork\follow\FollowCamera.h" />
+    <ClInclude Include="engine\effects\particle\module\ModulePriorities.h" />
     <ClInclude Include="engine\effects\particle\module\spawn\SpawnShapeModules.h" />
     <ClInclude Include="engine\effects\particle\module\update\AdvancedModules.h" />
     <ClInclude Include="engine\effects\particle\module\update\RibbonModules.h" />

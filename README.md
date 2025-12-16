@@ -37,20 +37,6 @@ IGameObjectComponent（全コンポーネントの基底）
     └── 高速オブジェクトのすり抜け防止
 ```
 
-**パーティクルシステムもコンポーネント設計：**
-```
-IParticleComponent（パーティクルの基底）
-├── IParticleBehaviorComponent（個別パーティクルの振る舞い）
-│   ├── AccelerationComponent（加速度）
-│   ├── DragComponent（空気抵抗）
-│   ├── RotationComponent（回転）
-│   └── BounceComponent（地面反発）
-│
-└── IParticleGroupComponent（パーティクルグループ全体の制御）
-    ├── UVTranslateComponent（UVアニメーション）
-    └── UVScaleComponent（テクスチャスケール変更）
-```
-
 ### ⚡ 柔軟かつ拡張性の高い開発フロー
 
 - **簡単な機能追加**：新しいコンポーネントを作成するだけで、既存のゲームオブジェクトに機能を追加可能
@@ -63,9 +49,9 @@ IParticleComponent（パーティクルの基底）
 player->AddComponent("move", std::make_unique<MoveComponent>(enemyManager, camera));
 player->AddComponent("shoot", std::make_unique<AssaultRifleComponent>());
 
-// パーティクルエミッターに加速度と回転を追加
-emitter->AddComponent(std::make_shared<AccelerationComponent>(Vector3(0, -9.8f, 0)));
-emitter->AddComponent(std::make_shared<RotationComponent>(Vector3(0, 1. 0f, 0)));
+// パーティクルエフェクトをJSONから読み込んで再生
+ParticleManager::GetInstance()->LoadEffectDefinition("bulletTrail");
+ParticleManager::GetInstance()->Play("bulletTrail", bullet->GetTransform());
 ```
 
 ### 🔧 高い再利用性と保守性
@@ -93,10 +79,77 @@ emitter->AddComponent(std::make_shared<RotationComponent>(Vector3(0, 1. 0f, 0)))
 - **コンポーネントの動的追加・削除**: 実行時に機能を変更可能
 - **親子関係のサポート**: ワールド行列の自動伝播
 
-### 🌟 パーティクルシステム
-- **ParticleEmitter**: コンポーネント方式のパーティクルエミッター
-- **個別制御**: 各パーティクルに独立した振る舞いを設定
-- **グループ制御**: パーティクル群全体のアニメーション制御
+### 🌟 Niagara風パーティクルシステム
+
+Unreal EngineのNiagaraにインスパイアされた、モジュラー設計の高機能パーティクルシステム。
+
+**Spawnモジュール（生成時設定）：**
+```
+├── InitialModules（初期状態設定）
+│   ├── InitializePositionModule（位置）
+│   ├── InitializeVelocityModule（速度）
+│   ├── InitializeSizeModule（サイズ）
+│   ├── InitializeColorModule（カラー）
+│   └── InitializeLifetimeModule（寿命）
+│
+├── SpawnModules（生成制御）
+│   ├── SpawnRateModule（毎秒生成レート）
+│   ├── SpawnBurstModule（バースト生成）
+│   └── SubEmitterModule（サブエミッター）
+│
+└── SpawnShapeModules（生成形状）
+    ├── SphereLocationModule（球体）
+    ├── BoxLocationModule（ボックス）
+    ├── CircleLocationModule（円形）
+    └── ConeLocationModule（コーン）
+```
+
+**Updateモジュール（更新時処理）：**
+```
+├── BehaviorModules（振る舞い）
+│   ├── GravityModule（重力）
+│   ├── DragModule（空気抵抗）
+│   ├── TurbulenceModule（乱流ノイズ）
+│   ├── ColorOverLifetimeModule（寿命による色変化）
+│   ├── SizeOverLifetimeModule（寿命によるサイズ変化）
+│   └── RotationOverLifetimeModule（寿命による回転）
+│
+├── ForceFieldModules（フォースフィールド）
+│   ├── PointAttractorModule（点吸引）
+│   ├── VortexModule（渦巻き）
+│   └── CurlNoiseModule（カールノイズ）
+│
+├── MotionEffectModules（モーション特性）
+│   ├── OrbitModule（軌道運動）
+│   ├── SpiralMotionModule（螺旋運動）
+│   └── WaveMotionModule（波動運動）
+│
+└── RibbonModules（トレイル描画）
+    └── AssignRibbonIdModule（マルチトレイルID割り当て）
+```
+
+**マルチレンダラーシステム：**
+- **SpriteRenderer**: ビルボードスプライト描画
+- **MeshRenderer**: 3Dメッシュパーティクル
+- **TrailRenderer**: Niagara風マルチリボントレイル（ribbonId対応）
+
+**ツールチェーン：**
+- **ParticleEditor**: ImGuiベースのビジュアルエフェクトエディタ
+- **ParticleEffectSerializer**: JSON形式でのエフェクト保存・読み込み
+- **ParticleManager**: エフェクト定義管理と再生API
+
+### ✨ 豊富なゲームエフェクト
+
+実装済みのリッチな演出エフェクト：
+- **BulletTrailManager**: 弾丸トレイル（JSONベース自動管理）
+- **AssaultRifleHitEffect**: 着弾エフェクト
+- **EnemyDeathEffect / PlayerDeathEffect**: 死亡演出
+- **DodgeEffectParticle**: 回避アクションエフェクト
+- **CarnageModeEffect**: カーネージモード演出
+- **TitleFireEffect**: タイトル画面の炎エフェクト
+- **SceneTransitionEffect**: シーン遷移演出
+- **CinematicLetterbox**: シネマティックレターボックス
+- **AreaEffect**: 範囲エフェクト
 
 ### 🎬 シーン管理
 - **SceneManager**: シーンの切り替えと管理
@@ -110,7 +163,7 @@ emitter->AddComponent(std::make_shared<RotationComponent>(Vector3(0, 1. 0f, 0)))
 
 ### 🎨 レンダリング
 - **DirectX 12**: 最新のグラフィックスAPI
-- **ポストプロセス**: ブルーム、ブラーなどのエフェクト
+- **ポストプロセス**: ブルーム、ブラー、ビネットなどのエフェクト
 - **Skybox**: 環境マッピング対応
 - **RenderTexture**: オフスクリーンレンダリング
 
@@ -118,6 +171,19 @@ emitter->AddComponent(std::make_shared<RotationComponent>(Vector3(0, 1. 0f, 0)))
 - **アクションマッピング**: デバイスに依存しない入力定義
 - **キーボード/ゲームパッド**: 複数デバイス対応
 - **ボタンリマッピング**: カスタマイズ可能な入力設定
+
+### 🎥 カメラワーク
+- **Camerawork System**: 多彩なカメラ演出
+- **シネマティックカメラ**: 演出用カメラワーク
+- **フォロー/オービット**: ゲームプレイ用カメラ
+
+### 🔊 オーディオ
+- **Audio System**: ゲーム用オーディオ管理
+- **SE/BGM**: サウンドエフェクト・BGM対応
+
+### 💡 ライティング
+- **LightManager**: 複数光源の管理
+- **動的ライティング**: リアルタイムライト更新
 
 ---
 
@@ -142,7 +208,7 @@ emitter->AddComponent(std::make_shared<RotationComponent>(Vector3(0, 1. 0f, 0)))
    ```
 
 3. **ビルド設定を選択**
-   - `Debug`: 開発・デバッグ用（ImGui有効）
+   - `Debug`: 開発・デバッグ用（ImGui・エディタ有効）
    - `Release`: リリース用（最適化有効）
 
 4. **ビルドして実行**
@@ -155,22 +221,38 @@ emitter->AddComponent(std::make_shared<RotationComponent>(Vector3(0, 1. 0f, 0)))
 ```
 KentoCompoEngine/
 ├── project/
-│   ├── engine/              # エンジンコア
-│   │   ├── base/            # DirectX基盤、ウィンドウ管理
-│   │   ├── effects/         # パーティクルシステム
-│   │   ├── framework/       # フレームワーク基底
-│   │   ├── graphics/        # 描画システム（2D/3D）
-│   │   ├── input/           # 入力管理
-│   │   ├── scene/           # シーン管理
-│   │   └── time/            # 時間管理
+│   ├── engine/                  # エンジンコア
+│   │   ├── base/                # DirectX基盤、ウィンドウ管理
+│   │   ├── effects/             # エフェクトシステム
+│   │   │   ├── particle/        # パーティクルシステム
+│   │   │   │   ├── module/      # Niagara風モジュール
+│   │   │   │   │   ├── spawn/   # 生成モジュール
+│   │   │   │   │   └── update/  # 更新モジュール
+│   │   │   │   ├── renderer/    # マルチレンダラー
+│   │   │   │   ├── editor/      # ビジュアルエディタ
+│   │   │   │   └── serialization/ # JSON永続化
+│   │   │   └── postprocess/     # ポストプロセス
+│   │   ├── graphics/            # 描画システム（2D/3D）
+│   │   ├── camerawork/          # カメラワークシステム
+│   │   ├── audio/               # オーディオシステム
+│   │   ├── light/               # ライティング
+│   │   ├── input/               # 入力管理
+│   │   ├── scene/               # シーン管理
+│   │   ├── time/                # 時間管理
+│   │   └── math/                # 数学ライブラリ
 │   │
-│   └── application/         # ゲームロジック
-│       └── GameObject/      # ゲームオブジェクト＆コンポーネント
-│           ├── component/   # 各種コンポーネント実装
-│           │   ├── base/    # コンポーネント基底
-│           │   ├── action/  # アクションコンポーネント
-│           │   └── collision/ # 衝突判定コンポーネント
-│           └── base/        # GameObject基底クラス
+│   ├── application/             # ゲームロジック
+│   │   ├── GameObject/          # ゲームオブジェクト
+│   │   │   └── component/       # コンポーネント実装
+│   │   │       ├── action/      # アクションコンポーネント
+│   │   │       ├── collision/   # 衝突判定コンポーネント
+│   │   │       └── base/        # コンポーネント基底
+│   │   ├── effect/              # ゲームエフェクト
+│   │   ├── scene/               # ゲームシーン
+│   │   └── stage/               # ステージシステム
+│   │
+│   └── Resources/               # リソースファイル
+│       └── effects/             # エフェクトJSON定義
 │
 └── README.md
 ```
@@ -179,24 +261,24 @@ KentoCompoEngine/
 
 ## 技術スタック
 
-- **言語**: C++ (97. 4%), HLSL (1.7%)
-- **グラフィックスAPI**: DirectX 12
-- **入力**: DirectInput, XInput
-- **ビルドシステム**: Visual Studio Solution
-- **CI/CD**: GitHub Actions
+| カテゴリ | 技術 |
+|---------|------|
+| **言語** | C++17, HLSL |
+| **グラフィックス** | DirectX 12 |
+| **入力** | DirectInput, XInput |
+| **UI** | ImGui（デバッグ・エディタ） |
+| **シリアライズ** | nlohmann/json |
+| **ビルド** | Visual Studio Solution |
+| **CI/CD** | GitHub Actions |
 
 ---
 
-## コンポーネント実装例
+## 今後の展望
 
-より詳しい実装は以下から確認できます：
-
-- [IGameObjectComponent](https://github.com/kuriharakento/KentoCompoEngine/blob/master/project/application/GameObject/component/base/IGameObjectComponent. h) - コンポーネント基底
-- [IActionComponent](https://github.com/kuriharakento/KentoCompoEngine/blob/master/project/application/GameObject/component/base/IActionComponent.h) - アクション基底
-- [MoveComponent](https://github.com/kuriharakento/KentoCompoEngine/blob/master/project/application/GameObject/component/action/MoveComponent.h) - 移動システム
-- [IParticleComponent](https://github. com/kuriharakento/KentoCompoEngine/blob/master/project/engine/effects/particle/component/interface/IParticleComponent.h) - パーティクル基底
-
-[🔍 さらに多くのコンポーネントを見る](https://github.com/kuriharakento/KentoCompoEngine/search?q=Component)
+- [ ] GPU Particle System対応
+- [ ] LOD（Level of Detail）システム
+- [ ] マテリアルシステムの拡張
+- [ ] スクリプティング対応
 
 ---
 

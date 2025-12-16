@@ -132,23 +132,11 @@ void SpriteRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 
 	// 頂点バッファ設定 (SpriteRendererはVB不要だが、一応セットするならここ)
 	D3D12_VERTEX_BUFFER_VIEW vbView{};
-	// Assuming VertexPosUv is a type that matches the shader's expected vertex input for a quad strip.
-	// And assuming vertexResource_ is intended to be used here, despite the comment about "VB不要".
-	// The original Initialize sets up vertexResource_ with VertexData, which might differ from VertexPosUv.
-	// For faithful application of the patch, we use vertexResource_ as the buffer.
 	vbView.BufferLocation = vertexResource_->GetGPUVirtualAddress();
-	vbView.SizeInBytes = sizeof(VertexData) * 4; // Assuming 4 vertices for a strip, and using existing VertexData size
-	vbView.StrideInBytes = sizeof(VertexData);   // Using existing VertexData stride
+	vbView.SizeInBytes = sizeof(VertexData) * 4;
+	vbView.StrideInBytes = sizeof(VertexData);
     
     commandList->IASetVertexBuffers(0, 1, &vbView);
-
-	// 定数バッファ (Constants)
-	// commandList->SetGraphicsRootConstantBufferView(0, ...); // Manager handles this? No, Renderer doesn't know.
-    // ParticleManager::Draw sets global constants maybe?
-    // Actually SpriteRenderer::Draw usually sets specific things.
-    // Existing code:
-    // commandList->SetGraphicsRootDescriptorTable(2, textureSrv);
-    // commandList->SetGraphicsRootDescriptorTable(3, instanceSrv);
 
 	// マテリアル (Slot 0 - CBV)
 	commandList->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());

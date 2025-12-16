@@ -63,9 +63,7 @@ void ParticleManager::Draw()
 
 	dxCommon_->GetCommandList()->SetGraphicsRootSignature(pipelineManager_->GetRootSignature());
 	dxCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	// パイプラインステートは各レンダラーで設定する
-	// dxCommon_->GetCommandList()->SetPipelineState(pipelineManager_->GetPipelineState(BlendMode::Additive));
-
+	
 	// エフェクトの描画
 	for (auto& effect : effects_)
 	{

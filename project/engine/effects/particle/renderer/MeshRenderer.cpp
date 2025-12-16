@@ -8,7 +8,6 @@
 #include "math/MatrixFunc.h"
 #include "effects/particle/ParticleManager.h"
 #include "manager/graphics/TextureManager.h"
-// #include "externals/DirectXTex/d3dx12.h" // Assuming this is where it is, or use local if configured
 #include "manager/effect/ParticlePipelineManager.h"
 #include <d3d12.h>
 #include <numbers>
