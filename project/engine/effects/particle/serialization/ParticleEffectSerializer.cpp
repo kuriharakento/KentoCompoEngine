@@ -268,6 +268,12 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 				}
 				emitter->AddModule(std::move(m));
 			}
+			else if (type == "AssignRibbonId")
+			{
+				auto m = std::make_unique<AssignRibbonIdModule>();
+				m->SetGroupCount(moduleData.value("groupCount", 1u));
+				emitter->AddModule(std::move(m));
+			}
 			else if (type == "Gravity")
 			{
 				Vector3 g = { 0, -9.8f, 0 };
@@ -831,6 +837,10 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 			Vector4 maxC = m->GetMaxColor();
 			moduleData["min"] = {{"r", minC.x}, {"g", minC.y}, {"b", minC.z}, {"a", minC.w}};
 			moduleData["max"] = {{"r", maxC.x}, {"g", maxC.y}, {"b", maxC.z}, {"a", maxC.w}};
+		}
+		else if (auto* m = dynamic_cast<const AssignRibbonIdModule*>(module))
+		{
+			moduleData["groupCount"] = m->GetGroupCount();
 		}
 		else if (auto* m = dynamic_cast<const GravityModule*>(module))
 		{

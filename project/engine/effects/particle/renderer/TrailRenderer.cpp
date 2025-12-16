@@ -309,45 +309,84 @@ void TrailRenderer::BuildRibbonFromParticles(const std::vector<Particle>& partic
 {
 	if (!vertexData_) return;
 
-	// 生存パーティクルを収集
-	std::vector<const Particle*> aliveParticles;
-	aliveParticles.reserve(particles.size());
+	// RibbonIdごとにパーティクルをグループ化
+	std::unordered_map<uint32_t, std::vector<const Particle*>> ribbonGroups;
 	for (const auto& particle : particles)
 	{
 		if (particle.IsAlive())
 		{
-			aliveParticles.push_back(&particle);
+			ribbonGroups[particle.ribbonId].push_back(&particle);
 		}
 	}
-
-	// パーティクルが2つ未満ならリボンは描画しない
-	if (aliveParticles.size() < 2)
-	{
-		vertexCount_ = 0;
-		return;
-	}
-
-	// 年齢順にソート（新しい順 = age小さい順）
-	std::sort(aliveParticles.begin(), aliveParticles.end(),
-		[](const Particle* a, const Particle* b) {
-			return a->age < b->age;
-		}
-	);
 
 	Vector3 cameraPosition = camera->GetActiveCamera()->GetTranslate();
-	std::vector<TrailVertex> vertices;
-	vertices.reserve(aliveParticles.size() * 2);
+	std::vector<TrailVertex> allVertices;
+	allVertices.reserve(kMaxVertices);
+
+	// 各リボングループを処理
+	for (auto& [ribbonId, group] : ribbonGroups)
+	{
+		if (group.size() < 2) continue;
+
+		// 年齢順にソート（新しい順 = age小さい順）
+		std::sort(group.begin(), group.end(),
+			[](const Particle* a, const Particle* b) { return a->age < b->age; });
+
+		// 前のリボンがある場合、degenerate triangleを追加して分離
+		size_t prevSize = allVertices.size();
+
+		// このグループのリボン頂点を生成
+		GenerateRibbonVertices(group, cameraPosition, allVertices);
+
+		// degenerate triangle: 2つのリボン間に重複頂点を挿入
+		if (prevSize > 0 && allVertices.size() > prevSize)
+		{
+			TrailVertex lastOfPrev = allVertices[prevSize - 1];
+			TrailVertex firstOfNew = allVertices[prevSize];
+			allVertices.insert(allVertices.begin() + prevSize, firstOfNew);
+			allVertices.insert(allVertices.begin() + prevSize, lastOfPrev);
+		}
+
+		if (allVertices.size() >= kMaxVertices - 100)
+		{
+			break;  // 頂点数上限
+		}
+	}
+
+	// 頂点データをコピー
+	vertexCount_ = static_cast<uint32_t>((std::min)(allVertices.size(), static_cast<size_t>(kMaxVertices)));
+	if (vertexCount_ > 0)
+	{
+		std::memcpy(vertexData_, allVertices.data(), sizeof(TrailVertex) * vertexCount_);
+	}
+
+	// ビュープロジェクション行列を更新
+	if (viewProjData_)
+	{
+		*viewProjData_ = Multiply(
+			camera->GetActiveCamera()->GetViewMatrix(),
+			camera->GetActiveCamera()->GetProjectionMatrix()
+		);
+	}
+}
+
+void TrailRenderer::GenerateRibbonVertices(
+	const std::vector<const Particle*>& group,
+	const Vector3& cameraPosition,
+	std::vector<TrailVertex>& outVertices)
+{
+	if (group.size() < 2) return;
 
 	// パーティクル間の距離を計算
 	float totalLength = 0.0f;
 	std::vector<float> cumulativeLengths;
-	cumulativeLengths.reserve(aliveParticles.size());
+	cumulativeLengths.reserve(group.size());
 	cumulativeLengths.push_back(0.0f);
 
-	for (size_t i = 1; i < aliveParticles.size(); ++i)
+	for (size_t i = 1; i < group.size(); ++i)
 	{
-		const auto* curr = aliveParticles[i];
-		const auto* prev = aliveParticles[i - 1];
+		const auto* curr = group[i];
+		const auto* prev = group[i - 1];
 		float dx = curr->position.x - prev->position.x;
 		float dy = curr->position.y - prev->position.y;
 		float dz = curr->position.z - prev->position.z;
@@ -356,9 +395,9 @@ void TrailRenderer::BuildRibbonFromParticles(const std::vector<Particle>& partic
 	}
 
 	// 各パーティクルに対して左右の頂点を生成
-	for (size_t i = 0; i < aliveParticles.size(); ++i)
+	for (size_t i = 0; i < group.size(); ++i)
 	{
-		const auto* particle = aliveParticles[i];
+		const auto* particle = group[i];
 
 		// 年齢比率（0=新しい, 1=古い）
 		float ageRatio = (particle->lifetime > 0.0f) ? particle->age / particle->lifetime : 0.0f;
@@ -380,16 +419,16 @@ void TrailRenderer::BuildRibbonFromParticles(const std::vector<Particle>& partic
 
 		// 接線を計算（隣接パーティクル間）
 		Vector3 tangent = { 0.0f, 0.0f, 1.0f };
-		if (i < aliveParticles.size() - 1)
+		if (i < group.size() - 1)
 		{
-			const auto* next = aliveParticles[i + 1];
+			const auto* next = group[i + 1];
 			tangent.x = next->position.x - particle->position.x;
 			tangent.y = next->position.y - particle->position.y;
 			tangent.z = next->position.z - particle->position.z;
 		}
 		else if (i > 0)
 		{
-			const auto* prev = aliveParticles[i - 1];
+			const auto* prev = group[i - 1];
 			tangent.x = particle->position.x - prev->position.x;
 			tangent.y = particle->position.y - prev->position.y;
 			tangent.z = particle->position.z - prev->position.z;
@@ -496,24 +535,8 @@ void TrailRenderer::BuildRibbonFromParticles(const std::vector<Particle>& partic
 		rightVertex.texcoord = { 1.0f, v };
 		rightVertex.color = color;
 
-		vertices.push_back(leftVertex);
-		vertices.push_back(rightVertex);
-	}
-
-	// 頂点データをコピー
-	vertexCount_ = static_cast<uint32_t>((std::min)(vertices.size(), static_cast<size_t>(kMaxVertices)));
-	if (vertexCount_ > 0)
-	{
-		std::memcpy(vertexData_, vertices.data(), sizeof(TrailVertex) * vertexCount_);
-	}
-
-	// ビュープロジェクション行列を更新
-	if (viewProjData_)
-	{
-		*viewProjData_ = Multiply(
-			camera->GetActiveCamera()->GetViewMatrix(),
-			camera->GetActiveCamera()->GetProjectionMatrix()
-		);
+		outVertices.push_back(leftVertex);
+		outVertices.push_back(rightVertex);
 	}
 }
 

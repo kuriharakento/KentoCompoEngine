@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <FxCompile Include="Resources\shaders\Object3d.PS.hlsl">
@@ -236,19 +236,19 @@
       <Filter>engine\math</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\postprocess\base\BasePostEffect.cpp">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\postprocess\CRTEffect.cpp">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\postprocess\GrayscaleEffect.cpp">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\postprocess\NoiseEffect.cpp">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\postprocess\VignetteEffect.cpp">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="engine\scene\MyGame.cpp">
       <Filter>engine\scene</Filter>
@@ -296,7 +296,7 @@
       <Filter>engine\manager\system</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\ParticleEmitter.cpp">
-      <Filter>engine\effect\particle</Filter>
+      <Filter>engine\effects\particle</Filter>
     </ClCompile>
     <ClCompile Include="application\stage\StageData.cpp">
       <Filter>application\stage</Filter>
@@ -350,7 +350,7 @@
       <Filter>application\minimap</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\postprocess\BloomEffect.cpp">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="application\stage\WaveManager.cpp">
       <Filter>application\stage</Filter>
@@ -418,28 +418,75 @@
     <ClCompile Include="application\GameObject\component\action\PlayerUIComponent.cpp">
       <Filter>application\GameObject\component\action</Filter>
     </ClCompile>
-    <ClCompile Include="engine\graphics\shadow\ShadowMapPipeline.cpp" />
-    <ClCompile Include="engine\graphics\shadow\ShadowSystem.cpp" />
-    <ClCompile Include="engine\manager\graphics\ShadowMapManager.cpp" />
-    <ClCompile Include="engine\graphics\deferred\GBuffer.cpp" />
-    <ClCompile Include="engine\graphics\deferred\GBufferPipeline.cpp" />
-    <ClCompile Include="engine\graphics\deferred\LightPassPipeline.cpp" />
-    <ClCompile Include="engine\graphics\deferred\DeferredRenderer.cpp" />
-    <ClCompile Include="engine\graphics\3d\SkinnedModel.cpp" />
-    <ClCompile Include="engine\graphics\3d\SkinnedObject3d.cpp" />
-    <ClCompile Include="engine\graphics\3d\SkinningCompute.cpp" />
-    <ClCompile Include="engine\animation\Animator.cpp" />
-    <ClCompile Include="engine\effects\particle\ParticleManager.cpp" />
-    <ClCompile Include="engine\effects\particle\renderer\SpriteRenderer.cpp" />
-    <ClCompile Include="engine\effects\particle\gpu\GPUSimulator.cpp" />
-    <ClCompile Include="application\effect\PlayerDeathEffect.cpp" />
-    <ClCompile Include="engine\effects\particle\ParticleEffect.cpp" />
-    <ClCompile Include="engine\effects\particle\gpu\GPUParticlePipeline.cpp" />
-    <ClCompile Include="engine\effects\particle\renderer\MeshRenderer.cpp" />
-    <ClCompile Include="engine\effects\particle\primitive\PrimitiveGenerator.cpp" />
-    <ClCompile Include="engine\effects\particle\editor\ParticleEditor.cpp" />
-    <ClCompile Include="engine\effects\particle\serialization\ParticleEffectSerializer.cpp" />
-    <ClCompile Include="engine\effects\particle\renderer\TrailRenderer.cpp" />
+    <ClCompile Include="engine\graphics\shadow\ShadowMapPipeline.cpp">
+      <Filter>engine\graphics\shadow</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\graphics\shadow\ShadowSystem.cpp">
+      <Filter>engine\graphics\shadow</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\manager\graphics\ShadowMapManager.cpp">
+      <Filter>engine\manager\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\graphics\deferred\GBuffer.cpp">
+      <Filter>engine\graphics\deferred</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\graphics\deferred\GBufferPipeline.cpp">
+      <Filter>engine\graphics\deferred</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\graphics\deferred\LightPassPipeline.cpp">
+      <Filter>engine\graphics\deferred</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\graphics\deferred\DeferredRenderer.cpp">
+      <Filter>engine\graphics\deferred</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\graphics\3d\SkinnedModel.cpp">
+      <Filter>engine\graphics\3d</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\graphics\3d\SkinnedObject3d.cpp">
+      <Filter>engine\graphics\3d</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\graphics\3d\SkinningCompute.cpp">
+      <Filter>engine\graphics\3d</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\animation\Animator.cpp">
+      <Filter>engine\animation</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\effects\particle\ParticleManager.cpp">
+      <Filter>engine\effects\particle</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\effects\particle\renderer\SpriteRenderer.cpp">
+      <Filter>engine\effects\particle\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\effects\particle\gpu\GPUSimulator.cpp">
+      <Filter>engine\effects\particle\gpu</Filter>
+    </ClCompile>
+    <ClCompile Include="application\effect\PlayerDeathEffect.cpp">
+      <Filter>application\effect</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\effects\particle\ParticleEffect.cpp">
+      <Filter>engine\effects\particle</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\effects\particle\gpu\GPUParticlePipeline.cpp">
+      <Filter>engine\effects\particle\gpu</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\effects\particle\renderer\MeshRenderer.cpp">
+      <Filter>engine\effects\particle\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\effects\particle\primitive\PrimitiveGenerator.cpp">
+      <Filter>engine\effects\particle\primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\effects\particle\editor\ParticleEditor.cpp">
+      <Filter>engine\effects\particle\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\effects\particle\serialization\ParticleEffectSerializer.cpp">
+      <Filter>engine\effects\particle\serialization</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\effects\particle\renderer\TrailRenderer.cpp">
+      <Filter>engine\effects\particle\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="application\effect\BulletTrailManager.cpp">
+      <Filter>application\effect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -707,16 +754,16 @@
       <Filter>engine\math</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\postprocess\GrayscaleEffect.h">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\postprocess\IPostEffect.h">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\postprocess\NoiseEffect.h">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\postprocess\VignetteEffect.h">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="engine\scene\MyGame.h">
       <Filter>engine\scene</Filter>
@@ -770,7 +817,7 @@
       <Filter>engine\manager\system</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\ParticleEmitter.h">
-      <Filter>engine\effect\particle</Filter>
+      <Filter>engine\effects\particle</Filter>
     </ClInclude>
     <ClInclude Include="application\stage\StageData.h">
       <Filter>application\stage</Filter>
@@ -842,7 +889,7 @@
       <Filter>engine\math</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\postprocess\BloomEffect.h">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="application\stage\Wave.h">
       <Filter>application\stage</Filter>
@@ -922,46 +969,138 @@
     <ClInclude Include="application\GameObject\component\action\PlayerUIComponent.h">
       <Filter>application\GameObject\component\action</Filter>
     </ClInclude>
-    <ClInclude Include="engine\graphics\shadow\ShadowMap.h" />
-    <ClInclude Include="engine\graphics\shadow\ShadowMapPipeline.h" />
-    <ClInclude Include="engine\graphics\shadow\ShadowSystem.h" />
-    <ClInclude Include="engine\manager\graphics\ShadowMapManager.h" />
-    <ClInclude Include="engine\graphics\deferred\GBuffer.h" />
-    <ClInclude Include="engine\graphics\deferred\GBufferPipeline.h" />
-    <ClInclude Include="engine\graphics\deferred\LightPassPipeline.h" />
-    <ClInclude Include="engine\graphics\deferred\DeferredRenderer.h" />
-    <ClInclude Include="engine\graphics\3d\SkinnedModel.h" />
-    <ClInclude Include="engine\graphics\3d\SkinnedObject3d.h" />
-    <ClInclude Include="engine\graphics\3d\SkinningCompute.h" />
-    <ClInclude Include="engine\math\Quaternion.h" />
-    <ClInclude Include="engine\effects\particle\ParticleManager.h" />
-    <ClInclude Include="engine\effects\particle\renderer\SpriteRenderer.h" />
-    <ClInclude Include="engine\effects\particle\module\spawn\InitialModules.h" />
-    <ClInclude Include="engine\effects\particle\module\spawn\SpawnModules.h" />
-    <ClInclude Include="engine\effects\particle\module\update\UpdateModules.h" />
-    <ClInclude Include="engine\effects\particle\Particle.h" />
-    <ClInclude Include="engine\effects\particle\ParticleTypes.h" />
-    <ClInclude Include="engine\effects\particle\module\IModule.h" />
-    <ClInclude Include="engine\effects\particle\renderer\IRenderer.h" />
-    <ClInclude Include="engine\effects\particle\gpu\GPUSimulator.h" />
-    <ClInclude Include="application\scene\play\GamePlayScene.h" />
-    <ClInclude Include="engine\animation\Animator.h" />
-    <ClInclude Include="engine\camerawork\follow\FollowCamera.h" />
-    <ClInclude Include="engine\effects\postprocess\CRTEffect.h" />
-    <ClInclude Include="engine\effects\particle\ParticleEffect.h" />
-    <ClInclude Include="engine\effects\particle\module\update\TextureSheetModule.h" />
-    <ClInclude Include="engine\effects\particle\module\update\ForceFieldModules.h" />
-    <ClInclude Include="engine\effects\particle\dynamic\DynamicInput.h" />
-    <ClInclude Include="engine\effects\particle\renderer\RibbonRenderer.h" />
-    <ClInclude Include="engine\effects\particle\renderer\MeshRenderer.h" />
-    <ClInclude Include="engine\effects\particle\primitive\PrimitiveGenerator.h" />
-    <ClInclude Include="engine\effects\particle\gpu\GPUParticlePipeline.h" />
-    <ClInclude Include="engine\effects\particle\editor\ParticleEditor.h" />
-    <ClInclude Include="engine\effects\particle\serialization\ParticleEffectSerializer.h" />
-    <ClInclude Include="engine\effects\particle\module\spawn\SpawnShapeModules.h" />
-    <ClInclude Include="engine\effects\particle\module\update\AdvancedModules.h" />
-    <ClInclude Include="engine\effects\particle\module\update\RibbonModules.h" />
-    <ClInclude Include="engine\effects\particle\renderer\TrailRenderer.h" />
+    <ClInclude Include="engine\graphics\shadow\ShadowMap.h">
+      <Filter>engine\graphics\shadow</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\graphics\shadow\ShadowMapPipeline.h">
+      <Filter>engine\graphics\shadow</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\graphics\shadow\ShadowSystem.h">
+      <Filter>engine\graphics\shadow</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\manager\graphics\ShadowMapManager.h">
+      <Filter>engine\manager\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\graphics\deferred\GBuffer.h">
+      <Filter>engine\graphics\deferred</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\graphics\deferred\GBufferPipeline.h">
+      <Filter>engine\graphics\deferred</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\graphics\deferred\LightPassPipeline.h">
+      <Filter>engine\graphics\deferred</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\graphics\deferred\DeferredRenderer.h">
+      <Filter>engine\graphics\deferred</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\graphics\3d\SkinnedModel.h">
+      <Filter>engine\graphics\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\graphics\3d\SkinnedObject3d.h">
+      <Filter>engine\graphics\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\graphics\3d\SkinningCompute.h">
+      <Filter>engine\graphics\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\Quaternion.h">
+      <Filter>engine\math</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\ParticleManager.h">
+      <Filter>engine\effects\particle</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\renderer\SpriteRenderer.h">
+      <Filter>engine\effects\particle\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\module\spawn\InitialModules.h">
+      <Filter>engine\effects\particle\module\spawn</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\module\spawn\SpawnModules.h">
+      <Filter>engine\effects\particle\module\spawn</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\module\update\UpdateModules.h">
+      <Filter>engine\effects\particle\module\update</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\Particle.h">
+      <Filter>engine\effects\particle</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\ParticleTypes.h">
+      <Filter>engine\effects\particle</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\module\IModule.h">
+      <Filter>engine\effects\particle\module</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\renderer\IRenderer.h">
+      <Filter>engine\effects\particle\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\gpu\GPUSimulator.h">
+      <Filter>engine\effects\particle\gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="application\scene\play\GamePlayScene.h">
+      <Filter>application\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\animation\Animator.h">
+      <Filter>engine\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\camerawork\follow\FollowCamera.h">
+      <Filter>engine\camerawork\follow</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\postprocess\CRTEffect.h">
+      <Filter>engine\effects\postprocess</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\ParticleEffect.h">
+      <Filter>engine\effects\particle</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\module\update\TextureSheetModule.h">
+      <Filter>engine\effects\particle\module\update</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\module\update\ForceFieldModules.h">
+      <Filter>engine\effects\particle\module\update</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\dynamic\DynamicInput.h">
+      <Filter>engine\effects\particle\dynamic</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\renderer\MeshRenderer.h">
+      <Filter>engine\effects\particle\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\primitive\PrimitiveGenerator.h">
+      <Filter>engine\effects\particle\primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\gpu\GPUParticlePipeline.h">
+      <Filter>engine\effects\particle\gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\editor\ParticleEditor.h">
+      <Filter>engine\effects\particle\editor</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\serialization\ParticleEffectSerializer.h">
+      <Filter>engine\effects\particle\serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\module\spawn\SpawnShapeModules.h">
+      <Filter>engine\effects\particle\module\spawn</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\module\update\AdvancedModules.h">
+      <Filter>engine\effects\particle\module\update</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\module\update\RibbonModules.h">
+      <Filter>engine\effects\particle\module\update</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\renderer\TrailRenderer.h">
+      <Filter>engine\effects\particle\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="application\effect\BulletTrailManager.h">
+      <Filter>application\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\module\ModulePriorities.h">
+      <Filter>engine\effects\particle\module</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\module\update\BehaviorModules.h">
+      <Filter>engine\effects\particle\module\update</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\module\update\MotionEffectModules.h">
+      <Filter>engine\effects\particle\module\update</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\effects\particle\module\spawn\SubEmitterModule.h">
+      <Filter>engine\effects\particle\module\spawn</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">
@@ -1035,9 +1174,6 @@
     <Filter Include="engine\camerawork\spline">
       <UniqueIdentifier>{6d13de18-b7ff-4449-a52e-24abb134e29b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="engine\effect">
-      <UniqueIdentifier>{2e0986fc-f196-4cbe-823c-60d20cac6185}</UniqueIdentifier>
-    </Filter>
     <Filter Include="engine\framework">
       <UniqueIdentifier>{ded04d30-5444-4ad2-9e3c-44a2d2673277}</UniqueIdentifier>
     </Filter>
@@ -1107,24 +1243,6 @@
     <Filter Include="engine\graphics\2d">
       <UniqueIdentifier>{f54a5899-19a1-407d-9dad-83d138def2e4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="engine\effect\particle">
-      <UniqueIdentifier>{8c30a15d-4cdc-4c8a-a2d7-833d33864eec}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\effect\particle\component">
-      <UniqueIdentifier>{c40d48e8-9f4a-4ddc-89dc-bdfe1a00278e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\effect\particle\component\group">
-      <UniqueIdentifier>{a45c5600-c53c-4dca-96be-f221d48e7724}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\effect\particle\component\interface">
-      <UniqueIdentifier>{f7552a14-861d-4cf9-b87b-f33ba2afdd73}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\effect\particle\component\single">
-      <UniqueIdentifier>{82406438-6f67-4977-a773-bec16979ceb3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\effect\postprocess">
-      <UniqueIdentifier>{867e1395-7316-4d3d-ad1f-9ecdef20a841}</UniqueIdentifier>
-    </Filter>
     <Filter Include="application\stage">
       <UniqueIdentifier>{204ade66-d5d8-468f-b428-5c047a17e63b}</UniqueIdentifier>
     </Filter>
@@ -1172,6 +1290,51 @@
     </Filter>
     <Filter Include="application\UI">
       <UniqueIdentifier>{bc4f1c94-29ad-41d9-92c0-b64afddc267f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\graphics\shadow">
+      <UniqueIdentifier>{a1b2c3d4-e5f6-7890-abcd-ef1234567890}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\graphics\deferred">
+      <UniqueIdentifier>{b2c3d4e5-f6a7-8901-bcde-f12345678901}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\animation">
+      <UniqueIdentifier>{c3d4e5f6-a7b8-9012-cdef-123456789012}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects">
+      <UniqueIdentifier>{d4e5f6a7-b8c9-0123-defa-234567890123}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle">
+      <UniqueIdentifier>{e5f6a7b8-c9d0-1234-efab-345678901234}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle\renderer">
+      <UniqueIdentifier>{f6a7b8c9-d0e1-2345-fabc-456789012345}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle\module">
+      <UniqueIdentifier>{a7b8c9d0-e1f2-3456-abcd-567890123456}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle\module\spawn">
+      <UniqueIdentifier>{b8c9d0e1-f2a3-4567-bcde-678901234567}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle\module\update">
+      <UniqueIdentifier>{c9d0e1f2-a3b4-5678-cdef-789012345678}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle\gpu">
+      <UniqueIdentifier>{d0e1f2a3-b4c5-6789-defa-890123456789}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle\editor">
+      <UniqueIdentifier>{e1f2a3b4-c5d6-7890-efab-901234567890}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle\serialization">
+      <UniqueIdentifier>{f2a3b4c5-d6e7-8901-fabc-012345678901}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle\primitive">
+      <UniqueIdentifier>{a3b4c5d6-e7f8-9012-abcd-123456789012}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle\dynamic">
+      <UniqueIdentifier>{b4c5d6e7-f8a9-0123-bcde-234567890123}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\postprocess">
+      <UniqueIdentifier>{c5d6e7f8-a9b0-1234-cdef-345678901234}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

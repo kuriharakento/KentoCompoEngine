@@ -1,0 +1,42 @@
+{
+    "name": "BulletTrailEffect",
+    "emitters": [
+        {
+            "name": "BulletTrail",
+            "maxParticles": 500,
+            "spawnOnlyWhenMoving": true,
+            "minMoveDistance": 0.05,
+            "modules": [
+                {
+                    "type": "SpawnRate",
+                    "rate": 60.0
+                },
+                {
+                    "type": "InitialLifetime",
+                    "min": 0.3,
+                    "max": 0.3
+                },
+                {
+                    "type": "InitialColor",
+                    "min": { "r": 1.0, "g": 0.8, "b": 0.2, "a": 1.0 },
+                    "max": { "r": 1.0, "g": 0.8, "b": 0.2, "a": 1.0 }
+                },
+                {
+                    "type": "ColorFade",
+                    "useInitialColor": true,
+                    "end": { "r": 1.0, "g": 0.5, "b": 0.0, "a": 0.0 }
+                }
+            ],
+            "renderer": {
+                "type": "Ribbon",
+                "texture": "./Resources/white.png",
+                "blendMode": 2,
+                "trailWidth": 0.1,
+                "trailLifetime": 0.3,
+                "widthFade": true,
+                "alphaFade": true,
+                "billboard": true
+            }
+        }
+    ]
+}

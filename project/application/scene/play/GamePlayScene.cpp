@@ -20,6 +20,8 @@
 #include "application/GameObject/component/action/PistolComponent.h"
 #include "time/TimeManager.h"
 #include "time/TimerManager.h"
+#include "application/effect/BulletTrailManager.h"
+#include "effects/particle/ParticleManager.h"
 
 void GamePlayScene::Initialize()
 {
@@ -115,6 +117,8 @@ void GamePlayScene::Initialize()
 		"./Resources/UI/reticle.png"
 	);
 
+	BulletTrailManager::GetInstance().Initialize();
+
 	StartState(SceneState::Enter);
 	gameClear_ = false;
 	gameOver_ = false;
@@ -124,6 +128,8 @@ void GamePlayScene::Finalize()
 {
 	ClearObjects();
 	Audio::GetInstance()->StopWave("game_bgm");
+
+	BulletTrailManager::GetInstance().Clear();
 
 	CollisionManager::GetInstance()->Finalize();
 }

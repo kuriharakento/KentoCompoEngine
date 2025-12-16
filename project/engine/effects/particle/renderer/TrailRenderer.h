@@ -178,9 +178,18 @@ private:
 	void BuildTrailMesh(CameraManager* camera);
 
 	/**
-	 * @brief パーティクルを接続してリボンメッシュを構築（新方式）
+	 * @brief パーティクルを接続してリボンメッシュを構築（新方式・RibbonIdグループ対応）
 	 */
 	void BuildRibbonFromParticles(const std::vector<Particle>& particles, CameraManager* camera);
+
+	/**
+	 * @brief 単一リボングループから頂点を生成
+	 */
+	void GenerateRibbonVertices(
+		const std::vector<const Particle*>& group,
+		const Vector3& cameraPosition,
+		std::vector<TrailVertex>& outVertices
+	);
 
 	/**
 	 * @brief セグメントからトライアングルストリップを生成

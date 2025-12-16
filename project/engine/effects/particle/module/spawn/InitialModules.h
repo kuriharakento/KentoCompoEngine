@@ -195,3 +195,41 @@ private:
 	Vector3 minScale_ = { 1, 1, 1 };
 	Vector3 maxScale_ = { 1, 1, 1 };
 };
+
+/**
+ * @brief RibbonId割り当てモジュール（Niagaraの「Partition Particles」相当）
+ * 
+ * パーティクルをグループに分割し、各グループが独立したリボンとして描画される。
+ * TrailRendererと組み合わせて複数のトレイルを生成可能。
+ */
+class AssignRibbonIdModule : public IModule
+{
+public:
+	AssignRibbonIdModule(uint32_t groupCount = 1) : groupCount_(groupCount) {}
+
+	void Execute(ParticleContext& context) override
+	{
+		for (auto& particle : *context.particles)
+		{
+			if (particle.age == 0.0f && particle.IsAlive())
+			{
+				// 順番にグループに割り当て（ラウンドロビン）
+				particle.ribbonId = nextId_ % groupCount_;
+				nextId_++;
+			}
+		}
+	}
+
+	ModulePhase GetPhase() const override { return ModulePhase::Spawn; }
+	const char* GetName() const override { return "AssignRibbonId"; }
+	int32_t GetPriority() const override { return 35; } // カラー/スケール設定後
+
+	void SetGroupCount(uint32_t count) { groupCount_ = (std::max)(1u, count); }
+	uint32_t GetGroupCount() const { return groupCount_; }
+	
+	void Reset() { nextId_ = 0; }
+
+private:
+	uint32_t groupCount_ = 1;
+	uint32_t nextId_ = 0;
+};

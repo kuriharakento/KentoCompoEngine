@@ -111,6 +111,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\GameObject\combatable\character\enemy\AssaultEnemy.cpp" />
     <ClCompile Include="application\GameObject\combatable\character\enemy\EnemyManager.cpp" />
     <ClCompile Include="application\effect\AssaultRifleHitEffect.cpp" />
+    <ClCompile Include="application\effect\BulletTrailManager.cpp" />
     <ClCompile Include="application\GameObject\component\action\AssaultEnemyBehavior.cpp" />
     <ClCompile Include="application\effect\DodgeEffectParticle.cpp" />
     <ClCompile Include="application\effect\EnemyDeathEffect.cpp" />
@@ -276,6 +277,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\GameObject\combatable\character\enemy\AssaultEnemy.h" />
     <ClInclude Include="application\GameObject\combatable\character\enemy\EnemyManager.h" />
     <ClInclude Include="application\effect\AssaultRifleHitEffect.h" />
+    <ClInclude Include="application\effect\BulletTrailManager.h" />
     <ClInclude Include="application\GameObject\component\action\AssaultEnemyBehavior.h" />
     <ClInclude Include="application\effect\DodgeEffectParticle.h" />
     <ClInclude Include="application\effect\EnemyDeathEffect.h" />
@@ -304,6 +306,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\UI\Cursor.h" />
     <ClInclude Include="engine\animation\Animator.h" />
     <ClInclude Include="engine\camerawork\follow\FollowCamera.h" />
+    <ClInclude Include="engine\effects\particle\module\ModulePriorities.h" />
     <ClInclude Include="engine\effects\particle\module\spawn\SpawnShapeModules.h" />
     <ClInclude Include="engine\effects\particle\module\update\AdvancedModules.h" />
     <ClInclude Include="engine\effects\particle\module\update\RibbonModules.h" />
