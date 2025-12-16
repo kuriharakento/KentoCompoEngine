@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <FxCompile Include="Resources\shaders\Object3d.PS.hlsl">
@@ -236,19 +236,19 @@
       <Filter>engine\math</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\postprocess\base\BasePostEffect.cpp">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\postprocess\CRTEffect.cpp">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\postprocess\GrayscaleEffect.cpp">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\postprocess\NoiseEffect.cpp">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\postprocess\VignetteEffect.cpp">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="engine\scene\MyGame.cpp">
       <Filter>engine\scene</Filter>
@@ -296,7 +296,7 @@
       <Filter>engine\manager\system</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\ParticleEmitter.cpp">
-      <Filter>engine\effect\particle</Filter>
+      <Filter>engine\effects\particle</Filter>
     </ClCompile>
     <ClCompile Include="application\stage\StageData.cpp">
       <Filter>application\stage</Filter>
@@ -350,7 +350,7 @@
       <Filter>application\minimap</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\postprocess\BloomEffect.cpp">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="application\stage\WaveManager.cpp">
       <Filter>application\stage</Filter>
@@ -754,16 +754,16 @@
       <Filter>engine\math</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\postprocess\GrayscaleEffect.h">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\postprocess\IPostEffect.h">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\postprocess\NoiseEffect.h">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\postprocess\VignetteEffect.h">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="engine\scene\MyGame.h">
       <Filter>engine\scene</Filter>
@@ -817,7 +817,7 @@
       <Filter>engine\manager\system</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\particle\ParticleEmitter.h">
-      <Filter>engine\effect\particle</Filter>
+      <Filter>engine\effects\particle</Filter>
     </ClInclude>
     <ClInclude Include="application\stage\StageData.h">
       <Filter>application\stage</Filter>
@@ -889,7 +889,7 @@
       <Filter>engine\math</Filter>
     </ClInclude>
     <ClInclude Include="engine\effects\postprocess\BloomEffect.h">
-      <Filter>engine\effect\postprocess</Filter>
+      <Filter>engine\effects\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="application\stage\Wave.h">
       <Filter>application\stage</Filter>
@@ -1174,9 +1174,6 @@
     <Filter Include="engine\camerawork\spline">
       <UniqueIdentifier>{6d13de18-b7ff-4449-a52e-24abb134e29b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="engine\effect">
-      <UniqueIdentifier>{2e0986fc-f196-4cbe-823c-60d20cac6185}</UniqueIdentifier>
-    </Filter>
     <Filter Include="engine\framework">
       <UniqueIdentifier>{ded04d30-5444-4ad2-9e3c-44a2d2673277}</UniqueIdentifier>
     </Filter>
@@ -1245,24 +1242,6 @@
     </Filter>
     <Filter Include="engine\graphics\2d">
       <UniqueIdentifier>{f54a5899-19a1-407d-9dad-83d138def2e4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\effect\particle">
-      <UniqueIdentifier>{8c30a15d-4cdc-4c8a-a2d7-833d33864eec}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\effect\particle\component">
-      <UniqueIdentifier>{c40d48e8-9f4a-4ddc-89dc-bdfe1a00278e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\effect\particle\component\group">
-      <UniqueIdentifier>{a45c5600-c53c-4dca-96be-f221d48e7724}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\effect\particle\component\interface">
-      <UniqueIdentifier>{f7552a14-861d-4cf9-b87b-f33ba2afdd73}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\effect\particle\component\single">
-      <UniqueIdentifier>{82406438-6f67-4977-a773-bec16979ceb3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\effect\postprocess">
-      <UniqueIdentifier>{867e1395-7316-4d3d-ad1f-9ecdef20a841}</UniqueIdentifier>
     </Filter>
     <Filter Include="application\stage">
       <UniqueIdentifier>{204ade66-d5d8-468f-b428-5c047a17e63b}</UniqueIdentifier>
