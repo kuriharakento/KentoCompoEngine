@@ -87,10 +87,8 @@ void EnemyUIComponent::UpdateHealthBar(GameObject* owner)
     healthBarBg_->SetVisible(true);
     healthBarFill_->SetVisible(true);
 
-    // 敵のワールド座標を取得
+    // 敵のワールド座標を取得（ワールドオフセットを加算）
     Vector3 enemyPos = owner->GetPosition();
-
-    // ワールド座標にオフセットを加える（敵の高さ分）
     Vector3 worldPos = enemyPos + healthBarOffset_;
 
     // アクティブカメラを取得
@@ -100,7 +98,7 @@ void EnemyUIComponent::UpdateHealthBar(GameObject* owner)
     // ワールド座標をスクリーン座標に変換
     Vector2 screenPos = WorldToScreen(worldPos, camera);
 
-    // スクリーン座標でオフセットを加える（カメラの傾きに関係なく画面上で調整）
+    // スクリーン座標でオフセットを加える（画面上で上方向に表示するため）
     screenPos.x += screenOffset_.x;
     screenPos.y += screenOffset_.y;
 
@@ -152,18 +150,18 @@ Vector2 EnemyUIComponent::WorldToScreen(const Vector3& worldPosition, Camera* ca
         1.0f
     );
 
-    // ワールド座標をクリップ座標に変換
-    Vector3 clipPos = MathUtils::Transform(worldPosition, viewProjectionMatrix);
+    // ワールド座標を同次座標に変換
+    Vector3 screenPos = MathUtils::Transform(worldPosition, viewProjectionMatrix);
 
     // 透視除算
-    if (clipPos.z != 0.0f)
+    if (screenPos.z != 0.0f)
     {
-        clipPos.x /= clipPos.z;
-        clipPos.y /= clipPos.z;
+        screenPos.x /= screenPos.z;
+        screenPos.y /= screenPos.z;
     }
 
     // ビューポート変換
-    Vector3 screenPos = MathUtils::Transform(clipPos, viewportMatrix);
+    screenPos = MathUtils::Transform(screenPos, viewportMatrix);
 
     return Vector2(screenPos.x, screenPos.y);
 }

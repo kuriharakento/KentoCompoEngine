@@ -114,8 +114,8 @@ public:
 private:
     // 定数
     // 体力バーのデフォルトサイズ
-    static constexpr float kDefaultHealthBarWidth = 80.0f;
-    static constexpr float kDefaultHealthBarHeight = 8.0f;
+    static constexpr float kDefaultHealthBarWidth = 120.0f;
+    static constexpr float kDefaultHealthBarHeight = 12.0f;
 
     // デフォルトのワールドオフセット（敵の高さ分）
     static constexpr float kDefaultWorldOffsetY = 2.0f;

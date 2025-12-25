@@ -28,7 +28,6 @@ void EnemyBase::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteC
 
 	// UIコンポーネント
 	auto uiComp = std::make_unique<EnemyUIComponent>(spriteCommon, camera);
-	uiComp->SetScreenOffset({ -50.0f, 0.0f }); // スクリーンオフセットを設定
 	AddComponent("EnemyUIComponent", std::move(uiComp));
 
 	target_ = target; // ターゲットを設定
