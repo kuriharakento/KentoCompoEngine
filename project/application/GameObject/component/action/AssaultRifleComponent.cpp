@@ -72,7 +72,7 @@ void AssaultRifleComponent::Update(GameObject* owner)
 			}
 
 			// Rキーで手動リロード
-			if (Input::GetInstance()->TriggerKey(DIK_R) && currentAmmo_ < maxAmmo_)
+			if (Input::GetInstance()->TriggerKey(DIK_R) && currentAmmo_ < maxAmmo_ && !isReloading_)
 			{
 				StartReload();
 			}
@@ -110,8 +110,6 @@ void AssaultRifleComponent::Update(GameObject* owner)
 void AssaultRifleComponent::Draw3D(CameraManager* camera)
 {
 	// 弾のモデル描画は行わない（トレイルエフェクトで表現）
-	// トレイルはBulletTrailManagerで一括描画される
-	(void)camera;  // 未使用警告回避
 }
 
 // 敵クラスから呼び出す発射メソッド

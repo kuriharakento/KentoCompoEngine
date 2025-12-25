@@ -1,8 +1,9 @@
 #include "PlayerUIComponent.h"
 
 #include "application/GameObject/base/GameObject.h"
-#include "application/GameObject/component/action/AssaultRifleComponent.h"
+#include "application/GameObject/Combatable/character/player/Player.h"
 #include "application/GameObject/component/action/StatusComponent.h"
+#include "application/GameObject/component/action/IWeaponComponent.h"
 
 // HP残量の閾値
 constexpr float kHpThresholdHigh = 0.5f;
@@ -79,7 +80,6 @@ void PlayerUIComponent::CacheComponents(GameObject* owner)
 {
     if (isInitialized_) return;
 
-    rifleComp_ = owner->GetComponent<AssaultRifleComponent>();
     statusComp_ = owner->GetComponent<StatusComponent>();
     isInitialized_ = true;
 }
@@ -88,9 +88,16 @@ void PlayerUIComponent::Update(GameObject* owner)
 {
     CacheComponents(owner);
 
+    // Playerから現在の武器を取得
+    IWeaponComponent* currentWeapon = nullptr;
+    if (auto* player = dynamic_cast<Player*>(owner))
+    {
+        currentWeapon = player->GetCurrentWeapon();
+    }
+
     UpdateHealthBar();
-    UpdateAmmoDisplay();
-    UpdateReloadIndicator();
+    UpdateAmmoDisplay(currentWeapon);
+    UpdateReloadIndicator(currentWeapon);
 
     // 各UI要素の更新
     if (isHealthBarVisible_)
@@ -168,21 +175,24 @@ void PlayerUIComponent::UpdateHealthBar()
     }
 }
 
-void PlayerUIComponent::UpdateAmmoDisplay()
+void PlayerUIComponent::UpdateAmmoDisplay(IWeaponComponent* weapon)
 {
-    auto rifle = rifleComp_.lock();
-    if (!rifle) return;
+    if (!weapon) return;
 
     // 弾数を更新
-    ammoNumber_->SetNumber(rifle->GetCurrentAmmo());
+    ammoNumber_->SetNumber(weapon->GetCurrentAmmo());
 }
 
-void PlayerUIComponent::UpdateReloadIndicator()
+void PlayerUIComponent::UpdateReloadIndicator(IWeaponComponent* weapon)
 {
-    auto rifle = rifleComp_.lock();
-    if (!rifle) return;
+    if (!weapon)
+    {
+        reloadBarBg_->SetVisible(false);
+        reloadBarFill_->SetVisible(false);
+        return;
+    }
 
-    bool isReloading = rifle->IsReloading();
+    bool isReloading = weapon->IsReloading();
 
     // リロード中のみ表示
     reloadBarBg_->SetVisible(isReloading);
@@ -191,7 +201,7 @@ void PlayerUIComponent::UpdateReloadIndicator()
     if (isReloading)
     {
         // リロード進行度を計算
-        float progress = rifle->GetReloadProgress();
+        float progress = weapon->GetReloadProgress();
         reloadBarFill_->SetSize({ kReloadBarWidth * progress, kReloadBarHeight });
     }
 }

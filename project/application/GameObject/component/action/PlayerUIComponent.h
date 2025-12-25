@@ -5,8 +5,9 @@
 #include <memory>
 
 class SpriteCommon;
-class AssaultRifleComponent;
+class IWeaponComponent;
 class StatusComponent;
+class Player;
 
 /**
  * @brief プレイヤーのUI表示を担当するコンポーネント
@@ -132,13 +133,15 @@ private:
 
     /**
      * @brief 弾薬表示の更新
+     * @param weapon 現在の武器
      */
-    void UpdateAmmoDisplay();
+    void UpdateAmmoDisplay(IWeaponComponent* weapon);
 
     /**
      * @brief リロードインジケーターの更新
+     * @param weapon 現在の武器
      */
-    void UpdateReloadIndicator();
+    void UpdateReloadIndicator(IWeaponComponent* weapon);
 
 private:
     // スプライト共通設定
@@ -153,7 +156,6 @@ private:
     std::unique_ptr<GameUI> reloadBarFill_;      // リロードバー（可変）
 
     // キャッシュしたコンポーネント参照
-    std::weak_ptr<AssaultRifleComponent> rifleComp_;
     std::weak_ptr<StatusComponent> statusComp_;
 
     // 初期化フラグ
