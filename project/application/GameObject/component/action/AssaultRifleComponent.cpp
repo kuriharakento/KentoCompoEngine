@@ -49,25 +49,28 @@ void AssaultRifleComponent::Update(GameObject* owner)
 		Reload(deltaTime);
 	}
 
-	// プレイヤーの場合の入力処理
+	// プレイヤーの場合の入力処理（選択中の武器のみ）
 	if (auto player = dynamic_cast<Player*>(owner))
 	{
-		// マウス左クリックで発射（クールダウン終了かつ弾がある場合）
-		if (Input::GetInstance()->IsMouseButtonPressed(0) && fireCooldownTimer_ <= 0.0f && currentAmmo_ > 0)
+		// 選択中の武器でなければ入力処理をスキップ（弾の更新は行う）
+		if (IsActive())
 		{
-			FireBullet(owner);
-			fireCooldownTimer_ = fireCooldown_;
-			currentAmmo_--;
-			// 弾がなくなったらリロード開始
-			if (currentAmmo_ <= 0) StartReload();
-		}
+			// マウス左クリックで発射（クールダウン終了かつ弾がある場合）
+			if (Input::GetInstance()->IsMouseButtonPressed(0) && fireCooldownTimer_ <= 0.0f && currentAmmo_ > 0)
+			{
+				FireBullet(owner);
+				fireCooldownTimer_ = fireCooldown_;
+				currentAmmo_--;
+				// 弾がなくなったらリロード開始
+				if (currentAmmo_ <= 0) StartReload();
+			}
 
-		// Rキーで手動リロード
-		if (Input::GetInstance()->TriggerKey(DIK_R) && currentAmmo_ < maxAmmo_)
-		{
-			StartReload();
+			// Rキーで手動リロード
+			if (Input::GetInstance()->TriggerKey(DIK_R) && currentAmmo_ < maxAmmo_)
+			{
+				StartReload();
+			}
 		}
-
 	}
 	// 敵の場合の処理
 	else if (auto enemy = dynamic_cast<EnemyBase*>(owner))

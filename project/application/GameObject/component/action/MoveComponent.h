@@ -130,6 +130,8 @@ private:
     void UpdateRotation(GameObject* owner, const Vector3& direction);
     // バレットタイム処理
     void ProcessBulletTime(GameObject* owner);
+    // バレットタイム発動
+    void ActivateBulletTime();
 
 private:
     // 敵マネージャー

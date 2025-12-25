@@ -266,6 +266,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\effect\TitleFireEffect.cpp" />
     <ClCompile Include="application\effect\SceneTransitionEffect.cpp" />
     <ClCompile Include="application\GameObject\component\action\PlayerUIComponent.cpp" />
+    <ClCompile Include="application\weapon\WeaponManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObjectTag.h" />
@@ -475,6 +476,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\UI\GameUI.h" />
     <ClInclude Include="application\GameObject\component\action\PlayerUIComponent.h" />
     <ClInclude Include="engine\graphics\2d\FontSprite.h" />
+    <ClInclude Include="application\GameObject\component\action\IWeaponComponent.h" />
+    <ClInclude Include="application\weapon\WeaponManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />

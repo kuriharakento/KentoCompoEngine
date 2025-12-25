@@ -49,6 +49,12 @@ public:
      */
     void SetAttackRange(float range) { attackRange_ = range; }
 
+    /**
+     * @brief 攻撃中かどうかを取得する
+     * @return 攻撃中ならtrue
+     */
+    bool IsAttacking() const { return isAttacking_; }
+
 private:
     // 定数
     // デフォルト移動速度

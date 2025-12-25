@@ -1,7 +1,7 @@
 #pragma once
 #include "application/effect/AssaultRifleHitEffect.h"
 #include "application/GameObject/Combatable/weapon/Bullet.h"
-#include "application/GameObject/component/base/IActionComponent.h"
+#include "application/GameObject/component/action/IWeaponComponent.h"
 
 class EnemyBase;
 
@@ -10,7 +10,7 @@ class EnemyBase;
  *
  * プレイヤーおよび敵が使用するアサルトライフルの射撃、リロード機能を提供する
  */
-class AssaultRifleComponent : public IActionComponent
+class AssaultRifleComponent : public IWeaponComponent
 {
 public:
     /**
@@ -81,6 +81,17 @@ public:
      */
     float GetReloadTime() const { return reloadTime_; }
 
+    /**
+     * @brief 武器名を取得
+     * @return 武器の表示名
+     */
+    const char* GetWeaponName() const override { return "Assault Rifle"; }
+
+    /**
+     * @brief リロード開始
+     */
+    void StartReload() override;
+
 private:
     // 定数
     // 発射クールダウン時間
@@ -102,8 +113,6 @@ private:
     void FireBullet(GameObject* owner);
     // 敵用の弾発射処理（ターゲット指定）
     void FireBullet(GameObject* owner, const Vector3& targetPosition);
-    // リロード開始
-    void StartReload();
     // リロード処理
     void Reload(float deltaTime);
 
