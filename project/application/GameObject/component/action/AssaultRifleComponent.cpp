@@ -31,7 +31,10 @@ AssaultRifleComponent::AssaultRifleComponent(Object3dCommon* object3dCommon, Lig
 AssaultRifleComponent::~AssaultRifleComponent()
 {
 	// 発射された弾をすべて削除
-	for (auto& bullet : bullets_) bullet.reset();
+	for (auto& bullet : bullets_)
+	{
+		bullet.reset();
+	}
 	bullets_.clear();
 }
 
@@ -49,10 +52,10 @@ void AssaultRifleComponent::Update(GameObject* owner)
 		Reload(deltaTime);
 	}
 
-	// プレイヤーの場合の入力処理（選択中の武器のみ）
+	// プレイヤーの場合の入力処理
 	if (auto player = dynamic_cast<Player*>(owner))
 	{
-		// 選択中の武器でなければ入力処理をスキップ（弾の更新は行う）
+		// 選択中の武器のみ入力処理を行う
 		if (IsActive())
 		{
 			// マウス左クリックで発射（クールダウン終了かつ弾がある場合）
@@ -62,7 +65,10 @@ void AssaultRifleComponent::Update(GameObject* owner)
 				fireCooldownTimer_ = fireCooldown_;
 				currentAmmo_--;
 				// 弾がなくなったらリロード開始
-				if (currentAmmo_ <= 0) StartReload();
+				if (currentAmmo_ <= 0)
+				{
+					StartReload();
+				}
 			}
 
 			// Rキーで手動リロード

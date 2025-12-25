@@ -5,10 +5,10 @@
 #include "application/GameObject/component/action/PistolComponent.h"
 #include "application/GameObject/component/action/MoveComponent.h"
 #include "application/GameObject/component/action/ShotgunComponent.h"
+#include "application/GameObject/component/action/WeaponManagerComponent.h"
 #include "application/GameObject/component/base/ICollisionComponent.h"
 #include "application/GameObject/component/collision/CollisionUtils.h"
 #include "application/GameObject/component/collision/OBBColliderComponent.h"
-#include "application/weapon/WeaponManager.h"
 #include "math/VectorColorCodes.h"
 #include "application/GameObject/component/action/PlayerUIComponent.h"
 #include "time/TimerManager.h"
@@ -80,23 +80,18 @@ void Player::TakeDamage(float damage)
 	}
 }
 
-void Player::Update()
+WeaponManagerComponent* Player::GetWeaponManager() const
 {
-	// 親クラスの更新処理
-	Character::Update();
-
-	// 武器マネージャーの更新（武器切り替え入力を処理）
-	if (weaponManager_)
-	{
-		weaponManager_->Update();
-	}
+	auto component = GetComponent<WeaponManagerComponent>();
+	return component.get();
 }
 
 IWeaponComponent* Player::GetCurrentWeapon() const
 {
-	if (weaponManager_)
+	auto* weaponManager = GetWeaponManager();
+	if (weaponManager)
 	{
-		return weaponManager_->GetCurrentWeapon();
+		return weaponManager->GetCurrentWeapon();
 	}
 	return nullptr;
 }
@@ -129,18 +124,12 @@ void Player::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteComm
 	// 重力演算コンポーネントを追加
 	AddComponent("GravityPhysicsComponent", std::make_unique<GravityPhysicsComponent>());
 
-	// 武器コンポーネントを追加
-	auto assaultRifle = std::make_unique<AssaultRifleComponent>(object3dCommon, lightManager);
-	auto shotgun = std::make_unique<ShotgunComponent>(object3dCommon, lightManager);
-
-	// 武器マネージャーを作成して武器を登録
-	weaponManager_ = std::make_unique<WeaponManager>(this);
-	weaponManager_->AddWeapon(assaultRifle.get());
-	weaponManager_->AddWeapon(shotgun.get());
-
-	// 武器コンポーネントをゲームオブジェクトに追加（所有権移譲）
-	AddComponent("AssaultRifle", std::move(assaultRifle));
-	AddComponent("Shotgun", std::move(shotgun));
+	// 武器管理コンポーネントを作成
+	auto weaponManager = std::make_unique<WeaponManagerComponent>(object3dCommon, lightManager);
+	// 武器を追加（WeaponManagerComponentが所有）
+	weaponManager->AddWeapon(std::make_unique<AssaultRifleComponent>(object3dCommon, lightManager));
+	weaponManager->AddWeapon(std::make_unique<ShotgunComponent>(object3dCommon, lightManager));
+	AddComponent("WeaponManager", std::move(weaponManager));
 
 	// 衝突判定コンポーネント
 	AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(this));

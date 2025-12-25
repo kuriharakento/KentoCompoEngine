@@ -47,10 +47,10 @@ void ShotgunComponent::Update(GameObject* owner)
 
     if (!isReloading_)
     {
-        // プレイヤーの場合の入力処理（選択中の武器のみ）
+        // プレイヤーの場合の入力処理
         if (auto player = dynamic_cast<Player*>(owner))
         {
-            // 選択中の武器でなければ入力処理をスキップ（弾の更新は行う）
+            // 選択中の武器のみ入力処理を行う
             if (IsActive())
             {
                 // マウス左クリックで発射
