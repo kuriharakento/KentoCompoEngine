@@ -50,19 +50,23 @@ void ShotgunComponent::Update(GameObject* owner)
         // プレイヤーの場合の入力処理
         if (auto player = dynamic_cast<Player*>(owner))
         {
-            // マウス左クリックで発射
-            if (Input::GetInstance()->IsMouseButtonTriggered(0) && fireCooldownTimer_ <= 0.0f && currentAmmo_ > 0)
+            // 選択中の武器のみ入力処理を行う
+            if (IsActive())
             {
-                FireBullets(owner);
-                fireCooldownTimer_ = fireCooldown_;
-                currentAmmo_--;
-                // 弾がなくなったらリロード開始
-                if (currentAmmo_ <= 0) StartReload();
-            }
-            // Rキーで手動リロード
-            if (Input::GetInstance()->TriggerKey(DIK_R) && currentAmmo_ < maxAmmo_)
-            {
-                StartReload();
+                // マウス左クリックで発射
+                if (Input::GetInstance()->IsMouseButtonTriggered(0) && fireCooldownTimer_ <= 0.0f && currentAmmo_ > 0)
+                {
+                    FireBullets(owner);
+                    fireCooldownTimer_ = fireCooldown_;
+                    currentAmmo_--;
+                    // 弾がなくなったらリロード開始
+                    if (currentAmmo_ <= 0) StartReload();
+                }
+                // Rキーで手動リロード
+                if (Input::GetInstance()->TriggerKey(DIK_R) && currentAmmo_ < maxAmmo_)
+                {
+                    StartReload();
+                }
             }
         }
         // 敵の場合の処理
@@ -105,6 +109,13 @@ void ShotgunComponent::Draw3D(CameraManager* camera)
     // 生存している弾のみ描画
     for (const auto& bullet : bullets_)
         if (bullet->IsAlive()) bullet->Draw3D(camera);
+}
+
+// WeaponManagerから呼ばれる発射処理（現在は空実装、Update内で入力処理しているため）
+void ShotgunComponent::Fire()
+{
+    // 現在はUpdate()内で入力処理しているため、この関数は敵用にのみ使用
+    // プレイヤー用はWeaponManager統合後に移行予定
 }
 
 // プレイヤー用の弾発射処理

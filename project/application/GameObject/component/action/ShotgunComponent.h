@@ -2,7 +2,7 @@
 
 #include <numbers>
 #include "application/GameObject/Combatable/weapon/Bullet.h"
-#include "application/GameObject/component/base/IActionComponent.h"
+#include "application/GameObject/component/action/IWeaponComponent.h"
 
 /**
  * @brief ショットガン武器コンポーネント
@@ -10,7 +10,7 @@
  * プレイヤーおよび敵が使用するショットガンの射撃、リロード機能を提供する
  * 1発で複数の弾を扇状に発射する
  */
-class ShotgunComponent : public IActionComponent
+class ShotgunComponent : public IWeaponComponent
 {
 public:
     /**
@@ -36,6 +36,51 @@ public:
      * @param camera カメラマネージャー
      */
     void Draw3D(CameraManager* camera) override;
+
+    // --- IWeaponComponent インターフェース実装 ---
+
+    /**
+     * @brief 武器の発射処理
+     */
+    void Fire() override;
+
+    /**
+     * @brief リロード開始
+     */
+    void StartReload() override;
+
+    /**
+     * @brief 現在の弾数を取得
+     * @return 現在の弾数
+     */
+    int GetCurrentAmmo() const override { return currentAmmo_; }
+
+    /**
+     * @brief 最大弾数を取得
+     * @return 最大弾数
+     */
+    int GetMaxAmmo() const override { return maxAmmo_; }
+
+    /**
+     * @brief リロード中かどうか
+     * @return リロード中ならtrue
+     */
+    bool IsReloading() const override { return isReloading_; }
+
+    /**
+     * @brief リロードの進行度を取得（0.0〜1.0）
+     * @return リロード進行度
+     */
+    float GetReloadProgress() const override
+    {
+        return isReloading_ ? (reloadTimer_ / reloadTime_) : 0.0f;
+    }
+
+    /**
+     * @brief 武器名を取得
+     * @return 武器の表示名
+     */
+    const char* GetWeaponName() const override { return "Shotgun"; }
 
 private:
     // 定数
@@ -66,8 +111,6 @@ private:
     void FireBullets(GameObject* owner);
     // 敵用の弾発射処理（ターゲット指定）
     void FireBullets(GameObject* owner, const Vector3& targetPosition);
-    // リロード開始
-	void StartReload();
     // リロード処理
 	void Reload(float deltaTime);
 

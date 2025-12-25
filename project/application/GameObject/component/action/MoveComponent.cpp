@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "AssaultRifleComponent.h"
+#include "KnifeEnemyBehavior.h"
 #include "base/Logger.h"
 #include "math/Easing.h"
 #include "time/TimeManager.h"
@@ -166,48 +167,70 @@ void MoveComponent::ProcessBulletTime(GameObject* owner)
     // バレットタイム中または回避中でない場合はスキップ
     if (isInBulletTime_ || !isDodging_) { return; }
 
-    // 敵の弾との距離をチェック
+    // 敵の攻撃をチェック
     const auto& enemies = enemyManager_->GetEnemies();
     for (const auto& enemy : enemies)
     {
+        // 敵の弾との距離をチェック
         auto assaultRifle = enemy->GetComponent<AssaultRifleComponent>();
-        if (!assaultRifle) continue;
-
-        const auto& bullets = assaultRifle->GetBullets();
-        for (auto& bullet : bullets)
+        if (assaultRifle)
         {
-            Vector3 toBullet = bullet->GetPosition() - owner->GetPosition();
-            float distance = toBullet.Length();
-
-            // バレットタイム範囲内に弾が接近した場合
-            if (distance < bulletTimeRadius_)
+            const auto& bullets = assaultRifle->GetBullets();
+            for (auto& bullet : bullets)
             {
-                isInBulletTime_ = true;
+                Vector3 toBullet = bullet->GetPosition() - owner->GetPosition();
+                float distance = toBullet.Length();
 
-                // バレットタイムタイマーを作成
-                auto bulletTime = std::make_unique<Timer>("bulletTime", bulletTimeDuration_, DeltaTimeType::RealDeltaTime);
-                bulletTime->SetOnStart([this]() {
-                    // ゲーム時間をスローモーションに
-                    TimeManager::GetInstance().SetGameTimeScale(bulletTimeScale_);
-                                       });
-                bulletTime->SetOnFinish([this]() {
-                    // ゲーム時間を通常に戻す
-                    TimeManager::GetInstance().SetGameTimeScale(kNormalTimeScale);
-
-                    // クールダウンタイマーを作成
-                    auto timer = std::make_unique<Timer>("bulletTimeCooldown", bulletTimeCooldown_, DeltaTimeType::RealDeltaTime);
-                    timer->SetOnFinish([this]() {
-                        isInBulletTime_ = false;
-                                       });
-                    TimerManager::GetInstance().AddTimer(std::move(timer));
-                                        });
-                TimerManager::GetInstance().AddTimer(std::move(bulletTime));
-                return;
+                // バレットタイム範囲内に弾が接近した場合
+                if (distance < bulletTimeRadius_)
+                {
+                    ActivateBulletTime();
+                    return;
+                }
             }
         }
 
+        // ナイフ敵の近接攻撃をチェック
+        auto knifeBehavior = enemy->GetComponent<KnifeEnemyBehavior>();
+        if (knifeBehavior && knifeBehavior->IsAttacking())
+        {
+            Vector3 toEnemy = enemy->GetPosition() - owner->GetPosition();
+            float distance = toEnemy.Length();
+
+            // 攻撃範囲内でナイフ敵が攻撃中の場合
+            if (distance < bulletTimeRadius_)
+            {
+                ActivateBulletTime();
+                return;
+            }
+        }
     }
 
+}
+
+// バレットタイム発動
+void MoveComponent::ActivateBulletTime()
+{
+    isInBulletTime_ = true;
+
+    // バレットタイムタイマーを作成
+    auto bulletTime = std::make_unique<Timer>("bulletTime", bulletTimeDuration_, DeltaTimeType::RealDeltaTime);
+    bulletTime->SetOnStart([this]() {
+        // ゲーム時間をスローモーションに
+        TimeManager::GetInstance().SetGameTimeScale(bulletTimeScale_);
+    });
+    bulletTime->SetOnFinish([this]() {
+        // ゲーム時間を通常に戻す
+        TimeManager::GetInstance().SetGameTimeScale(kNormalTimeScale);
+
+        // クールダウンタイマーを作成
+        auto timer = std::make_unique<Timer>("bulletTimeCooldown", bulletTimeCooldown_, DeltaTimeType::RealDeltaTime);
+        timer->SetOnFinish([this]() {
+            isInBulletTime_ = false;
+        });
+        TimerManager::GetInstance().AddTimer(std::move(timer));
+    });
+    TimerManager::GetInstance().AddTimer(std::move(bulletTime));
 }
 
 // 回避動作の進行度を取得
