@@ -111,32 +111,34 @@ public:
 
 				case SpawnShapeType::Box:
 				{
-					// boxSize_は全体サイズ。ハーフサイズを計算
-					Vector3 half = { boxSize_.x * 0.5f, boxSize_.y * 0.5f, boxSize_.z * 0.5f };
+					// boxSize_はハーフサイズとして扱う
+					Vector3 half = boxSize_;
 					
 					if (spawnLocation_ == SpawnLocation::Edge)
 					{
 						// エッジ上のみ（12本のエッジからランダムに選択）
 						int edge = rand() % 12;
 						float t = MathUtils::RandomFloat(0.0f, 1.0f);
+						// エッジの長さはフルサイズ（half * 2）
+						Vector3 fullSize = { half.x * 2.0f, half.y * 2.0f, half.z * 2.0f };
 						
 						switch (edge)
 						{
 						// 底面の4エッジ
-						case 0: offset = { -half.x + t * boxSize_.x, -half.y, -half.z }; break;
-						case 1: offset = { half.x, -half.y, -half.z + t * boxSize_.z }; break;
-						case 2: offset = { half.x - t * boxSize_.x, -half.y, half.z }; break;
-						case 3: offset = { -half.x, -half.y, half.z - t * boxSize_.z }; break;
+						case 0: offset = { -half.x + t * fullSize.x, -half.y, -half.z }; break;
+						case 1: offset = { half.x, -half.y, -half.z + t * fullSize.z }; break;
+						case 2: offset = { half.x - t * fullSize.x, -half.y, half.z }; break;
+						case 3: offset = { -half.x, -half.y, half.z - t * fullSize.z }; break;
 						// 上面の4エッジ
-						case 4: offset = { -half.x + t * boxSize_.x, half.y, -half.z }; break;
-						case 5: offset = { half.x, half.y, -half.z + t * boxSize_.z }; break;
-						case 6: offset = { half.x - t * boxSize_.x, half.y, half.z }; break;
-						case 7: offset = { -half.x, half.y, half.z - t * boxSize_.z }; break;
+						case 4: offset = { -half.x + t * fullSize.x, half.y, -half.z }; break;
+						case 5: offset = { half.x, half.y, -half.z + t * fullSize.z }; break;
+						case 6: offset = { half.x - t * fullSize.x, half.y, half.z }; break;
+						case 7: offset = { -half.x, half.y, half.z - t * fullSize.z }; break;
 						// 垂直の4エッジ
-						case 8: offset = { -half.x, -half.y + t * boxSize_.y, -half.z }; break;
-						case 9: offset = { half.x, -half.y + t * boxSize_.y, -half.z }; break;
-						case 10: offset = { half.x, -half.y + t * boxSize_.y, half.z }; break;
-						case 11: offset = { -half.x, -half.y + t * boxSize_.y, half.z }; break;
+						case 8: offset = { -half.x, -half.y + t * fullSize.y, -half.z }; break;
+						case 9: offset = { half.x, -half.y + t * fullSize.y, -half.z }; break;
+						case 10: offset = { half.x, -half.y + t * fullSize.y, half.z }; break;
+						case 11: offset = { -half.x, -half.y + t * fullSize.y, half.z }; break;
 						}
 					}
 					else if (spawnLocation_ == SpawnLocation::Surface)

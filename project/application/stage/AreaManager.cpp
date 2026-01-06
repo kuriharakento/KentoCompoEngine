@@ -70,7 +70,7 @@ void AreaManager::StartCurrentArea()
 		if (auto* shape = emitter->GetModule<SpawnShapeModule>())
 		{
 			// エリアのスケールを反映
-			shape->SetBoxSize(areas_[currentAreaIndex_]->GetAreaObject()->GetScale());
+			shape->SetBoxSize({ areas_[currentAreaIndex_]->GetAreaObject()->GetScale().x, 0.5f, areas_[currentAreaIndex_]->GetAreaObject()->GetScale().z });
 		}
 	}
 
