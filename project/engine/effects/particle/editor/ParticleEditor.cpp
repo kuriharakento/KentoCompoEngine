@@ -1780,6 +1780,29 @@ void ParticleEditor::DrawRendererPanel()
 					}
 				}
 
+				// Cube Options
+				if (currentType == PrimitiveType::Cube)
+				{
+					if (ImGui::DragFloat3("Size (XYZ)", &options.cubeSize.x, 0.01f, 0.0f, 100.0f))
+					{
+						optionsChanged = true;
+					}
+
+					ImGui::Text("Visible Faces:");
+					// 2列で表示
+					if (ImGui::Checkbox("Front##Cube", &options.cubeFaceVisible[0])) optionsChanged = true;
+					ImGui::SameLine();
+					if (ImGui::Checkbox("Back##Cube", &options.cubeFaceVisible[1])) optionsChanged = true;
+
+					if (ImGui::Checkbox("Top##Cube", &options.cubeFaceVisible[2])) optionsChanged = true;
+					ImGui::SameLine();
+					if (ImGui::Checkbox("Bottom##Cube", &options.cubeFaceVisible[3])) optionsChanged = true;
+
+					if (ImGui::Checkbox("Right##Cube", &options.cubeFaceVisible[4])) optionsChanged = true;
+					ImGui::SameLine();
+					if (ImGui::Checkbox("Left##Cube", &options.cubeFaceVisible[5])) optionsChanged = true;
+				}
+
 				// オプション変更適用
 				if (optionsChanged)
 				{

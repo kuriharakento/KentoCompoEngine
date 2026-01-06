@@ -1,7 +1,15 @@
 #include "AreaManager.h"
+#include <effects/particle/ParticleEffect.h>
+#include <effects/particle/module/spawn/SpawnShapeModules.h>
 
 AreaManager::AreaManager(const std::vector<std::shared_ptr<Area>>& areas) : areas_(areas), currentAreaIndex_(0), isAllCleared_(false)
 {
+	// パーティクルをJsonから読み込み
+	areaEffect_ = ParticleManager::GetInstance()->Load("AreaEffect", "Resources/json/particle/zone.json");
+	if (areaEffect_)
+	{
+		areaEffect_->SetAutoRemove(false); // 自動削除を無効化
+	}
 }
 
 void AreaManager::Start()
@@ -34,7 +42,10 @@ void AreaManager::StartCurrentArea()
 		isAllCleared_ = true;
 
 		// エリアエフェクトを停止
-		areaEffect_.Stop();
+		if (areaEffect_)
+		{
+			areaEffect_->Stop();
+		}
 
 		// 全エリアクリアコールバックを実行
 		if (onAllAreasCleared_) onAllAreasCleared_();
@@ -46,23 +57,24 @@ void AreaManager::StartCurrentArea()
 	areas_[currentAreaIndex_]->SetOnClearCallback([this]() {
 		++currentAreaIndex_;
 		StartCurrentArea();
-												  });
+											  });
 
 	// エリアをアクティブ化（プレイヤー侵入検知を有効化）
 	areas_[currentAreaIndex_]->SetActive(true);
 
-	// エリアエフェクトの初期化と再生
-	Area* currentArea = GetCurrentArea();
-	if (currentArea)
+	// エリアエフェクトの位置設定と再生
+	areaEffect_->SetPosition(areas_[currentAreaIndex_]->GetAreaObject()->GetPosition());
+	// 形状モジュールを取得して、エリアに合わせて調整
+	if (auto* emitter = areaEffect_->GetEmitter(static_cast<size_t>(0)))
 	{
-		GameObject* areaObj = currentArea->GetAreaObject();
-		if (areaObj)
+		if (auto* shape = emitter->GetModule<SpawnShapeModule>())
 		{
-			// エリアオブジェクトのトランスフォームでエフェクトを初期化
-			areaEffect_.Initialize(areaObj->GetRotation(), areaObj->GetScale());
+			// エリアのスケールを反映
+			shape->SetBoxSize(areas_[currentAreaIndex_]->GetAreaObject()->GetScale());
 		}
 	}
-	areaEffect_.Play(areas_[currentAreaIndex_]->GetAreaObject()->GetPosition());
+
+	areaEffect_->Play();
 
 	// エリア開始コールバックを実行（演出制御用）
 	if (onAreaStarted_)

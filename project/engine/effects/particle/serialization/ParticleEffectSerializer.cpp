@@ -743,7 +743,24 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 				options.turns = opts.value("turns", 2.0f);
 				options.points = opts.value("points", 5u);
 				options.withCaps = opts.value("withCaps", true);
+				options.withCaps = opts.value("withCaps", true);
 				options.doubleSided = opts.value("doubleSided", false);
+
+				// Cube Options
+				if (opts.contains("cubeSize"))
+				{
+					options.cubeSize.x = opts["cubeSize"].value("x", 1.0f);
+					options.cubeSize.y = opts["cubeSize"].value("y", 1.0f);
+					options.cubeSize.z = opts["cubeSize"].value("z", 1.0f);
+				}
+				if (opts.contains("cubeFaceVisible") && opts["cubeFaceVisible"].is_array())
+				{
+					auto faces = opts["cubeFaceVisible"];
+					for (int i = 0; i < 6 && i < faces.size(); ++i)
+					{
+						options.cubeFaceVisible[i] = faces[i].get<bool>();
+					}
+				}
 			}
 			renderer->SetPrimitive(static_cast<PrimitiveType>(rendererData.value("primitiveType", 0)), options);
 			renderer->SetBillboard(rendererData.value("billboard", false));
@@ -1134,7 +1151,10 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 				{"turns", opts.turns},
 				{"points", opts.points},
 				{"withCaps", opts.withCaps},
-				{"doubleSided", opts.doubleSided}
+				{"doubleSided", opts.doubleSided},
+				{"cubeSize", {{"x", opts.cubeSize.x}, {"y", opts.cubeSize.y}, {"z", opts.cubeSize.z}}},
+				{"cubeFaceVisible", {opts.cubeFaceVisible[0], opts.cubeFaceVisible[1], opts.cubeFaceVisible[2],
+									 opts.cubeFaceVisible[3], opts.cubeFaceVisible[4], opts.cubeFaceVisible[5]}}
 			};
 			Vector4 tint = meshRenderer->GetTintColor();
 			data["renderer"]["tintColor"] = {{"r", tint.x}, {"g", tint.y}, {"b", tint.z}, {"a", tint.w}};

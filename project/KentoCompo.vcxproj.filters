@@ -488,6 +488,7 @@
       <Filter>application\effect</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\module\spawn\SubEmitterModule.cpp" />
+    <ClCompile Include="application\GameObject\component\action\WeaponManagerComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -1096,6 +1097,9 @@
     <ClInclude Include="engine\effects\particle\module\spawn\SubEmitterModule.h" />
     <ClInclude Include="engine\effects\particle\module\update\BehaviorModules.h" />
     <ClInclude Include="engine\effects\particle\module\update\MotionEffectModules.h" />
+    <ClInclude Include="application\GameObject\component\action\IWeaponComponent.h" />
+    <ClInclude Include="application\GameObject\component\action\WeaponManagerComponent.h" />
+    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\EnemyBase.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

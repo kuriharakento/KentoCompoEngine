@@ -38,10 +38,13 @@ void ParticleManager::Update(CameraManager* camera)
 {
 	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
 
-	// エフェクトの更新
+	// エフェクトの更新（アクティブなもののみ）
 	for (auto& effect : effects_)
 	{
-		effect->Update(deltaTime, camera);
+		if (effect->IsPlaying())
+		{
+			effect->Update(deltaTime, camera);
+		}
 	}
 
 	// 直接追加されたエミッターの更新（後方互換）
@@ -191,6 +194,62 @@ void ParticleManager::DrawImGui()
 #endif
 }
 
+//===== エフェクトのロード（推奨API）=====//
+
+ParticleEffect* ParticleManager::Load(const std::string& name, const std::string& jsonPath)
+{
+	// 既に同名のエフェクトがあれば返す
+	if (auto* existing = GetEffect(name))
+	{
+		return existing;
+	}
+
+	// JSONからロード
+	auto effect = ParticleEffect::LoadFromFile(jsonPath);
+	if (!effect)
+	{
+		return nullptr;
+	}
+
+	effect->Initialize(name);
+	// Play()は呼ばない（非アクティブ状態で保持）
+
+	ParticleEffect* ptr = effect.get();
+	effects_.push_back(std::move(effect));
+	return ptr;
+}
+
+ParticleEffect* ParticleManager::CreateEmpty(const std::string& name)
+{
+	// 既に同名のエフェクトがあれば返す
+	if (auto* existing = GetEffect(name))
+	{
+		return existing;
+	}
+
+	auto effect = std::make_unique<ParticleEffect>();
+	effect->Initialize(name);
+	// Play()は呼ばない（非アクティブ状態で保持）
+
+	ParticleEffect* ptr = effect.get();
+	effects_.push_back(std::move(effect));
+	return ptr;
+}
+
+bool ParticleManager::HasEffect(const std::string& name) const
+{
+	for (const auto& effect : effects_)
+	{
+		if (effect->GetName() == name)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+//===== エフェクト定義の管理（後方互換）=====//
+
 void ParticleManager::LoadEffectDefinition(const std::string& name, const std::string& jsonPath)
 {
 	effectDefinitions_[name] = jsonPath;
@@ -198,11 +257,22 @@ void ParticleManager::LoadEffectDefinition(const std::string& name, const std::s
 
 ParticleEffect* ParticleManager::Play(const std::string& effectName, const Vector3& position)
 {
-	// 定義があればJSONから読み込み
+	// 既に登録されているエフェクトがあればそれを使う
+	if (auto* existing = GetEffect(effectName))
+	{
+		existing->SetPosition(position);
+		existing->Reset();
+		existing->Play();
+		return existing;
+	}
+
+	// 定義があればJSONから読み込んで新規作成
 	auto it = effectDefinitions_.find(effectName);
 	if (it != effectDefinitions_.end())
 	{
 		auto effect = ParticleEffect::LoadFromFile(it->second);
+		if (!effect) return nullptr;
+
 		effect->Initialize(effectName);
 		effect->SetPosition(position);
 		effect->Play();
@@ -212,39 +282,39 @@ ParticleEffect* ParticleManager::Play(const std::string& effectName, const Vecto
 		return ptr;
 	}
 
-	// 定義がない場合は空のエフェクトを作成
-	auto effect = std::make_unique<ParticleEffect>();
-	effect->Initialize(effectName);
-	effect->SetPosition(position);
-	effect->Play();
-
-	ParticleEffect* ptr = effect.get();
-	effects_.push_back(std::move(effect));
-	return ptr;
+	// 登録も定義もない場合はnullptr
+	return nullptr;
 }
 
 ParticleEffect* ParticleManager::Play(const std::string& effectName, Transform* followTarget)
 {
-	// 定義があればJSONから読み込み
+	// 既に登録されているエフェクトがあればそれを使う
+	if (auto* existing = GetEffect(effectName))
+	{
+		existing->SetFollowTarget(followTarget);
+		existing->Reset();
+		existing->Play();
+		return existing;
+	}
+
+	// 定義があればJSONから読み込んで新規作成
 	auto it = effectDefinitions_.find(effectName);
-	std::unique_ptr<ParticleEffect> effect;
-	
 	if (it != effectDefinitions_.end())
 	{
-		effect = ParticleEffect::LoadFromFile(it->second);
-	}
-	else
-	{
-		effect = std::make_unique<ParticleEffect>();
-	}
-	
-	effect->Initialize(effectName);
-	effect->SetFollowTarget(followTarget);
-	effect->Play();
+		auto effect = ParticleEffect::LoadFromFile(it->second);
+		if (!effect) return nullptr;
 
-	ParticleEffect* ptr = effect.get();
-	effects_.push_back(std::move(effect));
-	return ptr;
+		effect->Initialize(effectName);
+		effect->SetFollowTarget(followTarget);
+		effect->Play();
+		
+		ParticleEffect* ptr = effect.get();
+		effects_.push_back(std::move(effect));
+		return ptr;
+	}
+
+	// 登録も定義もない場合はnullptr
+	return nullptr;
 }
 
 void ParticleManager::AddEffect(std::unique_ptr<ParticleEffect> effect)
@@ -315,4 +385,29 @@ void ParticleManager::RemoveFinishedEffects()
 			}),
 		effects_.end()
 	);
+}
+
+ParticleEffect* ParticleManager::GetEffect(size_t index)
+{
+	return index < effects_.size() ? effects_[index].get() : nullptr;
+}
+
+const ParticleEffect* ParticleManager::GetEffect(size_t index) const
+{
+	return index < effects_.size() ? effects_[index].get() : nullptr;
+}
+
+bool ParticleManager::RemoveEffect(const std::string& name)
+{
+	auto it = std::remove_if(effects_.begin(), effects_.end(),
+		[&name](const std::unique_ptr<ParticleEffect>& e) {
+			return e->GetName() == name;
+		});
+	
+	if (it != effects_.end())
+	{
+		effects_.erase(it, effects_.end());
+		return true;
+	}
+	return false;
 }

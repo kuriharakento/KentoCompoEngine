@@ -2,6 +2,7 @@
 #include <vector>
 #include <functional>
 #include "Area.h"
+#include <effects/particle/ParticleManager.h>
 
 /**
  * @brief 複数のエリアを順番に管理するエリア管理クラス
@@ -129,5 +130,5 @@ private:
 	bool isAllCleared_;                        ///< 全エリアがクリアされているか
 	std::function<void()> onAllAreasCleared_;  ///< 全エリアクリア時のコールバック
 	std::function<void(int, Area*)> onAreaStarted_; ///< エリア開始時のコールバック
-    AreaEffect areaEffect_;                    ///< エリア演出用のエフェクト
+	ParticleEffect* areaEffect_;                     ///< エリアエフェクト
 };

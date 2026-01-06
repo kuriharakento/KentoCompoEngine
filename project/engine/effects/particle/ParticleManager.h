@@ -38,22 +38,50 @@ public:
 	 */
 	void DrawImGui();
 
-	//===== エフェクト定義の管理 =====//
+	//===== エフェクトのロード（推奨API）=====//
 
 	/**
-	 * @brief エフェクト定義を事前読み込み
+	 * @brief エフェクトをJSONからロードして登録（非アクティブ状態）
+	 * 
+	 * ロード後にエフェクトを取得して設定変更し、Play()で再生できる。
+	 * @param name エフェクト名（GetEffectで取得に使用）
+	 * @param jsonPath JSONファイルパス
+	 * @return ロードしたエフェクト。失敗時nullptr
+	 */
+	ParticleEffect* Load(const std::string& name, const std::string& jsonPath);
+
+	/**
+	 * @brief 空のエフェクトを作成して登録（非アクティブ状態）
+	 * @param name エフェクト名
+	 * @return 作成したエフェクト
+	 */
+	ParticleEffect* CreateEmpty(const std::string& name);
+
+	/**
+	 * @brief エフェクトが登録済みかチェック
+	 * @param name エフェクト名
+	 * @return 登録済みならtrue
+	 */
+	bool HasEffect(const std::string& name) const;
+
+	//===== エフェクト定義の管理（後方互換）=====//
+
+	/**
+	 * @brief エフェクト定義を事前読み込み（非推奨：Load()を使用）
 	 * @param name エフェクト名（Play時に使用）
 	 * @param jsonPath JSONファイルパス
 	 */
 	void LoadEffectDefinition(const std::string& name, const std::string& jsonPath);
 
-	//===== シンプルAPI =====//
+	//===== 再生API =====//
 
 	/**
 	 * @brief エフェクトを再生（メインAPI）
+	 * 
+	 * 既存のエフェクトがあればそれを再生、なければ定義からロードして再生。
 	 * @param effectName 登録済みエフェクト名
 	 * @param position 再生位置
-	 * @return 再生中のエフェクト（制御用）
+	 * @return 再生中のエフェクト（制御用）。登録がなければnullptr
 	 */
 	ParticleEffect* Play(const std::string& effectName, const Vector3& position = {});
 
@@ -61,7 +89,7 @@ public:
 	 * @brief エフェクトを再生（追従ターゲット付き）
 	 * @param effectName 登録済みエフェクト名
 	 * @param followTarget 追従対象
-	 * @return 再生中のエフェクト
+	 * @return 再生中のエフェクト。登録がなければnullptr
 	 */
 	ParticleEffect* Play(const std::string& effectName, Transform* followTarget);
 
@@ -107,6 +135,26 @@ public:
 	DirectXCommon* GetDxCommon() const { return dxCommon_; }
 	SrvManager* GetSrvManager() const { return srvManager_; }
 	ParticlePipelineManager* GetPipelineManager() const { return pipelineManager_.get(); }
+
+	/**
+	 * @brief 登録エフェクト数を取得
+	 */
+	size_t GetEffectCount() const { return effects_.size(); }
+
+	/**
+	 * @brief インデックスでエフェクトを取得
+	 * @param index エフェクトインデックス
+	 * @return エフェクト。範囲外ならnullptr
+	 */
+	ParticleEffect* GetEffect(size_t index);
+	const ParticleEffect* GetEffect(size_t index) const;
+
+	/**
+	 * @brief 名前でエフェクトを削除
+	 * @param name エフェクト名
+	 * @return 削除したらtrue
+	 */
+	bool RemoveEffect(const std::string& name);
 
 private:
 	ParticleManager() = default;

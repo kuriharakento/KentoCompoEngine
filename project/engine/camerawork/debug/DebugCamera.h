@@ -36,10 +36,10 @@ public:
 
     /**
      * @brief デバッグカメラを開始
-     * @param initialPosition 初期位置（デフォルト: {0.0f, 50.0f, -10.0f}）
+     * @param initialPosition 初期位置（デフォルト: {0.0f, 20.0f, -10.0f}）
      * @param initialRotation 初期回転（ラジアン、デフォルト: {1.1f, 0.0f, 0.0f}）
      */
-    void Start(const Vector3& initialPosition = { 0.0f, 50.0f, -10.0f },
+    void Start(const Vector3& initialPosition = { 0.0f, 20.0f, -10.0f },
                const Vector3& initialRotation = { 1.1f, 0.0f, 0.0f });
 
     /**
@@ -106,11 +106,6 @@ private:
     void UpdateMouseLook();
 
     /**
-     * @brief 速度制御の更新
-     */
-    void UpdateSpeedControl();
-
-    /**
      * @brief ImGuiデバッグUIの描画
      */
     void DrawDebugUI();
@@ -144,7 +139,7 @@ private:
     float speedMultiplier_ = 3.0f;
 
     // マウス感度係数
-    float mouseSensitivity_ = 0.05f;
+    float mouseSensitivity_ = 0.001f;
 
     // 水平回転角度（度）
     float yaw_ = 0.0f;

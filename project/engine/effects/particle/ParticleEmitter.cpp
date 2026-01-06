@@ -274,3 +274,27 @@ void ParticleEmitter::ExecuteUpdateModules(ParticleContext& context)
 		}
 	}
 }
+
+IModule* ParticleEmitter::GetModuleByName(const std::string& name)
+{
+	for (auto& module : modules_)
+	{
+		if (module->GetName() == name)
+		{
+			return module.get();
+		}
+	}
+	return nullptr;
+}
+
+const IModule* ParticleEmitter::GetModuleByName(const std::string& name) const
+{
+	for (const auto& module : modules_)
+	{
+		if (module->GetName() == name)
+		{
+			return module.get();
+		}
+	}
+	return nullptr;
+}

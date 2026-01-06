@@ -41,9 +41,8 @@ void DebugCamera::Update()
     if (!isActive_ || !camera_) return;
 
     // 各種更新処理を実行
-    UpdateSpeedControl();
-    UpdateMovement();
     UpdateMouseLook();
+    UpdateMovement();
 
     // デバッグUI描画
     if (showDebugUI_)
@@ -124,18 +123,8 @@ void DebugCamera::UpdateMouseLook()
     // ピッチ角を制限（真上・真下を向かないように）
 	pitch_ = std::clamp(pitch_, kPitchLimitMin, kPitchLimitMax);
 
-    // 度からラジアンに変換
-	float radYaw = DirectX::XMConvertToRadians(yaw_);
-	float radPitch = DirectX::XMConvertToRadians(pitch_);
-
     // 回転を適用
-    Vector3 rotation = { radPitch, radYaw, 0.0f };
-    camera_->SetRotate(rotation);
-}
-
-void DebugCamera::UpdateSpeedControl()
-{
-    
+	camera_->SetRotate({ pitch_, yaw_, 0.0f });
 }
 
 void DebugCamera::Stop()
@@ -173,26 +162,20 @@ void DebugCamera::FocusOnTarget(const Vector3& target)
 
 Vector3 DebugCamera::GetForwardVector() const
 {
-    // ヨーとピッチから前方ベクトルを計算
-    float radYaw = DirectX::XMConvertToRadians(yaw_);
-    float radPitch = DirectX::XMConvertToRadians(pitch_);
-
     return {
-        sin(radYaw) * cos(radPitch),
-        -sin(radPitch),
-        cos(radYaw) * cos(radPitch)
+        sin(yaw_) * cos(pitch_),
+        -sin(pitch_),
+        cos(yaw_) * cos(pitch_)
     };
 }
 
 Vector3 DebugCamera::GetRightVector() const
 {
     // ヨーから右方ベクトルを計算（Y軸回転のみ考慮）
-    float radYaw = DirectX::XMConvertToRadians(yaw_);
-
     return {
-        cos(radYaw),
+        cos(yaw_),
         0.0f,
-        -sin(radYaw)
+        -sin(yaw_)
     };
 }
 

@@ -100,6 +100,46 @@ public:
 	size_t GetModuleCount() const { return modules_.size(); }
 	IModule* GetModule(size_t index) { return index < modules_.size() ? modules_[index].get() : nullptr; }
 	const IModule* GetModule(size_t index) const { return index < modules_.size() ? modules_[index].get() : nullptr; }
+
+	/**
+	 * @brief モジュールを型で取得
+	 * @tparam T 取得するモジュールの型（IModuleの派生クラス）
+	 * @return 見つかったモジュール。なければnullptr
+	 */
+	template<typename T>
+	T* GetModule()
+	{
+		for (auto& module : modules_)
+		{
+			if (auto* casted = dynamic_cast<T*>(module.get()))
+			{
+				return casted;
+			}
+		}
+		return nullptr;
+	}
+
+	template<typename T>
+	const T* GetModule() const
+	{
+		for (const auto& module : modules_)
+		{
+			if (auto* casted = dynamic_cast<const T*>(module.get()))
+			{
+				return casted;
+			}
+		}
+		return nullptr;
+	}
+
+	/**
+	 * @brief モジュールを名前で取得
+	 * @param name モジュール名（GetName()で返る名前）
+	 * @return 見つかったモジュール。なければnullptr
+	 */
+	IModule* GetModuleByName(const std::string& name);
+	const IModule* GetModuleByName(const std::string& name) const;
+
 	void RemoveModule(size_t index);
 	void MoveModuleUp(size_t index);
 	void MoveModuleDown(size_t index);

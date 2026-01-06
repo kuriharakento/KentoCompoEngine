@@ -16,12 +16,14 @@
 
 void ParticleTestScene::Initialize()
 {
+	// カメラの設定
+	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate({ 0.0f, 5.0f, 20.0f });
+	sceneManager_->GetCameraManager()->GetActiveCamera()->SetRotate({ 0.0f, -3.14f, 0.0f });
+	
+	// デバッグカメラの初期化
 	debugCamera_ = std::make_unique<DebugCamera>();
 	debugCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
-	debugCamera_->Start();
-
-	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate({ 0.0f, 5.0f, -20.0f });
-	sceneManager_->GetCameraManager()->GetActiveCamera()->SetRotate({ 0.0f, 0.0f, 0.0f });
+	debugCamera_->Start({ 0.0f, 5.0f, 20.0f }, { 0.0f, -3.14f, 0.0f });
 
 	// パーティクルエディタの初期化
 	particleEditor_ = std::make_unique<ParticleEditor>();
@@ -70,7 +72,10 @@ void ParticleTestScene::OnEnterPlaying()
 
 void ParticleTestScene::OnUpdatePlaying()
 {
-	if (debugCamera_) debugCamera_->Update();
+	if (debugCamera_)
+	{
+		debugCamera_->Update();
+	}
 
 	// エディタの更新（ImGui描画）
 	if (particleEditor_)
@@ -89,7 +94,7 @@ void ParticleTestScene::Draw2D()
 void ParticleTestScene::Draw3D()
 {
 	LineManager::GetInstance()->DrawGrid(
-		100.0f,
+		200.0f,
 		5.0f,
 		VectorColorCodes::White
 	);

@@ -1,4 +1,5 @@
 #include "PrimitiveGenerator.h"
+#include <numbers>
 #include <cmath>
 
 PrimitiveMesh PrimitiveGenerator::Generate(PrimitiveType type, const PrimitiveOptions& options)
@@ -18,7 +19,7 @@ PrimitiveMesh PrimitiveGenerator::Generate(PrimitiveType type, const PrimitiveOp
 	case PrimitiveType::Torus:
 		return GenerateTorus(options.segments, options.segments / 2, options.tubeRadius);
 	case PrimitiveType::Cube:
-		return GenerateCube();
+		return GenerateCube(options);
 	case PrimitiveType::Star:
 		return GenerateStar(options.points, options.innerRadius);
 	case PrimitiveType::Heart:
@@ -34,30 +35,38 @@ PrimitiveMesh PrimitiveGenerator::GeneratePlane(bool doubleSided)
 {
 	PrimitiveMesh mesh;
 
-	// X-Y平面（正面向き、Z+方向を向く）(順序: position, texcoord, normal)
-	mesh.vertices = {
-		{{ -0.5f, -0.5f, 0.0f, 1.0f }, { 0, 1 }, { 0, 0, 1 }},
-		{{  0.5f, -0.5f, 0.0f, 1.0f }, { 1, 1 }, { 0, 0, 1 }},
-		{{  0.5f,  0.5f, 0.0f, 1.0f }, { 1, 0 }, { 0, 0, 1 }},
-		{{ -0.5f,  0.5f, 0.0f, 1.0f }, { 0, 0 }, { 0, 0, 1 }},
+	// 平面生成 (Radius 1.0, Size 2.0)
+	std::vector<PrimitiveVertex> rectangleVertices = {
+		{ {  1.0f,  1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } }, // 右上
+		{ { -1.0f,  1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } }, // 左上
+		{ {  1.0f, -1.0f, 0.0f, 1.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f } }, // 右下
+		{ {  1.0f, -1.0f, 0.0f, 1.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f } }, // 右下
+		{ { -1.0f,  1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } }, // 左上
+		{ { -1.0f, -1.0f, 0.0f, 1.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f } }  // 左下
 	};
 
-	mesh.indices = { 0, 1, 2, 0, 2, 3 };
+	mesh.vertices = rectangleVertices;
+
+	// インデックス割り当て
+	for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+		mesh.indices.push_back(static_cast<uint32_t>(i));
+	}
 
 	if (doubleSided)
 	{
-		// 裏面（Z-方向を向く）
-		mesh.vertices.push_back({{ -0.5f, -0.5f, 0.0f, 1.0f }, { 0, 1 }, { 0, 0, -1 }});
-		mesh.vertices.push_back({{  0.5f,  0.5f, 0.0f, 1.0f }, { 1, 0 }, { 0, 0, -1 }});
-		mesh.vertices.push_back({{  0.5f, -0.5f, 0.0f, 1.0f }, { 1, 1 }, { 0, 0, -1 }});
-		mesh.vertices.push_back({{ -0.5f,  0.5f, 0.0f, 1.0f }, { 0, 0 }, { 0, 0, -1 }});
+		// 裏面生成（法線と巻き順を反転）
+		std::vector<PrimitiveVertex> backVertices = rectangleVertices;
+		
+		// 法線反転
+		for (auto& v : backVertices) {
+			v.normal.z = -1.0f;
+		}
 
-		mesh.indices.push_back(4);
-		mesh.indices.push_back(5);
-		mesh.indices.push_back(6);
-		mesh.indices.push_back(4);
-		mesh.indices.push_back(7);
-		mesh.indices.push_back(5);
+		// 逆順登録して巻き順を反転させる
+		for (auto it = backVertices.rbegin(); it != backVertices.rend(); ++it) {
+			mesh.vertices.push_back(*it);
+			mesh.indices.push_back(static_cast<uint32_t>(mesh.vertices.size() - 1));
+		}
 	}
 
 	return mesh;
@@ -65,55 +74,66 @@ PrimitiveMesh PrimitiveGenerator::GeneratePlane(bool doubleSided)
 
 PrimitiveMesh PrimitiveGenerator::GenerateSphere(uint32_t segments, uint32_t rings)
 {
+	// 分割数設定
+	const uint32_t kLatitudeDiv = rings;
+	const uint32_t kLongitudeDiv = segments;
+	const float kRadius = 1.0f;
+
 	PrimitiveMesh mesh;
 
-	// 頂点生成: 球面座標系で位置・法線・UVを計算
-	for (uint32_t y = 0; y <= rings; ++y)
+	// 三角形を直接構築
+	for (uint32_t lat = 0; lat < kLatitudeDiv; ++lat)
 	{
-		float v = static_cast<float>(y) / rings;
-		float phi = v * kPi;  // 垂直角（0～π）
+		float theta0 = float(lat) / float(kLatitudeDiv) * std::numbers::pi_v<float>;
+		float theta1 = float(lat + 1) / float(kLatitudeDiv) * std::numbers::pi_v<float>;
 
-		for (uint32_t x = 0; x <= segments; ++x)
+		for (uint32_t lon = 0; lon < kLongitudeDiv; ++lon)
 		{
-			float u = static_cast<float>(x) / segments;
-			float theta = u * kTwoPi;  // 水平角（0～2π）
+			float phi0 = float(lon) / float(kLongitudeDiv) * 2.0f * std::numbers::pi_v<float>;
+			float phi1 = float(lon + 1) / float(kLongitudeDiv) * 2.0f * std::numbers::pi_v<float>;
 
-		PrimitiveVertex vertex;
-			// 球面座標→直交座標変換（半径0.5）
-			vertex.position.x = std::sin(phi) * std::cos(theta) * 0.5f;
-			vertex.position.y = std::cos(phi) * 0.5f;
-			vertex.position.z = std::sin(phi) * std::sin(theta) * 0.5f;
-			vertex.position.w = 1.0f;
+			// パッチの4頂点計算
+			Vector3 p00 = {
+				std::cos(phi0) * std::sin(theta0),
+				std::cos(theta0),
+				std::sin(phi0) * std::sin(theta0)
+			};
+			Vector3 p01 = {
+				std::cos(phi1) * std::sin(theta0),
+				std::cos(theta0),
+				std::sin(phi1) * std::sin(theta0)
+			};
+			Vector3 p10 = {
+				std::cos(phi0) * std::sin(theta1),
+				std::cos(theta1),
+				std::sin(phi0) * std::sin(theta1)
+			};
+			Vector3 p11 = {
+				std::cos(phi1) * std::sin(theta1),
+				std::cos(theta1),
+				std::sin(phi1) * std::sin(theta1)
+			};
 
-			vertex.texcoord = { u, v };
+			Vector2 uv00 = { float(lon) / float(kLongitudeDiv), float(lat) / float(kLatitudeDiv) };
+			Vector2 uv01 = { float(lon + 1) / float(kLongitudeDiv), float(lat) / float(kLatitudeDiv) };
+			Vector2 uv10 = { float(lon) / float(kLongitudeDiv), float(lat + 1) / float(kLatitudeDiv) };
+			Vector2 uv11 = { float(lon + 1) / float(kLongitudeDiv), float(lat + 1) / float(kLatitudeDiv) };
 
-			// 法線は球の中心から外向き（正規化済み）
-			vertex.normal.x = std::sin(phi) * std::cos(theta);
-			vertex.normal.y = std::cos(phi);
-			vertex.normal.z = std::sin(phi) * std::sin(theta);
+			// 三角形1: p00 → p10 → p11
+			mesh.vertices.push_back({ { p00.x * kRadius, p00.y * kRadius, p00.z * kRadius, 1.0f }, uv00, p00 });
+			mesh.vertices.push_back({ { p10.x * kRadius, p10.y * kRadius, p10.z * kRadius, 1.0f }, uv10, p10 });
+			mesh.vertices.push_back({ { p11.x * kRadius, p11.y * kRadius, p11.z * kRadius, 1.0f }, uv11, p11 });
 
-			mesh.vertices.push_back(vertex);
+			// 三角形2: p00 → p11 → p01
+			mesh.vertices.push_back({ { p00.x * kRadius, p00.y * kRadius, p00.z * kRadius, 1.0f }, uv00, p00 });
+			mesh.vertices.push_back({ { p11.x * kRadius, p11.y * kRadius, p11.z * kRadius, 1.0f }, uv11, p11 });
+			mesh.vertices.push_back({ { p01.x * kRadius, p01.y * kRadius, p01.z * kRadius, 1.0f }, uv01, p01 });
 		}
 	}
 
-	// インデックス生成: 四角形を2つの三角形に分割
-	for (uint32_t y = 0; y < rings; ++y)
-	{
-		for (uint32_t x = 0; x < segments; ++x)
-		{
-			uint32_t current = y * (segments + 1) + x;
-			uint32_t next = current + segments + 1;
-
-			// 下三角形
-			mesh.indices.push_back(current);
-			mesh.indices.push_back(next);
-			mesh.indices.push_back(current + 1);
-
-			// 上三角形
-			mesh.indices.push_back(current + 1);
-			mesh.indices.push_back(next);
-			mesh.indices.push_back(next + 1);
-		}
+	// Index生成
+	for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+		mesh.indices.push_back(static_cast<uint32_t>(i));
 	}
 
 	return mesh;
@@ -121,76 +141,68 @@ PrimitiveMesh PrimitiveGenerator::GenerateSphere(uint32_t segments, uint32_t rin
 
 PrimitiveMesh PrimitiveGenerator::GenerateCylinder(uint32_t segments, bool withCaps)
 {
+	const uint32_t kCylinderDivide = segments;
+	const float kOuterRadius = 1.0f;
+	const float kHeight = 2.0f;
+	const float radianPerDiv = 2.0f * std::numbers::pi_v<float> / float(kCylinderDivide);
+
 	PrimitiveMesh mesh;
-	float halfHeight = 0.5f;
-	float radius = 0.5f;
 
-	// 側面の頂点生成: 各セグメントで上下2つの頂点を生成
-	for (uint32_t i = 0; i <= segments; ++i)
-	{
-		float u = static_cast<float>(i) / segments;
-		float theta = u * kTwoPi;
-		float x = std::cos(theta) * radius;
-		float z = std::sin(theta) * radius;
-
-		// 下端の頂点
-		mesh.vertices.push_back({{ x, -halfHeight, z, 1.0f }, { u, 1 }, { std::cos(theta), 0, std::sin(theta) }});
-		// 上端の頂点
-		mesh.vertices.push_back({{ x,  halfHeight, z, 1.0f }, { u, 0 }, { std::cos(theta), 0, std::sin(theta) }});
+	if (withCaps) {
+		// 上面キャップ
+		for (uint32_t index = 0; index < kCylinderDivide; ++index) {
+			float sin0 = std::sin(radianPerDiv * index);
+			float cos0 = std::cos(radianPerDiv * index);
+			float sin1 = std::sin(radianPerDiv * (index + 1));
+			float cos1 = std::cos(radianPerDiv * (index + 1));
+			float u0 = float(index) / float(kCylinderDivide);
+			float u1 = float(index + 1) / float(kCylinderDivide);
+	
+			// 三角形1: 中心 → 外側0 → 外側1
+			mesh.vertices.push_back({ { 0.0f, kHeight / 2.0f, 0.0f, 1.0f }, { 0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f } }); // 中心
+			mesh.vertices.push_back({ { cos0 * kOuterRadius, kHeight / 2.0f, sin0 * kOuterRadius, 1.0f }, { u0, 0.0f }, { 0.0f, 1.0f, 0.0f } }); // 外側0
+			mesh.vertices.push_back({ { cos1 * kOuterRadius, kHeight / 2.0f, sin1 * kOuterRadius, 1.0f }, { u1, 0.0f }, { 0.0f, 1.0f, 0.0f } }); // 外側1
+		}
+	
+		// 下面キャップ
+		for (uint32_t index = 0; index < kCylinderDivide; ++index) {
+			float sin0 = std::sin(radianPerDiv * index);
+			float cos0 = std::cos(radianPerDiv * index);
+			float sin1 = std::sin(radianPerDiv * (index + 1));
+			float cos1 = std::cos(radianPerDiv * (index + 1));
+			float u0 = float(index) / float(kCylinderDivide);
+			float u1 = float(index + 1) / float(kCylinderDivide);
+	
+			// 三角形1: 中心 → 外側1 → 外側0
+			mesh.vertices.push_back({ { 0.0f, -kHeight / 2.0f, 0.0f, 1.0f }, { 0.5f, 0.5f }, { 0.0f, -1.0f, 0.0f } }); // 中心
+			mesh.vertices.push_back({ { cos1 * kOuterRadius, -kHeight / 2.0f, sin1 * kOuterRadius, 1.0f }, { u1, 0.0f }, { 0.0f, -1.0f, 0.0f } }); // 外側1
+			mesh.vertices.push_back({ { cos0 * kOuterRadius, -kHeight / 2.0f, sin0 * kOuterRadius, 1.0f }, { u0, 0.0f }, { 0.0f, -1.0f, 0.0f } }); // 外側0
+		}
 	}
 
-	// 側面のインデックス生成: 四角形を2つの三角形に分割
-	for (uint32_t i = 0; i < segments; ++i)
+	// 側面頂点
+	for (uint32_t index = 0; index < kCylinderDivide; ++index)
 	{
-		uint32_t base = i * 2;
-		mesh.indices.push_back(base);
-		mesh.indices.push_back(base + 1);
-		mesh.indices.push_back(base + 2);
+		float sin0 = std::sin(radianPerDiv * index);
+		float cos0 = std::cos(radianPerDiv * index);
+		float sin1 = std::sin(radianPerDiv * (index + 1));
+		float cos1 = std::cos(radianPerDiv * (index + 1));
+		float u0 = float(index) / float(kCylinderDivide);
+		float u1 = float(index + 1) / float(kCylinderDivide);
 
-		mesh.indices.push_back(base + 1);
-		mesh.indices.push_back(base + 3);
-		mesh.indices.push_back(base + 2);
+		// 三角形1: 上外側0 → 上外側1 → 下外側0
+		mesh.vertices.push_back({ { cos0 * kOuterRadius, kHeight / 2.0f, sin0 * kOuterRadius, 1.0f }, { u0, 0.0f }, { cos0, 0.0f, sin0 } });
+		mesh.vertices.push_back({ { cos1 * kOuterRadius, kHeight / 2.0f, sin1 * kOuterRadius, 1.0f }, { u1, 0.0f }, { cos1, 0.0f, sin1 } });
+		mesh.vertices.push_back({ { cos0 * kOuterRadius, -kHeight / 2.0f, sin0 * kOuterRadius, 1.0f }, { u0, 1.0f }, { cos0, 0.0f, sin0 } });
+
+		// 三角形2: 上外側1 → 下外側1 → 下外側0
+		mesh.vertices.push_back({ { cos1 * kOuterRadius, kHeight / 2.0f, sin1 * kOuterRadius, 1.0f }, { u1, 0.0f }, { cos1, 0.0f, sin1 } });
+		mesh.vertices.push_back({ { cos1 * kOuterRadius, -kHeight / 2.0f, sin1 * kOuterRadius, 1.0f }, { u1, 1.0f }, { cos1, 0.0f, sin1 } });
+		mesh.vertices.push_back({ { cos0 * kOuterRadius, -kHeight / 2.0f, sin0 * kOuterRadius, 1.0f }, { u0, 1.0f }, { cos0, 0.0f, sin0 } });
 	}
 
-	// 上下の蓋を生成
-	if (withCaps)
-	{
-		// 上面の中心頂点
-		uint32_t topCenterIndex = static_cast<uint32_t>(mesh.vertices.size());
-		mesh.vertices.push_back({{ 0,  halfHeight, 0, 1.0f }, { 0.5f, 0.5f }, { 0, 1, 0 }});
-
-		// 下面の中心頂点
-		uint32_t bottomCenterIndex = static_cast<uint32_t>(mesh.vertices.size());
-		mesh.vertices.push_back({{ 0, -halfHeight, 0, 1.0f }, { 0.5f, 0.5f }, { 0, -1, 0 }});
-
-		// 蓋用の頂点（法線が上下を向く）
-		uint32_t capStartIndex = static_cast<uint32_t>(mesh.vertices.size());
-		for (uint32_t i = 0; i <= segments; ++i)
-		{
-			float u = static_cast<float>(i) / segments;
-			float theta = u * kTwoPi;
-			float x = std::cos(theta) * radius;
-			float z = std::sin(theta) * radius;
-
-			// 上蓋の頂点
-			mesh.vertices.push_back({{ x,  halfHeight, z, 1.0f }, { x + 0.5f, z + 0.5f }, { 0, 1, 0 }});
-			// 下蓋の頂点
-			mesh.vertices.push_back({{ x, -halfHeight, z, 1.0f }, { x + 0.5f, z + 0.5f }, { 0, -1, 0 }});
-		}
-
-		// 蓋のインデックス生成: 扇形に三角形を配置
-		for (uint32_t i = 0; i < segments; ++i)
-		{
-			// 上蓋の三角形
-			mesh.indices.push_back(topCenterIndex);
-			mesh.indices.push_back(capStartIndex + i * 2);
-			mesh.indices.push_back(capStartIndex + (i + 1) * 2);
-
-			// 下蓋の三角形（巻き順反転）
-			mesh.indices.push_back(bottomCenterIndex);
-			mesh.indices.push_back(capStartIndex + (i + 1) * 2 + 1);
-			mesh.indices.push_back(capStartIndex + i * 2 + 1);
-		}
+	for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+		mesh.indices.push_back(static_cast<uint32_t>(i));
 	}
 
 	return mesh;
@@ -199,51 +211,58 @@ PrimitiveMesh PrimitiveGenerator::GenerateCylinder(uint32_t segments, bool withC
 PrimitiveMesh PrimitiveGenerator::GenerateCone(uint32_t segments, bool withCap)
 {
 	PrimitiveMesh mesh;
-	float height = 1.0f;
-	float radius = 0.5f;
 
-	// 頂点（円錐の先端）
-	uint32_t tipIndex = 0;
-	mesh.vertices.push_back({{ 0, height * 0.5f, 0, 1.0f }, { 0.5f, 0 }, { 0, 1, 0 }});
+	// パラメータ (Radius 1.0, Height 2.0)
+	const uint32_t sliceCount = segments;
+	const float radius = 1.0f;
+	const float height = 2.0f;
+	const float angleStep = 2.0f * std::numbers::pi_v<float> / static_cast<float>(sliceCount);
 
-	// 底面の円周上の頂点を生成
-	for (uint32_t i = 0; i <= segments; ++i)
+	Vector4 tip = { 0.0f, height, 0.0f, 1.0f };
+	Vector4 center = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+	// 側面
+	for (uint32_t i = 0; i < sliceCount; ++i)
 	{
-		float u = static_cast<float>(i) / segments;
-		float theta = u * kTwoPi;
-		float x = std::cos(theta) * radius;
-		float z = std::sin(theta) * radius;
+		float theta0 = angleStep * i;
+		float theta1 = angleStep * (i + 1);
 
-		// 円錐の側面法線を計算（傾斜を考慮）
-		float ny = radius / height;
-		float nxz = 1.0f / std::sqrt(1 + ny * ny);
-		ny *= nxz;
+		Vector4 p0 = { radius * std::cos(theta0), 0.0f, radius * std::sin(theta0), 1.0f };
+		Vector4 p1 = { radius * std::cos(theta1), 0.0f, radius * std::sin(theta1), 1.0f };
 
-		mesh.vertices.push_back({{ x, -height * 0.5f, z, 1.0f }, { u, 1 }, { std::cos(theta) * nxz, ny, std::sin(theta) * nxz }});
+		// 法線（外積から計算）
+		Vector3 a = { p0.x - tip.x, p0.y - tip.y, p0.z - tip.z };
+		Vector3 b = { p1.x - tip.x, p1.y - tip.y, p1.z - tip.z };
+		Vector3 normal = Vector3::Normalize(Vector3::Cross(b, a));
+
+		mesh.vertices.push_back({ tip, {0.5f, 0.0f}, normal });
+		mesh.vertices.push_back({ p1,  {1.0f, 1.0f}, normal });
+		mesh.vertices.push_back({ p0,  {0.0f, 1.0f}, normal });
 	}
 
-	// 側面のインデックス生成: 頂点から各底面頂点へ三角形を生成
-	for (uint32_t i = 0; i < segments; ++i)
-	{
-		mesh.indices.push_back(tipIndex);
-		mesh.indices.push_back(1 + i + 1);
-		mesh.indices.push_back(1 + i);
-	}
-
-	// 底面の蓋を生成
-	if (withCap)
-	{
-		// 底面の中心頂点
-		uint32_t bottomCenterIndex = static_cast<uint32_t>(mesh.vertices.size());
-		mesh.vertices.push_back({{ 0, -height * 0.5f, 0, 1.0f }, { 0.5f, 0.5f }, { 0, -1, 0 }});
-
-		// 底面の三角形インデックス（扇形配置）
-		for (uint32_t i = 0; i < segments; ++i)
+	// 底面
+	if (withCap) {
+		Vector3 downNormal = { 0.0f, -1.0f, 0.0f };
+		for (uint32_t i = 0; i < sliceCount; ++i)
 		{
-			mesh.indices.push_back(bottomCenterIndex);
-			mesh.indices.push_back(1 + i);
-			mesh.indices.push_back(1 + i + 1);
+			float theta0 = angleStep * i;
+			float theta1 = angleStep * (i + 1);
+	
+			Vector4 p0 = { radius * std::cos(theta0), 0.0f, radius * std::sin(theta0), 1.0f };
+			Vector4 p1 = { radius * std::cos(theta1), 0.0f, radius * std::sin(theta1), 1.0f };
+	
+			Vector2 uvCenter = { 0.5f, 0.5f };
+			Vector2 uv0 = { 0.5f + p0.x / (2.0f * radius), 0.5f + p0.z / (2.0f * radius) };
+			Vector2 uv1 = { 0.5f + p1.x / (2.0f * radius), 0.5f + p1.z / (2.0f * radius) };
+	
+			mesh.vertices.push_back({ center, uvCenter, downNormal });
+			mesh.vertices.push_back({ p0,     uv0,      downNormal });
+			mesh.vertices.push_back({ p1,     uv1,      downNormal });
 		}
+	}
+
+	for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+		mesh.indices.push_back(static_cast<uint32_t>(i));
 	}
 
 	return mesh;
@@ -251,31 +270,40 @@ PrimitiveMesh PrimitiveGenerator::GenerateCone(uint32_t segments, bool withCap)
 
 PrimitiveMesh PrimitiveGenerator::GenerateRing(uint32_t segments, float innerRadius, float outerRadius)
 {
+	const uint32_t kRingDivide = segments;
+	const float    kOuterRadius = outerRadius;
+	const float    kInnerRadius = innerRadius;
+	const float    radianPerDiv = 2.0f * std::numbers::pi_v<float> / float(kRingDivide);
+
 	PrimitiveMesh mesh;
 
-	for (uint32_t i = 0; i <= segments; ++i)
+	for (uint32_t i = 0; i < kRingDivide; ++i)
 	{
-		float u = static_cast<float>(i) / segments;
-		float theta = u * kTwoPi;
-		float cosT = std::cos(theta);
-		float sinT = std::sin(theta);
+		// 0→1 の角度
+		float theta0 = radianPerDiv * float(i);
+		float theta1 = radianPerDiv * float(i + 1);
 
-		// 外側 (position, texcoord, normal)
-		mesh.vertices.push_back({{ cosT * outerRadius, 0, sinT * outerRadius, 1.0f }, { u, 0 }, { 0, 1, 0 }});
-		// 内側
-		mesh.vertices.push_back({{ cosT * innerRadius, 0, sinT * innerRadius, 1.0f }, { u, 1 }, { 0, 1, 0 }});
+		// sin/cos
+		float c0 = std::cos(theta0), s0 = std::sin(theta0);
+		float c1 = std::cos(theta1), s1 = std::sin(theta1);
+
+		// UV
+		float u0 = float(i) / float(kRingDivide);
+		float u1 = float(i + 1) / float(kRingDivide);
+
+		// 三角形 1
+		mesh.vertices.push_back({ { c0 * kOuterRadius, s0 * kOuterRadius, 0, 1 }, { u0, 0 }, { 0,0,1 } });
+		mesh.vertices.push_back({ { c1 * kOuterRadius, s1 * kOuterRadius, 0, 1 }, { u1, 0 }, { 0,0,1 } });
+		mesh.vertices.push_back({ { c0 * kInnerRadius, s0 * kInnerRadius, 0, 1 }, { u0, 1 }, { 0,0,1 } });
+
+		// 三角形 2
+		mesh.vertices.push_back({ { c1 * kOuterRadius, s1 * kOuterRadius, 0, 1 }, { u1, 0 }, { 0,0,1 } });
+		mesh.vertices.push_back({ { c1 * kInnerRadius, s1 * kInnerRadius, 0, 1 }, { u1, 1 }, { 0,0,1 } });
+		mesh.vertices.push_back({ { c0 * kInnerRadius, s0 * kInnerRadius, 0, 1 }, { u0, 1 }, { 0,0,1 } });
 	}
 
-	for (uint32_t i = 0; i < segments; ++i)
-	{
-		uint32_t base = i * 2;
-		mesh.indices.push_back(base);
-		mesh.indices.push_back(base + 2);
-		mesh.indices.push_back(base + 1);
-
-		mesh.indices.push_back(base + 1);
-		mesh.indices.push_back(base + 2);
-		mesh.indices.push_back(base + 3);
+	for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+		mesh.indices.push_back(static_cast<uint32_t>(i));
 	}
 
 	return mesh;
@@ -283,107 +311,189 @@ PrimitiveMesh PrimitiveGenerator::GenerateRing(uint32_t segments, float innerRad
 
 PrimitiveMesh PrimitiveGenerator::GenerateTorus(uint32_t segments, uint32_t tubeSegments, float tubeRadius)
 {
+	const uint32_t kCircleDiv = segments;
+	const uint32_t kTubeDiv = tubeSegments;
+	const float kOuterRadius = 1.0f;
+	const float kInnerRadius = tubeRadius;
+
 	PrimitiveMesh mesh;
-	float majorRadius = 0.5f - tubeRadius;
 
-	for (uint32_t i = 0; i <= segments; ++i)
+	for (uint32_t i = 0; i < kCircleDiv; ++i)
 	{
-		float u = static_cast<float>(i) / segments;
-		float theta = u * kTwoPi;
-		float cosT = std::cos(theta);
-		float sinT = std::sin(theta);
+		float theta0 = float(i) / float(kCircleDiv) * 2.0f * std::numbers::pi_v<float>;
+		float theta1 = float(i + 1) / float(kCircleDiv) * 2.0f * std::numbers::pi_v<float>;
 
-		for (uint32_t j = 0; j <= tubeSegments; ++j)
+		for (uint32_t j = 0; j < kTubeDiv; ++j)
 		{
-			float v = static_cast<float>(j) / tubeSegments;
-			float phi = v * kTwoPi;
-			float cosPhi = std::cos(phi);
-			float sinPhi = std::sin(phi);
+			float phi0 = float(j) / float(kTubeDiv) * 2.0f * std::numbers::pi_v<float>;
+			float phi1 = float(j + 1) / float(kTubeDiv) * 2.0f * std::numbers::pi_v<float>;
 
-			float x = (majorRadius + tubeRadius * cosPhi) * cosT;
-			float y = tubeRadius * sinPhi;
-			float z = (majorRadius + tubeRadius * cosPhi) * sinT;
+			// 4頂点計算
+			// p00
+			Vector3 p00 = {
+				(kOuterRadius + kInnerRadius * std::cos(phi0)) * std::cos(theta0),
+				kInnerRadius * std::sin(phi0),
+				(kOuterRadius + kInnerRadius * std::cos(phi0)) * std::sin(theta0)
+			};
+			// p01
+			Vector3 p01 = {
+				(kOuterRadius + kInnerRadius * std::cos(phi1)) * std::cos(theta0),
+				kInnerRadius * std::sin(phi1),
+				(kOuterRadius + kInnerRadius * std::cos(phi1)) * std::sin(theta0)
+			};
+			// p10
+			Vector3 p10 = {
+				(kOuterRadius + kInnerRadius * std::cos(phi0)) * std::cos(theta1),
+				kInnerRadius * std::sin(phi0),
+				(kOuterRadius + kInnerRadius * std::cos(phi0)) * std::sin(theta1)
+			};
+			// p11
+			Vector3 p11 = {
+				(kOuterRadius + kInnerRadius * std::cos(phi1)) * std::cos(theta1),
+				kInnerRadius * std::sin(phi1),
+				(kOuterRadius + kInnerRadius * std::cos(phi1)) * std::sin(theta1)
+			};
 
-			float nx = cosPhi * cosT;
-			float ny = sinPhi;
-			float nz = cosPhi * sinT;
+			// 法線
+			Vector3 center0 = { kOuterRadius * std::cos(theta0), 0.0f, kOuterRadius * std::sin(theta0) };
+			Vector3 center1 = { kOuterRadius * std::cos(theta1), 0.0f, kOuterRadius * std::sin(theta1) };
 
-			mesh.vertices.push_back({{ x, y, z, 1.0f }, { u, v }, { nx, ny, nz }});
+			Vector3 n00 = p00 - center0;
+			Vector3 n01 = p01 - center0;
+			Vector3 n10 = p10 - center1;
+			Vector3 n11 = p11 - center1;
+
+			// UV
+			Vector2 uv00 = { float(i) / float(kCircleDiv), float(j) / float(kTubeDiv) };
+			Vector2 uv01 = { float(i) / float(kCircleDiv), float(j + 1) / float(kTubeDiv) };
+			Vector2 uv10 = { float(i + 1) / float(kCircleDiv), float(j) / float(kTubeDiv) };
+			Vector2 uv11 = { float(i + 1) / float(kCircleDiv), float(j + 1) / float(kTubeDiv) };
+
+			// 三角形1: p00 → p10 → p11
+			mesh.vertices.push_back({ { p00.x, p00.y, p00.z, 1.0f }, uv00, n00 });
+			mesh.vertices.push_back({ { p10.x, p10.y, p10.z, 1.0f }, uv10, n10 });
+			mesh.vertices.push_back({ { p11.x, p11.y, p11.z, 1.0f }, uv11, n11 });
+
+			// 三角形2: p00 → p11 → p01
+			mesh.vertices.push_back({ { p00.x, p00.y, p00.z, 1.0f }, uv00, n00 });
+			mesh.vertices.push_back({ { p11.x, p11.y, p11.z, 1.0f }, uv11, n11 });
+			mesh.vertices.push_back({ { p01.x, p01.y, p01.z, 1.0f }, uv01, n01 });
 		}
 	}
 
-	for (uint32_t i = 0; i < segments; ++i)
-	{
-		for (uint32_t j = 0; j < tubeSegments; ++j)
-		{
-			uint32_t current = i * (tubeSegments + 1) + j;
-			uint32_t next = current + tubeSegments + 1;
-
-			mesh.indices.push_back(current);
-			mesh.indices.push_back(next);
-			mesh.indices.push_back(current + 1);
-
-			mesh.indices.push_back(current + 1);
-			mesh.indices.push_back(next);
-			mesh.indices.push_back(next + 1);
-		}
+	for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+		mesh.indices.push_back(static_cast<uint32_t>(i));
 	}
 
 	return mesh;
 }
 
-PrimitiveMesh PrimitiveGenerator::GenerateCube()
+PrimitiveMesh PrimitiveGenerator::GenerateCube(const PrimitiveOptions& options)
 {
 	PrimitiveMesh mesh;
-	float s = 0.5f;
+	// 指定されたサイズを使用 (Half Size)
+	Vector3 s = options.cubeSize * 0.5f;
 
-	// 各面（6面 × 4頂点）(position, texcoord, normal)
-	// 前面
-	mesh.vertices.push_back({{ -s, -s,  s, 1.0f }, { 0, 1 }, { 0, 0, 1 }});
-	mesh.vertices.push_back({{  s, -s,  s, 1.0f }, { 1, 1 }, { 0, 0, 1 }});
-	mesh.vertices.push_back({{  s,  s,  s, 1.0f }, { 1, 0 }, { 0, 0, 1 }});
-	mesh.vertices.push_back({{ -s,  s,  s, 1.0f }, { 0, 0 }, { 0, 0, 1 }});
-
-	// 後面
-	mesh.vertices.push_back({{  s, -s, -s, 1.0f }, { 0, 1 }, { 0, 0, -1 }});
-	mesh.vertices.push_back({{ -s, -s, -s, 1.0f }, { 1, 1 }, { 0, 0, -1 }});
-	mesh.vertices.push_back({{ -s,  s, -s, 1.0f }, { 1, 0 }, { 0, 0, -1 }});
-	mesh.vertices.push_back({{  s,  s, -s, 1.0f }, { 0, 0 }, { 0, 0, -1 }});
-
-	// 上面
-	mesh.vertices.push_back({{ -s,  s,  s, 1.0f }, { 0, 1 }, { 0, 1, 0 }});
-	mesh.vertices.push_back({{  s,  s,  s, 1.0f }, { 1, 1 }, { 0, 1, 0 }});
-	mesh.vertices.push_back({{  s,  s, -s, 1.0f }, { 1, 0 }, { 0, 1, 0 }});
-	mesh.vertices.push_back({{ -s,  s, -s, 1.0f }, { 0, 0 }, { 0, 1, 0 }});
-
-	// 下面
-	mesh.vertices.push_back({{ -s, -s, -s, 1.0f }, { 0, 1 }, { 0, -1, 0 }});
-	mesh.vertices.push_back({{  s, -s, -s, 1.0f }, { 1, 1 }, { 0, -1, 0 }});
-	mesh.vertices.push_back({{  s, -s,  s, 1.0f }, { 1, 0 }, { 0, -1, 0 }});
-	mesh.vertices.push_back({{ -s, -s,  s, 1.0f }, { 0, 0 }, { 0, -1, 0 }});
-
-	// 右面
-	mesh.vertices.push_back({{  s, -s,  s, 1.0f }, { 0, 1 }, { 1, 0, 0 }});
-	mesh.vertices.push_back({{  s, -s, -s, 1.0f }, { 1, 1 }, { 1, 0, 0 }});
-	mesh.vertices.push_back({{  s,  s, -s, 1.0f }, { 1, 0 }, { 1, 0, 0 }});
-	mesh.vertices.push_back({{  s,  s,  s, 1.0f }, { 0, 0 }, { 1, 0, 0 }});
-
-	// 左面
-	mesh.vertices.push_back({{ -s, -s, -s, 1.0f }, { 0, 1 }, { -1, 0, 0 }});
-	mesh.vertices.push_back({{ -s, -s,  s, 1.0f }, { 1, 1 }, { -1, 0, 0 }});
-	mesh.vertices.push_back({{ -s,  s,  s, 1.0f }, { 1, 0 }, { -1, 0, 0 }});
-	mesh.vertices.push_back({{ -s,  s, -s, 1.0f }, { 0, 0 }, { -1, 0, 0 }});
-
-	// インデックス
-	for (uint32_t face = 0; face < 6; ++face)
+	// 前面 (Index 0)
+	if (options.cubeFaceVisible[0])
 	{
-		uint32_t base = face * 4;
-		mesh.indices.push_back(base + 0);
-		mesh.indices.push_back(base + 1);
-		mesh.indices.push_back(base + 2);
-		mesh.indices.push_back(base + 0);
-		mesh.indices.push_back(base + 2);
-		mesh.indices.push_back(base + 3);
+		uint32_t baseIndex = static_cast<uint32_t>(mesh.vertices.size());
+		mesh.vertices.push_back({ { -s.x, -s.y,  s.z, 1.0f }, { 0, 1 }, { 0, 0, 1 } });
+		mesh.vertices.push_back({ {  s.x, -s.y,  s.z, 1.0f }, { 1, 1 }, { 0, 0, 1 } });
+		mesh.vertices.push_back({ {  s.x,  s.y,  s.z, 1.0f }, { 1, 0 }, { 0, 0, 1 } });
+		mesh.vertices.push_back({ { -s.x,  s.y,  s.z, 1.0f }, { 0, 0 }, { 0, 0, 1 } });
+
+		mesh.indices.push_back(baseIndex + 0);
+		mesh.indices.push_back(baseIndex + 1);
+		mesh.indices.push_back(baseIndex + 2);
+		mesh.indices.push_back(baseIndex + 0);
+		mesh.indices.push_back(baseIndex + 2);
+		mesh.indices.push_back(baseIndex + 3);
+	}
+
+	// 後面 (Index 1)
+	if (options.cubeFaceVisible[1])
+	{
+		uint32_t baseIndex = static_cast<uint32_t>(mesh.vertices.size());
+		mesh.vertices.push_back({ {  s.x, -s.y, -s.z, 1.0f }, { 0, 1 }, { 0, 0, -1 } });
+		mesh.vertices.push_back({ { -s.x, -s.y, -s.z, 1.0f }, { 1, 1 }, { 0, 0, -1 } });
+		mesh.vertices.push_back({ { -s.x,  s.y, -s.z, 1.0f }, { 1, 0 }, { 0, 0, -1 } });
+		mesh.vertices.push_back({ {  s.x,  s.y, -s.z, 1.0f }, { 0, 0 }, { 0, 0, -1 } });
+
+		mesh.indices.push_back(baseIndex + 0);
+		mesh.indices.push_back(baseIndex + 1);
+		mesh.indices.push_back(baseIndex + 2);
+		mesh.indices.push_back(baseIndex + 0);
+		mesh.indices.push_back(baseIndex + 2);
+		mesh.indices.push_back(baseIndex + 3);
+	}
+
+	// 上面 (Index 2)
+	if (options.cubeFaceVisible[2])
+	{
+		uint32_t baseIndex = static_cast<uint32_t>(mesh.vertices.size());
+		mesh.vertices.push_back({ { -s.x,  s.y,  s.z, 1.0f }, { 0, 1 }, { 0, 1, 0 } });
+		mesh.vertices.push_back({ {  s.x,  s.y,  s.z, 1.0f }, { 1, 1 }, { 0, 1, 0 } });
+		mesh.vertices.push_back({ {  s.x,  s.y, -s.z, 1.0f }, { 1, 0 }, { 0, 1, 0 } });
+		mesh.vertices.push_back({ { -s.x,  s.y, -s.z, 1.0f }, { 0, 0 }, { 0, 1, 0 } });
+
+		mesh.indices.push_back(baseIndex + 0);
+		mesh.indices.push_back(baseIndex + 1);
+		mesh.indices.push_back(baseIndex + 2);
+		mesh.indices.push_back(baseIndex + 0);
+		mesh.indices.push_back(baseIndex + 2);
+		mesh.indices.push_back(baseIndex + 3);
+	}
+
+	// 下面 (Index 3)
+	if (options.cubeFaceVisible[3])
+	{
+		uint32_t baseIndex = static_cast<uint32_t>(mesh.vertices.size());
+		mesh.vertices.push_back({ { -s.x, -s.y, -s.z, 1.0f }, { 0, 1 }, { 0, -1, 0 } });
+		mesh.vertices.push_back({ {  s.x, -s.y, -s.z, 1.0f }, { 1, 1 }, { 0, -1, 0 } });
+		mesh.vertices.push_back({ {  s.x, -s.y,  s.z, 1.0f }, { 1, 0 }, { 0, -1, 0 } });
+		mesh.vertices.push_back({ { -s.x, -s.y,  s.z, 1.0f }, { 0, 0 }, { 0, -1, 0 } });
+
+		mesh.indices.push_back(baseIndex + 0);
+		mesh.indices.push_back(baseIndex + 1);
+		mesh.indices.push_back(baseIndex + 2);
+		mesh.indices.push_back(baseIndex + 0);
+		mesh.indices.push_back(baseIndex + 2);
+		mesh.indices.push_back(baseIndex + 3);
+	}
+
+	// 右面 (Index 4)
+	if (options.cubeFaceVisible[4])
+	{
+		uint32_t baseIndex = static_cast<uint32_t>(mesh.vertices.size());
+		mesh.vertices.push_back({ {  s.x, -s.y,  s.z, 1.0f }, { 0, 1 }, { 1, 0, 0 } });
+		mesh.vertices.push_back({ {  s.x, -s.y, -s.z, 1.0f }, { 1, 1 }, { 1, 0, 0 } });
+		mesh.vertices.push_back({ {  s.x,  s.y, -s.z, 1.0f }, { 1, 0 }, { 1, 0, 0 } });
+		mesh.vertices.push_back({ {  s.x,  s.y,  s.z, 1.0f }, { 0, 0 }, { 1, 0, 0 } });
+
+		mesh.indices.push_back(baseIndex + 0);
+		mesh.indices.push_back(baseIndex + 1);
+		mesh.indices.push_back(baseIndex + 2);
+		mesh.indices.push_back(baseIndex + 0);
+		mesh.indices.push_back(baseIndex + 2);
+		mesh.indices.push_back(baseIndex + 3);
+	}
+
+	// 左面 (Index 5)
+	if (options.cubeFaceVisible[5])
+	{
+		uint32_t baseIndex = static_cast<uint32_t>(mesh.vertices.size());
+		mesh.vertices.push_back({ { -s.x, -s.y, -s.z, 1.0f }, { 0, 1 }, { -1, 0, 0 } });
+		mesh.vertices.push_back({ { -s.x, -s.y,  s.z, 1.0f }, { 1, 1 }, { -1, 0, 0 } });
+		mesh.vertices.push_back({ { -s.x,  s.y,  s.z, 1.0f }, { 1, 0 }, { -1, 0, 0 } });
+		mesh.vertices.push_back({ { -s.x,  s.y, -s.z, 1.0f }, { 0, 0 }, { -1, 0, 0 } });
+
+		mesh.indices.push_back(baseIndex + 0);
+		mesh.indices.push_back(baseIndex + 1);
+		mesh.indices.push_back(baseIndex + 2);
+		mesh.indices.push_back(baseIndex + 0);
+		mesh.indices.push_back(baseIndex + 2);
+		mesh.indices.push_back(baseIndex + 3);
 	}
 
 	return mesh;
@@ -391,101 +501,227 @@ PrimitiveMesh PrimitiveGenerator::GenerateCube()
 
 PrimitiveMesh PrimitiveGenerator::GenerateStar(uint32_t points, float innerRadius)
 {
+	const int kPoints = points;
+	const float outerRadius = 1.0f;
+
 	PrimitiveMesh mesh;
-	float outerRadius = 0.5f;
 
-	// 中心 (position, texcoord, normal)
-	mesh.vertices.push_back({{ 0, 0, 0, 1.0f }, { 0.5f, 0.5f }, { 0, 0, 1 }});
+	float angleStep = 2.0f * std::numbers::pi_v<float> / float(kPoints * 2);
+	Vector3 normal = { 0.0f, 0.0f, 1.0f };
 
-	// 星の頂点
-	for (uint32_t i = 0; i <= points * 2; ++i)
+	// 頂点生成（外側・内側交互）
+	std::vector<Vector4> starPoints;
+	for (int i = 0; i < kPoints * 2; ++i)
 	{
-		float angle = static_cast<float>(i) / (points * 2) * kTwoPi - kPi * 0.5f;
-		float r = (i % 2 == 0) ? outerRadius : innerRadius;
-		float x = std::cos(angle) * r;
-		float y = std::sin(angle) * r;
-
-		mesh.vertices.push_back({{ x, y, 0, 1.0f }, { x + 0.5f, 0.5f - y }, { 0, 0, 1 }});
+		float radius = (i % 2 == 0) ? outerRadius : innerRadius;
+		float angle = angleStep * i;
+		starPoints.push_back({ std::cos(angle) * radius, std::sin(angle) * radius, 0.0f, 1.0f });
 	}
 
-	// インデックス
-	for (uint32_t i = 0; i < points * 2; ++i)
+	Vector4 center = { 0.0f, 0.0f, 0.0f, 1.0f };
+	Vector2 uvCenter = { 0.5f, 0.5f };
+
+	// 扇状に分割
+	for (int i = 0; i < kPoints * 2; ++i)
 	{
-		mesh.indices.push_back(0);
-		mesh.indices.push_back(1 + i);
-		mesh.indices.push_back(1 + (i + 1) % (points * 2));
+		int nextIndex = (i + 1) % (kPoints * 2);
+
+		Vector4 p0 = center;
+		Vector4 p1 = starPoints[i];
+		Vector4 p2 = starPoints[nextIndex];
+
+		Vector2 uv0 = uvCenter;
+		Vector2 uv1 = { (p1.x + 1.0f) * 0.5f, (p1.y + 1.0f) * 0.5f };
+		Vector2 uv2 = { (p2.x + 1.0f) * 0.5f, (p2.y + 1.0f) * 0.5f };
+
+		mesh.vertices.push_back({ p0, uv0, normal });
+		mesh.vertices.push_back({ p1, uv1, normal });
+		mesh.vertices.push_back({ p2, uv2, normal });
 	}
 
+	for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+		mesh.indices.push_back(static_cast<uint32_t>(i));
+	}
 	return mesh;
 }
 
 PrimitiveMesh PrimitiveGenerator::GenerateHeart(uint32_t segments)
 {
+	const int kDiv = segments;
 	PrimitiveMesh mesh;
 
-	// 中心 (position, texcoord, normal)
-	mesh.vertices.push_back({{ 0, 0, 0, 1.0f }, { 0.5f, 0.5f }, { 0, 0, 1 }});
+	PrimitiveVertex center = { { 0.0f, 0.0f, 0.0f, 1.0f }, { 0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f } };
 
-	// ハート形状
-	for (uint32_t i = 0; i <= segments; ++i)
+	std::vector<PrimitiveVertex> outlineVertices;
+
+	// 輪郭生成
+	for (int i = 0; i <= kDiv; ++i)
 	{
-		float t = static_cast<float>(i) / segments * kTwoPi;
+		float t = float(i) / float(kDiv) * 2.0f * std::numbers::pi_v<float>;
 		
-		// ハートの数式
-		float x = 16.0f * std::sin(t) * std::sin(t) * std::sin(t);
-		float y = 13.0f * std::cos(t) - 5.0f * std::cos(2 * t) - 2.0f * std::cos(3 * t) - std::cos(4 * t);
+		// ハート数式
+		float x = 16.0f * std::pow(std::sin(t), 3);
+		float y = 13.0f * std::cos(t) - 5.0f * std::cos(2.0f * t) - 2.0f * std::cos(3.0f * t) - std::cos(4.0f * t);
+		
+		// スケーリング
+		x /= 18.0f;
+		y /= 18.0f;
+		
+		float u = (x + 1.0f) * 0.5f;
+		float v = (y + 1.0f) * 0.5f;
 
-		// スケール調整
-		x *= 0.03f;
-		y *= 0.03f;
-
-		mesh.vertices.push_back({{ x, y, 0, 1.0f }, { x + 0.5f, 0.5f - y }, { 0, 0, 1 }});
+		outlineVertices.push_back({ { x, y, 0.0f, 1.0f }, { u, v }, { 0.0f, 0.0f, 1.0f } });
 	}
 
-	// インデックス
-	for (uint32_t i = 0; i < segments; ++i)
+	// 三角形リスト構築
+	for (int i = 0; i < kDiv; ++i)
 	{
-		mesh.indices.push_back(0);
-		mesh.indices.push_back(1 + i);
-		mesh.indices.push_back(1 + i + 1);
+		mesh.vertices.push_back(center);
+		mesh.vertices.push_back(outlineVertices[i]);
+		mesh.vertices.push_back(outlineVertices[i + 1]);
 	}
 
+	for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+		mesh.indices.push_back(static_cast<uint32_t>(i));
+	}
 	return mesh;
 }
 
 PrimitiveMesh PrimitiveGenerator::GenerateSpiral(uint32_t segments, float turns)
 {
+	const int kLocalRingDiv = 16; 
+	const int kHeightDiv = segments; 
+	const float kRadius = 0.5f;
+	const float kHeight = 1.0f;
+	const float kTurns = turns;
+
 	PrimitiveMesh mesh;
-	float width = 0.1f;
 
-	for (uint32_t i = 0; i <= segments; ++i)
+	std::vector<PrimitiveVertex> vertices;
+
+	// 螺旋軌道の頂点生成
+	for (int i = 0; i <= kHeightDiv; ++i)
 	{
-		float t = static_cast<float>(i) / segments;
-		float angle = t * kTwoPi * turns;
-		float radius = t * 0.5f;
+		float v = static_cast<float>(i) / static_cast<float>(kHeightDiv);
+		float y = v * kHeight - kHeight * 0.5f;
+		float angle = v * kTurns * 2.0f * std::numbers::pi_v<float>;
+		float x = kRadius * std::cos(angle);
+		float z = kRadius * std::sin(angle);
+		float u = angle / (2.0f * std::numbers::pi_v<float>);
+		while (u > 1.0f) u -= 1.0f; 
 
-		float x = std::cos(angle) * radius;
-		float y = std::sin(angle) * radius;
+		float nx = x / kRadius;
+		float nz = z / kRadius;
 
-		// 外側
-		float ox = std::cos(angle) * (radius + width);
-		float oy = std::sin(angle) * (radius + width);
-
-		mesh.vertices.push_back({{ x, y, 0, 1.0f }, { t, 0 }, { 0, 0, 1 }});
-		mesh.vertices.push_back({{ ox, oy, 0, 1.0f }, { t, 1 }, { 0, 0, 1 }});
+		PrimitiveVertex vertex;
+		vertex.position = { x, y, z, 1.0f };
+		vertex.texcoord = { u, v };
+		vertex.normal = { nx, 0.0f, nz };
+		vertices.push_back(vertex);
 	}
 
-	for (uint32_t i = 0; i < segments; ++i)
-	{
-		uint32_t base = i * 2;
-		mesh.indices.push_back(base);
-		mesh.indices.push_back(base + 2);
-		mesh.indices.push_back(base + 1);
+	std::vector<PrimitiveVertex> tubeVertices;
+	const float kTubeRadius = 0.05f;
 
-		mesh.indices.push_back(base + 1);
-		mesh.indices.push_back(base + 2);
-		mesh.indices.push_back(base + 3);
+	// チューブ生成
+	for (int i = 0; i < vertices.size(); ++i)
+	{
+		Vector3 center = { vertices[i].position.x, vertices[i].position.y, vertices[i].position.z };
+
+		// 進行方向
+		Vector3 forward;
+		if (i < vertices.size() - 1)
+		{
+			forward = {
+				vertices[i + 1].position.x - center.x,
+				vertices[i + 1].position.y - center.y,
+				vertices[i + 1].position.z - center.z
+			};
+		}
+		else
+		{
+			forward = {
+				center.x - vertices[i - 1].position.x,
+				center.y - vertices[i - 1].position.y,
+				center.z - vertices[i - 1].position.z
+			};
+		}
+
+		float length = std::sqrt(forward.x * forward.x + forward.y * forward.y + forward.z * forward.z);
+		if (length > 0) forward = { forward.x / length, forward.y / length, forward.z / length };
+
+		// 基準軸
+		Vector3 up = { 0.0f, 1.0f, 0.0f };
+		Vector3 right = {
+			up.y * forward.z - up.z * forward.y,
+			up.z * forward.x - up.x * forward.z,
+			up.x * forward.y - up.y * forward.x
+		};
+		length = std::sqrt(right.x * right.x + right.y * right.y + right.z * right.z);
+		if(length > 0) right = { right.x / length, right.y / length, right.z / length };
+
+		up = {
+			forward.y * right.z - forward.z * right.y,
+			forward.z * right.x - forward.x * right.z,
+			forward.x * right.y - forward.y * right.x
+		};
+
+		// 断面円
+		for (int j = 0; j < kLocalRingDiv; ++j)
+		{
+			float angle = static_cast<float>(j) / static_cast<float>(kLocalRingDiv) * 2.0f * std::numbers::pi_v<float>;
+			float cosA = std::cos(angle);
+			float sinA = std::sin(angle);
+
+			Vector3 tubePoint = {
+				center.x + kTubeRadius * (right.x * cosA + up.x * sinA),
+				center.y + kTubeRadius * (right.y * cosA + up.y * sinA),
+				center.z + kTubeRadius * (right.z * cosA + up.z * sinA)
+			};
+
+			Vector3 normal = {
+				tubePoint.x - center.x,
+				tubePoint.y - center.y,
+				tubePoint.z - center.z
+			};
+			length = std::sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+			if(length>0) normal = { normal.x / length, normal.y / length, normal.z / length };
+
+			Vector2 texcoord = {
+				static_cast<float>(j) / static_cast<float>(kLocalRingDiv),
+				vertices[i].texcoord.y
+			};
+
+			PrimitiveVertex vertex;
+			vertex.position = { tubePoint.x, tubePoint.y, tubePoint.z, 1.0f };
+			vertex.texcoord = texcoord;
+			vertex.normal = normal;
+			tubeVertices.push_back(vertex);
+		}
 	}
 
+	// 側面構成
+	for (int i = 0; i < kHeightDiv; ++i)
+	{
+		for (int j = 0; j < kLocalRingDiv; ++j)
+		{
+			int current = i * kLocalRingDiv + j;
+			int next = i * kLocalRingDiv + (j + 1) % kLocalRingDiv;
+			int bottom = (i + 1) * kLocalRingDiv + j;
+			int bottomNext = (i + 1) * kLocalRingDiv + (j + 1) % kLocalRingDiv;
+
+			mesh.vertices.push_back(tubeVertices[current]);
+			mesh.vertices.push_back(tubeVertices[next]);
+			mesh.vertices.push_back(tubeVertices[bottom]);
+
+			mesh.vertices.push_back(tubeVertices[next]);
+			mesh.vertices.push_back(tubeVertices[bottomNext]);
+			mesh.vertices.push_back(tubeVertices[bottom]);
+		}
+	}
+
+	for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+		mesh.indices.push_back(static_cast<uint32_t>(i));
+	}
 	return mesh;
 }
