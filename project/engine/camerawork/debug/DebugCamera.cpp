@@ -63,6 +63,11 @@ void DebugCamera::Update()
 
 void DebugCamera::UpdateMovement()
 {
+	// もし右クリックが押されていない場合、移動処理をスキップ
+    if(Input::GetInstance()->IsMouseButtonPressed(2) == false){
+        return;
+	}
+
     Vector3 currentPos = camera_->GetTranslate();
     Vector3 moveDirection = { 0.0f, 0.0f, 0.0f };
 
