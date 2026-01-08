@@ -1,6 +1,6 @@
 #include "AreaManager.h"
 #include <effects/particle/ParticleEffect.h>
-#include <effects/particle/module/spawn/SpawnShapeModules.h>
+#include <effects/particle/module/spawn/InitialModules.h>
 
 AreaManager::AreaManager(const std::vector<std::shared_ptr<Area>>& areas) : areas_(areas), currentAreaIndex_(0), isAllCleared_(false)
 {
@@ -57,20 +57,21 @@ void AreaManager::StartCurrentArea()
 	areas_[currentAreaIndex_]->SetOnClearCallback([this]() {
 		++currentAreaIndex_;
 		StartCurrentArea();
-											  });
+												  });
 
 	// エリアをアクティブ化（プレイヤー侵入検知を有効化）
 	areas_[currentAreaIndex_]->SetActive(true);
 
 	// エリアエフェクトの位置設定と再生
 	areaEffect_->SetPosition(areas_[currentAreaIndex_]->GetAreaObject()->GetPosition());
-	// 形状モジュールを取得して、エリアに合わせて調整
+	// 初期スケールモジュールを取得して、エリアに合わせて調整
 	if (auto* emitter = areaEffect_->GetEmitter(static_cast<size_t>(0)))
 	{
-		if (auto* shape = emitter->GetModule<SpawnShapeModule>())
+		if (auto* scale = emitter->GetModule<InitialScaleModule>())
 		{
 			// エリアのスケールを反映
-			shape->SetBoxSize({ areas_[currentAreaIndex_]->GetAreaObject()->GetScale().x, 0.5f, areas_[currentAreaIndex_]->GetAreaObject()->GetScale().z });
+			scale->SetMaxScale({ areas_[currentAreaIndex_]->GetAreaObject()->GetScale().x, 0.4f, areas_[currentAreaIndex_]->GetAreaObject()->GetScale().z });
+			scale->SetMinScale({ areas_[currentAreaIndex_]->GetAreaObject()->GetScale().x, 0.4f, areas_[currentAreaIndex_]->GetAreaObject()->GetScale().z });
 		}
 	}
 

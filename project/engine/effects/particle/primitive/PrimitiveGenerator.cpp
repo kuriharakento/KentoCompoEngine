@@ -391,8 +391,8 @@ PrimitiveMesh PrimitiveGenerator::GenerateTorus(uint32_t segments, uint32_t tube
 PrimitiveMesh PrimitiveGenerator::GenerateCube(const PrimitiveOptions& options)
 {
 	PrimitiveMesh mesh;
-	// 指定されたサイズを使用 (Half Size)
-	Vector3 s = options.cubeSize * 0.5f;
+	// 指定されたサイズを使用（そのままハーフサイズとして扱う）
+	Vector3 s = options.cubeSize;
 
 	// 前面 (Index 0)
 	if (options.cubeFaceVisible[0])

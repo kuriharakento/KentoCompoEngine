@@ -11,7 +11,7 @@
             "minMoveDistance": 0.05000000074505806,
             "modules": [
                 {
-                    "rate": 230.0,
+                    "rate": 50.0,
                     "type": "SpawnRate"
                 },
                 {
@@ -40,40 +40,40 @@
                         "z": 0.0
                     },
                     "outerRadius": 1.0,
-                    "shapeType": 3,
+                    "shapeType": 0,
                     "spawnLocation": 2,
                     "type": "SpawnShape"
                 },
                 {
                     "max": {
                         "x": 0.0,
-                        "y": 1.0,
+                        "y": 2.0,
                         "z": 0.0
                     },
                     "min": {
                         "x": 0.0,
-                        "y": -1.5,
+                        "y": 0.0,
                         "z": 0.0
                     },
                     "type": "InitialVelocity"
                 },
                 {
                     "max": {
-                        "x": 0.699999988079071,
-                        "y": 0.699999988079071,
-                        "z": 0.699999988079071
+                        "x": 20.0,
+                        "y": 0.4000000059604645,
+                        "z": 20.0
                     },
                     "min": {
-                        "x": 0.30000001192092896,
-                        "y": 0.30000001192092896,
-                        "z": 0.30000001192092896
+                        "x": 20.0,
+                        "y": 0.4000000059604645,
+                        "z": 20.0
                     },
                     "type": "InitialScale"
                 },
                 {
                     "acceleration": {
                         "x": 0.0,
-                        "y": 1.899999976158142,
+                        "y": 1.2999999523162842,
                         "z": 0.0
                     },
                     "type": "Acceleration"
@@ -102,14 +102,14 @@
                 "z": 0.0
             },
             "renderer": {
-                "billboard": true,
+                "billboard": false,
                 "blendMode": 1,
                 "primitiveOptions": {
                     "cubeFaceVisible": [
                         true,
                         true,
-                        true,
-                        true,
+                        false,
+                        false,
                         true,
                         true
                     ],
@@ -128,7 +128,7 @@
                     "turns": 2.0,
                     "withCaps": true
                 },
-                "primitiveType": 0,
+                "primitiveType": 9,
                 "scale": 1.0,
                 "texture": "./Resources/red.png",
                 "tintColor": {
