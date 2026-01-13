@@ -133,6 +133,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\effect\AreaEffect.cpp" />
     <ClCompile Include="application\GameObject\component\action\EnemyUIComponent.cpp" />
     <ClCompile Include="application\UI\Cursor.cpp" />
+    <ClCompile Include="application\UI\ControlsGuide.cpp" />
     <ClCompile Include="engine\effects\particle\module\spawn\SubEmitterModule.cpp" />
     <!-- Particle System -->
     <ClCompile Include="engine\effects\particle\ParticleEmitter.cpp" />
@@ -307,6 +308,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\effect\AreaEffect.h" />
     <ClInclude Include="application\GameObject\component\action\EnemyUIComponent.h" />
     <ClInclude Include="application\UI\Cursor.h" />
+    <ClInclude Include="application\UI\ControlsGuide.h" />
     <ClInclude Include="engine\animation\Animator.h" />
     <ClInclude Include="engine\camerawork\follow\FollowCamera.h" />
     <ClInclude Include="engine\effects\particle\module\ModulePriorities.h" />

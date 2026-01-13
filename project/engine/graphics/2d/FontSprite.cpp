@@ -256,6 +256,14 @@ void FontSprite::DrawTextInternal(const std::string& text, const Vector2& positi
     {
         char ch = text[i];
 
+        // 改行文字の処理
+        if (ch == '\n')
+        {
+            currentPos.x = position.x;
+            currentPos.y += cellSize_ * scale + lineSpacing_;
+            continue;
+        }
+
         // スペースは描画せずに位置だけ進める
         if (ch == ' ')
         {

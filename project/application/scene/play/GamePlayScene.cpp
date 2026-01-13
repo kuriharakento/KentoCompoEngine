@@ -119,6 +119,13 @@ void GamePlayScene::Initialize()
 
 	BulletTrailManager::GetInstance().Initialize();
 
+	controlsGuide_ = std::make_unique<ControlsGuide>();
+	controlsGuide_->Initialize(sceneManager_->GetSpriteCommon(), "luna");
+	controlsGuide_->SetText("WASD: Move\nShoot: Left Click\nDodge: Space\n");
+	controlsGuide_->SetPosition({ 30.0f, 30.0f });
+	controlsGuide_->SetScale(0.3f);
+	controlsGuide_->SetVisible(false);
+
 	StartState(SceneState::Enter);
 	gameClear_ = false;
 	gameOver_ = false;
@@ -215,6 +222,9 @@ void GamePlayScene::OnEnterPlaying()
 		43.0f,
 		&stageManager_->GetPlayer()->GetPosition()
 	);
+
+	// 操作ガイド表示
+	controlsGuide_->SetVisible(true);
 }
 
 void GamePlayScene::OnUpdatePlaying()
@@ -429,6 +439,8 @@ void GamePlayScene::Draw2D()
 	ComboManager::GetInstance().Draw();
 
 	cinematicLetterbox_.Draw();
+
+	controlsGuide_->Draw();
 
 	transitionEffect_.Draw();
 }
