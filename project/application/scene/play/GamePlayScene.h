@@ -28,6 +28,7 @@
 #include "camerawork/orbit/OrbitCameraWork.h"
 #include "application/ui/GameUI.h"
 #include "application/UI/Cursor.h"
+#include "application/UI/ControlsGuide.h"
 
 /**
  * @brief メインゲームプレイシーン
@@ -242,6 +243,9 @@ private: //メンバ変数
     bool gameClear_ = false;
     // ゲームオーバーフラグ
 	bool gameOver_ = false;
+
+	// 操作説明UI
+	std::unique_ptr<ControlsGuide> controlsGuide_;
 
 	// ========================
 	//  イントロ演出

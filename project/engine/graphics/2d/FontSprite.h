@@ -98,6 +98,12 @@ public:
     void SetSpacing(float spacing) { spacing_ = spacing; }
 
     /**
+     * @brief 行間スペースを設定
+     * @param lineSpacing 行間スペース
+     */
+    void SetLineSpacing(float lineSpacing) { lineSpacing_ = lineSpacing; }
+
+    /**
      * @brief 色を設定（全文字共通）
      * @param color 色（RGBA）
      */
@@ -140,6 +146,12 @@ public:
      * @return 現在の文字間スペース
      */
     float GetSpacing() const { return spacing_; }
+
+    /**
+     * @brief 行間スペースを取得
+     * @return 現在の行間スペース
+     */
+    float GetLineSpacing() const { return lineSpacing_; }
 
     /**
      * @brief 色を取得
@@ -212,6 +224,9 @@ private:
 
     // 文字間スペース
     float spacing_ = 0.0f;
+
+    // 行間スペース
+    float lineSpacing_ = 0.0f;
 
     // 色
     Vector4 color_ = { 1.0f, 1.0f, 1.0f, 1.0f };
