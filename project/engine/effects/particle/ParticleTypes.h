@@ -76,3 +76,22 @@ enum class FalloffType
 	Linear,         ///< 線形減衰（距離に比例）
 	InverseSquare   ///< 逆二乗減衰（物理的な重力・電磁力）
 };
+
+/**
+ * @brief エミッターのループ挙動
+ */
+enum class LoopBehavior
+{
+	Once,      ///< 1回だけ再生して停止
+	Infinite,  ///< 無限ループ
+	Multiple   ///< 指定回数ループ
+};
+
+/**
+ * @brief エミッター停止時の挙動
+ */
+enum class InactiveResponse
+{
+	Complete,  ///< 既存パーティクルは寿命まで残す
+	Kill       ///< 既存パーティクルも即座に削除
+};

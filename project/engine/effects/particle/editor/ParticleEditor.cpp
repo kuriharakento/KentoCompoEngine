@@ -709,6 +709,89 @@ void ParticleEditor::DrawEmitterPanel()
 				}
 				ImGui::SetItemTooltip("Minimum distance the emitter must move to spawn particles");
 			}
+
+			//===== ライフサイクル設定 =====//
+			ImGui::Separator();
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.9f, 0.4f, 1.0f));
+			ImGui::Text("Lifecycle");
+			ImGui::PopStyleColor();
+
+			// Duration
+			float duration = emitter->GetDuration();
+			if (ImGui::DragFloat("Duration", &duration, 0.1f, 0.0f, 100.0f))
+			{
+				emitter->SetDuration(duration);
+				// エディタ用: 設定変更時に停止中なら再開
+				if (!emitter->IsEmitting())
+				{
+					emitter->Reset();
+				}
+			}
+			ImGui::SetItemTooltip("Emitter lifetime in seconds (0 = infinite)");
+
+			// Start Delay
+			float startDelay = emitter->GetStartDelay();
+			if (ImGui::DragFloat("Start Delay", &startDelay, 0.1f, 0.0f, 10.0f))
+			{
+				emitter->SetStartDelay(startDelay);
+			}
+			ImGui::SetItemTooltip("Delay before particles start spawning");
+
+			// Loop Behavior
+			const char* loopBehaviors[] = { "Once", "Infinite", "Multiple" };
+			int loopBehavior = static_cast<int>(emitter->GetLoopBehavior());
+			if (ImGui::Combo("Loop Behavior", &loopBehavior, loopBehaviors, 3))
+			{
+				emitter->SetLoopBehavior(static_cast<LoopBehavior>(loopBehavior));
+				// エディタ用: 設定変更時に停止中なら再開
+				if (!emitter->IsEmitting())
+				{
+					emitter->Reset();
+				}
+			}
+			ImGui::SetItemTooltip("Once: Play once and stop. Infinite: Loop forever. Multiple: Loop N times.");
+
+			// Loop Count (Multipleのときのみ表示)
+			if (emitter->GetLoopBehavior() == LoopBehavior::Multiple)
+			{
+				int loopCount = emitter->GetLoopCount();
+				if (ImGui::InputInt("Loop Count", &loopCount))
+				{
+					emitter->SetLoopCount((std::max)(1, loopCount));
+					// エディタ用: 設定変更時に停止中なら再開
+					if (!emitter->IsEmitting())
+					{
+						emitter->Reset();
+					}
+				}
+			}
+
+			// Inactive Response
+			const char* inactiveResponses[] = { "Complete", "Kill" };
+			int inactiveResponse = static_cast<int>(emitter->GetInactiveResponse());
+			if (ImGui::Combo("When Inactive", &inactiveResponse, inactiveResponses, 2))
+			{
+				emitter->SetInactiveResponse(static_cast<InactiveResponse>(inactiveResponse));
+			}
+			ImGui::SetItemTooltip("Complete: Let particles finish. Kill: Remove immediately.");
+
+			// 状態表示 + リセットボタン
+			ImGui::Separator();
+			ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Age: %.2f s", emitter->GetEmitterAge());
+			ImGui::SameLine();
+			ImGui::TextColored(
+				emitter->IsEmitting() ? ImVec4(0.4f, 1.0f, 0.4f, 1.0f) : ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
+				"Emitting: %s", emitter->IsEmitting() ? "Yes" : "No");
+			
+			// 手動リセットボタン（停止中のみ表示）
+			if (!emitter->IsEmitting())
+			{
+				ImGui::SameLine();
+				if (ImGui::SmallButton("Restart"))
+				{
+					emitter->Reset();
+				}
+			}
 		}
 	}
 }

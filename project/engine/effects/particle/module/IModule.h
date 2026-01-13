@@ -45,4 +45,12 @@ public:
 	 * @brief 実行優先度を取得（小さいほど先に実行）
 	 */
 	virtual int32_t GetPriority() const { return 0; }
+
+	/**
+	 * @brief モジュールの状態をリセット
+	 * 
+	 * エミッターのReset/Play時に呼ばれる。
+	 * 内部タイマーやフラグをリセットする。
+	 */
+	virtual void Reset() {}
 };

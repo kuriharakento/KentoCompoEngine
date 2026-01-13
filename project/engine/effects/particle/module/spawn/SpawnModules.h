@@ -61,6 +61,14 @@ public:
 	 */
 	float GetRate() const { return spawnRate_; }
 
+	/**
+	 * @brief 内部状態をリセット
+	 */
+	void Reset() override
+	{
+		timeSinceLastSpawn_ = 0.0f;
+	}
+
 private:
 	float spawnRate_ = kDefaultSpawnRate;
 	float timeSinceLastSpawn_ = 0.0f;
@@ -90,24 +98,37 @@ public:
 	 */
 	void Execute(ParticleContext& context) override
 	{
-		// 初回または繰り返し設定時
-		if (!hasFired_ || (loops_ != 0 && burstInterval_ > 0.0f && (loops_ < 0 || currentLoop_ < loops_)))
-		{
-			timeSinceLastBurst_ += context.deltaTime;
+		timeSinceLastBurst_ += context.deltaTime;
 
-			if (!hasFired_ || timeSinceLastBurst_ >= burstInterval_)
+		// 初回バーストの遅延チェック
+		if (!hasFired_ && timeSinceLastBurst_ < delay_)
+		{
+			return;
+		}
+
+		// ループ終了チェック
+		if (hasFired_ && loops_ >= 0 && currentLoop_ >= loops_)
+		{
+			return;
+		}
+
+		// バースト間隔チェック（初回 or インターバル経過）
+		bool shouldBurst = !hasFired_ || 
+			(burstInterval_ > 0.0f && timeSinceLastBurst_ >= burstInterval_);
+
+		if (shouldBurst)
+		{
+			for (uint32_t i = 0; i < burstCount_; ++i)
 			{
-				for (uint32_t i = 0; i < burstCount_; ++i)
-				{
-					Particle particle;
-					particle.position = context.emitterPosition;
-					particle.SetAlive(true);
-					context.particles->push_back(particle);
-					context.spawnCount++;
-				}
-				timeSinceLastBurst_ = 0.0f;
-				hasFired_ = true;
+				Particle particle;
+				particle.position = context.emitterPosition;
+				particle.SetAlive(true);
+				context.particles->push_back(particle);
+				context.spawnCount++;
 			}
+			timeSinceLastBurst_ = 0.0f;
+			hasFired_ = true;
+			currentLoop_++;
 		}
 	}
 
