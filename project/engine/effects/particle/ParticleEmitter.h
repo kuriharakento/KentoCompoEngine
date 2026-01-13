@@ -81,9 +81,39 @@ public:
 	// Play/Stop制御
 	void SetEnabled(bool enabled) { enabled_ = enabled; }
 	bool IsEnabled() const { return enabled_; }
-	void Play() { enabled_ = true; }
-	void Stop() { enabled_ = false; }
+	void Play();
+	void Stop();
+	void Pause();
+	void Resume();
+	void Reset();
 	void ClearParticles() { particles_.clear(); }
+
+	//===== ライフサイクル設定 =====//
+
+	// Duration: エミッター持続時間（0 = 無限）
+	void SetDuration(float duration) { duration_ = duration; }
+	float GetDuration() const { return duration_; }
+
+	// StartDelay: 開始遅延
+	void SetStartDelay(float delay) { startDelay_ = delay; }
+	float GetStartDelay() const { return startDelay_; }
+
+	// LoopBehavior: ループ挙動
+	void SetLoopBehavior(LoopBehavior behavior) { loopBehavior_ = behavior; }
+	LoopBehavior GetLoopBehavior() const { return loopBehavior_; }
+
+	// LoopCount: Multiple時のループ回数
+	void SetLoopCount(int count) { loopCount_ = count; }
+	int GetLoopCount() const { return loopCount_; }
+
+	// InactiveResponse: 停止時の挙動
+	void SetInactiveResponse(InactiveResponse response) { inactiveResponse_ = response; }
+	InactiveResponse GetInactiveResponse() const { return inactiveResponse_; }
+
+	// 状態取得
+	float GetEmitterAge() const { return emitterAge_; }
+	bool IsEmitting() const { return isEmitting_; }
+	bool IsComplete() const;
 
 	// 移動時のみパーティクル生成
 	void SetSpawnOnlyWhenMoving(bool enable) { spawnOnlyWhenMoving_ = enable; }
@@ -179,6 +209,20 @@ private:
 	uint32_t nextParticleId_ = 0;                   ///< 次に生成するパーティクルのID
 	bool modulesSorted_ = false;                    ///< モジュールが優先度順にソート済みか
 	bool enabled_ = true;                           ///< エミッター有効フラグ
+
+	//===== ライフサイクル設定 =====//
+	float duration_ = 0.0f;                         ///< 持続時間（0 = 無限）
+	float startDelay_ = 0.0f;                       ///< 開始遅延
+	LoopBehavior loopBehavior_ = LoopBehavior::Infinite;  ///< ループ挙動
+	int loopCount_ = 1;                             ///< Multiple時のループ回数
+	InactiveResponse inactiveResponse_ = InactiveResponse::Complete;  ///< 停止時挙動
+
+	//===== ライフサイクル状態 =====//
+	float emitterAge_ = 0.0f;                       ///< エミッター経過時間
+	int currentLoopCount_ = 0;                      ///< 現在のループ回数
+	bool isEmitting_ = true;                        ///< パーティクル生成中か
+	bool delayElapsed_ = false;                     ///< 遅延経過済みか
+	bool isPaused_ = false;                         ///< 一時停止中か
 
 	//===== 移動検出 =====//
 	bool spawnOnlyWhenMoving_ = false;              ///< 移動時のみパーティクル生成するか

@@ -152,6 +152,13 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 	emitter->SetSpawnOnlyWhenMoving(data.value("spawnOnlyWhenMoving", false));
 	emitter->SetMinMoveDistance(data.value("minMoveDistance", 0.05f));
 
+	// ライフサイクル設定
+	emitter->SetDuration(data.value("duration", 0.0f));
+	emitter->SetStartDelay(data.value("startDelay", 0.0f));
+	emitter->SetLoopBehavior(static_cast<LoopBehavior>(data.value("loopBehavior", 1))); // default: Infinite
+	emitter->SetLoopCount(data.value("loopCount", 1));
+	emitter->SetInactiveResponse(static_cast<InactiveResponse>(data.value("inactiveResponse", 0))); // default: Complete
+
 	// モジュール
 	if (data.contains("modules") && data["modules"].is_array())
 	{
@@ -807,6 +814,13 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 	// 移動時のみ生成
 	data["spawnOnlyWhenMoving"] = emitter.GetSpawnOnlyWhenMoving();
 	data["minMoveDistance"] = emitter.GetMinMoveDistance();
+
+	// ライフサイクル設定
+	data["duration"] = emitter.GetDuration();
+	data["startDelay"] = emitter.GetStartDelay();
+	data["loopBehavior"] = static_cast<int>(emitter.GetLoopBehavior());
+	data["loopCount"] = emitter.GetLoopCount();
+	data["inactiveResponse"] = static_cast<int>(emitter.GetInactiveResponse());
 
 	// モジュール
 	data["modules"] = json::array();

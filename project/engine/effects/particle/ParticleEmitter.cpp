@@ -103,6 +103,56 @@ void ParticleEmitter::SpawnParticle(const Particle& particle)
 	}
 }
 
+void ParticleEmitter::Play()
+{
+	Reset();
+	enabled_ = true;
+	isPaused_ = false;
+	isEmitting_ = true;
+}
+
+void ParticleEmitter::Stop()
+{
+	isEmitting_ = false;
+
+	if (inactiveResponse_ == InactiveResponse::Kill)
+	{
+		particles_.clear();
+	}
+}
+
+void ParticleEmitter::Pause()
+{
+	isPaused_ = true;
+}
+
+void ParticleEmitter::Resume()
+{
+	isPaused_ = false;
+}
+
+void ParticleEmitter::Reset()
+{
+	particles_.clear();
+	emitterAge_ = 0.0f;
+	currentLoopCount_ = 0;
+	isEmitting_ = true;
+	delayElapsed_ = false;
+	isPaused_ = false;
+	hasPreviousPosition_ = false;
+
+	// 全モジュールをリセット
+	for (auto& module : modules_)
+	{
+		module->Reset();
+	}
+}
+
+bool ParticleEmitter::IsComplete() const
+{
+	return !isEmitting_ && particles_.empty();
+}
+
 void ParticleEmitter::RemoveModule(size_t index)
 {
 	if (index < modules_.size())
@@ -150,41 +200,102 @@ void ParticleEmitter::SortModulesByPriority()
 
 void ParticleEmitter::UpdateCPU(float deltaTime)
 {
+	// 一時停止中は何もしない
+	if (isPaused_) return;
+
 	// モジュールをソート（必要な場合のみ）
 	SortModulesByPriority();
 
-	ParticleContext context;
-	context.particles = &particles_;
-	context.deltaTime = deltaTime;
-	context.emitterPosition = position_;
-	context.followTarget = followTarget_;
-	context.spawnCount = 0;
+	//===== ライフサイクル管理 =====//
 
-	// 移動検出
-	bool isMoving = true;
-	if (spawnOnlyWhenMoving_)
+	// 遅延チェック
+	if (!delayElapsed_)
 	{
-		if (hasPreviousPosition_)
+		emitterAge_ += deltaTime;
+		if (emitterAge_ < startDelay_)
 		{
-			float dx = position_.x - previousPosition_.x;
-			float dy = position_.y - previousPosition_.y;
-			float dz = position_.z - previousPosition_.z;
-			float distance = std::sqrt(dx * dx + dy * dy + dz * dz);
-			isMoving = distance >= minMoveDistance_;
+			// 遅延中はパーティクルの更新のみ（生成しない）
+			goto update_particles;
 		}
-		previousPosition_ = position_;
-		hasPreviousPosition_ = true;
+		delayElapsed_ = true;
+		emitterAge_ = 0.0f; // Duration計測開始
 	}
 
-	// Spawnフェーズのモジュールを実行（有効時かつ移動時のみ）
-	if (enabled_ && isMoving)
+	// Duration チェック（duration_ > 0 のときのみ）
+	if (isEmitting_ && duration_ > 0.0f)
 	{
-		ExecuteSpawnModules(context);
+		emitterAge_ += deltaTime;
+
+		if (emitterAge_ >= duration_)
+		{
+			// ループ処理
+			if (loopBehavior_ == LoopBehavior::Infinite)
+			{
+				emitterAge_ = 0.0f;  // ループ継続
+				for (auto& module : modules_)
+				{
+					module->Reset();
+				}
+			}
+			else if (loopBehavior_ == LoopBehavior::Multiple)
+			{
+				currentLoopCount_++;
+				if (currentLoopCount_ < loopCount_)
+				{
+					emitterAge_ = 0.0f;  // 次のループ
+					for (auto& module : modules_)
+					{
+						module->Reset();
+					}
+				}
+				else
+				{
+					isEmitting_ = false;  // 生成終了
+				}
+			}
+			else // Once
+			{
+				isEmitting_ = false;  // 生成終了
+			}
+		}
+	}
+	// duration_ == 0 の場合は無限なのでemitterAge_を更新しない
+
+	{
+		ParticleContext context;
+		context.particles = &particles_;
+		context.deltaTime = deltaTime;
+		context.emitterPosition = position_;
+		context.followTarget = followTarget_;
+		context.spawnCount = 0;
+
+		// 移動検出
+		bool isMoving = true;
+		if (spawnOnlyWhenMoving_)
+		{
+			if (hasPreviousPosition_)
+			{
+				float dx = position_.x - previousPosition_.x;
+				float dy = position_.y - previousPosition_.y;
+				float dz = position_.z - previousPosition_.z;
+				float distance = std::sqrt(dx * dx + dy * dy + dz * dz);
+				isMoving = distance >= minMoveDistance_;
+			}
+			previousPosition_ = position_;
+			hasPreviousPosition_ = true;
+		}
+
+		// Spawnフェーズのモジュールを実行（有効 && 生成中 && 移動時）
+		if (enabled_ && isEmitting_ && isMoving)
+		{
+			ExecuteSpawnModules(context);
+		}
+
+		// Updateフェーズのモジュールを実行
+		ExecuteUpdateModules(context);
 	}
 
-	// Updateフェーズのモジュールを実行
-	ExecuteUpdateModules(context);
-
+update_particles:
 	// 基本的な物理更新
 	for (auto& particle : particles_)
 	{
