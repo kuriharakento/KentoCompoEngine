@@ -1,5 +1,6 @@
 #pragma once
 #include <d3d12.h>
+#include <filesystem>
 #include <string>
 #include <wrl.h>
 #include <unordered_map>
@@ -63,21 +64,21 @@ public: // アクセッサ
 	 * @param filePath テクスチャファイルパス
 	 * @return テクスチャのメタデータ
 	 */
-	const DirectX::TexMetadata& GetMetadata(const std::string& filePath) { return textureDatas_[filePath].metadata; }
+	const DirectX::TexMetadata& GetMetadata(const std::string& filePath) { return textureDatas_[NormalizePath(filePath)].metadata; }
 
 	/**
 	 * @brief SRVインデックスを取得
 	 * @param filePath テクスチャファイルパス
 	 * @return SRVインデックス
 	 */
-	uint32_t GetSRVIndex(const std::string& filePath) { return textureDatas_[filePath].srvIndex; }
+	uint32_t GetSRVIndex(const std::string& filePath) { return textureDatas_[NormalizePath(filePath)].srvIndex; }
 
 	/**
 	 * @brief GPU側のディスクリプタハンドルを取得
 	 * @param filePath テクスチャファイルパス
 	 * @return GPUディスクリプタハンドル
 	 */
-	D3D12_GPU_DESCRIPTOR_HANDLE GetSrvHandleGPU(const std::string& filePath) { return textureDatas_[filePath].srvHandleGPU; }
+	D3D12_GPU_DESCRIPTOR_HANDLE GetSrvHandleGPU(const std::string& filePath) { return textureDatas_[NormalizePath(filePath)].srvHandleGPU; }
 
 	/**
 	 * @brief インデックスからGPU側のディスクリプタハンドルを取得
@@ -91,7 +92,8 @@ public: // アクセッサ
 	 * @param filePath テクスチャファイルパス
 	 * @return CPUディスクリプタハンドル
 	 */
-	D3D12_CPU_DESCRIPTOR_HANDLE GetSrvHandleCPU(const std::string& filePath) { return textureDatas_[filePath].srvHandleCPU; }
+	D3D12_CPU_DESCRIPTOR_HANDLE GetSrvHandleCPU(const std::string& filePath) { return textureDatas_[NormalizePath(filePath)].srvHandleCPU; }
+
 
 	/**
 	 * @brief インデックスからCPU側のディスクリプタハンドルを取得
@@ -138,6 +140,14 @@ private: // 構造体
 
 private: // メンバ関数
 	
+	/**
+	 * @brief パスを正規化する
+	 * @param filePath 正規化対象のファイルパス
+	 * @return 正規化されたパス（小文字、スラッシュ区切り）
+	 * @details 相対パスを整理し、スラッシュ区切り・小文字に統一する
+	 */
+	std::string NormalizePath(const std::string& filePath) const;
+
 	/**
 	 * @brief テクスチャリソースの転送
 	 * @param texture テクスチャリソース

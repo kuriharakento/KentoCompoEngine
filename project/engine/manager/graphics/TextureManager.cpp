@@ -1,5 +1,7 @@
 #include "TextureManager.h"
 
+#include <algorithm>
+
 // system
 #include "base/StringUtility.h"
 #include "externals/DirectXTex/d3dx12.h"
@@ -39,8 +41,11 @@ void TextureManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)
 
 void TextureManager::LoadTexture(const std::string& filePath)
 {
+	// パスを正規化（重複読み込み防止用）
+	std::string normalizedPath = NormalizePath(filePath);
+
 	/*--------------[ 読み込み済みテクスチャを検索 ]-----------------*/
-	if (textureDatas_.contains(filePath))
+	if (textureDatas_.contains(normalizedPath))
 	{
 		// 読み込み済みなら何もしない
 		return;
@@ -52,6 +57,7 @@ void TextureManager::LoadTexture(const std::string& filePath)
 	/*--------------[ テクスチャファイルを読み込み ]-----------------*/
 
 	DirectX::ScratchImage image{};
+	// ファイル読み込みには元のパスを使用
 	std::wstring filePathW = StringUtility::ConvertString(filePath);
 	HRESULT hr;
 
@@ -102,8 +108,8 @@ void TextureManager::LoadTexture(const std::string& filePath)
 
 	/*--------------[ テクスチャデータを追加 ]-----------------*/
 
-	// 追加したテクスチャデータの参照を取得
-	TextureData& textureData = textureDatas_[filePath];
+	// 正規化パスをキーにしてテクスチャデータを登録
+	TextureData& textureData = textureDatas_[normalizedPath];
 
 	/*--------------[ テクスチャデータの書き込み ]-----------------*/
 
@@ -140,15 +146,17 @@ void TextureManager::LoadTexture(const std::string& filePath)
 
 	/*--------------[ インデックス管理用マッピング ]-----------------*/
 
-	filePathToIndex_[filePath] = textureData.srvIndex;
-	indexToFilePath_[textureData.srvIndex] = filePath;
+	filePathToIndex_[normalizedPath] = textureData.srvIndex;
+	indexToFilePath_[textureData.srvIndex] = normalizedPath;
 }
 
 uint32_t TextureManager::GetTextureIndexByFilePath(const std::string& filePath)
 {
+	// パスを正規化
+	std::string normalizedPath = NormalizePath(filePath);
 	// ファイルパスが登録されているか確認
-	assert(filePathToIndex_.contains(filePath));
-	return filePathToIndex_[filePath];
+	assert(filePathToIndex_.contains(normalizedPath));
+	return filePathToIndex_[normalizedPath];
 }
 
 const DirectX::TexMetadata& TextureManager::GetMetadata(uint32_t textureIndex)
@@ -186,4 +194,20 @@ Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::UploadTextureData(Microso
 	dxCommon_->GetCommandList()->ResourceBarrier(1, &barrier);
 
 	return intermediateResource;
+}
+
+std::string TextureManager::NormalizePath(const std::string& filePath) const
+{
+	// 相対パスを正規化（./ や ../ を解決）
+	std::filesystem::path p(filePath);
+	std::filesystem::path normalized = p.lexically_normal();
+
+	// スラッシュ区切りに統一
+	std::string result = normalized.generic_string();
+
+	// 小文字に変換（Windows用: 大文字小文字を同一視）
+	std::transform(result.begin(), result.end(), result.begin(),
+		[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+	return result;
 }
