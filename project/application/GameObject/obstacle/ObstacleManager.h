@@ -34,6 +34,7 @@ public:
 private:
 	void CreateObstacle(const GameObjectInfo& info);
 	void CreateBarrierBlock(const GameObjectInfo& info);
+	void CreateFloor(const GameObjectInfo& info);  // コライダーなしの床
 	void SyncNewObstacleData();
 
 private:

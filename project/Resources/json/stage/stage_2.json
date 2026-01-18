@@ -1658,6 +1658,29 @@
                 ]
             },
             "disabled": false
+        },
+        {
+            "type": "Floor",
+            "name": "PrototypeObstacle__road__road.001",
+            "transform": {
+                "translation": [
+                    0.0,
+                    1.0,
+                    0.0
+                ],
+                "rotation": [
+                    -0.0,
+                    -0.0,
+                    0.0
+                ],
+                "scaling": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "fileName": "street",
+            "disabled": false
         }
     ]
 }

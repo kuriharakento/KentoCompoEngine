@@ -77,7 +77,7 @@ void StageManager::Update()
 	std::vector< GameObjectInfo> obstacleInfos;
 	for (const auto& data : stageData_->gameObjects)
 	{
-		if (data.type == "Obstacle" || data.type == "BarrierBlock")
+		if (data.type == "Obstacle" || data.type == "BarrierBlock" || data.type == "Floor")
 		{
 			obstacleInfos.push_back(data);
 		}
@@ -207,7 +207,7 @@ void StageManager::LoadStage(const std::string& stageName)
 	// 既存のゲームオブジェクトをクリア
 	player_.reset();              // プレイヤーは1体のみなのでリセット
 	enemyManager_->Clear();       // 敵を全削除
-	obstacleManager_->Clear();    // 障害物を全削除
+	obstacleManager_->Clear();    // 障害物と床を全削除
 
 	// ステージデータ（固定オブジェクト配置）をロード
 	stageData_->LoadJson(dirpath + json);
@@ -233,6 +233,13 @@ void StageManager::CreateInfosFromStageData()
 	std::vector<GameObjectInfo> obstacleInfos;
 
 	// ステージデータの各オブジェクトをタイプごとに分類
+#ifdef _DEBUG
+	OutputDebugStringA(("stageData_ gameObjects count: " + std::to_string(stageData_->gameObjects.size()) + "\n").c_str());
+	for (const auto& obj : stageData_->gameObjects)
+	{
+		OutputDebugStringA(("  type=" + obj.type + " name=" + obj.name + "\n").c_str());
+	}
+#endif
 	for(const auto& objInfo : stageData_->gameObjects)
 	{
 		// 無効化されているオブジェクトはスキップ
@@ -262,9 +269,9 @@ void StageManager::CreateInfosFromStageData()
 			// 敵のスポーン処理
 			// 注: 現在は未使用（敵はウェーブ管理システムで生成される）
 		}
-		else if (objInfo.type == "Obstacle" || objInfo.type == "BarrierBlock")
+		else if (objInfo.type == "Obstacle" || objInfo.type == "BarrierBlock" || objInfo.type == "Floor")
 		{
-			// 障害物の情報を収集
+			// 障害物・床の情報を収集（Floorはコライダーなしで生成される）
 			obstacleInfos.push_back(objInfo);
 		}
 	}

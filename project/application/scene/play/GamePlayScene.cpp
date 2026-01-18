@@ -45,6 +45,7 @@ void GamePlayScene::Initialize()
 	skydome_->SetEnableLighting(true);
 	skydome_->SetDirectionalLightIntensity(0.5f);
 	skydome_->SetDirectionalLightDirection({ 0.0f, -1.0f, 0.0f });
+	skydome_->SetScale({ 0.5f, 0.5f, 0.5f });
 	RegisterObject(skydome_.get());
 
 	// UVスケールで地形テクスチャをタイル状に繰り返し
@@ -54,7 +55,7 @@ void GamePlayScene::Initialize()
 	ground_->SetLightManager(sceneManager_->GetLightManager());
 	ground_->SetEnableLighting(true);
 	ground_->GetModel()->SetUVScale(Vector3(10.0f, 10.0f, 1.0f));
-	RegisterObject(ground_.get());
+	//RegisterObject(ground_.get());
 
 	CollisionManager::GetInstance()->Initialize();
 

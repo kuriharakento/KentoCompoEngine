@@ -33,6 +33,26 @@ bool JsonEditableBase::LoadJson(const std::string& path)
 	nlohmann::json json;
 	ifs >> json;
 
+#ifdef _DEBUG
+	// デバッグ: 読み込んだファイルパスとobjects配列サイズ
+	Logger::Log("LoadJson path: " + fullPath + "\n");
+	if (json.contains("objects"))
+	{
+		if (json["objects"].is_array())
+		{
+			Logger::Log("Raw JSON 'objects' count: " + std::to_string(json["objects"].size()) + "\n");
+		}
+		else
+		{
+			Logger::Log("'objects' is not an array\n");
+		}
+	}
+	else
+	{
+		Logger::Log("No 'objects' key in JSON\n");
+	}
+#endif
+
     // 登録済みsetterのみ値をセット
     for (const auto& [key, setter] : setters_)
     {

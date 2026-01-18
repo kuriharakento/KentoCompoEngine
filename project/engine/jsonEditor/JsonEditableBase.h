@@ -116,8 +116,13 @@ void JsonEditableBase::Register(const std::string& name, T* value)
 	getters_[name] = [value]() {
 		return nlohmann::json(*value);
 		};
-	setters_[name] = [value](const nlohmann::json& j) {
-		j.get_to(*value);
+	setters_[name] = [value, name](const nlohmann::json& j) {
+		try {
+			j.get_to(*value);
+		}
+		catch (const std::exception& e) {
+			Logger::Log("JSON parse error for key '" + name + "': " + std::string(e.what()) + "\n");
+		}
 		};
 
 	// --- ImGui 描画関数登録 ---

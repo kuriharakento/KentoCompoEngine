@@ -130,6 +130,10 @@ void ObstacleManager::CreateObstacles()
 		{
 			CreateBarrierBlock(obstacle);
 		}
+		else if (obstacle.type == "Floor")
+		{
+			CreateFloor(obstacle);
+		}
 		else // デフォルトは通常の障害物
 		{
 			CreateObstacle(obstacle);
@@ -218,9 +222,25 @@ void ObstacleManager::SyncNewObstacleData()
 		{
 			if (info.type == "BarrierBlock")
 				CreateBarrierBlock(info);
+			else if (info.type == "Floor")
+				CreateFloor(info);
 			else
 				CreateObstacle(info);
 		}
 	}
+}
+
+void ObstacleManager::CreateFloor(const GameObjectInfo& info)
+{
+	// コライダーなしの床オブジェクト（GameObjectを直接使う）
+	auto floor = std::make_unique<Obstacle>(GameObjectTag::Item::Floor);
+	// Obstacle::Initializeではなく、GameObject::Initializeを呼ぶことでコライダーを追加しない
+	floor->GameObject::Initialize(object3dCommon_, lightManager_);
+	floor->SetModel(info.fileName);
+	floor->SetPosition(info.transform.translate);
+	floor->SetRotation(info.transform.rotate);
+	floor->SetScale(info.transform.scale);
+	floor->SetName(info.name);
+	obstacles_.push_back(std::move(floor));
 }
 
