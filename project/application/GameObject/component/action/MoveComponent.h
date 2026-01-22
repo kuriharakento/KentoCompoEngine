@@ -1,5 +1,4 @@
 #pragma once
-#include "application/effect/DodgeEffectParticle.h"
 #include "application/GameObject/component/base/IActionComponent.h"
 #include "math/Vector3.h"
 #include "input/Input.h"
@@ -189,8 +188,7 @@ private:
     // 残像間隔
     float effectInterval_ = kEffectInterval;
 
-    // 回避エフェクトパーティクル
-    std::unique_ptr<DodgeEffectParticle> dodgeEffect_;
+
     // 回避の最初のフレームか
     bool isFirstDodgeFrame_ = false;
     // エフェクト再生済みか

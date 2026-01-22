@@ -3,7 +3,6 @@
 #include <functional>
 #include "WaveManager.h"
 #include "application/GameObject/base/GameObject.h"
-#include "application/effect/AreaEffect.h"
 
 class EnemyManager;
 

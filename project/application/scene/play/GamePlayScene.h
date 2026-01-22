@@ -20,7 +20,6 @@
 // effects
 #include "application/carnage/CarnageMode.h"
 #include "application/effect/CinematicLetterbox.h"
-#include "application/effect/PlayerDeathEffect.h"
 #include "application/effect/SceneTransitionEffect.h"
 #include "application/minimap/Minimap.h"
 #include "effects/particle/ParticleEmitter.h"
@@ -232,8 +231,6 @@ private: //メンバ変数
     SceneTransitionEffect transitionEffect_;
     // レターボックスエフェクト（映画的演出）
 	CinematicLetterbox cinematicLetterbox_;
-    // プレイヤー死亡時の画面エフェクト
-	PlayerDeathEffect playerDeathEffect_;
     // ゲームオーバー演出の持続時間（秒）
     float gameOverEffectDuration_ = 3.0f;
     // ゲームオーバー演出の経過時間（秒）

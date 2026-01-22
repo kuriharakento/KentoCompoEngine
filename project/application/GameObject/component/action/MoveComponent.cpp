@@ -13,13 +13,9 @@
 #include "time/Timer.h"
 #include "time/TimerManager.h"
 
-// コンストラクタ：回避エフェクトとマネージャーの初期化
+// コンストラクタ：マネージャーの初期化
 MoveComponent::MoveComponent(EnemyManager* enemyManager, CameraManager* camera)
 {
-    // 回避エフェクトの初期化
-    dodgeEffect_ = std::make_unique<DodgeEffectParticle>();
-    dodgeEffect_->Initialize();
-
     // 敵マネージャーのポインタを保存
     enemyManager_ = enemyManager;
 	// カメラのポインタを保存
@@ -93,12 +89,9 @@ void MoveComponent::Update(GameObject* owner)
             }
         }
 
-        // 回避終了処理
+        // 回避終了時の処理
         if (dodgeTimer_ <= 0.0f)
         {
-            // 回避終了時のエフェクト
-            dodgeEffect_->PlayFadeOutEffect(owner->GetPosition());
-
             // 状態をリセット
             dodgeTimer_ = 0.0f;
             isDodging_ = false;
@@ -297,9 +290,6 @@ void MoveComponent::ProcessDodge(GameObject* owner)
         dodgeTimer_ = dodgeDuration_;
         invincibleTimer_ = dodgeInvincibleTime_;
         effectTimer_ = 0.0f;
-
-        // 回避開始エフェクト
-        PlayDodgeEffect(owner);
     }
     else
     {
@@ -310,15 +300,7 @@ void MoveComponent::ProcessDodge(GameObject* owner)
 // 回避エフェクトを再生
 void MoveComponent::PlayDodgeEffect(GameObject* owner)
 {
-    // 回避の始まりで一度だけ実行されるエフェクト
-    if (isFirstDodgeFrame_ && !wasEffectPlayed_)
-    {
-        dodgeEffect_->PlayEffect(owner->GetPosition(), dodgeDirection_);
-        wasEffectPlayed_ = true;
-    }
-
-    // 残像エフェクトを生成
-    dodgeEffect_->CreateAfterImage(owner->GetPosition(), owner->GetRotation());
+    // TODO: JSONベースのパーティクルエフェクトに置き換える
 }
 
 // 移動方向を取得

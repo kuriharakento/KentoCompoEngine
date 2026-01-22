@@ -109,15 +109,6 @@
     <ClCompile Include="application\animation\Slide.cpp">
       <Filter>application\animation</Filter>
     </ClCompile>
-    <ClCompile Include="application\effect\AssaultRifleHitEffect.cpp">
-      <Filter>application\effect</Filter>
-    </ClCompile>
-    <ClCompile Include="application\effect\DodgeEffectParticle.cpp">
-      <Filter>application\effect</Filter>
-    </ClCompile>
-    <ClCompile Include="application\effect\EnemyDeathEffect.cpp">
-      <Filter>application\effect</Filter>
-    </ClCompile>
     <ClCompile Include="application\scene\play\TitleScene.cpp">
       <Filter>application\scene</Filter>
     </ClCompile>
@@ -382,12 +373,6 @@
     <ClCompile Include="application\carnage\CarnageMode.cpp">
       <Filter>application\carnage</Filter>
     </ClCompile>
-    <ClCompile Include="application\effect\TitleFireEffect.cpp">
-      <Filter>application\effect</Filter>
-    </ClCompile>
-    <ClCompile Include="application\effect\CarnageModeEffect.cpp">
-      <Filter>application\effect</Filter>
-    </ClCompile>
     <ClCompile Include="application\effect\SceneTransitionEffect.cpp">
       <Filter>application\effect</Filter>
     </ClCompile>
@@ -399,9 +384,6 @@
     </ClCompile>
     <ClCompile Include="application\scene\play\GameOverScene.cpp">
       <Filter>application\scene</Filter>
-    </ClCompile>
-    <ClCompile Include="application\effect\AreaEffect.cpp">
-      <Filter>application\effect</Filter>
     </ClCompile>
     <ClCompile Include="engine\graphics\2d\FontSprite.cpp">
       <Filter>engine\graphics\2d</Filter>
@@ -460,9 +442,6 @@
     <ClCompile Include="engine\effects\particle\gpu\GPUSimulator.cpp">
       <Filter>engine\effects\particle\gpu</Filter>
     </ClCompile>
-    <ClCompile Include="application\effect\PlayerDeathEffect.cpp">
-      <Filter>application\effect</Filter>
-    </ClCompile>
     <ClCompile Include="engine\effects\particle\ParticleEffect.cpp">
       <Filter>engine\effects\particle</Filter>
     </ClCompile>
@@ -489,6 +468,7 @@
     </ClCompile>
     <ClCompile Include="engine\effects\particle\module\spawn\SubEmitterModule.cpp" />
     <ClCompile Include="application\GameObject\component\action\WeaponManagerComponent.cpp" />
+    <ClCompile Include="application\UI\ControlsGuide.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\GameObject\base\GameObject.h">
@@ -583,15 +563,6 @@
     </ClInclude>
     <ClInclude Include="application\GameObject\combatable\weapon\Bullet.h">
       <Filter>application\GameObject\combatable\weapon</Filter>
-    </ClInclude>
-    <ClInclude Include="application\effect\AssaultRifleHitEffect.h">
-      <Filter>application\effect</Filter>
-    </ClInclude>
-    <ClInclude Include="application\effect\DodgeEffectParticle.h">
-      <Filter>application\effect</Filter>
-    </ClInclude>
-    <ClInclude Include="application\effect\EnemyDeathEffect.h">
-      <Filter>application\effect</Filter>
     </ClInclude>
     <ClInclude Include="application\scene\debug\StageEditScene.h">
       <Filter>application\scene</Filter>
@@ -929,12 +900,6 @@
     <ClInclude Include="application\carnage\CarnageMode.h">
       <Filter>application\carnage</Filter>
     </ClInclude>
-    <ClInclude Include="application\effect\TitleFireEffect.h">
-      <Filter>application\effect</Filter>
-    </ClInclude>
-    <ClInclude Include="application\effect\CarnageModeEffect.h">
-      <Filter>application\effect</Filter>
-    </ClInclude>
     <ClInclude Include="application\effect\SceneTransitionEffect.h">
       <Filter>application\effect</Filter>
     </ClInclude>
@@ -947,14 +912,8 @@
     <ClInclude Include="application\scene\play\GameOverScene.h">
       <Filter>application\scene</Filter>
     </ClInclude>
-    <ClInclude Include="application\effect\PlayerDeathEffect.h">
-      <Filter>application\effect</Filter>
-    </ClInclude>
     <ClInclude Include="engine\scene\factory\SceneNames.h">
       <Filter>engine\scene\factory</Filter>
-    </ClInclude>
-    <ClInclude Include="application\effect\AreaEffect.h">
-      <Filter>application\effect</Filter>
     </ClInclude>
     <ClInclude Include="engine\graphics\2d\FontSprite.h">
       <Filter>engine\graphics\2d</Filter>
@@ -1100,6 +1059,7 @@
     <ClInclude Include="application\GameObject\component\action\IWeaponComponent.h" />
     <ClInclude Include="application\GameObject\component\action\WeaponManagerComponent.h" />
     <ClInclude Include="application\GameObject\Combatable\character\enemy\base\EnemyBase.h" />
+    <ClInclude Include="application\UI\ControlsGuide.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">
