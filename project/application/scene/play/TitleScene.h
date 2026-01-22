@@ -20,7 +20,6 @@
 // effects
 #include "application/carnage/CarnageMode.h"
 #include "application/effect/SceneTransitionEffect.h"
-#include "application/effect/TitleFireEffect.h"
 #include "application/minimap/Minimap.h"
 #include "effects/particle/ParticleEmitter.h"
 #include "graphics/2d/NumberSprite.h"
@@ -126,8 +125,6 @@ private: //メンバ変数
 	std::unique_ptr<Sprite> titleLogo_;
 	// スカイドーム（背景天球）
 	std::unique_ptr<Object3d> skydome_;
-	// 炎エフェクト（タイトル演出用）
-	std::unique_ptr<TitleFireEffect> fireEffect_;
 	// 装飾用キューブ
 	OBB cube_{};
 	// キューブのY軸回転角度

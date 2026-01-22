@@ -1,7 +1,6 @@
 #pragma once
 #include <memory>
 
-#include "application/effect/CarnageModeEffect.h"
 #include "time/Timer.h"
 
 class Player;
@@ -120,8 +119,7 @@ private: // メンバ関数
 private: // メンバ変数
     // 対象プレイヤーへのポインタ（非所有）
     Player* player_;
-    // カーネージモード専用ビジュアルエフェクト
-	std::unique_ptr<CarnageModeEffect> effect_;
+
     // カーネージモード持続時間管理タイマー
     std::unique_ptr<Timer> timer_;
 

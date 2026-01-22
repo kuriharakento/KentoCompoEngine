@@ -102,10 +102,6 @@ void GamePlayScene::Initialize()
 	transitionEffect_.SetFadeType(FadeType::FadeOut);
 	transitionEffect_.SetMode(TransitionMode::RightBottomToLeftTop);
 
-	playerDeathEffect_.Initialize(
-		stageManager_->GetPlayer()
-	);
-
 	cinematicLetterbox_.Initialize(
 		sceneManager_->GetSpriteCommon(),
 		"./Resources/black.png",
@@ -280,8 +276,6 @@ void GamePlayScene::OnEnterEnd()
 		ppm->crtEffect_->SetEnabled(true);
 		ppm->crtEffect_->SetCrtEnabled(true);
 		ppm->crtEffect_->SetChromaticAberrationEnabled(true);
-
-		playerDeathEffect_.Play(1.5f);
 	}
 	else if (gameClear_)
 	{
@@ -321,8 +315,6 @@ void GamePlayScene::OnUpdateEnd()
 {
 	if (gameOver_)
 	{
-		playerDeathEffect_.Update();
-
 		gameOverEffectElapsed_ += TimeManager::GetInstance().GetGameContext().deltaTime;
 
 		// 色収差を振幅で揺らす（指数減衰で自然に収束）
@@ -342,10 +334,8 @@ void GamePlayScene::OnUpdateEnd()
 		auto* ppm = sceneManager_->GetPostProcessManager();
 		ppm->crtEffect_->SetChromaticAberrationOffset(oscill);
 
-		if (playerDeathEffect_.IsFinished())
-		{
-			ChangeState(SceneState::Exit);
-		}
+		// NOTE:プレイヤーの死亡エフェクトを削除したので一時的にすぐ画面を切り替えるようにしてある
+		ChangeState(SceneState::Exit);
 	}
 	else if (gameClear_)
 	{

@@ -21,10 +21,6 @@ AssaultRifleComponent::AssaultRifleComponent(Object3dCommon* object3dCommon, Lig
 {
 	object3dCommon_ = object3dCommon;
 	lightManager_ = lightManager;
-
-	// ヒットエフェクトの初期化
-	hitEffect_ = std::make_unique<AssaultRifleHitEffect>();
-	hitEffect_->Initialize();
 }
 
 // デストラクタ：弾のクリーンアップ
@@ -200,15 +196,14 @@ void AssaultRifleComponent::FireBullet(GameObject* owner)
 
 	// 衝突判定コンポーネントを追加
 	auto colliderComp = std::make_unique<OBBColliderComponent>(bullet.get());
-	colliderComp->SetOnEnter([ptr = bullet.get(), hitEffect = hitEffect_.get()](GameObject* other) {
-		// 敵に当たった場合、パーティクルを生成して弾を消す
+	colliderComp->SetOnEnter([ptr = bullet.get()](GameObject* other) {
+		// 敵に当たった場合、弾を消す
 		if (other->GetTag() == GameObjectTag::Character::PistolEnemy ||
 			other->GetTag() == GameObjectTag::Character::AssaultEnemy ||
 			other->GetTag() == GameObjectTag::Character::ShotgunEnemy ||
 			other->GetTag() == GameObjectTag::Character::KnifeEnemy
 			)
 		{
-			hitEffect->Play(ptr->GetPosition());
 			ptr->SetAlive(false);
 		}
 		// 障害物に当たった場合、弾を消す
@@ -257,11 +252,10 @@ void AssaultRifleComponent::FireBullet(GameObject* owner, const Vector3& targetP
 	auto colliderComp = std::make_unique<OBBColliderComponent>(bullet.get());
 
 	// 衝突したときの処理を設定
-	colliderComp->SetOnEnter([ptr = bullet.get(), hitEffect = hitEffect_.get()](GameObject* other) {
-		// プレイヤーに当たった場合、パーティクルを生成して弾を消す
+	colliderComp->SetOnEnter([ptr = bullet.get()](GameObject* other) {
+		// プレイヤーに当たった場合、弾を消す
 		if (other->GetTag() == GameObjectTag::Character::Player)
 		{
-			hitEffect->Play(other->GetPosition());
 			ptr->SetAlive(false);
 		}
 		// 障害物に当たった場合、弾を消す

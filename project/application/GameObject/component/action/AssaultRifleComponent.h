@@ -1,5 +1,4 @@
 #pragma once
-#include "application/effect/AssaultRifleHitEffect.h"
 #include "application/GameObject/Combatable/weapon/Bullet.h"
 #include "application/GameObject/component/action/IWeaponComponent.h"
 
@@ -145,6 +144,4 @@ private:
     // 弾の寿命
 	float lifetime_ = kDefaultBulletLifetime;
 
-    // ヒットエフェクト
-	std::unique_ptr<AssaultRifleHitEffect> hitEffect_;
 };

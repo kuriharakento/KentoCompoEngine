@@ -1,5 +1,4 @@
 #pragma once
-#include "application/effect/EnemyDeathEffect.h"
 #include "application/stage/StageData.h"
 #include "base/EnemyBase.h"
 #include "math/AABB.h"
@@ -53,7 +52,5 @@ private:
 	std::vector<std::unique_ptr<EnemyBase>> pendingRemovals_;
 	// 敵データ
 	std::vector<GameObjectInfo> enemyData_;
-	// 死亡パーティクル
-	std::unique_ptr<EnemyDeathEffect> deathEffect_;
 };
 
