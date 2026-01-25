@@ -6,93 +6,93 @@
 #include "math/Easing.h"
 
 /**
- * @brief 繧ｷ繝ｼ繝ｳ驕ｷ遘ｻ縺ｮ譁ｹ蜷代ヱ繧ｿ繝ｼ繝ｳ
+ * @brief シーン遷移の方向パターン
  * 
- * 繧ｰ繝ｪ繝・ラ迥ｶ縺ｮ繧ｹ繝励Λ繧､繝医′縺ｩ縺ｮ譁ｹ蜷代°繧蛾・↓螟牙喧縺励※縺・￥縺九ｒ螳夂ｾｩ縺励∪縺吶・
+ * グリッド状のスプライトがどの方向から順に変化していくかを定義します。
  */
 enum class TransitionMode
 {
-    LeftTopToRightBottom,      ///< 蟾ｦ荳翫°繧牙承荳九∈驕ｷ遘ｻ
-    RightBottomToLeftTop,      ///< 蜿ｳ荳九°繧牙ｷｦ荳翫∈驕ｷ遘ｻ
-    RightTopToLeftBottom,      ///< 蜿ｳ荳翫°繧牙ｷｦ荳九∈驕ｷ遘ｻ
-    LeftBottomToRightTop,      ///< 蟾ｦ荳九°繧牙承荳翫∈驕ｷ遘ｻ
-    TopToBottom,               ///< 荳翫°繧我ｸ九∈驕ｷ遘ｻ
-    BottomToTop,               ///< 荳九°繧我ｸ翫∈驕ｷ遘ｻ
-    CenterToEdges,             ///< 荳ｭ螟ｮ縺九ｉ螟門・縺ｸ驕ｷ遘ｻ
-    EdgesToCenter              ///< 螟門・縺九ｉ荳ｭ螟ｮ縺ｸ驕ｷ遘ｻ
+    LeftTopToRightBottom,      ///< 左上から右下へ遷移
+    RightBottomToLeftTop,      ///< 右下から左上へ遷移
+    RightTopToLeftBottom,      ///< 右上から左下へ遷移
+    LeftBottomToRightTop,      ///< 左下から右上へ遷移
+    TopToBottom,               ///< 上から下へ遷移
+    BottomToTop,               ///< 下から上へ遷移
+    CenterToEdges,             ///< 中央から端へ遷移
+    EdgesToCenter              ///< 端から中央へ遷移
 };
 
 /**
- * @brief 繝輔ぉ繝ｼ繝峨・遞ｮ鬘・
+ * @brief フェードの種類
  */
 enum class FadeType
 {
-    FadeIn,     ///< 繝輔ぉ繝ｼ繝峨う繝ｳ・磯乗・竊剃ｸ埼乗・・・
-    FadeOut     ///< 繝輔ぉ繝ｼ繝峨い繧ｦ繝茨ｼ井ｸ埼乗・竊帝乗・・・
+    FadeIn,     ///< フェードイン（透明→不透明）
+    FadeOut     ///< フェードアウト（不透明→透明）
 };
 
 /**
- * @brief 繧ｷ繝ｼ繝ｳ驕ｷ遘ｻ縺ｮ繧､繝ｼ繧ｸ繝ｳ繧ｰ繧ｿ繧､繝・
+ * @brief シーン遷移のイージングタイプ
  * 
- * 繧ｰ繝ｪ繝・ラ縺ｮ騾乗・蠎ｦ螟牙喧縺ｫ驕ｩ逕ｨ縺吶ｋ繧､繝ｼ繧ｸ繝ｳ繧ｰ髢｢謨ｰ縺ｮ遞ｮ鬘槭ｒ螳夂ｾｩ縺励∪縺吶・
+ * グリッドの透過度変化に適用するイージング関数の種類を定義します。
  */
 enum class SceneTransitionEase
 {
-    Linear,         ///< 邱壼ｽ｢陬憺俣
-    InSine,         ///< 繧ｵ繧､繝ｳ蜉騾・
-    OutSine,        ///< 繧ｵ繧､繝ｳ貂幃・
-    InOutSine,      ///< 繧ｵ繧､繝ｳ蜉騾滓ｸ幃・
-    InQuint,        ///< 5荵怜刈騾・
-    OutQuint,       ///< 5荵玲ｸ幃・
-    InOutQuint,     ///< 5荵怜刈騾滓ｸ幃・
-    InCirc,         ///< 蜀・ｽ｢蜉騾・
-    OutCirc,        ///< 蜀・ｽ｢貂幃・
-    InOutCirc,      ///< 蜀・ｽ｢蜉騾滓ｸ幃・
-    InElastic,      ///< 蠑ｾ諤ｧ蜉騾・
-    OutElastic,     ///< 蠑ｾ諤ｧ貂幃・
-    InOutElastic,   ///< 蠑ｾ諤ｧ蜉騾滓ｸ幃・
-    InExpo,         ///< 謖・焚蜉騾・
-    OutExpo,        ///< 謖・焚貂幃・
-    InOutExpo,      ///< 謖・焚蜉騾滓ｸ幃・
-    OutQuad,        ///< 2荵玲ｸ幃・
-    InOutQuart,     ///< 4荵怜刈騾滓ｸ幃・
-    InBack,         ///< 蠕碁蜉騾・
-    OutBack,        ///< 蠕碁貂幃・
-    InOutBack,      ///< 蠕碁蜉騾滓ｸ幃・
-    OutBounce,      ///< 繝舌え繝ｳ繝画ｸ幃・
-    InBounce,       ///< 繝舌え繝ｳ繝牙刈騾・
-    InOutBounce     ///< 繝舌え繝ｳ繝牙刈騾滓ｸ幃・
+    Linear,         ///< 線形補間
+    InSine,         ///< サイン加速
+    OutSine,        ///< サイン減速
+    InOutSine,      ///< サイン加速減速
+    InQuint,        ///< 5乗加速
+    OutQuint,       ///< 5乗減速
+    InOutQuint,     ///< 5乗加速減速
+    InCirc,         ///< 円形加速
+    OutCirc,        ///< 円形減速
+    InOutCirc,      ///< 円形加速減速
+    InElastic,      ///< 弾性加速
+    OutElastic,     ///< 弾性減速
+    InOutElastic,   ///< 弾性加速減速
+    InExpo,         ///< 指数加速
+    OutExpo,        ///< 指数減速
+    InOutExpo,      ///< 指数加速減速
+    OutQuad,        ///< 2乗減速
+    InOutQuart,     ///< 4乗加速減速
+    InBack,         ///< 後退加速
+    OutBack,        ///< 後退減速
+    InOutBack,      ///< 後退加速減速
+    OutBounce,      ///< バウンド減速
+    InBounce,       ///< バウンド加速
+    InOutBounce     ///< バウンド加速減速
 };
 
 /**
- * @brief 驕ｷ遘ｻ繧ｨ繝輔ぉ繧ｯ繝医・迥ｶ諷・
+ * @brief 遷移エフェクトの状態
  */
 enum class TransitionState { 
-    Idle,       ///< 蠕・ｩ滉ｸｭ・亥・逕溷燕・・
-    Playing,    ///< 蜀咲函荳ｭ
-    Done        ///< 螳御ｺ・
+    Idle,       ///< 待機中（再生前）
+    Playing,    ///< 再生中
+    Done        ///< 完了
 };
 
 /**
- * @brief 繧ｷ繝ｼ繝ｳ驕ｷ遘ｻ繧ｨ繝輔ぉ繧ｯ繝医け繝ｩ繧ｹ
+ * @brief シーン遷移エフェクトクラス
  * 
- * 逕ｻ髱｢蜈ｨ菴薙ｒ繧ｰ繝ｪ繝・ラ迥ｶ縺ｫ蛻・牡縺励∝推繧ｻ繝ｫ縺碁・ｬ｡繝輔ぉ繝ｼ繝峨う繝ｳ/繧｢繧ｦ繝医☆繧九％縺ｨ縺ｧ
- * 隕冶ｦ夂噪縺ｫ鄒弱＠縺・す繝ｼ繝ｳ驕ｷ遘ｻ貍泌・繧貞ｮ溽樟縺励∪縺吶・
+ * 画面全体をグリッド状に分割し、各セルが順次フェードイン/アウトすることで
+ * 視覚的に楽しいシーン遷移演出を実現します。
  * 
- * 荳ｻ縺ｪ讖溯・:
- * - 繧ｫ繧ｹ繧ｿ繝槭う繧ｺ蜿ｯ閭ｽ縺ｪ繧ｰ繝ｪ繝・ラ繧ｵ繧､繧ｺ
- * - 8遞ｮ鬘槭・驕ｷ遘ｻ譁ｹ蜷代ヱ繧ｿ繝ｼ繝ｳ
- * - 繧ｰ繝ｩ繝・・繧ｷ繝ｧ繝ｳ繧ｫ繝ｩ繝ｼ蟇ｾ蠢・
- * - 螟壽ｧ倥↑繧､繝ｼ繧ｸ繝ｳ繧ｰ髢｢謨ｰ
- * - 繝輔ぉ繝ｼ繝峨う繝ｳ/繝輔ぉ繝ｼ繝峨い繧ｦ繝亥・繧頑崛縺・
+ * 主な機能:
+ * - カスタマイズ可能なグリッドサイズ
+ * - 8種類の遷移方向パターン
+ * - グラデーションカラー対応
+ * - 多様なイージング関数
+ * - フェードイン/フェードアウト切り替え
  * 
  * @code
- * // 菴ｿ逕ｨ萓・
+ * // 使用例
  * SceneTransitionEffect transition;
  * transition.Initialize(spriteCommon, texPath, 6, 4, 1280.0f, 720.0f);
  * transition.SetMode(TransitionMode::CenterToEdges);
  * transition.SetFadeType(FadeType::FadeOut);
- * transition.Start(1.5f, {1,1,1,1}, {0,0,0,1});  // 逋ｽ縺九ｉ鮟偵∈繧ｰ繝ｩ繝・・繧ｷ繝ｧ繝ｳ
+ * transition.Start(1.5f, {1,1,1,1}, {0,0,0,1});  // 白から黒へグラデーション
  * @endcode
  */
 class SceneTransitionEffect
@@ -102,120 +102,120 @@ public:
     ~SceneTransitionEffect();
 
     /**
-     * @brief 繧ｨ繝輔ぉ繧ｯ繝医・蛻晄悄蛹・
+     * @brief エフェクトの初期化
      * 
-     * 繧ｰ繝ｪ繝・ラ迥ｶ縺ｮ繧ｹ繝励Λ繧､繝医ｒ逕滓・縺励∫判髱｢蜈ｨ菴薙ｒ隕・≧繧医≧縺ｫ驟咲ｽｮ縺励∪縺吶・
+     * グリッド状のスプライトを生成し画面全体を覆うように配置します。
      * 
-     * @param spriteCommon 繧ｹ繝励Λ繧､繝亥・騾夊ｨｭ螳・
-     * @param texturePath 菴ｿ逕ｨ縺吶ｋ繝・け繧ｹ繝√Ε繝代せ
-     * @param gridX 讓ｪ譁ｹ蜷代・繧ｰ繝ｪ繝・ラ蛻・牡謨ｰ
-     * @param gridY 邵ｦ譁ｹ蜷代・繧ｰ繝ｪ繝・ラ蛻・牡謨ｰ
-     * @param screenWidth 逕ｻ髱｢蟷・ｼ医ヴ繧ｯ繧ｻ繝ｫ・・
-     * @param screenHeight 逕ｻ髱｢鬮倥＆・医ヴ繧ｯ繧ｻ繝ｫ・・
+     * @param spriteCommon スプライト共通設定
+     * @param texturePath 使用するテクスチャパス
+     * @param gridX 横方向のグリッド分割数
+     * @param gridY 縦方向のグリッド分割数
+     * @param screenWidth 画面幅（ピクセル）
+     * @param screenHeight 画面高さ（ピクセル）
      */
     void Initialize(SpriteCommon* spriteCommon, const std::string& texturePath, int gridX, int gridY, float screenWidth, float screenHeight);
 
     /**
-     * @brief 繧ｰ繝ｩ繝・・繧ｷ繝ｧ繝ｳ繧ｫ繝ｩ繝ｼ莉倥″驕ｷ遘ｻ縺ｮ髢句ｧ・
+     * @brief グラデーションカラー付き遷移の開始
      * 
-     * 髢句ｧ玖牡縺九ｉ邨ゆｺ・牡縺ｸ縺ｮ繧ｰ繝ｩ繝・・繧ｷ繝ｧ繝ｳ繧帝←逕ｨ縺励◆驕ｷ遘ｻ繧ｨ繝輔ぉ繧ｯ繝医ｒ髢句ｧ九＠縺ｾ縺吶・
+     * 開始色から終了色へのグラデーションを適用した遷移エフェクトを開始します。
      * 
-     * @param duration 驕ｷ遘ｻ譎る俣・育ｧ抵ｼ・
-     * @param startColor 髢句ｧ区凾縺ｮ濶ｲ・・GBA・・
-     * @param endColor 邨ゆｺ・凾縺ｮ濶ｲ・・GBA・・
+     * @param duration 遷移時間（秒）
+     * @param startColor 開始時の色（RGBA）
+     * @param endColor 終了時の色（RGBA）
      */
     void Start(float duration, const Vector4& startColor, const Vector4& endColor);
 
     /**
-     * @brief 繧ｨ繝輔ぉ繧ｯ繝医・譖ｴ譁ｰ
+     * @brief エフェクトの更新
      * 
-     * 豈弱ヵ繝ｬ繝ｼ繝蜻ｼ縺ｳ蜃ｺ縺輔ｌ縲√げ繝ｪ繝・ラ縺ｮ騾乗・蠎ｦ繧呈峩譁ｰ縺励∪縺吶・
+     * 毎フレーム呼び出され、グリッドの透過度を更新します。
      */
     void Update();
     
     /**
-     * @brief 繧ｨ繝輔ぉ繧ｯ繝医・謠冗判
+     * @brief エフェクトの描画
      * 
-     * 蜈ｨ縺ｦ縺ｮ繧ｰ繝ｪ繝・ラ繧ｹ繝励Λ繧､繝医ｒ謠冗判縺励∪縺吶・
+     * 全てのグリッドスプライトを描画します。
      */
     void Draw();
 
     /**
-     * @brief 迴ｾ蝨ｨ縺ｮ迥ｶ諷九ｒ蜿門ｾ・
-     * @return 驕ｷ遘ｻ繧ｨ繝輔ぉ繧ｯ繝医・迥ｶ諷・
+     * @brief 現在の状態を取得
+     * @return 遷移エフェクトの状態
      */
     TransitionState GetState() const;
     
     /**
-     * @brief 迥ｶ諷九ｒ險ｭ螳・
-     * @param state 險ｭ螳壹☆繧狗憾諷・
+     * @brief 状態を設定
+     * @param state 設定する状態
      */
 	void SetState(TransitionState state);
     
     /**
-     * @brief 繧､繝ｼ繧ｸ繝ｳ繧ｰ繧ｿ繧､繝励ｒ險ｭ螳・
-     * @param type 驕ｩ逕ｨ縺吶ｋ繧､繝ｼ繧ｸ繝ｳ繧ｰ繧ｿ繧､繝・
+     * @brief イージングタイプを設定
+     * @param type 適用するイージングタイプ
      */
     void SetEaseType(SceneTransitionEase type);
     
     /**
-     * @brief 驕ｷ遘ｻ繝｢繝ｼ繝峨ｒ險ｭ螳・
-     * @param mode 驕ｷ遘ｻ縺ｮ譁ｹ蜷代ヱ繧ｿ繝ｼ繝ｳ
+     * @brief 遷移モードを設定
+     * @param mode 遷移の方向パターン
      */
     void SetMode(TransitionMode mode);
     
     /**
-     * @brief 繝輔ぉ繝ｼ繝峨ち繧､繝励ｒ險ｭ螳・
-     * @param type 繝輔ぉ繝ｼ繝峨う繝ｳ/繝輔ぉ繝ｼ繝峨い繧ｦ繝医・驕ｸ謚・
+     * @brief フェードタイプを設定
+     * @param type フェードイン/フェードアウトの選択
      */
     void SetFadeType(FadeType type);
 
     /**
-     * @brief ImGui繝・ヰ繝・げ繧ｦ繧｣繝ｳ繝峨え縺ｮ陦ｨ遉ｺ
+     * @brief ImGuiデバッグウィンドウの表示
      */
     void ShowImGui();
 
 private:
     /**
-     * @brief 繧､繝ｼ繧ｸ繝ｳ繧ｰ髢｢謨ｰ繧帝←逕ｨ
-     * @param t 豁｣隕丞喧縺輔ｌ縺滓凾髢難ｼ・.0縲・.0・・
-     * @return 繧､繝ｼ繧ｸ繝ｳ繧ｰ驕ｩ逕ｨ蠕後・蛟､
+     * @brief イージング関数を適用
+     * @param t 正規化された時間（0.0〜1.0）
+     * @return イージング適用後の値
      */
     float ApplyEasing(float t) const;
     
     /**
-     * @brief 濶ｲ縺ｮ邱壼ｽ｢陬憺俣
-     * @param c0 髢句ｧ玖牡
-     * @param c1 邨ゆｺ・牡
-     * @param t 陬憺俣菫よ焚・・.0縲・.0・・
-     * @return 陬憺俣縺輔ｌ縺溯牡
+     * @brief 色の線形補間
+     * @param c0 開始色
+     * @param c1 終了色
+     * @param t 補間係数（0.0〜1.0）
+     * @return 補間された色
      */
     Vector4 LerpColor(const Vector4& c0, const Vector4& c1, float t) const;
     
     /**
-     * @brief 繧ｰ繝ｪ繝・ラ菴咲ｽｮ縺ｫ蝓ｺ縺･縺城ｲ陦悟ｺｦ繧定ｨ育ｮ・
+     * @brief グリッド位置に基づく進行度を計算
      * 
-     * 驕ｷ遘ｻ繝｢繝ｼ繝峨↓蠢懊§縺ｦ縲∝推繧ｰ繝ｪ繝・ラ繧ｻ繝ｫ縺ｮ螟牙喧髢句ｧ九ち繧､繝溘Φ繧ｰ繧呈ｱｺ螳壹＠縺ｾ縺吶・
+     * 遷移モードに応じて、各グリッドセルの変化開始タイミングを確定します。
      * 
-     * @param x 繧ｰ繝ｪ繝・ラ縺ｮX蠎ｧ讓・
-     * @param y 繧ｰ繝ｪ繝・ラ縺ｮY蠎ｧ讓・
-     * @return 繧ｰ繝ｪ繝・ラ騾ｲ陦悟ｺｦ・・.0縲・.0・・
+     * @param x グリッドのX座標
+     * @param y グリッドのY座標
+     * @return グリッド進行度（0.0〜1.0）
      */
     float CalcGridProgress(int x, int y) const;
 
-    int gridX_ = 6;                                         ///< 讓ｪ譁ｹ蜷代・繧ｰ繝ｪ繝・ラ蛻・牡謨ｰ
-    int gridY_ = 4;                                         ///< 邵ｦ譁ｹ蜷代・繧ｰ繝ｪ繝・ラ蛻・牡謨ｰ
-    float screenWidth_ = 1280.0f;                           ///< 逕ｻ髱｢蟷・
-    float screenHeight_ = 720.0f;                           ///< 逕ｻ髱｢鬮倥＆
-    float transitionRate_ = 0.0f;                           ///< 蜈ｨ菴薙・驕ｷ遘ｻ騾ｲ陦悟ｺｦ・・.0縲・.0・・
-    SceneTransitionEase easeType_ = SceneTransitionEase::Linear;  ///< 繧､繝ｼ繧ｸ繝ｳ繧ｰ繧ｿ繧､繝・
-    float duration_ = 1.0f;                                 ///< 驕ｷ遘ｻ譎る俣・育ｧ抵ｼ・
-    float elapsed_ = 0.0f;                                  ///< 邨碁℃譎る俣・育ｧ抵ｼ・
-    TransitionState state_ = TransitionState::Idle;         ///< 迴ｾ蝨ｨ縺ｮ迥ｶ諷・
-    Vector4 startColor_ = { 1.0f,1.0f,1.0f,1.0f };          ///< 髢句ｧ区凾縺ｮ濶ｲ
-    Vector4 endColor_ = { 1.0f,1.0f,1.0f,1.0f };            ///< 邨ゆｺ・凾縺ｮ濶ｲ
-    TransitionMode mode_ = TransitionMode::LeftTopToRightBottom;  ///< 驕ｷ遘ｻ繝｢繝ｼ繝・
-    FadeType fadeType_ = FadeType::FadeOut;                 ///< 繝輔ぉ繝ｼ繝峨ち繧､繝・
+    int gridX_ = 6;                                         ///< 横方向のグリッド分割数
+    int gridY_ = 4;                                         ///< 縦方向のグリッド分割数
+    float screenWidth_ = 1280.0f;                           ///< 画面幅
+    float screenHeight_ = 720.0f;                           ///< 画面高さ
+    float transitionRate_ = 0.0f;                           ///< 全体の遷移進行度（0.0〜1.0）
+    SceneTransitionEase easeType_ = SceneTransitionEase::Linear;  ///< イージングタイプ
+    float duration_ = 1.0f;                                 ///< 遷移時間（秒）
+    float elapsed_ = 0.0f;                                  ///< 経過時間（秒）
+    TransitionState state_ = TransitionState::Idle;         ///< 現在の状態
+    Vector4 startColor_ = { 1.0f,1.0f,1.0f,1.0f };          ///< 開始時の色
+    Vector4 endColor_ = { 1.0f,1.0f,1.0f,1.0f };            ///< 終了時の色
+    TransitionMode mode_ = TransitionMode::LeftTopToRightBottom;  ///< 遷移モード
+    FadeType fadeType_ = FadeType::FadeOut;                 ///< フェードタイプ
 
-    std::vector<std::vector<std::unique_ptr<Sprite>>> gridSprites_;  ///< 繧ｰ繝ｪ繝・ラ迥ｶ縺ｫ驟咲ｽｮ縺輔ｌ縺溘せ繝励Λ繧､繝育ｾ､
+    std::vector<std::vector<std::unique_ptr<Sprite>>> gridSprites_;  ///< グリッド状に配置されたスプライト群
 };

@@ -11,26 +11,26 @@ void CinematicLetterbox::Initialize(SpriteCommon* spriteCommon, const std::strin
     screenWidth_ = screenWidth;
     screenHeight_ = screenHeight;
 
-    // 荳企Κ縺ｮ繝舌・菴懈・・医が繝ｼ繝舌・繧ｷ繝･繝ｼ繝亥ｯｾ蠢懊・縺溘ａ菴咏區繧貞性繧√※螟ｧ縺阪ａ縺ｫ菴懈・・・
+    // 上部のバー作成（オーバーシュート対応のため余白を含めて大きめに作成）
     topBar_ = std::make_unique<Sprite>();
     topBar_->Initialize(spriteCommon, texturePath);
     topBar_->SetSize({ screenWidth_, letterboxHeight_ + overshootMargin_ });
-    topBar_->SetAnchorPoint({ 0.0f, 1.0f }); // 荳狗ｫｯ繧貞渕貅悶↓縺吶ｋ縺薙→縺ｧ縲∫判髱｢荳企Κ縺九ｉ髯阪ｊ縺ｦ縺上ｋ蜍輔″繧貞ｮ溽樟
+    topBar_->SetAnchorPoint({ 0.0f, 1.0f }); // 下端を基準にすることで、画面上部から降りてくる動きを実現
     topBar_->SetColor(color_);
     topBar_->SetPosition({ 0.0f, 0.0f });
 
-    // 荳矩Κ縺ｮ繝舌・菴懈・・医が繝ｼ繝舌・繧ｷ繝･繝ｼ繝亥ｯｾ蠢懊・縺溘ａ菴咏區繧貞性繧√※螟ｧ縺阪ａ縺ｫ菴懈・・・
+    // 下部のバー作成（オーバーシュート対応のため余白を含めて大きめに作成）
     bottomBar_ = std::make_unique<Sprite>();
     bottomBar_->Initialize(spriteCommon, texturePath);
     bottomBar_->SetSize({ screenWidth_, letterboxHeight_ + overshootMargin_ });
-    bottomBar_->SetAnchorPoint({ 0.0f, 0.0f }); // 荳顔ｫｯ繧貞渕貅悶↓縺吶ｋ縺薙→縺ｧ縲∫判髱｢荳矩Κ縺九ｉ荳翫′縺｣縺ｦ縺上ｋ蜍輔″繧貞ｮ溽樟
+    bottomBar_->SetAnchorPoint({ 0.0f, 0.0f }); // 上端を基準にすることで、画面下部から上がってくる動きを実現
     bottomBar_->SetColor(color_);
     bottomBar_->SetPosition({ 0.0f, screenHeight_ });
 }
 
 void CinematicLetterbox::Show(float duration)
 {
-    // 譌｢縺ｫ陦ｨ遉ｺ荳ｭ縺ｾ縺溘・陦ｨ遉ｺ貂医∩縺ｮ蝣ｴ蜷医・譌ｩ譛溘Μ繧ｿ繝ｼ繝ｳ
+    // 既に表示中または表示済みの場合は早期リターン
     if (state_ == LetterboxState::Visible || state_ == LetterboxState::Showing)
         return;
 
@@ -41,7 +41,7 @@ void CinematicLetterbox::Show(float duration)
 
 void CinematicLetterbox::Hide(float duration)
 {
-    // 譌｢縺ｫ髱櫁｡ｨ遉ｺ荳ｭ縺ｾ縺溘・髱櫁｡ｨ遉ｺ貂医∩縺ｮ蝣ｴ蜷医・譌ｩ譛溘Μ繧ｿ繝ｼ繝ｳ
+    // 既に非表示中または非表示済みの場合は早期リターン
     if (state_ == LetterboxState::Hidden || state_ == LetterboxState::Hiding)
         return;
 
@@ -52,19 +52,19 @@ void CinematicLetterbox::Hide(float duration)
 
 void CinematicLetterbox::Update()
 {
-	// ImGui陦ｨ遉ｺ
+	// ImGui表示
     ShowImGui();
 
     float deltaTime = TimeManager::GetInstance().GetUIContext().deltaTime;
 
-    // 陦ｨ遉ｺ繧｢繝九Γ繝ｼ繧ｷ繝ｧ繝ｳ蜃ｦ逅・
+    // 表示アニメーション処理
     if (state_ == LetterboxState::Showing)
     {
         elapsed_ += deltaTime;
         float t = std::clamp(elapsed_ / duration_, 0.0f, 1.0f);
         progress_ = ApplyEasing(t);
 
-        // 繧｢繝九Γ繝ｼ繧ｷ繝ｧ繝ｳ螳御ｺ・愛螳・
+        // アニメーション完了判定
         if (t >= 1.0f)
         {
             state_ = LetterboxState::Visible;
@@ -73,14 +73,14 @@ void CinematicLetterbox::Update()
 
         UpdateBarPositions();
     }
-    // 髱櫁｡ｨ遉ｺ繧｢繝九Γ繝ｼ繧ｷ繝ｧ繝ｳ蜃ｦ逅・
+    // 非表示アニメーション処理
     else if (state_ == LetterboxState::Hiding)
     {
         elapsed_ += deltaTime;
         float t = std::clamp(elapsed_ / duration_, 0.0f, 1.0f);
-        progress_ = 1.0f - ApplyEasing(t); // 騾・婿蜷代・繧､繝ｼ繧ｸ繝ｳ繧ｰ驕ｩ逕ｨ
+        progress_ = 1.0f - ApplyEasing(t); // 逆方向のイージング適用
 
-        // 繧｢繝九Γ繝ｼ繧ｷ繝ｧ繝ｳ螳御ｺ・愛螳・
+        // アニメーション完了判定
         if (t >= 1.0f)
         {
             state_ = LetterboxState::Hidden;
@@ -93,7 +93,7 @@ void CinematicLetterbox::Update()
 
 void CinematicLetterbox::Draw()
 {
-    // 螳悟・縺ｫ髱櫁｡ｨ遉ｺ縺ｮ蝣ｴ蜷医・謠冗判繧ｳ繧ｹ繝医ｒ蜑頑ｸ帙☆繧九◆繧∵掠譛溘Μ繧ｿ繝ｼ繝ｳ
+    // 完全に非表示の場合は描画コストを節約するため早期リターン
     if (state_ == LetterboxState::Hidden && progress_ <= 0.0f)
         return;
 
@@ -119,7 +119,7 @@ void CinematicLetterbox::UpdateBarSizes()
 {
     if (!topBar_ || !bottomBar_) return;
 
-    // 繧ｪ繝ｼ繝舌・繧ｷ繝･繝ｼ繝亥・繧貞性繧√◆繧ｵ繧､繧ｺ縺ｫ譖ｴ譁ｰ
+    // オーバーシュート分を含めたサイズに更新
     topBar_->SetSize({ screenWidth_, letterboxHeight_ + overshootMargin_ });
     bottomBar_->SetSize({ screenWidth_, letterboxHeight_ + overshootMargin_ });
 }
@@ -128,22 +128,22 @@ void CinematicLetterbox::UpdateBarPositions()
 {
     if (!topBar_ || !bottomBar_) return;
 
-    // 荳企Κ縺ｮ繝舌・菴咲ｽｮ繧定ｨ育ｮ暦ｼ育判髱｢荳顔ｫｯ縺九ｉ騾ｲ陦悟ｺｦ縺ｫ蠢懊§縺ｦ髯阪ｊ縺ｦ縺上ｋ・・
+    // 上部のバー位置を計算（画面上端から進行度に応じて降りてくる）
     float topY = letterboxHeight_ * progress_;
     topBar_->SetPosition({ 0.0f, topY });
 
-    // 荳矩Κ縺ｮ繝舌・菴咲ｽｮ繧定ｨ育ｮ暦ｼ育判髱｢荳狗ｫｯ縺九ｉ騾ｲ陦悟ｺｦ縺ｫ蠢懊§縺ｦ荳翫′縺｣縺ｦ縺上ｋ・・
+    // 下部のバー位置を計算（画面下端から進行度に応じて上がってくる）
     float bottomY = screenHeight_ - (letterboxHeight_ * progress_);
     bottomBar_->SetPosition({ 0.0f, bottomY });
 
-    // 繧ｹ繝励Λ繧､繝医・螟画鋤陦悟・繧呈峩譁ｰ
+    // スプライトの変換行列を更新
 	topBar_->Update();
 	bottomBar_->Update();
 }
 
 float CinematicLetterbox::ApplyEasing(float t) const
 {
-    // 險ｭ螳壹＆繧後◆繧､繝ｼ繧ｸ繝ｳ繧ｰ繧ｿ繧､繝励↓蠢懊§縺溯｣憺俣髢｢謨ｰ繧帝←逕ｨ
+    // 設定されたイージングタイプに応じた補間関数を適用
     switch (easeType_)
     {
     case LetterboxEase::Linear:
@@ -204,13 +204,13 @@ void CinematicLetterbox::ShowImGui()
 #ifdef USE_IMGUI
     if (ImGui::Begin("Cinematic Letterbox"))
     {
-        // 迥ｶ諷玖｡ｨ遉ｺ
+        // 状態表示
         const char* stateNames[] = { "Hidden", "Showing", "Visible", "Hiding" };
         ImGui::Text("State: %s", stateNames[static_cast<int>(state_)]);
         ImGui::Text("Progress: %.2f", progress_);
         ImGui::Text("Elapsed: %.2f / %.2f", elapsed_, duration_);
 
-        // 菴咲ｽｮ繝・ヰ繝・げ
+        // 位置デバッグ
         if (topBar_)
         {
             Vector2 topPos = topBar_->GetPosition();
@@ -224,7 +224,7 @@ void CinematicLetterbox::ShowImGui()
             ImGui::Text("Bottom Bar Y: %.2f (Size: %.2f)", bottomPos.y, bottomSize.y);
         }
 
-        // 繝代Λ繝｡繝ｼ繧ｿ隱ｿ謨ｴ
+        // パラメータ調整
         ImGui::Separator();
         if (ImGui::DragFloat("Letterbox Height", &letterboxHeight_, 1.0f, 50.0f, 300.0f))
         {
@@ -236,7 +236,7 @@ void CinematicLetterbox::ShowImGui()
         }
         ImGui::DragFloat("Duration", &duration_, 0.1f, 0.1f, 5.0f);
 
-        // 繧､繝ｼ繧ｸ繝ｳ繧ｰ繧ｿ繧､繝鈴∈謚・
+        // イージングタイプ選択
         const char* easeNames[] = {
             "Linear", "InSine", "OutSine", "InOutSine",
             "InQuint", "OutQuint", "InOutQuint",
@@ -253,14 +253,14 @@ void CinematicLetterbox::ShowImGui()
             easeType_ = static_cast<LetterboxEase>(currentEase);
         }
 
-        // 濶ｲ險ｭ螳・
+        // 色設定
         float color[4] = { color_.x, color_.y, color_.z, color_.w };
         if (ImGui::ColorEdit4("Color", color))
         {
             SetColor({ color[0], color[1], color[2], color[3] });
         }
 
-        // 繧ｳ繝ｳ繝医Ο繝ｼ繝ｫ繝懊ち繝ｳ
+        // コントロールボタン
         ImGui::Separator();
         if (ImGui::Button("Show"))
         {
@@ -287,4 +287,3 @@ void CinematicLetterbox::ShowImGui()
     ImGui::End();
 #endif
 }
-
