@@ -26,9 +26,10 @@ SkinnedObject3d::~SkinnedObject3d()
 	}
 }
 
-void SkinnedObject3d::Initialize(Object3dCommon* object3dCommon)
+void SkinnedObject3d::Initialize(Object3dCommon* object3dCommon, Camera* camera)
 {
 	object3dCommon_ = object3dCommon;
+	camera_ = camera;
 
 	// スキニング計算用クラスを初期化
 	skinningCompute_ = std::make_unique<SkinningCompute>();
@@ -47,8 +48,14 @@ void SkinnedObject3d::Initialize(Object3dCommon* object3dCommon)
 	directionalLight_.intensity = 1.0f;
 }
 
-void SkinnedObject3d::Update(float deltaTime)
+void SkinnedObject3d::Update(float deltaTime, Camera* camera)
 {
+	// カメラを更新
+	if (camera)
+	{
+		camera_ = camera;
+	}
+
 	// アニメーターを更新
 	animator_.Update(deltaTime);
 
@@ -88,6 +95,7 @@ void SkinnedObject3d::Update(float deltaTime)
 		*directionalLightData_ = directionalLight_;
 	}
 }
+
 
 void SkinnedObject3d::DispatchSkinning()
 {
@@ -141,7 +149,7 @@ void SkinnedObject3d::Draw()
 	model_->Draw();
 }
 
-void SkinnedObject3d::DrawShadow()
+void SkinnedObject3d::DrawShadowOnly()
 {
 	if (!model_)
 	{
@@ -254,22 +262,89 @@ void SkinnedObject3d::SetModel(const std::string& filePath, const std::string& m
 
 void SkinnedObject3d::SetColor(const Vector4& color)
 {
-	// モデルへのカラー設定（必要に応じて）
+	if (model_)
+	{
+		model_->SetColor(color);
+	}
 }
 
 void SkinnedObject3d::SetEnableLighting(bool enable)
 {
-	// モデルへのライティング設定（必要に応じて）
+	if (model_)
+	{
+		model_->SetEnableLighting(enable);
+	}
 }
 
 void SkinnedObject3d::SetShininess(float shininess)
 {
-	// モデルへの反射強度設定（必要に応じて）
+	// SkinnedModelにSetShininess未実装のため、後で追加が必要
+	(void)shininess;
+}
+
+Vector4 SkinnedObject3d::GetColor() const
+{
+	if (model_)
+	{
+		return model_->GetColor();
+	}
+	return Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+}
+
+bool SkinnedObject3d::IsEnableLighting() const
+{
+	if (model_)
+	{
+		return model_->IsEnableLighting();
+	}
+	return true;
 }
 
 void SkinnedObject3d::UpdateTransform()
 {
 	worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
+}
+
+void SkinnedObject3d::UpdateWorldMatrix()
+{
+	// ワールド行列を更新
+	UpdateTransform();
+
+	// WVPデータがあれば更新
+	if (wvpData_)
+	{
+		wvpData_->World = worldMatrix_;
+		wvpData_->WorldInverseTranspose = MathUtils::Transpose(Inverse(worldMatrix_));
+	}
+}
+
+void SkinnedObject3d::UpdateMatrixWithWorld(const Matrix4x4& worldMatrix, Camera* camera)
+{
+	worldMatrix_ = worldMatrix;
+
+	// カメラを更新
+	if (camera)
+	{
+		camera_ = camera;
+	}
+
+	// WVPデータがあれば更新
+	if (wvpData_)
+	{
+		if (camera_)
+		{
+			Matrix4x4 viewMatrix = camera_->GetViewMatrix();
+			Matrix4x4 projectionMatrix = camera_->GetProjectionMatrix();
+			Matrix4x4 viewProjectionMatrix = Multiply(viewMatrix, projectionMatrix);
+			wvpData_->WVP = Multiply(worldMatrix_, viewProjectionMatrix);
+		}
+		else
+		{
+			wvpData_->WVP = worldMatrix_;
+		}
+		wvpData_->World = worldMatrix_;
+		wvpData_->WorldInverseTranspose = MathUtils::Transpose(Inverse(worldMatrix_));
+	}
 }
 
 void SkinnedObject3d::CreateDrawResources()

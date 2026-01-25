@@ -118,7 +118,7 @@ void GameClearScene::OnUpdatePlaying()
 
 	// スキニングオブジェクトの更新とスキニング計算
 	if (skinnedObject_) {
-		skinnedObject_->Update(deltaTime);
+		skinnedObject_->Update(deltaTime, nullptr);
 		skinnedObject_->DispatchSkinning(); // ここで一度だけ実行
 	}
 }
@@ -137,7 +137,7 @@ void GameClearScene::DrawShadow()
 
 	// スキニングオブジェクトのシャドウ描画（DispatchSkinningはUpdateで実行済み）
 	if (skinnedObject_) {
-		skinnedObject_->DrawShadow();
+		skinnedObject_->DrawShadowOnly();
 	}
 }
 

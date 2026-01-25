@@ -9,6 +9,7 @@
 // graphics
 #include "SkinnedModel.h"
 #include "SkinningCompute.h"
+#include "IRenderable3d.h"
 // animation
 #include "animation/Animator.h"
 // light
@@ -23,23 +24,26 @@ class LightManager;
 /**
  * @brief スキニング3Dオブジェクトクラス
  * @details スケルタルアニメーション付きの3Dモデルを管理・描画する
+ *          IRenderable3dインターフェースを実装し、GameObjectから透過的に使用可能
  */
-class SkinnedObject3d
+class SkinnedObject3d : public IRenderable3d
 {
 public:
-	~SkinnedObject3d();
+	~SkinnedObject3d() override;
 
 	/**
-	 * @brief 初期化
+	 * @brief 初期化（インターフェース実装）
 	 * @param object3dCommon Object3dCommonへのポインタ
+	 * @param camera カメラへのポインタ（省略可）
 	 */
-	void Initialize(Object3dCommon* object3dCommon);
+	void Initialize(Object3dCommon* object3dCommon, Camera* camera = nullptr) override;
 
 	/**
-	 * @brief 更新
+	 * @brief 更新（インターフェース実装）
 	 * @param deltaTime フレーム時間（秒）
+	 * @param camera カメラへのポインタ
 	 */
-	void Update(float deltaTime);
+	void Update(float deltaTime, Camera* camera) override;
 
 	/**
 	 * @brief スキニング計算の実行
@@ -50,17 +54,27 @@ public:
 	/**
 	 * @brief 描画
 	 */
-	void Draw();
+	void Draw() override;
 
 	/**
-	 * @brief シャドウマップ用描画
+	 * @brief シャドウマップ用描画（インターフェース実装）
 	 */
-	void DrawShadow();
+	void DrawShadowOnly() override;
 
 	/**
-	 * @brief G-Buffer用描画
+	 * @brief G-Buffer用描画（インターフェース実装）
 	 */
-	void DrawGBuffer();
+	void DrawGBuffer() override;
+
+	/**
+	 * @brief ワールド行列の更新（インターフェース実装）
+	 */
+	void UpdateWorldMatrix() override;
+
+	/**
+	 * @brief 外部ワールド行列を使用した行列の更新（インターフェース実装）
+	 */
+	void UpdateMatrixWithWorld(const Matrix4x4& worldMatrix, Camera* camera) override;
 
 public: // アニメーション関連
 	/**
@@ -121,57 +135,67 @@ public: // アクセッサ
 	/**
 	 * @brief カメラの設定
 	 */
-	void SetCamera(Camera* camera) { camera_ = camera; }
+	void SetCamera(Camera* camera) override { camera_ = camera; }
 
 	/**
 	 * @brief ライトマネージャーの設定
 	 */
-	void SetLightManager(LightManager* lightManager) { lightManager_ = lightManager; }
+	void SetLightManager(LightManager* lightManager) override { lightManager_ = lightManager; }
 
 	/**
 	 * @brief スケールの設定
 	 */
-	void SetScale(const Vector3& scale) { transform_.scale = scale; }
+	void SetScale(const Vector3& scale) override { transform_.scale = scale; }
 
 	/**
 	 * @brief 回転の設定
 	 */
-	void SetRotate(const Vector3& rotate) { transform_.rotate = rotate; }
+	void SetRotate(const Vector3& rotate) override { transform_.rotate = rotate; }
 
 	/**
 	 * @brief 位置の設定
 	 */
-	void SetTranslate(const Vector3& translate) { transform_.translate = translate; }
+	void SetTranslate(const Vector3& translate) override { transform_.translate = translate; }
 
 	/**
 	 * @brief スケールの取得
 	 */
-	const Vector3& GetScale() const { return transform_.scale; }
+	const Vector3& GetScale() const override { return transform_.scale; }
 
 	/**
 	 * @brief 回転の取得
 	 */
-	const Vector3& GetRotate() const { return transform_.rotate; }
+	const Vector3& GetRotate() const override { return transform_.rotate; }
 
 	/**
 	 * @brief 位置の取得
 	 */
-	const Vector3& GetTranslate() const { return transform_.translate; }
+	const Vector3& GetTranslate() const override { return transform_.translate; }
 
 	/**
 	 * @brief ワールド行列の取得
 	 */
-	Matrix4x4 GetWorldMatrix() const { return worldMatrix_; }
+	Matrix4x4 GetWorldMatrix() const override { return worldMatrix_; }
 
 	/**
 	 * @brief 色の設定
 	 */
-	void SetColor(const Vector4& color);
+	void SetColor(const Vector4& color) override;
+
+	/**
+	 * @brief 色の取得
+	 */
+	Vector4 GetColor() const override;
 
 	/**
 	 * @brief ライティングの有効/無効の設定
 	 */
-	void SetEnableLighting(bool enable);
+	void SetEnableLighting(bool enable) override;
+
+	/**
+	 * @brief ライティングの有効/無効の取得
+	 */
+	bool IsEnableLighting() const override;
 
 	/**
 	 * @brief 反射強度の設定
@@ -181,7 +205,7 @@ public: // アクセッサ
 	/**
 	 * @brief ディレクショナルライト全体の設定
 	 */
-	void SetDirectionalLight(const DirectionalLight& light) { directionalLight_ = light; }
+	void SetDirectionalLight(const DirectionalLight& light) override { directionalLight_ = light; }
 
 	/**
 	 * @brief ディレクショナルライトの色を設定

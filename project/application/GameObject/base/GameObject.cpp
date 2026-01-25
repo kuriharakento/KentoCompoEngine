@@ -14,7 +14,7 @@ GameObject::~GameObject()
 	collisionComponents_.clear();
 	components_.clear();
 	isActive_ = false;
-	object3d_.reset();
+	renderable3d_.reset();
 }
 
 GameObject::GameObject(std::string tag)
@@ -28,16 +28,42 @@ GameObject::GameObject(std::string tag)
 
 void GameObject::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, const Transform& initialTransform)
 {
-	object3d_ = std::make_unique<Object3d>();
-	object3d_->Initialize(object3dCommon, object3dCommon->GetDefaultCamera());
+	auto object3d = std::make_unique<Object3d>();
+	object3d->Initialize(object3dCommon, object3dCommon->GetDefaultCamera());
 
 	// デフォルトで立方体モデルを設定
-	object3d_->SetModel("cube");
-	object3d_->SetLightManager(lightManager);
+	object3d->SetModel("cube");
+	object3d->SetLightManager(lightManager);
 
+	renderable3d_ = std::move(object3d);
 	transform_ = initialTransform;
 }
 
+void GameObject::SetModel(const std::string& modelName)
+{
+	// Object3dの場合のみ有効
+	if (auto* obj3d = GetObject3d())
+	{
+		obj3d->SetModel(modelName);
+	}
+}
+
+void GameObject::SetSkinnedModel(const std::string& modelPath, const std::string& ext)
+{
+	// TODO: Object3dCommonへの参照が必要なため、後で実装を完成させる
+	// 現時点ではSkinnedObject3dを使用する場合、派生クラス側で直接設定する
+	(void)modelPath;
+	(void)ext;
+}
+
+Model* GameObject::GetModel() const
+{
+	if (auto* obj3d = GetObject3d())
+	{
+		return obj3d->GetModel();
+	}
+	return nullptr;
+}
 
 void GameObject::Update()
 {
@@ -84,12 +110,12 @@ void GameObject::Update()
 
 void GameObject::Draw3D(CameraManager* camera)
 {
-	if (!object3d_) { return; }
+	if (!renderable3d_) { return; }
 
 	// Transform情報をObject3Dに適用（親子関係を考慮）
 	ApplyTransformToObject3D(camera);
 
-	object3d_->Draw();
+	renderable3d_->Draw();
 
 	// 子オブジェクトの描画
 	for (auto& [name, child] : children_)
@@ -132,10 +158,10 @@ void GameObject::Draw2D()
 
 void GameObject::DrawShadow()
 {
-	if (!object3d_) { return; }
+	if (!renderable3d_) { return; }
 
-	// Object3dを通してシャドウマップへの描画（深度のみ）を行う
-	object3d_->DrawShadowOnly();
+	// renderable3dを通してシャドウマップへの描画（深度のみ）を行う
+	renderable3d_->DrawShadowOnly();
 
 	// 子オブジェクトのシャドウ描画
 	for (auto& [name, child] : children_)
@@ -154,34 +180,34 @@ void GameObject::UpdateTransform(CameraManager* camera)
 
 void GameObject::UpdateWorldMatrix()
 {
-	if (!object3d_) return;
+	if (!renderable3d_) return;
 
-	object3d_->SetTranslate(transform_.translate);
-	object3d_->SetRotate(transform_.rotate);
-	object3d_->SetScale(transform_.scale);
+	renderable3d_->SetTranslate(transform_.translate);
+	renderable3d_->SetRotate(transform_.rotate);
+	renderable3d_->SetScale(transform_.scale);
 
 	// 親がいる場合は親のワールド行列と合成
 	if (parent_)
 	{
 		Matrix4x4 localMatrix = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
 
-		if (parent_->GetObject3d())
+		if (parent_->GetRenderable3d())
 		{
-			Matrix4x4 parentWorld = parent_->GetObject3d()->GetWorldMatrix();
+			Matrix4x4 parentWorld = parent_->GetRenderable3d()->GetWorldMatrix();
 			Matrix4x4 worldMatrix = localMatrix * parentWorld;
 
-			// 計算済みのワールド行列をObject3Dに適用（WVPは更新しない）
-			object3d_->UpdateMatrixWithWorld(worldMatrix, nullptr);
+			// 計算済みのワールド行列をrenderable3dに適用（WVPは更新しない）
+			renderable3d_->UpdateMatrixWithWorld(worldMatrix, nullptr);
 		}
 		else
 		{
-			object3d_->UpdateWorldMatrix();
+			renderable3d_->UpdateWorldMatrix();
 		}
 	}
 	else
 	{
-		// 親がいない場合はObject3D側でWorldのみ更新
-		object3d_->UpdateWorldMatrix();
+		// 親がいない場合はrenderable3d側でWorldのみ更新
+		renderable3d_->UpdateWorldMatrix();
 	}
 
 	// 子オブジェクトにも変更を伝播（即時更新で当たり判定等に対応）
@@ -275,11 +301,11 @@ GameObject* GameObject::GetChild(const std::string& name) const
 
 void GameObject::ApplyTransformToObject3D(CameraManager* camera)
 {
-	if (!object3d_) { return; }
+	if (!renderable3d_) { return; }
 
-	object3d_->SetTranslate(transform_.translate);
-	object3d_->SetRotate(transform_.rotate);
-	object3d_->SetScale(transform_.scale);
+	renderable3d_->SetTranslate(transform_.translate);
+	renderable3d_->SetRotate(transform_.rotate);
+	renderable3d_->SetScale(transform_.scale);
 
 	// 親子関係の処理
 	if (parent_)
@@ -291,15 +317,15 @@ void GameObject::ApplyTransformToObject3D(CameraManager* camera)
 			transform_.translate
 		);
 
-		Matrix4x4 parentWorldMatrix = parent_->object3d_->GetWorldMatrix();
+		Matrix4x4 parentWorldMatrix = parent_->renderable3d_->GetWorldMatrix();
 		Matrix4x4 worldMatrix = localMatrix * parentWorldMatrix;
 
-		object3d_->UpdateMatrixWithWorld(worldMatrix, camera->GetActiveCamera());
+		renderable3d_->UpdateMatrixWithWorld(worldMatrix, camera->GetActiveCamera());
 	}
 	else
 	{
 		// 親がない場合：通常の更新処理
-		object3d_->Update(camera);
+		renderable3d_->Update(0.0f, camera->GetActiveCamera());
 	}
 }
 

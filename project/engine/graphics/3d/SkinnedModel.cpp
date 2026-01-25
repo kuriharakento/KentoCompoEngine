@@ -686,3 +686,43 @@ void SkinnedModel::InitializeRenderingSettings()
 	CreateMaterialResources();
 	CreateSkinningBuffers();
 }
+
+Vector4 SkinnedModel::GetColor() const
+{
+	if (meshResources_.empty() || !meshResources_[0].gpuMaterial)
+	{
+		return Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	}
+	return meshResources_[0].gpuMaterial->color;
+}
+
+void SkinnedModel::SetColor(const Vector4& color)
+{
+	for (auto& resource : meshResources_)
+	{
+		if (resource.gpuMaterial)
+		{
+			resource.gpuMaterial->color = color;
+		}
+	}
+}
+
+bool SkinnedModel::IsEnableLighting() const
+{
+	if (meshResources_.empty() || !meshResources_[0].gpuMaterial)
+	{
+		return true;
+	}
+	return meshResources_[0].gpuMaterial->enableLighting;
+}
+
+void SkinnedModel::SetEnableLighting(bool enable)
+{
+	for (auto& resource : meshResources_)
+	{
+		if (resource.gpuMaterial)
+		{
+			resource.gpuMaterial->enableLighting = enable;
+		}
+	}
+}

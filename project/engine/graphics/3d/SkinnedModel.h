@@ -90,6 +90,30 @@ public: // アクセッサ
 	 */
 	ID3D12Resource* GetSkinnedVertexOutputBuffer() const { return skinnedVertexOutputBuffer_.Get(); }
 
+	/**
+	 * @brief 色の取得（最初のマテリアル）
+	 * @return 現在の色（RGBA）
+	 */
+	Vector4 GetColor() const;
+
+	/**
+	 * @brief 色の設定（全マテリアルに適用）
+	 * @param color 新しい色（RGBA）
+	 */
+	void SetColor(const Vector4& color);
+
+	/**
+	 * @brief ライティングの有効/無効の取得（最初のマテリアル）
+	 * @return ライティング有効フラグ
+	 */
+	bool IsEnableLighting() const;
+
+	/**
+	 * @brief ライティングの有効/無効の設定（全マテリアルに適用）
+	 * @param enable ライティング有効フラグ
+	 */
+	void SetEnableLighting(bool enable);
+
 public: // 静的読み込み関数
 	/**
 	 * @brief スキニングモデルファイルの読み込み

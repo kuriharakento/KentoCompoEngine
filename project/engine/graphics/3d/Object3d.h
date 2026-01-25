@@ -7,6 +7,7 @@
 #include "base/GraphicsTypes.h"
 // graphics
 #include "Model.h"
+#include "IRenderable3d.h"
 #include "light/DirectionalLight.h"
 #include "manager/graphics/ModelManager.h"
 // camera
@@ -28,34 +29,42 @@ enum class RenderingType {
 /**
  * @brief 3Dオブジェクトクラス
  * @details 3Dモデルを持ち、座標変換、ライティング、カメラ情報を管理して描画するクラス
+ *          IRenderable3dインターフェースを実装し、GameObjectから透過的に使用可能
  */
-class Object3d
+class Object3d : public IRenderable3d
 {
 public:	/*========[ メンバ関数 ]========*/
 	/**
 	 * @brief デストラクタ
 	 * @details リソースの解放を行う
 	 */
-	~Object3d();
+	~Object3d() override;
 
 	/**
-	 * @brief 初期化
+	 * @brief 初期化（インターフェース実装）
 	 * @param object3dCommon 3Dオブジェクト共通部へのポインタ
 	 * @param camera カメラへのポインタ（省略時はデフォルトカメラを使用）
 	 */
-	void Initialize(Object3dCommon* object3dCommon,Camera* camera = nullptr);
+	void Initialize(Object3dCommon* object3dCommon, Camera* camera = nullptr) override;
 
 	/**
-	 * @brief 更新
+	 * @brief 更新（インターフェース実装）
+	 * @param deltaTime フレーム時間（秒）- 現在は未使用
+	 * @param camera カメラへのポインタ
+	 */
+	void Update(float deltaTime, Camera* camera) override;
+
+	/**
+	 * @brief 更新（既存互換）
 	 * @param camera カメラマネージャーへのポインタ（省略可）
 	 */
 	void Update(CameraManager* camera = nullptr);
 
 	/**
-	 * @brief 描画
+	 * @brief 描画（インターフェース実装）
 	 * @details 座標変換行列、ライティング、カメラ情報を設定して描画する
 	 */
-	void Draw();
+	void Draw() override;
 
 	/**
 	 * @brief シャドウマップ用描画
@@ -65,10 +74,10 @@ public:	/*========[ メンバ関数 ]========*/
 	void DrawShadow(D3D12_GPU_VIRTUAL_ADDRESS lightViewProjectionAddress);
 
 	/**
-	 * @brief シャドウマップ用描画（行列パラメータなし）
+	 * @brief シャドウマップ用描画（インターフェース実装）
 	 * @details 外部で行列が設定されている前提で、オブジェクトの描画のみを行う
 	 */
-	void DrawShadowOnly();
+	void DrawShadowOnly() override;
 
 	/**
 	 * @brief シャドウマップ用描画（非推奨）
@@ -77,10 +86,10 @@ public:	/*========[ メンバ関数 ]========*/
 	void DrawShadowWithMatrix(const Matrix4x4& lightViewProjection);
 
 	/**
-	 * @brief G-Buffer用描画（ディファードレンダリング）
+	 * @brief G-Buffer用描画（インターフェース実装）
 	 * @details ジオメトリパスでG-Bufferに描画する
 	 */
-	void DrawGBuffer();
+	void DrawGBuffer() override;
 
 	/**
 	 * @brief 行列の更新
@@ -90,48 +99,49 @@ public:	/*========[ メンバ関数 ]========*/
 	void UpdateMatrix(Camera* camera = nullptr);
 
 	/**
-	 * @brief ワールド行列のみの更新
+	 * @brief ワールド行列のみの更新（インターフェース実装）
 	 * @details ビュープロジェクション行列は更新せず、ワールド行列のみを更新する
 	 */
-	void UpdateWorldMatrix();
+	void UpdateWorldMatrix() override;
 
 	/**
-	 * @brief 外部ワールド行列を使用した行列の更新
+	 * @brief 外部ワールド行列を使用した行列の更新（インターフェース実装）
 	 * @param worldMatrix 外部から渡されたワールド行列
 	 * @param camera 使用するカメラ（省略時はデフォルトカメラを使用）
 	 */
-	void UpdateMatrixWithWorld(const Matrix4x4& worldMatrix, Camera* camera = nullptr);
+	void UpdateMatrixWithWorld(const Matrix4x4& worldMatrix, Camera* camera = nullptr) override;
+
 
 public: /*========[ ゲッター ]========*/
 	/**
 	 * @brief スケールの取得
 	 * @return スケール値
 	 */
-	const Vector3& GetScale() const { return transform_.scale; }
+	const Vector3& GetScale() const override { return transform_.scale; }
 
 	/**
 	 * @brief 回転の取得
 	 * @return 回転値（ラジアン）
 	 */
-	const Vector3& GetRotate() const { return transform_.rotate; }
+	const Vector3& GetRotate() const override { return transform_.rotate; }
 
 	/**
 	 * @brief 位置の取得
 	 * @return 位置
 	 */
-	const Vector3& GetTranslate() const { return transform_.translate; }
+	const Vector3& GetTranslate() const override { return transform_.translate; }
 
 	/**
 	 * @brief 色の取得
 	 * @return 色（RGBA）
 	 */
-	Vector4 GetColor() const { return model_->GetColor(); }
+	Vector4 GetColor() const override { return model_ ? model_->GetColor() : Vector4(1,1,1,1); }
 
 	/**
 	 * @brief ライティングの有効/無効の取得
 	 * @return ライティング有効フラグ
 	 */
-	bool IsEnableLighting() const { return model_->IsEnableLighting(); }
+	bool IsEnableLighting() const override { return model_ ? model_->IsEnableLighting() : true; }
 
 	/**
 	 * @brief ライティングカラーの取得
@@ -184,43 +194,43 @@ public: /*========[ セッター ]========*/
 	 * @brief カメラの設定
 	 * @param camera カメラへのポインタ
 	 */
-	void SetCamera(Camera* camera) { camera_ = camera; }
+	void SetCamera(Camera* camera) override { camera_ = camera; }
 
 	/**
 	 * @brief スケールの設定
 	 * @param scale 新しいスケール値
 	 */
-	void SetScale(const Vector3& scale) { transform_.scale = scale; }
+	void SetScale(const Vector3& scale) override { transform_.scale = scale; }
 
 	/**
 	 * @brief 回転の設定
 	 * @param rotate 新しい回転値（ラジアン）
 	 */
-	void SetRotate(const Vector3& rotate) { transform_.rotate = rotate; }
+	void SetRotate(const Vector3& rotate) override { transform_.rotate = rotate; }
 
 	/**
 	 * @brief 位置の設定
 	 * @param translate 新しい位置
 	 */
-	void SetTranslate(const Vector3& translate) { transform_.translate = translate; }
+	void SetTranslate(const Vector3& translate) override { transform_.translate = translate; }
 
 	/**
 	 * @brief ワールド行列の取得
 	 * @return ワールド行列
 	 */
-	Matrix4x4 GetWorldMatrix() const { return transformationMatrixData_ ? transformationMatrixData_->World : MakeIdentity4x4(); }
+	Matrix4x4 GetWorldMatrix() const override { return transformationMatrixData_ ? transformationMatrixData_->World : MakeIdentity4x4(); }
 
 	/**
 	 * @brief 色の設定
 	 * @param color 新しい色
 	 */
-	void SetColor(const Vector4& color) const { model_->SetColor(color); }
+	void SetColor(const Vector4& color) override { if (model_) model_->SetColor(color); }
 
 	/**
 	 * @brief ライティングの有効/無効の設定
 	 * @param enable ライティング有効フラグ
 	 */
-	void SetEnableLighting(bool enable) const { model_->SetEnableLighting(enable); }
+	void SetEnableLighting(bool enable) override { if (model_) model_->SetEnableLighting(enable); }
 
 	/**
 	 * @brief ライティングカラーの設定
@@ -268,13 +278,13 @@ public: /*========[ セッター ]========*/
 	 * @brief ディレクショナルライトの一括設定
 	 * @param light ディレクショナルライトデータ
 	 */
-	void SetDirectionalLight(const DirectionalLight& light) { *directionalLightData_ = light; }
+	void SetDirectionalLight(const DirectionalLight& light) override { if (directionalLightData_) *directionalLightData_ = light; }
 
 	/**
 	 * @brief ライトマネージャーの設定
 	 * @param lightManager ライトマネージャーへのポインタ
 	 */
-	void SetLightManager(LightManager* lightManager) { lightManager_ = lightManager; }
+	void SetLightManager(LightManager* lightManager) override { lightManager_ = lightManager; }
 
 	/**
 	 * @brief シャドウマップの設定
