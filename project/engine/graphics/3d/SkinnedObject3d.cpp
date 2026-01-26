@@ -115,7 +115,10 @@ void SkinnedObject3d::DispatchSkinning()
 	);
 
 	// スキニング計算を実行
-	skinningCompute_->Dispatch();
+	skinningCompute_->Dispatch(model_->GetResourceState());
+
+	// Dispatch後はVB状態になっているので更新
+	model_->SetResourceState(D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 }
 
 void SkinnedObject3d::Draw()
@@ -124,6 +127,11 @@ void SkinnedObject3d::Draw()
 	{
 		return;
 	}
+
+	// スキニング計算を実行（頂点変形）
+	// 注意: これによりコンピュートパイプラインが設定されるため、後続の描画処理で
+	// グラフィックスパイプラインを再設定する必要がある（CommonRenderingSettingで行われる）
+	DispatchSkinning();
 
 	// グラフィックスパイプラインを設定（コンピュートシェーダー後のリセット）
 	object3dCommon_->CommonRenderingSetting();
@@ -164,6 +172,9 @@ void SkinnedObject3d::DrawShadowOnly()
 
 	// モデルを描画
 	model_->DrawShadow();
+
+	// 暗黙的なプロモーションによりVB状態になるため状態を更新
+	model_->SetResourceState(D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 }
 
 void SkinnedObject3d::DrawGBuffer()
@@ -183,6 +194,9 @@ void SkinnedObject3d::DrawGBuffer()
 
 	// モデルを描画
 	model_->DrawGBuffer();
+
+	// 描画によりVB状態になるため状態を更新
+	model_->SetResourceState(D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 }
 
 void SkinnedObject3d::PlayAnimation(uint32_t animationIndex, bool loop)

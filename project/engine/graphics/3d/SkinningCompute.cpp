@@ -79,7 +79,7 @@ void SkinningCompute::UpdateBoneMatrices(const std::vector<Matrix4x4>& boneMatri
 	std::memcpy(boneMatrixData_, boneMatrices.data(), copySize);
 }
 
-void SkinningCompute::Dispatch()
+void SkinningCompute::Dispatch(D3D12_RESOURCE_STATES currentState)
 {
 	if (currentVertexCount_ == 0)
 	{
@@ -92,13 +92,10 @@ void SkinningCompute::Dispatch()
 	D3D12_RESOURCE_BARRIER toUav = {};
 	toUav.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	toUav.Transition.pResource = outputBuffer_;
-	// 初回はCOMMON状態から、以降はVB状態から遷移
-	toUav.Transition.StateBefore = isFirstDispatch_ ? D3D12_RESOURCE_STATE_COMMON : D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+	toUav.Transition.StateBefore = currentState;
 	toUav.Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 	toUav.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	commandList->ResourceBarrier(1, &toUav);
-
-	isFirstDispatch_ = false;
 
 	// コンピュートパイプラインを設定
 	commandList->SetComputeRootSignature(rootSignature_.Get());

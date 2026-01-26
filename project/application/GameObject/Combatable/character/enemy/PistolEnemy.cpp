@@ -8,6 +8,9 @@ void PistolEnemy::Initialize(Object3dCommon* object3dCommon, SpriteCommon* sprit
 {
 	EnemyBase::Initialize(object3dCommon, spriteCommon, camera, lightManager, target, initialTransform);
 
+	// スキニングモデルを設定（フォルダ名のみ指定）
+	SetSkinnedModel("walk");
+
 	//銃射撃のコンポーネントを追加
 	AddComponent("PistolComponent", std::make_unique<PistolComponent>(object3dCommon, lightManager));
 

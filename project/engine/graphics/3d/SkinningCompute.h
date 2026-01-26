@@ -38,8 +38,9 @@ public:
 
 	/**
 	 * @brief スキニング計算の実行
+	 * @param currentState 現在のリソース状態（バリア用）
 	 */
-	void Dispatch();
+	void Dispatch(D3D12_RESOURCE_STATES currentState);
 
 public: // アクセッサ
 	/**
@@ -106,7 +107,4 @@ private:
 	// 入出力バッファ
 	ID3D12Resource* inputBuffer_ = nullptr;
 	ID3D12Resource* outputBuffer_ = nullptr;
-
-	// 初回Dispatchフラグ（リソース状態追跡用）
-	bool isFirstDispatch_ = true;
 };

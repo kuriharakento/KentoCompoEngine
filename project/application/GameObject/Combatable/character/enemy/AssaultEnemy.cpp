@@ -8,6 +8,10 @@
 void AssaultEnemy::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, CameraManager* camera, LightManager* lightManager, GameObject* target, const Transform& initialTransform)
 {
 	EnemyBase::Initialize(object3dCommon, spriteCommon, camera, lightManager, target, initialTransform);
+
+	// スキニングモデルを設定（フォルダ名のみ指定）
+	SetSkinnedModel("walk");
+
 	// AssaultRifleのコンポーネントを追加
 	AddComponent("AssaultRifleComponent", std::make_unique<AssaultRifleComponent>(object3dCommon, lightManager));
 	// ビヘイビアコンポーネントを追加

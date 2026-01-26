@@ -660,7 +660,7 @@ void SkinnedModel::CreateSkinningBuffers()
 		&heapProps,
 		D3D12_HEAP_FLAG_NONE,
 		&resourceDesc,
-		D3D12_RESOURCE_STATE_COMMON, // Default HeapはCOMMONで作成する必要がある
+		D3D12_RESOURCE_STATE_COMMON, // 初期状態はCOMMON
 		nullptr,
 		IID_PPV_ARGS(&skinnedVertexOutputBuffer_)
 	);

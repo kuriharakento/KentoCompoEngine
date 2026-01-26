@@ -77,6 +77,18 @@ public:
     bool IsInvincible() const { return invincibleTimer_ > 0.0f; }
 
     /**
+     * @brief 移動入力があるかどうかを取得する
+     * @return 移動入力があればtrue
+     */
+    bool IsMoving() const { return hasMovementInput_; }
+
+    /**
+     * @brief 歩行アニメーションのインデックスを設定する
+     * @param index アニメーションインデックス
+     */
+    void SetWalkAnimationIndex(uint32_t index) { walkAnimationIndex_ = index; }
+
+    /**
      * @brief 回避動作の進行度を取得する
      * @return 進行度（0.0〜1.0）
      */
@@ -114,6 +126,9 @@ private:
     static constexpr float kDodgeRotationInterpolation = 0.2f;
     // 完全なタイムスケール（通常速度）
     static constexpr float kNormalTimeScale = 1.0f;
+
+    // 歩行アニメーションのインデックス
+    uint32_t walkAnimationIndex_ = 0;
 
     // 移動処理
     void ProcessMovement(GameObject* owner, float deltaTime);

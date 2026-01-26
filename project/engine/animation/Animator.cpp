@@ -56,6 +56,12 @@ void Animator::Update(float deltaTime)
 
 void Animator::PlayAnimation(const AnimationClip* clip, bool loop)
 {
+	// 既に同じアニメーションを再生中の場合はリセットしない
+	if (currentClip_ == clip && isPlaying_ && isLooping_ == loop)
+	{
+		return;
+	}
+
 	currentClip_ = clip;
 	currentTime_ = 0.0f;
 	isPlaying_ = true;

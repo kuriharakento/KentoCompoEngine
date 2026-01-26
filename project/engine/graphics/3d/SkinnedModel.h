@@ -208,4 +208,18 @@ private:
 
 	// スキニング用出力バッファ（変形後VertexData）
 	Microsoft::WRL::ComPtr<ID3D12Resource> skinnedVertexOutputBuffer_;
+
+	// 現在のリソース状態
+	D3D12_RESOURCE_STATES currentResourceState_ = D3D12_RESOURCE_STATE_COMMON;
+
+public:
+	/**
+	 * @brief リソース状態の取得
+	 */
+	D3D12_RESOURCE_STATES GetResourceState() const { return currentResourceState_; }
+
+	/**
+	 * @brief リソース状態の設定
+	 */
+	void SetResourceState(D3D12_RESOURCE_STATES state) { currentResourceState_ = state; }
 };

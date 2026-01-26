@@ -280,6 +280,10 @@ protected:
 	Transform transform_;
 	// 3D描画用オブジェクト（Object3dまたはSkinnedObject3d）
 	std::unique_ptr<IRenderable3d> renderable3d_;
+	// Object3dCommonへのポインタ（SetSkinnedModel用）
+	Object3dCommon* object3dCommon_ = nullptr;
+	// LightManagerへのポインタ（SetSkinnedModel用）
+	LightManager* lightManager_ = nullptr;
 
 private:
 	/**

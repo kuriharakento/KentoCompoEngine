@@ -1,6 +1,7 @@
 #include "GameObject.h"
 
 #include "engine/graphics/3d/Object3dCommon.h"
+#include "time/TimeManager.h"
 // system
 #include "base/Logger.h"
 #ifdef USE_IMGUI
@@ -28,6 +29,10 @@ GameObject::GameObject(std::string tag)
 
 void GameObject::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, const Transform& initialTransform)
 {
+	// SetSkinnedModel用に参照を保持
+	object3dCommon_ = object3dCommon;
+	lightManager_ = lightManager;
+
 	auto object3d = std::make_unique<Object3d>();
 	object3d->Initialize(object3dCommon, object3dCommon->GetDefaultCamera());
 
@@ -50,10 +55,22 @@ void GameObject::SetModel(const std::string& modelName)
 
 void GameObject::SetSkinnedModel(const std::string& modelPath, const std::string& ext)
 {
-	// TODO: Object3dCommonへの参照が必要なため、後で実装を完成させる
-	// 現時点ではSkinnedObject3dを使用する場合、派生クラス側で直接設定する
-	(void)modelPath;
-	(void)ext;
+	if (!object3dCommon_)
+	{
+		return;
+	}
+
+	// 新しいSkinnedObject3dを生成
+	auto skinned = std::make_unique<SkinnedObject3d>();
+	skinned->Initialize(object3dCommon_, object3dCommon_->GetDefaultCamera());
+	skinned->SetModel(modelPath, ext);
+	if (lightManager_)
+	{
+		skinned->SetLightManager(lightManager_);
+	}
+
+	// renderable3d_を差し替え
+	renderable3d_ = std::move(skinned);
 }
 
 Model* GameObject::GetModel() const
@@ -72,7 +89,7 @@ void GameObject::Update()
 	// 更新中フラグを立てる（コンポーネントの追加・削除を保留するため）
 	isUpdating_ = true;
 
-	// アクションコンポーネントの更新（移動、アニメーションなど）
+	// アクションコンポーネントの更新
 	for (auto& actionComp : actionComponents_)
 	{
 		if (actionComp)
@@ -81,7 +98,15 @@ void GameObject::Update()
 		}
 	}
 
-	// ワールド行列の更新（親子関係を考慮した座標変換）
+	// 3Dモデルの更新
+	if (renderable3d_)
+	{
+		float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
+		Camera* camera = object3dCommon_ ? object3dCommon_->GetDefaultCamera() : nullptr;
+		renderable3d_->Update(deltaTime, camera);
+	}
+
+	// ワールド行列の更新
 	UpdateWorldMatrix();
 
 	// コリジョンコンポーネントの更新（当たり判定処理）
@@ -93,7 +118,7 @@ void GameObject::Update()
 		}
 	}
 
-	// 子オブジェクトの再帰的更新
+	// 子オブジェクトの更新
 	for (auto& [name, child] : children_)
 	{
 		if (child)

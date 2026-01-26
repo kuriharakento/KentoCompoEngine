@@ -343,6 +343,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\camerawork\base\CameraWorkBase.h" />
     <ClInclude Include="engine\camerawork\topdown\TopDownCamera.h" />
     <ClInclude Include="engine\effects\postprocess\CRTEffect.h" />
+    <ClInclude Include="engine\graphics\3d\IRenderable3d.h" />
     <ClInclude Include="engine\graphics\3d\SkinnedModel.h" />
     <ClInclude Include="engine\graphics\3d\SkinnedObject3d.h" />
     <ClInclude Include="engine\graphics\3d\SkinningCompute.h" />
