@@ -124,6 +124,23 @@ void MoveComponent::Update(GameObject* owner)
 
     // バレットタイム処理
     ProcessBulletTime(owner);
+
+    // アニメーション制御（スキニングモデルを使っている場合）
+    if (auto* skinned = owner->GetSkinnedObject3d())
+    {
+        // 回避中は制御しない（あるいは回避アニメーションなど）
+        if (!isDodging_)
+        {
+            if (hasMovementInput_)
+            {
+                skinned->PlayAnimation(0, true);
+            }
+            else
+            {
+                skinned->StopAnimation();
+            }
+        }
+    }
 }
 
 // 向きを滑らかに補間する処理

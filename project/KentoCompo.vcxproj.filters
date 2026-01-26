@@ -1060,6 +1060,7 @@
     <ClInclude Include="application\GameObject\component\action\WeaponManagerComponent.h" />
     <ClInclude Include="application\GameObject\Combatable\character\enemy\base\EnemyBase.h" />
     <ClInclude Include="application\UI\ControlsGuide.h" />
+    <ClInclude Include="engine\graphics\3d\IRenderable3d.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

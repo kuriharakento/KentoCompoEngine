@@ -71,6 +71,21 @@ void Object3d::Update(CameraManager* camera)
 	UpdateMatrix(camera_);
 }
 
+void Object3d::Update(float deltaTime, Camera* camera)
+{
+	// deltaTimeは静的モデルでは未使用
+	(void)deltaTime;
+
+	// カメラが指定されていれば使用
+	if (camera)
+	{
+		camera_ = camera;
+	}
+
+	// 座標変換行列の更新
+	UpdateMatrix(camera_);
+}
+
 void Object3d::Draw()
 {
 	auto* commandList = object3dCommon_->GetDXCommon()->GetCommandList();

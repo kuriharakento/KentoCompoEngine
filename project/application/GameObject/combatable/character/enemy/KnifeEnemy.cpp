@@ -9,6 +9,9 @@ void KnifeEnemy::Initialize(Object3dCommon* object3dCommon, SpriteCommon* sprite
 {
 	EnemyBase::Initialize(object3dCommon, spriteCommon, camera, lightManager, target, inintialTransform);
 
+	// スキニングモデルを設定（フォルダ名のみ指定）
+	SetSkinnedModel("sneakWalk");
+
 	// 右腕の作成
 	auto rightArm = std::make_unique<GameObject>(GameObjectTag::Character::KnifeEnemyRightArm);
 	rightArm->Initialize(object3dCommon, lightManager);

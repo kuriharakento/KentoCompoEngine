@@ -55,13 +55,11 @@ void Player::TakeDamage(float damage)
 
 		// 色変更ヘルパーラムダ
 		auto setColorFunc = [this](const Vector4& color) {
-			if (object3d_) {
-				object3d_->SetColor(color);
-			}
+			SetColor(color);
 			// 子オブジェクトの色も変更
 			for (auto& [name, child] : GetChildren()) {
-				if (child && child->GetObject3d()) {
-					child->GetObject3d()->SetColor(color);
+				if (child) {
+					child->SetColor(color);
 				}
 			}
 		};
@@ -99,28 +97,20 @@ IWeaponComponent* Player::GetCurrentWeapon() const
 void Player::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, EnemyManager* enemyManager, CameraManager* camera)
 {
 	Character::Initialize(object3dCommon, lightManager);
-	//初期位置を設定
+
+	// スキニングモデルを設定
+	SetSkinnedModel("player_walk");
+
+	// 初期位置を設定
 	transform_.translate = { 0.0f, 1.0f, 0.0f };
-
-
-	// 試しに右腕を追加
-	auto armR = std::make_unique<GameObject>(GameObjectTag::Character::PlayerRightArm);
-	armR->Initialize(object3dCommon, lightManager);
-	armR->SetModel("cube");
-	armR->SetPosition(Vector3(3.0f, 0.0f, 0.0f));
-	armR->AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(armR.get()));
-	AddChild(GameObjectTag::Character::PlayerRightArm, std::move(armR));
-
-	// 左腕も追加してみる
-	auto armL = std::make_unique<GameObject>(GameObjectTag::Character::PlayerLeftArm);
-	armL->Initialize(object3dCommon, lightManager);
-	armL->SetModel("cube");
-	armL->SetPosition(Vector3(-3.0f, 0.0f, 0.0f));
-	armL->AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(armL.get()));
-	AddChild(GameObjectTag::Character::PlayerLeftArm, std::move(armL));
-
+	
 	// 移動コンポーネントを追加
 	AddComponent("MoveComponent", std::make_unique<MoveComponent>(enemyManager, camera));
+	// アニメーションインデックスを設定（0番が歩きと仮定）
+	if (auto moveComp = GetComponent<MoveComponent>())
+	{
+		moveComp->SetWalkAnimationIndex(0);
+	}
 	// 重力演算コンポーネントを追加
 	AddComponent("GravityPhysicsComponent", std::make_unique<GravityPhysicsComponent>());
 

@@ -60,13 +60,13 @@ void EnemyBase::TakeDamage(float damage)
 
 		// 色変更ヘルパーラムダ
 		auto setColorFunc = [this](const Vector4& color) {
-			if (object3d_) {
-				object3d_->SetColor(color);
+			if (renderable3d_) {
+				renderable3d_->SetColor(color);
 			}
 			// 子オブジェクトの色も変更
 			for (auto& [name, child] : GetChildren()) {
-				if (child && child->GetObject3d()) {
-					child->GetObject3d()->SetColor(color);
+				if (child && child->GetRenderable3d()) {
+					child->GetRenderable3d()->SetColor(color);
 				}
 			}
 		};

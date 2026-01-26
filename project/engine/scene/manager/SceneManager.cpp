@@ -17,7 +17,7 @@ void SceneManager::Initialize(const SceneContext& context)
 	context_ = context;
 
 	//初期シーンの名前
-	std::string startSceneName = "TITLE";
+	std::string startSceneName = SceneNames::GamePlay;
 
 	//最初のシーンを生成
 	currentScene_.reset(sceneFactory_->CreateScene(startSceneName));

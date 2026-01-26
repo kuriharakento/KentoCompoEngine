@@ -660,7 +660,7 @@ void SkinnedModel::CreateSkinningBuffers()
 		&heapProps,
 		D3D12_HEAP_FLAG_NONE,
 		&resourceDesc,
-		D3D12_RESOURCE_STATE_COMMON, // Default HeapはCOMMONで作成する必要がある
+		D3D12_RESOURCE_STATE_COMMON, // 初期状態はCOMMON
 		nullptr,
 		IID_PPV_ARGS(&skinnedVertexOutputBuffer_)
 	);
@@ -685,4 +685,44 @@ void SkinnedModel::InitializeRenderingSettings()
 	CreateMeshResources();
 	CreateMaterialResources();
 	CreateSkinningBuffers();
+}
+
+Vector4 SkinnedModel::GetColor() const
+{
+	if (meshResources_.empty() || !meshResources_[0].gpuMaterial)
+	{
+		return Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	}
+	return meshResources_[0].gpuMaterial->color;
+}
+
+void SkinnedModel::SetColor(const Vector4& color)
+{
+	for (auto& resource : meshResources_)
+	{
+		if (resource.gpuMaterial)
+		{
+			resource.gpuMaterial->color = color;
+		}
+	}
+}
+
+bool SkinnedModel::IsEnableLighting() const
+{
+	if (meshResources_.empty() || !meshResources_[0].gpuMaterial)
+	{
+		return true;
+	}
+	return meshResources_[0].gpuMaterial->enableLighting;
+}
+
+void SkinnedModel::SetEnableLighting(bool enable)
+{
+	for (auto& resource : meshResources_)
+	{
+		if (resource.gpuMaterial)
+		{
+			resource.gpuMaterial->enableLighting = enable;
+		}
+	}
 }

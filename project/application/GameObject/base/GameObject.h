@@ -4,7 +4,9 @@
 #include <algorithm>
 
 // graphics
+#include "graphics/3d/IRenderable3d.h"
 #include "graphics/3d/Object3d.h"
+#include "graphics/3d/SkinnedObject3d.h"
 // math
 #include "base/GraphicsTypes.h"
 // component
@@ -166,26 +168,57 @@ public: // アクセッサ
 	 * @brief ワールド行列の取得
 	 * @return 現在のワールド行列
 	 */
-	Matrix4x4 GetWorldMatrix() const { return object3d_ ? object3d_->GetWorldMatrix() : MakeIdentity4x4(); }
+	Matrix4x4 GetWorldMatrix() const { return renderable3d_ ? renderable3d_->GetWorldMatrix() : MakeIdentity4x4(); }
 
 	// === 3Dオブジェクト関連 ===
 	/**
 	 * @brief 3Dモデルの設定
 	 * @param modelName 設定するモデル名
 	 */
-	void SetModel(const std::string& modelName) { object3d_->SetModel(modelName); }
+	void SetModel(const std::string& modelName);
+
+	/**
+	 * @brief スキニングモデルの設定
+	 * @param modelPath モデルのファイルパス
+	 * @param ext モデルファイルの拡張子（デフォルト: ".gltf"）
+	 */
+	void SetSkinnedModel(const std::string& modelPath, const std::string& ext = ".gltf");
 
 	/**
 	 * @brief 3Dモデルの取得
 	 * @return 現在のモデル
 	 */
-	Model* GetModel() const { return object3d_ ? object3d_->GetModel() : nullptr; }
+	Model* GetModel() const;
 
 	/**
 	 * @brief Object3Dインスタンスの取得
 	 * @return Object3Dのポインタ
 	 */
-	Object3d* GetObject3d() const { return object3d_.get(); }
+	IRenderable3d* GetRenderable3d() const { return renderable3d_.get(); }
+
+	/**
+	 * @brief Object3Dインスタンスの取得（互換用）
+	 * @return Object3Dのポインタ（静的モデルの場合のみ有効）
+	 */
+	Object3d* GetObject3d() const { return dynamic_cast<Object3d*>(renderable3d_.get()); }
+
+	/**
+	 * @brief SkinnedObject3Dインスタンスの取得
+	 * @return SkinnedObject3Dのポインタ（スキニングモデルの場合のみ有効）
+	 */
+	SkinnedObject3d* GetSkinnedObject3d() const { return dynamic_cast<SkinnedObject3d*>(renderable3d_.get()); }
+
+	/**
+	 * @brief オブジェクトの色を設定
+	 * @param color 設定する色（RGBA）
+	 */
+	void SetColor(const Vector4& color) { if (renderable3d_) renderable3d_->SetColor(color); }
+
+	/**
+	 * @brief オブジェクトの色を取得
+	 * @return 現在の色（RGBA）
+	 */
+	Vector4 GetColor() const { return renderable3d_ ? renderable3d_->GetColor() : Vector4(1,1,1,1); }
 
 	// === タグ関連 ===
 	/**
@@ -245,8 +278,12 @@ public: // アクセッサ
 protected:
 	// オブジェクトのトランスフォーム情報（位置、回転、スケール）
 	Transform transform_;
-	// 3D描画用オブジェクト
-	std::unique_ptr<Object3d> object3d_;
+	// 3D描画用オブジェクト（Object3dまたはSkinnedObject3d）
+	std::unique_ptr<IRenderable3d> renderable3d_;
+	// Object3dCommonへのポインタ（SetSkinnedModel用）
+	Object3dCommon* object3dCommon_ = nullptr;
+	// LightManagerへのポインタ（SetSkinnedModel用）
+	LightManager* lightManager_ = nullptr;
 
 private:
 	/**
