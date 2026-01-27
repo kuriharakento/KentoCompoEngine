@@ -28,6 +28,7 @@
 #include "application/ui/GameUI.h"
 #include "application/UI/Cursor.h"
 #include "application/UI/ControlsGuide.h"
+#include "application/UI/PoseMenu.h"
 
 /**
  * @brief メインゲームプレイシーン
@@ -243,6 +244,9 @@ private: //メンバ変数
 
 	// 操作説明UI
 	std::unique_ptr<ControlsGuide> controlsGuide_;
+
+	// ポーズメニュー
+	std::unique_ptr<PoseMenu> poseMenu_;
 
 	// ========================
 	//  イントロ演出

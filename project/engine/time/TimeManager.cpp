@@ -20,10 +20,8 @@ TimeManager::TimeManager()
 
 void TimeManager::UpdateTimeContext(TimeContext& context, float realDelta, bool isPaused)
 {
-	// 実時間の設定
-	context.realDeltaTime = realDelta;
-
-	// ポーズ時はスケール適用時間を0にする
+	// ポーズ時は全ての時間を0にする
+	context.realDeltaTime = isPaused ? 0.0f : realDelta;
 	context.deltaTime = isPaused ? 0.0f : realDelta * context.timeScale;
 
 	// 累積時間の更新

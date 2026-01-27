@@ -219,6 +219,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\scene\play\GameClearScene.cpp" />
     <ClCompile Include="application\scene\play\GameOverScene.cpp" />
     <ClCompile Include="application\UI\GameUI.cpp" />
+    <ClCompile Include="application\UI\PoseMenu.cpp" />
     <ClCompile Include="engine\graphics\2d\FontSprite.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="engine\manager\system\SrvManager.cpp" />
@@ -464,6 +465,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\scene\play\GameClearScene.h" />
     <ClInclude Include="application\scene\play\GameOverScene.h" />
     <ClInclude Include="application\UI\GameUI.h" />
+    <ClInclude Include="application\UI\PoseMenu.h" />
     <ClInclude Include="application\GameObject\component\action\PlayerUIComponent.h" />
     <ClInclude Include="engine\graphics\2d\FontSprite.h" />
     <ClInclude Include="application\GameObject\component\action\IWeaponComponent.h" />

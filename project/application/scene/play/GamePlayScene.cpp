@@ -22,6 +22,7 @@
 #include "time/TimerManager.h"
 #include "application/effect/BulletTrailManager.h"
 #include "effects/particle/ParticleManager.h"
+#include "application/UI/PoseMenu.h"
 
 void GamePlayScene::Initialize()
 {
@@ -122,6 +123,18 @@ void GamePlayScene::Initialize()
 	controlsGuide_->SetPosition({ 30.0f, 30.0f });
 	controlsGuide_->SetScale(0.3f);
 	controlsGuide_->SetVisible(false);
+
+	// ポーズメニュー初期化
+	poseMenu_ = std::make_unique<PoseMenu>();
+	poseMenu_->Initialize(sceneManager_->GetSpriteCommon());
+	poseMenu_->SetOnRetryCallback([this]() {
+		// リトライ：シーンを再読み込み
+		sceneManager_->ChangeScene(SceneNames::GamePlay);
+	});
+	poseMenu_->SetOnExitCallback([this]() {
+		// タイトルへ戻る
+		sceneManager_->ChangeScene(SceneNames::Title);
+	});
 
 	StartState(SceneState::Enter);
 	gameClear_ = false;
@@ -393,6 +406,9 @@ void GamePlayScene::OnExitExit()
 // ==================================================
 void GamePlayScene::CommonUpdate()
 {
+	// ポーズメニュー更新（全状態で動作）
+	poseMenu_->Update();
+
 	cinematicLetterbox_.Update();
 	skydome_->Update(sceneManager_->GetCameraManager());
 	ground_->Update(sceneManager_->GetCameraManager());
@@ -433,12 +449,18 @@ void GamePlayScene::Draw2D()
 
 	controlsGuide_->Draw();
 
+	// ポーズメニュー（最前面に描画）
+	poseMenu_->Draw();
+
 	transitionEffect_.Draw();
 }
 
 void GamePlayScene::DrawImGui()
 {
 #ifdef USE_IMGUI
+	// ポーズメニューUI
+	poseMenu_->DrawImGui();
+
 	ImGui::Begin("GameScene");
 
 	if (ImGui::Button("Clear"))

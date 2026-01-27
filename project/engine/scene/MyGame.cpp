@@ -304,6 +304,7 @@ void MyGame::LoadTextures()
 	TextureManager::GetInstance()->LoadTexture("./Resources/black.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/red.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/testSprite.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/white1x1.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/monsterBall.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/gradationLine.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/gradation.png");
