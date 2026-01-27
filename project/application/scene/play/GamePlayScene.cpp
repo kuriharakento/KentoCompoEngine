@@ -132,8 +132,8 @@ void GamePlayScene::Initialize()
 		sceneManager_->ChangeScene(SceneNames::GamePlay);
 	});
 	poseMenu_->SetOnExitCallback([this]() {
-		// タイトルへ戻る
-		sceneManager_->ChangeScene(SceneNames::Title);
+		// アプリケーションを終了
+		PostQuitMessage(0);
 	});
 
 	StartState(SceneState::Enter);

@@ -104,7 +104,7 @@ private:
 	std::function<void()> onRetryCallback_;
 	std::function<void()> onExitCallback_;
 
-	// レイアウト設定（ImGuiで調整可能）
+	// レイアウト設定
 	Vector2 menuPosition_ = { 640.0f, 402.0f };  // メニュー中心位置
 	Vector2 buttonSize_ = { 500.0f, 74.0f };     // ボタンサイズ
 	float buttonSpacing_ = 35.0f;                 // ボタン間隔
@@ -122,7 +122,7 @@ private:
 	Vector4 textColor_ = { 1.0f, 1.0f, 1.0f, 1.0f }; // テキスト色
 
 	// 背景オーバーレイ設定
-	Vector4 overlayColor_ = { 0.0f, 0.0f, 0.0f, 0.7f };  // 背景色（半透明黒）
+	Vector4 overlayColor_ = { 0.0f, 0.0f, 0.0f, 0.7f };
 
 	// ボタン色設定
 	Vector4 buttonNormalColor_ = { 0.302f, 0.302f, 0.302f, 0.902f };   // 通常色 (77/255)
