@@ -3,11 +3,11 @@
 #include <vector>
 
 #include "OBBColliderComponent.h"
-#include "application/GameObject/base/GameObject.h"
+#include "application/gameObject/base/GameObject.h"
 
-namespace CollisionUtils
+namespace collisionUtils
 {
-	bool CollisionUtils::CheckOBBvsOBBMTV(const OBB& obbA, const OBB& obbB, Vector3& mtv)
+	bool collisionUtils::CheckOBBvsOBBMTV(const OBB& obbA, const OBB& obbB, Vector3& mtv)
 	{
 		// 各OBBのワールド軸ベクトルを取得
 		Matrix4x4 rotA = obbA.rotate;

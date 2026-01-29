@@ -1,11 +1,11 @@
 #pragma once
-#include "application/GameObject/Combatable/character/base/Character.h"
+#include "application/gameObject/combatable/character/base/Character.h"
 #include <graphics/2d/SpriteCommon.h>
 
 class EnemyBase : virtual public Character
 {
 public:
-	EnemyBase() : Character(GameObjectTag::Common::EnemyBase) {}
+	EnemyBase() : Character(gameObjectTag::common::EnemyBase) {}
 	virtual ~EnemyBase(); // デストラクタを実装（タイマー削除のため）
 	virtual void Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, CameraManager* camera, LightManager* lightManager, GameObject* target, const Transform& initialTransform = Transform());
 	void Update() override;

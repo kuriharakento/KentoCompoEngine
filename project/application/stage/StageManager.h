@@ -9,9 +9,9 @@
 // app
 #include "Stage.h"
 #include "StageData.h"
-#include "application/GameObject/Combatable/character/enemy/EnemyManager.h"
-#include "application/GameObject/Combatable/character/player/Player.h"
-#include "application/GameObject/obstacle/ObstacleManager.h"
+#include "application/gameObject/combatable/character/enemy/EnemyManager.h"
+#include "application/gameObject/combatable/character/player/Player.h"
+#include "application/gameObject/obstacle/ObstacleManager.h"
 
 /**
  * @brief ステージ全体とゲームオブジェクトを統合管理するマネージャークラス

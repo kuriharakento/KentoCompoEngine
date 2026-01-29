@@ -3,7 +3,7 @@
 #include <unordered_set>
 
 #include "BarrierBlock.h"
-#include "application/GameObject/component/collision/OBBColliderComponent.h"
+#include "application/gameObject/component/collision/OBBColliderComponent.h"
 #include "manager/editor/JsonEditorManager.h"
 
 void ObstacleManager::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager)
@@ -233,7 +233,7 @@ void ObstacleManager::SyncNewObstacleData()
 void ObstacleManager::CreateFloor(const GameObjectInfo& info)
 {
 	// コライダーなしの床オブジェクト（GameObjectを直接使う）
-	auto floor = std::make_unique<Obstacle>(GameObjectTag::Item::Floor);
+	auto floor = std::make_unique<Obstacle>(gameObjectTag::item::Floor);
 	// Obstacle::Initializeではなく、GameObject::Initializeを呼ぶことでコライダーを追加しない
 	floor->GameObject::Initialize(object3dCommon_, lightManager_);
 	floor->SetModel(info.fileName);

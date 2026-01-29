@@ -1,6 +1,6 @@
 #pragma once
-#include "application/GameObject/component/base/IActionComponent.h"
-#include "application/UI/GameUI.h"
+#include "application/gameObject/component/base/IActionComponent.h"
+#include "application/ui/GameUI.h"
 #include "math/MatrixFunc.h"
 #include "math/MathUtils.h"
 #include <memory>

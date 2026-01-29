@@ -13,7 +13,7 @@ public:
 	/**
 	 * @brief コンストラクタ
 	 */
-	KnifeEnemy() : Character(GameObjectTag::Character::KnifeEnemy) {}
+	KnifeEnemy() : Character(gameObjectTag::character::KnifeEnemy) {}
 	
 	/**
 	 * @brief 初期化処理

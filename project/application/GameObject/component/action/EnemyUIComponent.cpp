@@ -1,7 +1,7 @@
 #include "EnemyUIComponent.h"
 
-#include "application/GameObject/base/GameObject.h"
-#include "application/GameObject/component/action/StatusComponent.h"
+#include "application/gameObject/base/GameObject.h"
+#include "application/gameObject/component/action/StatusComponent.h"
 #include "base/WinApp.h"
 
 // 体力バーの色

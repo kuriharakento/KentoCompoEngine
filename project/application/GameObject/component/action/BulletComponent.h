@@ -1,5 +1,5 @@
 #pragma once
-#include "application/GameObject/component/base/IActionComponent.h"
+#include "application/gameObject/component/base/IActionComponent.h"
 #include "math/Vector3.h"
 
 /**

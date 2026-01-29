@@ -29,7 +29,7 @@ enum class CollisionPlane
  * 
  * @note サブステップ判定は高速移動体のすり抜けを防ぎます
  */
-namespace CollisionAlgorithm
+namespace collisionAlgorithm
 {
 	// --- 3D用判定 ---
 	

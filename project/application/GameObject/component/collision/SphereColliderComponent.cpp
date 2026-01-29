@@ -1,5 +1,5 @@
 #include "SphereColliderComponent.h"
-#include "application/GameObject/base/GameObject.h"
+#include "application/gameObject/base/GameObject.h"
 #include "manager/graphics/LineManager.h"
 #include "math/VectorColorCodes.h"
 

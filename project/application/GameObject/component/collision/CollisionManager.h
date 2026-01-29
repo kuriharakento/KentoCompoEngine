@@ -4,7 +4,7 @@
 #include "AABBColliderComponent.h"
 #include "CollisionAlgorithm.h"
 #include "OBBColliderComponent.h"
-#include "application/GameObject/component/base/ICollisionComponent.h"
+#include "application/gameObject/component/base/ICollisionComponent.h"
 
 /**
  * @brief 衝突判定の次元モードを表す列挙型

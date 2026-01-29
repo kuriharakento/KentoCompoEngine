@@ -4,8 +4,8 @@
 #include <memory>
 #include <random>
 
-#include "application/GameObject/Combatable/character/enemy/base/Node/BehaviorTree/BehaviorTree.h"
-#include "application/GameObject/component/base/IActionComponent.h"
+#include "application/gameObject/combatable/character/enemy/base/Node/BehaviorTree/BehaviorTree.h"
+#include "application/gameObject/component/base/IActionComponent.h"
 
 class GameObject;
 

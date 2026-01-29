@@ -47,11 +47,11 @@ void KnifeEnemyBehavior::Update(GameObject* owner)
 	// 腕のオブジェクトを取得（未設定の場合）
 	if (!rightArm_)
 	{
-		rightArm_ = owner->GetChild(GameObjectTag::Character::KnifeEnemyRightArm);
+		rightArm_ = owner->GetChild(gameObjectTag::character::KnifeEnemyRightArm);
 	}
 	if (!leftArm_)
 	{
-		leftArm_ = owner->GetChild(GameObjectTag::Character::KnifeEnemyLeftArm);
+		leftArm_ = owner->GetChild(gameObjectTag::character::KnifeEnemyLeftArm);
 	}
 
 	// 攻撃モーションの更新
@@ -74,7 +74,7 @@ void KnifeEnemyBehavior::Update(GameObject* owner)
 		if (ImGui::TreeNode("BehaviorTree"))
 		{
 			if (behaviorTree_)
-				NodeUtils::DrawBTNodeImGui(behaviorTree_->GetRoot());
+				nodeUtils::DrawBTNodeImGui(behaviorTree_->GetRoot());
 			ImGui::TreePop();
 		}
 	}

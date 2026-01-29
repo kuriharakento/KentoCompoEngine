@@ -2,7 +2,7 @@
 #include <memory>
 #include <vector>
 #include <string>
-#include "application/GameObject/component/action/IWeaponComponent.h"
+#include "application/gameObject/component/action/IWeaponComponent.h"
 
 class GameObject;
 class CameraManager;

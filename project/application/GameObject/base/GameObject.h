@@ -11,8 +11,8 @@
 #include "base/GraphicsTypes.h"
 // component
 #include "GameObjectTag.h"
-#include "application/GameObject/component/base/IActionComponent.h"
-#include "application/GameObject/component/base/ICollisionComponent.h"
+#include "application/gameObject/component/base/IActionComponent.h"
+#include "application/gameObject/component/base/ICollisionComponent.h"
 
 /**
  * @brief ゲーム内の全てのオブジェクトの基底クラス
@@ -43,7 +43,7 @@ public:
 	 * @brief コンストラクタ
 	 * @param tag オブジェクトのタグ（デフォルト: GameObjectTag::Common::GameObject）
 	 */
-	explicit GameObject(std::string tag = GameObjectTag::Common::GameObject);
+	explicit GameObject(std::string tag = gameObjectTag::common::GameObject);
 
 	/**
 	 * @brief GameObjectの初期化

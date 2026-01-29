@@ -1,8 +1,8 @@
 #pragma once
 
 #include "StatusSystem.h"
-#include "application/GameObject/base/GameObject.h"
-#include "application/GameObject/component/action/StatusComponent.h"
+#include "application/gameObject/base/GameObject.h"
+#include "application/gameObject/component/action/StatusComponent.h"
 
 /**
  * @brief 戦闘可能なオブジェクトの基底クラス
@@ -19,7 +19,7 @@ public:
      * @brief コンストラクタ
      * @param tag オブジェクトのタグ
      */
-    explicit CombatableObject(const std::string& tag = GameObjectTag::Common::CombatableObject)
+    explicit CombatableObject(const std::string& tag = gameObjectTag::common::CombatableObject)
         : GameObject(tag)
     {
 		AddComponent("StatusComponent", std::make_unique<StatusComponent>());

@@ -1,6 +1,6 @@
 #pragma once
-#include "application/GameObject/Combatable/weapon/Bullet.h"
-#include "application/GameObject/component/action/IWeaponComponent.h"
+#include "application/gameObject/combatable/weapon/Bullet.h"
+#include "application/gameObject/component/action/IWeaponComponent.h"
 
 class EnemyBase;
 

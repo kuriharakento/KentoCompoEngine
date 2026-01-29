@@ -2,9 +2,9 @@
 #include <memory>
 
 // app
-#include "application/GameObject/Combatable/character/enemy/EnemyManager.h"
-#include "application/GameObject/Combatable/character/player/Player.h"
-#include "application/GameObject/obstacle/ObstacleManager.h"
+#include "application/gameObject/combatable/character/enemy/EnemyManager.h"
+#include "application/gameObject/combatable/character/player/Player.h"
+#include "application/gameObject/obstacle/ObstacleManager.h"
 #include "application/stage/StageManager.h"
 // camerawork
 #include "camerawork/debug/DebugCamera.h"
@@ -26,9 +26,9 @@
 #include "graphics/2d/NumberSprite.h"
 #include "camerawork/orbit/OrbitCameraWork.h"
 #include "application/ui/GameUI.h"
-#include "application/UI/Cursor.h"
-#include "application/UI/ControlsGuide.h"
-#include "application/UI/PoseMenu.h"
+#include "application/ui/Cursor.h"
+#include "application/ui/ControlsGuide.h"
+#include "application/ui/PoseMenu.h"
 
 /**
  * @brief メインゲームプレイシーン

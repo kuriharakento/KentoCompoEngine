@@ -2,9 +2,9 @@
 #include <memory>
 
 // app
-#include "application/GameObject/Combatable/character/enemy/EnemyManager.h"
-#include "application/GameObject/Combatable/character/player/Player.h"
-#include "application/GameObject/obstacle/ObstacleManager.h"
+#include "application/gameObject/combatable/character/enemy/EnemyManager.h"
+#include "application/gameObject/combatable/character/player/Player.h"
+#include "application/gameObject/obstacle/ObstacleManager.h"
 #include "application/stage/StageManager.h"
 // camerawork
 #include "camerawork/debug/DebugCamera.h"

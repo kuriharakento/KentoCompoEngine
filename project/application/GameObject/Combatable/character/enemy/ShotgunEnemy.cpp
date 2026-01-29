@@ -15,7 +15,7 @@ void ShotgunEnemy::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spri
 	// 衝突判定コンポーネントを追加
 	auto collider = std::make_unique<OBBColliderComponent>(this);
 	collider->SetOnEnter([this](GameObject* other) {
-		if (other->GetTag() == GameObjectTag::Weapon::PlayerBullet)
+		if (other->GetTag() == gameObjectTag::weapon::PlayerBullet)
 		{
 			SetAlive(false); // 弾に当たったら消える
 		}
