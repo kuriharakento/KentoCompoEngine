@@ -44,6 +44,14 @@ void GameOverScene::Initialize()
 	gameOverToTitleUI_->SetOnClickCallback([this]() {
 		returnToTitle_ = true;
 		ChangeState(SceneState::Exit);
+		transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
+		transitionEffect_.SetFadeType(FadeType::FadeIn);
+		transitionEffect_.SetMode(TransitionMode::EdgesToCenter);
+		transitionEffect_.Start(
+			1.0f,
+			VectorColorCodes::Black,
+			VectorColorCodes::Red
+		);
 		gameOverToTitleUI_->SetInteractable(false);
 										   });
 	gameOverToTitleUI_->SetOnHoverStayCallback([this]() {
@@ -66,6 +74,14 @@ void GameOverScene::Initialize()
 	gameOverRetryUI_->SetInteractable(true);
 	gameOverRetryUI_->SetOnClickCallback([this]() {
 		retry_ = true;
+		transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
+		transitionEffect_.SetFadeType(FadeType::FadeIn);
+		transitionEffect_.SetMode(TransitionMode::EdgesToCenter);
+		transitionEffect_.Start(
+			1.0f,
+			VectorColorCodes::Black,
+			VectorColorCodes::Red
+		);
 		ChangeState(SceneState::Exit);
 		gameOverRetryUI_->SetInteractable(false);
 										 });
@@ -172,18 +188,6 @@ void GameOverScene::OnEnterPlaying()
 
 void GameOverScene::OnUpdatePlaying()
 {
-	if (Input::GetInstance()->TriggerKey(DIK_SPACE))
-	{
-		transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
-		transitionEffect_.SetFadeType(FadeType::FadeIn);
-		transitionEffect_.SetMode(TransitionMode::EdgesToCenter);
-		transitionEffect_.Start(
-			1.0f,
-			VectorColorCodes::Black,
-			VectorColorCodes::Red
-		);
-		ChangeState(SceneState::Exit);
-	}
 }
 
 void GameOverScene::OnExitPlaying()

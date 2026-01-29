@@ -105,7 +105,6 @@ void SceneManager::DrawGBuffer()
 }
 
 void SceneManager::ChangeScene(const std::string& sceneName)
-
 {
 	//nullチェック
 	assert(sceneFactory_);
