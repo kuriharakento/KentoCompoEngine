@@ -1,5 +1,5 @@
 #pragma once
-#include "application/GameObject/base/GameObject.h"
+#include "application/gameObject/base/GameObject.h"
 #include "math/OBB.h"
 #include "math/Vector3.h"
 
@@ -26,7 +26,7 @@ struct CollisionInfo
  * MTV（Minimum Translation Vector: 最小変位ベクトル）の計算や
  * めり込み解決などの高度な衝突処理機能を提供します。
  */
-namespace CollisionUtils
+namespace collisionUtils
 {
 	/**
 	 * @brief OBB同士のMTV付き衝突判定

@@ -1,5 +1,5 @@
 #pragma once
-#include "application/GameObject/component/base/ICollisionComponent.h"
+#include "application/gameObject/component/base/ICollisionComponent.h"
 #include "math/OBB.h"
 
 /**

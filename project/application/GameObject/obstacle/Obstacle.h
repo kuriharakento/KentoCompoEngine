@@ -1,13 +1,13 @@
 #pragma once
-#include "application/GameObject/base/GameObject.h"
-#include "application/GameObject/component/base/ICollisionComponent.h"
+#include "application/gameObject/base/GameObject.h"
+#include "application/gameObject/component/base/ICollisionComponent.h"
 #include "math/OBB.h"
 
 class Obstacle : public GameObject
 {
 public:
 	virtual ~Obstacle() = default;
-	explicit Obstacle(const std::string& tag = GameObjectTag::Item::Obstacle) : GameObject(tag) {}
+	explicit Obstacle(const std::string& tag = gameObjectTag::item::Obstacle) : GameObject(tag) {}
 	virtual void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager);
 	virtual void Update();
 	virtual void Draw(CameraManager* camera);

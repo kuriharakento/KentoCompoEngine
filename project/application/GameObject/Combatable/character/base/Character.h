@@ -8,7 +8,7 @@ class Character : public CombatableObject
 {
 public:
 	virtual ~Character() = default;
-	explicit Character(const std::string& tag = GameObjectTag::Common::Character): CombatableObject(tag){}
+	explicit Character(const std::string& tag = gameObjectTag::common::Character): CombatableObject(tag){}
 	virtual void Update() override;
 	void AddComponent(const std::string& name, std::unique_ptr<IGameObjectComponent> comp);
 

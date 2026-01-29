@@ -16,94 +16,94 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="application\GameObject\base\GameObject.cpp">
+    <ClCompile Include="application\gameObject\base\GameObject.cpp">
       <Filter>application\GameObject\base</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\character\base\Character.cpp">
+    <ClCompile Include="application\gameObject\combatable\character\base\Character.cpp">
       <Filter>application\GameObject\combatable\character\base</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\character\player\Player.cpp">
+    <ClCompile Include="application\gameObject\combatable\character\player\Player.cpp">
       <Filter>application\GameObject\combatable\character\player</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\character\enemy\base\EnemyBase.cpp">
+    <ClCompile Include="application\gameObject\combatable\character\enemy\base\EnemyBase.cpp">
       <Filter>application\GameObject\combatable\character\enemy\base</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\ActionNode.cpp">
+    <ClCompile Include="application\gameObject\combatable\character\enemy\base\Node\ActionNode.cpp">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\BehaviorTree\BehaviorTree.cpp">
+    <ClCompile Include="application\gameObject\combatable\character\enemy\base\Node\BehaviorTree\BehaviorTree.cpp">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\CompositeNode.cpp">
+    <ClCompile Include="application\gameObject\combatable\character\enemy\base\Node\CompositeNode.cpp">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\ConditionNode.cpp">
+    <ClCompile Include="application\gameObject\combatable\character\enemy\base\Node\ConditionNode.cpp">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\SequenceNode.cpp">
+    <ClCompile Include="application\gameObject\combatable\character\enemy\base\Node\SequenceNode.cpp">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\SelectorNode.cpp">
+    <ClCompile Include="application\gameObject\combatable\character\enemy\base\Node\SelectorNode.cpp">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\character\enemy\AssaultEnemy.cpp">
+    <ClCompile Include="application\gameObject\combatable\character\enemy\AssaultEnemy.cpp">
       <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\character\enemy\EnemyManager.cpp">
+    <ClCompile Include="application\gameObject\combatable\character\enemy\EnemyManager.cpp">
       <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\character\enemy\PistolEnemy.cpp">
+    <ClCompile Include="application\gameObject\combatable\character\enemy\PistolEnemy.cpp">
       <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\character\enemy\ShotgunEnemy.cpp">
+    <ClCompile Include="application\gameObject\combatable\character\enemy\ShotgunEnemy.cpp">
       <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\action\AssaultEnemyBehavior.cpp">
+    <ClCompile Include="application\gameObject\component\action\AssaultEnemyBehavior.cpp">
       <Filter>application\GameObject\component\action</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\action\AssaultRifleComponent.cpp">
+    <ClCompile Include="application\gameObject\component\action\AssaultRifleComponent.cpp">
       <Filter>application\GameObject\component\action</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\action\BulletComponent.cpp">
+    <ClCompile Include="application\gameObject\component\action\BulletComponent.cpp">
       <Filter>application\GameObject\component\action</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\action\GravityPhysicsComponent.cpp">
+    <ClCompile Include="application\gameObject\component\action\GravityPhysicsComponent.cpp">
       <Filter>application\GameObject\component\action</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\action\MoveComponent.cpp">
+    <ClCompile Include="application\gameObject\component\action\MoveComponent.cpp">
       <Filter>application\GameObject\component\action</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\action\PistolComponent.cpp">
+    <ClCompile Include="application\gameObject\component\action\PistolComponent.cpp">
       <Filter>application\GameObject\component\action</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\action\ShotgunComponent.cpp">
+    <ClCompile Include="application\gameObject\component\action\ShotgunComponent.cpp">
       <Filter>application\GameObject\component\action</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\base\ICollisionComponent.cpp">
+    <ClCompile Include="application\gameObject\component\base\ICollisionComponent.cpp">
       <Filter>application\GameObject\component\base</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\collision\AABBColliderComponent.cpp">
+    <ClCompile Include="application\gameObject\component\collision\AABBColliderComponent.cpp">
       <Filter>application\GameObject\component\collision</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\collision\CollisionManager.cpp">
+    <ClCompile Include="application\gameObject\component\collision\CollisionManager.cpp">
       <Filter>application\GameObject\component\collision</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\collision\CollisionUtils.cpp">
+    <ClCompile Include="application\gameObject\component\collision\CollisionUtils.cpp">
       <Filter>application\GameObject\component\collision</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\collision\OBBColliderComponent.cpp">
+    <ClCompile Include="application\gameObject\component\collision\OBBColliderComponent.cpp">
       <Filter>application\GameObject\component\collision</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\obstacle\Obstacle.cpp">
+    <ClCompile Include="application\gameObject\obstacle\Obstacle.cpp">
       <Filter>application\GameObject\obstacle</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\obstacle\ObstacleData.cpp">
+    <ClCompile Include="application\gameObject\obstacle\ObstacleData.cpp">
       <Filter>application\GameObject\obstacle</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\obstacle\ObstacleManager.cpp">
+    <ClCompile Include="application\gameObject\obstacle\ObstacleManager.cpp">
       <Filter>application\GameObject\obstacle</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\weapon\Bullet.cpp">
+    <ClCompile Include="application\gameObject\combatable\weapon\Bullet.cpp">
       <Filter>application\GameObject\combatable\weapon</Filter>
     </ClCompile>
     <ClCompile Include="application\animation\Slide.cpp">
@@ -304,25 +304,25 @@
     <ClCompile Include="engine\time\Timer.cpp">
       <Filter>engine\time</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\BlackBoard.cpp">
+    <ClCompile Include="application\gameObject\combatable\character\enemy\base\Node\BlackBoard.cpp">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\InverterNode.cpp">
+    <ClCompile Include="application\gameObject\combatable\character\enemy\base\Node\InverterNode.cpp">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\character\enemy\base\Node\ParallelNode.cpp">
+    <ClCompile Include="application\gameObject\combatable\character\enemy\base\Node\ParallelNode.cpp">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\weapon\Knife.cpp">
+    <ClCompile Include="application\gameObject\combatable\weapon\Knife.cpp">
       <Filter>application\GameObject\combatable\weapon</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\combatable\character\enemy\KnifeEnemy.cpp">
+    <ClCompile Include="application\gameObject\combatable\character\enemy\KnifeEnemy.cpp">
       <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\collision\SphereColliderComponent.cpp">
+    <ClCompile Include="application\gameObject\component\collision\SphereColliderComponent.cpp">
       <Filter>application\GameObject\component\collision</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\collision\CollisionAlgorithm.cpp">
+    <ClCompile Include="application\gameObject\component\collision\CollisionAlgorithm.cpp">
       <Filter>application\GameObject\component\collision</Filter>
     </ClCompile>
     <ClCompile Include="application\stage\Area.cpp">
@@ -334,7 +334,7 @@
     <ClCompile Include="application\stage\AreaWaveData.cpp">
       <Filter>application\stage</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\obstacle\BarrierBlock.cpp">
+    <ClCompile Include="application\gameObject\obstacle\BarrierBlock.cpp">
       <Filter>application\GameObject\obstacle</Filter>
     </ClCompile>
     <ClCompile Include="application\minimap\Minimap.cpp">
@@ -352,7 +352,7 @@
     <ClCompile Include="application\stage\Stage.cpp">
       <Filter>application\stage</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\action\KnifeEnemyBehavior.cpp">
+    <ClCompile Include="application\gameObject\component\action\KnifeEnemyBehavior.cpp">
       <Filter>application\GameObject\component\action</Filter>
     </ClCompile>
     <ClCompile Include="application\scene\debug\ParticleTestScene.cpp">
@@ -364,10 +364,10 @@
     <ClCompile Include="engine\graphics\2d\NumberSprite.cpp">
       <Filter>engine\graphics\2d</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\action\StatusComponent.cpp">
+    <ClCompile Include="application\gameObject\component\action\StatusComponent.cpp">
       <Filter>application\GameObject\component\action</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\Combatable\base\StatusSystem.cpp">
+    <ClCompile Include="application\gameObject\combatable\base\StatusSystem.cpp">
       <Filter>application\GameObject\combatable\base</Filter>
     </ClCompile>
     <ClCompile Include="application\carnage\CarnageMode.cpp">
@@ -388,16 +388,16 @@
     <ClCompile Include="engine\graphics\2d\FontSprite.cpp">
       <Filter>engine\graphics\2d</Filter>
     </ClCompile>
-    <ClCompile Include="application\UI\Cursor.cpp">
+    <ClCompile Include="application\ui\Cursor.cpp">
       <Filter>application\UI</Filter>
     </ClCompile>
-    <ClCompile Include="application\UI\GameUI.cpp">
+    <ClCompile Include="application\ui\GameUI.cpp">
       <Filter>application\UI</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\action\EnemyUIComponent.cpp">
+    <ClCompile Include="application\gameObject\component\action\EnemyUIComponent.cpp">
       <Filter>application\GameObject\component\action</Filter>
     </ClCompile>
-    <ClCompile Include="application\GameObject\component\action\PlayerUIComponent.cpp">
+    <ClCompile Include="application\gameObject\component\action\PlayerUIComponent.cpp">
       <Filter>application\GameObject\component\action</Filter>
     </ClCompile>
     <ClCompile Include="engine\graphics\shadow\ShadowMapPipeline.cpp">
@@ -467,101 +467,102 @@
       <Filter>application\effect</Filter>
     </ClCompile>
     <ClCompile Include="engine\effects\particle\module\spawn\SubEmitterModule.cpp" />
-    <ClCompile Include="application\GameObject\component\action\WeaponManagerComponent.cpp" />
-    <ClCompile Include="application\UI\ControlsGuide.cpp" />
+    <ClCompile Include="application\gameObject\component\action\WeaponManagerComponent.cpp" />
+    <ClCompile Include="application\ui\ControlsGuide.cpp" />
+    <ClCompile Include="application\ui\PoseMenu.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="application\GameObject\base\GameObject.h">
+    <ClInclude Include="application\gameObject\base\GameObject.h">
       <Filter>application\GameObject\base</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\base\Character.h">
+    <ClInclude Include="application\gameObject\combatable\character\base\Character.h">
       <Filter>application\GameObject\combatable\character\base</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\player\Player.h">
+    <ClInclude Include="application\gameObject\combatable\character\player\Player.h">
       <Filter>application\GameObject\combatable\character\player</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\ActionNode.h">
+    <ClInclude Include="application\gameObject\combatable\character\enemy\base\Node\ActionNode.h">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\BehaviorTree\BehaviorTree.h">
+    <ClInclude Include="application\gameObject\combatable\character\enemy\base\Node\BehaviorTree\BehaviorTree.h">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\BTNode.h">
+    <ClInclude Include="application\gameObject\combatable\character\enemy\base\Node\BTNode.h">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\CompositeNode.h">
+    <ClInclude Include="application\gameObject\combatable\character\enemy\base\Node\CompositeNode.h">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\ConditionNode.h">
+    <ClInclude Include="application\gameObject\combatable\character\enemy\base\Node\ConditionNode.h">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\SequenceNode.h">
+    <ClInclude Include="application\gameObject\combatable\character\enemy\base\Node\SequenceNode.h">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\SelectorNode.h">
+    <ClInclude Include="application\gameObject\combatable\character\enemy\base\Node\SelectorNode.h">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree\node</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\enemy\AssaultEnemy.h">
+    <ClInclude Include="application\gameObject\combatable\character\enemy\AssaultEnemy.h">
       <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\enemy\EnemyManager.h">
+    <ClInclude Include="application\gameObject\combatable\character\enemy\EnemyManager.h">
       <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\enemy\PistolEnemy.h">
+    <ClInclude Include="application\gameObject\combatable\character\enemy\PistolEnemy.h">
       <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\enemy\ShotgunEnemy.h">
+    <ClInclude Include="application\gameObject\combatable\character\enemy\ShotgunEnemy.h">
       <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\action\AssaultEnemyBehavior.h">
+    <ClInclude Include="application\gameObject\component\action\AssaultEnemyBehavior.h">
       <Filter>application\GameObject\component\action</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\action\AssaultRifleComponent.h">
+    <ClInclude Include="application\gameObject\component\action\AssaultRifleComponent.h">
       <Filter>application\GameObject\component\action</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\action\BulletComponent.h">
+    <ClInclude Include="application\gameObject\component\action\BulletComponent.h">
       <Filter>application\GameObject\component\action</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\action\GravityPhysicsComponent.h">
+    <ClInclude Include="application\gameObject\component\action\GravityPhysicsComponent.h">
       <Filter>application\GameObject\component\action</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\action\MoveComponent.h">
+    <ClInclude Include="application\gameObject\component\action\MoveComponent.h">
       <Filter>application\GameObject\component\action</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\action\PistolComponent.h">
+    <ClInclude Include="application\gameObject\component\action\PistolComponent.h">
       <Filter>application\GameObject\component\action</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\action\ShotgunComponent.h">
+    <ClInclude Include="application\gameObject\component\action\ShotgunComponent.h">
       <Filter>application\GameObject\component\action</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\base\IActionComponent.h">
+    <ClInclude Include="application\gameObject\component\base\IActionComponent.h">
       <Filter>application\GameObject\component\base</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\base\ICollisionComponent.h">
+    <ClInclude Include="application\gameObject\component\base\ICollisionComponent.h">
       <Filter>application\GameObject\component\base</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\base\IGameObjectComponent.h">
+    <ClInclude Include="application\gameObject\component\base\IGameObjectComponent.h">
       <Filter>application\GameObject\component\base</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\collision\AABBColliderComponent.h">
+    <ClInclude Include="application\gameObject\component\collision\AABBColliderComponent.h">
       <Filter>application\GameObject\component\collision</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\collision\CollisionUtils.h">
+    <ClInclude Include="application\gameObject\component\collision\CollisionUtils.h">
       <Filter>application\GameObject\component\collision</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\collision\OBBColliderComponent.h">
+    <ClInclude Include="application\gameObject\component\collision\OBBColliderComponent.h">
       <Filter>application\GameObject\component\collision</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\obstacle\Obstacle.h">
+    <ClInclude Include="application\gameObject\obstacle\Obstacle.h">
       <Filter>application\GameObject\obstacle</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\obstacle\ObstacleData.h">
+    <ClInclude Include="application\gameObject\obstacle\ObstacleData.h">
       <Filter>application\GameObject\obstacle</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\obstacle\ObstacleManager.h">
+    <ClInclude Include="application\gameObject\obstacle\ObstacleManager.h">
       <Filter>application\GameObject\obstacle</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\weapon\Bullet.h">
+    <ClInclude Include="application\gameObject\combatable\weapon\Bullet.h">
       <Filter>application\GameObject\combatable\weapon</Filter>
     </ClInclude>
     <ClInclude Include="application\scene\debug\StageEditScene.h">
@@ -807,34 +808,34 @@
     <ClInclude Include="engine\time\Timer.h">
       <Filter>engine\time</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\BlackBoard.h">
+    <ClInclude Include="application\gameObject\combatable\character\enemy\base\Node\BlackBoard.h">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\InverterNode.h">
+    <ClInclude Include="application\gameObject\combatable\character\enemy\base\Node\InverterNode.h">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\ParallelNode.h">
+    <ClInclude Include="application\gameObject\combatable\character\enemy\base\Node\ParallelNode.h">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\base\CombatableObject.h">
+    <ClInclude Include="application\gameObject\combatable\base\CombatableObject.h">
       <Filter>application\GameObject\combatable\base</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\base\StatusSystem.h">
+    <ClInclude Include="application\gameObject\combatable\base\StatusSystem.h">
       <Filter>application\GameObject\combatable\base</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\base\GameObjectTag.h">
+    <ClInclude Include="application\gameObject\base\GameObjectTag.h">
       <Filter>application\GameObject\base</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\weapon\Knife.h">
+    <ClInclude Include="application\gameObject\combatable\weapon\Knife.h">
       <Filter>application\GameObject\combatable\weapon</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\enemy\KnifeEnemy.h">
+    <ClInclude Include="application\gameObject\combatable\character\enemy\KnifeEnemy.h">
       <Filter>application\GameObject\combatable\character\enemy</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\collision\SphereColliderComponent.h">
+    <ClInclude Include="application\gameObject\component\collision\SphereColliderComponent.h">
       <Filter>application\GameObject\component\collision</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\collision\CollisionAlgorithm.h">
+    <ClInclude Include="application\gameObject\component\collision\CollisionAlgorithm.h">
       <Filter>application\GameObject\component\collision</Filter>
     </ClInclude>
     <ClInclude Include="engine\math\Sphere.h">
@@ -852,7 +853,7 @@
     <ClInclude Include="application\stage\AreaWaveData.h">
       <Filter>application\stage</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\obstacle\BarrierBlock.h">
+    <ClInclude Include="application\gameObject\obstacle\BarrierBlock.h">
       <Filter>application\GameObject\obstacle</Filter>
     </ClInclude>
     <ClInclude Include="application\minimap\Minimap.h">
@@ -876,13 +877,13 @@
     <ClInclude Include="application\stage\WaveManager.h">
       <Filter>application\stage</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\action\KnifeEnemyBehavior.h">
+    <ClInclude Include="application\gameObject\component\action\KnifeEnemyBehavior.h">
       <Filter>application\GameObject\component\action</Filter>
     </ClInclude>
     <ClInclude Include="application\scene\debug\ParticleTestScene.h">
       <Filter>application\scene</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\combatable\character\enemy\base\Node\NodeUtils.h">
+    <ClInclude Include="application\gameObject\combatable\character\enemy\base\Node\NodeUtils.h">
       <Filter>application\GameObject\combatable\character\enemy\base\behaviorTree</Filter>
     </ClInclude>
     <ClInclude Include="application\stage\GameObjectInfo.h">
@@ -894,7 +895,7 @@
     <ClInclude Include="engine\graphics\2d\NumberSprite.h">
       <Filter>engine\graphics\2d</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\action\StatusComponent.h">
+    <ClInclude Include="application\gameObject\component\action\StatusComponent.h">
       <Filter>application\GameObject\component\action</Filter>
     </ClInclude>
     <ClInclude Include="application\carnage\CarnageMode.h">
@@ -918,16 +919,16 @@
     <ClInclude Include="engine\graphics\2d\FontSprite.h">
       <Filter>engine\graphics\2d</Filter>
     </ClInclude>
-    <ClInclude Include="application\UI\Cursor.h">
+    <ClInclude Include="application\ui\Cursor.h">
       <Filter>application\UI</Filter>
     </ClInclude>
-    <ClInclude Include="application\UI\GameUI.h">
+    <ClInclude Include="application\ui\GameUI.h">
       <Filter>application\UI</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\action\EnemyUIComponent.h">
+    <ClInclude Include="application\gameObject\component\action\EnemyUIComponent.h">
       <Filter>application\GameObject\component\action</Filter>
     </ClInclude>
-    <ClInclude Include="application\GameObject\component\action\PlayerUIComponent.h">
+    <ClInclude Include="application\gameObject\component\action\PlayerUIComponent.h">
       <Filter>application\GameObject\component\action</Filter>
     </ClInclude>
     <ClInclude Include="engine\graphics\shadow\ShadowMap.h">
@@ -1056,11 +1057,13 @@
     <ClInclude Include="engine\effects\particle\module\spawn\SubEmitterModule.h" />
     <ClInclude Include="engine\effects\particle\module\update\BehaviorModules.h" />
     <ClInclude Include="engine\effects\particle\module\update\MotionEffectModules.h" />
-    <ClInclude Include="application\GameObject\component\action\IWeaponComponent.h" />
-    <ClInclude Include="application\GameObject\component\action\WeaponManagerComponent.h" />
-    <ClInclude Include="application\GameObject\Combatable\character\enemy\base\EnemyBase.h" />
-    <ClInclude Include="application\UI\ControlsGuide.h" />
+    <ClInclude Include="application\gameObject\component\action\IWeaponComponent.h" />
+    <ClInclude Include="application\gameObject\component\action\WeaponManagerComponent.h" />
+    <ClInclude Include="application\gameObject\combatable\character\enemy\base\EnemyBase.h" />
+    <ClInclude Include="application\ui\ControlsGuide.h" />
     <ClInclude Include="engine\graphics\3d\IRenderable3d.h" />
+    <ClInclude Include="application\ui\PoseMenu.h" />
+    <ClInclude Include="application\gameObject\component\collision\CollisionManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

@@ -1,11 +1,11 @@
 #include "CollisionAlgorithm.h"
 #include <cmath>
 #include <algorithm>
-#include "application/GameObject/base/GameObject.h"
+#include "application/gameObject/base/GameObject.h"
 
 // --- 3D用判定 ---
 
-bool CollisionAlgorithm::CheckAABBvsAABB3D(const AABBColliderComponent* a, const AABBColliderComponent* b)
+bool collisionAlgorithm::CheckAABBvsAABB3D(const AABBColliderComponent* a, const AABBColliderComponent* b)
 {
 	const AABB& aBox = a->GetAABB();
 	const AABB& bBox = b->GetAABB();
@@ -16,7 +16,7 @@ bool CollisionAlgorithm::CheckAABBvsAABB3D(const AABBColliderComponent* a, const
 		(aBox.max_.z >= bBox.min_.z && aBox.min_.z <= bBox.max_.z);
 }
 
-bool CollisionAlgorithm::CheckOBBvsOBB3D(const OBBColliderComponent* a, const OBBColliderComponent* b)
+bool collisionAlgorithm::CheckOBBvsOBB3D(const OBBColliderComponent* a, const OBBColliderComponent* b)
 {
 	const OBB& obbA = a->GetOBB();
 	const OBB& obbB = b->GetOBB();
@@ -91,7 +91,7 @@ bool CollisionAlgorithm::CheckOBBvsOBB3D(const OBBColliderComponent* a, const OB
 	return true;
 }
 
-bool CollisionAlgorithm::CheckAABBvsOBB3D(const AABBColliderComponent* a, const OBBColliderComponent* b)
+bool collisionAlgorithm::CheckAABBvsOBB3D(const AABBColliderComponent* a, const OBBColliderComponent* b)
 {
 	const AABB& aBox = a->GetAABB();
 	const OBB& obb = b->GetOBB();
@@ -144,7 +144,7 @@ bool CollisionAlgorithm::CheckAABBvsOBB3D(const AABBColliderComponent* a, const 
 	return true;
 }
 
-bool CollisionAlgorithm::CheckSpherevsSphere3D(const SphereColliderComponent* a, const SphereColliderComponent* b)
+bool collisionAlgorithm::CheckSpherevsSphere3D(const SphereColliderComponent* a, const SphereColliderComponent* b)
 {
 	const Sphere& sA = a->GetSphere();
 	const Sphere& sB = b->GetSphere();
@@ -163,7 +163,7 @@ bool CollisionAlgorithm::CheckSpherevsSphere3D(const SphereColliderComponent* a,
 	return false;
 }
 
-bool CollisionAlgorithm::CheckSpherevsAABB3D(const SphereColliderComponent* a, const AABBColliderComponent* b)
+bool collisionAlgorithm::CheckSpherevsAABB3D(const SphereColliderComponent* a, const AABBColliderComponent* b)
 {
 	const Sphere& s = a->GetSphere();
 	const AABB& box = b->GetAABB();
@@ -187,7 +187,7 @@ bool CollisionAlgorithm::CheckSpherevsAABB3D(const SphereColliderComponent* a, c
 	return false;
 }
 
-bool CollisionAlgorithm::CheckSpherevsOBB3D(const SphereColliderComponent* a, const OBBColliderComponent* b)
+bool collisionAlgorithm::CheckSpherevsOBB3D(const SphereColliderComponent* a, const OBBColliderComponent* b)
 {
 	const Sphere& s = a->GetSphere();
 	const OBB& obb = b->GetOBB();
@@ -220,7 +220,7 @@ bool CollisionAlgorithm::CheckSpherevsOBB3D(const SphereColliderComponent* a, co
 
 // --- 3Dサブステップ判定 ---
 
-bool CollisionAlgorithm::CheckAABBvsAABBSubstep3D(const AABBColliderComponent* a, const AABBColliderComponent* b)
+bool collisionAlgorithm::CheckAABBvsAABBSubstep3D(const AABBColliderComponent* a, const AABBColliderComponent* b)
 {
 	constexpr float MAX_STEP_DISTANCE = 1.0f;
 
@@ -274,7 +274,7 @@ bool CollisionAlgorithm::CheckAABBvsAABBSubstep3D(const AABBColliderComponent* a
 	return false;
 }
 
-bool CollisionAlgorithm::CheckOBBvsOBBSubstep3D(const OBBColliderComponent* a, const OBBColliderComponent* b)
+bool collisionAlgorithm::CheckOBBvsOBBSubstep3D(const OBBColliderComponent* a, const OBBColliderComponent* b)
 {
 	constexpr float MAX_STEP_DISTANCE = 1.0f;
 
@@ -325,7 +325,7 @@ bool CollisionAlgorithm::CheckOBBvsOBBSubstep3D(const OBBColliderComponent* a, c
 	return false;
 }
 
-bool CollisionAlgorithm::CheckAABBvsOBBSubstep3D(const AABBColliderComponent* a, const OBBColliderComponent* b)
+bool collisionAlgorithm::CheckAABBvsOBBSubstep3D(const AABBColliderComponent* a, const OBBColliderComponent* b)
 {
 	constexpr float MAX_STEP_DISTANCE = 1.0f;
 
@@ -378,7 +378,7 @@ bool CollisionAlgorithm::CheckAABBvsOBBSubstep3D(const AABBColliderComponent* a,
 }
 
 
-bool CollisionAlgorithm::CheckSpherevsSphereSubstep3D(const SphereColliderComponent* a, const SphereColliderComponent* b)
+bool collisionAlgorithm::CheckSpherevsSphereSubstep3D(const SphereColliderComponent* a, const SphereColliderComponent* b)
 {
 	constexpr float MAX_STEP_DISTANCE = 1.0f;
 
@@ -424,7 +424,7 @@ bool CollisionAlgorithm::CheckSpherevsSphereSubstep3D(const SphereColliderCompon
 	return false;
 }
 
-bool CollisionAlgorithm::CheckSpherevsAABBSubstep3D(const SphereColliderComponent* a, const AABBColliderComponent* b)
+bool collisionAlgorithm::CheckSpherevsAABBSubstep3D(const SphereColliderComponent* a, const AABBColliderComponent* b)
 {
 	constexpr float MAX_STEP_DISTANCE = 1.0f;
 
@@ -476,7 +476,7 @@ bool CollisionAlgorithm::CheckSpherevsAABBSubstep3D(const SphereColliderComponen
 	return false;
 }
 
-bool CollisionAlgorithm::CheckSpherevsOBBSubstep3D(const SphereColliderComponent* a, const OBBColliderComponent* b)
+bool collisionAlgorithm::CheckSpherevsOBBSubstep3D(const SphereColliderComponent* a, const OBBColliderComponent* b)
 {
 	constexpr float MAX_STEP_DISTANCE = 1.0f;
 
@@ -560,7 +560,7 @@ float GetSizeFromIndex(const Vector3& v, int axis)
 }
 
 // --- AABB vs AABB 2D判定 ---
-bool CollisionAlgorithm::CheckAABBvsAABB2D(const AABBColliderComponent* a, const AABBColliderComponent* b, CollisionPlane plane)
+bool collisionAlgorithm::CheckAABBvsAABB2D(const AABBColliderComponent* a, const AABBColliderComponent* b, CollisionPlane plane)
 {
 	int axis1, axis2;
 	GetPlaneAxes(plane, axis1, axis2);
@@ -594,7 +594,7 @@ bool CollisionAlgorithm::CheckAABBvsAABB2D(const AABBColliderComponent* a, const
 }
 
 // --- OBB vs OBB 2D判定 ---
-bool CollisionAlgorithm::CheckOBBvsOBB2D(const OBBColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane)
+bool collisionAlgorithm::CheckOBBvsOBB2D(const OBBColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane)
 {
 	const OBB& obbA = a->GetOBB();
 	const OBB& obbB = b->GetOBB();
@@ -627,7 +627,7 @@ bool CollisionAlgorithm::CheckOBBvsOBB2D(const OBBColliderComponent* a, const OB
 }
 
 // XY平面専用の高速判定
-bool CollisionAlgorithm::CheckOBBvsOBB_XY(const OBB& obbA, const OBB& obbB)
+bool collisionAlgorithm::CheckOBBvsOBB_XY(const OBB& obbA, const OBB& obbB)
 {
 	// XY平面の中心座標（直接アクセス）
 	Vector2 centerA(obbA.center.x, obbA.center.y);
@@ -674,7 +674,7 @@ bool CollisionAlgorithm::CheckOBBvsOBB_XY(const OBB& obbA, const OBB& obbB)
 }
 
 // XZ平面専用の高速判定
-bool CollisionAlgorithm::CheckOBBvsOBB_XZ(const OBB& obbA, const OBB& obbB)
+bool collisionAlgorithm::CheckOBBvsOBB_XZ(const OBB& obbA, const OBB& obbB)
 {
 	Vector2 centerA(obbA.center.x, obbA.center.z);
 	Vector2 centerB(obbB.center.x, obbB.center.z);
@@ -717,7 +717,7 @@ bool CollisionAlgorithm::CheckOBBvsOBB_XZ(const OBB& obbA, const OBB& obbB)
 }
 
 // YZ平面専用の高速判定
-bool CollisionAlgorithm::CheckOBBvsOBB_YZ(const OBB& obbA, const OBB& obbB)
+bool collisionAlgorithm::CheckOBBvsOBB_YZ(const OBB& obbA, const OBB& obbB)
 {
 	Vector2 centerA(obbA.center.y, obbA.center.z);
 	Vector2 centerB(obbB.center.y, obbB.center.z);
@@ -760,7 +760,7 @@ bool CollisionAlgorithm::CheckOBBvsOBB_YZ(const OBB& obbA, const OBB& obbB)
 }
 
 // --- AABB vs OBB 2D判定 ---
-bool CollisionAlgorithm::CheckAABBvsOBB2D(const AABBColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane)
+bool collisionAlgorithm::CheckAABBvsOBB2D(const AABBColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane)
 {
 	int axis1, axis2;
 	GetPlaneAxes(plane, axis1, axis2);
@@ -838,7 +838,7 @@ bool CollisionAlgorithm::CheckAABBvsOBB2D(const AABBColliderComponent* a, const 
 	return true;
 }
 
-bool CollisionAlgorithm::CheckCirclevsCircle2D(const SphereColliderComponent* a, const SphereColliderComponent* b, CollisionPlane plane)
+bool collisionAlgorithm::CheckCirclevsCircle2D(const SphereColliderComponent* a, const SphereColliderComponent* b, CollisionPlane plane)
 {
 	int axis1, axis2;
 	GetPlaneAxes(plane, axis1, axis2);
@@ -869,7 +869,7 @@ bool CollisionAlgorithm::CheckCirclevsCircle2D(const SphereColliderComponent* a,
 }
 
 // Circle vs AABB 2D
-bool CollisionAlgorithm::CheckCirclevsAABB2D(const SphereColliderComponent* a, const AABBColliderComponent* b, CollisionPlane plane)
+bool collisionAlgorithm::CheckCirclevsAABB2D(const SphereColliderComponent* a, const AABBColliderComponent* b, CollisionPlane plane)
 {
 	int axis1, axis2;
 	GetPlaneAxes(plane, axis1, axis2);
@@ -907,7 +907,7 @@ bool CollisionAlgorithm::CheckCirclevsAABB2D(const SphereColliderComponent* a, c
 }
 
 // Circle vs OBB 2D
-bool CollisionAlgorithm::CheckCirclevsOBB2D(const SphereColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane)
+bool collisionAlgorithm::CheckCirclevsOBB2D(const SphereColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane)
 {
 	int axis1, axis2;
 	GetPlaneAxes(plane, axis1, axis2);
@@ -965,7 +965,7 @@ bool CollisionAlgorithm::CheckCirclevsOBB2D(const SphereColliderComponent* a, co
 
 // --- サブステップ 2D判定 ---
 
-bool CollisionAlgorithm::CheckAABBvsAABBSubstep2D(const AABBColliderComponent* a, const AABBColliderComponent* b, CollisionPlane plane)
+bool collisionAlgorithm::CheckAABBvsAABBSubstep2D(const AABBColliderComponent* a, const AABBColliderComponent* b, CollisionPlane plane)
 {
 	constexpr float MAX_STEP_DISTANCE = 1.0f;
 	Vector3 startA = a->GetPreviousPosition();
@@ -1013,7 +1013,7 @@ bool CollisionAlgorithm::CheckAABBvsAABBSubstep2D(const AABBColliderComponent* a
 	return false;
 }
 
-bool CollisionAlgorithm::CheckOBBvsOBBSubstep2D(const OBBColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane)
+bool collisionAlgorithm::CheckOBBvsOBBSubstep2D(const OBBColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane)
 {
 	constexpr float MAX_STEP_DISTANCE = 1.0f;
 	Vector3 startA = a->GetPreviousPosition();
@@ -1061,7 +1061,7 @@ bool CollisionAlgorithm::CheckOBBvsOBBSubstep2D(const OBBColliderComponent* a, c
 	return false;
 }
 
-bool CollisionAlgorithm::CheckAABBvsOBBSubstep2D(const AABBColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane)
+bool collisionAlgorithm::CheckAABBvsOBBSubstep2D(const AABBColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane)
 {
 	constexpr float MAX_STEP_DISTANCE = 1.0f;
 	Vector3 startA = a->GetPreviousPosition();
@@ -1111,7 +1111,7 @@ bool CollisionAlgorithm::CheckAABBvsOBBSubstep2D(const AABBColliderComponent* a,
 }
 
 // Circle vs Circle 2D サブステップ
-bool CollisionAlgorithm::CheckCirclevsCircleSubstep2D(const SphereColliderComponent* a, const SphereColliderComponent* b, CollisionPlane plane)
+bool collisionAlgorithm::CheckCirclevsCircleSubstep2D(const SphereColliderComponent* a, const SphereColliderComponent* b, CollisionPlane plane)
 {
 	constexpr float MAX_STEP_DISTANCE = 1.0f;
 
@@ -1164,7 +1164,7 @@ bool CollisionAlgorithm::CheckCirclevsCircleSubstep2D(const SphereColliderCompon
 }
 
 // Circle vs AABB 2D サブステップ
-bool CollisionAlgorithm::CheckCirclevsAABBSubstep2D(const SphereColliderComponent* a, const AABBColliderComponent* b, CollisionPlane plane)
+bool collisionAlgorithm::CheckCirclevsAABBSubstep2D(const SphereColliderComponent* a, const AABBColliderComponent* b, CollisionPlane plane)
 {
 	constexpr float MAX_STEP_DISTANCE = 1.0f;
 
@@ -1226,7 +1226,7 @@ bool CollisionAlgorithm::CheckCirclevsAABBSubstep2D(const SphereColliderComponen
 }
 
 // Circle vs OBB 2D サブステップ
-bool CollisionAlgorithm::CheckCirclevsOBBSubstep2D(const SphereColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane)
+bool collisionAlgorithm::CheckCirclevsOBBSubstep2D(const SphereColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane)
 {
 	constexpr float MAX_STEP_DISTANCE = 1.0f;
 

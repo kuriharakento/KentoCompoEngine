@@ -1,5 +1,5 @@
 #include "Wave.h"
-#include "application/GameObject/combatable/character/enemy/EnemyManager.h"
+#include "application/gameObject/combatable/character/enemy/EnemyManager.h"
 
 Wave::Wave(const std::vector<GameObjectInfo>& enemies)
 {

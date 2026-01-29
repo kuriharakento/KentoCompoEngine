@@ -1,7 +1,7 @@
 #include "BulletComponent.h"
 // GameObjectの完全な型を使用するために追加
-#include "application/GameObject/base/GameObject.h"
-#include "application/GameObject/Combatable/weapon/Bullet.h"
+#include "application/gameObject/base/GameObject.h"
+#include "application/gameObject/combatable/weapon/Bullet.h"
 #include "time/TimeManager.h"
 
 // コンストラクタ：メンバ変数の初期化

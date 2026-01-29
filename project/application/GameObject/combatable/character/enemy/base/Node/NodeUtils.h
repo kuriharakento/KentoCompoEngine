@@ -9,7 +9,7 @@
  * @namespace NodeUtils
  * @brief ビヘイビアツリーのノード操作用ユーティリティ関数群
  */
-namespace NodeUtils
+namespace nodeUtils
 {
 	/**
 	 * @brief NodeStatusを文字列に変換

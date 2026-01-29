@@ -8,13 +8,13 @@
  * タグはオブジェクトの識別や衝突判定の分類に使用されます。
  */
 
-namespace GameObjectTag
+namespace gameObjectTag
 {
 	/**
 	 * @namespace Common
 	 * @brief 共通のベースタグ定義
 	 */
-	namespace Common {
+	namespace common {
 		const std::string GameObject = "GameObject";
 		const std::string Character = "Character";
 		const std::string CombatableObject = "CombatableObject";
@@ -25,7 +25,7 @@ namespace GameObjectTag
 	 * @namespace Character
 	 * @brief キャラクター関連のタグ定義
 	 */
-	namespace Character {
+	namespace character {
 		// プレイヤー関連
 		const std::string Player = "Player";
 		const std::string PlayerRightArm = "PlayerRightArm";
@@ -46,7 +46,7 @@ namespace GameObjectTag
 	 * @namespace Weapon
 	 * @brief 武器関連のタグ定義
 	 */
-	namespace Weapon {
+	namespace weapon {
 		const std::string PlayerBullet = "PlayerBullet";
 		const std::string EnemyBullet = "EnemyBullet";
 		const std::string Knife = "Knife";
@@ -56,7 +56,7 @@ namespace GameObjectTag
 	 * @namespace Item
 	 * @brief アイテム・障害物関連のタグ定義
 	 */
-	namespace Item {
+	namespace item {
 		const std::string Obstacle = "Obstacle";
 		const std::string BarrierBlock = "BarrierBlock";
 		const std::string Floor = "Floor";

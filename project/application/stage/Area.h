@@ -2,7 +2,7 @@
 #include <vector>
 #include <functional>
 #include "WaveManager.h"
-#include "application/GameObject/base/GameObject.h"
+#include "application/gameObject/base/GameObject.h"
 
 class EnemyManager;
 

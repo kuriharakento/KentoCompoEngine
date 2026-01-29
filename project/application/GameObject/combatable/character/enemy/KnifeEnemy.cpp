@@ -13,7 +13,7 @@ void KnifeEnemy::Initialize(Object3dCommon* object3dCommon, SpriteCommon* sprite
 	SetSkinnedModel("sneakWalk");
 
 	// 右腕の作成
-	auto rightArm = std::make_unique<GameObject>(GameObjectTag::Character::KnifeEnemyRightArm);
+	auto rightArm = std::make_unique<GameObject>(gameObjectTag::character::KnifeEnemyRightArm);
 	rightArm->Initialize(object3dCommon, lightManager);
 	rightArm->SetModel("cube");
 	rightArm->SetPosition(Vector3(1.5f, 0.0f, 0.0f));
@@ -22,7 +22,7 @@ void KnifeEnemy::Initialize(Object3dCommon* object3dCommon, SpriteCommon* sprite
 	rightArm->AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(rightArm.get()));
 
 	// 左腕の作成
-	auto leftArm = std::make_unique<GameObject>(GameObjectTag::Character::KnifeEnemyLeftArm);
+	auto leftArm = std::make_unique<GameObject>(gameObjectTag::character::KnifeEnemyLeftArm);
 	leftArm->Initialize(object3dCommon, lightManager);
 	leftArm->SetModel("cube");
 	leftArm->SetPosition(Vector3(-1.5f, 0.0f, 0.0f));
@@ -31,7 +31,7 @@ void KnifeEnemy::Initialize(Object3dCommon* object3dCommon, SpriteCommon* sprite
 	leftArm->AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(leftArm.get()));
 
 	// ナイフの作成
-	auto knife = std::make_unique<Knife>(GameObjectTag::Weapon::Knife);
+	auto knife = std::make_unique<Knife>(gameObjectTag::weapon::Knife);
 	knife->Initialize(object3dCommon, lightManager);
 	knife->SetPosition(Vector3(0.0f, -0.8f, 4.0f));
 	knife->SetScale(Vector3(0.3f, 0.3f, 4.0f));
@@ -43,10 +43,10 @@ void KnifeEnemy::Initialize(Object3dCommon* object3dCommon, SpriteCommon* sprite
 	AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(this));
 
 	// 右腕にナイフを追加
-	rightArm->AddChild(GameObjectTag::Weapon::Knife, std::move(knife));
+	rightArm->AddChild(gameObjectTag::weapon::Knife, std::move(knife));
 	// 敵キャラクターに腕を追加
-	AddChild(GameObjectTag::Character::KnifeEnemyRightArm, std::move(rightArm));
-	AddChild(GameObjectTag::Character::KnifeEnemyLeftArm, std::move(leftArm));
+	AddChild(gameObjectTag::character::KnifeEnemyRightArm, std::move(rightArm));
+	AddChild(gameObjectTag::character::KnifeEnemyLeftArm, std::move(leftArm));
 }
 
 void KnifeEnemy::CollisionSettings(ICollisionComponent* collider)
@@ -56,7 +56,7 @@ void KnifeEnemy::CollisionSettings(ICollisionComponent* collider)
 	
 	// 衝突時の処理
 	collider->SetOnEnter([this](GameObject* other) {
-		if (other->GetTag() == GameObjectTag::Weapon::PlayerBullet)
+		if (other->GetTag() == gameObjectTag::weapon::PlayerBullet)
 		{
 			auto combatable = dynamic_cast<CombatableObject*>(other);
 			if (combatable)

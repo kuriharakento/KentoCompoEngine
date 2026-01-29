@@ -1,7 +1,7 @@
 #include "Area.h"
 
-#include "application/GameObject/Combatable/character/base/Character.h"
-#include "application/GameObject/component/collision/OBBColliderComponent.h"
+#include "application/gameObject/combatable/character/base/Character.h"
+#include "application/gameObject/component/collision/OBBColliderComponent.h"
 #include "base/Logger.h"
 
 Area::Area(Object3dCommon* objCommon, LightManager* lightManager, EnemyManager* enemyManager,
@@ -17,7 +17,7 @@ Area::Area(Object3dCommon* objCommon, LightManager* lightManager, EnemyManager* 
 	// プレイヤーがエリアに侵入した時の処理
 	collider->SetOnEnter([this](GameObject* other) {
 		// プレイヤーがエリアに入ったら自動的にウェーブを開始
-		if (!isStarted_ && other->GetTag() == GameObjectTag::Character::Player)
+		if (!isStarted_ && other->GetTag() == gameObjectTag::character::Player)
 		{
 			Start();
 		}
