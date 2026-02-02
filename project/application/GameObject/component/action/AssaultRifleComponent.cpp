@@ -26,9 +26,11 @@ AssaultRifleComponent::AssaultRifleComponent(Object3dCommon* object3dCommon, Lig
 // デストラクタ：弾のクリーンアップ
 AssaultRifleComponent::~AssaultRifleComponent()
 {
-	// 発射された弾をすべて削除
+	// 発射された弾をすべて削除（トレイルも解除）
 	for (auto& bullet : bullets_)
 	{
+		// 先にトレイルを解除してからbulletを破棄
+		BulletTrailManager::GetInstance().UnregisterBullet(bullet->GetTrailId());
 		bullet.reset();
 	}
 	bullets_.clear();
