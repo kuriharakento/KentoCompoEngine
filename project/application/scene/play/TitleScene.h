@@ -146,9 +146,9 @@ private:
 	static constexpr float kLogoHeight = 200.0f;
 
 	// フォントスプライト
-	static constexpr float kFontPositionX = 100.0f;
+	static constexpr float kFontPositionX = 150.0f;
 	static constexpr float kFontPositionY = 600.0f;
-	static constexpr float kFontScale = 0.6f;
+	static constexpr float kFontScale = 0.8f;
 
 	// トランジション
 	static constexpr int kTransitionGridX = 22;

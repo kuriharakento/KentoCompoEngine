@@ -72,7 +72,7 @@ void TitleScene::Initialize()
 		sceneManager_->GetSpriteCommon(),
 		"luna"
 	);
-	fontSprite_->SetText("Press SPACE to Start");
+	fontSprite_->SetText("Click to Start");
 	fontSprite_->SetPosition({ kFontPositionX, kFontPositionY });
 	fontSprite_->SetScale(kFontScale);
 	fontSprite_->SetColor(VectorColorCodes::Cyan);
@@ -101,7 +101,9 @@ void TitleScene::OnUpdatePlaying()
 
 	fontSprite_->Update();
 
-	if (Input::GetInstance()->TriggerKey(DIK_SPACE))
+#ifdef _DEBUG
+	// デバッグ時は右クリックで開始
+	if (Input::GetInstance()->IsMouseButtonTriggered(2))
 	{
 		Audio::GetInstance()->PlayWave("start_se", false);
 
@@ -116,6 +118,24 @@ void TitleScene::OnUpdatePlaying()
 
 		ChangeState(SceneState::Exit);
 	}
+#else
+	// マウス左クリックで開始
+	if (Input::GetInstance()->IsMouseButtonTriggered(0))
+	{
+		Audio::GetInstance()->PlayWave("start_se", false);
+
+		transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
+		transitionEffect_.SetFadeType(FadeType::FadeIn);
+		transitionEffect_.SetMode(TransitionMode::LeftTopToRightBottom);
+		transitionEffect_.Start(
+			kTransitionDuration,
+			VectorColorCodes::Red,
+			VectorColorCodes::Black
+		);
+
+		ChangeState(SceneState::Exit);
+	}
+#endif // _DEBUG
 
 	auto camera = sceneManager_->GetCameraManager()->GetActiveCamera();
 	camera->SetTranslate(camera->GetTranslate() + Vector3(0.0f, 0.0f, kCameraMoveSpeed));
