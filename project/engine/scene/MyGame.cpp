@@ -221,12 +221,6 @@ void MyGame::Draw()
 	// パーティクル描画
 	ParticleManager::GetInstance()->Draw();
 
-	///--------------------------------------------------------------
-	///						2D描画
-	///--------------------------------------------------------------
-
-	Framework::Draw2DSetting();
-	sceneManager_->Draw2D();
 
 	// 深度バッファをSRV状態に戻す
 	deferredRenderer_->GetGBuffer()->TransitionDepthToSRV();
@@ -238,9 +232,15 @@ void MyGame::Draw()
 	///--------------------------------------------------------------
 
 #ifdef USE_IMGUI
-	// ポストプロセス処理
-	sceneRenderTexture_->BeginRender();
+	// ポストプロセス処理（内部でBegin/EndRenderを行う）
 	postProcessManager_->Draw(renderTexture_.get(), sceneRenderTexture_.get());
+
+	// 2D描画（ポストプロセス後に描画することでブルームの影響を受けない）
+	// PostProcessManagerがEndRenderを呼ぶので、レンダーターゲット状態に戻す（クリアなし）
+	sceneRenderTexture_->PreDrawForImGui();
+	Framework::Draw2DSetting();
+	sceneManager_->Draw2D();
+
 	sceneRenderTexture_->EndRender();
 
 	// バックバッファのクリア
@@ -288,6 +288,10 @@ void MyGame::Draw()
 
 	// ポストプロセス処理
 	postProcessManager_->Draw(renderTexture_.get(), nullptr);
+
+	// 2D描画（ポストプロセス後に描画することでブルームの影響を受けない）
+	Framework::Draw2DSetting();
+	sceneManager_->Draw2D();
 #endif
 
 	imguiManager_->End();
