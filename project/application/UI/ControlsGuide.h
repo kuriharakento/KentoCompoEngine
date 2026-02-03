@@ -68,6 +68,18 @@ public:
 	bool IsVisible() const;
 
 private:
+	// =========================
+	//  デフォルト設定定数
+	// =========================
+	static constexpr float kDefaultPositionX = 20.0f;
+	static constexpr float kDefaultPositionY = 550.0f;
+	static constexpr float kDefaultScale = 0.5f;
+	static constexpr float kDefaultLineSpacing = 5.0f;
+
+	// =========================
+	//  メンバ変数
+	// =========================
+
 	// フォントスプライト（テキスト描画用）
 	std::unique_ptr<FontSprite> text_;
 

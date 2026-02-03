@@ -28,12 +28,12 @@ void GamePlayScene::Initialize()
 {
 	Audio::GetInstance()->LoadWave("game_bgm", "bgm/game.wav", SoundGroup::BGM);
 	Audio::GetInstance()->PlayWave("game_bgm", true);
-	Audio::GetInstance()->SetVolume("game_bgm", 0.2f);
+	Audio::GetInstance()->SetVolume("game_bgm", kBgmVolume);
 
 	// ディレクショナルライトの調整（斜め下向き）
 	DirectionalLight dirLight = sceneManager_->GetLightManager()->GetDirectionalLight();
-	dirLight.direction = { -0.4f, -1.0f, 1.0f };
-	dirLight.intensity = 0.3f;
+	dirLight.direction = { -0.4f, -1.0f, 1.0f };  // 斜め下向き（モデル依存のため数式由来）
+	dirLight.intensity = kLightIntensity;
 	sceneManager_->GetLightManager()->SetDirectionalLight(dirLight);
 
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate(cameraInitialPosition_);
@@ -44,9 +44,9 @@ void GamePlayScene::Initialize()
 	skydome_->SetModel("skydome");
 	skydome_->SetLightManager(sceneManager_->GetLightManager());
 	skydome_->SetEnableLighting(true);
-	skydome_->SetDirectionalLightIntensity(0.5f);
-	skydome_->SetDirectionalLightDirection({ 0.0f, -1.0f, 0.0f });
-	skydome_->SetScale({ 0.5f, 0.5f, 0.5f });
+	skydome_->SetDirectionalLightIntensity(kSkydomeLightIntensity);
+	skydome_->SetDirectionalLightDirection({ 0.0f, -1.0f, 0.0f });  // 真下向き
+	skydome_->SetScale({ kSkydomeScale, kSkydomeScale, kSkydomeScale });
 	RegisterObject(skydome_.get());
 
 	// UVスケールで地形テクスチャをタイル状に繰り返し
@@ -55,7 +55,8 @@ void GamePlayScene::Initialize()
 	ground_->SetModel("terrain");
 	ground_->SetLightManager(sceneManager_->GetLightManager());
 	ground_->SetEnableLighting(true);
-	ground_->GetModel()->SetUVScale(Vector3(10.0f, 10.0f, 1.0f));
+	constexpr float kGroundUVTile = 10.0f;  // 地面テクスチャのタイル繰り返し数
+	ground_->GetModel()->SetUVScale(Vector3(kGroundUVTile, kGroundUVTile, 1.0f));
 	//RegisterObject(ground_.get());
 
 	CollisionManager::GetInstance()->Initialize();
@@ -78,15 +79,18 @@ void GamePlayScene::Initialize()
 	splineCamera_ = std::make_unique<SplineCamera>();
 	splineCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
 	splineCamera_->LoadJson("spline.json");
-	splineCamera_->Start(0.001f, false);
+	splineCamera_->Start(kSplineCameraSpeed, false);
 	splineCamera_->SetTarget(&stageManager_->GetPlayer()->GetPosition());
 
 	topDownCamera_ = std::make_unique<TopDownCamera>();
 	topDownCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
-	topDownCamera_->SetOffset({ -45.0f, 0.0f, -28.0f });
-	topDownCamera_->SetPitch(0.7f);
-	topDownCamera_->SetYaw(1.0f);
-	topDownCamera_->SetHeight(43.0f);
+	// トップダウンカメラオフセット（シーン調整で決定した値）
+	constexpr float kTopDownOffsetX = -45.0f;
+	constexpr float kTopDownOffsetZ = -28.0f;
+	topDownCamera_->SetOffset({ kTopDownOffsetX, 0.0f, kTopDownOffsetZ });
+	topDownCamera_->SetPitch(kTopDownCameraPitch);
+	topDownCamera_->SetYaw(kTopDownCameraYaw);
+	topDownCamera_->SetHeight(kTopDownCameraHeight);
 
 	orbitCamera_ = std::make_unique<OrbitCameraWork>();
 	orbitCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
@@ -96,7 +100,7 @@ void GamePlayScene::Initialize()
 	transitionEffect_.Initialize(
 		sceneManager_->GetSpriteCommon(),
 		"./Resources/black.png",
-		22, 16,
+		kTransitionGridX, kTransitionGridY,
 		WinApp::kClientWidth, WinApp::kClientHeight
 	);
 	transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
@@ -120,8 +124,10 @@ void GamePlayScene::Initialize()
 	controlsGuide_ = std::make_unique<ControlsGuide>();
 	controlsGuide_->Initialize(sceneManager_->GetSpriteCommon(), "luna");
 	controlsGuide_->SetText("WASD: Move\nShoot: Left Click\nDodge: Space\n");
-	controlsGuide_->SetPosition({ 30.0f, 30.0f });
-	controlsGuide_->SetScale(0.3f);
+	constexpr float kControlsGuidePosX = 30.0f;
+	constexpr float kControlsGuidePosY = 30.0f;
+	controlsGuide_->SetPosition({ kControlsGuidePosX, kControlsGuidePosY });
+	controlsGuide_->SetScale(kControlsGuideScale);
 	controlsGuide_->SetVisible(false);
 
 	// ポーズメニュー初期化
@@ -161,7 +167,7 @@ void GamePlayScene::Finalize()
 void GamePlayScene::OnEnterEnter()
 {
 	transitionEffect_.Start(
-		1.5f,
+		kEnterTransitionDuration,
 		VectorColorCodes::Black,
 		VectorColorCodes::Red
 	);
@@ -229,7 +235,7 @@ void GamePlayScene::OnUpdateIntro()
 void GamePlayScene::OnEnterPlaying()
 {
 	topDownCamera_->Start(
-		43.0f,
+		kTopDownCameraHeight,
 		&stageManager_->GetPlayer()->GetPosition()
 	);
 
@@ -292,9 +298,9 @@ void GamePlayScene::OnEnterEnd()
 	}
 	else if (gameClear_)
 	{
-		cinematicLetterbox_.Show(1.0f);
+		cinematicLetterbox_.Show(kLetterboxShowDuration);
 
-		auto timer = std::make_unique<Timer>("GameClearToExitTimer", 2.0f, DeltaTimeType::RealDeltaTime);
+		auto timer = std::make_unique<Timer>("GameClearToExitTimer", kClearToExitDelay, DeltaTimeType::RealDeltaTime);
 
 		timer->SetOnFinish([this]() {
 			ChangeState(SceneState::Exit);
@@ -309,15 +315,15 @@ void GamePlayScene::OnEnterEnd()
 		// orbit の角度は (cos, sin) = (x, z) の順なので atan2(z, x) を使う
 		float baseOrbitAngle = std::atan2(forward.z, forward.x);
 
-		const float offsetDeg = -30.0f;
+		const float offsetDeg = kOrbitAngleOffsetDeg;
 		float offsetRad = offsetDeg * std::numbers::pi_v<float> / 180.0f;
 
 		float initialAngle = MathUtils::NormalizeAngleRad(baseOrbitAngle + offsetRad);
 
 		orbitCamera_->Start(
 			&stageManager_->GetPlayer()->GetPosition(),
-			15.0f,
-			0.5f,
+			kOrbitCameraDistance,
+			kOrbitCameraSpeed,
 			initialAngle,
 			DeltaTimeType::RealDeltaTime
 		);
@@ -331,18 +337,14 @@ void GamePlayScene::OnUpdateEnd()
 		gameOverEffectElapsed_ += TimeManager::GetInstance().GetGameContext().deltaTime;
 
 		// 色収差を振幅で揺らす（指数減衰で自然に収束）
-		const float frequencyHz = 4.0f;
-		const float maxOscAmp = 35.0f;
-		const float decayRate = 2.8f;
-
-		float envelope = maxOscAmp * std::exp(-decayRate * gameOverEffectElapsed_);
-		if (envelope < 0.001f)
+		float envelope = kGameOverMaxOscAmp * std::exp(-kGameOverDecayRate * gameOverEffectElapsed_);
+		if (envelope < kGameOverEnvelopeThreshold)
 		{
 			envelope = 0.0f;
 		}
 
-		const float twoPi = std::numbers::pi_v<float> *2.0f;
-		float oscill = std::sinf(gameOverEffectElapsed_ * frequencyHz * twoPi) * envelope;
+		const float twoPi = std::numbers::pi_v<float> * 2.0f;
+		float oscill = std::sinf(gameOverEffectElapsed_ * kGameOverFrequencyHz * twoPi) * envelope;
 
 		auto* ppm = sceneManager_->GetPostProcessManager();
 		ppm->crtEffect_->SetChromaticAberrationOffset(oscill);
@@ -370,7 +372,7 @@ void GamePlayScene::OnEnterExit()
 	transitionEffect_.SetFadeType(FadeType::FadeIn);
 	transitionEffect_.SetMode(TransitionMode::EdgesToCenter);
 	transitionEffect_.Start(
-		2.0f,
+		kExitTransitionDuration,
 		VectorColorCodes::Black,
 		VectorColorCodes::Red
 	);

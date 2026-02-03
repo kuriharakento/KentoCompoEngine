@@ -201,7 +201,49 @@ protected:
 	 */
 	void CommonUpdate() override;
 
-private: //メンバ変数
+private:
+	// =========================
+	//  シーン設定定数
+	// =========================
+
+	// オーディオ
+	static constexpr float kBgmVolume = 0.2f;
+
+	// ライティング
+	static constexpr float kLightIntensity = 0.3f;
+	static constexpr float kSkydomeLightIntensity = 0.5f;
+	static constexpr float kSkydomeScale = 0.5f;
+
+	// スプラインカメラ
+	static constexpr float kSplineCameraSpeed = 0.001f;
+
+	// トップダウンカメラ
+	static constexpr float kTopDownCameraPitch = 0.7f;
+	static constexpr float kTopDownCameraYaw = 1.0f;
+	static constexpr float kTopDownCameraHeight = 43.0f;
+
+	// コントロールガイド
+	static constexpr float kControlsGuideScale = 0.3f;
+
+	// トランジション演出
+	static constexpr int kTransitionGridX = 22;
+	static constexpr int kTransitionGridY = 16;
+	static constexpr float kEnterTransitionDuration = 1.5f;
+	static constexpr float kExitTransitionDuration = 2.0f;
+
+	// ゲームオーバー演出
+	static constexpr float kGameOverFrequencyHz = 4.0f;
+	static constexpr float kGameOverMaxOscAmp = 35.0f;
+	static constexpr float kGameOverDecayRate = 2.8f;
+	static constexpr float kGameOverEnvelopeThreshold = 0.001f;
+
+	// ゲームクリア演出
+	static constexpr float kOrbitCameraDistance = 15.0f;
+	static constexpr float kOrbitCameraSpeed = 0.5f;
+	static constexpr float kOrbitAngleOffsetDeg = -30.0f;
+	static constexpr float kLetterboxShowDuration = 1.0f;
+	static constexpr float kClearToExitDelay = 2.0f;
+
 	// =========================
     //  ゲームプレイ
 	// =========================

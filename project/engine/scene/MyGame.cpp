@@ -43,7 +43,8 @@ void MyGame::Initialize()
 	skybox_->Initialize(dxCommon_.get(), "./Resources/skybox.dds");
 
 	// シーン描画用レンダーテクスチャ（ポストプロセス後）の初期化
-	Vector4 clearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
+	constexpr float kClearColorValue = 0.1f;  // 暗いグレー
+	Vector4 clearColor = { kClearColorValue, kClearColorValue, kClearColorValue, 1.0f };
 	sceneRenderTexture_ = std::make_unique<RenderTexture>();
 	sceneRenderTexture_->Initialize(
 		dxCommon_.get(),
@@ -98,7 +99,7 @@ void MyGame::Draw()
 	// カスケードシャドウ行列を計算
 	lightManager_->UpdateCascadeShadowMatrices(
 		cameraManager_->GetActiveCamera(),
-		0.1f, 200.0f
+		kShadowNearPlane, kShadowFarPlane
 	);
 
 	// カスケードシャドウマップ描画（4カスケード）
@@ -145,7 +146,7 @@ void MyGame::Draw()
 			shadowMapManager_->CreatePointLightShadowMap(name);
 		}
 
-		lightManager_->UpdatePointLightShadowMatrix(name, 0.1f, light.gpuData.radius);
+		lightManager_->UpdatePointLightShadowMatrix(name, kShadowNearPlane, light.gpuData.radius);
 
 		for (uint32_t face = 0; face < 6; ++face) {
 			shadowMapManager_->BeginPointLightShadowPass(name, face);
@@ -250,9 +251,9 @@ void MyGame::Draw()
 	ImGui::SetNextWindowPos(viewport->Pos);
 	ImGui::SetNextWindowSize(viewport->Size);
 	ImGui::SetNextWindowViewport(viewport->ID);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, kImGuiWindowRounding);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, kImGuiWindowBorderSize);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(kImGuiWindowRounding, kImGuiWindowRounding));
 	ImGui::Begin("DockSpace", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground);
 	ImGui::PopStyleVar(3);
 	ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");

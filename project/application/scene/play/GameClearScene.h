@@ -31,6 +31,24 @@ protected:
 	void OnExitPlaying() override;
 
 private:
+	// =========================
+	//  シーン設定定数
+	// =========================
+
+	// オブジェクト配置
+	static constexpr float kObjectSpacing = 3.0f;             // テストオブジェクトの間隔
+	static constexpr float kObjectHeight = 5.0f;              // テストオブジェクトの高さ
+	static constexpr float kSkinnedObjectPosX = 5.0f;         // スキンドオブジェクトのX位置
+
+	// デバッグカメラ
+	static constexpr float kDebugCameraHeight = 10.0f;
+	static constexpr float kDebugCameraDistance = -20.0f;
+	static constexpr float kDebugCameraPitch = 0.5f;
+
+	// =========================
+	//  メンバ変数
+	// =========================
+
 	// 地面オブジェクト
 	std::unique_ptr<Object3d> ground_;
 

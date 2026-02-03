@@ -12,8 +12,8 @@ void GameOverScene::Initialize()
 	transitionEffect_.Initialize(
 		sceneManager_->GetSpriteCommon(),
 		"./Resources/black.png",
-		22, 16,
-		1280.0f, 720.0f
+		kTransitionGridX, kTransitionGridY,
+		WinApp::kClientWidth, WinApp::kClientHeight
 	);
 
 	// ブルームを無効化
@@ -28,8 +28,8 @@ void GameOverScene::Initialize()
 	skydome_->SetModel("skydome");
 	skydome_->SetLightManager(sceneManager_->GetLightManager());
 	skydome_->SetEnableLighting(true);
-	skydome_->SetDirectionalLightIntensity(0.5f);
-	skydome_->SetDirectionalLightDirection({ 0.0f, -1.0f, 0.0f });
+	skydome_->SetDirectionalLightIntensity(kSkydomeLightIntensity);
+	skydome_->SetDirectionalLightDirection({ 0.0f, -1.0f, 0.0f });  // 真下向き
 	RegisterObject(skydome_.get());
 
 	// ゲームオーバーからタイトルUIの初期化
@@ -48,7 +48,7 @@ void GameOverScene::Initialize()
 		transitionEffect_.SetFadeType(FadeType::FadeIn);
 		transitionEffect_.SetMode(TransitionMode::EdgesToCenter);
 		transitionEffect_.Start(
-			1.0f,
+			kTransitionDuration,
 			VectorColorCodes::Black,
 			VectorColorCodes::Red
 		);
@@ -78,7 +78,7 @@ void GameOverScene::Initialize()
 		transitionEffect_.SetFadeType(FadeType::FadeIn);
 		transitionEffect_.SetMode(TransitionMode::EdgesToCenter);
 		transitionEffect_.Start(
-			1.0f,
+			kTransitionDuration,
 			VectorColorCodes::Black,
 			VectorColorCodes::Red
 		);
@@ -99,21 +99,21 @@ void GameOverScene::Initialize()
 	titleFontSprite_->Initialize(sceneManager_->GetSpriteCommon(), "luna");
 	titleFontSprite_->SetText("Title");
 	titleFontSprite_->SetPosition(kTitleFontSpritePosition);
-	titleFontSprite_->SetScale(0.5f);
+	titleFontSprite_->SetScale(kButtonFontScale);
 
 	// リトライフォントスプライトの初期化
 	retryFontSprite_ = std::make_unique<FontSprite>();
 	retryFontSprite_->Initialize(sceneManager_->GetSpriteCommon(), "luna");
 	retryFontSprite_->SetText("Retry");
 	retryFontSprite_->SetPosition(kRetryFontSpritePosition);
-	retryFontSprite_->SetScale(0.5f);
+	retryFontSprite_->SetScale(kButtonFontScale);
 
 	// ゲームオーバーロゴ
 	gameOverLogoFontSprite_ = std::make_unique<FontSprite>();
 	gameOverLogoFontSprite_->Initialize(sceneManager_->GetSpriteCommon(), "luna");
 	gameOverLogoFontSprite_->SetText("Game Over");
-	gameOverLogoFontSprite_->SetPosition({ 250.0f, 200.0f });
-	gameOverLogoFontSprite_->SetScale(1.0f);
+	gameOverLogoFontSprite_->SetPosition(kGameOverLogoPosition);
+	gameOverLogoFontSprite_->SetScale(kLogoFontScale);
 
 	StartState(SceneState::Enter);
 }
@@ -159,7 +159,7 @@ void GameOverScene::OnEnterEnter()
 	transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
 	transitionEffect_.SetMode(TransitionMode::CenterToEdges);
 	transitionEffect_.Start(
-		1.0f,
+		kTransitionDuration,
 		VectorColorCodes::Red,
 		VectorColorCodes::Black
 	);
@@ -203,7 +203,7 @@ void GameOverScene::OnEnterExit()
 	transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
 	transitionEffect_.SetMode(TransitionMode::EdgesToCenter);
 	transitionEffect_.Start(
-		1.0f,
+		kTransitionDuration,
 		VectorColorCodes::Red,
 		VectorColorCodes::Black
 	);

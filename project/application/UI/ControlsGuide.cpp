@@ -11,9 +11,9 @@ void ControlsGuide::Initialize(SpriteCommon* spriteCommon, const std::string& fo
 	);
 
 	// デフォルト表示位置（画面左下付近）
-	text_->SetPosition({ 20.0f, 550.0f });
-	text_->SetScale(0.5f);
-	text_->SetLineSpacing(5.0f);
+	text_->SetPosition({ kDefaultPositionX, kDefaultPositionY });
+	text_->SetScale(kDefaultScale);
+	text_->SetLineSpacing(kDefaultLineSpacing);
 }
 
 void ControlsGuide::Update()

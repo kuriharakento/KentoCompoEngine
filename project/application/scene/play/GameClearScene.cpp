@@ -39,8 +39,8 @@ void GameClearScene::Initialize()
 			obj->SetModel("multimaterial");
 		}
 
-		obj->SetScale({ 1.0f, 1.0f, 1.0f });
-		obj->SetTranslate({ static_cast<float>(i - 1) * 3.0f, 5.0f, 0.0f });
+		obj->SetScale({ 1.0f, 1.0f, 1.0f });  // 等倍スケール
+		obj->SetTranslate({ static_cast<float>(i - 1) * kObjectSpacing, kObjectHeight, 0.0f });
 		obj->SetLightManager(lightManager);
 		RegisterObject(obj.get());
 		testObjects_.push_back(std::move(obj));
@@ -52,13 +52,13 @@ void GameClearScene::Initialize()
 	skinnedObject_->SetModel("sneakWalk", ".gltf");
 	skinnedObject_->SetCamera(cameraManager->GetActiveCamera());
 	skinnedObject_->SetLightManager(lightManager);
-	skinnedObject_->SetTranslate({ 5.0f, 0.0f, 0.0f }); // 右側に配置
-	skinnedObject_->SetScale({ 1.0f, 1.0f, 1.0f });
+	skinnedObject_->SetTranslate({ kSkinnedObjectPosX, 0.0f, 0.0f }); // 右側に配置
+	skinnedObject_->SetScale({ 1.0f, 1.0f, 1.0f });  // 等倍スケール
 	//skinnedObject_->PlayAnimation(0, true);
 
 	// デバッグカメラの初期化
 	debugCamera_.Initialize(cameraManager->GetActiveCamera());
-	debugCamera_.Start({ 0.0f, 10.0f, -20.0f }, { 0.5f, 0.0f, 0.0f });
+	debugCamera_.Start({ 0.0f, kDebugCameraHeight, kDebugCameraDistance }, { kDebugCameraPitch, 0.0f, 0.0f });
 
 	StartState(SceneState::Playing);
 }

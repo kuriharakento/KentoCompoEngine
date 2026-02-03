@@ -139,6 +139,17 @@ private: //メンバ変数
 	static constexpr Vector2 kTitleFontSpritePosition = { 260.0f, 580.0f };
 	// リトライフォントスプライトの位置
 	static constexpr Vector2 kRetryFontSpritePosition = { 820.0f, 580.0f };
+	// ゲームオーバーロゴの位置
+	static constexpr Vector2 kGameOverLogoPosition = { 250.0f, 200.0f };
+	// フォントスケール
+	static constexpr float kButtonFontScale = 0.5f;
+	static constexpr float kLogoFontScale = 1.0f;
+	// トランジション
+	static constexpr int kTransitionGridX = 22;
+	static constexpr int kTransitionGridY = 16;
+	static constexpr float kTransitionDuration = 1.0f;
+	// スカイドーム
+	static constexpr float kSkydomeLightIntensity = 0.5f;
 	// スカイドーム
 	std::unique_ptr<Object3d> skydome_ = nullptr;
 	// タイトルへ戻るフラグ

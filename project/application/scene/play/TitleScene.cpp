@@ -16,7 +16,7 @@ void TitleScene::Initialize()
 {
 	Audio::GetInstance()->LoadWave("title_bgm", "bgm/title.wav", SoundGroup::BGM);
 	Audio::GetInstance()->PlayWave("title_bgm", true);
-	Audio::GetInstance()->SetVolume("title_bgm", 0.2f);
+	Audio::GetInstance()->SetVolume("title_bgm", kBgmVolume);
 	Audio::GetInstance()->LoadWave("start_se", "se/tap.wav", SoundGroup::SE);
 
 	// パーティクルをJsonから読み込み
@@ -25,46 +25,46 @@ void TitleScene::Initialize()
 
 	// ディレクショナルライトの調整（下向き）
 	DirectionalLight dirLight = sceneManager_->GetLightManager()->GetDirectionalLight();
-	dirLight.direction = { 0.0f, -1.0f, 0.0f };
-	dirLight.intensity = 0.8f;
+	dirLight.direction = { 0.0f, -1.0f, 0.0f };  // 下向き
+	dirLight.intensity = kLightIntensity;
 	sceneManager_->GetLightManager()->SetDirectionalLight(dirLight);
 
-	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate(Vector3(0.0f, 1.5f, -15.0f));
+	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate(Vector3(0.0f, kCameraHeight, kCameraInitialZ));
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetRotate(Vector3());
 
 	titleLogo_ = std::make_unique<Sprite>();
 	titleLogo_->Initialize(sceneManager_->GetSpriteCommon(), "./Resources/title_logo.png");
-	titleLogo_->SetPosition({ 640.0f, 100.0f });
-	titleLogo_->SetAnchorPoint({ 0.5f, 0.5f });
-	titleLogo_->SetSize({ 300.0f, 200.0f });
+	titleLogo_->SetPosition({ kLogoPositionX, kLogoPositionY });
+	titleLogo_->SetAnchorPoint({ 0.5f, 0.5f });  // 中心起点
+	titleLogo_->SetSize({ kLogoWidth, kLogoHeight });
 
 	skydome_ = std::make_unique<Object3d>();
 	skydome_->Initialize(sceneManager_->GetObject3dCommon());
 	skydome_->SetModel("skydome");
 	skydome_->SetLightManager(sceneManager_->GetLightManager());
 	skydome_->SetEnableLighting(true);
-	skydome_->SetDirectionalLightIntensity(0.5f);
-	skydome_->SetDirectionalLightDirection({ 0.0f, -1.0f, 0.0f });
-	skydome_->SetScale({ 0.8f, 0.8f, 0.8f });
+	skydome_->SetDirectionalLightIntensity(kSkydomeLightIntensity);
+	skydome_->SetDirectionalLightDirection({ 0.0f, -1.0f, 0.0f });  // 真下向き
+	skydome_->SetScale({ kSkydomeScale, kSkydomeScale, kSkydomeScale });
 	skydome_->SetCastShadow(false);
 	RegisterObject(skydome_.get());
 
-	cube_.center = Vector3(0.0f, 1.0f, 10.0f);
-	cube_.size = Vector3(1.0f, 1.0f, 1.0f);
+	cube_.center = Vector3(0.0f, kCubeBaseY, kCubeDistanceFromCamera);
+	cube_.size = Vector3(1.0f, 1.0f, 1.0f);  // 単位サイズ
 	cube_.rotate = MakeRotateYMatrix(0.0f);
 
 	transitionEffect_.Initialize(
 		sceneManager_->GetSpriteCommon(),
 		"./Resources/black.png",
-		22, 16,
-		1280.0f, 720.0f
+		kTransitionGridX, kTransitionGridY,
+		WinApp::kClientWidth, WinApp::kClientHeight
 	);
 
 	// 色収差エフェクトを有効化してレトロ風の雰囲気を演出
 	sceneManager_->GetPostProcessManager()->crtEffect_->SetEnabled(true);
 	sceneManager_->GetPostProcessManager()->crtEffect_->SetCrtEnabled(true);
 	sceneManager_->GetPostProcessManager()->crtEffect_->SetChromaticAberrationEnabled(true);
-	sceneManager_->GetPostProcessManager()->crtEffect_->SetChromaticAberrationOffset(10.0f);
+	sceneManager_->GetPostProcessManager()->crtEffect_->SetChromaticAberrationOffset(kChromaticAberrationOffset);
 
 	// フォントスプライトの初期化（テスト用）
 	fontSprite_ = std::make_unique<FontSprite>();
@@ -73,8 +73,8 @@ void TitleScene::Initialize()
 		"luna"
 	);
 	fontSprite_->SetText("Press SPACE to Start");
-	fontSprite_->SetPosition({ 100.0f, 600.0f });
-	fontSprite_->SetScale(0.6f);
+	fontSprite_->SetPosition({ kFontPositionX, kFontPositionY });
+	fontSprite_->SetScale(kFontScale);
 	fontSprite_->SetColor(VectorColorCodes::Cyan);
 
 	StartState(SceneState::Playing);
@@ -109,7 +109,7 @@ void TitleScene::OnUpdatePlaying()
 		transitionEffect_.SetFadeType(FadeType::FadeIn);
 		transitionEffect_.SetMode(TransitionMode::LeftTopToRightBottom);
 		transitionEffect_.Start(
-			1.0f,
+			kTransitionDuration,
 			VectorColorCodes::Red,
 			VectorColorCodes::Black
 		);
@@ -118,10 +118,10 @@ void TitleScene::OnUpdatePlaying()
 	}
 
 	auto camera = sceneManager_->GetCameraManager()->GetActiveCamera();
-	camera->SetTranslate(camera->GetTranslate() + Vector3(0.0f, 0.0f, 0.1f));
-	if (camera->GetTranslate().z >= 100.0f)
+	camera->SetTranslate(camera->GetTranslate() + Vector3(0.0f, 0.0f, kCameraMoveSpeed));
+	if (camera->GetTranslate().z >= kCameraResetZ)
 	{
-		camera->SetTranslate({ 0.0f, 1.5f, -15.0f });
+		camera->SetTranslate({ 0.0f, kCameraHeight, kCameraInitialZ });
 	}
 
 	auto particleEffect = ParticleManager::GetInstance()->GetEffect("title_particle");
@@ -131,16 +131,14 @@ void TitleScene::OnUpdatePlaying()
 	titleLogo_->Update();
 	skydome_->Update(sceneManager_->GetCameraManager());
 
-	cube_.center = camera->GetTranslate() + Vector3(0.0f, -1.0f, 10.0f);
+	cube_.center = camera->GetTranslate() + Vector3(0.0f, kCubeOffsetY, kCubeDistanceFromCamera);
 
 	// キューブの上下動（sinf波）
-	cubeWaveTime += 0.05f;
-	float baseY = 1.0f;
-	float amplitude = 0.5f;
-	cube_.center.y = baseY + amplitude * sinf(cubeWaveTime);
+	cubeWaveTime += kCubeWaveSpeed;
+	cube_.center.y = kCubeBaseY + kCubeAmplitude * sinf(cubeWaveTime);
 
-	cubeRotateY += 0.07f;
-	if (cubeRotateY >= 3.14f)
+	cubeRotateY += kCubeRotateSpeed;
+	if (cubeRotateY >= kCubeMaxRotateY)
 	{
 		cubeRotateY = 0.0f;
 	}
@@ -176,8 +174,8 @@ void TitleScene::OnExitExit()
 void TitleScene::Draw3D()
 {
 	LineManager::GetInstance()->DrawGrid(
-		600.0f,
-		5.0f,
+		kGridSize,
+		kGridSpacing,
 		VectorColorCodes::DarkGray
 	);
 

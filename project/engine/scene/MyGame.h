@@ -16,6 +16,22 @@ public:
 	//描画
 	void Draw()override;
 private:
+	// =========================
+	//  エンジン設定定数
+	// =========================
+
+	// シャドウマップ
+	static constexpr float kShadowNearPlane = 0.1f;
+	static constexpr float kShadowFarPlane = 200.0f;
+
+	// ImGui スタイル
+	static constexpr float kImGuiWindowRounding = 0.0f;
+	static constexpr float kImGuiWindowBorderSize = 0.0f;
+
+	// =========================
+	//  メンバ関数
+	// =========================
+
 	//テクスチャの読み込み
 	void LoadTextures();
 	//モデルの読み込み

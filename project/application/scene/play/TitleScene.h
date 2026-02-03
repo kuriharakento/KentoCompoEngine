@@ -120,7 +120,61 @@ protected:
 	 */
 	void OnExitExit() override;
 
-private: //メンバ変数
+private:
+	// =========================
+	//  シーン設定定数
+	// =========================
+
+	// オーディオ
+	static constexpr float kBgmVolume = 0.2f;
+
+	// ライティング
+	static constexpr float kLightIntensity = 0.8f;
+	static constexpr float kSkydomeLightIntensity = 0.5f;
+	static constexpr float kSkydomeScale = 0.8f;
+
+	// カメラ
+	static constexpr float kCameraMoveSpeed = 0.1f;
+	static constexpr float kCameraResetZ = 100.0f;
+	static constexpr float kCameraInitialZ = -15.0f;
+	static constexpr float kCameraHeight = 1.5f;
+
+	// タイトルロゴ
+	static constexpr float kLogoPositionX = 640.0f;
+	static constexpr float kLogoPositionY = 100.0f;
+	static constexpr float kLogoWidth = 300.0f;
+	static constexpr float kLogoHeight = 200.0f;
+
+	// フォントスプライト
+	static constexpr float kFontPositionX = 100.0f;
+	static constexpr float kFontPositionY = 600.0f;
+	static constexpr float kFontScale = 0.6f;
+
+	// トランジション
+	static constexpr int kTransitionGridX = 22;
+	static constexpr int kTransitionGridY = 16;
+	static constexpr float kTransitionDuration = 1.0f;
+
+	// CRTエフェクト
+	static constexpr float kChromaticAberrationOffset = 10.0f;
+
+	// キューブアニメーション
+	static constexpr float kCubeWaveSpeed = 0.05f;
+	static constexpr float kCubeBaseY = 1.0f;
+	static constexpr float kCubeAmplitude = 0.5f;
+	static constexpr float kCubeRotateSpeed = 0.07f;
+	static constexpr float kCubeMaxRotateY = 3.14f;
+	static constexpr float kCubeDistanceFromCamera = 10.0f;
+	static constexpr float kCubeOffsetY = -1.0f;
+
+	// グリッド描画
+	static constexpr float kGridSize = 600.0f;
+	static constexpr float kGridSpacing = 5.0f;
+
+	// =========================
+	//  メンバ変数
+	// =========================
+
 	// タイトルロゴ画像
 	std::unique_ptr<Sprite> titleLogo_;
 	// スカイドーム（背景天球）
