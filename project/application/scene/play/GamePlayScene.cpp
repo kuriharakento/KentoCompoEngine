@@ -155,6 +155,12 @@ void GamePlayScene::Finalize()
 	BulletTrailManager::GetInstance().Clear();
 
 	CollisionManager::GetInstance()->Finalize();
+
+	// ポストエフェクトを無効化
+	auto* ppm = sceneManager_->GetPostProcessManager();
+	ppm->crtEffect_->SetEnabled(false);
+	ppm->crtEffect_->SetCrtEnabled(false);
+	ppm->crtEffect_->SetChromaticAberrationEnabled(false);
 }
 
 // ================================================================
