@@ -8,6 +8,7 @@
 #include "graphics/2d/SpriteCommon.h"
 #include "input/Input.h"
 #include "base/Camera.h"
+#include "base/WinApp.h"
 #include "math/Vector2.h"
 #include "math/Vector3.h"
 
@@ -265,8 +266,8 @@ private:
 	static constexpr int kMouseButtonLeft = 0;
 
 	// スクリーン幅
-	static constexpr float kScreenWidth = 1280.0f;
+	static inline const float kScreenWidth = static_cast<float>(WinApp::kClientWidth);
 
 	// スクリーン高さ
-	static constexpr float kScreenHeight = 720.0f;
+	static inline const float kScreenHeight = static_cast<float>(WinApp::kClientHeight);
 };

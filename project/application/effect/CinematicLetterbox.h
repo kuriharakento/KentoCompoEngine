@@ -188,8 +188,8 @@ private:
     void UpdateBarSizes();
 
 private:
-    float screenWidth_ = 1280.0f;   ///< 画面幅（ピクセル）
-    float screenHeight_ = 720.0f;   ///< 画面高さ（ピクセル）
+    float screenWidth_ = 0.0f;    ///< 画面幅（Initializeで設定）
+    float screenHeight_ = 0.0f;   ///< 画面高さ（Initializeで設定）
 
     float letterboxHeight_ = 100.0f; ///< レターボックスの高さ（画面の上下それぞれ）
 

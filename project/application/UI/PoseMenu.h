@@ -144,6 +144,6 @@ private:
 	bool isExitHovered_ = false;
 
 	// スクリーンサイズ
-	static constexpr float kScreenWidth = 1280.0f;
-	static constexpr float kScreenHeight = 720.0f;
+	static inline const float kScreenWidth = static_cast<float>(WinApp::kClientWidth);
+	static inline const float kScreenHeight = static_cast<float>(WinApp::kClientHeight);
 };

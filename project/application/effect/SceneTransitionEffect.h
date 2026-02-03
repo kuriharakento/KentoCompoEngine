@@ -205,8 +205,8 @@ private:
 
     int gridX_ = 6;                                         ///< 横方向のグリッド分割数
     int gridY_ = 4;                                         ///< 縦方向のグリッド分割数
-    float screenWidth_ = 1280.0f;                           ///< 画面幅
-    float screenHeight_ = 720.0f;                           ///< 画面高さ
+    float screenWidth_ = 0.0f;                              ///< 画面幅（Initializeで設定）
+    float screenHeight_ = 0.0f;                             ///< 画面高さ（Initializeで設定）
     float transitionRate_ = 0.0f;                           ///< 全体の遷移進行度（0.0〜1.0）
     SceneTransitionEase easeType_ = SceneTransitionEase::Linear;  ///< イージングタイプ
     float duration_ = 1.0f;                                 ///< 遷移時間（秒）

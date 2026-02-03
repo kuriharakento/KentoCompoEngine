@@ -1,6 +1,7 @@
 #pragma once
 #include "application/gameObject/component/base/IActionComponent.h"
 #include "application/ui/GameUI.h"
+#include "base/WinApp.h"
 #include "math/MatrixFunc.h"
 #include "math/MathUtils.h"
 #include <memory>
@@ -128,8 +129,8 @@ private:
     static constexpr float kHpThresholdLow = 0.25f;
 
     // スクリーンサイズ
-    static constexpr float kScreenWidth = 1280.0f;
-    static constexpr float kScreenHeight = 720.0f;
+    static inline const float kScreenWidth = static_cast<float>(WinApp::kClientWidth);
+    static inline const float kScreenHeight = static_cast<float>(WinApp::kClientHeight);
 
     /**
      * @brief UI要素の初期化

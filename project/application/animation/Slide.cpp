@@ -16,8 +16,8 @@ void Slide::Initialize(SpriteCommon* spriteCommon) {
 #ifdef _DEBUG
 		sprites_[i].sprite->SetTexture(kDebugPngPath);
 #endif
-		sprites_[i].sprite->SetSize(Vector2(1280.0f, 720.0f));
-		sprites_[i].sprite->SetPosition(Vector2(1280.0f, 720.0f));
+		sprites_[i].sprite->SetSize(Vector2(kScreenWidth_, kScreenHeight_));
+		sprites_[i].sprite->SetPosition(Vector2(kScreenWidth_, kScreenHeight_));
 		sprites_[i].sprite->SetColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 	}
 }
@@ -211,90 +211,90 @@ void Slide::Start(Status status, float duration) {
 		sprites_[1].isMove = false;
 		sprites_[2].isMove = false;
 		sprites_[3].isMove = false;
-		//サイズを通常に戻す
-		sprites_[0].sprite->SetTextureSize(Vector2(1280.0f, 720.0f));
-		sprites_[0].sprite->SetSize(Vector2(1280.0f, 720.0f));
+		// サイズを通常に戻す
+		sprites_[0].sprite->SetTextureSize(Vector2(kScreenWidth_, kScreenHeight_));
+		sprites_[0].sprite->SetSize(Vector2(kScreenWidth_, kScreenHeight_));
 		break;
 	case Status::SlideOutFromLeft: // １枚だけ使う
 		sprites_[0].isMove = true;
 		sprites_[1].isMove = false;
 		sprites_[2].isMove = false;
 		sprites_[3].isMove = false;
-		//サイズを通常に戻す
-		sprites_[0].sprite->SetTextureSize(Vector2(1280.0f, 720.0f));
-		sprites_[0].sprite->SetSize(Vector2(1280.0f, 720.0f));
+		// サイズを通常に戻す
+		sprites_[0].sprite->SetTextureSize(Vector2(kScreenWidth_, kScreenHeight_));
+		sprites_[0].sprite->SetSize(Vector2(kScreenWidth_, kScreenHeight_));
 		break;
 	case Status::SlideInFromBothSides: // ２枚使う
 		sprites_[0].isMove = true;
 		sprites_[1].isMove = true;
 		sprites_[2].isMove = false;
 		sprites_[3].isMove = false;
-		//画像をうまく切り取って半分ずつ表示する
+		// 画像をうまく切り取って半分ずつ表示する
 		sprites_[0].sprite->SetTextureLeftTop(Vector2(0.0f, 0.0f));
-		sprites_[0].sprite->SetTextureSize(Vector2(640.0f, 720.0f));
-		sprites_[0].sprite->SetSize(Vector2(640.0f, 720.0f));
-		sprites_[1].sprite->SetTextureLeftTop(Vector2(640.0f, 0.0f));
-		sprites_[1].sprite->SetTextureSize(Vector2(640.0f, 720.0f));
-		sprites_[1].sprite->SetSize(Vector2(640.0f, 720.0f));
+		sprites_[0].sprite->SetTextureSize(Vector2(kHalfScreenWidth_, kScreenHeight_));
+		sprites_[0].sprite->SetSize(Vector2(kHalfScreenWidth_, kScreenHeight_));
+		sprites_[1].sprite->SetTextureLeftTop(Vector2(kHalfScreenWidth_, 0.0f));
+		sprites_[1].sprite->SetTextureSize(Vector2(kHalfScreenWidth_, kScreenHeight_));
+		sprites_[1].sprite->SetSize(Vector2(kHalfScreenWidth_, kScreenHeight_));
 		break;
 	case Status::SlideOutFromBothSides: // ２枚使う
 		sprites_[0].isMove = true;
 		sprites_[1].isMove = true;
 		sprites_[2].isMove = false;
 		sprites_[3].isMove = false;
-		//画像をうまく切り取って半分ずつ表示する
+		// 画像をうまく切り取って半分ずつ表示する
 		sprites_[0].sprite->SetTextureLeftTop(Vector2(0.0f, 0.0f));
-		sprites_[0].sprite->SetTextureSize(Vector2(640.0f, 720.0f));
-		sprites_[0].sprite->SetSize(Vector2(640.0f, 720.0f));
-		sprites_[1].sprite->SetTextureLeftTop(Vector2(640.0f, 0.0f));
-		sprites_[1].sprite->SetTextureSize(Vector2(640.0f, 720.0f));
-		sprites_[1].sprite->SetSize(Vector2(640.0f, 720.0f));
+		sprites_[0].sprite->SetTextureSize(Vector2(kHalfScreenWidth_, kScreenHeight_));
+		sprites_[0].sprite->SetSize(Vector2(kHalfScreenWidth_, kScreenHeight_));
+		sprites_[1].sprite->SetTextureLeftTop(Vector2(kHalfScreenWidth_, 0.0f));
+		sprites_[1].sprite->SetTextureSize(Vector2(kHalfScreenWidth_, kScreenHeight_));
+		sprites_[1].sprite->SetSize(Vector2(kHalfScreenWidth_, kScreenHeight_));
 		break;
 	case Status::SlideInFromFourCorners: // ４枚使う
 		sprites_[0].isMove = true;
 		sprites_[1].isMove = true;
 		sprites_[2].isMove = true;
 		sprites_[3].isMove = true;
-		//画像をうまく切り取って四つ角ずつ表示する
-		//左上
+		// 画像をうまく切り取って四つ角ずつ表示する
+		// 左上
 		sprites_[0].sprite->SetTextureLeftTop(Vector2(0.0f, 0.0f));
-		sprites_[0].sprite->SetTextureSize(Vector2(640.0f, 360.0f));
-		sprites_[0].sprite->SetSize(Vector2(640.0f, 360.0f));
-		//右上
-		sprites_[1].sprite->SetTextureLeftTop(Vector2(640.0f, 0.0f));
-		sprites_[1].sprite->SetTextureSize(Vector2(640.0f, 360.0f));
-		sprites_[1].sprite->SetSize(Vector2(640.0f, 360.0f));
-		//左下
-		sprites_[2].sprite->SetTextureLeftTop(Vector2(0.0f, 360.0f));
-		sprites_[2].sprite->SetTextureSize(Vector2(640.0f, 360.0f));
-		sprites_[2].sprite->SetSize(Vector2(640.0f, 360.0f));
-		//右下
-		sprites_[3].sprite->SetTextureLeftTop(Vector2(640.0f, 360.0f));
-		sprites_[3].sprite->SetTextureSize(Vector2(640.0f, 360.0f));
-		sprites_[3].sprite->SetSize(Vector2(640.0f, 360.0f));
+		sprites_[0].sprite->SetTextureSize(Vector2(kHalfScreenWidth_, kHalfScreenHeight_));
+		sprites_[0].sprite->SetSize(Vector2(kHalfScreenWidth_, kHalfScreenHeight_));
+		// 右上
+		sprites_[1].sprite->SetTextureLeftTop(Vector2(kHalfScreenWidth_, 0.0f));
+		sprites_[1].sprite->SetTextureSize(Vector2(kHalfScreenWidth_, kHalfScreenHeight_));
+		sprites_[1].sprite->SetSize(Vector2(kHalfScreenWidth_, kHalfScreenHeight_));
+		// 左下
+		sprites_[2].sprite->SetTextureLeftTop(Vector2(0.0f, kHalfScreenHeight_));
+		sprites_[2].sprite->SetTextureSize(Vector2(kHalfScreenWidth_, kHalfScreenHeight_));
+		sprites_[2].sprite->SetSize(Vector2(kHalfScreenWidth_, kHalfScreenHeight_));
+		// 右下
+		sprites_[3].sprite->SetTextureLeftTop(Vector2(kHalfScreenWidth_, kHalfScreenHeight_));
+		sprites_[3].sprite->SetTextureSize(Vector2(kHalfScreenWidth_, kHalfScreenHeight_));
+		sprites_[3].sprite->SetSize(Vector2(kHalfScreenWidth_, kHalfScreenHeight_));
 		break;
 	case Status::SlideOutFromFourCorners: // ４枚使う
 		sprites_[0].isMove = true;
 		sprites_[1].isMove = true;
 		sprites_[2].isMove = true;
 		sprites_[3].isMove = true;
-		//画像をうまく切り取って四つ角ずつ表示する
-		//左上
+		// 画像をうまく切り取って四つ角ずつ表示する
+		// 左上
 		sprites_[0].sprite->SetTextureLeftTop(Vector2(0.0f, 0.0f));
-		sprites_[0].sprite->SetTextureSize(Vector2(640.0f, 360.0f));
-		sprites_[0].sprite->SetSize(Vector2(640.0f, 360.0f));
-		//右上
-		sprites_[1].sprite->SetTextureLeftTop(Vector2(640.0f, 0.0f));
-		sprites_[1].sprite->SetTextureSize(Vector2(640.0f, 360.0f));
-		sprites_[1].sprite->SetSize(Vector2(640.0f, 360.0f));
-		//左下
-		sprites_[2].sprite->SetTextureLeftTop(Vector2(0.0f, 360.0f));
-		sprites_[2].sprite->SetTextureSize(Vector2(640.0f, 360.0f));
-		sprites_[2].sprite->SetSize(Vector2(640.0f, 360.0f));
-		//右下
-		sprites_[3].sprite->SetTextureLeftTop(Vector2(640.0f, 360.0f));
-		sprites_[3].sprite->SetTextureSize(Vector2(640.0f, 360.0f));
-		sprites_[3].sprite->SetSize(Vector2(640.0f, 360.0f));
+		sprites_[0].sprite->SetTextureSize(Vector2(kHalfScreenWidth_, kHalfScreenHeight_));
+		sprites_[0].sprite->SetSize(Vector2(kHalfScreenWidth_, kHalfScreenHeight_));
+		// 右上
+		sprites_[1].sprite->SetTextureLeftTop(Vector2(kHalfScreenWidth_, 0.0f));
+		sprites_[1].sprite->SetTextureSize(Vector2(kHalfScreenWidth_, kHalfScreenHeight_));
+		sprites_[1].sprite->SetSize(Vector2(kHalfScreenWidth_, kHalfScreenHeight_));
+		// 左下
+		sprites_[2].sprite->SetTextureLeftTop(Vector2(0.0f, kHalfScreenHeight_));
+		sprites_[2].sprite->SetTextureSize(Vector2(kHalfScreenWidth_, kHalfScreenHeight_));
+		sprites_[2].sprite->SetSize(Vector2(kHalfScreenWidth_, kHalfScreenHeight_));
+		// 右下
+		sprites_[3].sprite->SetTextureLeftTop(Vector2(kHalfScreenWidth_, kHalfScreenHeight_));
+		sprites_[3].sprite->SetTextureSize(Vector2(kHalfScreenWidth_, kHalfScreenHeight_));
+		sprites_[3].sprite->SetSize(Vector2(kHalfScreenWidth_, kHalfScreenHeight_));
 		break;
 	}
 }
@@ -302,7 +302,7 @@ void Slide::Start(Status status, float duration) {
 void Slide::InitializeSprites() {
 	// スプライトの初期化
 	for (std::size_t i = 0; i < sprites_.size(); i++) {
-		sprites_[i].sprite->SetPosition(Vector2(1280.0f, 720.0f));
+		sprites_[i].sprite->SetPosition(Vector2(kScreenWidth_, kScreenHeight_));
 		sprites_[i].isMove = false;
 	}
 }

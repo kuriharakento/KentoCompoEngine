@@ -2,6 +2,7 @@
 #include <memory>
 #include <array>
 
+#include "base/WinApp.h"
 #include "engine/math/Easing.h"
 #include "graphics/2d/Sprite.h"
 
@@ -158,39 +159,47 @@ private:
 	float easingTime_ = 1.0f;
 
 	/*----------------[ 通常スライド用 ]------------------*/
-	//ウィンドウのサイズ分
-	//移動量
-	const float kSlideDistance_ = 1280.0f;
+	// 画面幅（WinAppから取得）
+	const float kScreenWidth_ = static_cast<float>(WinApp::kClientWidth);
+	// 画面高さ（WinAppから取得）
+	const float kScreenHeight_ = static_cast<float>(WinApp::kClientHeight);
+	// 画面幅の半分
+	const float kHalfScreenWidth_ = kScreenWidth_ * 0.5f;
+	// 画面高さの半分
+	const float kHalfScreenHeight_ = kScreenHeight_ * 0.5f;
 
-	//画面イン時の初期位置
-	const float kSlideInStartPos_ = -1280.0f;
-	//画面アウト時の初期位置
+	// 移動量
+	const float kSlideDistance_ = kScreenWidth_;
+
+	// 画面イン時の初期位置
+	const float kSlideInStartPos_ = -kScreenWidth_;
+	// 画面アウト時の初期位置
 	const float kSlideOutStartPos_ = 0.0f;
 
 	/*----------------[ 両サイドスライド用 ]------------------*/
 
-	//両サイドからスライドイン時の初期位置
-	Direction kSlideInBothSidesStartPos_ = Direction(1280.0f, -640.0f,0.0f,0.0f);
+	// 両サイドからスライドイン時の初期位置
+	Direction kSlideInBothSidesStartPos_ = Direction(kScreenWidth_, -kHalfScreenWidth_, 0.0f, 0.0f);
 
-	//両サイドからスライドアウト時の初期位置
-	Direction kSlideOutBothSidesStartPos_ = Direction(640.0f, 0.0f,0.0f,0.0f);
+	// 両サイドからスライドアウト時の初期位置
+	Direction kSlideOutBothSidesStartPos_ = Direction(kHalfScreenWidth_, 0.0f, 0.0f, 0.0f);
 
-	//両サイドからスライドするときの移動量
-	const float kSlideBothSidesDistance_ = 640.0f;
+	// 両サイドからスライドするときの移動量
+	const float kSlideBothSidesDistance_ = kHalfScreenWidth_;
 
 	/*----------------[ 四つ角スライド用 ]------------------*/
 
-	//四つ角からスライドイン時のx初期位置
-	Direction kSlideInFourCornersStartPos_ = Direction(1280.0f, -640.0f,-360.0f,720.0f);
+	// 四つ角からスライドイン時のx初期位置
+	Direction kSlideInFourCornersStartPos_ = Direction(kScreenWidth_, -kHalfScreenWidth_, -kHalfScreenHeight_, kScreenHeight_);
 
-	//四つ角からスライドアウト時の初期位置
-	Direction kSlideOutFourCornersStartPos_ = Direction(640.0f, 0.0f,0.0f,360.0f);
+	// 四つ角からスライドアウト時の初期位置
+	Direction kSlideOutFourCornersStartPos_ = Direction(kHalfScreenWidth_, 0.0f, 0.0f, kHalfScreenHeight_);
 
-	//四つ角からスライドするときの移動量
-	const Vector2 kSlideFourCornersDistance_ = Vector2(640.0f, 360.0f);
+	// 四つ角からスライドするときの移動量
+	const Vector2 kSlideFourCornersDistance_ = Vector2(kHalfScreenWidth_, kHalfScreenHeight_);
 
 	/*----------------[ 回転スライド用 ]------------------*/
 
-	//回転スライドの中心
-	const Vector2 kRotationCenter_ = Vector2(640.0f, 360.0f);
+	// 回転スライドの中心
+	const Vector2 kRotationCenter_ = Vector2(kHalfScreenWidth_, kHalfScreenHeight_);
 };
