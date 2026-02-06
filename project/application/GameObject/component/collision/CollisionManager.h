@@ -125,6 +125,7 @@ private:
 public:
 	~CollisionManager() = default;
 
+private:
 	// 衝突判定関数（3D）
 	bool CheckCollision(const AABBColliderComponent* a, const AABBColliderComponent* b);
 	bool CheckCollision(const OBBColliderComponent* a, const OBBColliderComponent* b);

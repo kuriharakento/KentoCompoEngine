@@ -249,6 +249,7 @@ private:
 public:
     ~Input();
 
+private:
     // ゲームパッドの状態構造体
     struct GamepadState {
         XINPUT_STATE state;      // 現在の状態
