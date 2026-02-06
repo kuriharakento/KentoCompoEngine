@@ -1,5 +1,7 @@
 #include "SceneFactory.h"
 
+#include <unordered_map>
+
 #include "application/scene/debug/ParticleTestScene.h"
 #include "application/scene/debug/StageEditScene.h"
 #include "application/scene/play/GameClearScene.h"
@@ -8,41 +10,37 @@
 #include "application/scene/play/TitleScene.h"
 #include "base/Logger.h"
 
+namespace
+{
+// シーン生成関数の型
+using SceneCreator = std::unique_ptr<BaseScene>(*)();
+
+// テンプレートで生成関数を作る
+template<typename T>
+std::unique_ptr<BaseScene> CreateSceneImpl()
+{
+	return std::make_unique<T>();
+}
+
+// シーン名 → 生成関数のテーブル（新シーン追加時はここに1行追加）
+const std::unordered_map<std::string, SceneCreator> kSceneTable = {
+	{"TITLE",        CreateSceneImpl<TitleScene>},
+	{"GAMEPLAY",     CreateSceneImpl<GamePlayScene>},
+	{"GAMEOVER",     CreateSceneImpl<GameOverScene>},
+	{"GAMECLEAR",    CreateSceneImpl<GameClearScene>},
+	{"STAGEEDIT",    CreateSceneImpl<StageEditScene>},
+	{"PARTICLETEST", CreateSceneImpl<ParticleTestScene>},
+};
+}
+
 std::unique_ptr<BaseScene> SceneFactory::CreateScene(const std::string& sceneName)
 {
-	//次のシーンを生成
-	std::unique_ptr<BaseScene> newScene = nullptr;
-
-	if (sceneName == "TITLE")
+	auto it = kSceneTable.find(sceneName);
+	if (it != kSceneTable.end())
 	{
-		newScene = std::make_unique<TitleScene>();
-	}
-	else if (sceneName == "GAMEPLAY")
-	{
-		newScene = std::make_unique<GamePlayScene>();
-	}
-	else if (sceneName == "GAMEOVER")
-	{
-		newScene = std::make_unique<GameOverScene>();
-	}
-	else if (sceneName == "GAMECLEAR")
-	{
-		newScene = std::make_unique<GameClearScene>();
-	}
-	// デバッグ用シーン
-	else if(sceneName == "STAGEEDIT")
-	{
-		newScene = std::make_unique<StageEditScene>();
-	}
-	else if (sceneName == "PARTICLETEST")
-	{
-		newScene = std::make_unique<ParticleTestScene>();
-	}
-	else
-	{
-		//名前のシーンがない場合
-		Logger::Log("Can't Create Scene\n");
+		return it->second();
 	}
 
-	return newScene;
+	Logger::Log("Can't Create Scene\n");
+	return nullptr;
 }
