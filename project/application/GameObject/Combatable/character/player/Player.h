@@ -11,7 +11,7 @@ class Player : public Character
 {
 public:
 	~Player() override;
-	Player(std::string tag = gameObjectTag::character::Player);
+	Player(const std::string& tag = gameObjectTag::character::Player);
 	void Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, EnemyManager* enemyManager, CameraManager* camera);
 	void TakeDamage(float damage) override;
 

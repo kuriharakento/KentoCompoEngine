@@ -71,7 +71,6 @@ public:
 
 private:
 	GPUParticlePipeline() = default;
-	~GPUParticlePipeline() = default;
 	GPUParticlePipeline(const GPUParticlePipeline&) = delete;
 	GPUParticlePipeline& operator=(const GPUParticlePipeline&) = delete;
 
@@ -107,6 +106,7 @@ private:
 
 private:
 	static std::unique_ptr<GPUParticlePipeline> instance_;
+
 	DirectXCommon* dxCommon_ = nullptr;
 
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
@@ -116,4 +116,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> converterRootSignature_;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> converterPipelineState_;
 	Microsoft::WRL::ComPtr<ID3DBlob> converterShaderBlob_;
+
+public:
+	~GPUParticlePipeline() = default;
 };

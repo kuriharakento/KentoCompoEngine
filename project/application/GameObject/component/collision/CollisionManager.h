@@ -119,9 +119,11 @@ private:
 	static std::unique_ptr<CollisionManager> instance_;
 	
 	CollisionManager() = default;
-	~CollisionManager() = default;
 	CollisionManager(const CollisionManager&) = delete;
 	CollisionManager& operator=(const CollisionManager&) = delete;
+
+public:
+	~CollisionManager() = default;
 
 	// 衝突判定関数（3D）
 	bool CheckCollision(const AABBColliderComponent* a, const AABBColliderComponent* b);

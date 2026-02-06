@@ -11,7 +11,7 @@ BulletComponent::BulletComponent()
 }
 
 // 弾丸の初期化
-void BulletComponent::Initialize(Vector3 direction, float speed, float lifetime)
+void BulletComponent::Initialize(const Vector3& direction, float speed, float lifetime)
 {
 	direction_ = direction;
 	speed_ = speed;

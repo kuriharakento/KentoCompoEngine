@@ -9,7 +9,7 @@ constexpr float kTextureTopY = 0.0f;
 // アンカーポイントの中心位置
 constexpr float kAnchorCenter = 0.5f;
 
-void NumberSprite::Initialize(SpriteCommon* spriteCommon, std::string textureFilePath, const Vector2& digit)
+void NumberSprite::Initialize(SpriteCommon* spriteCommon, const std::string& textureFilePath, const Vector2& digit)
 {
 	digit_ = digit;
 

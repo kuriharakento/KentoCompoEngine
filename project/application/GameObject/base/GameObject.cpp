@@ -18,7 +18,7 @@ GameObject::~GameObject()
 	renderable3d_.reset();
 }
 
-GameObject::GameObject(std::string tag)
+GameObject::GameObject(const std::string& tag)
 {
 	isActive_ = true;
 
@@ -290,7 +290,7 @@ void GameObject::RemoveComponent(const std::string& name)
 	RemoveComponentImmediate(name);
 }
 
-void GameObject::AddChild(const std::string name, std::unique_ptr<GameObject> child)
+void GameObject::AddChild(const std::string& name, std::unique_ptr<GameObject> child)
 {
 	// 同名の子オブジェクト存在チェック
 	if (auto it = children_.find(name); it != children_.end())

@@ -25,25 +25,29 @@ namespace MathUtils
 		return dist(gen);
 	}
 
-	Vector3 RandomVector3(Vector3 min, Vector3 max)
+	Vector3 RandomVector3(const Vector3& min, const Vector3& max)
 	{
+		Vector3 vMin = min;
+		Vector3 vMax = max;
 		// 順序がおかしい場合は正しい順序に修正
-		if (min.x > max.x) std::swap(min.x, max.x);
-		if (min.y > max.y) std::swap(min.y, max.y);
-		if (min.z > max.z) std::swap(min.z, max.z);
+		if (vMin.x > vMax.x) std::swap(vMin.x, vMax.x);
+		if (vMin.y > vMax.y) std::swap(vMin.y, vMax.y);
+		if (vMin.z > vMax.z) std::swap(vMin.z, vMax.z);
 		// 各成分に対してランダム値を生成
-		return Vector3(RandomFloat(min.x, max.x), RandomFloat(min.y, max.y), RandomFloat(min.z, max.z));
+		return Vector3(RandomFloat(vMin.x, vMax.x), RandomFloat(vMin.y, vMax.y), RandomFloat(vMin.z, vMax.z));
 	}
 
-	Vector4 RandomVector4(Vector4 min, Vector4 max)
+	Vector4 RandomVector4(const Vector4& min, const Vector4& max)
 	{
+		Vector4 vMin = min;
+		Vector4 vMax = max;
 		// 順序がおかしい場合は正しい順序に修正
-		if (min.x > max.x) std::swap(min.x, max.x);
-		if (min.y > max.y) std::swap(min.y, max.y);
-		if (min.z > max.z) std::swap(min.z, max.z);
-		if (min.w > max.w) std::swap(min.w, max.w);
+		if (vMin.x > vMax.x) std::swap(vMin.x, vMax.x);
+		if (vMin.y > vMax.y) std::swap(vMin.y, vMax.y);
+		if (vMin.z > vMax.z) std::swap(vMin.z, vMax.z);
+		if (vMin.w > vMax.w) std::swap(vMin.w, vMax.w);
 		// 各成分に対してランダム値を生成
-		return Vector4(RandomFloat(min.x, max.x), RandomFloat(min.y, max.y), RandomFloat(min.z, max.z), RandomFloat(min.w, max.w));
+		return Vector4(RandomFloat(vMin.x, vMax.x), RandomFloat(vMin.y, vMax.y), RandomFloat(vMin.z, vMax.z), RandomFloat(vMin.w, vMax.w));
 	}
 
 	Vector3 GetTranslateFromMatrix(const Matrix4x4& matrix)

@@ -17,7 +17,7 @@ TextureManager* TextureManager::GetInstance()
 	// インスタンスが存在しない場合は生成
 	if (instance_ == nullptr)
 	{
-		instance_ = std::make_unique<TextureManager>();
+		instance_.reset(new TextureManager());
 	}
 	return instance_.get();
 }

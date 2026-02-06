@@ -22,7 +22,7 @@ public:
 	 * @brief コンストラクタ
 	 * @param tag 弾丸のタグ（プレイヤー弾 or 敵弾）
 	 */
-	Bullet(std::string tag) : CombatableObject(tag){}
+	Bullet(const std::string& tag) : CombatableObject(tag){}
 
 	/**
 	 * @brief 弾丸の初期化

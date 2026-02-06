@@ -54,15 +54,17 @@ public: /*========[ メンバ関数 ]========*/
 	 */
 	ModelCommon* GetModelCommon() const { return modelCommon_.get(); }
 
+public:
+	~ModelManager()=default;
+
 private: /*========[ シングルトン ]========*/
 	static std::unique_ptr<ModelManager> instance_; // シングルトンインスタンス
 	
 	// コピー禁止
 	ModelManager()=default;
-	~ModelManager()=default;
 	
-	ModelManager(const ModelManager& rhs) = delete;
-	ModelManager& operator=(const ModelManager& rhs) = delete;
+	ModelManager(const ModelManager&) = delete;
+	ModelManager& operator=(const ModelManager&) = delete;
 
 private: /*========[ メンバ変数 ]========*/
 	// モデル共通設定

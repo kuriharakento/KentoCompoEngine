@@ -90,7 +90,7 @@ inline Matrix4x4 MakeIdentity4x4()
  * @param scale 各軸のスケール値
  * @return スケール行列
  */
-inline Matrix4x4 MakeScaleMatrix(Vector3 scale)
+inline Matrix4x4 MakeScaleMatrix(const Vector3& scale)
 {
 	Matrix4x4 result = {
 		scale.x,0.0f,0.0f,0.0f,
@@ -106,7 +106,7 @@ inline Matrix4x4 MakeScaleMatrix(Vector3 scale)
  * @param translate 平行移動ベクトル
  * @return 平行移動行列
  */
-inline Matrix4x4 MakeTranslateMatrix(Vector3 translate)
+inline Matrix4x4 MakeTranslateMatrix(const Vector3& translate)
 {
 	Matrix4x4 result = {
 		1.0f,0.0f,0.0f,0.0f,
@@ -170,7 +170,7 @@ inline Matrix4x4 MakeRotateZMatrix(float radian)
  * @param rotate 各軸の回転角度（ラジアン）
  * @return 合成された回転行列
  */
-inline Matrix4x4 MakeRotateMatrix(Vector3 rotate)
+inline Matrix4x4 MakeRotateMatrix(const Vector3& rotate)
 {
 	// 各軸の回転行列を作成
 	Matrix4x4 rotateXMatrix = MakeRotateXMatrix(rotate.x);

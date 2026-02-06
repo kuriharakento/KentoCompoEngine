@@ -172,11 +172,9 @@ private: // シングルトンインスタンス
 	static std::unique_ptr<TextureManager> instance_; // シングルトンインスタンス
 
 	TextureManager() = default;                            // コンストラクタ
+	TextureManager(const TextureManager&) = delete;       // コピー禁止
+	TextureManager& operator=(const TextureManager&) = delete; // 代入禁止
+
+public:
 	~TextureManager() = default;                           // デストラクタ
-	TextureManager(TextureManager&) = delete;              // コピーコンストラクタ
-	TextureManager& operator=(TextureManager&) = delete;   // 代入演算子
-
-
-
 };
-

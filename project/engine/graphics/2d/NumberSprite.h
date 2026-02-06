@@ -28,7 +28,7 @@ public:
 	 * @param textureFilePath 数字テクスチャのファイルパス
 	 * @param digit 1桁のサイズ（幅、高さ）
 	 */
-	void Initialize(SpriteCommon* spriteCommon, std::string textureFilePath, const Vector2& digit);
+	void Initialize(SpriteCommon* spriteCommon, const std::string& textureFilePath, const Vector2& digit);
 
 	/**
 	 * @brief 更新処理

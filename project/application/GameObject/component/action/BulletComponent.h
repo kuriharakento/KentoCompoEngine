@@ -21,7 +21,7 @@ public:
 	 * @param speed 弾丸の移動速度
 	 * @param lifetime 弾丸の寿命（秒）
 	 */
-	void Initialize(Vector3 direction, float speed, float lifetime);
+	void Initialize(const Vector3& direction, float speed, float lifetime);
 
 	/**
 	 * @brief フレームごとの更新処理

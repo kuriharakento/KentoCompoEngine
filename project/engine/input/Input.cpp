@@ -31,7 +31,7 @@ Input* Input::GetInstance()
 {
     if (!instance_)
     {
-        instance_ = std::make_unique<Input>();
+        		instance_.reset(new Input());
     }
     return instance_.get();
 }

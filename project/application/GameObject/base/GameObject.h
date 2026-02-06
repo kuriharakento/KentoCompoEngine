@@ -43,7 +43,7 @@ public:
 	 * @brief コンストラクタ
 	 * @param tag オブジェクトのタグ（デフォルト: GameObjectTag::Common::GameObject）
 	 */
-	explicit GameObject(std::string tag = gameObjectTag::common::GameObject);
+	explicit GameObject(const std::string& tag = gameObjectTag::common::GameObject);
 
 	/**
 	 * @brief GameObjectの初期化
@@ -266,7 +266,7 @@ public: // アクセッサ
 	 * @param name 子オブジェクトの名前（一意識別子）
 	 * @param child 追加する子オブジェクト
 	 */
-	void AddChild(const std::string name, std::unique_ptr<GameObject> child);
+	void AddChild(const std::string& name, std::unique_ptr<GameObject> child);
 
 	/**
 	 * @brief 子オブジェクトの取得

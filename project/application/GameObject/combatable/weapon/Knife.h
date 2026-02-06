@@ -16,7 +16,7 @@ public:
 	 * @brief コンストラクタ
 	 * @param tag ナイフのタグ
 	 */
-	Knife(std::string tag) : CombatableObject(tag) {}
+	Knife(const std::string& tag) : CombatableObject(tag) {}
 
 	/**
 	 * @brief ナイフの初期化

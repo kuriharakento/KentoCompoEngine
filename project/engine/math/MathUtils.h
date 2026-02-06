@@ -26,7 +26,7 @@ namespace MathUtils
 	 * @param max 各成分の最大値
 	 * @return 指定範囲内のランダムなVector3
 	 */
-	Vector3 RandomVector3(Vector3 min, Vector3 max);
+	Vector3 RandomVector3(const Vector3& min, const Vector3& max);
 
 	/**
 	 * @brief 範囲[min, max]のランダムVector4を返す関数
@@ -34,7 +34,7 @@ namespace MathUtils
 	 * @param max 各成分の最大値
 	 * @return 指定範囲内のランダムなVector4
 	 */
-	Vector4 RandomVector4(Vector4 min, Vector4 max);
+	Vector4 RandomVector4(const Vector4& min, const Vector4& max);
 
 	/**
 	 * @brief 行列から平行移動成分を取得

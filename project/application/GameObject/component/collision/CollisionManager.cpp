@@ -15,7 +15,7 @@ CollisionManager* CollisionManager::GetInstance()
 {
 	if (instance_ == nullptr)
 	{
-		instance_ = std::make_unique<CollisionManager>();
+		instance_.reset(new CollisionManager());
 	}
 	return instance_.get();
 }

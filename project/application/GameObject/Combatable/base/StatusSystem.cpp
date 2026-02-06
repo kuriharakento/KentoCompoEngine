@@ -2,8 +2,8 @@
 #include <algorithm>
 
  // BuffConfig
-BuffConfig::BuffConfig(std::string id, float val, BuffType t, std::optional<float> dur)
-    : id(std::move(id))
+BuffConfig::BuffConfig(const std::string& id, float val, BuffType t, std::optional<float> dur)
+    : id(id)
     , value(val)
     , type(t)
     , duration(dur)

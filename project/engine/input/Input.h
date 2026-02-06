@@ -241,11 +241,13 @@ public:
 
 private:
     Input();
-    ~Input();
 
     // コピーと代入を禁止
     Input(const Input&) = delete;
     Input& operator=(const Input&) = delete;
+
+public:
+    ~Input();
 
     // ゲームパッドの状態構造体
     struct GamepadState {
@@ -255,7 +257,9 @@ private:
         XINPUT_VIBRATION vibration; // 振動設定
     };
 
-    static std::unique_ptr<Input> instance_;                              // シングルトンインスタンス
+   	// シングルトンインスタンス
+	static std::unique_ptr<Input> instance_;
+
     WinApp* winApp_;                                      // ウィンドウアプリケーション
     Microsoft::WRL::ComPtr<IDirectInput8> directInput_;   // DirectInputインターフェース
     Microsoft::WRL::ComPtr<IDirectInputDevice8> keyboard_; // キーボードデバイス

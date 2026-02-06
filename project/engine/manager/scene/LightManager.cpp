@@ -703,12 +703,12 @@ void LightManager::SetSpotLightCosFalloffStart(const std::string& name, float co
 }
 
 // ライト数のゲッター
-const uint32_t& LightManager::GetPointLightCount() const
+uint32_t LightManager::GetPointLightCount() const
 {
 	return lightCount_.pointLightCount;
 }
 
-const uint32_t& LightManager::GetSpotLightCount() const
+uint32_t LightManager::GetSpotLightCount() const
 {
 	return lightCount_.spotLightCount;
 }

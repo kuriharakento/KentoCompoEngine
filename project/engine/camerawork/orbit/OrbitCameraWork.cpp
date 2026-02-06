@@ -35,7 +35,7 @@ void OrbitCameraWork::Update()
 	time_ += speed_ * deltaTime;
 }
 
-void OrbitCameraWork::Start(Vector3 target, float radius, float speed, float initialAngle, DeltaTimeType deltaType)
+void OrbitCameraWork::Start(const Vector3& target, float radius, float speed, float initialAngle, DeltaTimeType deltaType)
 {
     // パラメータを設定
 	targetValue_ = target;

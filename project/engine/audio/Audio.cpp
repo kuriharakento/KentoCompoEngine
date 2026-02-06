@@ -99,7 +99,7 @@ Audio* Audio::GetInstance()
 {
 	if (!instance_)
 	{
-		instance_ = std::make_unique<Audio>();
+		instance_.reset(new Audio());
 	}
 	return instance_.get();
 }
@@ -300,7 +300,7 @@ void Audio::LoadWave(const std::string& name, const char* filename, SoundGroup g
 			file.seekg(chunkHeader.size, std::ios::cur);
 		}
 
-		if (format.fmt.wFormatTag && buffer)
+		if (format.fmt.wFormatTag && !buffer.empty())
 		{
 			break;
 		}
@@ -660,7 +660,7 @@ void Audio::FadeIn(const std::string& name, float duration, float targetVolume)
 
 		XAUDIO2_BUFFER buffer = {};
 		buffer.AudioBytes = soundData.bufferSize;
-		buffer.pAudioData = soundData.pBuffer;
+		buffer.pAudioData = soundData.buffer.data();
 		buffer.Flags = XAUDIO2_END_OF_STREAM;
 		buffer.LoopCount = XAUDIO2_LOOP_INFINITE;
 
@@ -803,8 +803,7 @@ void Audio::UnloadWave(const std::string& name)
 	auto it = soundDataMap_.find(name);
 	if (it != soundDataMap_.end())
 	{
-		delete[] it->second.pBuffer;
-		it->second.pBuffer = nullptr;
+		// std::vector handles memory automatically
 		soundDataMap_.erase(it);
 	}
 }
@@ -815,8 +814,7 @@ void Audio::UnloadAll()
 
 	for (auto& pair : soundDataMap_)
 	{
-		delete[] pair.second.pBuffer;
-		pair.second.pBuffer = nullptr;
+		// std::vector handles memory automatically
 	}
 	soundDataMap_.clear();
 }

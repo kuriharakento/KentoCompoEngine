@@ -119,9 +119,11 @@ private:
 	CameraManager* cameraManager_ = nullptr; // CameraManagerへのポインタ
 
 private:    // シングルトンインスタンス
-	static std::unique_ptr<LineManager> instance_;                           // シングルトンインスタンス
+	static std::unique_ptr<LineManager> instance_;
 	LineManager() = default;                                 // コンストラクタ
-	~LineManager() = default;                                // デストラクタ
 	LineManager(const LineManager&) = delete;                // コピーコンストラクタ
-	LineManager& operator=(const LineManager&) = delete;     // 代入演算子
+	LineManager& operator=(const LineManager&) = delete;     // コピー代入禁止
+
+public:
+	~LineManager() = default;                                // デストラクタ演算子
 };

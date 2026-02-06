@@ -184,7 +184,9 @@ private:
 
 	static std::unique_ptr<Audio> instance_;
 	Audio() = default;
-	~Audio() = default;
 	Audio(const Audio&) = delete;
 	Audio& operator=(const Audio&) = delete;
+
+public:
+	~Audio() = default;
 };

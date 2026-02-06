@@ -348,13 +348,13 @@ public: // ゲッター
 	 * @brief ポイントライトの数を取得
 	 * @return ポイントライトの数
 	 */
-	const uint32_t& GetPointLightCount() const;
+	uint32_t GetPointLightCount() const;
 
 	/**
 	 * @brief スポットライトの数を取得
 	 * @return スポットライトの数
 	 */
-	const uint32_t& GetSpotLightCount() const;
+	uint32_t GetSpotLightCount() const;
 
 	/**
 	 * @brief ポイントライトを取得

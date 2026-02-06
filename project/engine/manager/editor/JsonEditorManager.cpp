@@ -10,7 +10,7 @@ JsonEditorManager* JsonEditorManager::GetInstance()
 	// インスタンスが存在しない場合は生成
 	if (instance_ == nullptr)
 	{
-		instance_ = std::make_unique<JsonEditorManager>();
+		instance_.reset(new JsonEditorManager());
 	}
 	return instance_.get();
 }

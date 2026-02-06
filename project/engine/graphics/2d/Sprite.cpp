@@ -20,7 +20,7 @@ constexpr float kAnchorMax = 1.0f;
 // 法線ベクトルのZ成分（手前向き）
 constexpr float kNormalZ = -1.0f;
 
-void Sprite::Initialize(SpriteCommon* spriteCommon, std::string textureFilePath)
+void Sprite::Initialize(SpriteCommon* spriteCommon, const std::string& textureFilePath)
 {
 	// 引数で受け取ってメンバ変数に記録する
 	spriteCommon_ = spriteCommon;
@@ -65,7 +65,7 @@ void Sprite::Draw()
 	spriteCommon_->GetDXCommon()->GetCommandList()->DrawIndexedInstanced(kIndexCount, 1, 0, 0, 0);
 }
 
-void Sprite::SetTexture(std::string filePath)
+void Sprite::SetTexture(const std::string& filePath)
 {
 	// テクスチャをファイルパスで指定して読み込む
 	textureIndex_ = TextureManager::GetInstance()->GetSRVIndex(filePath);

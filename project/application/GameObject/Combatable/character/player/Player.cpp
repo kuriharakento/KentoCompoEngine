@@ -25,7 +25,7 @@ static std::string GenerateHitTimerName(const Player* player)
 	return ss.str();
 }
 
-Player::Player(std::string tag) : Character(tag)
+Player::Player(const std::string& tag) : Character(tag)
 {
 }
 

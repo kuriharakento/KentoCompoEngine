@@ -61,7 +61,7 @@ struct BuffConfig
      * @param t バフの種類
      * @param dur 持続時間（秒）。nulloptで永続バフ
      */
-    BuffConfig(std::string id, float val, BuffType t, std::optional<float> dur = std::nullopt);
+    BuffConfig(const std::string& id, float val, BuffType t, std::optional<float> dur = std::nullopt);
 
     /**
      * @brief タグを追加

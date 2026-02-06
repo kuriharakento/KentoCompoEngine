@@ -23,7 +23,7 @@ public: // メンバ関数
 	 * @param spriteCommon スプライト共通部へのポインタ
 	 * @param textureFilePath テクスチャのファイルパス
 	 */
-	void Initialize(SpriteCommon* spriteCommon,std::string textureFilePath);
+	void Initialize(SpriteCommon* spriteCommon,const std::string& textureFilePath);
 
 	/**
 	 * @brief 更新処理
@@ -100,7 +100,7 @@ public: // アクセッサ
 	 * @brief テクスチャの差し替え
 	 * @param filePath 新しいテクスチャのファイルパス
 	 */
-	void SetTexture(std::string filePath);
+	void SetTexture(const std::string& filePath);
 
 	/**
 	 * @brief 座標の設定

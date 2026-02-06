@@ -22,7 +22,7 @@ GPUParticlePipeline* GPUParticlePipeline::GetInstance()
 	// シングルトンインスタンス生成
 	if (!instance_)
 	{
-		instance_ = std::make_unique<GPUParticlePipeline>();
+		instance_.reset(new GPUParticlePipeline());
 	}
 	return instance_.get();
 }

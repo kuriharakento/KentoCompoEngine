@@ -34,7 +34,7 @@ public:
 	 * @param initialAngle 初期角度（ラジアン、デフォルト: 0）
 	 * @param deltaType 使用するデルタタイム種別（デフォルト: DeltaTime）
 	 */
-	void Start(Vector3 target, float radius, float speed, float initialAngle = 0.0f, DeltaTimeType deltaType = DeltaTimeType::DeltaTime);
+	void Start(const Vector3& target, float radius, float speed, float initialAngle = 0.0f, DeltaTimeType deltaType = DeltaTimeType::DeltaTime);
 
 	/**
 	 * @brief 動的なポインタをターゲットとして軌道カメラを開始
@@ -67,7 +67,7 @@ public:
 	 * @brief 静的なターゲット座標を設定
 	 * @param target ターゲットの座標
 	 */
-	void SetTarget(Vector3 target) { targetValue_ = target; }
+	void SetTarget(const Vector3& target) { targetValue_ = target; }
 
 	/**
 	 * @brief 動的なターゲットポインタを設定

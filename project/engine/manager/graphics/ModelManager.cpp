@@ -8,7 +8,7 @@ ModelManager* ModelManager::GetInstance()
 	// インスタンスが存在しない場合は生成
 	if (instance_ == nullptr)
 	{
-		instance_ = std::make_unique<ModelManager>();
+		instance_.reset(new ModelManager());
 	}
 	return instance_.get();
 }
@@ -36,7 +36,7 @@ void ModelManager::LoadModel(const std::string& filePath, const std::string& mod
 
 	// モデルの生成とファイル読み込み、初期化
 	std::unique_ptr<Model> model = std::make_unique<Model>();
-	model->Initialize(modelCommon_, "Resources/models", filePath,modelType);
+	model->Initialize(modelCommon_.get(), "Resources/models", filePath,modelType);
 
 	// モデルをmapコンテナに格納する（キャッシング）
 	models_.insert(std::make_pair(filePath, std::move(model)));
