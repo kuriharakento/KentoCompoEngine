@@ -187,7 +187,7 @@ public:
 	/**
 	 * @brief 状態をリセット
 	 */
-	void Reset() { hasFired_ = false; timeSinceLastBurst_ = 0.0f; currentLoop_ = 0; }
+	void Reset() override { hasFired_ = false; timeSinceLastBurst_ = 0.0f; currentLoop_ = 0; }
 
 private:
 	uint32_t burstCount_ = kDefaultBurstCount;

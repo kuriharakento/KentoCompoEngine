@@ -227,7 +227,7 @@ public:
 	void SetGroupCount(uint32_t count) { groupCount_ = (std::max)(1u, count); }
 	uint32_t GetGroupCount() const { return groupCount_; }
 	
-	void Reset() { nextId_ = 0; }
+	void Reset() override { nextId_ = 0; }
 
 private:
 	uint32_t groupCount_ = 1;
