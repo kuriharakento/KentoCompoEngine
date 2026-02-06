@@ -93,15 +93,15 @@ namespace
 #endif
 }
 
-Audio* Audio::instance_ = nullptr;
+std::unique_ptr<Audio> Audio::instance_ = nullptr;
 
 Audio* Audio::GetInstance()
 {
 	if (!instance_)
 	{
-		instance_ = new Audio();
+		instance_ = std::make_unique<Audio>();
 	}
-	return instance_;
+	return instance_.get();
 }
 
 void Audio::Initialize()
@@ -139,11 +139,7 @@ void Audio::Finalize()
 	pausedMap_.clear();
 	groupVoicesMap_.clear();
 
-	for (auto& pair : soundDataMap_)
-	{
-		delete[] pair.second.pBuffer;
-		pair.second.pBuffer = nullptr;
-	}
+	// vectorのデストラクタにより自動解放されるためループ削除
 	soundDataMap_.clear();
 
 	if (submixVoiceReverb_)
@@ -170,8 +166,7 @@ void Audio::Finalize()
 		xAudio2.Reset();
 	}
 
-	delete instance_;
-	instance_ = nullptr;
+	instance_.reset();
 }
 
 void Audio::Update()
@@ -253,13 +248,13 @@ SoundData Audio::LoadWave(const char* filename)
 	}
 	assert(strncmp(data.id, "data", 4) == 0);
 
-	char* buffer = new char[data.size];
-	file.read(buffer, data.size);
+	std::vector<BYTE> buffer(data.size);
+	file.read(reinterpret_cast<char*>(buffer.data()), data.size);
 	file.close();
 
 	SoundData soundData = {};
 	soundData.wfex = format.fmt;
-	soundData.pBuffer = reinterpret_cast<BYTE*>(buffer);
+	soundData.buffer = std::move(buffer);
 	soundData.bufferSize = data.size;
 	return soundData;
 }
@@ -281,7 +276,7 @@ void Audio::LoadWave(const std::string& name, const char* filename, SoundGroup g
 	assert(strncmp(riff.type, "WAVE", 4) == 0);
 
 	FormatChunk format = {};
-	BYTE* buffer = nullptr;
+	std::vector<BYTE> buffer;
 	unsigned int dataSize = 0;
 
 	while (file.peek() != EOF)
@@ -296,9 +291,9 @@ void Audio::LoadWave(const std::string& name, const char* filename, SoundGroup g
 		}
 		else if (strncmp(chunkHeader.id, "data", 4) == 0)
 		{
-			buffer = new BYTE[chunkHeader.size];
+			buffer.resize(chunkHeader.size);
 			dataSize = chunkHeader.size;
-			file.read(reinterpret_cast<char*>(buffer), chunkHeader.size);
+			file.read(reinterpret_cast<char*>(buffer.data()), chunkHeader.size);
 		}
 		else
 		{
@@ -311,12 +306,12 @@ void Audio::LoadWave(const std::string& name, const char* filename, SoundGroup g
 		}
 	}
 
-	assert(format.fmt.wFormatTag != 0 && buffer != nullptr);
+	assert(format.fmt.wFormatTag != 0 && !buffer.empty());
 	file.close();
 
 	SoundData soundData = {};
 	soundData.wfex = format.fmt;
-	soundData.pBuffer = buffer;
+	soundData.buffer = std::move(buffer);
 	soundData.bufferSize = dataSize;
 	soundData.group = group;
 	soundDataMap_[name] = soundData;
@@ -351,7 +346,7 @@ void Audio::PlayWave(SoundData* soundData, bool loop)
 
 	XAUDIO2_BUFFER buffer = {};
 	buffer.AudioBytes = soundData->bufferSize;
-	buffer.pAudioData = soundData->pBuffer;
+	buffer.pAudioData = soundData->buffer.data();
 	buffer.Flags = XAUDIO2_END_OF_STREAM;
 	buffer.LoopCount = loop ? XAUDIO2_LOOP_INFINITE : 0;
 
@@ -408,7 +403,7 @@ void Audio::PlayWave(const std::string& name, bool loop)
 
 	XAUDIO2_BUFFER buffer = {};
 	buffer.AudioBytes = soundData.bufferSize;
-	buffer.pAudioData = soundData.pBuffer;
+	buffer.pAudioData = soundData.buffer.data();
 	buffer.Flags = XAUDIO2_END_OF_STREAM;
 	buffer.LoopCount = loop ? XAUDIO2_LOOP_INFINITE : 0;
 

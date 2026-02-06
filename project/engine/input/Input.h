@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <vector>
 #include <functional>
+#include <memory>
 #include "math/Vector2.h"
 
 // 前方宣言
@@ -254,7 +255,7 @@ private:
         XINPUT_VIBRATION vibration; // 振動設定
     };
 
-    static Input* instance_;                              // シングルトンインスタンス
+    static std::unique_ptr<Input> instance_;                              // シングルトンインスタンス
     WinApp* winApp_;                                      // ウィンドウアプリケーション
     Microsoft::WRL::ComPtr<IDirectInput8> directInput_;   // DirectInputインターフェース
     Microsoft::WRL::ComPtr<IDirectInputDevice8> keyboard_; // キーボードデバイス

@@ -10,23 +10,22 @@
 uint32_t TextureManager::kSRVIndexTop = 1;
 
 // シングルトンインスタンスの実体
-TextureManager* TextureManager::instance_ = nullptr;
+std::unique_ptr<TextureManager> TextureManager::instance_ = nullptr;
 
 TextureManager* TextureManager::GetInstance()
 {
 	// インスタンスが存在しない場合は生成
 	if (instance_ == nullptr)
 	{
-		instance_ = new TextureManager();
+		instance_ = std::make_unique<TextureManager>();
 	}
-	return instance_;
+	return instance_.get();
 }
 
 void TextureManager::Finalize()
 {
 	// シングルトンインスタンスを解放
-	delete instance_;
-	instance_ = nullptr;
+	instance_.reset();
 }
 
 void TextureManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)

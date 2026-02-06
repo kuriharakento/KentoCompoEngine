@@ -25,15 +25,15 @@ constexpr int kMaxBufferSize = 256;
 constexpr int kRetryDelay = 10;
 
 // シングルトンのインスタンス初期化
-Input* Input::instance_ = nullptr;
+std::unique_ptr<Input> Input::instance_ = nullptr;
 
 Input* Input::GetInstance()
 {
     if (!instance_)
     {
-        instance_ = new Input();
+        instance_ = std::make_unique<Input>();
     }
-    return instance_;
+    return instance_.get();
 }
 
 Input::Input()

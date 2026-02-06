@@ -9,15 +9,21 @@
 #include "imgui/imgui.h"
 #include "math/MathUtils.h"
 
-CollisionManager* CollisionManager::instance_ = nullptr;
+std::unique_ptr<CollisionManager> CollisionManager::instance_ = nullptr;
 
 CollisionManager* CollisionManager::GetInstance()
 {
 	if (instance_ == nullptr)
 	{
-		instance_ = new CollisionManager();
+		instance_ = std::make_unique<CollisionManager>();
 	}
-	return instance_;
+	return instance_.get();
+}
+void CollisionManager::Finalize()
+{
+	colliders_.clear();
+	currentCollisions_.clear();
+	instance_.reset();
 }
 
 void CollisionManager::Register(ICollisionComponent* collider)

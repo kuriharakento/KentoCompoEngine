@@ -5,6 +5,7 @@
 #include <wrl.h>
 #include <unordered_map>
 #include <vector>
+#include <memory>
 
 // system
 #include "base/DirectXCommon.h"
@@ -168,7 +169,7 @@ private: // メンバ変数
 	static uint32_t kSRVIndexTop;
 
 private: // シングルトンインスタンス
-	static TextureManager* instance_; // シングルトンインスタンス
+	static std::unique_ptr<TextureManager> instance_; // シングルトンインスタンス
 
 	TextureManager() = default;                            // コンストラクタ
 	~TextureManager() = default;                           // デストラクタ

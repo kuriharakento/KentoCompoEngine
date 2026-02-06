@@ -8,35 +8,35 @@
 #include "application/scene/play/TitleScene.h"
 #include "base/Logger.h"
 
-BaseScene* SceneFactory::CreateScene(const std::string& sceneName)
+std::unique_ptr<BaseScene> SceneFactory::CreateScene(const std::string& sceneName)
 {
 	//次のシーンを生成
-	BaseScene* newScene = nullptr;
+	std::unique_ptr<BaseScene> newScene = nullptr;
 
 	if (sceneName == "TITLE")
 	{
-		newScene = new TitleScene();
+		newScene = std::make_unique<TitleScene>();
 	}
 	else if (sceneName == "GAMEPLAY")
 	{
-		newScene = new GamePlayScene();
+		newScene = std::make_unique<GamePlayScene>();
 	}
 	else if (sceneName == "GAMEOVER")
 	{
-		newScene = new GameOverScene();
+		newScene = std::make_unique<GameOverScene>();
 	}
 	else if (sceneName == "GAMECLEAR")
 	{
-		newScene = new GameClearScene();
+		newScene = std::make_unique<GameClearScene>();
 	}
 	// デバッグ用シーン
 	else if(sceneName == "STAGEEDIT")
 	{
-		newScene = new StageEditScene();
+		newScene = std::make_unique<StageEditScene>();
 	}
 	else if (sceneName == "PARTICLETEST")
 	{
-		newScene = new ParticleTestScene();
+		newScene = std::make_unique<ParticleTestScene>();
 	}
 	else
 	{

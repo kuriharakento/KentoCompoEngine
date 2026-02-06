@@ -52,10 +52,10 @@ public: /*========[ メンバ関数 ]========*/
 	 * @brief ModelCommonの取得
 	 * @return ModelCommonへのポインタ
 	 */
-	ModelCommon* GetModelCommon() const { return modelCommon_; }
+	ModelCommon* GetModelCommon() const { return modelCommon_.get(); }
 
 private: /*========[ シングルトン ]========*/
-	static ModelManager* instance_; // シングルトンインスタンス
+	static std::unique_ptr<ModelManager> instance_; // シングルトンインスタンス
 	
 	// コピー禁止
 	ModelManager()=default;
@@ -65,7 +65,9 @@ private: /*========[ シングルトン ]========*/
 	ModelManager& operator=(const ModelManager& rhs) = delete;
 
 private: /*========[ メンバ変数 ]========*/
-	ModelCommon* modelCommon_ = nullptr; // モデル共通設定
+	// モデル共通設定
+	std::unique_ptr<ModelCommon> modelCommon_ = nullptr;
+
 
 	// モデルデータのキャッシュ（ファイルパス -> モデル）
 	std::map<std::string, std::unique_ptr<Model>> models_;

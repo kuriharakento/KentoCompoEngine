@@ -1,34 +1,28 @@
 #include "ModelManager.h"
 
 // シングルトンインスタンスの実体
-ModelManager* ModelManager::instance_ = nullptr;
+std::unique_ptr<ModelManager> ModelManager::instance_ = nullptr;
 
 ModelManager* ModelManager::GetInstance()
 {
 	// インスタンスが存在しない場合は生成
 	if (instance_ == nullptr)
 	{
-		instance_ = new ModelManager();
+		instance_ = std::make_unique<ModelManager>();
 	}
-	return instance_;
+	return instance_.get();
 }
 
 void ModelManager::Initialize(DirectXCommon* dxCommon)
 {
 	// モデル共通設定の初期化
-	modelCommon_ = new ModelCommon();
+	modelCommon_ = std::make_unique<ModelCommon>();
 	modelCommon_->Initialize(dxCommon);
 }
 
 void ModelManager::Finalize()
 {
-	if (instance_ != nullptr)
-	{
-		// リソースの解放
-		delete modelCommon_;
-		delete instance_;
-		instance_ = nullptr;
-	}
+	instance_.reset();
 }
 
 void ModelManager::LoadModel(const std::string& filePath, const std::string& modelType)

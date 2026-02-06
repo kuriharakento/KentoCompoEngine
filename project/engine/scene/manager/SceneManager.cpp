@@ -20,7 +20,7 @@ void SceneManager::Initialize(const SceneContext& context)
 	std::string startSceneName = SceneNames::Title;
 
 	//最初のシーンを生成
-	currentScene_.reset(sceneFactory_->CreateScene(startSceneName));
+	currentScene_ = sceneFactory_->CreateScene(startSceneName);
 	currentScene_->SetSceneManager(this);
 	currentScene_->Initialize();
 	currentSceneName_ = startSceneName;
@@ -111,7 +111,7 @@ void SceneManager::ChangeScene(const std::string& sceneName)
 	assert(nextScene_ == nullptr);
 
 	//次のシーンを生成
-	nextScene_.reset(sceneFactory_->CreateScene(sceneName));
+	nextScene_ = sceneFactory_->CreateScene(sceneName);
 	//次のシーンの名前をセット
 	nextSceneName_ = sceneName;
 }

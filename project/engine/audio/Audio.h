@@ -7,6 +7,7 @@
 #include <xaudio2fx.h>
 #include <vector>
 #include <string>
+#include <memory>
 
 struct ChunkHeader
 {
@@ -62,7 +63,7 @@ enum class ReverbPreset
 struct SoundData
 {
 	WAVEFORMATEX wfex;
-	BYTE* pBuffer;
+	std::vector<BYTE> buffer;
 	unsigned int bufferSize;
 	SoundGroup group;
 };
@@ -181,7 +182,7 @@ private:
 	AudioDebugData debugData_;
 #endif
 
-	static Audio* instance_;
+	static std::unique_ptr<Audio> instance_;
 	Audio() = default;
 	~Audio() = default;
 	Audio(const Audio&) = delete;

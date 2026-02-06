@@ -15,16 +15,16 @@ namespace
 	constexpr uint32_t kConverterDescriptorRangeCount = 2;
 }
 
-GPUParticlePipeline* GPUParticlePipeline::instance_ = nullptr;
+std::unique_ptr<GPUParticlePipeline> GPUParticlePipeline::instance_ = nullptr;
 
 GPUParticlePipeline* GPUParticlePipeline::GetInstance()
 {
 	// シングルトンインスタンス生成
 	if (!instance_)
 	{
-		instance_ = new GPUParticlePipeline();
+		instance_ = std::make_unique<GPUParticlePipeline>();
 	}
-	return instance_;
+	return instance_.get();
 }
 
 void GPUParticlePipeline::Initialize(DirectXCommon* dxCommon)
@@ -58,8 +58,7 @@ void GPUParticlePipeline::Finalize()
 	converterShaderBlob_.Reset();
 
 	// シングルトンインスタンスを削除
-	delete instance_;
-	instance_ = nullptr;
+	instance_.reset();
 }
 
 void GPUParticlePipeline::CreateRootSignature()

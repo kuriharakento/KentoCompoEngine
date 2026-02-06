@@ -1,5 +1,6 @@
 #pragma once
 #include <unordered_set>
+#include <memory>
 
 #include "AABBColliderComponent.h"
 #include "CollisionAlgorithm.h"
@@ -59,7 +60,7 @@ public:
 	 * 
 	 * 全てのコライダーと衝突情報をクリアします。
 	 */
-	void Finalize() { colliders_.clear(), currentCollisions_.clear(); }
+	void Finalize();
 
 	/**
 	 * @brief コライダーを登録
@@ -115,7 +116,7 @@ public:
 
 private:
 	// シングルトンインスタンス
-	static CollisionManager* instance_;
+	static std::unique_ptr<CollisionManager> instance_;
 	
 	CollisionManager() = default;
 	~CollisionManager() = default;

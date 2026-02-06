@@ -55,7 +55,7 @@ private:
 	std::string selectedItem_;
 
 private: // シングルトンインスタンス
-	static JsonEditorManager* instance_; // シングルトンインスタンス
+	static std::unique_ptr<JsonEditorManager> instance_; // シングルトンインスタンス
 	JsonEditorManager() = default;       // コンストラクタ
 	~JsonEditorManager() = default;      // デストラクタ
 	JsonEditorManager(const JsonEditorManager&) = delete;            // コピーコンストラクタ

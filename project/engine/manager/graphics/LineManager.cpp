@@ -24,16 +24,16 @@ constexpr float kArrowWingAngle = 0.4f;
 constexpr float kMinDirectionLength = 0.0001f;
 
 // シングルトンインスタンスの実体
-LineManager* LineManager::instance_ = nullptr;
+std::unique_ptr<LineManager> LineManager::instance_ = nullptr;
 
 LineManager* LineManager::GetInstance()
 {
 	// インスタンスが存在しない場合は生成
 	if (instance_ == nullptr)
 	{
-		instance_ = new LineManager();
+		instance_ = std::make_unique<LineManager>();
 	}
-	return instance_;
+	return instance_.get();
 }
 
 void LineManager::Initialize(DirectXCommon* dxCommon, CameraManager* cameraManager)
@@ -59,11 +59,7 @@ void LineManager::Clear() {
 void LineManager::Finalize()
 {
 	// リソースを解放
-	line_.reset();
-	lineCommon_.reset();
-	dxCommon_ = nullptr;
-	cameraManager_ = nullptr;
-	instance_ = nullptr;
+	instance_.reset();
 }
 
 void LineManager::RenderLines() {

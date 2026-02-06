@@ -3,16 +3,16 @@
 #include "imgui/imgui.h"
 
 // シングルトンインスタンスの実体
-JsonEditorManager* JsonEditorManager::instance_ = nullptr;
+std::unique_ptr<JsonEditorManager> JsonEditorManager::instance_ = nullptr;
 
 JsonEditorManager* JsonEditorManager::GetInstance()
 {
 	// インスタンスが存在しない場合は生成
 	if (instance_ == nullptr)
 	{
-		instance_ = new JsonEditorManager();
+		instance_ = std::make_unique<JsonEditorManager>();
 	}
-	return instance_;
+	return instance_.get();
 }
 
 void JsonEditorManager::Initialize()
@@ -26,8 +26,7 @@ void JsonEditorManager::Finalize()
 	// エディタリストをクリア
 	editors_.clear();
 	// シングルトンインスタンスを解放
-	delete instance_;
-	instance_ = nullptr;
+	instance_.reset();
 }
 
 void JsonEditorManager::Register(const std::string& name, std::shared_ptr<JsonEditableBase> editor)

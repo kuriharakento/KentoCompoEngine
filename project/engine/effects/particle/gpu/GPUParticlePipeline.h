@@ -9,6 +9,7 @@
 #include <d3d12.h>
 #include <wrl/client.h>
 #include <string>
+#include <memory>
 
 class DirectXCommon;
 
@@ -105,7 +106,7 @@ private:
 	void CreateConverterPipelineState();
 
 private:
-	static GPUParticlePipeline* instance_;
+	static std::unique_ptr<GPUParticlePipeline> instance_;
 	DirectXCommon* dxCommon_ = nullptr;
 
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
