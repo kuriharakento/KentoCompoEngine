@@ -211,8 +211,11 @@ void MyGame::Draw()
 	// フォワードパス対象オブジェクトの描画
 	sceneManager_->Draw3D();
 
+	#ifdef _DEBUG
 	// デバッグライン描画
 	lightManager_->DrawDebugLines();
+	#endif // _DEBUG
+	
 	LineManager::GetInstance()->RenderLines();
 
 	// Skybox描画
