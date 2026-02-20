@@ -478,6 +478,7 @@
     <ClCompile Include="application\ui\PoseMenu.cpp">
       <Filter>application\ui</Filter>
     </ClCompile>
+    <ClCompile Include="application\resources\LoadGameResources.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\gameObject\base\GameObject.h">
