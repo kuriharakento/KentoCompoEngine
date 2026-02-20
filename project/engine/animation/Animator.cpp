@@ -76,6 +76,13 @@ void Animator::PlayAnimation(const AnimationClip* clip, bool loop)
 void Animator::StopAnimation()
 {
 	isPlaying_ = false;
+	currentTime_ = 0.0f;
+
+	// 停止した瞬間に見た目もリセットする
+	if (currentClip_ && skeleton_)
+	{
+		CalculateBoneTransforms();
+	}
 }
 
 Matrix4x4 Animator::GetBoneWorldMatrix(const std::string& boneName) const
