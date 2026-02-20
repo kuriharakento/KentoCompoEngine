@@ -1,5 +1,5 @@
 #pragma once
-#include "application/gameObject/component/base/ICollisionComponent.h"
+#include "engine/gameobject/component/base/ICollisionComponent.h"
 #include "math/Sphere.h"
 
 /**

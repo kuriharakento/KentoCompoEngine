@@ -1,6 +1,6 @@
 #include "EnemyUIComponent.h"
 
-#include "application/gameObject/base/GameObject.h"
+#include "engine/gameobject/base/GameObject.h"
 #include "application/gameObject/component/action/StatusComponent.h"
 #include "base/WinApp.h"
 

@@ -1,8 +1,9 @@
 #pragma once
 
 #include "StatusSystem.h"
-#include "application/gameObject/base/GameObject.h"
+#include "engine/gameObject/base/GameObject.h"
 #include "application/gameObject/component/action/StatusComponent.h"
+#include "application/gameObject/base/GameObjectTag.h"
 
 /**
  * @brief 戦闘可能なオブジェクトの基底クラス

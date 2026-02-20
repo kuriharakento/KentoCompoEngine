@@ -1,6 +1,7 @@
 #pragma once
 #include "application/gameObject/combatable/character/base/Character.h"
 #include <graphics/2d/SpriteCommon.h>
+#include "application/gameObject/base/GameObjectTag.h"
 
 class EnemyBase : virtual public Character
 {

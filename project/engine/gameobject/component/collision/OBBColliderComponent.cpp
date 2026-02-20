@@ -1,7 +1,7 @@
 #include "OBBColliderComponent.h"
 
 // app
-#include "application/gameObject/base/GameObject.h"
+#include "engine/gameobject/base/GameObject.h"
 // system
 #include "manager/graphics/LineManager.h"
 // math

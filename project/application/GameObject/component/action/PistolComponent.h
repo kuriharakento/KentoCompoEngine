@@ -2,7 +2,7 @@
 #include <memory>
 
 #include "application/gameObject/combatable/weapon/Bullet.h"
-#include "application/gameObject/component/base/IActionComponent.h"
+#include "engine/gameobject/component/base/IActionComponent.h"
 #include "input/Input.h"
 #include "math/MathUtils.h"
 #include "math/Vector3.h"

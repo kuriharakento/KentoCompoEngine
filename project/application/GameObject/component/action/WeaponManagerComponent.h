@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include <vector>
-#include "application/GameObject/component/base/IActionComponent.h"
+#include "engine/gameobject/component/base/IActionComponent.h"
 #include "application/GameObject/component/action/IWeaponComponent.h"
 
 class Object3dCommon;

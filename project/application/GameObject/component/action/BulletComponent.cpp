@@ -1,6 +1,6 @@
 #include "BulletComponent.h"
 // GameObjectの完全な型を使用するために追加
-#include "application/gameObject/base/GameObject.h"
+#include "engine/gameobject/base/GameObject.h"
 #include "application/gameObject/combatable/weapon/Bullet.h"
 #include "time/TimeManager.h"
 

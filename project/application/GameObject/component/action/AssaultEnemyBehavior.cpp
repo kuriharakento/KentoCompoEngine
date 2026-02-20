@@ -1,6 +1,6 @@
 #include "AssaultEnemyBehavior.h"
 #include "AssaultRifleComponent.h"
-#include "application/gameObject/base/GameObject.h"
+#include "engine/gameobject/base/GameObject.h"
 #include "math/MathUtils.h"
 #include "time/TimeManager.h"
 #include <cmath>

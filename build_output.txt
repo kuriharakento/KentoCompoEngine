@@ -1,0 +1,83 @@
+MSBuild のバージョン 17.14.23+b0019275e (.NET Framework)
+2026/02/20 12:06:47 にビルドを開始しました。
+
+ノード 1 上のプロジェクト "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (既定のターゲット)。
+ValidateSolutionConfiguration:
+  ソリューション構成 "Debug|x64" をビルドしています。
+プロジェクト "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (1) は、ノード 1 上に "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj" (2) をビルドしています (既定のターゲット)。
+プロジェクト "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj" (2) は、ノード 1 上に "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\externals\DirectXTex\DirectXTex_Desktop_2022_Win10.vcxproj" (3) をビルドしています (既定のターゲット)。
+PrepareForBuild:
+  構造化出力が有効になっています。コンパイラ診断の書式設定にはエラー階層が反映されます。詳細については、https://aka.ms/cpp/structured-output を参照してください。
+InitializeBuildStatus:
+  "AlwaysCreate" が指定されたため "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\DirectXTex\Debug\DirectXTex.tlog\unsuccessfulbuild" を作成しています。
+  "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\DirectXTex\Debug\DirectXTex.tlog\unsuccessfulbuild" のタッチ タスクを実行しています。
+ClCompile:
+  すべての出力が最新のものです。
+  すべての出力が最新のものです。
+Lib:
+  すべての出力が最新のものです。
+  "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\generated\obj\DirectXTex\Debug\DirectXTex.pdb" から "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\generated\outputs\Debug\DirectXTex.pdb" へファイルをコピーしています。
+  DirectXTex_Desktop_2022_Win10.vcxproj -> C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\generated\outputs\Debug\DirectXTex.lib
+FinalizeBuildStatus:
+  ファイル "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\DirectXTex\Debug\DirectXTex.tlog\unsuccessfulbuild" を削除しています。
+  "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\DirectXTex\Debug\DirectXTex.tlog\DirectXTex.lastbuildstate" のタッチ タスクを実行しています。
+プロジェクト "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\externals\DirectXTex\DirectXTex_Desktop_2022_Win10.vcxproj" (既定のターゲット) のビルドが完了しました。
+PrepareForBuild:
+  構造化出力が有効になっています。コンパイラ診断の書式設定にはエラー階層が反映されます。詳細については、https://aka.ms/cpp/structured-output を参照してください。
+InitializeBuildStatus:
+  "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\KentoCompo.tlog\unsuccessfulbuild" のタッチ タスクを実行しています。
+ClCompile:
+  C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\bin\HostX86\x64\CL.exe /c /IC:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\ /IC:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\ /IC:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\externals\ /IC:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\externals\assimp\include /ZI /JMC /nologo /W3 /WX /diagnostics:column /sdl /MP /Od /D _DEBUG /D _WINDOWS /D USE_IMGUI /D _UNICODE /D UNICODE /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /std:c++20 /permissive- /Fo"C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\\" /Fd"C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\vc143.pdb" /external:W3 /Gd /TP /FC /errorReport:queue /utf-8 /FS application\gameObject\component\collision\CollisionAlgorithm.cpp application\gameObject\component\collision\CollisionUtils.cpp application\gameObject\component\collision\SphereColliderComponent.cpp application\gameObject\component\collision\AABBColliderComponent.cpp application\gameObject\component\collision\CollisionManager.cpp application\gameObject\component\collision\OBBColliderComponent.cpp
+  CollisionAlgorithm.cpp
+  CollisionUtils.cpp
+  SphereColliderComponent.cpp
+  AABBColliderComponent.cpp
+  CollisionManager.cpp
+  OBBColliderComponent.cpp
+\application\gameObject\component\collision\CollisionAlgorithm.cpp(1,1): error C1083: ソース ファイルを開けません。'application\gameObject\component\collision\CollisionAlgorithm.cpp':No such file or directory [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  (ソース ファイル '/application/gameObject/component/collision/CollisionAlgorithm.cpp' をコンパイルしています)
+  
+\application\gameObject\component\collision\CollisionUtils.cpp(1,1): error C1083: ソース ファイルを開けません。'application\gameObject\component\collision\CollisionUtils.cpp':No such file or directory [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  (ソース ファイル '/application/gameObject/component/collision/CollisionUtils.cpp' をコンパイルしています)
+  
+\application\gameObject\component\collision\SphereColliderComponent.cpp(1,1): error C1083: ソース ファイルを開けません。'application\gameObject\component\collision\SphereColliderComponent.cpp':No such file or directory [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  (ソース ファイル '/application/gameObject/component/collision/SphereColliderComponent.cpp' をコンパイルしています)
+  
+\application\gameObject\component\collision\AABBColliderComponent.cpp(1,1): error C1083: ソース ファイルを開けません。'application\gameObject\component\collision\AABBColliderComponent.cpp':No such file or directory [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  (ソース ファイル '/application/gameObject/component/collision/AABBColliderComponent.cpp' をコンパイルしています)
+  
+\application\gameObject\component\collision\CollisionManager.cpp(1,1): error C1083: ソース ファイルを開けません。'application\gameObject\component\collision\CollisionManager.cpp':No such file or directory [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  (ソース ファイル '/application/gameObject/component/collision/CollisionManager.cpp' をコンパイルしています)
+  
+\application\gameObject\component\collision\OBBColliderComponent.cpp(1,1): error C1083: ソース ファイルを開けません。'application\gameObject\component\collision\OBBColliderComponent.cpp':No such file or directory [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  (ソース ファイル '/application/gameObject/component/collision/OBBColliderComponent.cpp' をコンパイルしています)
+  
+プロジェクト "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj" (既定のターゲット) のビルドが終了しました -- 失敗。
+プロジェクト "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (1) は、ノード 1 上に "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\externals\ImGui\ImGui.vcxproj" (4) をビルドしています (既定のターゲット)。
+PrepareForBuild:
+  構造化出力が有効になっています。コンパイラ診断の書式設定にはエラー階層が反映されます。詳細については、https://aka.ms/cpp/structured-output を参照してください。
+InitializeBuildStatus:
+  "AlwaysCreate" が指定されたため "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\..\Generated\obj\ImGui\Debug\ImGui.tlog\unsuccessfulbuild" を作成しています。
+  "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\..\Generated\obj\ImGui\Debug\ImGui.tlog\unsuccessfulbuild" のタッチ タスクを実行しています。
+FinalizeBuildStatus:
+  ファイル "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\..\Generated\obj\ImGui\Debug\ImGui.tlog\unsuccessfulbuild" を削除しています。
+  "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\..\Generated\obj\ImGui\Debug\ImGui.tlog\ImGui.lastbuildstate" のタッチ タスクを実行しています。
+プロジェクト "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\externals\ImGui\ImGui.vcxproj" (既定のターゲット) のビルドが完了しました。
+プロジェクト "C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (既定のターゲット) のビルドが終了しました -- 失敗。
+
+ビルドに失敗しました。
+
+"C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (既定のターゲット) (1) ->
+"C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj" (既定のターゲット) (2) ->
+(ClCompile ターゲット) -> 
+  \application\gameObject\component\collision\CollisionAlgorithm.cpp(1,1): error C1083: ソース ファイルを開けません。'application\gameObject\component\collision\CollisionAlgorithm.cpp':No such file or directory [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  \application\gameObject\component\collision\CollisionUtils.cpp(1,1): error C1083: ソース ファイルを開けません。'application\gameObject\component\collision\CollisionUtils.cpp':No such file or directory [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  \application\gameObject\component\collision\SphereColliderComponent.cpp(1,1): error C1083: ソース ファイルを開けません。'application\gameObject\component\collision\SphereColliderComponent.cpp':No such file or directory [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  \application\gameObject\component\collision\AABBColliderComponent.cpp(1,1): error C1083: ソース ファイルを開けません。'application\gameObject\component\collision\AABBColliderComponent.cpp':No such file or directory [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  \application\gameObject\component\collision\CollisionManager.cpp(1,1): error C1083: ソース ファイルを開けません。'application\gameObject\component\collision\CollisionManager.cpp':No such file or directory [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  \application\gameObject\component\collision\OBBColliderComponent.cpp(1,1): error C1083: ソース ファイルを開けません。'application\gameObject\component\collision\OBBColliderComponent.cpp':No such file or directory [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+
+    0 個の警告
+    6 エラー
+
+経過時間 00:00:00.96

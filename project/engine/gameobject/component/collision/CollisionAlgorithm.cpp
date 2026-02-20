@@ -1,7 +1,7 @@
 #include "CollisionAlgorithm.h"
 #include <cmath>
 #include <algorithm>
-#include "application/gameObject/base/GameObject.h"
+#include "engine/gameobject/base/GameObject.h"
 
 // --- 3D用判定 ---
 

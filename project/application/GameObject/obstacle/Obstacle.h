@@ -1,7 +1,8 @@
 #pragma once
-#include "application/gameObject/base/GameObject.h"
-#include "application/gameObject/component/base/ICollisionComponent.h"
+#include "engine/gameObject/base/GameObject.h"
+#include "engine/gameobject/component/base/ICollisionComponent.h"
 #include "math/OBB.h"
+#include "application/gameObject/base/GameObjectTag.h"
 
 class Obstacle : public GameObject
 {

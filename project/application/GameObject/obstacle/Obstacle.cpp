@@ -1,8 +1,8 @@
 #include "Obstacle.h"
 
 #include "application/gameObject/combatable/character/base/Character.h"
-#include "application/gameObject/component/collision/CollisionUtils.h"
-#include "application/gameObject/component/collision/OBBColliderComponent.h"
+#include "engine/gameobject/component/collision/CollisionUtils.h"
+#include "engine/gameobject/component/collision/OBBColliderComponent.h"
 #include "base/Logger.h"
 #include "math/OBB.h"
 

@@ -1,5 +1,5 @@
 #include "MoveComponent.h"
-#include "application/GameObject/base/GameObject.h"
+#include "engine/gameobject/base/GameObject.h"
 #include "math/MathUtils.h"
 #include <cmath>
 
