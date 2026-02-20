@@ -121,6 +121,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\gameObject\combatable\character\enemy\base\Node\BehaviorTree\BehaviorTree.cpp" />
     <ClCompile Include="application\gameObject\combatable\character\enemy\base\Node\BlackBoard.cpp" />
     <ClCompile Include="application\gameObject\component\collision\SphereColliderComponent.cpp" />
+    <ClCompile Include="application\resources\LoadGameResources.cpp" />
     <ClCompile Include="application\stage\Area.cpp" />
     <ClCompile Include="application\stage\AreaManager.cpp" />
     <ClCompile Include="application\stage\AreaWaveData.cpp" />
