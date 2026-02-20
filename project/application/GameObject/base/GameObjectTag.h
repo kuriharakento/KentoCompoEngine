@@ -15,7 +15,6 @@ namespace gameObjectTag
 	 * @brief 共通のベースタグ定義
 	 */
 	namespace common {
-		const std::string GameObject = "GameObject";
 		const std::string Character = "Character";
 		const std::string CombatableObject = "CombatableObject";
 		const std::string EnemyBase = "EnemyBase";

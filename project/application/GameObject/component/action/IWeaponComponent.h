@@ -1,5 +1,5 @@
 #pragma once
-#include "application/gameObject/component/base/IActionComponent.h"
+#include "engine/gameobject/component/base/IActionComponent.h"
 
 class CameraManager;
 

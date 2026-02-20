@@ -1,6 +1,6 @@
 #include "PlayerUIComponent.h"
 
-#include "application/GameObject/base/GameObject.h"
+#include "engine/gameobject/base/GameObject.h"
 #include "application/GameObject/Combatable/character/player/Player.h"
 #include "application/GameObject/component/action/StatusComponent.h"
 #include "application/GameObject/component/action/IWeaponComponent.h"

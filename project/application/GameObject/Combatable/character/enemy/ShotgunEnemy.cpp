@@ -1,7 +1,7 @@
 #include "ShotgunEnemy.h"
 
 #include "application/GameObject/component/action/ShotgunComponent.h"
-#include "application/GameObject/component/collision/OBBColliderComponent.h"
+#include "engine/gameobject/component/collision/OBBColliderComponent.h"
 
 void ShotgunEnemy::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, CameraManager* camera, LightManager* lightManager, GameObject* target, const Transform& initialTransform)
 {

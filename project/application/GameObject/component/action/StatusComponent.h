@@ -1,6 +1,6 @@
 #pragma once
 #include "application/gameObject/combatable/base/StatusSystem.h"
-#include "application/gameObject/component/base/IActionComponent.h"
+#include "engine/gameobject/component/base/IActionComponent.h"
 
 /**
  * @brief ゲームオブジェクトのステータスを管理するコンポーネント

@@ -5,7 +5,7 @@
 #include <random>
 
 #include "application/gameObject/combatable/character/enemy/base/Node/BehaviorTree/BehaviorTree.h"
-#include "application/gameObject/component/base/IActionComponent.h"
+#include "engine/gameobject/component/base/IActionComponent.h"
 
 class GameObject;
 

@@ -1,7 +1,7 @@
 #include "Area.h"
 
 #include "application/gameObject/combatable/character/base/Character.h"
-#include "application/gameObject/component/collision/OBBColliderComponent.h"
+#include "engine/gameobject/component/collision/OBBColliderComponent.h"
 #include "base/Logger.h"
 
 Area::Area(Object3dCommon* objCommon, LightManager* lightManager, EnemyManager* enemyManager,

@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "OBBColliderComponent.h"
-#include "application/gameObject/base/GameObject.h"
+#include "engine/gameobject/base/GameObject.h"
 
 namespace collisionUtils
 {

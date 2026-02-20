@@ -4,12 +4,12 @@
 #include "graphics/3d/Object3dCommon.h"
 #include "input/Input.h"
 // app
-#include <application/gameObject/base/GameObject.h>
+#include <engine/gameobject/base/GameObject.h>
 #include "application/gameObject/combatable/character/enemy/base/EnemyBase.h"
 #include "application/gameObject/combatable/character/player/Player.h"
 // component
 #include "BulletComponent.h"
-#include "application/gameObject/component/collision/OBBColliderComponent.h"
+#include "engine/gameobject/component/collision/OBBColliderComponent.h"
 // math
 #include "math/MathUtils.h"
 #include <random>

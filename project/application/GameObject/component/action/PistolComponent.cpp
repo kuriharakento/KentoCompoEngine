@@ -3,11 +3,11 @@
 // system
 #include "graphics/3d/Object3dCommon.h"
 // app
-#include <application/gameObject/base/GameObject.h>
+#include <engine/gameobject/base/GameObject.h>
 #include "application/gameObject/combatable/character/enemy/base/EnemyBase.h"
 #include "application/gameObject/combatable/character/player/Player.h"
 // component
-#include "application/gameObject/component/collision/OBBColliderComponent.h"
+#include "engine/gameobject/component/collision/OBBColliderComponent.h"
 #include "BulletComponent.h"
 #include "time/TimeManager.h"
 

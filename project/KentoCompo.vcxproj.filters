@@ -16,7 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="application\gameObject\base\GameObject.cpp">
+    <ClCompile Include="engine\gameobject\base\GameObject.cpp">
       <Filter>application\gameObject\base</Filter>
     </ClCompile>
     <ClCompile Include="application\gameObject\combatable\character\base\Character.cpp">
@@ -79,19 +79,19 @@
     <ClCompile Include="application\gameObject\component\action\ShotgunComponent.cpp">
       <Filter>application\gameObject\component\action</Filter>
     </ClCompile>
-    <ClCompile Include="application\gameObject\component\base\ICollisionComponent.cpp">
+    <ClCompile Include="engine\gameobject\component\base\ICollisionComponent.cpp">
       <Filter>application\gameObject\component\base</Filter>
     </ClCompile>
-    <ClCompile Include="application\gameObject\component\collision\AABBColliderComponent.cpp">
+    <ClCompile Include="engine\gameobject\component\collision\AABBColliderComponent.cpp">
       <Filter>application\gameObject\component\collision</Filter>
     </ClCompile>
-    <ClCompile Include="application\gameObject\component\collision\CollisionManager.cpp">
+    <ClCompile Include="engine\gameobject\component\collision\CollisionManager.cpp">
       <Filter>application\gameObject\component\collision</Filter>
     </ClCompile>
-    <ClCompile Include="application\gameObject\component\collision\CollisionUtils.cpp">
+    <ClCompile Include="engine\gameobject\component\collision\CollisionUtils.cpp">
       <Filter>application\gameObject\component\collision</Filter>
     </ClCompile>
-    <ClCompile Include="application\gameObject\component\collision\OBBColliderComponent.cpp">
+    <ClCompile Include="engine\gameobject\component\collision\OBBColliderComponent.cpp">
       <Filter>application\gameObject\component\collision</Filter>
     </ClCompile>
     <ClCompile Include="application\gameObject\obstacle\Obstacle.cpp">
@@ -319,10 +319,10 @@
     <ClCompile Include="application\gameObject\combatable\character\enemy\KnifeEnemy.cpp">
       <Filter>application\gameObject\combatable\character\enemy</Filter>
     </ClCompile>
-    <ClCompile Include="application\gameObject\component\collision\SphereColliderComponent.cpp">
+    <ClCompile Include="engine\gameobject\component\collision\SphereColliderComponent.cpp">
       <Filter>application\gameObject\component\collision</Filter>
     </ClCompile>
-    <ClCompile Include="application\gameObject\component\collision\CollisionAlgorithm.cpp">
+    <ClCompile Include="engine\gameobject\component\collision\CollisionAlgorithm.cpp">
       <Filter>application\gameObject\component\collision</Filter>
     </ClCompile>
     <ClCompile Include="application\stage\Area.cpp">
@@ -481,7 +481,7 @@
     <ClCompile Include="application\resources\LoadGameResources.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="application\gameObject\base\GameObject.h">
+    <ClInclude Include="engine\gameobject\base\GameObject.h">
       <Filter>application\gameObject\base</Filter>
     </ClInclude>
     <ClInclude Include="application\gameObject\combatable\character\base\Character.h">
@@ -544,22 +544,22 @@
     <ClInclude Include="application\gameObject\component\action\ShotgunComponent.h">
       <Filter>application\gameObject\component\action</Filter>
     </ClInclude>
-    <ClInclude Include="application\gameObject\component\base\IActionComponent.h">
+    <ClInclude Include="engine\gameobject\component\base\IActionComponent.h">
       <Filter>application\gameObject\component\base</Filter>
     </ClInclude>
-    <ClInclude Include="application\gameObject\component\base\ICollisionComponent.h">
+    <ClInclude Include="engine\gameobject\component\base\ICollisionComponent.h">
       <Filter>application\gameObject\component\base</Filter>
     </ClInclude>
-    <ClInclude Include="application\gameObject\component\base\IGameObjectComponent.h">
+    <ClInclude Include="engine\gameobject\component\base\IGameObjectComponent.h">
       <Filter>application\gameObject\component\base</Filter>
     </ClInclude>
-    <ClInclude Include="application\gameObject\component\collision\AABBColliderComponent.h">
+    <ClInclude Include="engine\gameobject\component\collision\AABBColliderComponent.h">
       <Filter>application\gameObject\component\collision</Filter>
     </ClInclude>
-    <ClInclude Include="application\gameObject\component\collision\CollisionUtils.h">
+    <ClInclude Include="engine\gameobject\component\collision\CollisionUtils.h">
       <Filter>application\gameObject\component\collision</Filter>
     </ClInclude>
-    <ClInclude Include="application\gameObject\component\collision\OBBColliderComponent.h">
+    <ClInclude Include="engine\gameobject\component\collision\OBBColliderComponent.h">
       <Filter>application\gameObject\component\collision</Filter>
     </ClInclude>
     <ClInclude Include="application\gameObject\obstacle\Obstacle.h">
@@ -841,10 +841,10 @@
     <ClInclude Include="application\gameObject\combatable\character\enemy\KnifeEnemy.h">
       <Filter>application\gameObject\combatable\character\enemy</Filter>
     </ClInclude>
-    <ClInclude Include="application\gameObject\component\collision\SphereColliderComponent.h">
+    <ClInclude Include="engine\gameobject\component\collision\SphereColliderComponent.h">
       <Filter>application\gameObject\component\collision</Filter>
     </ClInclude>
-    <ClInclude Include="application\gameObject\component\collision\CollisionAlgorithm.h">
+    <ClInclude Include="engine\gameobject\component\collision\CollisionAlgorithm.h">
       <Filter>application\gameObject\component\collision</Filter>
     </ClInclude>
     <ClInclude Include="engine\math\Sphere.h">
@@ -1090,7 +1090,7 @@
     <ClInclude Include="application\ui\PoseMenu.h">
       <Filter>application\ui</Filter>
     </ClInclude>
-    <ClInclude Include="application\gameObject\component\collision\CollisionManager.h">
+    <ClInclude Include="engine\gameobject\component\collision\CollisionManager.h">
       <Filter>application\gameObject\component\collision</Filter>
     </ClInclude>
   </ItemGroup>

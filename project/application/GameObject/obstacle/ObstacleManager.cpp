@@ -3,7 +3,7 @@
 #include <unordered_set>
 
 #include "BarrierBlock.h"
-#include "application/gameObject/component/collision/OBBColliderComponent.h"
+#include "engine/gameobject/component/collision/OBBColliderComponent.h"
 #include "manager/editor/JsonEditorManager.h"
 
 void ObstacleManager::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager)

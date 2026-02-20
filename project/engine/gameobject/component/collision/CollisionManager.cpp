@@ -2,9 +2,9 @@
 #include <algorithm>
 
 #include "math/AABB.h"
-#include "application/gameObject/component/collision/AABBColliderComponent.h"
-#include "application/gameObject/component/base/ICollisionComponent.h"
-#include "application/gameObject/base/GameObject.h"
+#include "engine/gameobject/component/collision/AABBColliderComponent.h"
+#include "engine/gameobject/component/base/ICollisionComponent.h"
+#include "engine/gameobject/base/GameObject.h"
 #include "base/Logger.h"
 #include "imgui/imgui.h"
 #include "math/MathUtils.h"
