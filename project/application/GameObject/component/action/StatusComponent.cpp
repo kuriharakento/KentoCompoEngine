@@ -1,6 +1,6 @@
 #include "StatusComponent.h"
 
-#include "application/GameObject/base/GameObject.h"
+#include "engine/gameobject/base/GameObject.h"
 #include "imgui/imgui.h"
 #include "time/TimeManager.h"
 

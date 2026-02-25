@@ -2,7 +2,7 @@
 #include "AssaultRifleComponent.h"
 #include "ShotgunComponent.h"
 #include "input/Input.h"
-#include "application/GameObject/base/GameObject.h"
+#include "engine/gameobject/base/GameObject.h"
 #include "application/GameObject/Combatable/character/player/Player.h"
 
 WeaponManagerComponent::WeaponManagerComponent(Object3dCommon* object3dCommon, LightManager* lightManager)

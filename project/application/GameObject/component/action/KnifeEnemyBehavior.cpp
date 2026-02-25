@@ -1,5 +1,5 @@
 #include "KnifeEnemyBehavior.h"
-#include "application/GameObject/base/GameObject.h"
+#include "engine/gameobject/base/GameObject.h"
 #include "application/GameObject/Combatable/weapon/Knife.h"
 #include "time/TimeManager.h"
 #include <random>

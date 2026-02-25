@@ -1,5 +1,6 @@
 #pragma once
 #include "Obstacle.h"
+#include "application/gameObject/base/GameObjectTag.h"
 
 class BarrierBlock : public Obstacle
 {

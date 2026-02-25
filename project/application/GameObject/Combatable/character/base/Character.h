@@ -1,7 +1,7 @@
 #pragma once
 
 #include "application/GameObject/combatable/base/CombatableObject.h"
-#include "application/GameObject/component/base/ICollisionComponent.h"
+#include "engine/gameobject/component/base/ICollisionComponent.h"
 #include "math/Vector3.h"
 
 class Character : public CombatableObject

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "application/gameObject/component/base/ICollisionComponent.h"
+#include "engine/gameobject/component/base/ICollisionComponent.h"
 #include "math/AABB.h"
 #include "Math/Vector3.h"
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "application/gameObject/component/base/IActionComponent.h"
+#include "engine/gameobject/component/base/IActionComponent.h"
 #include "application/ui/GameUI.h"
 #include "graphics/2d/NumberSprite.h"
 #include <memory>

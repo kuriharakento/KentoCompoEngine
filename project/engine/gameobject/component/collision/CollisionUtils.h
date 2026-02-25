@@ -1,5 +1,5 @@
 #pragma once
-#include "application/gameObject/base/GameObject.h"
+#include "engine/gameObject/base/GameObject.h"
 #include "math/OBB.h"
 #include "math/Vector3.h"
 

@@ -3,7 +3,7 @@
 #include "application/GameObject/Combatable/weapon/Knife.h"
 #include "application/GameObject/component/action/GravityPhysicsComponent.h"
 #include "application/GameObject/component/action/KnifeEnemyBehavior.h"
-#include "application/GameObject/component/collision/OBBColliderComponent.h"
+#include "engine/gameobject/component/collision/OBBColliderComponent.h"
 
 void KnifeEnemy::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, CameraManager* camera, LightManager* lightManager, GameObject* target, const Transform& inintialTransform)
 {

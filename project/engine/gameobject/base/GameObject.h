@@ -10,9 +10,8 @@
 // math
 #include "base/GraphicsTypes.h"
 // component
-#include "GameObjectTag.h"
-#include "application/gameObject/component/base/IActionComponent.h"
-#include "application/gameObject/component/base/ICollisionComponent.h"
+#include "engine/gameobject/component/base/IActionComponent.h"
+#include "engine/gameobject/component/base/ICollisionComponent.h"
 
 /**
  * @brief ゲーム内の全てのオブジェクトの基底クラス
@@ -43,7 +42,7 @@ public:
 	 * @brief コンストラクタ
 	 * @param tag オブジェクトのタグ（デフォルト: GameObjectTag::Common::GameObject）
 	 */
-	explicit GameObject(const std::string& tag = gameObjectTag::common::GameObject);
+	explicit GameObject(const std::string& tag = "GameObject");
 
 	/**
 	 * @brief GameObjectの初期化

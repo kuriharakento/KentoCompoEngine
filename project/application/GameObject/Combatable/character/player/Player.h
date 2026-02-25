@@ -1,6 +1,6 @@
 #pragma once
 #include "application/gameObject/combatable/character/base/Character.h"
-#include "application/gameObject/component/base/ICollisionComponent.h"
+#include "engine/gameobject/component/base/ICollisionComponent.h"
 #include "engine/graphics/2d/SpriteCommon.h"
 
 class EnemyManager;

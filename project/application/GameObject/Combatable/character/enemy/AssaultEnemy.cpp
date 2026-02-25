@@ -3,7 +3,7 @@
 #include "application/GameObject/component/action/AssaultEnemyBehavior.h"
 #include "application/GameObject/component/action/AssaultRifleComponent.h"
 #include "application/GameObject/component/action/GravityPhysicsComponent.h"
-#include "application/GameObject/component/collision/OBBColliderComponent.h"
+#include "engine/gameobject/component/collision/OBBColliderComponent.h"
 
 void AssaultEnemy::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, CameraManager* camera, LightManager* lightManager, GameObject* target, const Transform& initialTransform)
 {
