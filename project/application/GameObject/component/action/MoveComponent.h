@@ -142,6 +142,8 @@ private:
     void PlayDodgeEffect(GameObject* owner);
     // 向き補間処理
     void UpdateRotation(GameObject* owner, const Vector3& direction);
+    // マウスの方向を向く処理
+    void ProcessLookAtMouse(GameObject* owner);
     // バレットタイム処理
     void ProcessBulletTime(GameObject* owner);
     // バレットタイム発動

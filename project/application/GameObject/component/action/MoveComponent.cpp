@@ -12,6 +12,9 @@
 #include "application/GameObject/Combatable/character/player/Player.h"
 #include "time/Timer.h"
 #include "time/TimerManager.h"
+#include "base/Camera.h"
+#include "base/WinApp.h"
+#include "input/Input.h"
 
 // コンストラクタ：マネージャーの初期化
 MoveComponent::MoveComponent(EnemyManager* enemyManager, CameraManager* camera)
@@ -119,6 +122,12 @@ void MoveComponent::Update(GameObject* owner)
         {
             // 回避が始まらなかったら通常移動
             ProcessMovement(owner, deltaTime);
+        }
+
+        // プレイヤーの場合は常にマウスの方向を向く処理を行う
+        if (auto player = dynamic_cast<Player*>(owner))
+        {
+            ProcessLookAtMouse(owner);
         }
     }
 
@@ -266,8 +275,12 @@ void MoveComponent::ProcessMovement(GameObject* owner, float deltaTime)
         moveDirection.NormalizeSelf();
         owner->SetPosition(owner->GetPosition() + moveDirection * moveSpeed_ * deltaTime);
 
-        // プレイヤーの向きを滑らかに変える
-        UpdateRotation(owner, moveDirection);
+        // プレイヤー以外（敵など）の場合のみ、移動方向に向きを変える
+        // プレイヤーは ProcessLookAtMouse で常にマウス方向を向くため
+        if (!dynamic_cast<Player*>(owner))
+        {
+            UpdateRotation(owner, moveDirection);
+        }
     }
 }
 
@@ -376,4 +389,55 @@ Vector3 MoveComponent::GetCameraRelativeDirection(const Vector3& inputDirection)
     }
 
     return moveDirection;
+}
+
+// マウスの方向を向く処理
+void MoveComponent::ProcessLookAtMouse(GameObject* owner)
+{
+    if (camera_ == nullptr) return;
+
+    // マウスのスクリーン座標を取得
+    float mouseX = Input::GetInstance()->GetMouseX();
+    float mouseY = Input::GetInstance()->GetMouseY();
+
+    // ビューポート行列を作成
+    Matrix4x4 matViewport = MakeViewportMatrix(0, 0, WinApp::kClientWidth, WinApp::kClientHeight, 0, 1);
+
+    // ビュー行列とプロジェクション行列を合成
+    Matrix4x4 matVPV = (camera_->GetViewMatrix() * camera_->GetProjectionMatrix()) * matViewport;
+
+    // 合成行列の逆行列を計算
+    Matrix4x4 matInverseVPV = Inverse(matVPV);
+
+    // スクリーン座標を定義（近点と遠点）
+    Vector3 posNear = Vector3(mouseX, mouseY, 0.0f);
+    Vector3 posFar = Vector3(mouseX, mouseY, 1.0f);
+
+    // スクリーン座標をワールド座標に変換
+    posNear = MathUtils::Transform(posNear, matInverseVPV);
+    posFar = MathUtils::Transform(posFar, matInverseVPV);
+
+    // オーナーの位置を取得
+    Vector3 ownerPos = owner->GetPosition();
+
+    // レイの方向を計算
+    Vector3 rayDir = Vector3::Normalize(posFar - posNear);
+
+    // オーナーと同じ高さの平面との交点を計算
+    // rayDir.y が 0 に近い場合のゼロ除算を防ぐ
+    if (std::abs(rayDir.y) > 0.0001f)
+    {
+        float t = (ownerPos.y - posNear.y) / rayDir.y;
+        Vector3 targetPos = posNear + rayDir * t;
+
+        // ターゲット方向を計算
+        Vector3 direction = targetPos - ownerPos;
+        direction.y = 0.0f; // Y軸方向のみ変更するため、高さを無視
+
+        // 向きを補間して更新
+        if (direction.Length() > kMovementInputThreshold)
+        {
+            UpdateRotation(owner, direction);
+        }
+    }
 }
