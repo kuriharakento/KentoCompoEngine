@@ -479,6 +479,7 @@
       <Filter>application\ui</Filter>
     </ClCompile>
     <ClCompile Include="application\resources\LoadGameResources.cpp" />
+    <ClCompile Include="application\weapon\WeaponManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine\gameobject\base\GameObject.h">
@@ -1093,6 +1094,7 @@
     <ClInclude Include="engine\gameobject\component\collision\CollisionManager.h">
       <Filter>application\gameObject\component\collision</Filter>
     </ClInclude>
+    <ClInclude Include="application\weapon\WeaponManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

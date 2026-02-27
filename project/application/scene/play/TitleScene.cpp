@@ -119,8 +119,8 @@ void TitleScene::OnUpdatePlaying()
 		ChangeState(SceneState::Exit);
 	}
 #else
-	// マウス左クリックで開始
-	if (Input::GetInstance()->IsMouseButtonTriggered(0))
+	// マウス左右のクリックで開始
+	if (Input::GetInstance()->IsMouseButtonTriggered(0) || Input::GetInstance()->IsMouseButtonTriggered(2))
 	{
 		Audio::GetInstance()->PlayWave("start_se", false);
 
