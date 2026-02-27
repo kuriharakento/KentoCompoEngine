@@ -181,7 +181,7 @@ private:
     Vector3 healthBarOffset_ = { 0.0f, kDefaultWorldOffsetY, 0.0f };
 
     // スクリーン座標でのオフセット（ピクセル単位）
-    Vector2 screenOffset_ = { 0.0f, kDefaultScreenOffsetY };
+    Vector2 screenOffset_ = { -kDefaultHealthBarWidth / 2.0f, kDefaultScreenOffsetY };
 
     // 体力バーのサイズ
     float healthBarWidth_ = kDefaultHealthBarWidth;

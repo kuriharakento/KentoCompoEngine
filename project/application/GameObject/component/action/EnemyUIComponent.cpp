@@ -25,7 +25,7 @@ void EnemyUIComponent::InitializeUI()
     healthBarBg_ = std::make_unique<GameUI>();
     healthBarBg_->Initialize(spriteCommon_, "./Resources/UI/hp_bar_frame.png");
     healthBarBg_->SetSize({ healthBarWidth_, healthBarHeight_ });
-    healthBarBg_->SetAnchorPoint({ 0.5f, 0.5f });
+    healthBarBg_->SetAnchorPoint({ 0.0f, 0.5f });
     healthBarBg_->SetInteractable(false);
     healthBarBg_->SetColor(kHealthBarBgColor);
 
@@ -33,7 +33,7 @@ void EnemyUIComponent::InitializeUI()
     healthBarFill_ = std::make_unique<GameUI>();
     healthBarFill_->Initialize(spriteCommon_, "./Resources/UI/hp_bar_fill.png");
     healthBarFill_->SetSize({ healthBarWidth_, healthBarHeight_ });
-    healthBarFill_->SetAnchorPoint({ 0.5f, 0.5f });
+    healthBarFill_->SetAnchorPoint({ 0.0f, 0.5f });
     healthBarFill_->SetInteractable(false);
     healthBarFill_->SetColor(kHealthColorHigh);
 }
@@ -108,8 +108,14 @@ void EnemyUIComponent::UpdateHealthBar(GameObject* owner)
 
     // HP比率を計算
     float hpRatio = status->hp.GetValue() / status->maxHp.GetValue();
-    if (hpRatio < 0.0f) hpRatio = 0.0f;
-    if (hpRatio > 1.0f) hpRatio = 1.0f;
+    if (hpRatio < 0.0f)
+    {
+        hpRatio = 0.0f;
+    }
+    if (hpRatio > 1.0f)
+    {
+        hpRatio = 1.0f;
+    }
 
     // 体力バーの幅を更新
     float fillWidth = healthBarWidth_ * hpRatio;
