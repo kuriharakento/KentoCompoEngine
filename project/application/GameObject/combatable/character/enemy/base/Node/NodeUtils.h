@@ -16,7 +16,7 @@ namespace nodeUtils
 	 * @param status 変換するノードの状態
 	 * @return 状態を表す文字列
 	 */
-	const std::string NodeStatusToString(NodeStatus status)
+	inline const std::string NodeStatusToString(NodeStatus status)
 	{
 		switch (status)
 		{
@@ -39,7 +39,7 @@ namespace nodeUtils
 	 * 
 	 * @param node 描画するノード
 	 */
-    void DrawBTNodeImGui(const BTNode* node)
+    inline void DrawBTNodeImGui(const BTNode* node)
     {
         if (!node) return;
 

@@ -2,6 +2,7 @@
 #include "AABBColliderComponent.h"
 #include "OBBColliderComponent.h"
 #include "SphereColliderComponent.h"
+#include "RayColliderComponent.h"
 
 /**
  * @brief 2D判定時の衝突判定面を表す列挙型
@@ -83,6 +84,30 @@ namespace collisionAlgorithm
 	 * @return 衝突している場合true
 	 */
 	bool CheckSpherevsOBB3D(const SphereColliderComponent* a, const OBBColliderComponent* b);
+
+	/**
+	 * @brief RayとAABBの3D衝突判定
+	 * @param a 判定対象のRayコライダー
+	 * @param b 判定対象のAABBコライダー
+	 * @return 衝突している場合true
+	 */
+	bool CheckRayvsAABB3D(const RayColliderComponent* a, const AABBColliderComponent* b);
+
+	/**
+	 * @brief RayとOBBの3D衝突判定
+	 * @param a 判定対象のRayコライダー
+	 * @param b 判定対象のOBBコライダー
+	 * @return 衝突している場合true
+	 */
+	bool CheckRayvsOBB3D(const RayColliderComponent* a, const OBBColliderComponent* b);
+
+	/**
+	 * @brief RayとSphereの3D衝突判定
+	 * @param a 判定対象のRayコライダー
+	 * @param b 判定対象のSphereコライダー
+	 * @return 衝突している場合true
+	 */
+	bool CheckRayvsSphere3D(const RayColliderComponent* a, const SphereColliderComponent* b);
 
 	// サブステップ判定（3D）
 	

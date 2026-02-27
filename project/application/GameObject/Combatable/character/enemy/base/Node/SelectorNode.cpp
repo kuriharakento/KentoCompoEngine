@@ -8,16 +8,19 @@ NodeStatus SelectorNode::Tick(Blackboard& blackboard)
         if (status == NodeStatus::Success)
         {
             Reset();
-            return NodeStatus::Success;
+            lastStatus_ = NodeStatus::Success;
+            return lastStatus_;
         }
         if (status == NodeStatus::Running)
         {
-            return NodeStatus::Running;
+            lastStatus_ = NodeStatus::Running;
+            return lastStatus_;
         }
         // Failureなら次のノードへ
         ++currentIndex;
     }
     // 全てFailure
     Reset();
-    return NodeStatus::Failure;
+    lastStatus_ = NodeStatus::Failure;
+    return lastStatus_;
 }

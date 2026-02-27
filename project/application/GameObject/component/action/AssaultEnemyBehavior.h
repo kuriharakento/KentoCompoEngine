@@ -2,13 +2,16 @@
 #include "math/Vector3.h"
 #include <vector>
 #include <memory>
-#include <random>
+#include <string> // Added
+#include <random> // Keep this, as rng_ is still present and used. The instruction snippet removed it, but it's likely an oversight given the presence of `rng_`.
+
+class GameObject;
+class RayColliderComponent; // Added, assuming this was the intent of `RayColliderComponent;dom>`
+#include "engine/gameobject/component/collision/RayColliderComponent.h" // Added for RayColliderComponent definition
 
 #include "application/gameObject/combatable/character/enemy/base/Node/BehaviorTree/BehaviorTree.h"
 #include "engine/gameobject/component/base/IActionComponent.h"
 #include "engine/gameobject/component/collision/CollisionAlgorithm.h"
-
-class GameObject;
 
 /**
  * @brief アサルトライフルを持つ敵のAI行動コンポーネント
@@ -23,12 +26,19 @@ public:
      * @param target 追跡対象のゲームオブジェクト
      */
     AssaultEnemyBehavior(GameObject* target);
+    ~AssaultEnemyBehavior() = default; // Added
 
     /**
-     * @brief フレームごとの更新処理
-     * @param owner このコンポーネントを所有するゲームオブジェクト
+     * @brief 初期化処理
+     * @param owner このコンポーネントをアタッチした GameObject
      */
-    void Update(GameObject* owner) override;
+    void Init(GameObject* owner); // Added
+
+    /**
+     * @brief 毎フレームの更新処理
+     * @param owner このコンポーネントをアタッチした GameObject
+     */
+    void Update(GameObject* owner) override; // Corrected typo from instruction
 
     /**
      * @brief ターゲットを設定する
@@ -210,4 +220,10 @@ private:
 
     // ビヘイビアツリーを構築
     void BuildBehaviorTree();
+	// 視線遮断フラグ（RayColliderのコールバックで更新）
+	bool isSightBlocked_ = false;
+
+	// レイ判定用オブジェクト
+	std::unique_ptr<GameObject> sightRayObject_;
+	RayColliderComponent* rayCollider_ = nullptr;
 };

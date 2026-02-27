@@ -3,6 +3,9 @@
 
 #include "math/AABB.h"
 #include "engine/gameobject/component/collision/AABBColliderComponent.h"
+#include "engine/gameobject/component/collision/OBBColliderComponent.h"
+#include "engine/gameobject/component/collision/SphereColliderComponent.h"
+#include "engine/gameobject/component/collision/RayColliderComponent.h"
 #include "engine/gameobject/component/base/ICollisionComponent.h"
 #include "engine/gameobject/base/GameObject.h"
 #include "base/Logger.h"
@@ -188,6 +191,33 @@ void CollisionManager::CheckCollisions()
 					else
 						isHit = collisionAlgorithm::CheckSpherevsOBB3D(static_cast<SphereColliderComponent*>(b), static_cast<OBBColliderComponent*>(a));
 				}
+				// RayとAABBの衝突判定
+				else if (typeA == ColliderType::Ray && typeB == ColliderType::AABB)
+				{
+					isHit = collisionAlgorithm::CheckRayvsAABB3D(static_cast<RayColliderComponent*>(a), static_cast<AABBColliderComponent*>(b));
+				}
+				else if (typeA == ColliderType::AABB && typeB == ColliderType::Ray)
+				{
+					isHit = collisionAlgorithm::CheckRayvsAABB3D(static_cast<RayColliderComponent*>(b), static_cast<AABBColliderComponent*>(a));
+				}
+				// RayとOBBの衝突判定
+				else if (typeA == ColliderType::Ray && typeB == ColliderType::OBB)
+				{
+					isHit = collisionAlgorithm::CheckRayvsOBB3D(static_cast<RayColliderComponent*>(a), static_cast<OBBColliderComponent*>(b));
+				}
+				else if (typeA == ColliderType::OBB && typeB == ColliderType::Ray)
+				{
+					isHit = collisionAlgorithm::CheckRayvsOBB3D(static_cast<RayColliderComponent*>(b), static_cast<OBBColliderComponent*>(a));
+				}
+				// RayとSphereの衝突判定
+				else if (typeA == ColliderType::Ray && typeB == ColliderType::Sphere)
+				{
+					isHit = collisionAlgorithm::CheckRayvsSphere3D(static_cast<RayColliderComponent*>(a), static_cast<SphereColliderComponent*>(b));
+				}
+				else if (typeA == ColliderType::Sphere && typeB == ColliderType::Ray)
+				{
+					isHit = collisionAlgorithm::CheckRayvsSphere3D(static_cast<RayColliderComponent*>(b), static_cast<SphereColliderComponent*>(a));
+				}
 			}
 			// 2Dモードの判定
 			else if (dimension_ == CollisionDimension::Mode2D)
@@ -318,6 +348,8 @@ std::string CollisionManager::GetColliderTypeString(ColliderType type) const
 		return "Sphere";
 	case ColliderType::OBB:
 		return "OBB";
+	case ColliderType::Ray:
+		return "Ray";
 	}
 	return "Unknown";
 }
