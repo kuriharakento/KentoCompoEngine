@@ -101,6 +101,14 @@ void Player::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteComm
 	// スキニングモデルを設定
 	SetSkinnedModel("player_walk");
 
+	// NOTE:今使っているモデルの初期位置が地面に埋まっているため、一度アニメーションを再生して位置を正しい位置にする
+	if(auto skinned = GetSkinnedObject3d())
+	{
+		skinned->PlayAnimation(0, false); // 0番が歩きと仮定
+		// すぐ止める
+		skinned->StopAnimation();
+	}
+
 	// 初期位置を設定
 	transform_.translate = { 0.0f, 1.0f, 0.0f };
 	
