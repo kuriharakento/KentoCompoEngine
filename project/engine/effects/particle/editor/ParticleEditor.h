@@ -156,6 +156,11 @@ private:
 	int selectedEmitterIndex_ = -1;
 	int selectedModuleIndex_ = -1;
 
+	// プレビュー制御
+	bool previewLooping_ = false;           // ループ再生フラグ
+	float previewRepeatInterval_ = 2.0f;    // ループ間隔（秒）
+	float previewElapsed_ = 0.0f;           // ループ用経過時間
+
 	std::string effectPath_;
 	char effectNameBuffer_[256] = {};
 	char emitterNameBuffer_[256] = {};

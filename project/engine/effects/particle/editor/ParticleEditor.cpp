@@ -77,6 +77,21 @@ void ParticleEditor::Update(CameraManager* camera)
 	// 非表示時は処理をスキップ
 	if (!isVisible_) return;
 
+	// ループプレビュー：一定間隔で全エミッターを再スタート
+	if (previewLooping_ && currentEffect_ && currentEffect_->IsPlaying())
+	{
+		previewElapsed_ += TimeManager::GetInstance().GetGameContext().deltaTime;
+		if (previewElapsed_ >= previewRepeatInterval_)
+		{
+			previewElapsed_ = 0.0f;
+			for (size_t i = 0; i < currentEffect_->GetEmitterCount(); ++i)
+			{
+				auto* emitter = currentEffect_->GetEmitter(i);
+				if (emitter) emitter->Restart();
+			}
+		}
+	}
+
 	// ウィンドウサイズを初回のみ設定
 	ImGui::SetNextWindowSize(ImVec2(kDefaultWindowWidth, kDefaultWindowHeight), ImGuiCond_FirstUseEver);
 	ImGui::Begin("Particle Editor", &isVisible_, ImGuiWindowFlags_MenuBar);
@@ -86,6 +101,7 @@ void ParticleEditor::Update(CameraManager* camera)
 
 	// エフェクト全体のパネル
 	DrawEffectPanel();
+	DrawPreviewPanel();
 	DrawEmitterPanel();
 	
 	// エミッター選択時のみモジュールとレンダラーを表示
@@ -540,6 +556,134 @@ void ParticleEditor::DrawEffectPanel()
 				SaveEffect("");
 			}
 		}
+	}
+}
+
+void ParticleEditor::DrawPreviewPanel()
+{
+	if (!currentEffect_) return;
+
+	if (ImGui::CollapsingHeader("Preview", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		const size_t emitterCount = currentEffect_->GetEmitterCount();
+
+		//===== 一括制御ボタン行 =====//
+		// Play All: 全エミッターをRestart → エフェクトをPlay
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
+		if (ImGui::Button("Play All"))
+		{
+			for (size_t i = 0; i < emitterCount; ++i)
+			{
+				auto* emitter = currentEffect_->GetEmitter(i);
+				if (emitter) emitter->Restart();
+			}
+			currentEffect_->Play();
+			previewElapsed_ = 0.0f;
+		}
+		ImGui::PopStyleColor();
+
+		ImGui::SameLine();
+
+		// Stop All
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.2f, 0.2f, 1.0f));
+		if (ImGui::Button("Stop All"))
+		{
+			currentEffect_->Stop();
+			previewLooping_ = false;
+		}
+		ImGui::PopStyleColor();
+
+		ImGui::SameLine();
+
+		// Reset All: particles_もクリアして全エミッターを完全リセット → Play
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.4f, 0.1f, 1.0f));
+		if (ImGui::Button("Reset All"))
+		{
+			for (size_t i = 0; i < emitterCount; ++i)
+			{
+				auto* emitter = currentEffect_->GetEmitter(i);
+				if (emitter) emitter->Reset();
+			}
+			currentEffect_->Play();
+			previewElapsed_ = 0.0f;
+		}
+		ImGui::PopStyleColor();
+
+		//===== ループ設定 =====//
+		ImGui::Spacing();
+		ImGui::Checkbox("Loop Preview", &previewLooping_);
+		ImGui::SetItemTooltip("On: Play All を一定間隔で自動繰り返し");
+
+		if (previewLooping_)
+		{
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(120.0f);
+			ImGui::DragFloat("Interval (s)", &previewRepeatInterval_, 0.1f, 0.1f, 30.0f, "%.1f");
+
+			// 残り時間バー
+			float progress = (previewRepeatInterval_ > 0.0f)
+				? previewElapsed_ / previewRepeatInterval_
+				: 0.0f;
+			ImGui::ProgressBar(progress, ImVec2(-1, 6));
+		}
+
+		//===== エミッター一覧（パーティクル数表示）=====//
+		ImGui::Spacing();
+		ImGui::SeparatorText("Emitters");
+
+		// 総パーティクル数
+		uint32_t totalParticles = 0;
+		for (size_t i = 0; i < emitterCount; ++i)
+		{
+			const auto* emitter = currentEffect_->GetEmitter(i);
+			if (emitter) totalParticles += static_cast<uint32_t>(emitter->GetParticles().size());
+		}
+		ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.5f, 1.0f), "Total Particles: %u", totalParticles);
+
+		// エミッターごとの行
+		ImGui::BeginChild("PreviewEmitterList", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Borders);
+		for (size_t i = 0; i < emitterCount; ++i)
+		{
+			auto* emitter = currentEffect_->GetEmitter(i);
+			if (!emitter) continue;
+
+			ImGui::PushID(static_cast<int>(i) + 5000);
+
+			// Emitting中か否かで色を変える
+			bool isEmitting = emitter->IsEmitting();
+			ImVec4 statusColor = isEmitting
+				? ImVec4(0.4f, 1.0f, 0.4f, 1.0f)
+				: ImVec4(1.0f, 0.4f, 0.4f, 1.0f);
+
+			ImGui::TextColored(statusColor, isEmitting ? "[ON] " : "[--] ");
+			ImGui::SameLine();
+			ImGui::Text("%-20s", emitter->GetName().c_str());
+			ImGui::SameLine();
+			ImGui::TextDisabled("Particles: %d", static_cast<int>(emitter->GetParticles().size()));
+
+			// 行の右端にRestart/Stopボタン
+			ImGui::SameLine(ImGui::GetWindowWidth() - 100.0f);
+			if (ImGui::SmallButton("Restart"))
+			{
+				emitter->Restart();
+				if (!currentEffect_->IsPlaying()) currentEffect_->Play();
+				previewElapsed_ = 0.0f;
+			}
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Stop"))
+			{
+				emitter->Stop();
+			}
+
+			ImGui::PopID();
+		}
+
+		if (emitterCount == 0)
+		{
+			ImGui::TextDisabled("  (No emitters)");
+		}
+
+		ImGui::EndChild();
 	}
 }
 
@@ -1167,10 +1311,10 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 	}
 	else if (auto* m = dynamic_cast<InitialRotationModule*>(module))
 	{
-		float minAngle = m->GetMinAngle();
-		float maxAngle = m->GetMaxAngle();
-		if (ImGui::DragFloat("Min Angle", &minAngle, 1.0f, 0.0f, 360.0f)) { m->SetRotationRange(minAngle, maxAngle); }
-		if (ImGui::DragFloat("Max Angle", &maxAngle, 1.0f, 0.0f, 360.0f)) { m->SetRotationRange(minAngle, maxAngle); }
+		Vector3 minAngle = m->GetMinAngle();
+		Vector3 maxAngle = m->GetMaxAngle();
+		if (ImGui::DragFloat3("Min Angle", &minAngle.x, 1.0f, 0.0f, 360.0f)) { m->SetRotationRange(minAngle, maxAngle); }
+		if (ImGui::DragFloat3("Max Angle", &maxAngle.x, 1.0f, 0.0f, 360.0f)) { m->SetRotationRange(minAngle, maxAngle); }
 	}
 	else if (auto* m = dynamic_cast<RotationOverLifetimeModule*>(module))
 	{
@@ -1968,7 +2112,6 @@ void ParticleEditor::DrawRendererPanel()
 	}
 }
 
-void ParticleEditor::DrawPreviewPanel() { /* Integrated into main view */ }
 void ParticleEditor::DrawCurveEditor() { /* TODO: Advanced curve editing */ }
 void ParticleEditor::DrawGradientEditor() { /* TODO: Gradient color editing */ }
 

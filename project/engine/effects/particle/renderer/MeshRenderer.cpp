@@ -213,17 +213,16 @@ void MeshRenderer::Update(const std::vector<Particle>& particles, CameraManager*
 			particle.scale.z * baseScale_
 		});
 
+		Matrix4x4 localRotMatrix = MakeRotateMatrix(particle.rotation);
 		Matrix4x4 rotateMatrix;
 		if (useBillboard_)
 		{
-			// ビルボード回転を使用
-			rotateMatrix = billboardMatrix;
+			// パーティクルのローカル回転を適用してからビルボード回転
+			rotateMatrix = Multiply(localRotMatrix, billboardMatrix);
 		}
 		else
 		{
-			// クォータニオンから回転行列を作成
-			Quaternion q(particle.rotation.x, particle.rotation.y, particle.rotation.z, particle.rotation.w);
-			rotateMatrix = q.ToMatrix();
+			rotateMatrix = localRotMatrix;
 		}
 
 		Matrix4x4 translateMatrix = MakeTranslateMatrix(particle.position);

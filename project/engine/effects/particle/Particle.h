@@ -24,7 +24,8 @@ struct alignas(16) Particle
 	float pad2 = 0.0f;           // アライメント (4 bytes)
 
 	//===== Rotation (16 bytes) =====//
-	Vector4 rotation = { 0, 0, 0, 1 }; // クォータニオン (XYZW)
+	Vector3 rotation = {};       // オイラー角 (XYZ) (12 bytes)
+	float padRot = 0.0f;         // アライメント (4 bytes)
 
 	//===== Appearance (16 bytes) =====//
 	Vector4 color = { 1, 1, 1, 1 }; // カラー (RGBA)

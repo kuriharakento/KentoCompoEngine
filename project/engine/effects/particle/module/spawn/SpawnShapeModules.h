@@ -265,7 +265,7 @@ private:
 class InitialRotationModule : public IModule
 {
 public:
-	InitialRotationModule(float minAngle = 0, float maxAngle = 360)
+	InitialRotationModule(const Vector3& minAngle = {}, const Vector3& maxAngle = { 360.0f, 360.0f, 360.0f })
 		: minAngle_(minAngle), maxAngle_(maxAngle) {}
 
 	void Execute(ParticleContext& context) override
@@ -274,16 +274,13 @@ public:
 		{
 			if (particle.age == 0.0f && particle.IsAlive())
 			{
-				// Z軸まわりのランダム回転
-				float angleDeg = MathUtils::RandomFloat(minAngle_, maxAngle_);
-				float angleRad = angleDeg * (std::numbers::pi_v<float> / 180.0f);
-				float halfAngle = angleRad * 0.5f;
+				// XYZ各軸まわりのランダム回転（度からラジアンへ変換）
+				Vector3 angleDeg = MathUtils::RandomVector3(minAngle_, maxAngle_);
 				
-				// クォータニオン (0, 0, sin(a/2), cos(a/2)) for Z-axis rotation
-				particle.rotation.x = 0.0f;
-				particle.rotation.y = 0.0f;
-				particle.rotation.z = std::sin(halfAngle);
-				particle.rotation.w = std::cos(halfAngle);
+				// オイラー角 (XYZ)
+				particle.rotation.x = angleDeg.x * (std::numbers::pi_v<float> / 180.0f);
+				particle.rotation.y = angleDeg.y * (std::numbers::pi_v<float> / 180.0f);
+				particle.rotation.z = angleDeg.z * (std::numbers::pi_v<float> / 180.0f);
 			}
 		}
 	}
@@ -292,11 +289,11 @@ public:
 	const char* GetName() const override { return "InitialRotation"; }
 	int32_t GetPriority() const override { return 35; }
 
-	void SetRotationRange(float min, float max) { minAngle_ = min; maxAngle_ = max; }
-	float GetMinAngle() const { return minAngle_; }
-	float GetMaxAngle() const { return maxAngle_; }
+	void SetRotationRange(const Vector3& min, const Vector3& max) { minAngle_ = min; maxAngle_ = max; }
+	Vector3 GetMinAngle() const { return minAngle_; }
+	Vector3 GetMaxAngle() const { return maxAngle_; }
 
 private:
-	float minAngle_ = 0.0f;
-	float maxAngle_ = 360.0f;
+	Vector3 minAngle_ = {};
+	Vector3 maxAngle_ = { 360.0f, 360.0f, 360.0f };
 };

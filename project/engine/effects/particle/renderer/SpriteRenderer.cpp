@@ -162,9 +162,10 @@ void SpriteRenderer::SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count)
 void SpriteRenderer::UpdateInstanceData(const Particle& particle, const Matrix4x4& billboardMatrix, CameraManager* camera)
 {
 	Matrix4x4 scaleMatrix = MakeScaleMatrix(particle.scale);
+	Matrix4x4 rotZMatrix = MakeRotateZMatrix(particle.rotation.z);
 	Matrix4x4 translateMatrix = MakeTranslateMatrix(particle.position);
 
-	Matrix4x4 worldMatrix = scaleMatrix;
+	Matrix4x4 worldMatrix = scaleMatrix * rotZMatrix;
 	if (isBillboard_)
 	{
 		worldMatrix = worldMatrix * billboardMatrix;

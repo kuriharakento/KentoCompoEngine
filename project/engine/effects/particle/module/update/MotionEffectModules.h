@@ -359,18 +359,9 @@ public:
 			if (maxSpeed_ > 0.0f && speed > maxSpeed_) rotationSpeed = maxSpeed_ * rotationPerSpeed_;
 
 			float angleRad = rotationSpeed * context.deltaTime * (std::numbers::pi_v<float> / 180.0f);
-			float halfAngle = angleRad * 0.5f;
-			float sinHalf = std::sin(halfAngle);
-			float cosHalf = std::cos(halfAngle);
 
-			// Z軸回転のクォータニオン
-			Vector4 rotQ = { 0, 0, sinHalf, cosHalf };
-			Vector4 current = particle.rotation;
-
-			particle.rotation.x = rotQ.w * current.x + rotQ.x * current.w + rotQ.y * current.z - rotQ.z * current.y;
-			particle.rotation.y = rotQ.w * current.y - rotQ.x * current.z + rotQ.y * current.w + rotQ.z * current.x;
-			particle.rotation.z = rotQ.w * current.z + rotQ.x * current.y - rotQ.y * current.x + rotQ.z * current.w;
-			particle.rotation.w = rotQ.w * current.w - rotQ.x * current.x - rotQ.y * current.y - rotQ.z * current.z;
+			// オイラー角（Z軸）に加算
+			particle.rotation.z += angleRad;
 		}
 	}
 

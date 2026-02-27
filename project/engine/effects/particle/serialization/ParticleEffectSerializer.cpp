@@ -555,9 +555,32 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 			else if (type == "InitialRotation")
 			{
 				auto m = std::make_unique<InitialRotationModule>();
-				float minAngle = moduleData.value("minAngle", 0.0f);
-				float maxAngle = moduleData.value("maxAngle", 360.0f);
-				m->SetRotationRange(minAngle, maxAngle);
+				Vector3 minAng = {0, 0, 0};
+				Vector3 maxAng = {360.0f, 360.0f, 360.0f};
+
+				if (moduleData.contains("minAngle_v3"))
+				{
+					minAng.x = moduleData["minAngle_v3"].value("x", 0.0f);
+					minAng.y = moduleData["minAngle_v3"].value("y", 0.0f);
+					minAng.z = moduleData["minAngle_v3"].value("z", 0.0f);
+				}
+				else if (moduleData.contains("minAngle"))
+				{ // 互換性
+					minAng.z = moduleData.value("minAngle", 0.0f);
+				}
+
+				if (moduleData.contains("maxAngle_v3"))
+				{
+					maxAng.x = moduleData["maxAngle_v3"].value("x", 360.0f);
+					maxAng.y = moduleData["maxAngle_v3"].value("y", 360.0f);
+					maxAng.z = moduleData["maxAngle_v3"].value("z", 360.0f);
+				}
+				else if (moduleData.contains("maxAngle"))
+				{ // 互換性
+					maxAng.z = moduleData.value("maxAngle", 360.0f);
+				}
+
+				m->SetRotationRange(minAng, maxAng);
 				emitter->AddModule(std::move(m));
 			}
 			else if (type == "RibbonInterpolation")
@@ -1020,8 +1043,14 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 		// SpawnShapeModules - InitialRotation
 		else if (auto* m = dynamic_cast<const InitialRotationModule*>(module))
 		{
-			moduleData["minAngle"] = m->GetMinAngle();
-			moduleData["maxAngle"] = m->GetMaxAngle();
+			Vector3 minAng = m->GetMinAngle();
+			Vector3 maxAng = m->GetMaxAngle();
+			moduleData["minAngle_v3"] = {{"x", minAng.x}, {"y", minAng.y}, {"z", minAng.z}};
+			moduleData["maxAngle_v3"] = {{"x", maxAng.x}, {"y", maxAng.y}, {"z", maxAng.z}};
+			
+			// 後方互換性のためZ成分だけを古いキーにも保存（オプション）
+			moduleData["minAngle"] = minAng.z;
+			moduleData["maxAngle"] = maxAng.z;
 		}
 		else if (auto* m = dynamic_cast<const RibbonInterpolationModule*>(module))
 		{
