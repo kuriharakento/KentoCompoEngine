@@ -116,9 +116,10 @@ void ParticleEffect::Stop()
 
 void ParticleEffect::Reset()
 {
+	// パーティクルは残したまま、エミッターのライフサイクル状態だけリセット
 	for (auto& emitter : emitters_)
 	{
-		emitter->GetParticles().clear();
+		emitter->Restart();
 	}
 	isPlaying_ = false;
 }

@@ -86,6 +86,13 @@ public:
 	void Pause();
 	void Resume();
 	void Reset();
+	/**
+	 * @brief エミッター状態を再スタート（パーティクルは消さない）
+	 *
+	 * isEmitting_などのライフサイクル状態だけリセットして再度生成を開始する。
+	 * 既存パーティクルを残したまま追加生成したい場合に使う。
+	 */
+	void Restart();
 	void ClearParticles() { particles_.clear(); }
 
 	//===== ライフサイクル設定 =====//

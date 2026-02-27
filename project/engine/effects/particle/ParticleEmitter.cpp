@@ -148,6 +148,22 @@ void ParticleEmitter::Reset()
 	}
 }
 
+void ParticleEmitter::Restart()
+{
+	// particles_は残したまま、ライフサイクル状態だけ戻して再生成を開始
+	emitterAge_ = 0.0f;
+	currentLoopCount_ = 0;
+	isEmitting_ = true;
+	delayElapsed_ = false;
+	isPaused_ = false;
+
+	// モジュールの生成カウント等もリセット
+	for (auto& module : modules_)
+	{
+		module->Reset();
+	}
+}
+
 bool ParticleEmitter::IsComplete() const
 {
 	return !isEmitting_ && particles_.empty();

@@ -30,6 +30,9 @@ void GamePlayScene::Initialize()
 	Audio::GetInstance()->PlayWave("game_bgm", true);
 	Audio::GetInstance()->SetVolume("game_bgm", kBgmVolume);
 
+	// パーティクルの読み込み
+	ParticleManager::GetInstance()->Load("hit_effect", "./Resources/json/particle/hit_effect.json");
+
 	// ディレクショナルライトの調整（斜め下向き）
 	DirectionalLight dirLight = sceneManager_->GetLightManager()->GetDirectionalLight();
 	dirLight.direction = { -0.4f, -1.0f, 1.0f };  // 斜め下向き（モデル依存のため数式由来）
@@ -57,7 +60,6 @@ void GamePlayScene::Initialize()
 	ground_->SetEnableLighting(true);
 	constexpr float kGroundUVTile = 10.0f;  // 地面テクスチャのタイル繰り返し数
 	ground_->GetModel()->SetUVScale(Vector3(kGroundUVTile, kGroundUVTile, 1.0f));
-	//RegisterObject(ground_.get());
 
 	CollisionManager::GetInstance()->Initialize();
 

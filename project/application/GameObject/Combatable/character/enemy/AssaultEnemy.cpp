@@ -4,6 +4,7 @@
 #include "application/GameObject/component/action/AssaultRifleComponent.h"
 #include "application/GameObject/component/action/GravityPhysicsComponent.h"
 #include "engine/gameobject/component/collision/OBBColliderComponent.h"
+#include <effects/particle/ParticleManager.h>
 
 void AssaultEnemy::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, CameraManager* camera, LightManager* lightManager, GameObject* target, const Transform& initialTransform)
 {
@@ -34,7 +35,11 @@ void AssaultEnemy::CollisionSettings(ICollisionComponent* collider)
 			auto combatable = dynamic_cast<CombatableObject*>(other);
 			if (combatable)
 			{
+				// ダメージを受ける
 				TakeDamage(combatable->GetAttackPower());
+
+				// ダメージエフェクトを生成
+				ParticleManager::GetInstance()->Play("hit_effect", GetPosition());
 			}
 		}
 						 });

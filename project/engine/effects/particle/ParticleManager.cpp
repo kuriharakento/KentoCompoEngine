@@ -213,6 +213,8 @@ ParticleEffect* ParticleManager::Load(const std::string& name, const std::string
 
 	effect->Initialize(name);
 	// Play()は呼ばない（非アクティブ状態で保持）
+	// 手動管理する場合は自動削除オフにするのが安全
+	effect->SetAutoRemove(false); 
 
 	ParticleEffect* ptr = effect.get();
 	effects_.push_back(std::move(effect));
@@ -230,6 +232,8 @@ ParticleEffect* ParticleManager::CreateEmpty(const std::string& name)
 	auto effect = std::make_unique<ParticleEffect>();
 	effect->Initialize(name);
 	// Play()は呼ばない（非アクティブ状態で保持）
+	// 手動管理する場合は自動削除オフにするのが安全
+	effect->SetAutoRemove(false);
 
 	ParticleEffect* ptr = effect.get();
 	effects_.push_back(std::move(effect));

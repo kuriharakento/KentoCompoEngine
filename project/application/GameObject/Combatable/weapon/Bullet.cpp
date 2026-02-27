@@ -8,7 +8,6 @@ void Bullet::Initialize(Object3dCommon* object3dCommon, LightManager* lightManag
 
 Transform* Bullet::GetTransform() const
 {
-	// GameObject の transform_ は protected なので直接アクセス可能
 	return const_cast<Transform*>(&transform_);
 }
 
