@@ -30,7 +30,7 @@ AssaultEnemyBehavior::AssaultEnemyBehavior(GameObject* target) : target_(target)
 	BuildBehaviorTree();
 }
 
-void AssaultEnemyBehavior::Init(GameObject* owner)
+void AssaultEnemyBehavior::Initialize(GameObject* owner)
 {
 	// 視線判定用オブジェクトを作成し、レイコライダーをアタッチ
 	sightRayObject_ = std::make_unique<GameObject>();
