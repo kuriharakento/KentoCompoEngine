@@ -66,9 +66,12 @@ namespace nodeUtils
             // 子ノードを再帰的に描画
             if (auto comp = dynamic_cast<const CompositeNode*>(node))
             {
-                for (const auto& child : comp->GetChildren())
+                if (auto children = comp->GetChildren())
                 {
-                    DrawBTNodeImGui(child.get());
+                    for (const auto& child : *children)
+                    {
+                        DrawBTNodeImGui(child.get());
+                    }
                 }
             }
             ImGui::TreePop();

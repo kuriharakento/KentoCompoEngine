@@ -12,6 +12,9 @@
 #include "application/gameObject/combatable/character/enemy/base/Node/ConditionNode.h"
 #include "application/gameObject/combatable/character/enemy/base/Node/SelectorNode.h"
 #include "application/gameObject/combatable/character/enemy/base/Node/SequenceNode.h"
+#include "application/gameObject/obstacle/ObstacleManager.h"
+#include "engine/gameobject/component/collision/OBBColliderComponent.h"
+#include "engine/gameobject/component/collision/AABBColliderComponent.h"
 
 // コンストラクタ：乱数生成器の初期化とビヘイビアツリーの構築
 AssaultEnemyBehavior::AssaultEnemyBehavior(GameObject* target) : target_(target)
@@ -34,6 +37,7 @@ void AssaultEnemyBehavior::Update(GameObject* owner)
 	strafeTimer_ += deltaTime;
 	positionCheckTimer_ += deltaTime;
 	combatStateTimer_ += deltaTime;
+	if (spawnTimer_ < kSpawnDuration) spawnTimer_ += deltaTime;
 
 	// 行動クールダウンを減少
 	if (actionCooldown_ > 0) actionCooldown_ -= deltaTime;
@@ -59,11 +63,16 @@ void AssaultEnemyBehavior::Update(GameObject* owner)
 	bb.Set<float>("ExtendedMinRange", extendedMinRange_);
 	bb.Set<float>("ExtendedMaxRange", extendedMaxRange_);
 	bb.Set<float>("DetectionRange", detectionRange_);
+	bb.Set<float>("SpawnTimer", spawnTimer_);
+	bb.Set<float>("SpawnDuration", kSpawnDuration);
 	bb.Set<int>("CurrentPatrolIndex", currentPatrolIndex_);
 	bb.Set<bool>("PatrolInitialized", patrolInitialized_);
 
 	// ビヘイビアツリーを実行
 	behaviorTree_->Tick();
+
+	// デバッグ表示
+	behaviorTree_->DrawDebugUI();
 }
 
 // 継続的なストレイフ行動
@@ -114,6 +123,20 @@ void AssaultEnemyBehavior::ContinuousStrafAction(GameObject* owner)
 void AssaultEnemyBehavior::BuildBehaviorTree()
 {
 	auto root = std::make_unique<SelectorNode>();
+
+	// 0. スポーン待機
+	root->AddChild(std::make_unique<ActionNode>(
+		"SpawnWarmup",
+		[this](Blackboard& bb) {
+			float currentSpawnTimer = bb.Get<float>("SpawnTimer");
+			float requiredDuration = bb.Get<float>("SpawnDuration");
+			if (currentSpawnTimer < requiredDuration) {
+				// 待機中は何もせず、最上位でイベントをブロックする
+				return NodeStatus::Running;
+			}
+			// 待機終了ならFailureを返してSelectorの次の行動へ移行させる
+			return NodeStatus::Failure;
+		}));
 
 	// 1. スタック検知で強制移動
 	auto stuckSeq = std::make_unique<SequenceNode>();
@@ -220,7 +243,21 @@ void AssaultEnemyBehavior::BuildBehaviorTree()
 	combatSeq->AddChild(std::move(combatSelector));
 	root->AddChild(std::move(combatSeq));
 
-	// 5. パトロール：ターゲットが見えていない場合
+	// 5. 回り込み（Flanking）：ターゲットは見えないが、攻撃範囲にはいる場合
+	auto flankSeq = std::make_unique<SequenceNode>();
+	flankSeq->AddChild(std::make_unique<ConditionNode>([this](Blackboard& bb) {
+		return !bb.Get<bool>("IsTargetVisible") && bb.Get<bool>("IsInAttackRange");
+	}));
+	flankSeq->AddChild(std::make_unique<ActionNode>(
+		"Flank",
+		[this](Blackboard& bb) {
+			auto owner = bb.Get<GameObject*>("Owner");
+			FlankAction(owner);
+			return NodeStatus::Running;
+		}));
+	root->AddChild(std::move(flankSeq));
+
+	// 6. パトロール：ターゲットが見えていない場合
 	auto patrolSeq = std::make_unique<SequenceNode>();
 	patrolSeq->AddChild(std::make_unique<ConditionNode>([this](Blackboard& bb) {
 		return !bb.Get<bool>("IsTargetVisible");
@@ -234,7 +271,7 @@ void AssaultEnemyBehavior::BuildBehaviorTree()
 		}));
 	root->AddChild(std::move(patrolSeq));
 
-	// 6. 待機行動（他の条件に該当しない場合）
+	// 7. 待機行動（他の条件に該当しない場合）
 	root->AddChild(std::make_unique<ActionNode>(
 		"Idle",
 		[this](Blackboard& bb) {
@@ -330,10 +367,55 @@ void AssaultEnemyBehavior::StrafeAction(GameObject* owner)
 	owner->SetPosition(owner->GetPosition() + strafeDirection_ * moveDistance);
 
 	// 攻撃範囲内なら射撃
-	if (IsInAttackRange(owner))
+	if (IsInAttackRange(owner) && IsTargetVisible(owner))
 	{
 		FireWeapon(owner);
 	}
+}
+
+// 回り込み行動
+void AssaultEnemyBehavior::FlankAction(GameObject* owner)
+{
+	if (!target_) return;
+
+	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
+
+	// フランキング状態の初期化
+	if (!isFlanking_)
+	{
+		isFlanking_ = true;
+		flankTimer_ = 0.0f;
+
+		// 左右どちらに回り込むかランダムに決定
+		std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
+		flankDirectionSign_ = (dist(rng_) > 0) ? 1.0f : -1.0f;
+	}
+
+	flankTimer_ += deltaTime;
+	if (flankTimer_ >= kFlankDuration)
+	{
+		// 規定時間経ったら一旦フランキングを終了し、再度評価する
+		isFlanking_ = false;
+		return;
+	}
+
+	// ターゲットへの方向ベクトル
+	Vector3 toTarget = target_->GetPosition() - owner->GetPosition();
+	toTarget.NormalizeSelf();
+
+	// ターゲットに対する横方向（右ベクトル）の計算
+	Vector3 right = Vector3(toTarget.z, 0.0f, -toTarget.x); // Y軸回転90度
+
+	// 決定した方向にストレイフ
+	Vector3 moveDir = right * flankDirectionSign_;
+	moveDir.NormalizeSelf();
+
+	// 移動実行（少し速めに）
+	float moveDistance = LimitMovementSpeed(moveSpeed_ * kFlankSpeedMultiplier, deltaTime);
+	owner->SetPosition(owner->GetPosition() + moveDir * moveDistance);
+
+	// ターゲットの方向を向く
+	AimAtTarget(owner);
 }
 
 // 後退行動
@@ -385,8 +467,16 @@ bool AssaultEnemyBehavior::IsTargetVisible(GameObject* owner)
 	Vector3 direction = targetPos - owner->GetPosition();
 	float distance = direction.Length();
 
-	// 検知範囲内にいるかどうかを返す
-	return (distance <= detectionRange_);
+	// 検知範囲外なら見えない
+	if (distance > detectionRange_) return false;
+
+	return true; // 視線遮蔽チェックは現状の構成では保留
+}
+
+// 障害物による視線遮断を確認する（レイキャスト代用）
+bool AssaultEnemyBehavior::CheckLineOfSight(GameObject* /*owner*/, const Vector3& /*targetPos*/)
+{
+	return true; // 視線が通っている
 }
 
 // 攻撃範囲内にいるか確認
