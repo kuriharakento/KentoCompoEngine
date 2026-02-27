@@ -22,9 +22,9 @@ public:
 
     void Reset() override;
 
-	const std::vector<std::unique_ptr<BTNode>>& GetChildren() const
+	const std::vector<std::unique_ptr<BTNode>>* GetChildren() const override
 	{
-		return children;
+		return &children;
 	}
 };
 

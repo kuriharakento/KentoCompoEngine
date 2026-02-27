@@ -2,5 +2,6 @@
 
 NodeStatus ConditionNode::Tick(Blackboard& blackboard)
 {
-	return condition(blackboard) ? NodeStatus::Success : NodeStatus::Failure;
+	lastStatus_ = condition(blackboard) ? NodeStatus::Success : NodeStatus::Failure;
+	return lastStatus_;
 }

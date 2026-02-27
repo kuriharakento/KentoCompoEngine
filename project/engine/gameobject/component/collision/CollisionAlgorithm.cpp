@@ -218,6 +218,188 @@ bool collisionAlgorithm::CheckSpherevsOBB3D(const SphereColliderComponent* a, co
 	return false;
 }
 
+// --- Ray 判定 ---
+
+bool collisionAlgorithm::CheckRayvsAABB3D(const RayColliderComponent* a, const AABBColliderComponent* b)
+{
+	const Ray& ray = a->GetRay();
+	const AABB& aabb = b->GetAABB();
+
+	// スラブ法 (Slab Method) でのレイとAABBの交差判定
+	float tmin = 0.0f;
+	float tmax = ray.length;
+
+	// 各軸(X, Y, Z)について処理
+	for (int i = 0; i < 3; ++i)
+	{
+		float invD, t0, t1;
+		if (i == 0)
+		{
+			if (std::abs(ray.direction.x) < 1e-6f)
+			{
+				if (ray.start.x < aabb.min_.x || ray.start.x > aabb.max_.x) return false;
+			}
+			else
+			{
+				invD = 1.0f / ray.direction.x;
+				t0 = (aabb.min_.x - ray.start.x) * invD;
+				t1 = (aabb.max_.x - ray.start.x) * invD;
+				if (invD < 0.0f) std::swap(t0, t1);
+				tmin = t0 > tmin ? t0 : tmin;
+				tmax = t1 < tmax ? t1 : tmax;
+				if (tmax <= tmin) return false;
+			}
+		}
+		else if (i == 1)
+		{
+			if (std::abs(ray.direction.y) < 1e-6f)
+			{
+				if (ray.start.y < aabb.min_.y || ray.start.y > aabb.max_.y) return false;
+			}
+			else
+			{
+				invD = 1.0f / ray.direction.y;
+				t0 = (aabb.min_.y - ray.start.y) * invD;
+				t1 = (aabb.max_.y - ray.start.y) * invD;
+				if (invD < 0.0f) std::swap(t0, t1);
+				tmin = t0 > tmin ? t0 : tmin;
+				tmax = t1 < tmax ? t1 : tmax;
+				if (tmax <= tmin) return false;
+			}
+		}
+		else
+		{
+			if (std::abs(ray.direction.z) < 1e-6f)
+			{
+				if (ray.start.z < aabb.min_.z || ray.start.z > aabb.max_.z) return false;
+			}
+			else
+			{
+				invD = 1.0f / ray.direction.z;
+				t0 = (aabb.min_.z - ray.start.z) * invD;
+				t1 = (aabb.max_.z - ray.start.z) * invD;
+				if (invD < 0.0f) std::swap(t0, t1);
+				tmin = t0 > tmin ? t0 : tmin;
+				tmax = t1 < tmax ? t1 : tmax;
+				if (tmax <= tmin) return false;
+			}
+		}
+	}
+	
+	if (tmin <= ray.length && tmax >= 0.0f)
+	{
+		Vector3 hitPos = ray.start + ray.direction * tmin;
+		ICollisionComponent* aNonConst = const_cast<RayColliderComponent*>(a);
+		ICollisionComponent* bNonConst = const_cast<AABBColliderComponent*>(b);
+		aNonConst->SetCollisionPosition(hitPos);
+		bNonConst->SetCollisionPosition(hitPos);
+		return true;
+	}
+	
+	return false;
+}
+
+bool collisionAlgorithm::CheckRayvsOBB3D(const RayColliderComponent* a, const OBBColliderComponent* b)
+{
+	const Ray& ray = a->GetRay();
+	const OBB& obb = b->GetOBB();
+
+	// レイをOBBのローカル空間に変換する
+	// OBBの中心からの相対位置
+	Vector3 localStart = ray.start - obb.center;
+	
+	// 回転行列の逆行列をかける
+	Matrix4x4 invRot = Inverse(obb.rotate);
+	Vector3 localRayStart = MathUtils::Transform(localStart, invRot);
+	Vector3 localRayDir = MathUtils::TransformNormal(ray.direction, invRot);
+	localRayDir.NormalizeSelf();
+
+	// 原点を中心とし、sizeを半値幅とするAABBとのスラブ法交差判定
+	float tmin = 0.0f;
+	float tmax = ray.length;
+	
+	auto slabTest = [&](float start, float dir, float size) -> bool
+	{
+		if (std::abs(dir) < 1e-6f)
+		{
+			if (start < -size || start > size) return false;
+		}
+		else
+		{
+			float invD = 1.0f / dir;
+			float t0 = (-size - start) * invD;
+			float t1 = (size - start) * invD;
+			if (invD < 0.0f) std::swap(t0, t1);
+			tmin = (std::max)(tmin, t0);
+			tmax = (std::min)(tmax, t1);
+			if (tmax < tmin) return false;
+		}
+		return true;
+	};
+
+	if (!slabTest(localRayStart.x, localRayDir.x, obb.size.x)) return false;
+	if (!slabTest(localRayStart.y, localRayDir.y, obb.size.y)) return false;
+	if (!slabTest(localRayStart.z, localRayDir.z, obb.size.z)) return false;
+
+	if (tmin <= ray.length && tmax >= 0.0f)
+	{
+		Vector3 hitPos = ray.start + ray.direction * tmin;
+		ICollisionComponent* aNonConst = const_cast<RayColliderComponent*>(a);
+		ICollisionComponent* bNonConst = const_cast<OBBColliderComponent*>(b);
+		aNonConst->SetCollisionPosition(hitPos);
+		bNonConst->SetCollisionPosition(hitPos);
+		return true;
+	}
+
+	return false;
+}
+
+bool collisionAlgorithm::CheckRayvsSphere3D(const RayColliderComponent* a, const SphereColliderComponent* b)
+{
+	const Ray& ray = a->GetRay();
+	const Sphere& sphere = b->GetSphere();
+
+	Vector3 m = ray.start - sphere.center;
+	float c = Vector3::Dot(m, m) - sphere.radius * sphere.radius;
+	
+	// すでにレイの始点が球の内部にある場合
+	if (c <= 0.0f)
+	{
+		Vector3 hitPos = ray.start;
+		ICollisionComponent* aNonConst = const_cast<RayColliderComponent*>(a);
+		ICollisionComponent* bNonConst = const_cast<SphereColliderComponent*>(b);
+		aNonConst->SetCollisionPosition(hitPos);
+		bNonConst->SetCollisionPosition(hitPos);
+		return true;
+	}
+	
+	float bDot = Vector3::Dot(m, ray.direction);
+	
+	// レイが球から遠ざかっている場合
+	if (bDot > 0.0f) return false;
+	
+	// 判別式
+	float disc = bDot * bDot - c;
+	
+	// 交差しない
+	if (disc < 0.0f) return false;
+	
+	float t = -bDot - std::sqrt(disc);
+	
+	// 衝突位置がレイの射程内か
+	if (t >= 0.0f && t <= ray.length)
+	{
+		Vector3 hitPos = ray.start + ray.direction * t;
+		ICollisionComponent* aNonConst = const_cast<RayColliderComponent*>(a);
+		ICollisionComponent* bNonConst = const_cast<SphereColliderComponent*>(b);
+		aNonConst->SetCollisionPosition(hitPos);
+		bNonConst->SetCollisionPosition(hitPos);
+		return true;
+	}
+	
+	return false;
+}
+
 // --- 3Dサブステップ判定 ---
 
 bool collisionAlgorithm::CheckAABBvsAABBSubstep3D(const AABBColliderComponent* a, const AABBColliderComponent* b)

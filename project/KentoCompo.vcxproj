@@ -122,6 +122,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\gameObject\combatable\character\enemy\base\Node\BehaviorTree\BehaviorTree.cpp" />
     <ClCompile Include="application\gameObject\combatable\character\enemy\base\Node\BlackBoard.cpp" />
     <ClCompile Include="engine\gameobject\component\collision\SphereColliderComponent.cpp" />
+    <ClCompile Include="engine\gameobject\component\collision\RayColliderComponent.cpp" />
     <ClCompile Include="application\resources\LoadGameResources.cpp" />
     <ClCompile Include="application\stage\Area.cpp" />
     <ClCompile Include="application\stage\AreaManager.cpp" />
@@ -291,6 +292,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\gameObject\combatable\character\enemy\base\Node\BlackBoard.h" />
     <ClInclude Include="application\gameObject\combatable\base\CombatableObject.h" />
     <ClInclude Include="engine\gameobject\component\collision\SphereColliderComponent.h" />
+    <ClInclude Include="engine\gameobject\component\collision\RayColliderComponent.h" />
     <ClInclude Include="application\scene\play\GamePlayScene.h" />
     <ClInclude Include="application\stage\Area.h" />
     <ClInclude Include="application\stage\AreaInfo.h" />

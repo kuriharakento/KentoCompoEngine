@@ -8,16 +8,19 @@ NodeStatus SequenceNode::Tick(Blackboard& blackboard)
         if (status == NodeStatus::Failure)
         {
             Reset();
-            return NodeStatus::Failure;
+            lastStatus_ = NodeStatus::Failure;
+            return lastStatus_;
         }
         if (status == NodeStatus::Running)
         {
-            return NodeStatus::Running;
+            lastStatus_ = NodeStatus::Running;
+            return lastStatus_;
         }
         // Successなら次のノードへ
         ++currentIndex;
     }
     // 全てSuccess
     Reset();
-    return NodeStatus::Success;
+    lastStatus_ = NodeStatus::Success;
+    return lastStatus_;
 }

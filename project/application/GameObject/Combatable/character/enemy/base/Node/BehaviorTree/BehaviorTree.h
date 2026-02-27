@@ -22,6 +22,8 @@ public:
 
     void Reset();
 
+    void DrawDebugUI();
+
 	Blackboard& GetBlackboard() { return blackboard; }
 
     BTNode* GetRoot() { return root.get(); }

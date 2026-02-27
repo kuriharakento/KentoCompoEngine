@@ -1,4 +1,7 @@
 #pragma once
+#include <string>
+#include <memory>
+#include <vector>
 #include "BlackBoard.h"
 
 // ノードのステータスを表す
@@ -15,6 +18,9 @@ public:
     virtual void Reset() {} // 状態のリセットなどに使用
 	virtual const  std::string& GetNodeName() const { return nodeName_; } // ノード名の取得
 	NodeStatus GetLastStatus() const { return lastStatus_; } // 最後の実行結果の取得
+
+	// デバッグUI等で子ノードを再帰的に取得するためのインターフェース
+	virtual const std::vector<std::unique_ptr<BTNode>>* GetChildren() const { return nullptr; }
 
 protected:
 	std::string nodeName_ = "BTNode"; // ノードの名前

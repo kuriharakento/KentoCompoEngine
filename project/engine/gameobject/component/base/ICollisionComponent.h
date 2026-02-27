@@ -14,6 +14,7 @@ enum class ColliderType
 	AABB,	// 軸平行境界ボックス
 	Sphere,	// 球
 	OBB,	// 方向付き境界ボックス
+	Ray,	// レイ（半直線）
 };
 
 /**

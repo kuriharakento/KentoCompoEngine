@@ -16,7 +16,7 @@ namespace nodeUtils
 	 * @param status 変換するノードの状態
 	 * @return 状態を表す文字列
 	 */
-	const std::string NodeStatusToString(NodeStatus status)
+	inline const std::string NodeStatusToString(NodeStatus status)
 	{
 		switch (status)
 		{
@@ -39,7 +39,7 @@ namespace nodeUtils
 	 * 
 	 * @param node 描画するノード
 	 */
-    void DrawBTNodeImGui(const BTNode* node)
+    inline void DrawBTNodeImGui(const BTNode* node)
     {
         if (!node) return;
 
@@ -66,9 +66,12 @@ namespace nodeUtils
             // 子ノードを再帰的に描画
             if (auto comp = dynamic_cast<const CompositeNode*>(node))
             {
-                for (const auto& child : comp->GetChildren())
+                if (auto children = comp->GetChildren())
                 {
-                    DrawBTNodeImGui(child.get());
+                    for (const auto& child : *children)
+                    {
+                        DrawBTNodeImGui(child.get());
+                    }
                 }
             }
             ImGui::TreePop();

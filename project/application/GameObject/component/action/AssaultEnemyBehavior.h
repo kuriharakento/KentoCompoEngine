@@ -2,12 +2,16 @@
 #include "math/Vector3.h"
 #include <vector>
 #include <memory>
-#include <random>
+#include <string> // Added
+#include <random> // Keep this, as rng_ is still present and used. The instruction snippet removed it, but it's likely an oversight given the presence of `rng_`.
+
+class GameObject;
+class RayColliderComponent; // Added, assuming this was the intent of `RayColliderComponent;dom>`
+#include "engine/gameobject/component/collision/RayColliderComponent.h" // Added for RayColliderComponent definition
 
 #include "application/gameObject/combatable/character/enemy/base/Node/BehaviorTree/BehaviorTree.h"
 #include "engine/gameobject/component/base/IActionComponent.h"
-
-class GameObject;
+#include "engine/gameobject/component/collision/CollisionAlgorithm.h"
 
 /**
  * @brief アサルトライフルを持つ敵のAI行動コンポーネント
@@ -22,12 +26,19 @@ public:
      * @param target 追跡対象のゲームオブジェクト
      */
     AssaultEnemyBehavior(GameObject* target);
+    ~AssaultEnemyBehavior() = default; // Added
 
     /**
-     * @brief フレームごとの更新処理
-     * @param owner このコンポーネントを所有するゲームオブジェクト
+     * @brief 初期化処理
+     * @param owner このコンポーネントをアタッチした GameObject
      */
-    void Update(GameObject* owner) override;
+    void Init(GameObject* owner); // Added
+
+    /**
+     * @brief 毎フレームの更新処理
+     * @param owner このコンポーネントをアタッチした GameObject
+     */
+    void Update(GameObject* owner) override; // Corrected typo from instruction
 
     /**
      * @brief ターゲットを設定する
@@ -75,6 +86,9 @@ private:
     static constexpr float kStuckMovementThreshold = 0.01f;
     static constexpr float kDistanceFactorAdjustment = 0.3f;
     static constexpr int kPatrolPointCount = 8;
+    static constexpr float kSpawnDuration = 2.0f; // スポーン後の待機時間
+    static constexpr float kFlankDuration = 4.0f; // 回り込み継続時間
+    static constexpr float kFlankSpeedMultiplier = 1.0f; // 回り込み速度係数
 
     // ターゲットに照準を合わせる
     void AimAtTarget(GameObject* owner);
@@ -82,6 +96,8 @@ private:
     void FireWeapon(GameObject* owner);
     // ターゲットが視界内にいるか確認
     bool IsTargetVisible(GameObject* owner);
+    // 障害物による視線遮断を確認する（レイキャスト代用）
+    bool CheckLineOfSight(GameObject* owner, const Vector3& targetPos);
     // 攻撃範囲内にいるか確認
     bool IsInAttackRange(GameObject* owner);
     // 拡張攻撃範囲内にいるか確認
@@ -110,6 +126,8 @@ private:
     void StrafeAction(GameObject* owner);
     // 後退行動
     void RetreatAction(GameObject* owner);
+    // 回り込み行動
+    void FlankAction(GameObject* owner);
 
     // 追跡対象
     GameObject* target_ = nullptr;
@@ -164,6 +182,8 @@ private:
     float actionCooldown_ = 0.0f;
     // 位置確認タイマー
     float positionCheckTimer_ = 0.0f;
+    // スポーン待機タイマー
+    float spawnTimer_ = 0.0f;
 
     // 最後の位置（スタック検出用）
     Vector3 lastPosition_;
@@ -183,6 +203,12 @@ private:
     // 戦闘状態タイマー
     float combatStateTimer_ = 0.0f;
 
+    // 回り込み（Flanking）管理
+    bool isFlanking_ = false;
+    float flankTimer_ = 0.0f;
+    // -1 (左) or 1 (右)
+    float flankDirectionSign_ = 1.0f; 
+
     // 継続的なストレイフ行動
     void ContinuousStrafAction(GameObject* owner);
 
@@ -194,4 +220,10 @@ private:
 
     // ビヘイビアツリーを構築
     void BuildBehaviorTree();
+	// 視線遮断フラグ（RayColliderのコールバックで更新）
+	bool isSightBlocked_ = false;
+
+	// レイ判定用オブジェクト
+	std::unique_ptr<GameObject> sightRayObject_;
+	RayColliderComponent* rayCollider_ = nullptr;
 };

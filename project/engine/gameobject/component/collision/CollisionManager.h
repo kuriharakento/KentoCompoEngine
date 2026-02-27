@@ -114,6 +114,12 @@ public:
 	 */
 	void SetCollisionPlane(CollisionPlane plane) { collisionPlane_ = plane; }
 
+	/**
+	 * @brief 登録されている全てのコライダーを取得（読み取り専用）
+	 * @return コライダーのリスト
+	 */
+	const std::vector<ICollisionComponent*>& GetColliders() const { return colliders_; }
+
 private:
 	// シングルトンインスタンス
 	static std::unique_ptr<CollisionManager> instance_;
