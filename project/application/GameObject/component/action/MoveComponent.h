@@ -6,6 +6,18 @@
 class EnemyManager;
 class GameObject;
 class Camera;
+class PostProcessManager;
+class Player;
+
+/**
+ * @brief エフェクトのイージング種類
+ */
+enum class EffectEasingType {
+    EaseOutQuad,
+    EaseInOutSine,
+    EaseOutExpo,
+    EaseOutBack
+};
 
 /**
  * @brief プレイヤーの移動と回避を制御するコンポーネント
@@ -19,8 +31,9 @@ public:
      * @brief コンストラクタ
      * @param enemyManager 敵マネージャー（バレットタイム判定用）
      * @param camera カメラマネージャー
+     * @param postProcessManager ポストプロセスマネージャー（グレースケール用）
      */
-    MoveComponent(EnemyManager* enemyManager, CameraManager* camera);
+    MoveComponent(EnemyManager* enemyManager, CameraManager* camera, PostProcessManager* postProcessManager = nullptr);
 
     /**
      * @brief フレームごとの更新処理
@@ -94,6 +107,24 @@ public:
      */
     float GetDodgeProgress() const;
 
+    /**
+     * @brief バレットタイム中かどうかを取得する
+     * @return バレットタイム中ならtrue
+     */
+    bool IsInBulletTime() const { return isInBulletTime_; }
+
+    /**
+     * @brief バレットタイムのクールダウン中かどうかを取得する
+     * @return クールダウン中ならtrue
+     */
+    bool IsBulletTimeCoolingDown() const;
+
+    /**
+     * @brief バレットタイムクールダウンの進行度を取得する
+     * @return 進行度（0.0〜1.0）
+     */
+    float GetBulletTimeCooldownProgress() const;
+
 private:
     // 定数
     // デフォルト回転補間速度
@@ -113,7 +144,7 @@ private:
     // バレットタイム範囲
     static constexpr float kBulletTimeRadius = 5.0f;
     // バレットタイムのスローモーション倍率
-    static constexpr float kBulletTimeScale = 0.3f;
+    static constexpr float kBulletTimeScale = 0.2f;
     // バレットタイムの持続時間
     static constexpr float kBulletTimeDuration = 3.0f;
     // バレットタイムのクールダウン時間
@@ -147,13 +178,21 @@ private:
     // バレットタイム処理
     void ProcessBulletTime(GameObject* owner);
     // バレットタイム発動
-    void ActivateBulletTime();
+    void ActivateBulletTime(GameObject* owner);
+    // バレットタイム中のバフを付与
+    void ApplyBulletTimeBuffs();
+    // バレットタイム中のバフを解除
+    void RemoveBulletTimeBuffs();
 
 private:
     // 敵マネージャー
     EnemyManager* enemyManager_ = nullptr;
     // カメラ
     Camera* camera_ = nullptr;
+    // ポストプロセスマネージャー
+    PostProcessManager* postProcessManager_ = nullptr;
+    // バレットタイムバフ付与のためのプレイヤー参照（所有しない）
+    Player* player_ = nullptr;
 
     // 移動速度
     float moveSpeed_ = 0.0f;
@@ -199,9 +238,21 @@ private:
     float bulletTimeDuration_ = kBulletTimeDuration;
     // バレットタイムのクールダウン時間
     float bulletTimeCooldown_ = kBulletTimeCooldown;
+	//　射撃レートバフの倍率
+	float fireRateBuff_ = 0.2f;
+	// 移動速度バフの倍率
+	float moveSpeedBuff_ = 0.8f;
 
     // エフェクトタイマー
     float effectTimer_ = 0.0f;
+    // エフェクトの強度（0.0f = オフ, 1.0f = オン）
+    float effectIntensity_ = 0.0f;
+    // エフェクト移行の進行度（0.0f ～ 1.0f）
+    float effectTransitionProgress_ = 0.0f;
+    // エフェクト移行にかける時間（秒）
+    float effectTransitionDuration_ = 0.2f;
+    // 選択中のイージング関数
+    EffectEasingType effectEasingType_ = EffectEasingType::EaseOutQuad;
     // 残像間隔
     float effectInterval_ = kEffectInterval;
 

@@ -19,17 +19,26 @@ void BulletComponent::Initialize(const Vector3& direction, float speed, float li
 	timeAlive_ = 0.0f;
 }
 
-// フレームごとの更新処理
 void BulletComponent::Update(GameObject* owner)
 {
+	float delta = 0.0f;
+	if (ignoreTimeScale_)
+	{
+		delta = TimeManager::GetInstance().GetGameContext().realDeltaTime;
+	}
+	else
+	{
+		delta = TimeManager::GetInstance().GetGameContext().deltaTime;
+	}
+
 	// 経過時間を更新
-	timeAlive_ += TimeManager::GetInstance().GetGameContext().deltaTime;
+	timeAlive_ += delta;
 
 	// Bullet型にダイナミックキャスト
 	auto bullet = dynamic_cast<Bullet*>(owner);
 
 	// 弾の移動処理
-	owner->SetPosition(owner->GetPosition() + direction_ * speed_ * TimeManager::GetInstance().GetGameContext().deltaTime);
+	owner->SetPosition(owner->GetPosition() + direction_ * speed_ * delta);
 
 	// ライフタイムを超えたら弾を非アクティブ化
 	if (timeAlive_ >= lifetime_)

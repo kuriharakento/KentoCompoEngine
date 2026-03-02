@@ -4,18 +4,23 @@
 #include "application/GameObject/Combatable/character/player/Player.h"
 #include "application/GameObject/component/action/StatusComponent.h"
 #include "application/GameObject/component/action/IWeaponComponent.h"
+#include "application/GameObject/component/action/MoveComponent.h"
+#include "math/VectorColorCodes.h"
 
 // HP残量の閾値
 constexpr float kHpThresholdHigh = 0.5f;
 constexpr float kHpThresholdLow = 0.25f;
 
 // 体力バーの色
-const Vector4 kHealthColorHigh = { 0.2f, 0.8f, 0.2f, 1.0f };    // 緑
-const Vector4 kHealthColorMedium = { 1.0f, 0.8f, 0.0f, 1.0f };  // 黄
-const Vector4 kHealthColorLow = { 1.0f, 0.2f, 0.2f, 1.0f };     // 赤
+const Vector4 kHealthColorHigh = VectorColorCodes::Green;       // 緑
+const Vector4 kHealthColorMedium = VectorColorCodes::Yellow;    // 黄
+const Vector4 kHealthColorLow = VectorColorCodes::Red;          // 赤
 
 // リロードバーの色
-const Vector4 kReloadBarColor = { 1.0f, 0.8f, 0.0f, 1.0f };     // 黄
+const Vector4 kReloadBarColor = VectorColorCodes::Yellow;       // 黄
+
+// バレットタイムバーの色
+const Vector4 kBulletTimeBarColor = VectorColorCodes::SkyBlue;  // 水色
 
 PlayerUIComponent::PlayerUIComponent(SpriteCommon* spriteCommon)
     : spriteCommon_(spriteCommon)
@@ -74,6 +79,25 @@ void PlayerUIComponent::InitializeUI()
     reloadBarFill_->SetInteractable(false);
     reloadBarFill_->SetColor(kReloadBarColor);
     reloadBarFill_->SetVisible(false);
+
+    // バレットタイムバー背景
+    bulletTimeBarBg_ = std::make_unique<GameUI>();
+    bulletTimeBarBg_->Initialize(spriteCommon_, "./Resources/uvChecker.png");
+    bulletTimeBarBg_->SetScreenPosition({ kBulletTimePosX, kBulletTimePosY });
+    bulletTimeBarBg_->SetSize({ kBulletTimeBarWidth, kBulletTimeBarHeight });
+    bulletTimeBarBg_->SetAnchorPoint({ 0.5f, 0.5f });
+    bulletTimeBarBg_->SetInteractable(false);
+    bulletTimeBarBg_->SetVisible(false);
+    
+    // バレットタイムバー
+    bulletTimeBarFill_ = std::make_unique<GameUI>();
+    bulletTimeBarFill_->Initialize(spriteCommon_, "./Resources/uvChecker.png");
+    bulletTimeBarFill_->SetScreenPosition({ kBulletTimePosX - kBulletTimeBarWidth * 0.5f, kBulletTimePosY });
+    bulletTimeBarFill_->SetSize({ 0.0f, kBulletTimeBarHeight });
+    bulletTimeBarFill_->SetAnchorPoint({ 0.0f, 0.5f });
+    bulletTimeBarFill_->SetInteractable(false);
+    bulletTimeBarFill_->SetColor(kBulletTimeBarColor);
+    bulletTimeBarFill_->SetVisible(false);
 }
 
 void PlayerUIComponent::CacheComponents(GameObject* owner)
@@ -98,6 +122,7 @@ void PlayerUIComponent::Update(GameObject* owner)
     UpdateHealthBar();
     UpdateAmmoDisplay(currentWeapon);
     UpdateReloadIndicator(currentWeapon);
+    UpdateBulletTimeIndicator(owner);
 
     // 各UI要素の更新
     if (isHealthBarVisible_)
@@ -116,6 +141,12 @@ void PlayerUIComponent::Update(GameObject* owner)
     {
         reloadBarBg_->Update();
         reloadBarFill_->Update();
+    }
+
+    if (isBulletTimeBarVisible_)
+    {
+        bulletTimeBarBg_->Update();
+        bulletTimeBarFill_->Update();
     }
 }
 
@@ -143,6 +174,13 @@ void PlayerUIComponent::Draw2D()
     {
         reloadBarBg_->Draw();
         reloadBarFill_->Draw();
+    }
+
+    // バレットタイムインジケーター
+    if (isBulletTimeBarVisible_)
+    {
+        bulletTimeBarBg_->Draw();
+        bulletTimeBarFill_->Draw();
     }
 }
 
@@ -206,9 +244,34 @@ void PlayerUIComponent::UpdateReloadIndicator(IWeaponComponent* weapon)
     }
 }
 
+void PlayerUIComponent::UpdateBulletTimeIndicator(GameObject* owner)
+{
+    auto moveComp = owner->GetComponent<MoveComponent>();
+    if (!moveComp)
+    {
+        bulletTimeBarBg_->SetVisible(false);
+        bulletTimeBarFill_->SetVisible(false);
+        return;
+    }
+
+    // リロード機能と同じ仕様にするため、クールダウン中のみ表示する
+    bool isCoolingDown = moveComp->IsBulletTimeCoolingDown();
+
+    bulletTimeBarBg_->SetVisible(isCoolingDown);
+    bulletTimeBarFill_->SetVisible(isCoolingDown);
+
+    if (isCoolingDown)
+    {
+        // 進行度を取得 (0.0 -> 1.0と増えていく)
+        float progress = moveComp->GetBulletTimeCooldownProgress();
+        bulletTimeBarFill_->SetSize({ kBulletTimeBarWidth * progress, kBulletTimeBarHeight });
+    }
+}
+
 void PlayerUIComponent::SetAllVisible(bool isVisible)
 {
     isHealthBarVisible_ = isVisible;
     isAmmoDisplayVisible_ = isVisible;
     isReloadIndicatorVisible_ = isVisible;
+    isBulletTimeBarVisible_ = isVisible;
 }

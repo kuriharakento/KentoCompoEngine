@@ -10,19 +10,22 @@
 #include "time/TimeManager.h"
 #include "application/GameObject/Combatable/character/enemy/EnemyManager.h"
 #include "application/GameObject/Combatable/character/player/Player.h"
+#include "application/GameObject/component/action/StatusComponent.h"
 #include "time/Timer.h"
 #include "time/TimerManager.h"
 #include "base/Camera.h"
 #include "base/WinApp.h"
-#include "input/Input.h"
+#include "engine/manager/effect/PostProcessManager.h"
 
 // コンストラクタ：マネージャーの初期化
-MoveComponent::MoveComponent(EnemyManager* enemyManager, CameraManager* camera)
+MoveComponent::MoveComponent(EnemyManager* enemyManager, CameraManager* camera, PostProcessManager* postProcessManager)
 {
     // 敵マネージャーのポインタを保存
     enemyManager_ = enemyManager;
 	// カメラのポインタを保存
 	camera_ = camera->GetActiveCamera();
+    // ポストプロセスマネージャーのポインタを保存
+    postProcessManager_ = postProcessManager;
 }
 
 // フレームごとの更新処理
@@ -44,9 +47,9 @@ void MoveComponent::Update(GameObject* owner)
 
     // デルタタイムを取得（プレイヤーはリアルタイム、それ以外はゲーム時間）
     float deltaTime = 0.0f;
-    auto player = dynamic_cast<Player*>(owner);
+    auto ownerAsPlayer = dynamic_cast<Player*>(owner);
 
-    if (player)
+    if (ownerAsPlayer)
     {
         deltaTime = TimeManager::GetInstance().GetGameContext().realDeltaTime;
     }
@@ -134,6 +137,53 @@ void MoveComponent::Update(GameObject* owner)
     // バレットタイム処理
     ProcessBulletTime(owner);
 
+    // バレットタイム中のエフェクト強度のイージング（線形進行度の更新）
+    if (isInBulletTime_) {
+        effectTransitionProgress_ += deltaTime / effectTransitionDuration_;
+        if (effectTransitionProgress_ > 1.0f) effectTransitionProgress_ = 1.0f;
+    } else {
+        effectTransitionProgress_ -= deltaTime / effectTransitionDuration_;
+        if (effectTransitionProgress_ < 0.0f) effectTransitionProgress_ = 0.0f;
+    }
+
+    // 選択されたイージング関数で進行度を曲線に変換して強度を決定
+    float t = effectTransitionProgress_;
+    switch (effectEasingType_) {
+        case EffectEasingType::EaseOutQuad:   effectIntensity_ = EaseOutQuad(t); break;
+        case EffectEasingType::EaseInOutSine: effectIntensity_ = EaseInOutSine(t); break;
+        case EffectEasingType::EaseOutExpo:   effectIntensity_ = EaseOutExpo(t); break;
+        case EffectEasingType::EaseOutBack:   effectIntensity_ = EaseOutBack(t); break;
+        default:                              effectIntensity_ = t; break; // 線形
+    }
+
+    // エフェクトの適用
+    if (postProcessManager_) {
+        // 強度がわずかでもあればエフェクトを有効化
+        bool isEffectActive = effectIntensity_ > 0.01f;
+
+        if (postProcessManager_->grayscaleEffect_) {
+            postProcessManager_->grayscaleEffect_->SetEnabled(isEffectActive);
+            // グレースケールは1.0が最大強度
+            postProcessManager_->grayscaleEffect_->SetIntensity(effectIntensity_);
+        }
+        if (postProcessManager_->vignetteEffect_) {
+            postProcessManager_->vignetteEffect_->SetEnabled(isEffectActive);
+            // ビネットは 1.0 だと強すぎるため、0.8 程度に抑える
+            postProcessManager_->vignetteEffect_->SetIntensity(effectIntensity_ * 0.8f);
+        }
+        if (postProcessManager_->noiseEffect_) {
+            postProcessManager_->noiseEffect_->SetEnabled(isEffectActive);
+            // ノイズは 0.2 程度が適正
+            postProcessManager_->noiseEffect_->SetIntensity(effectIntensity_ * 0.2f);
+            
+            // ノイズをアニメーションさせるためにTimeを加算
+            if (isEffectActive) {
+                float currentTime = postProcessManager_->noiseEffect_->GetTime();
+                postProcessManager_->noiseEffect_->SetTime(currentTime + deltaTime);
+            }
+        }
+    }
+
     // アニメーション制御（スキニングモデルを使っている場合）
     if (auto* skinned = owner->GetSkinnedObject3d())
     {
@@ -183,8 +233,8 @@ void MoveComponent::UpdateRotation(GameObject* owner, const Vector3& direction)
 // バレットタイム処理
 void MoveComponent::ProcessBulletTime(GameObject* owner)
 {
-    // バレットタイム中または回避中でない場合はスキップ
-    if (isInBulletTime_ || !isDodging_) { return; }
+    // バレットタイム中、クールダウン中、または回避中でない場合はスキップ
+    if (isInBulletTime_ || IsBulletTimeCoolingDown() || !isDodging_) { return; }
 
     // 敵の攻撃をチェック
     const auto& enemies = enemyManager_->GetEnemies();
@@ -203,7 +253,7 @@ void MoveComponent::ProcessBulletTime(GameObject* owner)
                 // バレットタイム範囲内に弾が接近した場合
                 if (distance < bulletTimeRadius_)
                 {
-                    ActivateBulletTime();
+                    ActivateBulletTime(owner);
                     return;
                 }
             }
@@ -219,7 +269,7 @@ void MoveComponent::ProcessBulletTime(GameObject* owner)
             // 攻撃範囲内でナイフ敵が攻撃中の場合
             if (distance < bulletTimeRadius_)
             {
-                ActivateBulletTime();
+                ActivateBulletTime(owner);
                 return;
             }
         }
@@ -228,28 +278,67 @@ void MoveComponent::ProcessBulletTime(GameObject* owner)
 }
 
 // バレットタイム発動
-void MoveComponent::ActivateBulletTime()
+void MoveComponent::ActivateBulletTime(GameObject* owner)
 {
     isInBulletTime_ = true;
+
+    // CarnageModeと同じようにPlayer*をキャッシュしてバフを付与する
+    player_ = dynamic_cast<Player*>(owner);
+    ApplyBulletTimeBuffs();
 
     // バレットタイムタイマーを作成
     auto bulletTime = std::make_unique<Timer>("bulletTime", bulletTimeDuration_, DeltaTimeType::RealDeltaTime);
     bulletTime->SetOnStart([this]() {
         // ゲーム時間をスローモーションに
         TimeManager::GetInstance().SetGameTimeScale(bulletTimeScale_);
+
+        // グレースケールなどは Update のイージング処理で有効化される
     });
     bulletTime->SetOnFinish([this]() {
         // ゲーム時間を通常に戻す
         TimeManager::GetInstance().SetGameTimeScale(kNormalTimeScale);
 
+        // バレットタイム終了
+        isInBulletTime_ = false;
+
+        // バフを解除
+        RemoveBulletTimeBuffs();
+
+        // エフェクト解除は Update のイージング処理で行われる
+
         // クールダウンタイマーを作成
         auto timer = std::make_unique<Timer>("bulletTimeCooldown", bulletTimeCooldown_, DeltaTimeType::RealDeltaTime);
         timer->SetOnFinish([this]() {
-            isInBulletTime_ = false;
+            // クールダウン終了
         });
         TimerManager::GetInstance().AddTimer(std::move(timer));
     });
     TimerManager::GetInstance().AddTimer(std::move(bulletTime));
+}
+
+// バレットタイム中のバフを付与
+void MoveComponent::ApplyBulletTimeBuffs()
+{
+    if (!player_) return;
+    auto status = player_->GetComponent<StatusComponent>();
+    if (!status) return;
+
+    // 移動速度バフ
+    status->moveSpeed.AddBuff(BuffConfig("BulletTimeMoveSpeed", moveSpeedBuff_, BuffType::Percentage));
+    // 射撃レートバフ
+    status->fireRateMultiplier.AddBuff(BuffConfig("BulletTimeFireRate", fireRateBuff_, BuffType::Percentage));
+}
+
+// バレットタイム中のバフを解除
+void MoveComponent::RemoveBulletTimeBuffs()
+{
+    if (!player_) return;
+    auto status = player_->GetComponent<StatusComponent>();
+    if (!status) return;
+
+    status->moveSpeed.RemoveBuff("BulletTimeMoveSpeed");
+    status->fireRateMultiplier.RemoveBuff("BulletTimeFireRate");
+    player_ = nullptr;
 }
 
 // 回避動作の進行度を取得
@@ -257,6 +346,29 @@ float MoveComponent::GetDodgeProgress() const
 {
     if (!IsDodging()) return 0.0f;
     return 1.0f - (dodgeTimer_ / dodgeDuration_);
+}
+
+// バレットタイムのクールダウン中かどうかを取得
+bool MoveComponent::IsBulletTimeCoolingDown() const
+{
+    Timer* cooldownTimer = TimerManager::GetInstance().GetTimer("bulletTimeCooldown");
+    if (cooldownTimer && cooldownTimer->IsRunning())
+    {
+        return true;
+    }
+    return false;
+}
+
+// バレットタイムのクールダウン進行度を取得
+float MoveComponent::GetBulletTimeCooldownProgress() const
+{
+    Timer* cooldownTimer = TimerManager::GetInstance().GetTimer("bulletTimeCooldown");
+    if (cooldownTimer && cooldownTimer->IsRunning())
+    {
+        // リロードUIと同じように、時間経過とともに 0.0 から 1.0 に増えるようにする
+        return 1.0f - (cooldownTimer->GetRemainingTime() / cooldownTimer->GetDuration());
+    }
+    return 0.0f;
 }
 
 // 移動処理

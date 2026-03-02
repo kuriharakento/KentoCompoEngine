@@ -65,6 +65,12 @@ public:
      */
     bool IsReloadIndicatorVisible() const { return isReloadIndicatorVisible_; }
 
+    /**
+     * @brief バレットタイムクールダウンゲージの表示状態を取得
+     * @return 表示中ならtrue
+     */
+    bool IsBulletTimeBarVisible() const { return isBulletTimeBarVisible_; }
+
     /*---------------[ セッター ]---------------*/
 
     /**
@@ -84,6 +90,12 @@ public:
      * @param isVisible 表示するならtrue
      */
     void SetReloadIndicatorVisible(bool isVisible) { isReloadIndicatorVisible_ = isVisible; }
+
+    /**
+     * @brief バレットタイムクールダウンゲージの表示/非表示を設定
+     * @param isVisible 表示するならtrue
+     */
+    void SetBulletTimeBarVisible(bool isVisible) { isBulletTimeBarVisible_ = isVisible; }
 
     /**
      * @brief 全UIの表示/非表示を設定
@@ -111,6 +123,14 @@ private:
     // リロードバーのサイズ
     static constexpr float kReloadBarWidth = 200.0f;
     static constexpr float kReloadBarHeight = 10.0f;
+
+    // バレットタイムゲージの位置
+    static constexpr float kBulletTimePosX = 640.0f;
+    static constexpr float kBulletTimePosY = 540.0f;
+    // バレットタイムゲージのサイズ
+    static constexpr float kBulletTimeBarWidth = 200.0f;
+    static constexpr float kBulletTimeBarHeight = 10.0f;
+
     // 数字1桁のサイズ
     static constexpr float kDigitWidth = 64.0f;
     static constexpr float kDigitHeight = 64.0f;
@@ -143,6 +163,12 @@ private:
      */
     void UpdateReloadIndicator(IWeaponComponent* weapon);
 
+    /**
+     * @brief バレットタイムインジケーターの更新
+     * @param owner 所有するGameObject
+     */
+    void UpdateBulletTimeIndicator(GameObject* owner);
+
 private:
     // スプライト共通設定
     SpriteCommon* spriteCommon_ = nullptr;
@@ -154,6 +180,8 @@ private:
     std::unique_ptr<NumberSprite> ammoNumber_;   // 弾薬数表示
     std::unique_ptr<GameUI> reloadBarBg_;        // リロードバー背景
     std::unique_ptr<GameUI> reloadBarFill_;      // リロードバー（可変）
+    std::unique_ptr<GameUI> bulletTimeBarBg_;    // バレットタイムバー背景
+    std::unique_ptr<GameUI> bulletTimeBarFill_;  // バレットタイムバー（可変）
 
     // キャッシュしたコンポーネント参照
     std::weak_ptr<StatusComponent> statusComp_;
@@ -165,6 +193,7 @@ private:
     bool isHealthBarVisible_ = true;
     bool isAmmoDisplayVisible_ = true;
     bool isReloadIndicatorVisible_ = true;
+    bool isBulletTimeBarVisible_ = true;
 
     // 体力バーの最大幅（初期化時に保存）
     float healthBarMaxWidth_ = kHealthBarWidth;

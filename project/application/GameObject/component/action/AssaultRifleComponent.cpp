@@ -5,12 +5,14 @@
 #include "application/gameObject/combatable/character/player/Player.h"
 #include "application/gameObject/combatable/character/enemy/base/EnemyBase.h"
 #include "application/effect/BulletTrailManager.h"
+#include "application/GameObject/component/action/StatusComponent.h"
 // system
 #include "graphics/3d/Object3dCommon.h"
 #include "input/Input.h"
 // component
 #include "BulletComponent.h"
 #include "engine/gameobject/component/collision/OBBColliderComponent.h"
+#include "application/GameObject/component/action/MoveComponent.h"
 // math
 #include "math/MathUtils.h"
 #include "time/TimeManager.h"
@@ -39,10 +41,25 @@ AssaultRifleComponent::~AssaultRifleComponent()
 // フレームごとの更新処理
 void AssaultRifleComponent::Update(GameObject* owner)
 {
-	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
+	// プレイヤーが所有している場合は realDeltaTime を使用してスローモーションを無視する
+	float deltaTime;
+	bool isPlayer = (dynamic_cast<Player*>(owner) != nullptr);
+	if (isPlayer)
+	{
+		deltaTime = TimeManager::GetInstance().GetGameContext().realDeltaTime;
+	}
+	else
+	{
+		deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
+	}
 
-	// クールダウンタイマーを減少
-	fireCooldownTimer_ -= deltaTime;
+	// クールダウンタイマーを減少（ステータスの射撃レート倍率を適用）
+	float fireRateMultiplier = 1.0f;
+	if (auto status = owner->GetComponent<StatusComponent>())
+	{
+		fireRateMultiplier = status->fireRateMultiplier.GetValue();
+	}
+	fireCooldownTimer_ -= deltaTime * fireRateMultiplier;
 
 	// リロード処理
 	if (isReloading_)
@@ -61,11 +78,25 @@ void AssaultRifleComponent::Update(GameObject* owner)
 			{
 				FireBullet(owner);
 				fireCooldownTimer_ = fireCooldown_;
-				currentAmmo_--;
-				// 弾がなくなったらリロード開始
-				if (currentAmmo_ <= 0)
+				
+				// スローモーション中は弾薬を消費しない
+				bool consumeAmmo = true;
+				if (auto moveComp = owner->GetComponent<MoveComponent>())
 				{
-					StartReload();
+					if (moveComp->IsInBulletTime())
+					{
+						consumeAmmo = false;
+					}
+				}
+				
+				if (consumeAmmo)
+				{
+					currentAmmo_--;
+					// 弾がなくなったらリロード開始
+					if (currentAmmo_ <= 0)
+					{
+						StartReload();
+					}
 				}
 			}
 
@@ -194,6 +225,7 @@ void AssaultRifleComponent::FireBullet(GameObject* owner)
 	// BulletComponentを追加
 	auto bulletComp = std::make_unique<BulletComponent>();
 	bulletComp->Initialize(direction, speed_, lifetime_);
+	bulletComp->SetIgnoreTimeScale(true);
 	bullet->AddComponent("Bullet", std::move(bulletComp));
 
 	// 衝突判定コンポーネントを追加
