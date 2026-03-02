@@ -6,6 +6,7 @@
 // math
 #include "math/VectorColorCodes.h"
 #include <input/Input.h>
+#include <audio/Audio.h>
 
 void GameOverScene::Initialize()
 {
@@ -43,6 +44,7 @@ void GameOverScene::Initialize()
 	gameOverToTitleUI_->SetInteractable(true);
 	gameOverToTitleUI_->SetOnClickCallback([this]() {
 		returnToTitle_ = true;
+		Audio::GetInstance()->PlayWave("start_se", false);
 		ChangeState(SceneState::Exit);
 		transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
 		transitionEffect_.SetFadeType(FadeType::FadeIn);
@@ -74,6 +76,7 @@ void GameOverScene::Initialize()
 	gameOverRetryUI_->SetInteractable(true);
 	gameOverRetryUI_->SetOnClickCallback([this]() {
 		retry_ = true;
+		Audio::GetInstance()->PlayWave("start_se", false);
 		transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
 		transitionEffect_.SetFadeType(FadeType::FadeIn);
 		transitionEffect_.SetMode(TransitionMode::EdgesToCenter);

@@ -4,6 +4,7 @@
 #include "externals/imgui/imgui.h"
 #include "math/Easing.h"
 #include "math/MathUtils.h"
+#include <audio/Audio.h>
 
 void PoseMenu::Initialize(SpriteCommon* spriteCommon)
 {
@@ -20,65 +21,59 @@ void PoseMenu::Initialize(SpriteCommon* spriteCommon)
 	resumeButton_->Initialize(spriteCommon, "./Resources/white1x1.png");
 	resumeButton_->SetColor(Vector4(0.3f, 0.3f, 0.3f, 0.9f));
 	resumeButton_->SetVisible(false);
-	resumeButton_->SetOnClickCallback([this]()
-	{
+	resumeButton_->SetOnClickCallback([this]() {
+		Audio::GetInstance()->PlayWave("start_se", false);
 		SetPaused(false);
 		if (onResumeCallback_)
 		{
 			onResumeCallback_();
 		}
-	});
-	resumeButton_->SetOnHoverEnterCallback([this]()
-	{
+									  });
+	resumeButton_->SetOnHoverEnterCallback([this]() {
 		isResumeHovered_ = true;
-	});
-	resumeButton_->SetOnHoverExitCallback([this]()
-	{
+										   });
+	resumeButton_->SetOnHoverExitCallback([this]() {
 		isResumeHovered_ = false;
-	});
+										  });
 
 	// リトライボタン
 	retryButton_ = std::make_unique<GameUI>();
 	retryButton_->Initialize(spriteCommon, "./Resources/white1x1.png");
 	retryButton_->SetColor(Vector4(0.3f, 0.3f, 0.3f, 0.9f));
 	retryButton_->SetVisible(false);
-	retryButton_->SetOnClickCallback([this]()
-	{
+	retryButton_->SetOnClickCallback([this]() {
+		Audio::GetInstance()->PlayWave("start_se", false);
 		SetPaused(false);
 		if (onRetryCallback_)
 		{
 			onRetryCallback_();
 		}
-	});
-	retryButton_->SetOnHoverEnterCallback([this]()
-	{
+									 });
+	retryButton_->SetOnHoverEnterCallback([this]() {
 		isRetryHovered_ = true;
-	});
-	retryButton_->SetOnHoverExitCallback([this]()
-	{
+										  });
+	retryButton_->SetOnHoverExitCallback([this]() {
 		isRetryHovered_ = false;
-	});
+										 });
 
 	// 終了ボタン
 	exitButton_ = std::make_unique<GameUI>();
 	exitButton_->Initialize(spriteCommon, "./Resources/white1x1.png");
 	exitButton_->SetColor(Vector4(0.3f, 0.3f, 0.3f, 0.9f));
 	exitButton_->SetVisible(false);
-	exitButton_->SetOnClickCallback([this]()
-	{
+	exitButton_->SetOnClickCallback([this]() {
+		Audio::GetInstance()->PlayWave("start_se", false);
 		if (onExitCallback_)
 		{
 			onExitCallback_();
 		}
-	});
-	exitButton_->SetOnHoverEnterCallback([this]()
-	{
+									});
+	exitButton_->SetOnHoverEnterCallback([this]() {
 		isExitHovered_ = true;
-	});
-	exitButton_->SetOnHoverExitCallback([this]()
-	{
+										 });
+	exitButton_->SetOnHoverExitCallback([this]() {
 		isExitHovered_ = false;
-	});
+										});
 
 	// テキスト初期化
 	titleText_ = std::make_unique<FontSprite>();

@@ -71,8 +71,8 @@ void CarnageMode::ApplyBuffs()
 	auto status = player_->GetComponent<StatusComponent>();
     if (!status) return;
 
-    status->attackPower.AddBuff(BuffConfig("CarnageAttackUp", attackUpRate_, BuffType::Percentage));
-	status->moveSpeed.AddBuff(BuffConfig("CarnageSpeedUp", speedUpRate_, BuffType::Percentage));
+    //status->attackPower.AddBuff(BuffConfig("CarnageAttackUp", attackUpRate_, BuffType::Percentage));
+	//status->moveSpeed.AddBuff(BuffConfig("CarnageSpeedUp", speedUpRate_, BuffType::Percentage));
 }
 
 void CarnageMode::RemoveBuffs()
@@ -80,8 +80,8 @@ void CarnageMode::RemoveBuffs()
 	auto status = player_->GetComponent<StatusComponent>();
     if (!status) return;
 
-    status->attackPower.RemoveBuff("CarnageAttackUp");
-	status->moveSpeed.RemoveBuff("CarnageSpeedUp");
+    //status->attackPower.RemoveBuff("CarnageAttackUp");
+	//status->moveSpeed.RemoveBuff("CarnageSpeedUp");
 }
 
 void CarnageMode::ShowUI()

@@ -6,6 +6,7 @@
 #include "ShotgunEnemy.h"
 #include "application/combo/ComboManager.h"
 #include "math/MathUtils.h"
+#include <audio/Audio.h>
 
 void EnemyManager::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, CameraManager* camera, LightManager* lightManager, GameObject* target)
 {
@@ -86,6 +87,9 @@ void EnemyManager::Update()
 			{
 				camera_->GetActiveCamera()->StartShake(0.45f, 0.3f); // カメラを揺らす
 			}
+
+			// 効果音再生
+			Audio::GetInstance()->PlayWave("enemy_kill", false);
 
 			// 移動して破棄を遅延
 			pendingRemovals_.push_back(std::move(*it));

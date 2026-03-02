@@ -29,6 +29,10 @@ void GamePlayScene::Initialize()
 	Audio::GetInstance()->LoadWave("game_bgm", "bgm/game.wav", SoundGroup::BGM);
 	Audio::GetInstance()->PlayWave("game_bgm", true);
 	Audio::GetInstance()->SetVolume("game_bgm", kBgmVolume);
+	Audio::GetInstance()->LoadWave("fire_se", "se/fire.wav", SoundGroup::SE);
+	Audio::GetInstance()->SetVolume("fire_se", KSeVolume);
+	Audio::GetInstance()->LoadWave("enemy_kill", "se/enemy_kill.wav", SoundGroup::SE);
+	Audio::GetInstance()->SetVolume("enemy_kill", KSeVolume);
 
 	// パーティクルの読み込み
 	ParticleManager::GetInstance()->Load("hit_effect", "./Resources/json/particle/hit_effect.json");

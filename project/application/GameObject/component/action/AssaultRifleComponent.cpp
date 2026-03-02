@@ -16,6 +16,7 @@
 // math
 #include "math/MathUtils.h"
 #include "time/TimeManager.h"
+#include <audio/Audio.h>
 
 // コンストラクタ：武器の初期化
 AssaultRifleComponent::AssaultRifleComponent(Object3dCommon* object3dCommon, LightManager* lightManager)
@@ -250,6 +251,9 @@ void AssaultRifleComponent::FireBullet(GameObject* owner)
 
 	// 弾を管理リストに追加
 	bullets_.push_back(std::move(bullet));
+
+	// 効果音を再生
+	Audio::GetInstance()->PlayWave("fire_se", false);
 }
 
 // 敵用の弾発射処理（ターゲット指定）

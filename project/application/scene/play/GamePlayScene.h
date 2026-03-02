@@ -208,6 +208,7 @@ private:
 
 	// オーディオ
 	static constexpr float kBgmVolume = 0.2f;
+	static constexpr float KSeVolume = 0.3f;
 
 	// ライティング
 	static constexpr float kLightIntensity = 0.3f;

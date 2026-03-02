@@ -4,6 +4,7 @@
 #include "application/GameObject/component/action/GravityPhysicsComponent.h"
 #include "application/GameObject/component/action/KnifeEnemyBehavior.h"
 #include "engine/gameobject/component/collision/OBBColliderComponent.h"
+#include "effects/particle/ParticleManager.h"
 
 void KnifeEnemy::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, CameraManager* camera, LightManager* lightManager, GameObject* target, const Transform& inintialTransform)
 {
@@ -62,6 +63,10 @@ void KnifeEnemy::CollisionSettings(ICollisionComponent* collider)
 			if (combatable)
 			{
 				TakeDamage(combatable->GetAttackPower());
+
+				// ダメージエフェクトを生成
+				ParticleManager::GetInstance()->Play("hit_effect", GetPosition());
+				ParticleManager::GetInstance()->Play("hit_effect2", GetPosition());
 			}
 		}
 	});
