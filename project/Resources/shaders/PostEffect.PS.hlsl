@@ -52,7 +52,7 @@ cbuffer PostEffectParams : register(b0)
 // 最適化されたランダム関数
 float fastRandom(float2 uv)
 {
-    return frac(dot(uv, float2(12.9898, 78.233)) * 43758.5453 + noiseTime * 0.1);
+    return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453 + noiseTime * 0.1);
 }
 
 // 歪み適用（常に計算、係数で制御）

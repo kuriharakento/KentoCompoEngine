@@ -10,6 +10,16 @@ class PostProcessManager;
 class Player;
 
 /**
+ * @brief エフェクトのイージング種類
+ */
+enum class EffectEasingType {
+    EaseOutQuad,
+    EaseInOutSine,
+    EaseOutExpo,
+    EaseOutBack
+};
+
+/**
  * @brief プレイヤーの移動と回避を制御するコンポーネント
  *
  * WASD移動、カメラ基準の方向変換、回避（ダッジ）、バレットタイム機能を提供する
@@ -235,6 +245,14 @@ private:
 
     // エフェクトタイマー
     float effectTimer_ = 0.0f;
+    // エフェクトの強度（0.0f = オフ, 1.0f = オン）
+    float effectIntensity_ = 0.0f;
+    // エフェクト移行の進行度（0.0f ～ 1.0f）
+    float effectTransitionProgress_ = 0.0f;
+    // エフェクト移行にかける時間（秒）
+    float effectTransitionDuration_ = 0.2f;
+    // 選択中のイージング関数
+    EffectEasingType effectEasingType_ = EffectEasingType::EaseOutQuad;
     // 残像間隔
     float effectInterval_ = kEffectInterval;
 

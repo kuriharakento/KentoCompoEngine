@@ -137,6 +137,53 @@ void MoveComponent::Update(GameObject* owner)
     // バレットタイム処理
     ProcessBulletTime(owner);
 
+    // バレットタイム中のエフェクト強度のイージング（線形進行度の更新）
+    if (isInBulletTime_) {
+        effectTransitionProgress_ += deltaTime / effectTransitionDuration_;
+        if (effectTransitionProgress_ > 1.0f) effectTransitionProgress_ = 1.0f;
+    } else {
+        effectTransitionProgress_ -= deltaTime / effectTransitionDuration_;
+        if (effectTransitionProgress_ < 0.0f) effectTransitionProgress_ = 0.0f;
+    }
+
+    // 選択されたイージング関数で進行度を曲線に変換して強度を決定
+    float t = effectTransitionProgress_;
+    switch (effectEasingType_) {
+        case EffectEasingType::EaseOutQuad:   effectIntensity_ = EaseOutQuad(t); break;
+        case EffectEasingType::EaseInOutSine: effectIntensity_ = EaseInOutSine(t); break;
+        case EffectEasingType::EaseOutExpo:   effectIntensity_ = EaseOutExpo(t); break;
+        case EffectEasingType::EaseOutBack:   effectIntensity_ = EaseOutBack(t); break;
+        default:                              effectIntensity_ = t; break; // 線形
+    }
+
+    // エフェクトの適用
+    if (postProcessManager_) {
+        // 強度がわずかでもあればエフェクトを有効化
+        bool isEffectActive = effectIntensity_ > 0.01f;
+
+        if (postProcessManager_->grayscaleEffect_) {
+            postProcessManager_->grayscaleEffect_->SetEnabled(isEffectActive);
+            // グレースケールは1.0が最大強度
+            postProcessManager_->grayscaleEffect_->SetIntensity(effectIntensity_);
+        }
+        if (postProcessManager_->vignetteEffect_) {
+            postProcessManager_->vignetteEffect_->SetEnabled(isEffectActive);
+            // ビネットは 1.0 だと強すぎるため、0.8 程度に抑える
+            postProcessManager_->vignetteEffect_->SetIntensity(effectIntensity_ * 0.8f);
+        }
+        if (postProcessManager_->noiseEffect_) {
+            postProcessManager_->noiseEffect_->SetEnabled(isEffectActive);
+            // ノイズは 0.2 程度が適正
+            postProcessManager_->noiseEffect_->SetIntensity(effectIntensity_ * 0.2f);
+            
+            // ノイズをアニメーションさせるためにTimeを加算
+            if (isEffectActive) {
+                float currentTime = postProcessManager_->noiseEffect_->GetTime();
+                postProcessManager_->noiseEffect_->SetTime(currentTime + deltaTime);
+            }
+        }
+    }
+
     // アニメーション制御（スキニングモデルを使っている場合）
     if (auto* skinned = owner->GetSkinnedObject3d())
     {
@@ -245,10 +292,7 @@ void MoveComponent::ActivateBulletTime(GameObject* owner)
         // ゲーム時間をスローモーションに
         TimeManager::GetInstance().SetGameTimeScale(bulletTimeScale_);
 
-        // グレースケールをオンにする
-        if (postProcessManager_ && postProcessManager_->grayscaleEffect_) {
-            postProcessManager_->grayscaleEffect_->SetEnabled(true);
-        }
+        // グレースケールなどは Update のイージング処理で有効化される
     });
     bulletTime->SetOnFinish([this]() {
         // ゲーム時間を通常に戻す
@@ -260,10 +304,7 @@ void MoveComponent::ActivateBulletTime(GameObject* owner)
         // バフを解除
         RemoveBulletTimeBuffs();
 
-        // グレースケールをオフにする
-        if (postProcessManager_ && postProcessManager_->grayscaleEffect_) {
-            postProcessManager_->grayscaleEffect_->SetEnabled(false);
-        }
+        // エフェクト解除は Update のイージング処理で行われる
 
         // クールダウンタイマーを作成
         auto timer = std::make_unique<Timer>("bulletTimeCooldown", bulletTimeCooldown_, DeltaTimeType::RealDeltaTime);
