@@ -183,7 +183,7 @@ void MoveComponent::Update(GameObject* owner)
             postProcessManager_->vignetteEffect_->SetIntensity(effectIntensity_ * 0.8f);
         }
         if (postProcessManager_->noiseEffect_) {
-            postProcessManager_->noiseEffect_->SetEnabled(isEffectActive);
+            //postProcessManager_->noiseEffect_->SetEnabled(isEffectActive);
             // ノイズは 0.2 程度が適正
             postProcessManager_->noiseEffect_->SetIntensity(effectIntensity_ * 0.2f);
             

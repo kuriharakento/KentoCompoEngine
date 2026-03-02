@@ -143,6 +143,7 @@ void GameClearScene::DrawShadow()
 
 void GameClearScene::DrawImGui()
 {
+#ifdef USE_IMGUI
 	ImGui::Begin("Shadow Test Scene");
 
 	if (ImGui::CollapsingHeader("Light Settings")) {
@@ -265,6 +266,7 @@ void GameClearScene::DrawImGui()
 	}
 
 	ImGui::End();
+#endif
 }
 
 void GameClearScene::OnExitPlaying()
