@@ -39,7 +39,16 @@ AssaultRifleComponent::~AssaultRifleComponent()
 // フレームごとの更新処理
 void AssaultRifleComponent::Update(GameObject* owner)
 {
-	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
+	// プレイヤーが所有している場合は realDeltaTime を使用してスローモーションを無視する
+	float deltaTime;
+	if(bool isPlayer = dynamic_cast<Player*>(owner))
+	{
+		deltaTime = TimeManager::GetInstance().GetGameContext().realDeltaTime;
+	}
+	else
+	{
+		deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
+	}
 
 	// クールダウンタイマーを減少
 	fireCooldownTimer_ -= deltaTime;
@@ -194,6 +203,7 @@ void AssaultRifleComponent::FireBullet(GameObject* owner)
 	// BulletComponentを追加
 	auto bulletComp = std::make_unique<BulletComponent>();
 	bulletComp->Initialize(direction, speed_, lifetime_);
+	bulletComp->SetIgnoreTimeScale(true);
 	bullet->AddComponent("Bullet", std::move(bulletComp));
 
 	// 衝突判定コンポーネントを追加

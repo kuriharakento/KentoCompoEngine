@@ -14,15 +14,17 @@
 #include "time/TimerManager.h"
 #include "base/Camera.h"
 #include "base/WinApp.h"
-#include "input/Input.h"
+#include "engine/manager/effect/PostProcessManager.h"
 
 // コンストラクタ：マネージャーの初期化
-MoveComponent::MoveComponent(EnemyManager* enemyManager, CameraManager* camera)
+MoveComponent::MoveComponent(EnemyManager* enemyManager, CameraManager* camera, PostProcessManager* postProcessManager)
 {
     // 敵マネージャーのポインタを保存
     enemyManager_ = enemyManager;
 	// カメラのポインタを保存
 	camera_ = camera->GetActiveCamera();
+    // ポストプロセスマネージャーのポインタを保存
+    postProcessManager_ = postProcessManager;
 }
 
 // フレームごとの更新処理
@@ -237,10 +239,20 @@ void MoveComponent::ActivateBulletTime()
     bulletTime->SetOnStart([this]() {
         // ゲーム時間をスローモーションに
         TimeManager::GetInstance().SetGameTimeScale(bulletTimeScale_);
+
+        // グレースケールをオンにする
+        if (postProcessManager_ && postProcessManager_->grayscaleEffect_) {
+            postProcessManager_->grayscaleEffect_->SetEnabled(true);
+        }
     });
     bulletTime->SetOnFinish([this]() {
         // ゲーム時間を通常に戻す
         TimeManager::GetInstance().SetGameTimeScale(kNormalTimeScale);
+
+        // グレースケールをオフにする
+        if (postProcessManager_ && postProcessManager_->grayscaleEffect_) {
+            postProcessManager_->grayscaleEffect_->SetEnabled(false);
+        }
 
         // クールダウンタイマーを作成
         auto timer = std::make_unique<Timer>("bulletTimeCooldown", bulletTimeCooldown_, DeltaTimeType::RealDeltaTime);

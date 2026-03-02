@@ -16,12 +16,15 @@ StageManager::~StageManager()
 	stage_.reset();
 }
 
-void StageManager::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, CameraManager* camera)
+#include "engine/manager/effect/PostProcessManager.h"
+
+void StageManager::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, CameraManager* camera, PostProcessManager* postProcessManager)
 {
 	object3dCommon_ = object3dCommon;
 	spriteCommon_ = spriteCommon;
 	lightManager_ = lightManager;
 	cameraManager_ = camera;
+	postProcessManager_ = postProcessManager;
 
 	// ステージデータの初期化
 	stageData_ = std::make_unique<StageData>();
@@ -258,7 +261,7 @@ void StageManager::CreateInfosFromStageData()
 			enemyManager_->SetTarget(player_.get());
 
 			// プレイヤーの初期化と配置
-			player_->Initialize(object3dCommon_, spriteCommon_, lightManager_, enemyManager_.get(), cameraManager_);
+			player_->Initialize(object3dCommon_, spriteCommon_, lightManager_, enemyManager_.get(), cameraManager_, postProcessManager_);
 			player_->SetModel("player");
 			player_->SetPosition(objInfo.transform.translate);
 			player_->SetRotation(objInfo.transform.rotate);

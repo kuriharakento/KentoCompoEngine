@@ -32,7 +32,9 @@ PistolComponent::~PistolComponent()
 // フレームごとの更新処理
 void PistolComponent::Update(GameObject* owner)
 {
-	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
+	// プレイヤーが所有している場合は realDeltaTime を使用してスローモーションを無視する
+	bool isPlayerOwner = dynamic_cast<Player*>(owner) != nullptr;
+	float deltaTime = isPlayerOwner ? TimeManager::GetInstance().GetGameContext().realDeltaTime : TimeManager::GetInstance().GetGameContext().deltaTime;
 
 	// クールダウンタイマーを減少
 	fireCooldownTimer_ -= deltaTime;
@@ -167,6 +169,7 @@ void PistolComponent::FireBullet(GameObject* owner)
 	// BulletComponentを追加
 	auto bulletComp = std::make_unique<BulletComponent>();
 	bulletComp->Initialize(direction, kBulletSpeed, kBulletLifetime);
+	bulletComp->SetIgnoreTimeScale(true);
 	bullet->AddComponent("Bullet", std::move(bulletComp));
 
 	// 衝突判定コンポーネントを追加

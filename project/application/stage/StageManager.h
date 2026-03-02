@@ -13,6 +13,8 @@
 #include "application/gameObject/combatable/character/player/Player.h"
 #include "application/gameObject/obstacle/ObstacleManager.h"
 
+class PostProcessManager;
+
 /**
  * @brief ステージ全体とゲームオブジェクトを統合管理するマネージャークラス
  * 
@@ -73,8 +75,9 @@ public:
 	 * @param object3dCommon 3Dオブジェクト共通データへのポインタ
 	 * @param lightManager ライトマネージャーへのポインタ
 	 * @param camera カメラマネージャーへのポインタ
+	 * @param postProcessManager ポストプロセスマネージャーへのポインタ（グレースケール用）
 	 */
-	void Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, CameraManager* camera);
+	void Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, CameraManager* camera, PostProcessManager* postProcessManager = nullptr);
 
 	/**
 	 * @brief ステージマネージャーの更新処理
@@ -191,6 +194,7 @@ private:
 	LightManager* lightManager_;      ///< ライトマネージャーへのポインタ
 	CameraManager* cameraManager_;    ///< カメラマネージャーへのポインタ
 	SpriteCommon* spriteCommon_;    ///< 2Dスプライトの共通データへのポインタ
+	PostProcessManager* postProcessManager_; ///< ポストプロセスマネージャーへのポインタ
 
 	std::shared_ptr<StageData> stageData_;      ///< ステージデータ（固定オブジェクト配置）
 	std::shared_ptr<ObstacleData> obstacleData_; ///< 障害物データ

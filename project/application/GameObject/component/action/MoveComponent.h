@@ -6,6 +6,7 @@
 class EnemyManager;
 class GameObject;
 class Camera;
+class PostProcessManager;
 
 /**
  * @brief プレイヤーの移動と回避を制御するコンポーネント
@@ -19,8 +20,9 @@ public:
      * @brief コンストラクタ
      * @param enemyManager 敵マネージャー（バレットタイム判定用）
      * @param camera カメラマネージャー
+     * @param postProcessManager ポストプロセスマネージャー（グレースケール用）
      */
-    MoveComponent(EnemyManager* enemyManager, CameraManager* camera);
+    MoveComponent(EnemyManager* enemyManager, CameraManager* camera, PostProcessManager* postProcessManager = nullptr);
 
     /**
      * @brief フレームごとの更新処理
@@ -113,7 +115,7 @@ private:
     // バレットタイム範囲
     static constexpr float kBulletTimeRadius = 5.0f;
     // バレットタイムのスローモーション倍率
-    static constexpr float kBulletTimeScale = 0.3f;
+    static constexpr float kBulletTimeScale = 0.2f;
     // バレットタイムの持続時間
     static constexpr float kBulletTimeDuration = 3.0f;
     // バレットタイムのクールダウン時間
@@ -154,6 +156,8 @@ private:
     EnemyManager* enemyManager_ = nullptr;
     // カメラ
     Camera* camera_ = nullptr;
+    // ポストプロセスマネージャー
+    PostProcessManager* postProcessManager_ = nullptr;
 
     // 移動速度
     float moveSpeed_ = 0.0f;

@@ -3,11 +3,9 @@
 #include "engine/math/Ray.h"
 
 /**
- * @brief レイ（半直線）による衝突判定コンポーネント
+ * @brief レイによる衝突判定コンポーネント
  * 
- * 始点、方向ベクトル、および長さを持つレイを表し、
- * 他のコライダー（AABB, OBB, Sphere）との交差判定に使用されます。
- * スナイパーライフルの射線判定や、敵の視線・索敵などに適しています。
+ * 始点、方向ベクトル、および長さを持つレイを表す
  */
 class RayColliderComponent : public ICollisionComponent
 {

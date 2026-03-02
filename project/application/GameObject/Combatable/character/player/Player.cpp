@@ -93,8 +93,9 @@ IWeaponComponent* Player::GetCurrentWeapon() const
 	}
 	return nullptr;
 }
+#include "engine/manager/effect/PostProcessManager.h"
 
-void Player::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, EnemyManager* enemyManager, CameraManager* camera)
+void Player::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, EnemyManager* enemyManager, CameraManager* camera, PostProcessManager* postProcessManager)
 {
 	Character::Initialize(object3dCommon, lightManager);
 
@@ -113,7 +114,7 @@ void Player::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteComm
 	transform_.translate = { 0.0f, 1.0f, 0.0f };
 	
 	// 移動コンポーネントを追加
-	AddComponent("MoveComponent", std::make_unique<MoveComponent>(enemyManager, camera));
+	AddComponent("MoveComponent", std::make_unique<MoveComponent>(enemyManager, camera, postProcessManager));
 	// アニメーションインデックスを設定（0番が歩きと仮定）
 	if (auto moveComp = GetComponent<MoveComponent>())
 	{

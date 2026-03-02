@@ -6,13 +6,14 @@
 class EnemyManager;
 class WeaponManagerComponent;
 class IWeaponComponent;
+class PostProcessManager;
 
 class Player : public Character
 {
 public:
 	~Player() override;
 	Player(const std::string& tag = gameObjectTag::character::Player);
-	void Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, EnemyManager* enemyManager, CameraManager* camera);
+	void Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, EnemyManager* enemyManager, CameraManager* camera, PostProcessManager* postProcessManager = nullptr);
 	void TakeDamage(float damage) override;
 
 	/**

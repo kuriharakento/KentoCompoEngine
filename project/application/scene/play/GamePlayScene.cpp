@@ -71,7 +71,8 @@ void GamePlayScene::Initialize()
 		sceneManager_->GetObject3dCommon(),
 		sceneManager_->GetSpriteCommon(),
 		sceneManager_->GetLightManager(),
-		sceneManager_->GetCameraManager()
+		sceneManager_->GetCameraManager(),
+		sceneManager_->GetPostProcessManager()
 	);
 	stageManager_->LoadStage("stage_2");
 

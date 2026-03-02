@@ -38,4 +38,13 @@ private:
 	float lifetime_;
 	// 経過時間
 	float timeAlive_;
+	// タイムスケールを無視するかどうか
+	bool ignoreTimeScale_ = false;
+
+public:
+	/**
+	 * @brief タイムスケールを無視するかどうかを設定
+	 * @param ignore 無視する場合は true
+	 */
+	void SetIgnoreTimeScale(bool ignore) { ignoreTimeScale_ = ignore; }
 };
