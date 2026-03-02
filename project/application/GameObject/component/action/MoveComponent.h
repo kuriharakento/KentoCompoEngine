@@ -7,6 +7,7 @@ class EnemyManager;
 class GameObject;
 class Camera;
 class PostProcessManager;
+class Player;
 
 /**
  * @brief プレイヤーの移動と回避を制御するコンポーネント
@@ -96,6 +97,24 @@ public:
      */
     float GetDodgeProgress() const;
 
+    /**
+     * @brief バレットタイム中かどうかを取得する
+     * @return バレットタイム中ならtrue
+     */
+    bool IsInBulletTime() const { return isInBulletTime_; }
+
+    /**
+     * @brief バレットタイムのクールダウン中かどうかを取得する
+     * @return クールダウン中ならtrue
+     */
+    bool IsBulletTimeCoolingDown() const;
+
+    /**
+     * @brief バレットタイムクールダウンの進行度を取得する
+     * @return 進行度（0.0〜1.0）
+     */
+    float GetBulletTimeCooldownProgress() const;
+
 private:
     // 定数
     // デフォルト回転補間速度
@@ -149,7 +168,11 @@ private:
     // バレットタイム処理
     void ProcessBulletTime(GameObject* owner);
     // バレットタイム発動
-    void ActivateBulletTime();
+    void ActivateBulletTime(GameObject* owner);
+    // バレットタイム中のバフを付与
+    void ApplyBulletTimeBuffs();
+    // バレットタイム中のバフを解除
+    void RemoveBulletTimeBuffs();
 
 private:
     // 敵マネージャー
@@ -158,6 +181,8 @@ private:
     Camera* camera_ = nullptr;
     // ポストプロセスマネージャー
     PostProcessManager* postProcessManager_ = nullptr;
+    // バレットタイムバフ付与のためのプレイヤー参照（所有しない）
+    Player* player_ = nullptr;
 
     // 移動速度
     float moveSpeed_ = 0.0f;
@@ -203,6 +228,10 @@ private:
     float bulletTimeDuration_ = kBulletTimeDuration;
     // バレットタイムのクールダウン時間
     float bulletTimeCooldown_ = kBulletTimeCooldown;
+	//　射撃レートバフの倍率
+	float fireRateBuff_ = 0.2f;
+	// 移動速度バフの倍率
+	float moveSpeedBuff_ = 0.8f;
 
     // エフェクトタイマー
     float effectTimer_ = 0.0f;

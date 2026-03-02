@@ -25,6 +25,8 @@ void StatusComponent::Update(GameObject* owner)
     hp.Update(deltaTime);
     maxHp.Update(deltaTime);
     attackPower.Update(deltaTime);
+	moveSpeed.Update(deltaTime);
+	fireRateMultiplier.Update(deltaTime);
 
 	// HPが0以下になったら死亡判定
 	if (hp.GetValue() <= kDeathThreshold)

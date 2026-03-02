@@ -10,6 +10,7 @@
 #include "time/TimeManager.h"
 #include "application/GameObject/Combatable/character/enemy/EnemyManager.h"
 #include "application/GameObject/Combatable/character/player/Player.h"
+#include "application/GameObject/component/action/StatusComponent.h"
 #include "time/Timer.h"
 #include "time/TimerManager.h"
 #include "base/Camera.h"
@@ -46,9 +47,9 @@ void MoveComponent::Update(GameObject* owner)
 
     // デルタタイムを取得（プレイヤーはリアルタイム、それ以外はゲーム時間）
     float deltaTime = 0.0f;
-    auto player = dynamic_cast<Player*>(owner);
+    auto ownerAsPlayer = dynamic_cast<Player*>(owner);
 
-    if (player)
+    if (ownerAsPlayer)
     {
         deltaTime = TimeManager::GetInstance().GetGameContext().realDeltaTime;
     }
@@ -185,8 +186,8 @@ void MoveComponent::UpdateRotation(GameObject* owner, const Vector3& direction)
 // バレットタイム処理
 void MoveComponent::ProcessBulletTime(GameObject* owner)
 {
-    // バレットタイム中または回避中でない場合はスキップ
-    if (isInBulletTime_ || !isDodging_) { return; }
+    // バレットタイム中、クールダウン中、または回避中でない場合はスキップ
+    if (isInBulletTime_ || IsBulletTimeCoolingDown() || !isDodging_) { return; }
 
     // 敵の攻撃をチェック
     const auto& enemies = enemyManager_->GetEnemies();
@@ -205,7 +206,7 @@ void MoveComponent::ProcessBulletTime(GameObject* owner)
                 // バレットタイム範囲内に弾が接近した場合
                 if (distance < bulletTimeRadius_)
                 {
-                    ActivateBulletTime();
+                    ActivateBulletTime(owner);
                     return;
                 }
             }
@@ -221,7 +222,7 @@ void MoveComponent::ProcessBulletTime(GameObject* owner)
             // 攻撃範囲内でナイフ敵が攻撃中の場合
             if (distance < bulletTimeRadius_)
             {
-                ActivateBulletTime();
+                ActivateBulletTime(owner);
                 return;
             }
         }
@@ -230,9 +231,13 @@ void MoveComponent::ProcessBulletTime(GameObject* owner)
 }
 
 // バレットタイム発動
-void MoveComponent::ActivateBulletTime()
+void MoveComponent::ActivateBulletTime(GameObject* owner)
 {
     isInBulletTime_ = true;
+
+    // CarnageModeと同じようにPlayer*をキャッシュしてバフを付与する
+    player_ = dynamic_cast<Player*>(owner);
+    ApplyBulletTimeBuffs();
 
     // バレットタイムタイマーを作成
     auto bulletTime = std::make_unique<Timer>("bulletTime", bulletTimeDuration_, DeltaTimeType::RealDeltaTime);
@@ -249,6 +254,12 @@ void MoveComponent::ActivateBulletTime()
         // ゲーム時間を通常に戻す
         TimeManager::GetInstance().SetGameTimeScale(kNormalTimeScale);
 
+        // バレットタイム終了
+        isInBulletTime_ = false;
+
+        // バフを解除
+        RemoveBulletTimeBuffs();
+
         // グレースケールをオフにする
         if (postProcessManager_ && postProcessManager_->grayscaleEffect_) {
             postProcessManager_->grayscaleEffect_->SetEnabled(false);
@@ -257,11 +268,36 @@ void MoveComponent::ActivateBulletTime()
         // クールダウンタイマーを作成
         auto timer = std::make_unique<Timer>("bulletTimeCooldown", bulletTimeCooldown_, DeltaTimeType::RealDeltaTime);
         timer->SetOnFinish([this]() {
-            isInBulletTime_ = false;
+            // クールダウン終了
         });
         TimerManager::GetInstance().AddTimer(std::move(timer));
     });
     TimerManager::GetInstance().AddTimer(std::move(bulletTime));
+}
+
+// バレットタイム中のバフを付与
+void MoveComponent::ApplyBulletTimeBuffs()
+{
+    if (!player_) return;
+    auto status = player_->GetComponent<StatusComponent>();
+    if (!status) return;
+
+    // 移動速度バフ
+    status->moveSpeed.AddBuff(BuffConfig("BulletTimeMoveSpeed", moveSpeedBuff_, BuffType::Percentage));
+    // 射撃レートバフ
+    status->fireRateMultiplier.AddBuff(BuffConfig("BulletTimeFireRate", fireRateBuff_, BuffType::Percentage));
+}
+
+// バレットタイム中のバフを解除
+void MoveComponent::RemoveBulletTimeBuffs()
+{
+    if (!player_) return;
+    auto status = player_->GetComponent<StatusComponent>();
+    if (!status) return;
+
+    status->moveSpeed.RemoveBuff("BulletTimeMoveSpeed");
+    status->fireRateMultiplier.RemoveBuff("BulletTimeFireRate");
+    player_ = nullptr;
 }
 
 // 回避動作の進行度を取得
@@ -269,6 +305,29 @@ float MoveComponent::GetDodgeProgress() const
 {
     if (!IsDodging()) return 0.0f;
     return 1.0f - (dodgeTimer_ / dodgeDuration_);
+}
+
+// バレットタイムのクールダウン中かどうかを取得
+bool MoveComponent::IsBulletTimeCoolingDown() const
+{
+    Timer* cooldownTimer = TimerManager::GetInstance().GetTimer("bulletTimeCooldown");
+    if (cooldownTimer && cooldownTimer->IsRunning())
+    {
+        return true;
+    }
+    return false;
+}
+
+// バレットタイムのクールダウン進行度を取得
+float MoveComponent::GetBulletTimeCooldownProgress() const
+{
+    Timer* cooldownTimer = TimerManager::GetInstance().GetTimer("bulletTimeCooldown");
+    if (cooldownTimer && cooldownTimer->IsRunning())
+    {
+        // リロードUIと同じように、時間経過とともに 0.0 から 1.0 に増えるようにする
+        return 1.0f - (cooldownTimer->GetRemainingTime() / cooldownTimer->GetDuration());
+    }
+    return 0.0f;
 }
 
 // 移動処理

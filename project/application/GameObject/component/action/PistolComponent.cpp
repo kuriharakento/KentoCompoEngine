@@ -6,6 +6,8 @@
 #include <engine/gameobject/base/GameObject.h>
 #include "application/gameObject/combatable/character/enemy/base/EnemyBase.h"
 #include "application/gameObject/combatable/character/player/Player.h"
+#include "application/GameObject/component/action/StatusComponent.h"
+#include "application/GameObject/component/action/MoveComponent.h"
 // component
 #include "engine/gameobject/component/collision/OBBColliderComponent.h"
 #include "BulletComponent.h"
@@ -36,8 +38,13 @@ void PistolComponent::Update(GameObject* owner)
 	bool isPlayerOwner = dynamic_cast<Player*>(owner) != nullptr;
 	float deltaTime = isPlayerOwner ? TimeManager::GetInstance().GetGameContext().realDeltaTime : TimeManager::GetInstance().GetGameContext().deltaTime;
 
-	// クールダウンタイマーを減少
-	fireCooldownTimer_ -= deltaTime;
+	// クールダウンタイマーを減少（ステータスの射撃レート倍率を適用）
+	float fireRateMultiplier = 1.0f;
+	if (auto status = owner->GetComponent<StatusComponent>())
+	{
+		fireRateMultiplier = status->fireRateMultiplier.GetValue();
+	}
+	fireCooldownTimer_ -= deltaTime * fireRateMultiplier;
 
 	// リロード処理
 	if (isReloading_)
@@ -55,9 +62,23 @@ void PistolComponent::Update(GameObject* owner)
 			{
 				FireBullet(owner);
 				fireCooldownTimer_ = fireCooldown_;
-				currentAmmo_--;
-				// 弾がなくなったらリロード開始
-				if (currentAmmo_ <= 0) StartReload();
+
+				// スローモーション中は弾薬を消費しない
+				bool consumeAmmo = true;
+				if (auto moveComp = owner->GetComponent<MoveComponent>())
+				{
+					if (moveComp->IsInBulletTime())
+					{
+						consumeAmmo = false;
+					}
+				}
+
+				if (consumeAmmo)
+				{
+					currentAmmo_--;
+					// 弾がなくなったらリロード開始
+					if (currentAmmo_ <= 0) StartReload();
+				}
 			}
 			// Rキーで手動リロード
 			if (Input::GetInstance()->TriggerKey(DIK_R) && currentAmmo_ < maxAmmo_)
