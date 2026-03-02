@@ -16,21 +16,27 @@
 #include "base/Camera.h"
 #include "base/WinApp.h"
 #include "engine/manager/effect/PostProcessManager.h"
+#include "effects/particle/ParticleEffect.h"
 
 // コンストラクタ：マネージャーの初期化
 MoveComponent::MoveComponent(EnemyManager* enemyManager, CameraManager* camera, PostProcessManager* postProcessManager)
 {
     // 敵マネージャーのポインタを保存
     enemyManager_ = enemyManager;
-	// カメラのポインタを保存
-	camera_ = camera->GetActiveCamera();
+    // カメラのポインタを保存
+    camera_ = camera->GetActiveCamera();
     // ポストプロセスマネージャーのポインタを保存
     postProcessManager_ = postProcessManager;
-}
+    // 軌跡パーティクルを読み込み
+    trailEffect_ = ParticleManager::GetInstance()->Load("player_trail", "./Resources/json/particle/player_trail.json");
+}   
 
 // フレームごとの更新処理
 void MoveComponent::Update(GameObject* owner)
 {
+	// 軌跡パーティクルの位置を更新
+	trailEffect_->SetPosition(owner->GetPosition());
+
     // StatusComponentから移動速度を取得
     auto status = owner->GetComponent<StatusComponent>();
     if (status)
@@ -103,6 +109,11 @@ void MoveComponent::Update(GameObject* owner)
             isDodging_ = false;
             wasEffectPlayed_ = false;
             dodgeCooldownTimer_ = dodgeCooldown_;
+            if (!isInBulletTime_)
+            {
+                //　バレットタイム中でなければそのまま停止させる
+                trailEffect_->Stop();
+            }
         }
     }
 
@@ -292,7 +303,8 @@ void MoveComponent::ActivateBulletTime(GameObject* owner)
         // ゲーム時間をスローモーションに
         TimeManager::GetInstance().SetGameTimeScale(bulletTimeScale_);
 
-        // グレースケールなどは Update のイージング処理で有効化される
+        // 軌跡エフェクトの再生
+		trailEffect_->Play();
     });
     bulletTime->SetOnFinish([this]() {
         // ゲーム時間を通常に戻す
@@ -304,7 +316,8 @@ void MoveComponent::ActivateBulletTime(GameObject* owner)
         // バフを解除
         RemoveBulletTimeBuffs();
 
-        // エフェクト解除は Update のイージング処理で行われる
+        // 軌跡エフェクトの終了
+		trailEffect_->Stop();
 
         // クールダウンタイマーを作成
         auto timer = std::make_unique<Timer>("bulletTimeCooldown", bulletTimeCooldown_, DeltaTimeType::RealDeltaTime);
@@ -432,6 +445,9 @@ void MoveComponent::ProcessDodge(GameObject* owner)
         dodgeTimer_ = dodgeDuration_;
         invincibleTimer_ = dodgeInvincibleTime_;
         effectTimer_ = 0.0f;
+
+        // 軌跡エフェクトを再生
+        trailEffect_->Play();
     }
     else
     {
@@ -442,7 +458,7 @@ void MoveComponent::ProcessDodge(GameObject* owner)
 // 回避エフェクトを再生
 void MoveComponent::PlayDodgeEffect(GameObject* owner)
 {
-    // TODO: JSONベースのパーティクルエフェクトに置き換える
+    // NOTE:後でパーティクルを出す
 }
 
 // 移動方向を取得

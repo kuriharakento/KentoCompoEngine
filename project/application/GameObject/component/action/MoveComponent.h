@@ -2,6 +2,7 @@
 #include "engine/gameobject/component/base/IActionComponent.h"
 #include "math/Vector3.h"
 #include "input/Input.h"
+#include "effects/particle/ParticleManager.h"
 
 class EnemyManager;
 class GameObject;
@@ -193,6 +194,8 @@ private:
     PostProcessManager* postProcessManager_ = nullptr;
     // バレットタイムバフ付与のためのプレイヤー参照（所有しない）
     Player* player_ = nullptr;
+    // 軌跡パーティクルのポインタ
+	ParticleEffect* trailEffect_ = nullptr;
 
     // 移動速度
     float moveSpeed_ = 0.0f;

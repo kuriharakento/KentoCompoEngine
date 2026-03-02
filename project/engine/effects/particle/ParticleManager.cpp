@@ -38,10 +38,10 @@ void ParticleManager::Update(CameraManager* camera)
 {
 	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
 
-	// エフェクトの更新（アクティブなもののみ）
+	// エフェクトの更新（再生中 or 残存パーティクルがある間は継続）
 	for (auto& effect : effects_)
 	{
-		if (effect->IsPlaying())
+		if (effect->IsPlaying() || !effect->IsFinished())
 		{
 			effect->Update(deltaTime, camera);
 		}

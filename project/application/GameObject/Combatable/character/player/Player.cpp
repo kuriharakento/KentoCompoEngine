@@ -94,6 +94,7 @@ IWeaponComponent* Player::GetCurrentWeapon() const
 	return nullptr;
 }
 #include "engine/manager/effect/PostProcessManager.h"
+#include <effects/particle/ParticleManager.h>
 
 void Player::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, EnemyManager* enemyManager, CameraManager* camera, PostProcessManager* postProcessManager)
 {

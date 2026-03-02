@@ -21,7 +21,17 @@ void ParticleEffect::Initialize(const std::string& name)
 
 void ParticleEffect::Update(float deltaTime, CameraManager* camera)
 {
-	if (!isPlaying_) return;
+	// isPlaying_がfalseも既存パーティクルを寿命で自然に消すため更新を続ける
+	bool hasActiveParticles = false;
+	for (const auto& emitter : emitters_)
+	{
+		if (!emitter->GetParticles().empty())
+		{
+			hasActiveParticles = true;
+			break;
+		}
+	}
+	if (!isPlaying_ && !hasActiveParticles) return;
 
 	// エミッター間追従の位置を先に設定
 	for (auto& emitter : emitters_)
@@ -107,11 +117,21 @@ void ParticleEffect::SetFollowTarget(Transform* target)
 void ParticleEffect::Play()
 {
 	isPlaying_ = true;
+	// 各エミッターのライフサイクル状態をリセットして生成を再開
+	for (auto& emitter : emitters_)
+	{
+		emitter->Restart();
+	}
 }
 
 void ParticleEffect::Stop()
 {
 	isPlaying_ = false;
+	// 各エミッターの生成を止める（既存パーティクルは寿命で自然消滅させる）
+	for (auto& emitter : emitters_)
+	{
+		emitter->Stop();
+	}
 }
 
 void ParticleEffect::Reset()

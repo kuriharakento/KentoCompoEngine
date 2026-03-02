@@ -40,6 +40,7 @@ void AssaultEnemy::CollisionSettings(ICollisionComponent* collider)
 
 				// ダメージエフェクトを生成
 				ParticleManager::GetInstance()->Play("hit_effect", GetPosition());
+				ParticleManager::GetInstance()->Play("hit_effect2", GetPosition());
 			}
 		}
 						 });
