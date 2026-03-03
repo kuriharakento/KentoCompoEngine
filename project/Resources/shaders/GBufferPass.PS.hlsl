@@ -12,10 +12,10 @@ struct PixelShaderInput
 // G-Buffer出力
 struct GBufferOutput
 {
-    float4 albedo : SV_TARGET0; // RGB: Albedo, A: Metallic
-    float4 normal : SV_TARGET1; // RGB: Normal (encoded), A: unused
-    float4 material : SV_TARGET2; // R: Roughness, G: AO, BA: reserved
-    float4 emissive : SV_TARGET3; // RGB: Emissive, A: Intensity
+    float4 albedo : SV_TARGET0; // 0番（色）へ出力
+    float4 normal : SV_TARGET1; // 1番（法線）へ出力
+    float4 material : SV_TARGET2; // 2番（材質）へ出力
+    float4 emissive : SV_TARGET3; // 3番（発光）へ出力
 };
 
 // マテリアル（C++側のMaterial構造体に合わせる）
