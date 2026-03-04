@@ -19,6 +19,10 @@ protected:
 	void OnUpdatePlaying() override;
 
 private:
+	// ライティング
+	static constexpr Vector3 kLightDirection = { 0.0f, -1.0f, 0.0f };
+	static constexpr float kLightIntensity = 0.0f;
+
 	std::unique_ptr<DebugCamera> debugCamera_;
 	std::unique_ptr<ParticleEditor> particleEditor_;
 	// スカイドーム（背景天球）

@@ -41,7 +41,7 @@ void GamePlayScene::Initialize()
 
 	// ディレクショナルライトの調整（斜め下向き）
 	DirectionalLight dirLight = sceneManager_->GetLightManager()->GetDirectionalLight();
-	dirLight.direction = { -0.4f, -1.0f, 1.0f };  // 斜め下向き（モデル依存のため数式由来）
+	dirLight.direction = kLightDirection;
 	dirLight.intensity = kLightIntensity;
 	sceneManager_->GetLightManager()->SetDirectionalLight(dirLight);
 

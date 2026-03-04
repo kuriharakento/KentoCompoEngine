@@ -129,6 +129,7 @@ private:
 	static constexpr float kBgmVolume = 0.2f;
 
 	// ライティング
+	static constexpr Vector3 kLightDirection = { 0.0f, -1.0f, 0.0f };
 	static constexpr float kLightIntensity = 0.8f;
 	static constexpr float kSkydomeLightIntensity = 0.5f;
 	static constexpr float kSkydomeScale = 0.8f;

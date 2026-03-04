@@ -25,7 +25,7 @@ void TitleScene::Initialize()
 
 	// ディレクショナルライトの調整（下向き）
 	DirectionalLight dirLight = sceneManager_->GetLightManager()->GetDirectionalLight();
-	dirLight.direction = { 0.0f, -1.0f, 0.0f };  // 下向き
+	dirLight.direction = kLightDirection;
 	dirLight.intensity = kLightIntensity;
 	sceneManager_->GetLightManager()->SetDirectionalLight(dirLight);
 

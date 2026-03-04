@@ -13,13 +13,21 @@
 #include "scene/manager/SceneManager.h"
 #include "base/DirectXCommon.h"
 #include "manager/system/SrvManager.h"
+#include "manager/scene/LightManager.h"
+
 
 void ParticleTestScene::Initialize()
 {
 	// カメラの設定
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate({ 0.0f, 5.0f, 20.0f });
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetRotate({ 0.0f, -3.14f, 0.0f });
-	
+
+	// ディレクショナルライトの調整（斜め下向き）
+	DirectionalLight dirLight = sceneManager_->GetLightManager()->GetDirectionalLight();
+	dirLight.direction = kLightDirection;
+	dirLight.intensity = kLightIntensity;
+	sceneManager_->GetLightManager()->SetDirectionalLight(dirLight);
+
 	// デバッグカメラの初期化
 	debugCamera_ = std::make_unique<DebugCamera>();
 	debugCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
