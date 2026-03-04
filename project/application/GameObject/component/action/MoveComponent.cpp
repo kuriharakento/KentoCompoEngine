@@ -297,6 +297,9 @@ void MoveComponent::ActivateBulletTime(GameObject* owner)
     player_ = dynamic_cast<Player*>(owner);
     ApplyBulletTimeBuffs();
 
+    //  エフェクトの再生
+	ParticleManager::GetInstance()->Play("dodge_effect", owner->GetPosition());
+
     // バレットタイムタイマーを作成
     auto bulletTime = std::make_unique<Timer>("bulletTime", bulletTimeDuration_, DeltaTimeType::RealDeltaTime);
     bulletTime->SetOnStart([this]() {
