@@ -74,8 +74,8 @@ void AssaultRifleComponent::Update(GameObject* owner)
 		// 選択中の武器のみ入力処理を行う
 		if (IsActive())
 		{
-			// マウス左クリックで発射（クールダウン終了かつ弾がある場合）
-			if (Input::GetInstance()->IsMouseButtonPressed(0) && fireCooldownTimer_ <= 0.0f && currentAmmo_ > 0)
+			// マウス左クリックで発射（クールダウン終了かつ弾があるかつリロードをしていない場合）
+			if (Input::GetInstance()->IsMouseButtonPressed(0) && fireCooldownTimer_ <= 0.0f && currentAmmo_ > 0 && !isReloading_)
 			{
 				FireBullet(owner);
 				fireCooldownTimer_ = fireCooldown_;
