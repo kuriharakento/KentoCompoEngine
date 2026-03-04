@@ -454,21 +454,26 @@ void GamePlayScene::DrawShadow()
 
 void GamePlayScene::Draw2D()
 {
-	stageManager_->Draw2D();
+	// ステートがPlayの時のみ描画する
+	if (GetCurrentState() == SceneState::Playing)
+	{
+		// 敵などのUI
+		stageManager_->Draw2D();
+		// ミニマップUI
+		minimap_->Draw();
+		// レティクルUI
+		reticle_->Draw();
+		// コンボUI
+		ComboManager::GetInstance().Draw();
+		// 操作UI
+		controlsGuide_->Draw();
+	}
 
-	minimap_->Draw();
-
-	reticle_->Draw();
-
-	ComboManager::GetInstance().Draw();
-
+	// ゲーム終了演出のレターボックスを描画
 	cinematicLetterbox_.Draw();
-
-	controlsGuide_->Draw();
-
-	// ポーズメニュー（最前面に描画）
+	// ポーズメニュー
 	poseMenu_->Draw();
-
+	// シーン遷移の描画
 	transitionEffect_.Draw();
 }
 
