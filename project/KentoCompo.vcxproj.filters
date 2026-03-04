@@ -480,6 +480,7 @@
     </ClCompile>
     <ClCompile Include="application\resources\LoadGameResources.cpp" />
     <ClCompile Include="application\weapon\WeaponManager.cpp" />
+    <ClCompile Include="engine\gameobject\component\collision\RayColliderComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine\gameobject\base\GameObject.h">
@@ -1095,6 +1096,8 @@
       <Filter>application\gameObject\component\collision</Filter>
     </ClInclude>
     <ClInclude Include="application\weapon\WeaponManager.h" />
+    <ClInclude Include="engine\gameobject\component\collision\RayColliderComponent.h" />
+    <ClInclude Include="engine\math\Ray.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

@@ -372,6 +372,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\graphics\deferred\DeferredRenderer.h" />
     <ClInclude Include="engine\math\BlendMode.h" />
     <ClInclude Include="engine\math\Quaternion.h" />
+    <ClInclude Include="engine\math\Ray.h" />
     <ClInclude Include="engine\math\Sphere.h" />
     <ClInclude Include="engine\math\VectorColorCodes.h" />
     <ClInclude Include="engine\math\AABB.h" />

@@ -24,6 +24,7 @@
 #include "manager/effect/ParticlePipelineManager.h"
 #include "math/BlendMode.h"
 #include "time/TimeManager.h"
+#include "time/Timer.h"
 #include <filesystem>
 #include <algorithm>
 
@@ -520,6 +521,15 @@ void ParticleEditor::DrawEffectPanel()
 			{ 
 				currentEffect_->Reset(); 
 				currentEffect_->Play(); 
+			}
+
+			ImGui::Text("Time:");
+			ImGui::SameLine(80);
+			int deltaType = static_cast<int>(currentEffect_->GetDeltaTimeType());
+			const char* deltaTypeNames[] = { "DeltaTime", "RealDeltaTime" };
+			if (ImGui::Combo("##DeltaTimeType", &deltaType, deltaTypeNames, 2))
+			{
+				currentEffect_->SetDeltaTimeType(static_cast<DeltaTimeType>(deltaType));
 			}
 
 			// エミッター数

@@ -14,6 +14,7 @@
 #include "effects/particle/module/update/RibbonModules.h"
 #include "effects/particle/module/update/TextureSheetModule.h"
 #include "effects/particle/module/update/MotionEffectModules.h"
+#include "time/Timer.h"
 #include <fstream>
 
 // nlohmann/json を有効化
@@ -50,6 +51,9 @@ std::unique_ptr<ParticleEffect> ParticleEffectSerializer::Load(const std::string
 			pos.z = data["position"].value("z", 0.0f);
 			effect->SetPosition(pos);
 		}
+
+		// タイムスケール設定
+		effect->SetDeltaTimeType(static_cast<DeltaTimeType>(data.value("deltaTimeType", 0)));
 
 		// エミッター
 		if (data.contains("emitters") && data["emitters"].is_array())
@@ -92,6 +96,9 @@ bool ParticleEffectSerializer::Save(const ParticleEffect& effect, const std::str
 		{"y", effect.GetPosition().y},
 		{"z", effect.GetPosition().z}
 	};
+
+	// タイムスケール設定
+	data["deltaTimeType"] = static_cast<int>(effect.GetDeltaTimeType());
 
 	// エミッター
 	data["emitters"] = json::array();

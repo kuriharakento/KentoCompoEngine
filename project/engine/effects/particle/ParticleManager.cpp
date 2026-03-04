@@ -5,6 +5,7 @@
 #include "manager/scene/CameraManager.h"
 #include "manager/effect/ParticlePipelineManager.h"
 #include "time/TimeManager.h"
+#include "time/Timer.h"
 #include <algorithm>
 
 #ifdef USE_IMGUI
@@ -37,13 +38,15 @@ void ParticleManager::Finalize()
 void ParticleManager::Update(CameraManager* camera)
 {
 	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
+	float unscaledDeltaTime = TimeManager::GetInstance().GetGameContext().realDeltaTime;
 
 	// エフェクトの更新（再生中 or 残存パーティクルがある間は継続）
 	for (auto& effect : effects_)
 	{
 		if (effect->IsPlaying() || !effect->IsFinished())
 		{
-			effect->Update(deltaTime, camera);
+			float dt = (effect->GetDeltaTimeType() == DeltaTimeType::RealDeltaTime) ? unscaledDeltaTime : deltaTime;
+			effect->Update(dt, camera);
 		}
 	}
 
