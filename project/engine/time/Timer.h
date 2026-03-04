@@ -24,7 +24,7 @@ class Timer
 {
 public:
     /**
-     * @brief デフォルトコンストラクタ（安全な初期化）
+     * @brief デフォルトコンストラクタ
      */
     Timer()
         : name_(""), duration_(0.0f), elapsed_(0.0f), running_(false), finished_(false), deltaTimeType_(DeltaTimeType::DeltaTime)
