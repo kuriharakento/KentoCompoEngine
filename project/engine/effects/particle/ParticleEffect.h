@@ -10,6 +10,7 @@
 #include <vector>
 #include <string>
 #include "math/Vector3.h"
+#include "time/Timer.h"
 
 class ParticleEmitter;
 class CameraManager;
@@ -129,6 +130,12 @@ public:
 	void SetAutoRemove(bool autoRemove) { isAutoRemove_ = autoRemove; }
 	bool IsAutoRemove() const { return isAutoRemove_; }
 
+	/**
+	 * @brief タイムスケールを無視して実時間を使うか設定
+	 */
+	void SetDeltaTimeType(DeltaTimeType type) { deltaTimeType_ = type; }
+	DeltaTimeType GetDeltaTimeType() const { return deltaTimeType_; }
+
 	//===== プロパティ =====//
 
 	const std::string& GetName() const { return name_; }
@@ -146,4 +153,5 @@ private:
 	Vector3 position_ = {};
 	bool isPlaying_ = false;
 	bool isAutoRemove_ = true;
+	DeltaTimeType deltaTimeType_ = DeltaTimeType::DeltaTime;
 };
