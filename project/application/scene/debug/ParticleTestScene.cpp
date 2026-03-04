@@ -20,7 +20,7 @@ void ParticleTestScene::Initialize()
 {
 	// カメラの設定
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate({ 0.0f, 5.0f, 20.0f });
-	sceneManager_->GetCameraManager()->GetActiveCamera()->SetRotate({ 0.0f, -3.14f, 0.0f });
+	sceneManager_->GetCameraManager()->GetActiveCamera()->SetRotate({ 0.0f, 0.0f, 0.0f });
 
 	// ディレクショナルライトの調整（斜め下向き）
 	DirectionalLight dirLight = sceneManager_->GetLightManager()->GetDirectionalLight();
@@ -31,7 +31,7 @@ void ParticleTestScene::Initialize()
 	// デバッグカメラの初期化
 	debugCamera_ = std::make_unique<DebugCamera>();
 	debugCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
-	debugCamera_->Start({ 0.0f, 5.0f, 20.0f }, { 0.0f, -3.14f, 0.0f });
+	debugCamera_->Start({ 0.0f, 8.0f, -30.0f }, { 0.2f, 0.0f, 0.0f });
 
 	// パーティクルエディタの初期化
 	particleEditor_ = std::make_unique<ParticleEditor>();
@@ -102,7 +102,7 @@ void ParticleTestScene::Draw2D()
 void ParticleTestScene::Draw3D()
 {
 	LineManager::GetInstance()->DrawGrid(
-		200.0f,
+		50.0f,
 		5.0f,
 		VectorColorCodes::White
 	);
