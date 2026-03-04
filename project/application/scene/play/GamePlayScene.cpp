@@ -37,6 +37,7 @@ void GamePlayScene::Initialize()
 	// パーティクルの読み込み
 	ParticleManager::GetInstance()->Load("hit_effect", "./Resources/json/particle/hit_effect.json");
 	ParticleManager::GetInstance()->Load("hit_effect2", "./Resources/json/particle/hit_effect_ver2.json");
+	ParticleManager::GetInstance()->Load("dodge_effect", "./Resources/json/particle/dodge.json");
 
 	// ディレクショナルライトの調整（斜め下向き）
 	DirectionalLight dirLight = sceneManager_->GetLightManager()->GetDirectionalLight();
