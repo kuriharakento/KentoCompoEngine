@@ -38,6 +38,8 @@ void GamePlayScene::Initialize()
 	ParticleManager::GetInstance()->Load("hit_effect", "./Resources/json/particle/hit_effect.json");
 	ParticleManager::GetInstance()->Load("hit_effect2", "./Resources/json/particle/hit_effect_ver2.json");
 	ParticleManager::GetInstance()->Load("dodge_effect", "./Resources/json/particle/dodge.json");
+	ParticleManager::GetInstance()->Load("bulletTime_finish_effect", "./Resources/json/particle/bulletTime_finish_effect.json");
+	ParticleManager::GetInstance()->Load("enemy_spawn_effect", "./Resources/json/particle/enemy_spawn_effect.json");
 
 	// ディレクショナルライトの調整（斜め下向き）
 	DirectionalLight dirLight = sceneManager_->GetLightManager()->GetDirectionalLight();

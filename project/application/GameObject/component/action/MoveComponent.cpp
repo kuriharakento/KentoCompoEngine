@@ -309,12 +309,15 @@ void MoveComponent::ActivateBulletTime(GameObject* owner)
         // 軌跡エフェクトの再生
 		trailEffect_->Play();
     });
-    bulletTime->SetOnFinish([this]() {
+    bulletTime->SetOnFinish([this, owner]() {
         // ゲーム時間を通常に戻す
         TimeManager::GetInstance().SetGameTimeScale(kNormalTimeScale);
 
         // バレットタイム終了
         isInBulletTime_ = false;
+
+        // バレットタイム終了のエフェクトを再生
+		ParticleManager::GetInstance()->Play("bulletTime_finish_effect", owner->GetPosition());
 
         // バフを解除
         RemoveBulletTimeBuffs();

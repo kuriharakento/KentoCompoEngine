@@ -1,5 +1,5 @@
 {
-    "deltaTimeType": 1,
+    "deltaTimeType": 0,
     "emitters": [
         {
             "duration": 0.0,
@@ -23,41 +23,25 @@
                     "type": "SpawnBurst"
                 },
                 {
-                    "max": 0.6000000238418579,
-                    "min": 0.6000000238418579,
+                    "max": 0.699999988079071,
+                    "min": 0.699999988079071,
                     "type": "InitialLifetime"
                 },
                 {
                     "end": {
-                        "x": 80.0,
-                        "y": 80.0,
-                        "z": 1.0
-                    },
-                    "start": {
                         "x": 0.0,
                         "y": 0.0,
+                        "z": 0.0
+                    },
+                    "start": {
+                        "x": 80.0,
+                        "y": 80.0,
                         "z": 1.0
                     },
                     "type": "ScaleOverLifetime"
                 },
                 {
-                    "end": {
-                        "a": 0.0,
-                        "b": 1.0,
-                        "g": 1.0,
-                        "r": 1.0
-                    },
-                    "start": {
-                        "a": 1.0,
-                        "b": 1.0,
-                        "g": 1.0,
-                        "r": 1.0
-                    },
-                    "type": "ColorFade",
-                    "useInitialColor": false
-                },
-                {
-                    "rotationSpeed": 180.0,
+                    "rotationSpeed": 360.0,
                     "type": "RotationOverLifetime"
                 }
             ],
@@ -69,7 +53,7 @@
             },
             "renderer": {
                 "billboard": true,
-                "blendMode": 1,
+                "blendMode": 0,
                 "primitiveOptions": {
                     "cubeFaceVisible": [
                         true,
@@ -85,11 +69,11 @@
                         "z": 1.0
                     },
                     "doubleSided": false,
-                    "innerRadius": 0.3199999928474426,
-                    "outerRadius": 1.7699999809265137,
+                    "innerRadius": 0.5,
+                    "outerRadius": 1.0,
                     "points": 5,
                     "rings": 8,
-                    "segments": 32,
+                    "segments": 16,
                     "tubeRadius": 0.30000001192092896,
                     "turns": 2.0,
                     "withCaps": true
@@ -99,9 +83,9 @@
                 "texture": "resources/flameeye.png",
                 "tintColor": {
                     "a": 1.0,
-                    "b": 1.0,
-                    "g": 0.9950980544090271,
-                    "r": 0.9988465905189514
+                    "b": 0.0,
+                    "g": 0.0,
+                    "r": 0.0
                 },
                 "type": "Mesh"
             },
@@ -123,10 +107,10 @@
             "minMoveDistance": 0.05000000074505806,
             "modules": [
                 {
-                    "count": 5,
+                    "count": 1,
                     "delay": 0.0,
-                    "interval": 0.0,
-                    "loops": 1,
+                    "interval": 0.10000000149011612,
+                    "loops": 2,
                     "type": "SpawnBurst"
                 },
                 {
@@ -136,12 +120,12 @@
                 },
                 {
                     "end": {
-                        "x": 500.0,
-                        "y": 3.0,
+                        "x": 10.0,
+                        "y": 10.0,
                         "z": 1.0
                     },
                     "start": {
-                        "x": 10.0,
+                        "x": 0.0,
                         "y": 0.0,
                         "z": 1.0
                     },
@@ -197,22 +181,22 @@
                     "turns": 2.0,
                     "withCaps": true
                 },
-                "primitiveType": 0,
+                "primitiveType": 1,
                 "scale": 1.0,
-                "texture": "resources/star.png",
+                "texture": "resources/gradation.png",
                 "tintColor": {
                     "a": 1.0,
-                    "b": 0.11894461512565613,
-                    "g": 0.9455398917198181,
-                    "r": 0.970588207244873
+                    "b": 1.0,
+                    "g": 1.0,
+                    "r": 1.0
                 },
                 "type": "Mesh"
             },
             "spawnOnlyWhenMoving": false,
-            "startDelay": 0.0
+            "startDelay": 0.699999988079071
         }
     ],
-    "name": "dodge",
+    "name": "bulletTime_finish_effect",
     "position": {
         "x": 0.0,
         "y": 0.0,

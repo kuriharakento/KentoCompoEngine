@@ -214,6 +214,9 @@ ParticleEffect* ParticleManager::Load(const std::string& name, const std::string
 		return nullptr;
 	}
 
+	// Playで複数再生する時のために定義として保存しておく
+	effectDefinitions_[name] = jsonPath;
+
 	effect->Initialize(name);
 	// Play()は呼ばない（非アクティブ状態で保持）
 	// 手動管理する場合は自動削除オフにするのが安全
@@ -264,13 +267,16 @@ void ParticleManager::LoadEffectDefinition(const std::string& name, const std::s
 
 ParticleEffect* ParticleManager::Play(const std::string& effectName, const Vector3& position)
 {
-	// 既に登録されているエフェクトがあればそれを使う
-	if (auto* existing = GetEffect(effectName))
+	// 既に登録されているエフェクトのうち、再生終了して空いているものを探す
+	for (auto& effect : effects_)
 	{
-		existing->SetPosition(position);
-		existing->Reset();
-		existing->Play();
-		return existing;
+		if (effect->GetName() == effectName && !effect->IsPlaying() && effect->IsFinished())
+		{
+			effect->SetPosition(position);
+			effect->Reset();
+			effect->Play();
+			return effect.get();
+		}
 	}
 
 	// 定義があればJSONから読み込んで新規作成
@@ -295,13 +301,16 @@ ParticleEffect* ParticleManager::Play(const std::string& effectName, const Vecto
 
 ParticleEffect* ParticleManager::Play(const std::string& effectName, Transform* followTarget)
 {
-	// 既に登録されているエフェクトがあればそれを使う
-	if (auto* existing = GetEffect(effectName))
+	// 既に登録されているエフェクトのうち、再生終了して空いているものを探す
+	for (auto& effect : effects_)
 	{
-		existing->SetFollowTarget(followTarget);
-		existing->Reset();
-		existing->Play();
-		return existing;
+		if (effect->GetName() == effectName && !effect->IsPlaying() && effect->IsFinished())
+		{
+			effect->SetFollowTarget(followTarget);
+			effect->Reset();
+			effect->Play();
+			return effect.get();
+		}
 	}
 
 	// 定義があればJSONから読み込んで新規作成

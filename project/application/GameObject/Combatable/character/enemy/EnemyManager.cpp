@@ -7,6 +7,7 @@
 #include "application/combo/ComboManager.h"
 #include "math/MathUtils.h"
 #include <audio/Audio.h>
+#include "effects/particle/ParticleManager.h"
 
 void EnemyManager::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, CameraManager* camera, LightManager* lightManager, GameObject* target)
 {
@@ -248,7 +249,6 @@ void EnemyManager::AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo
 				Transform(data[i].transform.scale, data[i].transform.rotate, data[i].transform.translate)
 			);
 			enemy->SetModel(data[i].fileName);
-			
 			enemies_.push_back(std::move(enemy));
 		}
 		// ナイフの生成
@@ -267,6 +267,8 @@ void EnemyManager::AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo
 			enemy->SetModel("cube");
 			enemies_.push_back(std::move(enemy));
 		}
+		// スポーンパーティクルの生成
+		ParticleManager::GetInstance()->Play("enemy_spawn_effect", data[i].transform.translate);
 	}
 }
 
