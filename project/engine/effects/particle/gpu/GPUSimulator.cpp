@@ -29,10 +29,10 @@ GPUSimulator::~GPUSimulator()
 	// SRV/UAVディスクリプタの解放
 	if (srvManager_)
 	{
-		if (particleSrvIndex_ != 0) srvManager_->Free(particleSrvIndex_);
-		if (particleUavIndex_ != 0) srvManager_->Free(particleUavIndex_);
-		if (renderSrvIndex_ != 0) srvManager_->Free(renderSrvIndex_);
-		if (renderUavIndex_ != 0) srvManager_->Free(renderUavIndex_);
+		if (particleSrvIndex_ != SrvManager::kInvalidSrvIndex) srvManager_->Free(particleSrvIndex_);
+		if (particleUavIndex_ != SrvManager::kInvalidSrvIndex) srvManager_->Free(particleUavIndex_);
+		if (renderSrvIndex_   != SrvManager::kInvalidSrvIndex) srvManager_->Free(renderSrvIndex_);
+		if (renderUavIndex_   != SrvManager::kInvalidSrvIndex) srvManager_->Free(renderUavIndex_);
 	}
 }
 

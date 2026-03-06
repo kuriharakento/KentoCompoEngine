@@ -23,7 +23,7 @@ SpriteRenderer::~SpriteRenderer()
 	vertexResource_.Reset();
 
 	// SRV解放
-	if (instancingSrvIndex_ != 0)
+	if (instancingSrvIndex_ != SrvManager::kInvalidSrvIndex)
 	{
 		ParticleManager::GetInstance()->GetSrvManager()->Free(instancingSrvIndex_);
 	}

@@ -117,7 +117,15 @@ void ParticleManager::DrawImGui()
 	ImGui::Text("Total Particles: %u", totalParticles);
 	ImGui::Text("Total Emitters: %u", totalEmitters);
 	ImGui::Text("Active Effects: %d", static_cast<int>(effects_.size()));
+
+	// SRV使用状況（Active = 実使用中、HWM = 確保した最大インデックス）
+	uint32_t srvActive = srvManager_->GetActiveSRVCount();
+	uint32_t srvHwm    = srvManager_->GetUseIndex();
+	uint32_t srvMax    = SrvManager::kMaxSRVCount;
+	ImGui::Text("SRV Active: %u / %u  (HWM: %u)", srvActive, srvMax, srvHwm);
 	ImGui::Separator();
+
+
 
 	// エフェクトごとの詳細
 	if (ImGui::CollapsingHeader("Effects", ImGuiTreeNodeFlags_DefaultOpen))
@@ -267,19 +275,7 @@ void ParticleManager::LoadEffectDefinition(const std::string& name, const std::s
 
 ParticleEffect* ParticleManager::Play(const std::string& effectName, const Vector3& position)
 {
-	// 既に登録されているエフェクトのうち、再生終了して空いているものを探す
-	for (auto& effect : effects_)
-	{
-		if (effect->GetName() == effectName && !effect->IsPlaying() && effect->IsFinished())
-		{
-			effect->SetPosition(position);
-			effect->Reset();
-			effect->Play();
-			return effect.get();
-		}
-	}
-
-	// 定義があればJSONから読み込んで新規作成
+	// 定義があれば毎回新規生成。autoRemove=trueで再生完了後に自動解放される
 	auto it = effectDefinitions_.find(effectName);
 	if (it != effectDefinitions_.end())
 	{
@@ -288,32 +284,20 @@ ParticleEffect* ParticleManager::Play(const std::string& effectName, const Vecto
 
 		effect->Initialize(effectName);
 		effect->SetPosition(position);
+		effect->SetAutoRemove(true);
 		effect->Play();
-		
+
 		ParticleEffect* ptr = effect.get();
 		effects_.push_back(std::move(effect));
 		return ptr;
 	}
 
-	// 登録も定義もない場合はnullptr
 	return nullptr;
 }
 
 ParticleEffect* ParticleManager::Play(const std::string& effectName, Transform* followTarget)
 {
-	// 既に登録されているエフェクトのうち、再生終了して空いているものを探す
-	for (auto& effect : effects_)
-	{
-		if (effect->GetName() == effectName && !effect->IsPlaying() && effect->IsFinished())
-		{
-			effect->SetFollowTarget(followTarget);
-			effect->Reset();
-			effect->Play();
-			return effect.get();
-		}
-	}
-
-	// 定義があればJSONから読み込んで新規作成
+	// 定義があれば毎回新規生成。autoRemove=trueで再生完了後に自動解放される
 	auto it = effectDefinitions_.find(effectName);
 	if (it != effectDefinitions_.end())
 	{
@@ -322,16 +306,17 @@ ParticleEffect* ParticleManager::Play(const std::string& effectName, Transform* 
 
 		effect->Initialize(effectName);
 		effect->SetFollowTarget(followTarget);
+		effect->SetAutoRemove(true);
 		effect->Play();
-		
+
 		ParticleEffect* ptr = effect.get();
 		effects_.push_back(std::move(effect));
 		return ptr;
 	}
 
-	// 登録も定義もない場合はnullptr
 	return nullptr;
 }
+
 
 void ParticleManager::AddEffect(std::unique_ptr<ParticleEffect> effect)
 {

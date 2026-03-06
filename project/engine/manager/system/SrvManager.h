@@ -122,10 +122,26 @@ public:
 	void SetGraphicsRootDescriptorTableRange(UINT RootParameterIndex, uint32_t startSrvIndex);
 
 	/**
+	 * @brief 現在使用中のSRVインデックス数を取得する
+	 * @return 確保済みSRV数（デバッグ表示用）
+	 */
+	uint32_t GetUseIndex() const { return useIndex_; }
+
+	/**
+	 * @brief 現在アクティブなSRV数を取得する（解放済みを差し引いた実使用数）
+	 * @return useIndex_ - freeList_.size()
+	 */
+	uint32_t GetActiveSRVCount() const
+	{
+		return useIndex_ - static_cast<uint32_t>(freeList_.size());
+	}
+
+	/**
 	 * @brief SRV数が最大に達しているか確認する
 	 * @return true: 最大数に達している, false: まだ空きがある
 	 */
 	bool IsMaxSRVCount();
+
 
 public: // アクセッサ
 
@@ -160,6 +176,8 @@ public: // アクセッサ
 public:
 	// 最大SRV数（512個：一般的なゲームで十分な数、GPUメモリ効率のバランス）
 	static const uint32_t kMaxSRVCount;
+	// 「未確保」を表す番兵値。各クラスのSRVフィールドはこの値で初期化する
+	static constexpr uint32_t kInvalidSrvIndex = UINT32_MAX;
 
 private:
 	// DirectXCommonへのポインタ

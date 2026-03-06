@@ -7,6 +7,7 @@
  * エミッターごとのバッファを管理し、GPUで並列計算。
  */
 #include "effects/particle/Particle.h"
+#include "manager/system/SrvManager.h"
 #include "math/Vector3.h"
 #include <d3d12.h>
 #include <wrl/client.h>
@@ -150,12 +151,12 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> constantBuffer_;
 	GPUParticleConstants* constantData_ = nullptr;
 
-	// SRV/UAVインデックス
-	uint32_t particleSrvIndex_ = 0;
-	uint32_t particleUavIndex_ = 0;
+	// SRV/UAVインデックス（未確保=kInvalidSrvIndex）
+	uint32_t particleSrvIndex_ = SrvManager::kInvalidSrvIndex;
+	uint32_t particleUavIndex_ = SrvManager::kInvalidSrvIndex;
 	
-	uint32_t renderSrvIndex_ = 0;
-	uint32_t renderUavIndex_ = 0;
+	uint32_t renderSrvIndex_ = SrvManager::kInvalidSrvIndex;
+	uint32_t renderUavIndex_ = SrvManager::kInvalidSrvIndex;
 	Microsoft::WRL::ComPtr<ID3D12Resource> renderBuffer_;
 
 	// 状態

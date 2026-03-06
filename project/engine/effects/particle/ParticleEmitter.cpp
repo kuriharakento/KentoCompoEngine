@@ -311,6 +311,31 @@ void ParticleEmitter::UpdateCPU(float deltaTime)
 		ExecuteUpdateModules(context);
 	}
 
+	// Once + duration=0: Spawnモジュールが全完了したら生成を止める
+	// （durationチェックブロックは duration>0 のときのみ実行されるため、
+	//   duration=0 のままOnceを設定した場合ここで停止させる）
+	if (isEmitting_ && duration_ == 0.0f && loopBehavior_ == LoopBehavior::Once)
+	{
+		bool hasSpawnModule = false;
+		bool allSpawnDone  = true;
+		for (const auto& module : modules_)
+		{
+			if (module->GetPhase() == ModulePhase::Spawn)
+			{
+				hasSpawnModule = true;
+				if (!module->IsComplete())
+				{
+					allSpawnDone = false;
+					break;
+				}
+			}
+		}
+		if (hasSpawnModule && allSpawnDone)
+		{
+			isEmitting_ = false;
+		}
+	}
+
 update_particles:
 	// 基本的な物理更新
 	for (auto& particle : particles_)

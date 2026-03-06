@@ -53,6 +53,25 @@ void ParticleEffect::Update(float deltaTime, CameraManager* camera)
 	{
 		emitter->Update(deltaTime, camera);
 	}
+
+	// 全エミッターの生成が終わりパーティクルも消えたら再生完了とみなす
+	// （ループ系エミッターは IsEmitting() が true のままなので自動停止しない）
+	if (isPlaying_)
+	{
+		bool allComplete = true;
+		for (const auto& emitter : emitters_)
+		{
+			if (emitter->IsEmitting() || !emitter->GetParticles().empty())
+			{
+				allComplete = false;
+				break;
+			}
+		}
+		if (allComplete)
+		{
+			isPlaying_ = false;
+		}
+	}
 }
 
 void ParticleEffect::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)

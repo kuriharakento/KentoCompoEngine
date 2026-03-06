@@ -62,6 +62,12 @@ public:
 	float GetRate() const { return spawnRate_; }
 
 	/**
+	 * @brief 発射が完了しているか
+	 * @return 常にfalse（Rateベースの発生器は自発的には完了しない）
+	 */
+	bool IsComplete() const override { return false; }
+
+	/**
 	 * @brief 内部状態をリセット
 	 */
 	void Reset() override
@@ -188,6 +194,15 @@ public:
 	 * @brief 状態をリセット
 	 */
 	void Reset() override { hasFired_ = false; timeSinceLastBurst_ = 0.0f; currentLoop_ = 0; }
+
+	/**
+	 * @brief 全バーストが完了済みかどうかを返す
+	 * @return loops_<0（無限）は常にfalse。それ以外は全発射済でtrue
+	 */
+	bool IsComplete() const override
+	{
+		return hasFired_ && loops_ >= 0 && currentLoop_ >= loops_;
+	}
 
 private:
 	uint32_t burstCount_ = kDefaultBurstCount;

@@ -18,7 +18,7 @@ MeshRenderer::~MeshRenderer()
 	{
 		instanceResource_->Unmap(0, nullptr);
 	}
-	if (instanceSrvIndex_ != 0)
+	if (instanceSrvIndex_ != SrvManager::kInvalidSrvIndex)
 	{
 		ParticleManager::GetInstance()->GetSrvManager()->Free(instanceSrvIndex_);
 	}

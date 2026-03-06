@@ -10,6 +10,7 @@
 #include "effects/particle/Particle.h"
 #include "effects/particle/ParticleTypes.h"
 #include "effects/particle/primitive/PrimitiveGenerator.h"
+#include "manager/system/SrvManager.h"
 #include <d3d12.h>
 #include <wrl/client.h>
 
@@ -158,7 +159,7 @@ private:
 	//===== インスタンシングリソース =====//
 	Microsoft::WRL::ComPtr<ID3D12Resource> instanceResource_;   ///< インスタンシングバッファリソース
 	ParticleGPU* instanceData_ = nullptr;                       ///< インスタンスデータ（マップ済みポインタ）
-	uint32_t instanceSrvIndex_ = 0;                             ///< インスタンスバッファのSRVインデックス
+	uint32_t instanceSrvIndex_ = SrvManager::kInvalidSrvIndex;  ///< インスタンスバッファのSRVインデックス（未確保=kInvalidSrvIndex）
 	uint32_t instanceCount_ = 0;                                ///< 描画するインスタンス数
 
 	//===== GPUモード設定 =====//

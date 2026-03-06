@@ -9,6 +9,18 @@
 // スレッドグループサイズ
 constexpr UINT kThreadGroupSize = 256;
 
+SkinningCompute::~SkinningCompute()
+{
+	// 確保したSRV/UAVを解放する
+	if (srvManager_)
+	{
+		if (boneMatrixSrvIndex_ != SrvManager::kInvalidSrvIndex) srvManager_->Free(boneMatrixSrvIndex_);
+		if (inputSrvIndex_      != SrvManager::kInvalidSrvIndex) srvManager_->Free(inputSrvIndex_);
+		if (outputSrvIndex_     != SrvManager::kInvalidSrvIndex) srvManager_->Free(outputSrvIndex_);
+		if (outputUavIndex_     != SrvManager::kInvalidSrvIndex) srvManager_->Free(outputUavIndex_);
+	}
+}
+
 void SkinningCompute::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
 	dxCommon_ = dxCommon;
@@ -29,12 +41,12 @@ void SkinningCompute::PrepareResources(uint32_t vertexCount, ID3D12Resource* inp
 	// 定数バッファを更新
 	constantData_->vertexCount = vertexCount;
 
-	// SRV/UAVのインデックスを確保（必要に応じて）
-	if (inputSrvIndex_ == 0)
+	// SRV/UAVのインデックスを確保（初回のみ）
+	if (inputSrvIndex_ == SrvManager::kInvalidSrvIndex)
 	{
 		inputSrvIndex_ = srvManager_->Allocate();
 	}
-	if (outputUavIndex_ == 0)
+	if (outputUavIndex_ == SrvManager::kInvalidSrvIndex)
 	{
 		outputUavIndex_ = srvManager_->Allocate();
 	}

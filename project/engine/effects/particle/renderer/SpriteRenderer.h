@@ -8,6 +8,7 @@
  */
 #include "IRenderer.h"
 #include "effects/particle/Particle.h"
+#include "manager/system/SrvManager.h"
 #include <d3d12.h>
 #include <wrl/client.h>
 #include <string>
@@ -97,7 +98,7 @@ private:
 
 	//===== 描画設定 =====//
 	uint32_t textureIndex_ = 0;                                 ///< テクスチャのSRVインデックス
-	uint32_t instancingSrvIndex_ = 0;                           ///< インスタンシングバッファのSRVインデックス
+	uint32_t instancingSrvIndex_ = SrvManager::kInvalidSrvIndex; ///< インスタンシングバッファのSRVインデックス（未確保=kInvalidSrvIndex）
 	uint32_t instanceCount_ = 0;                                ///< 描画するインスタンス数
 	bool isBillboard_ = true;                                   ///< ビルボード有効フラグ
 	std::string texturePath_;                                   ///< テクスチャファイルパス

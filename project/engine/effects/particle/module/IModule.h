@@ -53,4 +53,13 @@ public:
 	 * 内部タイマーやフラグをリセットする。
 	 */
 	virtual void Reset() {}
+
+	/**
+	 * @brief 生成が完了済みかどうかを返す
+	 * 
+	 * デフォルトは true（自身は完了状態を妨げない）。
+	 * 継続的に発射を行うモジュール（SpawnRateなど）や、
+	 * ループ中のSpawnBurstなどが未完了の間だけ false を返す。
+	 */
+	virtual bool IsComplete() const { return true; }
 };

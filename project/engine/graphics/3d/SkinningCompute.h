@@ -5,6 +5,7 @@
 
 #include "base/DirectXCommon.h"
 #include "base/GraphicsTypes.h"
+#include "manager/system/SrvManager.h"
 
 class SrvManager;
 
@@ -15,6 +16,11 @@ class SrvManager;
 class SkinningCompute
 {
 public:
+	/**
+	 * @brief デストラクタ。確保したSRV/UAVをFreeする
+	 */
+	~SkinningCompute();
+
 	/**
 	 * @brief 初期化
 	 * @param dxCommon DirectXCommonへのポインタ
@@ -95,11 +101,11 @@ private:
 	};
 	SkinningConstants* constantData_ = nullptr;
 
-	// ディスクリプタインデックス
-	uint32_t boneMatrixSrvIndex_ = 0;
-	uint32_t inputSrvIndex_ = 0;
-	uint32_t outputSrvIndex_ = 0;
-	uint32_t outputUavIndex_ = 0;
+	// ディスクリプタインデックス（未確保=kInvalidSrvIndex）
+	uint32_t boneMatrixSrvIndex_ = SrvManager::kInvalidSrvIndex;
+	uint32_t inputSrvIndex_      = SrvManager::kInvalidSrvIndex;
+	uint32_t outputSrvIndex_     = SrvManager::kInvalidSrvIndex;
+	uint32_t outputUavIndex_     = SrvManager::kInvalidSrvIndex;
 
 	// 現在の頂点数
 	uint32_t currentVertexCount_ = 0;
