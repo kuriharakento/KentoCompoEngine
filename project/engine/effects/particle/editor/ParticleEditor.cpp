@@ -79,17 +79,13 @@ void ParticleEditor::Update(CameraManager* camera)
 	if (!isVisible_) return;
 
 	// ループプレビュー：一定間隔で全エミッターを再スタート
-	if (previewLooping_ && currentEffect_ && currentEffect_->IsPlaying())
+	if (previewLooping_ && currentEffect_)
 	{
 		previewElapsed_ += TimeManager::GetInstance().GetGameContext().deltaTime;
 		if (previewElapsed_ >= previewRepeatInterval_)
 		{
 			previewElapsed_ = 0.0f;
-			for (size_t i = 0; i < currentEffect_->GetEmitterCount(); ++i)
-			{
-				auto* emitter = currentEffect_->GetEmitter(i);
-				if (emitter) emitter->Restart();
-			}
+			currentEffect_->Play();
 		}
 	}
 
