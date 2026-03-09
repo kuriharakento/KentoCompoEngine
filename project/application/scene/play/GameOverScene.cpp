@@ -23,16 +23,6 @@ void GameOverScene::Initialize()
 	// カメラの位置を設定
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate(Vector3());
 
-	// スカイドームの初期化
-	skydome_ = std::make_unique<Object3d>();
-	skydome_->Initialize(sceneManager_->GetObject3dCommon());
-	skydome_->SetModel("skydome");
-	skydome_->SetLightManager(sceneManager_->GetLightManager());
-	skydome_->SetEnableLighting(true);
-	skydome_->SetDirectionalLightIntensity(kSkydomeLightIntensity);
-	skydome_->SetDirectionalLightDirection({ 0.0f, -1.0f, 0.0f });  // 真下向き
-	RegisterObject(skydome_.get());
-
 	// ゲームオーバーからタイトルUIの初期化
 	gameOverToTitleUI_ = std::make_unique<GameUI>();
 	gameOverToTitleUI_->Initialize(sceneManager_->GetSpriteCommon(), "./Resources/black.png");
@@ -130,6 +120,14 @@ void GameOverScene::Finalize()
 void GameOverScene::Draw3D()
 {
 	BaseScene::Draw3D();
+}
+
+void GameOverScene::DrawShadow()
+{
+}
+
+void GameOverScene::DrawGBuffer()
+{
 }
 
 void GameOverScene::Draw2D()
@@ -237,7 +235,6 @@ void GameOverScene::OnExitExit()
 
 void GameOverScene::CommonUpdate()
 {
-	skydome_->Update(sceneManager_->GetCameraManager());
 	gameOverToTitleUI_->Update();
 	gameOverRetryUI_->Update();
 	titleFontSprite_->Update();

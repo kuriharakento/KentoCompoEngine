@@ -9,9 +9,12 @@
 // manager
 #include "manager/scene/LightManager.h"
 #include <camerawork/debug/DebugCamera.h>
+#include <application/effect/SceneTransitionEffect.h>
+#include <application/ui/GameUI.h>
+#include <graphics/2d/FontSprite.h>
 
 /**
- * @brief ゲームクリアシーン（シャドウテスト用）
+ * @brief ゲームクリアシーン
  */
 class GameClearScene : public BaseScene
 {
@@ -25,45 +28,96 @@ public:
 	void DrawImGui() override;
 
 protected:
+	/**
+	 * @brief Enter状態開始時の処理
+	 */
+	void OnEnterEnter() override;
 
+	/**
+	 * @brief Enter状態の更新処理
+	 */
+	void OnUpdateEnter() override;
+
+	/**
+	 * @brief Enter状態終了時の処理
+	 */
+	void OnExitEnter() override;
+
+	/**
+	 * @brief Playing状態開始時の処理
+	 */
 	void OnEnterPlaying() override;
+
+	/**
+	 * @brief Playing状態の更新処理
+	 */
 	void OnUpdatePlaying() override;
+
+	/**
+	 * @brief Playing状態終了時の処理
+	 */
 	void OnExitPlaying() override;
 
+	/**
+	 * @brief Exit状態開始時の処理
+	 */
+	void OnEnterExit() override;
+
+	/**
+	 * @brief Exit状態の更新処理
+	 */
+	void OnUpdateExit() override;
+
+	/**
+	 * @brief Exit状態終了時の処理
+	 */
+	void OnExitExit() override;
+
+	/**
+	 * @brief 共通更新処理
+	 */
+	void CommonUpdate() override;
+
 private:
-	// =========================
-	//  シーン設定定数
-	// =========================
-
-	// オブジェクト配置
-	static constexpr float kObjectSpacing = 3.0f;             // テストオブジェクトの間隔
-	static constexpr float kObjectHeight = 5.0f;              // テストオブジェクトの高さ
-	static constexpr float kSkinnedObjectPosX = 5.0f;         // スキンドオブジェクトのX位置
-
-	// デバッグカメラ
-	static constexpr float kDebugCameraHeight = 10.0f;
-	static constexpr float kDebugCameraDistance = -20.0f;
-	static constexpr float kDebugCameraPitch = 0.5f;
-
-	// =========================
-	//  メンバ変数
-	// =========================
-
-	// 地面オブジェクト
-	std::unique_ptr<Object3d> ground_;
-
-	// テスト用オブジェクト（キューブなど）
-	std::vector<std::unique_ptr<Object3d>> testObjects_;
-
-	// スキニングテスト用オブジェクト
-	std::unique_ptr<SkinnedObject3d> skinnedObject_;
-
-	// デバッグカメラ
-	DebugCamera debugCamera_;
-
-	// オブジェクトの回転角度
-	float objectRotation_ = 0.0f;
-
-	// 選択中のアニメーションインデックス（-1 = バインドポーズ、0以上 = アニメーション）
-	int selectedAnimationIndex_ = -1;
+	// カメラの初期方向
+	static constexpr Vector3 kInitialCameraDirection = { 0.0f, -1.2f, 0.0f };
+	// タイトルUIの位置
+	static constexpr Vector2 kGameOverToTitleUIPosition = { 360.0f, 580.0f };
+	// リトライUIの位置
+	static constexpr Vector2 kGameOverRetryUIPosition = { 920.0f, 580.0f };
+	// UIのサイズ
+	static constexpr Vector2 kGameOverUISize = { 300.0f, 80.0f };
+	// UIのアンカーポイント
+	static constexpr Vector2 kGameOverUIAnchorPoint = { 0.5f, 0.5f };
+	// タイトルフォントスプライトの位置
+	static constexpr Vector2 kTitleFontSpritePosition = { 260.0f, 580.0f };
+	// リトライフォントスプライトの位置
+	static constexpr Vector2 kRetryFontSpritePosition = { 820.0f, 580.0f };
+	// ゲームクリアロゴの位置
+	static constexpr Vector2 kGameClearLogoPosition = { 250.0f, 200.0f };
+	// フォントスケール
+	static constexpr float kButtonFontScale = 0.5f;
+	static constexpr float kLogoFontScale = 0.9f;
+	// トランジション
+	static constexpr int kTransitionGridX = 22;
+	static constexpr int kTransitionGridY = 16;
+	static constexpr float kTransitionDuration = 1.0f;
+	// スカイドーム
+	static constexpr float kSkydomeLightIntensity = 0.5f;
+	// タイトルへ戻るフラグ
+	bool returnToTitle_ = false;
+	// リトライフラグ
+	bool retry_ = false;
+	// シーン遷移エフェクト（フェードイン/アウト）
+	SceneTransitionEffect transitionEffect_;
+	// タイトルへ戻るUI
+	std::unique_ptr<GameUI> gameOverToTitleUI_;
+	// リトライするUI
+	std::unique_ptr<GameUI> gameOverRetryUI_;
+	// ゲームクリアロゴの文字
+	std::unique_ptr<FontSprite> gameClearLogoFontSprite_;
+	// タイトルの文字
+	std::unique_ptr<FontSprite> titleFontSprite_;
+	// リトライの文字
+	std::unique_ptr<FontSprite> retryFontSprite_;
 };
