@@ -116,7 +116,7 @@ private:
     static constexpr float kAmmoPosY = 650.0f;
 	static constexpr float kAmmoNumberSpacing = -32.0f; // 弾薬数の桁間スペース
 	// 弾薬アイコンのサイズ
-	static constexpr float kAmmoIconSize = 40.0f;
+	static constexpr float kAmmoIconSize = 50.0f;
     // リロードインジケーターの位置
     static constexpr float kReloadPosX = 640.0f;
     static constexpr float kReloadPosY = 500.0f;

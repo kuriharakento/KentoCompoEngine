@@ -24,15 +24,18 @@ void MyGame::LoadTextures()
 	TextureManager::GetInstance()->LoadTexture("./Resources/minimap_frame.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/numbers.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/title_logo.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/fonts/luna_atlas.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/simplexNoise.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/flameEye.png");
+	
+	// UI
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/hp_bar_fill.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/hp_bar_frame.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/reticle.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/dot_reticle.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/retry.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/back_to_title.png");
-	TextureManager::GetInstance()->LoadTexture("./Resources/fonts/luna_atlas.png");
-	TextureManager::GetInstance()->LoadTexture("./Resources/simplexNoise.png");
-	TextureManager::GetInstance()->LoadTexture("./Resources/flameEye.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/remaining_ammo.png");
 }
 
 void MyGame::LoadModels()

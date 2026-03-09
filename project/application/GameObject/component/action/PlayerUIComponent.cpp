@@ -50,9 +50,9 @@ void PlayerUIComponent::InitializeUI()
 
     // 弾薬アイコン
     ammoIcon_ = std::make_unique<GameUI>();
-    ammoIcon_->Initialize(spriteCommon_, "./Resources/uvChecker.png");
+    ammoIcon_->Initialize(spriteCommon_, "./Resources/UI/remaining_ammo.png");
 	ammoIcon_->SetSize({ kAmmoIconSize, kAmmoIconSize });
-    ammoIcon_->SetScreenPosition({ kAmmoPosX - 100.0f, kAmmoPosY });
+    ammoIcon_->SetScreenPosition({ kAmmoPosX - 115.0f, kAmmoPosY });
     ammoIcon_->SetInteractable(false);
 
     // 弾薬数表示
@@ -63,7 +63,7 @@ void PlayerUIComponent::InitializeUI()
 
     // リロードバー背景
     reloadBarBg_ = std::make_unique<GameUI>();
-    reloadBarBg_->Initialize(spriteCommon_, "./Resources/uvChecker.png");
+    reloadBarBg_->Initialize(spriteCommon_, "./Resources/white1x1.png");
     reloadBarBg_->SetScreenPosition({ kReloadPosX, kReloadPosY });
     reloadBarBg_->SetSize({ kReloadBarWidth, kReloadBarHeight });
     reloadBarBg_->SetAnchorPoint({ 0.5f, 0.5f });
@@ -72,7 +72,7 @@ void PlayerUIComponent::InitializeUI()
 
     // リロードバー
     reloadBarFill_ = std::make_unique<GameUI>();
-    reloadBarFill_->Initialize(spriteCommon_, "./Resources/uvChecker.png");
+    reloadBarFill_->Initialize(spriteCommon_, "./Resources/white1x1.png");
     reloadBarFill_->SetScreenPosition({ kReloadPosX - kReloadBarWidth * 0.5f, kReloadPosY });
     reloadBarFill_->SetSize({ 0.0f, kReloadBarHeight });
     reloadBarFill_->SetAnchorPoint({ 0.0f, 0.5f });
@@ -82,7 +82,7 @@ void PlayerUIComponent::InitializeUI()
 
     // バレットタイムバー背景
     bulletTimeBarBg_ = std::make_unique<GameUI>();
-    bulletTimeBarBg_->Initialize(spriteCommon_, "./Resources/uvChecker.png");
+    bulletTimeBarBg_->Initialize(spriteCommon_, "./Resources/white1x1.png");
     bulletTimeBarBg_->SetScreenPosition({ kBulletTimePosX, kBulletTimePosY });
     bulletTimeBarBg_->SetSize({ kBulletTimeBarWidth, kBulletTimeBarHeight });
     bulletTimeBarBg_->SetAnchorPoint({ 0.5f, 0.5f });
@@ -91,7 +91,7 @@ void PlayerUIComponent::InitializeUI()
     
     // バレットタイムバー
     bulletTimeBarFill_ = std::make_unique<GameUI>();
-    bulletTimeBarFill_->Initialize(spriteCommon_, "./Resources/uvChecker.png");
+    bulletTimeBarFill_->Initialize(spriteCommon_, "./Resources/white1x1.png");
     bulletTimeBarFill_->SetScreenPosition({ kBulletTimePosX - kBulletTimeBarWidth * 0.5f, kBulletTimePosY });
     bulletTimeBarFill_->SetSize({ 0.0f, kBulletTimeBarHeight });
     bulletTimeBarFill_->SetAnchorPoint({ 0.0f, 0.5f });
