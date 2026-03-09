@@ -71,6 +71,8 @@ protected:
 	void CommonUpdate() override;
 
 private: //メンバ変数
+	// カメラの初期方向
+	static constexpr Vector3 kInitialCameraDirection = { 0.0f, -1.2f, 0.0f };
 	// ゲームオーバーからタイトルUIの位置
 	static constexpr Vector2 kGameOverToTitleUIPosition = { 360.0f, 580.0f };
 	// ゲームオーバーからリトライUIの位置

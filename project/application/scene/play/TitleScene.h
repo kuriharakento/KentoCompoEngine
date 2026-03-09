@@ -152,8 +152,8 @@ private:
 	static constexpr float kFontScale = 0.8f;
 
 	// トランジション
-	static constexpr int kTransitionGridX = 22;
-	static constexpr int kTransitionGridY = 16;
+	static constexpr int kTransitionGridX = 32;
+	static constexpr int kTransitionGridY = 26;
 	static constexpr float kTransitionDuration = 1.0f;
 
 	// CRTエフェクト

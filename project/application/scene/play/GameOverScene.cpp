@@ -22,6 +22,7 @@ void GameOverScene::Initialize()
 
 	// カメラの位置を設定
 	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate(Vector3());
+	sceneManager_->GetCameraManager()->GetActiveCamera()->SetRotate(kInitialCameraDirection);
 
 	// ゲームオーバーからタイトルUIの初期化
 	gameOverToTitleUI_ = std::make_unique<GameUI>();
