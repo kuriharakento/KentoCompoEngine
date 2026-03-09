@@ -1,274 +1,244 @@
 #include "GameClearScene.h"
 
+// scene
 #include "engine/scene/manager/SceneManager.h"
-#include <input/Input.h>
-#include "externals/imgui/imgui.h"
-#include "manager/graphics/ShadowMapManager.h"
 #include "manager/effect/PostProcessManager.h"
+// math
+#include "math/VectorColorCodes.h"
+#include <input/Input.h>
+#include <audio/Audio.h>
 
 void GameClearScene::Initialize()
 {
-	auto* object3dCommon = sceneManager_->GetObject3dCommon();
-	auto* cameraManager = sceneManager_->GetCameraManager();
-	auto* lightManager = sceneManager_->GetLightManager();
+	transitionEffect_.Initialize(
+		sceneManager_->GetSpriteCommon(),
+		"./Resources/black.png",
+		kTransitionGridX, kTransitionGridY,
+		WinApp::kClientWidth, WinApp::kClientHeight
+	);
 
 	// ブルームを無効化
 	sceneManager_->GetPostProcessManager()->bloomEffect_->SetEnabled(false);
 
-	// 地面オブジェクトの作成
-	ground_ = std::make_unique<Object3d>();
-	ground_->Initialize(object3dCommon);
-	ground_->SetModel("terrain");
-	ground_->SetScale({ 1.0f, 1.0f, 1.0f });
-	ground_->SetTranslate({ 0.0f, 0.0f, 0.0f });
-	ground_->SetTranslate({ 0.0f, 0.0f, 0.0f });
-	ground_->SetLightManager(lightManager);
-	RegisterObject(ground_.get());
+	// カメラの初期設定
+	sceneManager_->GetCameraManager()->GetActiveCamera()->SetTranslate(Vector3());
+	sceneManager_->GetCameraManager()->GetActiveCamera()->SetRotate(kInitialCameraDirection);
 
-	// テスト用オブジェクト（キューブ）の作成
-	for (int i = 0; i < 3; ++i) {
-		auto obj = std::make_unique<Object3d>();
-		obj->Initialize(object3dCommon);
-		if(i == 0){
-			obj->SetModel("plane");
-		}
-		else if(i == 1){
-			obj->SetModel("multimesh");
-		}
-		else{
-			obj->SetModel("multimaterial");
-		}
+	// ゲームオーバーからタイトルUIの初期化
+	gameOverToTitleUI_ = std::make_unique<GameUI>();
+	gameOverToTitleUI_->Initialize(sceneManager_->GetSpriteCommon(), "./Resources/black.png");
+	gameOverToTitleUI_->SetScreenPosition(kGameOverToTitleUIPosition);
+	gameOverToTitleUI_->SetSize(kGameOverUISize);
+	gameOverToTitleUI_->SetAnchorPoint(kGameOverUIAnchorPoint);
+	gameOverToTitleUI_->SetColor(VectorColorCodes::Black);
+	// コールバックの設定
+	gameOverToTitleUI_->SetInteractable(true);
+	gameOverToTitleUI_->SetOnClickCallback([this]() {
+		returnToTitle_ = true;
+		Audio::GetInstance()->PlayWave("start_se", false);
+		ChangeState(SceneState::Exit);
+		transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
+		transitionEffect_.SetFadeType(FadeType::FadeIn);
+		transitionEffect_.SetMode(TransitionMode::EdgesToCenter);
+		transitionEffect_.Start(
+			kTransitionDuration,
+			VectorColorCodes::Black,
+			VectorColorCodes::Green
+		);
+		gameOverToTitleUI_->SetInteractable(false);
+										   });
+	gameOverToTitleUI_->SetOnHoverStayCallback([this]() {
+		gameOverToTitleUI_->SetColor(VectorColorCodes::White);
+		titleFontSprite_->SetColor(VectorColorCodes::Black);
+											   });
+	gameOverToTitleUI_->SetOnHoverExitCallback([this]() {
+		gameOverToTitleUI_->SetColor(VectorColorCodes::Black);
+		titleFontSprite_->SetColor(VectorColorCodes::White);
+											   });
 
-		obj->SetScale({ 1.0f, 1.0f, 1.0f });  // 等倍スケール
-		obj->SetTranslate({ static_cast<float>(i - 1) * kObjectSpacing, kObjectHeight, 0.0f });
-		obj->SetLightManager(lightManager);
-		RegisterObject(obj.get());
-		testObjects_.push_back(std::move(obj));
-	}
+	// ゲームオーバーからリトライUIの初期化
+	gameOverRetryUI_ = std::make_unique<GameUI>();
+	gameOverRetryUI_->Initialize(sceneManager_->GetSpriteCommon(), "./Resources/black.png");
+	gameOverRetryUI_->SetScreenPosition(kGameOverRetryUIPosition);
+	gameOverRetryUI_->SetSize(kGameOverUISize);
+	gameOverRetryUI_->SetAnchorPoint(kGameOverUIAnchorPoint);
+	gameOverRetryUI_->SetColor(VectorColorCodes::Black);
+	// コールバックの設定
+	gameOverRetryUI_->SetInteractable(true);
+	gameOverRetryUI_->SetOnClickCallback([this]() {
+		retry_ = true;
+		Audio::GetInstance()->PlayWave("start_se", false);
+		transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
+		transitionEffect_.SetFadeType(FadeType::FadeIn);
+		transitionEffect_.SetMode(TransitionMode::EdgesToCenter);
+		transitionEffect_.Start(
+			kTransitionDuration,
+			VectorColorCodes::Black,
+			VectorColorCodes::Green
+		);
+		ChangeState(SceneState::Exit);
+		gameOverRetryUI_->SetInteractable(false);
+										 });
+	gameOverRetryUI_->SetOnHoverStayCallback([this]() {
+		gameOverRetryUI_->SetColor(VectorColorCodes::White);
+		retryFontSprite_->SetColor(VectorColorCodes::Black);
+											 });
+	gameOverRetryUI_->SetOnHoverExitCallback([this]() {
+		gameOverRetryUI_->SetColor(VectorColorCodes::Black);
+		retryFontSprite_->SetColor(VectorColorCodes::White);
+											 });
 
-	// スキニングオブジェクトの作成
-	skinnedObject_ = std::make_unique<SkinnedObject3d>();
-	skinnedObject_->Initialize(object3dCommon);
-	skinnedObject_->SetModel("sneakWalk", ".gltf");
-	skinnedObject_->SetCamera(cameraManager->GetActiveCamera());
-	skinnedObject_->SetLightManager(lightManager);
-	skinnedObject_->SetTranslate({ kSkinnedObjectPosX, 0.0f, 0.0f }); // 右側に配置
-	skinnedObject_->SetScale({ 1.0f, 1.0f, 1.0f });  // 等倍スケール
-	//skinnedObject_->PlayAnimation(0, true);
+	// タイトルフォントスプライトの初期化
+	titleFontSprite_ = std::make_unique<FontSprite>();
+	titleFontSprite_->Initialize(sceneManager_->GetSpriteCommon(), "luna");
+	titleFontSprite_->SetText("Title");
+	titleFontSprite_->SetPosition(kTitleFontSpritePosition);
+	titleFontSprite_->SetScale(kButtonFontScale);
 
-	// デバッグカメラの初期化
-	debugCamera_.Initialize(cameraManager->GetActiveCamera());
-	debugCamera_.Start({ 0.0f, kDebugCameraHeight, kDebugCameraDistance }, { kDebugCameraPitch, 0.0f, 0.0f });
+	// リトライフォントスプライトの初期化
+	retryFontSprite_ = std::make_unique<FontSprite>();
+	retryFontSprite_->Initialize(sceneManager_->GetSpriteCommon(), "luna");
+	retryFontSprite_->SetText("Retry");
+	retryFontSprite_->SetPosition(kRetryFontSpritePosition);
+	retryFontSprite_->SetScale(kButtonFontScale);
 
-	StartState(SceneState::Playing);
+	// ゲームオーバーロゴ
+	gameClearLogoFontSprite_ = std::make_unique<FontSprite>();
+	gameClearLogoFontSprite_->Initialize(sceneManager_->GetSpriteCommon(), "luna");
+	gameClearLogoFontSprite_->SetText("Game Clear");
+	gameClearLogoFontSprite_->SetPosition(kGameClearLogoPosition);
+	gameClearLogoFontSprite_->SetScale(kLogoFontScale);
+
+	StartState(SceneState::Enter);
 }
 
 void GameClearScene::Finalize()
 {
 	ClearObjects();
-	testObjects_.clear();
-	ground_.reset();
-}
-
-void GameClearScene::Draw2D()
-{
+	sceneManager_->GetPostProcessManager()->bloomEffect_->SetEnabled(true);
 }
 
 void GameClearScene::Draw3D()
 {
-	// 基底クラスの描画（登録済みオブジェクト）
 	BaseScene::Draw3D();
+}
 
-	// スキニングオブジェクトの描画（DispatchSkinningはUpdateで実行済み）
-	if (skinnedObject_) {
-		skinnedObject_->Draw();
-	}
+void GameClearScene::DrawShadow()
+{
 }
 
 void GameClearScene::DrawGBuffer()
 {
-	// 基底クラスのG-Buffer描画（登録済みオブジェクト）
-	BaseScene::DrawGBuffer();
+}
 
-	// スキニングオブジェクトのG-Buffer描画（DispatchSkinningはUpdateで実行済み）
-	if (skinnedObject_) {
-		skinnedObject_->DrawGBuffer();
+void GameClearScene::Draw2D()
+{
+	// UIの描画
+	gameOverToTitleUI_->Draw();
+	gameOverRetryUI_->Draw();
+
+	// フォントスプライトの描画
+	titleFontSprite_->Draw();
+	retryFontSprite_->Draw();
+	// ゲームオーバーロゴの描画
+	gameClearLogoFontSprite_->Draw();
+
+	// シーン遷移エフェクトの描画
+	transitionEffect_.Draw();
+}
+
+void GameClearScene::DrawImGui()
+{
+}
+
+// ==================================================
+// Enter状態（シーン開始・フェードイン演出）
+// ==================================================
+void GameClearScene::OnEnterEnter()
+{
+	// 赤から黒へのフェードイン（ゲームオーバーの雰囲気を演出）
+	transitionEffect_.SetFadeType(FadeType::FadeOut);
+	transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
+	transitionEffect_.SetMode(TransitionMode::CenterToEdges);
+	transitionEffect_.Start(
+		kTransitionDuration,
+		VectorColorCodes::Green,
+		VectorColorCodes::Black
+	);
+}
+
+void GameClearScene::OnUpdateEnter()
+{
+	transitionEffect_.Update();
+
+	if (transitionEffect_.GetState() == TransitionState::Done)
+	{
+		ChangeState(SceneState::Playing);
 	}
 }
 
+void GameClearScene::OnExitEnter()
+{
+}
 
+// ==================================================
+// Playing状態（ゲームオーバー表示・入力待ち）
+// ==================================================
 void GameClearScene::OnEnterPlaying()
-
 {
 }
 
 void GameClearScene::OnUpdatePlaying()
 {
-	auto* cameraManager = sceneManager_->GetCameraManager();
-	float deltaTime = 1.0f / 60.0f; // TODO: TimeManagerから取得
-
-	debugCamera_.Update();
-
-	for (size_t i = 0; i < testObjects_.size(); ++i) {
-		testObjects_[i]->Update(cameraManager);
-	}
-	if (ground_) {
-		ground_->Update(cameraManager);
-	}
-
-	// スキニングオブジェクトの更新とスキニング計算
-	if (skinnedObject_) {
-		skinnedObject_->Update(deltaTime, nullptr);
-		skinnedObject_->DispatchSkinning(); // ここで一度だけ実行
-	}
-}
-
-void GameClearScene::DrawShadow()
-{
-	// 地面のシャドウ描画
-	if (ground_) {
-		ground_->DrawShadowOnly();
-	}
-
-	// テストオブジェクトのシャドウ描画
-	for (auto& obj : testObjects_) {
-		obj->DrawShadowOnly();
-	}
-
-	// スキニングオブジェクトのシャドウ描画（DispatchSkinningはUpdateで実行済み）
-	if (skinnedObject_) {
-		skinnedObject_->DrawShadowOnly();
-	}
-}
-
-void GameClearScene::DrawImGui()
-{
-#ifdef USE_IMGUI
-	ImGui::Begin("Shadow Test Scene");
-
-	if (ImGui::CollapsingHeader("Light Settings")) {
-		auto* lightManager = sceneManager_->GetLightManager();
-		
-		// ライト方向の調整
-		static float lightDir[3] = { 
-			lightManager->GetDirectionalLight().direction.x, 
-			lightManager->GetDirectionalLight().direction.y, 
-			lightManager->GetDirectionalLight().direction.z 
-		};
-		
-		if (ImGui::DragFloat3("Light Direction", lightDir, 0.01f, -1.0f, 1.0f)) {
-			DirectionalLight light = lightManager->GetDirectionalLight();
-			light.direction = { lightDir[0], lightDir[1], lightDir[2] };
-			lightManager->SetDirectionalLight(light);
-		}
-	}
-
-	if (ImGui::CollapsingHeader("Objects")) {
-		// 地面の操作
-		if (ground_) {
-			if (ImGui::TreeNode("Ground")) {
-				Vector3 scale = ground_->GetScale();
-				Vector3 rotate = ground_->GetRotate();
-				Vector3 translate = ground_->GetTranslate();
-
-				bool changed = false;
-				changed |= ImGui::DragFloat3("Scale", &scale.x, 0.1f);
-				changed |= ImGui::DragFloat3("Rotate", &rotate.x, 0.01f);
-				changed |= ImGui::DragFloat3("Translate", &translate.x, 0.1f);
-
-				if (changed) {
-					ground_->SetScale(scale);
-					ground_->SetRotate(rotate);
-					ground_->SetTranslate(translate);
-				}
-				ImGui::TreePop();
-			}
-		}
-
-		// テストオブジェクトの操作
-		for (size_t i = 0; i < testObjects_.size(); ++i) {
-			std::string label = "Object " + std::to_string(i);
-			if (ImGui::TreeNode(label.c_str())) {
-				Vector3 scale = testObjects_[i]->GetScale();
-				Vector3 rotate = testObjects_[i]->GetRotate();
-				Vector3 translate = testObjects_[i]->GetTranslate();
-
-				bool changed = false;
-				changed |= ImGui::DragFloat3("Scale", &scale.x, 0.1f);
-				changed |= ImGui::DragFloat3("Rotate", &rotate.x, 0.01f);
-				changed |= ImGui::DragFloat3("Translate", &translate.x, 0.1f);
-
-				if (changed) {
-					testObjects_[i]->SetScale(scale);
-					testObjects_[i]->SetRotate(rotate);
-					testObjects_[i]->SetTranslate(translate);
-				}
-				ImGui::TreePop();
-			}
-		}
-	}
-
-	// スキニングオブジェクトの設定
-	if (ImGui::CollapsingHeader("Skinned Object")) {
-		if (skinnedObject_ && skinnedObject_->GetModel()) {
-			const auto& animations = skinnedObject_->GetModel()->GetAnimations();
-			
-			// アニメーション選択コンボボックスの作成
-			// -1 = バインドポーズ、0以上 = アニメーション
-			std::vector<std::string> animNames;
-			animNames.push_back("Bind Pose");
-			for (const auto& anim : animations) {
-				animNames.push_back(anim.name.empty() ? "Animation " + std::to_string(animNames.size() - 1) : anim.name);
-			}
-			
-			// 現在の選択肢のプレビュー名
-			const char* previewName = (selectedAnimationIndex_ < 0) ? 
-				"Bind Pose" : animNames[selectedAnimationIndex_ + 1].c_str();
-			
-			if (ImGui::BeginCombo("Animation", previewName)) {
-				for (int i = -1; i < static_cast<int>(animations.size()); ++i) {
-					bool isSelected = (selectedAnimationIndex_ == i);
-					const char* name = (i < 0) ? "Bind Pose" : animNames[i + 1].c_str();
-					
-					if (ImGui::Selectable(name, isSelected)) {
-						selectedAnimationIndex_ = i;
-						if (i < 0) {
-							// バインドポーズ
-							skinnedObject_->StopAnimation();
-						} else {
-							// アニメーション再生
-							skinnedObject_->PlayAnimation(i, true);
-						}
-					}
-					if (isSelected) {
-						ImGui::SetItemDefaultFocus();
-					}
-				}
-				ImGui::EndCombo();
-			}
-
-			// トランスフォーム編集
-			Vector3 scale = skinnedObject_->GetScale();
-			Vector3 rotate = skinnedObject_->GetRotate();
-			Vector3 translate = skinnedObject_->GetTranslate();
-
-			bool changed = false;
-			changed |= ImGui::DragFloat3("Scale##Skinned", &scale.x, 0.1f);
-			changed |= ImGui::DragFloat3("Rotate##Skinned", &rotate.x, 0.01f);
-			changed |= ImGui::DragFloat3("Translate##Skinned", &translate.x, 0.1f);
-
-			if (changed) {
-				skinnedObject_->SetScale(scale);
-				skinnedObject_->SetRotate(rotate);
-				skinnedObject_->SetTranslate(translate);
-			}
-		}
-	}
-
-	ImGui::End();
-#endif
 }
 
 void GameClearScene::OnExitPlaying()
 {
+}
+
+// ==================================================
+// Exit状態（シーン退場・タイトルへ遷移）
+// ==================================================
+void GameClearScene::OnEnterExit()
+{
+	transitionEffect_.SetFadeType(FadeType::FadeIn);
+	transitionEffect_.SetEaseType(SceneTransitionEase::InSine);
+	transitionEffect_.SetMode(TransitionMode::EdgesToCenter);
+	transitionEffect_.Start(
+		kTransitionDuration,
+		VectorColorCodes::Green,
+		VectorColorCodes::Black
+	);
+}
+
+void GameClearScene::OnUpdateExit()
+{
+	transitionEffect_.Update();
+
+	if (transitionEffect_.GetState() == TransitionState::Done)
+	{
+		// タイトルへ戻る場合
+		if (returnToTitle_)
+		{
+			sceneManager_->ChangeScene(SceneNames::Title);
+		}
+		// リトライする場合
+		else if (retry_)
+		{
+			sceneManager_->ChangeScene(SceneNames::GamePlay);
+		}
+	}
+}
+
+void GameClearScene::OnExitExit()
+{
+}
+
+void GameClearScene::CommonUpdate()
+{
+	gameOverToTitleUI_->Update();
+	gameOverRetryUI_->Update();
+	titleFontSprite_->Update();
+	retryFontSprite_->Update();
+	gameClearLogoFontSprite_->Update();
 }
