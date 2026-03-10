@@ -106,6 +106,9 @@ void GamePlayScene::Initialize()
 	orbitCamera_ = std::make_unique<OrbitCameraWork>();
 	orbitCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
 
+	debugCamera_ = std::make_unique<DebugCamera>();
+	debugCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
+
 	carnageMode_ = std::make_unique<CarnageMode>(stageManager_->GetPlayer());
 
 	transitionEffect_.Initialize(
@@ -235,13 +238,19 @@ void GamePlayScene::OnUpdateIntro()
 		LerpAngle(cameraInitialRotation_.z, targetRot.z, eased)
 	};
 
-	activeCamera->SetTranslate(nextPos + topDownCamera_->GetOffset());
-	activeCamera->SetRotate(nextRot);
+	if (!isDebugCameraActive_)
+	{
+		activeCamera->SetTranslate(nextPos + topDownCamera_->GetOffset());
+		activeCamera->SetRotate(nextRot);
+	}
 
 	if (t >= 1.0f)
 	{
-		activeCamera->SetTranslate(targetPos + topDownCamera_->GetOffset());
-		activeCamera->SetRotate(targetRot);
+		if (!isDebugCameraActive_)
+		{
+			activeCamera->SetTranslate(targetPos + topDownCamera_->GetOffset());
+			activeCamera->SetRotate(targetRot);
+		}
 		ChangeState(SceneState::Playing);
 	}
 }
@@ -279,7 +288,10 @@ void GamePlayScene::OnUpdatePlaying()
 
 	CollisionManager::GetInstance()->UpdatePreviousPositions();
 
-	topDownCamera_->Update();
+	if (!isDebugCameraActive_)
+	{
+		topDownCamera_->Update();
+	}
 
 	minimap_->Update();
 
@@ -372,7 +384,10 @@ void GamePlayScene::OnUpdateEnd()
 	else if (gameClear_)
 	{
 		cinematicLetterbox_.Update();
-		orbitCamera_->Update();
+		if (!isDebugCameraActive_)
+		{
+			orbitCamera_->Update();
+		}
 	}
 }
 
@@ -432,6 +447,11 @@ void GamePlayScene::CommonUpdate()
 	skydome_->Update(sceneManager_->GetCameraManager());
 	ground_->Update(sceneManager_->GetCameraManager());
 	stageManager_->UpdateTransforms(sceneManager_->GetCameraManager());
+
+	if (isDebugCameraActive_)
+	{
+		debugCamera_->Update();
+	}
 }
 
 // ================================================================
@@ -498,7 +518,7 @@ void GamePlayScene::DrawImGui()
 		ChangeState(SceneState::End);
 	}
 
-	static bool useDebugCamera = false;
+	bool prevDebugCamera = isDebugCameraActive_;
 	static bool useSplineCamera = false;
 	static bool loopSpline = false;
 	static float speed = 0.001f;
@@ -506,7 +526,18 @@ void GamePlayScene::DrawImGui()
 	if (ImGui::CollapsingHeader("Camera Work", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		ImGui::SeparatorText("Debug Camera");
-		ImGui::Checkbox("Use Debug Camera", &useDebugCamera);
+		if (ImGui::Checkbox("Use Debug Camera", &isDebugCameraActive_))
+		{
+			if (isDebugCameraActive_ && !prevDebugCamera)
+			{
+				auto* activeCam = sceneManager_->GetCameraManager()->GetActiveCamera();
+				debugCamera_->Start(activeCam->GetTranslate(), activeCam->GetRotate());
+			}
+			else if (!isDebugCameraActive_ && prevDebugCamera)
+			{
+				debugCamera_->Stop();
+			}
+		}
 		ImGui::SeparatorText("Spline Camera");
 		ImGui::DragFloat("Spline Speed", &speed, 0.001f, 0.0f, 0.1f);
 		if (ImGui::Checkbox("Loop Spline", &loopSpline))

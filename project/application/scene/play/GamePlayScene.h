@@ -262,6 +262,10 @@ private:
     std::unique_ptr<CarnageMode> carnageMode_;
     // スプラインカメラ（演出用）
     std::unique_ptr<SplineCamera> splineCamera_;
+    // デバッグカメラ
+    std::unique_ptr<DebugCamera> debugCamera_;
+    // デバッグカメラの有効フラグ
+    bool isDebugCameraActive_ = false;
     // トップダウンカメラ（ゲームプレイ用）
     std::unique_ptr<TopDownCamera> topDownCamera_;
     // オービットカメラワーク（デバッグ用）
@@ -301,7 +305,7 @@ private:
     // イントロ演出の所要時間（秒）
 	float introDuration_ = 2.0f;
     // カメラ初期位置
-    Vector3 cameraInitialPosition_ = { 0.0f, 1.5f, 50.0f };
+    Vector3 cameraInitialPosition_ = { -82.0f, 50.0f, 100.0f };
     // カメラ初期回転
-	Vector3 cameraInitialRotation_ = { 00.0f, 0.0f, 0.0f };
+	Vector3 cameraInitialRotation_ = { 0.45f, 1.545f, 0.0f };
 };
