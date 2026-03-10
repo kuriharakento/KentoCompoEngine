@@ -67,6 +67,9 @@ void SceneTransitionEffect::Update()
 
 	float deltaTime = TimeManager::GetInstance().GetUIContext().deltaTime;
 
+	// シーンロード等でフレームレートが極端に落ちた時に、一気に遷移が完了してしまうのを防止するため、最大値を設定
+	deltaTime = (std::min)(deltaTime, 0.1f);
+
 	// 再生中の場合は進行度を更新
 	if (state_ == TransitionState::Playing)
 	{
