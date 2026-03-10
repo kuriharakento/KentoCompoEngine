@@ -305,7 +305,7 @@ private:
     // イントロ演出の所要時間（秒）
 	float introDuration_ = 2.0f;
     // カメラ初期位置
-    Vector3 cameraInitialPosition_ = { -82.0f, 50.0f, 100.0f };
+    Vector3 cameraInitialPosition_ = { -52.0f, 41.0f, 88.0f };
     // カメラ初期回転
-	Vector3 cameraInitialRotation_ = { 0.45f, 1.545f, 0.0f };
+	Vector3 cameraInitialRotation_ = { 0.375f, 1.61f, 0.0f };
 };
