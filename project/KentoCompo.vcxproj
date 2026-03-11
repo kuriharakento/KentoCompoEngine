@@ -115,6 +115,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\effect\BulletTrailManager.cpp" />
     <ClCompile Include="application\gameObject\component\action\AssaultEnemyBehavior.cpp" />
     <ClCompile Include="application\weapon\WeaponManager.cpp" />
+    <ClCompile Include="engine\base\ObjectPool.cpp" />
     <ClCompile Include="engine\gameobject\component\collision\CollisionAlgorithm.cpp" />
     <ClCompile Include="engine\gameobject\component\collision\CollisionUtils.cpp" />
     <ClCompile Include="application\gameObject\combatable\character\enemy\base\Node\CompositeNode.cpp" />
@@ -277,6 +278,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\gameObject\combatable\character\enemy\base\Node\BTNode.h" />
     <ClInclude Include="application\gameObject\combatable\character\enemy\base\Node\NodeUtils.h" />
     <ClInclude Include="application\weapon\WeaponManager.h" />
+    <ClInclude Include="engine\base\ObjectPool.h" />
     <ClInclude Include="engine\gameobject\component\collision\AABBColliderComponent.h" />
     <ClInclude Include="application\gameObject\component\action\AssaultRifleComponent.h" />
     <ClInclude Include="application\gameObject\combatable\character\enemy\AssaultEnemy.h" />
