@@ -4,15 +4,13 @@
 #include "../components/LifetimeComponent.h"
 
 /**
- * @brief エンティティの寿命を監視し、尽きた対象を遅延破棄キュー（Deferred Queue）に登録するシステム。
- * 
- * Updateフェーズの後半に実行し、メインループ内の「生き死にチェック」をこのシステム単一に集約する。
+ * @brief 寿命が尽きたEntityを破棄するシステム
  */
 class LifetimeSystem
 {
 public:
     /**
-     * @brief レジストリ内の LifetimeComponent をすべて更新し、寿命切れを破棄予約する。
+     * @brief 寿命の更新と破棄予約
      * @param registry 対象のRegistry
      * @param deltaTime フレーム間の経過時間
      */

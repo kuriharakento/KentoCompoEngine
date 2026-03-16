@@ -10,11 +10,11 @@
  */
 struct LifetimeComponent
 {
-    // 生成されてからの経過時間（秒）
-    float currentAge = 0.0f;
+    // 現在の生存時間
+    float currentAge_ = 0.0f;
 
-    // 寿命（秒）。これを超えると破棄予約される
-    float maxLifetime = 10.0f;
+    // 最大寿命
+    float maxLifetime_ = 10.0f;
 };
 
 

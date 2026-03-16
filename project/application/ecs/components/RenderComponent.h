@@ -12,12 +12,12 @@
  */
 struct RenderComponent
 {
-    // 描画するモデルの名前（InstancedModelRenderer のキーとして使う）
-    std::string modelName;
+    // モデル名
+    std::string modelName_;
 
-    // true なら InstancedRenderSystem による一括描画対象とする
-    bool useInstancing = true;
+    // インスタンシングを使用するか
+    bool useInstancing_ = true;
 
-    // false なら描画をスキップ（カリングや非表示用）
-    bool isVisible = true;
+    // 表示フラグ
+    bool isVisible_ = true;
 };

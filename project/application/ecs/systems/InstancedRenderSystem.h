@@ -12,19 +12,16 @@
 class Camera;
 class LightManager;
 
-/**
- * @brief 描画すべきEntity群のTransformを集約し、InstancedModelRendererへ転送するシステム。
- *
- * Draw: 単一レンダラへ全TransformComponentを流す（シンプル版、ストレステスト用）
- * DrawGrouped: RenderComponent.modelName でグルーピングし、モデル別レンダラマップへ転送する版
- */
 class InstancedRenderSystem
 {
 public:
+    /**
+     * @brief 事前計算などを行う
+     */
     static void Update(Registry& registry);
 
     /**
-     * @brief 全TransformComponentを1つのレンダラへ転送して描画する（シンプル版）。
+     * @brief 全TransformComponentを1つのレンダラへ転送して描画する
      * @param registry 対象のRegistry
      * @param renderer 描画先インスタンシングレンダラ
      * @param camera 使用するカメラ
@@ -34,9 +31,9 @@ public:
     static void Draw(Registry& registry, InstancedModelRenderer& renderer, Camera* camera, LightManager* lightManager, class ShadowMapManager* shadowMapManager);
 
     /**
-     * @brief RenderComponent.modelName でEntityをグルーピングし、モデル別レンダラへ転送する。
+     * @brief モデル名でグルーピングして描画する
      * @param registry 対象のRegistry
-     * @param renderers モデル名 → InstancedModelRenderer のマップ（呼び出し元が管理）
+     * @param renderers モデル名 → レンダラのマップ
      * @param camera 使用するカメラ
      * @param lightManager ライトマネージャー
      * @param shadowMapManager シャドウマップマネージャー

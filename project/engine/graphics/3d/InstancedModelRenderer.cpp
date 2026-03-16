@@ -16,8 +16,8 @@
 using namespace DirectX;
 
 InstancedModelRenderer::InstancedModelRenderer(uint32_t maxInstances)
-    : m_maxInstances(maxInstances)
-    , m_currentInstanceCount(0)
+    : maxInstances_(maxInstances)
+    , currentInstanceCount_(0)
 {
 }
 
@@ -27,50 +27,47 @@ InstancedModelRenderer::~InstancedModelRenderer()
 
 void InstancedModelRenderer::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, Model* model)
 {
-    m_dxCommon = dxCommon;
-    m_srvManager = srvManager;
-    m_model = model;
+    dxCommon_ = dxCommon;
+    srvManager_ = srvManager;
+    model_ = model;
 
-    // 1. Structured Buffer の作成 (TransformationMatrix 構造体を使用)
-    // GraphicsTypes.h の TransformationMatrix と合わせる
+    // Structured Buffer の作成
     size_t elementSize = sizeof(TransformationMatrix);
-    size_t bufferSize = elementSize * m_maxInstances;
-    m_instancedResource = m_dxCommon->CreateBufferResource(bufferSize);
+    size_t bufferSize = elementSize * maxInstances_;
+    instancedResource_ = dxCommon_->CreateBufferResource(bufferSize);
 
-    // 2. Map してポインタを保持
-    m_instancedResource->Map(0, nullptr, reinterpret_cast<void**>(&m_mappedMatrices));
+    // Map
+    instancedResource_->Map(0, nullptr, reinterpret_cast<void**>(&mappedMatrices_));
 
-    // 3. SRV の作成
-    m_srvIndex = m_srvManager->Allocate();
-    m_srvManager->CreateSRVforStructuredBuffer(m_srvIndex, m_instancedResource.Get(), m_maxInstances, (UINT)elementSize);
+    // SRV の作成
+    srvIndex_ = srvManager_->Allocate();
+    srvManager_->CreateSRVforStructuredBuffer(srvIndex_, instancedResource_.Get(), maxInstances_, (UINT)elementSize);
 
-    // 4. Root Signature と PSO の作成
     CreateRootSignature();
     CreatePipelineState();
 }
 
 void InstancedModelRenderer::UpdateBuffer(const Matrix4x4* matrices, uint32_t count, Camera* camera)
 {
-    m_currentInstanceCount = (count > m_maxInstances) ? m_maxInstances : count;
-    if (m_currentInstanceCount == 0 || !m_mappedMatrices || !camera) return;
+    currentInstanceCount_ = (count > maxInstances_) ? maxInstances_ : count;
+    if (currentInstanceCount_ == 0 || !mappedMatrices_ || !camera)
+    {
+        return;
+    }
 
     Matrix4x4 viewProjection = camera->GetViewProjectionMatrix();
+    TransformationMatrix* mappedData = reinterpret_cast<TransformationMatrix*>(mappedMatrices_);
 
-    TransformationMatrix* mappedData = reinterpret_cast<TransformationMatrix*>(m_mappedMatrices);
-
-    for (uint32_t i = 0; i < m_currentInstanceCount; ++i)
+    for (uint32_t i = 0; i < currentInstanceCount_; ++i)
     {
         Matrix4x4 world = matrices[i];
         Matrix4x4 wvp = Multiply(world, viewProjection);
         
-        // 構造体の各メンバに書き込み
-        // TransformationMatrix は WVP, World, WorldInverseTranspose の順
         TransformationMatrix data;
         data.WVP = wvp;
         data.World = world;
         data.WorldInverseTranspose = MathUtils::Transpose(Inverse(world));
 
-        // 構造体ごと一括で書き込む
         mappedData[i] = data;
     }
 }
@@ -80,50 +77,42 @@ void InstancedModelRenderer::UpdateBuffer(const Matrix4x4* matrices, uint32_t co
 
 void InstancedModelRenderer::DrawInstanced(Camera* camera, LightManager* lightManager, ShadowMapManager* shadowMapManager)
 {
-    if (m_currentInstanceCount == 0 || !m_model) return;
+    if (currentInstanceCount_ == 0 || !model_)
+    {
+        return;
+    }
 
-    auto* commandList = m_dxCommon->GetCommandList();
+    auto* commandList = dxCommon_->GetCommandList();
 
     // 1. パイプライン設定
-    commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-    commandList->SetPipelineState(m_pipelineState.Get());
+    commandList->SetGraphicsRootSignature(rootSignature_.Get());
+    commandList->SetPipelineState(pipelineState_.Get());
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     // 2. 共通定数バインド
-    // RootParam 1: InstanceMatrices (SRV t0) - VS
-    commandList->SetGraphicsRootShaderResourceView(1, m_instancedResource->GetGPUVirtualAddress());
-
-    // RootParam 4: Camera (CBV b2) - PS
+    commandList->SetGraphicsRootShaderResourceView(1, instancedResource_->GetGPUVirtualAddress());
     commandList->SetGraphicsRootConstantBufferView(4, camera->GetConstantBufferAddress());
 
-    // 環境マップ (RootParam 8)
-    commandList->SetGraphicsRootDescriptorTable(8, m_srvManager->GetGPUDescriptorHandle(TextureManager::GetInstance()->GetSRVIndex("./Resources/rostock_laage_airport_4k.dds")));
+    // 環境マップ
+    commandList->SetGraphicsRootDescriptorTable(8, srvManager_->GetGPUDescriptorHandle(TextureManager::GetInstance()->GetSRVIndex("./Resources/rostock_laage_airport_4k.dds")));
 
     // ライトのバインド
     if (lightManager)
     {
-        // RootParam 3: DirectionalLight (CBV b1)
         commandList->SetGraphicsRootConstantBufferView(3, lightManager->GetDirectionalLightGPUAddress());
-        // RootParam 7: LightCount (CBV b5)
         commandList->SetGraphicsRootConstantBufferView(7, lightManager->GetLightCountResource()->GetGPUVirtualAddress());
-        
-        // RootParam 5: PointLights (SRV t3)
         commandList->SetGraphicsRootShaderResourceView(5, lightManager->GetPointLightResource()->GetGPUVirtualAddress());
-        // RootParam 6: SpotLights (SRV t4)
         commandList->SetGraphicsRootShaderResourceView(6, lightManager->GetSpotLightResource()->GetGPUVirtualAddress());
-
-        // RootParam 10: ShadowMatrix (CBV b6)
         commandList->SetGraphicsRootConstantBufferView(10, lightManager->GetShadowMatrixGPUAddress());
-        // RootParam 11: CascadeShadowData (CBV b7)
         commandList->SetGraphicsRootConstantBufferView(11, lightManager->GetCascadeShadowDataGPUAddress());
     }
 
-    // シャドウマップのバインド (RootParam 9, 12-15)
+    // シャドウマップのバインド
     if (shadowMapManager)
     {
         if (shadowMapManager->HasDirectionalLightShadowMap())
         {
-            commandList->SetGraphicsRootDescriptorTable(9, m_srvManager->GetGPUDescriptorHandle(shadowMapManager->GetDirectionalLightShadowMap().srvIndex));
+            commandList->SetGraphicsRootDescriptorTable(9, srvManager_->GetGPUDescriptorHandle(shadowMapManager->GetDirectionalLightShadowMap().srvIndex));
         }
 
         if (shadowMapManager->HasCascadeShadowMaps())
@@ -131,27 +120,22 @@ void InstancedModelRenderer::DrawInstanced(Camera* camera, LightManager* lightMa
             const auto& cascade = shadowMapManager->GetCascadeShadowMap();
             for (int i = 0; i < 4; ++i)
             {
-                commandList->SetGraphicsRootDescriptorTable(12 + i, m_srvManager->GetGPUDescriptorHandle(cascade.srvIndices[i]));
+                commandList->SetGraphicsRootDescriptorTable(12 + i, srvManager_->GetGPUDescriptorHandle(cascade.srvIndices[i]));
             }
         }
     }
 
     // 3. メッシュごとの描画
-    for (const auto& mesh : m_model->GetMeshResources())
+    for (const auto& mesh : model_->GetMeshResources())
     {
-        // RootParam 0: Material (CBV b0)
         commandList->SetGraphicsRootConstantBufferView(0, mesh.materialBuffer->GetGPUVirtualAddress());
+        commandList->SetGraphicsRootDescriptorTable(2, srvManager_->GetGPUDescriptorHandle(mesh.textureIndex));
 
-        // RootParam 2: Texture (DescriptorTable t0)
-        commandList->SetGraphicsRootDescriptorTable(2, m_srvManager->GetGPUDescriptorHandle(mesh.textureIndex));
-
-        // VB/IB 設定
         D3D12_VERTEX_BUFFER_VIEW vbv = mesh.vertexBufferView;
         commandList->IASetVertexBuffers(0, 1, &vbv);
         commandList->IASetIndexBuffer(&mesh.indexBufferView);
 
-        // Draw Call
-        commandList->DrawIndexedInstanced(mesh.indexCount, m_currentInstanceCount, 0, 0, 0);
+        commandList->DrawIndexedInstanced(mesh.indexCount, currentInstanceCount_, 0, 0, 0);
     }
 }
 
@@ -180,47 +164,37 @@ void InstancedModelRenderer::CreateRootSignature()
 
     // ディスクリプタレンジ
     CD3DX12_DESCRIPTOR_RANGE descriptorRange[1] = {};
-    descriptorRange[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0); // t0
+    descriptorRange[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
 
     CD3DX12_DESCRIPTOR_RANGE descriptorRangeEnvMap[1] = {};
-    descriptorRangeEnvMap[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1); // t1
+    descriptorRangeEnvMap[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1);
 
     CD3DX12_DESCRIPTOR_RANGE descriptorRangeShadowMap[1] = {};
-    descriptorRangeShadowMap[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 5); // t5
+    descriptorRangeShadowMap[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 5);
 
     CD3DX12_DESCRIPTOR_RANGE descriptorRangeCascade[4] = {};
-    for (int i = 0; i < 4; ++i) {
-        descriptorRangeCascade[i].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 6 + i); // t6-t9
+    for (int i = 0; i < 4; ++i)
+    {
+        descriptorRangeCascade[i].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 6 + i);
     }
 
     CD3DX12_ROOT_PARAMETER rootParameters[16] = {};
 
-    // 0: Material (CBV b0)
     rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_PIXEL);
-    // 1: InstanceMatrices (SRV t0) - VS (Root SRV)
     rootParameters[1].InitAsShaderResourceView(0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
-    // 2: Texture (DescriptorTable t0) - PS
     rootParameters[2].InitAsDescriptorTable(1, &descriptorRange[0], D3D12_SHADER_VISIBILITY_PIXEL);
-    // 3: DirectionalLight (CBV b1)
     rootParameters[3].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_PIXEL);
-    // 4: Camera (CBV b2)
     rootParameters[4].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_PIXEL);
-    // 5: PointLights (SRV t3)
     rootParameters[5].InitAsShaderResourceView(3, 0, D3D12_SHADER_VISIBILITY_PIXEL);
-    // 6: SpotLights (SRV t4)
     rootParameters[6].InitAsShaderResourceView(4, 0, D3D12_SHADER_VISIBILITY_PIXEL);
-    // 7: LightCount (CBV b5)
     rootParameters[7].InitAsConstantBufferView(5, 0, D3D12_SHADER_VISIBILITY_PIXEL);
-    // 8: EnvMap (t1)
     rootParameters[8].InitAsDescriptorTable(1, &descriptorRangeEnvMap[0], D3D12_SHADER_VISIBILITY_PIXEL);
-    // 9: ShadowMap (t5)
     rootParameters[9].InitAsDescriptorTable(1, &descriptorRangeShadowMap[0], D3D12_SHADER_VISIBILITY_PIXEL);
-    // 10: ShadowMatrix (CBV b6)
     rootParameters[10].InitAsConstantBufferView(6, 0, D3D12_SHADER_VISIBILITY_PIXEL);
-    // 11: CascadeShadowData (CBV b7)
     rootParameters[11].InitAsConstantBufferView(7, 0, D3D12_SHADER_VISIBILITY_PIXEL);
-    // 12-15: CascadeShadowMaps (t6-t9)
-    for (int i = 0; i < 4; ++i) {
+    
+    for (int i = 0; i < 4; ++i)
+    {
         rootParameters[12 + i].InitAsDescriptorTable(1, &descriptorRangeCascade[i], D3D12_SHADER_VISIBILITY_PIXEL);
     }
 
@@ -230,17 +204,21 @@ void InstancedModelRenderer::CreateRootSignature()
     Microsoft::WRL::ComPtr<ID3DBlob> signatureBlob;
     Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
     HRESULT hr = D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &errorBlob);
-    if (FAILED(hr)) {
-        if (errorBlob) Logger::Log(reinterpret_cast<const char*>(errorBlob->GetBufferPointer()));
+    if (FAILED(hr))
+    {
+        if (errorBlob)
+        {
+            Logger::Log(reinterpret_cast<const char*>(errorBlob->GetBufferPointer()));
+        }
         assert(false);
     }
-    m_dxCommon->GetDevice()->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature));
+    dxCommon_->GetDevice()->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature_));
 }
 
 void InstancedModelRenderer::CreatePipelineState()
 {
-    auto vsBlob = m_dxCommon->CompileSharder(L"Resources/shaders/InstancedObject3d.VS.hlsl", L"vs_6_0");
-    auto psBlob = m_dxCommon->CompileSharder(L"Resources/shaders/InstancedObject3d.PS.hlsl", L"ps_6_0");
+    auto vsBlob = dxCommon_->CompileSharder(L"Resources/shaders/InstancedObject3d.VS.hlsl", L"vs_6_0");
+    auto psBlob = dxCommon_->CompileSharder(L"Resources/shaders/InstancedObject3d.PS.hlsl", L"ps_6_0");
     assert(vsBlob && "Failed to compile VS");
     assert(psBlob && "Failed to compile PS");
 
@@ -251,7 +229,7 @@ void InstancedModelRenderer::CreatePipelineState()
     };
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-    psoDesc.pRootSignature = m_rootSignature.Get();
+    psoDesc.pRootSignature = rootSignature_.Get();
     psoDesc.InputLayout = { inputElements, _countof(inputElements) };
     psoDesc.VS = { vsBlob->GetBufferPointer(), vsBlob->GetBufferSize() };
     psoDesc.PS = { psBlob->GetBufferPointer(), psBlob->GetBufferSize() };
@@ -276,6 +254,6 @@ void InstancedModelRenderer::CreatePipelineState()
     psoDesc.SampleDesc.Count = 1;
     psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
-    HRESULT hr = m_dxCommon->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState));
+    HRESULT hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState_));
     assert(SUCCEEDED(hr));
 }

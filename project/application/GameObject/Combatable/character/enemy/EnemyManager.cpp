@@ -171,7 +171,7 @@ void EnemyManager::AddPistolEnemy(uint32_t count)
 		Vector3 randomPosition = MathUtils::RandomVector3(emitRange_.min_, emitRange_.max_);
 		
 		TransformComponent transform;
-		transform.localPosition = randomPosition;
+		transform.localPosition_ = randomPosition;
 		registry_->AddComponent<TransformComponent>(entity, transform);
 		
 		EnemyStateComponent state;
@@ -200,7 +200,7 @@ void EnemyManager::AddAssaultEnemy(uint32_t count)
 		Vector3 randomPosition = MathUtils::RandomVector3(emitRange_.min_, emitRange_.max_);
 		
 		TransformComponent transform;
-		transform.localPosition = randomPosition;
+		transform.localPosition_ = randomPosition;
 		registry_->AddComponent<TransformComponent>(entity, transform);
 		
 		EnemyStateComponent state;
@@ -228,7 +228,7 @@ void EnemyManager::AddShotgunEnemy(uint32_t count)
 		Vector3 randomPosition = MathUtils::RandomVector3(emitRange_.min_, emitRange_.max_);
 		
 		TransformComponent transform;
-		transform.localPosition = randomPosition;
+		transform.localPosition_ = randomPosition;
 		registry_->AddComponent<TransformComponent>(entity, transform);
 		
 		EnemyStateComponent state;
@@ -256,7 +256,7 @@ void EnemyManager::AddKnifeEnemy(uint32_t count)
 		Vector3 randomPosition = MathUtils::RandomVector3(emitRange_.min_, emitRange_.max_);
 		
 		TransformComponent transform;
-		transform.localPosition = randomPosition;
+		transform.localPosition_ = randomPosition;
 		registry_->AddComponent<TransformComponent>(entity, transform);
 		
 		EnemyStateComponent state;
@@ -289,7 +289,7 @@ void EnemyManager::AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo
 		if (entity == kInvalidEntity) continue;
 
 		TransformComponent transform;
-		transform.localPosition = {data[i].transform.translate.x, data[i].transform.translate.y, data[i].transform.translate.z};
+		transform.localPosition_ = {data[i].transform.translate.x, data[i].transform.translate.y, data[i].transform.translate.z};
 		// Note: rotate や scale も設定可能
 		registry_->AddComponent<TransformComponent>(entity, transform);
 
@@ -332,7 +332,7 @@ void EnemyManager::CreateAssaultEnemyFromData()
 		if (entity == kInvalidEntity) continue;
 
 		TransformComponent transform;
-		transform.localPosition = {enemyData_[i].transform.translate.x, enemyData_[i].transform.translate.y, enemyData_[i].transform.translate.z};
+		transform.localPosition_ = {enemyData_[i].transform.translate.x, enemyData_[i].transform.translate.y, enemyData_[i].transform.translate.z};
 		registry_->AddComponent<TransformComponent>(entity, transform);
 
 		EnemyStateComponent state;
@@ -359,8 +359,8 @@ void EnemyManager::AssignRenderComponent(EntityID entity, const std::string& mod
 	if (!registry_) return;
 	
 	RenderComponent render;
-	render.modelName = modelName;
-	render.useInstancing = true;
-	render.isVisible = true;
+	render.modelName_ = modelName;
+	render.useInstancing_ = true;
+	render.isVisible_ = true;
 	registry_->AddComponent<RenderComponent>(entity, render);
 }

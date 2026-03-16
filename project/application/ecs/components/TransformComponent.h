@@ -11,12 +11,14 @@
  */
 struct TransformComponent
 {
-    // ローカル空間情報
-    Vector3 localPosition = { 0.0f, 0.0f, 0.0f };
-    Vector3 localRotation = { 0.0f, 0.0f, 0.0f }; // Euler angles (radians)
-    Vector3 localScale    = { 1.0f, 1.0f, 1.0f };
+    // ローカル座標
+    Vector3 localPosition_ = { 0.0f, 0.0f, 0.0f };
+    // ローカル回転角（ラジアン）
+    Vector3 localRotation_ = { 0.0f, 0.0f, 0.0f };
+    // ローカルスケール
+    Vector3 localScale_ = { 1.0f, 1.0f, 1.0f };
 
-    // 計算済み行列キャッシュ（毎フレーム再計算される）
-    Matrix4x4 localMatrix = MakeIdentity4x4();
-    Matrix4x4 worldMatrix = MakeIdentity4x4();
+    // キャッシュされた行列
+    Matrix4x4 localMatrix_ = MakeIdentity4x4();
+    Matrix4x4 worldMatrix_ = MakeIdentity4x4();
 };

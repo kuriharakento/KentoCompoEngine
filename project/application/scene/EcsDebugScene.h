@@ -24,22 +24,42 @@ public:
     EcsDebugScene();
     ~EcsDebugScene() override;
 
-    /** @brief シーンの初期化。Registryの構築やバッファの確保を行う */
+    /**
+     * @brief シーンの初期化。Registryの構築やバッファの確保を行う
+     */
     void Initialize() override;
+
+    /**
+     * @brief 終了処理
+     */
     void Finalize() override;
+
+    /**
+     * @brief 更新処理
+     */
     void CommonUpdate() override;
+
+    /**
+     * @brief 3D描画処理
+     */
     void Draw3D() override;
+
+    /**
+     * @brief 2D描画処理
+     */
     void Draw2D() override;
 
 private:
-    // --- ECS Core（値で保有。shared_ptr不要）---
-    Registry m_registry;
-    std::unique_ptr<EcsDebugViewer> m_debugViewer;
+    // --- ECS Core ---
+    Registry registry_;
+    std::unique_ptr<EcsDebugViewer> debugViewer_;
 
     // --- Systems & Renderers ---
-    std::unique_ptr<InstancedModelRenderer> m_instancedRenderer;
+    std::unique_ptr<InstancedModelRenderer> instancedRenderer_;
 
     // --- Debug Settings ---
-    std::unique_ptr<DebugCamera> m_debugCamera;
-    uint32_t m_spawnCountPerClick = 1000; //!< 1回押したときに生成するダミーEntityの数
+    std::unique_ptr<DebugCamera> debugCamera_;
+
+    // 1回押したときに生成するダミーEntityの数
+    uint32_t spawnCountPerClick_ = 1000;
 };

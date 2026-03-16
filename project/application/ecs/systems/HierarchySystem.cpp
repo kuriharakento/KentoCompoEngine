@@ -2,20 +2,23 @@
 
 void HierarchySystem::Update(Registry& registry)
 {
-    // 1. 全ての TransformComponent を抽出する
+    // 全ての TransformComponent を抽出
     auto transformView = registry.View<TransformComponent>();
-    if (!transformView || transformView->GetSize() == 0) return;
+    if (!transformView || transformView->GetSize() == 0)
+    {
+        return;
+    }
 
     for (uint32_t i = 0; i < transformView->GetSize(); ++i)
     {
         EntityID entity = transformView->GetEntityFromDenseIndex(i);
         
-        // 階層情報がない、もしくはルート（親がいない）である場合のみ処理を開始する
-        // これにより、ツリーの根本から順番に WorldMatrix が確定していく
+        // 階層情報がない、もしくはルート（親がいない）である場合のみ処理を開始
+        // ツリーの根本から順番に WorldMatrix を計算していく
         bool isRoot = true;
         if (registry.HasComponent<HierarchyComponent>(entity))
         {
-            if (registry.GetComponent<HierarchyComponent>(entity).parent != kInvalidEntity)
+            if (registry.GetComponent<HierarchyComponent>(entity).parent_ != kInvalidEntity)
             {
                 isRoot = false;
             }
@@ -23,10 +26,10 @@ void HierarchySystem::Update(Registry& registry)
 
         if (isRoot)
         {
-            // 自分のトランスフォームを更新
+            // トランスフォームを更新
             UpdateTransform(registry, entity);
             
-            // 子へ再帰的に伝播させる
+            // 子へ再帰的に伝播
             UpdateChildrenRecursive(registry, entity);
         }
     }
@@ -34,21 +37,20 @@ void HierarchySystem::Update(Registry& registry)
 
 void HierarchySystem::UpdateTransform(Registry& registry, EntityID entity)
 {
-    if (!registry.HasComponent<TransformComponent>(entity)) return;
+    if (!registry.HasComponent<TransformComponent>(entity))
+    {
+        return;
+    }
 
-    TransformComponent& transform = registry.GetComponent<TransformComponent>(entity);
-
-    // 1. Local Matrix の構築 (Scale * Rotate * Translate)
-    // MakeAffineMatrix は内部で Vector3 を引数に取る
-    transform.localMatrix = MakeAffineMatrix(
-        transform.localScale,
-        transform.localRotation,
-        transform.localPosition
+    // Local Matrix の構築
+    transform.localMatrix_ = MakeAffineMatrix(
+        transform.localScale_,
+        transform.localRotation_,
+        transform.localPosition_
     );
 
-    // 2. World Matrix の計算
-    // 親がいない場合は World = Local
-    transform.worldMatrix = transform.localMatrix;
+    // World Matrix の計算
+    transform.worldMatrix_ = transform.localMatrix_;
 }
 
 void HierarchySystem::UpdateChildrenRecursive(Registry& registry, EntityID parentEntity)
@@ -62,29 +64,28 @@ void HierarchySystem::UpdateChildrenRecursive(Registry& registry, EntityID paren
     const HierarchyComponent& parentHierarchy = registry.GetComponent<HierarchyComponent>(parentEntity);
     const TransformComponent& parentTransform = registry.GetComponent<TransformComponent>(parentEntity);
 
-    EntityID currentChild = parentHierarchy.firstChild;
+    EntityID currentChild = parentHierarchy.firstChild_;
 
     while (currentChild != kInvalidEntity)
     {
-        // 子のTransformを更新 (まずはLocalを計算)
+        // 子のTransformを更新
         UpdateTransform(registry, currentChild);
 
         if (registry.HasComponent<TransformComponent>(currentChild))
         {
             TransformComponent& childTransform = registry.GetComponent<TransformComponent>(currentChild);
 
-            // child.worldMatrix = child.localMatrix * parent.worldMatrix
-            // Multiply は内部で Matrix4x4 を引数に取る
-            childTransform.worldMatrix = Multiply(childTransform.localMatrix, parentTransform.worldMatrix);
+            // WorldMatrix を親と結合
+            childTransform.worldMatrix_ = Multiply(childTransform.localMatrix_, parentTransform.worldMatrix_);
         }
 
-        // さらに下の孫へ伝播
+        // 下孫へ伝播
         UpdateChildrenRecursive(registry, currentChild);
 
         // 次の兄弟へ
         if (registry.HasComponent<HierarchyComponent>(currentChild))
         {
-            currentChild = registry.GetComponent<HierarchyComponent>(currentChild).nextSibling;
+            currentChild = registry.GetComponent<HierarchyComponent>(currentChild).nextSibling_;
         }
         else
         {

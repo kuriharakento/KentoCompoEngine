@@ -5,24 +5,20 @@
 #include "../components/HierarchyComponent.h"
 
 /**
- * @brief 親子関係（階層構造）を持つEntityのWorldMatrixを計算するシステム。
- * 
- * Updateフェーズの早い段階で呼ばれる事を想定。
- * TransformSystem（全Entityを一律に計算するシステム）の代替、もしくは
- * 親子を持たない物と持つ物で分けて処理するアーキテクチャの一部として機能する。
+ * @brief 親子関係を持つEntityのWorldMatrixを計算するシステム
  */
 class HierarchySystem
 {
 public:
     /**
-     * @brief レジストリ内の全ての HierarchyComponent を走査し、WorldMatrix を更新する。
+     * @brief WorldMatrix を更新する
      * @param registry 対象のRegistry
      */
     static void Update(Registry& registry);
 
 private:
     /**
-     * @brief 指定EntityのLocalMatrixおよびWorldMatrixを更新する内部処理
+     * @brief 指定EntityのLocalMatrixおよびWorldMatrixを更新する
      */
     static void UpdateTransform(Registry& registry, EntityID entity);
 

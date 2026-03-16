@@ -22,7 +22,7 @@ public:
     ~InstancedModelRenderer();
 
     /**
-     * @brief 初期化処理。Structured Buffer の生成などを行う。
+     * @brief 初期化
      * @param dxCommon DirectXCommonへのポインタ
      * @param srvManager SRVマネージャーへのポインタ
      * @param model 使用するモデル
@@ -30,7 +30,7 @@ public:
     void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, Model* model);
 
     /**
-     * @brief 描画する対象の行列一覧をGPUバッファに転送する。
+     * @brief 行列バッファの更新
      * @param matrices 描画対象のTransform(ワールド行列)配列
      * @param count 有効なインスタンス数
      * @param camera 使用するカメラ（WVP計算用）
@@ -38,7 +38,7 @@ public:
     void UpdateBuffer(const Matrix4x4* matrices, uint32_t count, Camera* camera);
 
     /**
-     * @brief グラフィックスコマンドリストに一括描画命令（DrawInstanced）を積む。
+     * @brief インスタンス描画命令の発行
      * @param camera 使用するカメラ
      * @param lightManager 使用するライトマネージャー
      * @param shadowMapManager シャドウマップマネージャー
@@ -58,18 +58,18 @@ private:
 
 private:
     // エンジン共通コンポーネント
-    DirectXCommon* m_dxCommon = nullptr;
-    SrvManager* m_srvManager = nullptr;
-    Model* m_model = nullptr;
+    DirectXCommon* dxCommon_ = nullptr;
+    SrvManager* srvManager_ = nullptr;
+    Model* model_ = nullptr;
 
-    const uint32_t m_maxInstances;
-    uint32_t m_currentInstanceCount = 0;
+    const uint32_t maxInstances_;
+    uint32_t currentInstanceCount_ = 0;
 
     // Direct3D12 リソース
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_instancedResource;
-    Matrix4x4* m_mappedMatrices = nullptr;
-    uint32_t m_srvIndex = 0;
+    Microsoft::WRL::ComPtr<ID3D12Resource> instancedResource_;
+    Matrix4x4* mappedMatrices_ = nullptr;
+    uint32_t srvIndex_ = 0;
 
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
-    Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pipelineState;
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState_;
 };

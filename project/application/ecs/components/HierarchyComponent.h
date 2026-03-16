@@ -9,19 +9,23 @@
  * 
  * ポインタを使わずEntityIDのリンクリスト構造にすることで、メモリ連続性を保つ。
  */
-struct HierarchyComponent
+struct EnemyStateComponent
 {
-    // 親。ルートなら kInvalidEntity
-    EntityID parent = kInvalidEntity;
+    // 敵のAIステート定義
+    enum class State
+    {
+        Idle,   // 待機
+        Move,   // 移動
+        Attack, // 攻撃
+        Dead    // 死亡
+    };
 
-    // 最初の子。いないなら kInvalidEntity
-    EntityID firstChild = kInvalidEntity;
+    // ヒットポイント
+    int hp_ = 100;
 
-    // 次の兄弟。いないなら kInvalidEntity
-    EntityID nextSibling = kInvalidEntity;
+    // 現在のAIステート
+    State currentState_ = State::Idle;
     
-    // 前の兄弟
-    EntityID prevSibling = kInvalidEntity;
+    // ステート開始からの経過時間
+    float stateTimer_ = 0.0f;
 };
-
-
