@@ -21,7 +21,8 @@ public:
 	void Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, CameraManager* camera, LightManager* lightManager, ShadowMapManager* shadowMapManager, GameObject* target);
 	void Update();
 	void UpdateTransform(CameraManager* camera);
-	void Draw3D(CameraManager* camera);
+	void DrawStandard3D(CameraManager* camera);
+	void DrawInstanced3D(CameraManager* camera);
 	void DrawShadow();
 	void Draw2D();
 	

@@ -5,6 +5,7 @@
 #include <d3dcompiler.h>
 
 #include "manager/system/SrvManager.h"
+#include "manager/graphics/SkinningPipelineManager.h"
 
 // スレッドグループサイズ
 constexpr UINT kThreadGroupSize = 256;
@@ -26,8 +27,6 @@ void SkinningCompute::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager
 	dxCommon_ = dxCommon;
 	srvManager_ = srvManager;
 
-	CreateRootSignature();
-	CreatePipelineState();
 	CreateBoneMatrixBuffer();
 	CreateConstantBuffer();
 }
@@ -99,6 +98,7 @@ void SkinningCompute::Dispatch(D3D12_RESOURCE_STATES currentState)
 	}
 
 	auto* commandList = dxCommon_->GetCommandList();
+	auto* pipelineManager = SkinningPipelineManager::GetInstance();
 
 	// 出力バッファをUAV状態に遷移
 	D3D12_RESOURCE_BARRIER toUav = {};
@@ -110,8 +110,8 @@ void SkinningCompute::Dispatch(D3D12_RESOURCE_STATES currentState)
 	commandList->ResourceBarrier(1, &toUav);
 
 	// コンピュートパイプラインを設定
-	commandList->SetComputeRootSignature(rootSignature_.Get());
-	commandList->SetPipelineState(pipelineState_.Get());
+	commandList->SetComputeRootSignature(pipelineManager->GetRootSignature());
+	commandList->SetPipelineState(pipelineManager->GetPipelineState());
 
 	// ディスクリプタヒープを設定
 	ID3D12DescriptorHeap* descriptorHeaps[] = { srvManager_->GetSrvHeap() };
@@ -147,100 +147,6 @@ void SkinningCompute::Dispatch(D3D12_RESOURCE_STATES currentState)
 	toVb.Transition.StateAfter = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
 	toVb.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	commandList->ResourceBarrier(1, &toVb);
-}
-
-void SkinningCompute::CreateRootSignature()
-{
-	HRESULT hr;
-
-	// ディスクリプタレンジ
-	D3D12_DESCRIPTOR_RANGE boneMatrixRange = {};
-	boneMatrixRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	boneMatrixRange.NumDescriptors = 1;
-	boneMatrixRange.BaseShaderRegister = 0; // t0
-	boneMatrixRange.RegisterSpace = 0;
-	boneMatrixRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-	D3D12_DESCRIPTOR_RANGE inputVertexRange = {};
-	inputVertexRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	inputVertexRange.NumDescriptors = 1;
-	inputVertexRange.BaseShaderRegister = 1; // t1
-	inputVertexRange.RegisterSpace = 0;
-	inputVertexRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-	D3D12_DESCRIPTOR_RANGE outputVertexRange = {};
-	outputVertexRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-	outputVertexRange.NumDescriptors = 1;
-	outputVertexRange.BaseShaderRegister = 0; // u0
-	outputVertexRange.RegisterSpace = 0;
-	outputVertexRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-	// ルートパラメータ
-	D3D12_ROOT_PARAMETER rootParameters[4] = {};
-
-	// t0: ボーン行列
-	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameters[0].DescriptorTable.NumDescriptorRanges = 1;
-	rootParameters[0].DescriptorTable.pDescriptorRanges = &boneMatrixRange;
-
-	// t1: 入力頂点
-	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameters[1].DescriptorTable.NumDescriptorRanges = 1;
-	rootParameters[1].DescriptorTable.pDescriptorRanges = &inputVertexRange;
-
-	// u0: 出力頂点
-	rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameters[2].DescriptorTable.NumDescriptorRanges = 1;
-	rootParameters[2].DescriptorTable.pDescriptorRanges = &outputVertexRange;
-
-	// b0: 定数バッファ
-	rootParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-	rootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameters[3].Descriptor.ShaderRegister = 0;
-	rootParameters[3].Descriptor.RegisterSpace = 0;
-
-	// ルートシグネチャの作成
-	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
-	rootSignatureDesc.NumParameters = _countof(rootParameters);
-	rootSignatureDesc.pParameters = rootParameters;
-	rootSignatureDesc.NumStaticSamplers = 0;
-	rootSignatureDesc.pStaticSamplers = nullptr;
-	rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
-
-	Microsoft::WRL::ComPtr<ID3DBlob> signatureBlob;
-	Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
-	hr = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &errorBlob);
-	assert(SUCCEEDED(hr));
-
-	hr = dxCommon_->GetDevice()->CreateRootSignature(
-		0,
-		signatureBlob->GetBufferPointer(),
-		signatureBlob->GetBufferSize(),
-		IID_PPV_ARGS(&rootSignature_)
-	);
-	assert(SUCCEEDED(hr));
-}
-
-void SkinningCompute::CreatePipelineState()
-{
-	HRESULT hr;
-
-	// コンピュートシェーダーをコンパイル
-	Microsoft::WRL::ComPtr<IDxcBlob> computeShaderBlob = dxCommon_->CompileSharder(
-		L"Resources/shaders/Skinning.CS.hlsl", L"cs_6_0"
-	);
-	assert(computeShaderBlob != nullptr);
-
-	// パイプラインステートの作成
-	D3D12_COMPUTE_PIPELINE_STATE_DESC pipelineDesc = {};
-	pipelineDesc.pRootSignature = rootSignature_.Get();
-	pipelineDesc.CS = { computeShaderBlob->GetBufferPointer(), computeShaderBlob->GetBufferSize() };
-
-	hr = dxCommon_->GetDevice()->CreateComputePipelineState(&pipelineDesc, IID_PPV_ARGS(&pipelineState_));
-	assert(SUCCEEDED(hr));
 }
 
 void SkinningCompute::CreateBoneMatrixBuffer()

@@ -265,6 +265,12 @@
     <ClCompile Include="engine\manager\effect\ParticlePipelineManager.cpp">
       <Filter>engine\manager\effect</Filter>
     </ClCompile>
+    <ClCompile Include="engine\manager\graphics\InstancedModelPipelineManager.cpp">
+      <Filter>engine\manager\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\manager\graphics\SkinningPipelineManager.cpp">
+      <Filter>engine\manager\graphics</Filter>
+    </ClCompile>
     <ClCompile Include="engine\manager\effect\PostProcessManager.cpp">
       <Filter>engine\manager\effect</Filter>
     </ClCompile>
@@ -788,6 +794,12 @@
     </ClInclude>
     <ClInclude Include="engine\manager\effect\ParticlePipelineManager.h">
       <Filter>engine\manager\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\manager\graphics\InstancedModelPipelineManager.h">
+      <Filter>engine\manager\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\manager\graphics\SkinningPipelineManager.h">
+      <Filter>engine\manager\graphics</Filter>
     </ClInclude>
     <ClInclude Include="engine\manager\effect\PostProcessManager.h">
       <Filter>engine\manager\effect</Filter>

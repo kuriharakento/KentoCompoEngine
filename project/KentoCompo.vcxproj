@@ -247,6 +247,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\camerawork\spline\Spline.cpp" />
     <ClCompile Include="engine\camerawork\spline\SplineCamera.cpp" />
     <ClCompile Include="engine\manager\effect\ParticlePipelineManager.cpp" />
+    <ClCompile Include="engine\manager\graphics\InstancedModelPipelineManager.cpp" />
+    <ClCompile Include="engine\manager\graphics\SkinningPipelineManager.cpp" />
     <ClCompile Include="application\gameObject\component\action\MoveComponent.cpp" />
     <ClCompile Include="application\gameObject\combatable\character\player\Player.cpp" />
     <ClCompile Include="engine\gameobject\component\collision\OBBColliderComponent.cpp" />
@@ -439,6 +441,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\scene\MyGame.h" />
     <ClInclude Include="engine\framework\Framework.h" />
     <ClInclude Include="engine\manager\effect\ParticlePipelineManager.h" />
+    <ClInclude Include="engine\manager\graphics\InstancedModelPipelineManager.h" />
+    <ClInclude Include="engine\manager\graphics\SkinningPipelineManager.h" />
     <ClInclude Include="engine\scene\interface\BaseScene.h" />
     <ClInclude Include="application\scene\play\TitleScene.h" />
     <ClInclude Include="engine\scene\manager\SceneManager.h" />

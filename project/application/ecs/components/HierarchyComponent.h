@@ -2,30 +2,17 @@
 
 #include "../../../engine/ecs/Entity.h"
 
-// No namespaces
-
 /**
- * @brief エンティティ間の親子関係を表現する。
- * 
- * ポインタを使わずEntityIDのリンクリスト構造にすることで、メモリ連続性を保つ。
+ * @brief エンティティ間の親子関係を表現するコンポーネント。
  */
-struct EnemyStateComponent
+struct HierarchyComponent
 {
-    // 敵のAIステート定義
-    enum class State
-    {
-        Idle,   // 待機
-        Move,   // 移動
-        Attack, // 攻撃
-        Dead    // 死亡
-    };
+    // 親エンティティ
+    EntityID parent_ = kInvalidEntity;
 
-    // ヒットポイント
-    int hp_ = 100;
+    // 最初の子エンティティ
+    EntityID firstChild_ = kInvalidEntity;
 
-    // 現在のAIステート
-    State currentState_ = State::Idle;
-    
-    // ステート開始からの経過時間
-    float stateTimer_ = 0.0f;
+    // 次の兄弟エンティティ
+    EntityID nextSibling_ = kInvalidEntity;
 };

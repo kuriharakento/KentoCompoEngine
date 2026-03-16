@@ -42,6 +42,8 @@ void HierarchySystem::UpdateTransform(Registry& registry, EntityID entity)
         return;
     }
 
+    TransformComponent& transform = registry.GetComponent<TransformComponent>(entity);
+
     // Local Matrix の構築
     transform.localMatrix_ = MakeAffineMatrix(
         transform.localScale_,

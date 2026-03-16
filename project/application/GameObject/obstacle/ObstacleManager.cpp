@@ -271,7 +271,7 @@ void ObstacleManager::RegisterToRegistry(const GameObjectInfo& info, ObstacleCom
 
 	// Transform
 	TransformComponent transform;
-	transform.localPosition = {
+	transform.localPosition_ = {
 		info.transform.translate.x,
 		info.transform.translate.y,
 		info.transform.translate.z
@@ -280,8 +280,8 @@ void ObstacleManager::RegisterToRegistry(const GameObjectInfo& info, ObstacleCom
 
 	// 描画情報
 	RenderComponent render;
-	render.modelName = info.fileName.empty() ? "wall" : info.fileName;
-	render.useInstancing = false; // 障害物は現状インスタンシング非対象
+	render.modelName_ = info.fileName.empty() ? "wall" : info.fileName;
+	render.useInstancing_ = false; // 障害物は現状インスタンシング非対象
 	registry_->AddComponent<RenderComponent>(entity, render);
 
 	// 障害物属性

@@ -119,16 +119,22 @@ void StageManager::Draw3D()
 		player_->Draw3D(cameraManager_);
 	}
 
-	// 敵マネージャーの描画
+	// 敵マネージャーの通常描画（非ECS）
 	if (enemyManager_)
 	{
-		enemyManager_->Draw3D(cameraManager_);
+		enemyManager_->DrawStandard3D(cameraManager_);
 	}
 
 	// 障害物の描画
 	if (obstacleManager_)
 	{
 		obstacleManager_->Draw(cameraManager_);
+	}
+
+	// 敵マネージャーのECSインスタンス描画（ルートシグネチャが変わるため最後に実行）
+	if (enemyManager_)
+	{
+		enemyManager_->DrawInstanced3D(cameraManager_);
 	}
 }
 

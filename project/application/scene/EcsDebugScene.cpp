@@ -147,6 +147,7 @@ void EcsDebugScene::CommonUpdate()
                 registry_.AddComponent<TransformComponent>(entity, transform);
 
                 EnemyStateComponent state{};
+                state.currentState_ = EnemyStateComponent::State::Idle;
                 registry_.AddComponent<EnemyStateComponent>(entity, state);
 
                 // 「cube」モデルで描画

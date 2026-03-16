@@ -136,11 +136,14 @@ void EnemyManager::UpdateTransform(CameraManager* camera)
 	}
 }
 
-void EnemyManager::Draw3D(CameraManager* camera)
+void EnemyManager::DrawStandard3D(CameraManager* camera)
 {
 	// まず実体を従来のObject3d単位で描画
 	for (auto& enemy : enemies_) { enemy->Draw3D(camera); }
+}
 
+void EnemyManager::DrawInstanced3D(CameraManager* camera)
+{
 	// ECS管理のInstancedRenderSystem描画
 	if (registry_ && camera)
 	{

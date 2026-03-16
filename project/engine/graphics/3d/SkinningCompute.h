@@ -56,16 +56,6 @@ public: // アクセッサ
 
 private:
 	/**
-	 * @brief ルートシグネチャの作成
-	 */
-	void CreateRootSignature();
-
-	/**
-	 * @brief パイプラインステートの作成
-	 */
-	void CreatePipelineState();
-
-	/**
 	 * @brief ボーン行列バッファの作成
 	 */
 	void CreateBoneMatrixBuffer();
@@ -81,12 +71,6 @@ private:
 
 	// SRVマネージャーへのポインタ
 	SrvManager* srvManager_ = nullptr;
-
-	// ルートシグネチャ
-	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
-
-	// パイプラインステート
-	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState_;
 
 	// ボーン行列バッファ
 	Microsoft::WRL::ComPtr<ID3D12Resource> boneMatrixBuffer_;

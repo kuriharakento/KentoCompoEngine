@@ -46,15 +46,6 @@ public:
     void DrawInstanced(Camera* camera, LightManager* lightManager, class ShadowMapManager* shadowMapManager);
 
 private:
-    /**
-     * @brief ルートシグネチャの作成
-     */
-    void CreateRootSignature();
-
-    /**
-     * @brief パイプラインステートの作成
-     */
-    void CreatePipelineState();
 
 private:
     // エンジン共通コンポーネント

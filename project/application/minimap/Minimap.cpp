@@ -84,7 +84,7 @@ void Minimap::Update()
 			if (i >= enemyIcons_.size()) break;
 
 			// ECSのTransformから位置情報を取得
-			Vector3 enemyPos = { transform.localPosition.x, transform.localPosition.y, transform.localPosition.z };
+			Vector3 enemyPos = { transform.localPosition_.x, transform.localPosition_.y, transform.localPosition_.z };
 			// TODO: 回転成分の実用化 (QuaternionからEulerへの変換など)
 			float enemyYaw = 0.0f; 
 
