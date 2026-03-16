@@ -1,0 +1,1554 @@
+19:28 でビルドが開始されました...
+1>------ ビルド開始: プロジェクト: KentoCompo, 構成: Debug x64 ------
+1>AssaultRifleComponent.cpp
+1>AssaultEnemy.cpp
+1>EnemyManager.cpp
+1>AssaultEnemyBehavior.cpp
+1>EcsDebugScene.cpp
+1>InstancedRenderSystem.cpp
+1>InstancedModelRenderer.cpp
+1>CollisionAlgorithm.cpp
+1>CollisionUtils.cpp
+1>SphereColliderComponent.cpp
+1>RayColliderComponent.cpp
+1>LoadGameResources.cpp
+1>Area.cpp
+1>AreaManager.cpp
+1>BarrierBlock.cpp
+1>CarnageMode.cpp
+1>EnemyUIComponent.cpp
+1>EnemyBase.cpp
+1>AABBColliderComponent.cpp
+1>GameObject.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/component/action/AssaultRifleComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/AssaultRifleComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/AssaultRifleComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/AssaultRifleComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/AssaultRifleComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'engine/gameobject/component/collision/SphereColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/SphereColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/SphereColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/SphereColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/SphereColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/scene/EcsDebugScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/EcsDebugScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/EcsDebugScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/EcsDebugScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/EcsDebugScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/AssaultEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/AssaultEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/AssaultEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/AssaultEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/AssaultEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/carnage/CarnageMode.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'engine/gameobject/component/collision/AABBColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/carnage/CarnageMode.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/carnage/CarnageMode.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/carnage/CarnageMode.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/carnage/CarnageMode.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/AABBColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/AABBColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/AABBColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/AABBColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\scene\EcsDebugScene.cpp(53,53): error C2039: 'GetModel': 'ModelManager' のメンバーではありません
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\manager\graphics\ModelManager.h(15,7):
+1>    'ModelManager' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/obstacle/BarrierBlock.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/obstacle/BarrierBlock.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/obstacle/BarrierBlock.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/obstacle/BarrierBlock.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/obstacle/BarrierBlock.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'engine/gameobject/base/GameObject.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/base/GameObject.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/base/GameObject.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/base/GameObject.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/base/GameObject.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/component/action/EnemyUIComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/EnemyUIComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/EnemyUIComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/EnemyUIComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/EnemyUIComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'engine/gameobject/component/collision/CollisionAlgorithm.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/CollisionAlgorithm.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/CollisionAlgorithm.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/CollisionAlgorithm.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/CollisionAlgorithm.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'engine/gameobject/component/collision/CollisionUtils.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/CollisionUtils.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/CollisionUtils.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/CollisionUtils.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/CollisionUtils.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'engine/graphics/3d/InstancedModelRenderer.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/3d/InstancedModelRenderer.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/3d/InstancedModelRenderer.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/3d/InstancedModelRenderer.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/3d/InstancedModelRenderer.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'engine/gameobject/component/collision/RayColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/RayColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/RayColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/RayColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/RayColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/resources/LoadGameResources.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/resources/LoadGameResources.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/resources/LoadGameResources.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/resources/LoadGameResources.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/resources/LoadGameResources.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/ecs/systems/InstancedRenderSystem.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/ecs/systems/InstancedRenderSystem.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/ecs/systems/InstancedRenderSystem.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/ecs/systems/InstancedRenderSystem.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/ecs/systems/InstancedRenderSystem.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/base/EnemyBase.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/base/EnemyBase.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/base/EnemyBase.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/base/EnemyBase.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/base/EnemyBase.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/component/action/AssaultEnemyBehavior.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/AssaultEnemyBehavior.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/AssaultEnemyBehavior.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/AssaultEnemyBehavior.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/AssaultEnemyBehavior.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>Character.cpp
+1>BulletComponent.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(20,45): error C2039: 'GetActiveCount': 'ComponentArray<TransformComponent>' のメンバーではありません
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\ecs\ComponentArray.h(44,7):
+1>    'ComponentArray<TransformComponent>' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(30,14): error C2664: 'void InstancedModelRenderer::UpdateBuffer(const Matrix4x4 *,uint32_t,Camera *)': 引数 1 を '_Ty *' から 'const Matrix4x4 *' へ変換できません。
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(30,14): error C2664:         with
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(30,14): error C2664:         [
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(30,14): error C2664:             _Ty=DirectX::XMFLOAT4X4
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(30,14): error C2664:         ]
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(30,48):
+1>    指示された型は関連がありません。変換には reinterpret_cast、C スタイル キャストまたはかっこで囲まれた関数スタイル キャストが必要です。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\InstancedModelRenderer.h(38,10):
+1>    'InstancedModelRenderer::UpdateBuffer' の宣言を確認してください
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(30,14):
+1>    引数リスト '(_Ty *, uint32_t, Camera *)' を一致させようとしているとき
+1>        with
+1>        [
+1>            _Ty=DirectX::XMFLOAT4X4
+1>        ]
+1>Bullet.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(43,26): error C2672: 'Registry::View': 一致するオーバーロードされた関数が見つかりませんでした。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\ecs\Registry.h(143,40):
+1>    'std::shared_ptr<ComponentArray<T>> Registry::View(void)' の可能性があります
+1>        C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(43,26):
+1>        'Registry::View': 引数 テンプレート が多すぎます
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(44,9): error C3536: 'view': 初期化前に使用することはできません
+1>CollisionManager.cpp
+1>SkinnedObject3d.cpp
+1>ShadowSystem.cpp
+1>DeferredRenderer.cpp
+1>Model.cpp
+1>ModelManager.cpp
+1>Object3d.cpp
+1>Framework.cpp
+1>GamePlayScene.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(49,28): error C3312: 型 '<error type>' に対して呼び出し可能な 'begin' 関数が見つかりません
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(49,28): error C3312: 型 '<error type>' に対して呼び出し可能な 'end' 関数が見つかりません
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(49,26): error C2143: 構文エラー: ';' が ':' の前にありません。
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(49,32): error C2143: 構文エラー: ';' が ')' の前にありません。
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(67,21): error C2664: 'void InstancedModelRenderer::UpdateBuffer(const Matrix4x4 *,uint32_t,Camera *)': 引数 1 を '_Ty *' から 'const Matrix4x4 *' へ変換できません。
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(67,21): error C2664:         with
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(67,21): error C2664:         [
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(67,21): error C2664:             _Ty=DirectX::XMFLOAT4X4
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(67,21): error C2664:         ]
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(67,47):
+1>    指示された型は関連がありません。変換には reinterpret_cast、C スタイル キャストまたはかっこで囲まれた関数スタイル キャストが必要です。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\InstancedModelRenderer.h(38,10):
+1>    'InstancedModelRenderer::UpdateBuffer' の宣言を確認してください
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(67,21):
+1>    引数リスト '(_Ty *, uint32_t, Camera *)' を一致させようとしているとき
+1>        with
+1>        [
+1>            _Ty=DirectX::XMFLOAT4X4
+1>        ]
+1>LightManager.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\InstancedModelRenderer.cpp(121,59): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\InstancedModelRenderer.cpp(121,22): error C2660: 'ID3D12GraphicsCommandList::SetGraphicsRootConstantBufferView': 関数に 1 個の引数を指定できません。
+1>    C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\d3d12.h(6472,40):
+1>    'ID3D12GraphicsCommandList::SetGraphicsRootConstantBufferView' の宣言を確認してください
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\InstancedModelRenderer.cpp(121,22):
+1>    引数リスト '(int)' を一致させようとしているとき
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\InstancedModelRenderer.cpp(124,93): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\InstancedModelRenderer.cpp(124,22): error C2660: 'ID3D12GraphicsCommandList::SetGraphicsRootDescriptorTable': 関数に 1 個の引数を指定できません。
+1>    C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\d3d12.h(6442,40):
+1>    'ID3D12GraphicsCommandList::SetGraphicsRootDescriptorTable' の宣言を確認してください
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\InstancedModelRenderer.cpp(124,22):
+1>    引数リスト '(int)' を一致させようとしているとき
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\InstancedModelRenderer.cpp(127,40): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\InstancedModelRenderer.cpp(129,40): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\InstancedModelRenderer.cpp(132,43): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>PistolComponent.cpp
+1>PistolEnemy.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/stage/Area.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/Area.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/Area.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/Area.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/Area.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/stage/AreaManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/AreaManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/AreaManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/AreaManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/AreaManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/EnemyManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/EnemyManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/EnemyManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/EnemyManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/EnemyManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>GravityPhysicsComponent.cpp
+1>KnifeEnemy.cpp
+1>Knife.cpp
+1>KnifeEnemyBehavior.cpp
+1>GameClearScene.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/combatable/weapon/Bullet.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/weapon/Bullet.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/weapon/Bullet.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/weapon/Bullet.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/weapon/Bullet.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'engine/graphics/3d/Object3d.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/3d/Object3d.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/3d/Object3d.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/3d/Object3d.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/3d/Object3d.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/component/action/BulletComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/BulletComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/BulletComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/BulletComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/BulletComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'engine/graphics/3d/Model.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/3d/Model.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/3d/Model.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/3d/Model.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/3d/Model.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/combatable/character/base/Character.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/base/Character.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/base/Character.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/base/Character.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/base/Character.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>GameOverScene.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'engine/gameobject/component/collision/CollisionManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/CollisionManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/CollisionManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/CollisionManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/CollisionManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'engine/manager/graphics/ModelManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/manager/graphics/ModelManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/manager/graphics/ModelManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/manager/graphics/ModelManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/manager/graphics/ModelManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/component/action/PistolComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/PistolComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/PistolComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/PistolComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/PistolComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>main.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'engine/framework/Framework.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/framework/Framework.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/framework/Framework.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/framework/Framework.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/framework/Framework.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>MyGame.cpp
+1>TitleScene.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'engine/graphics/3d/SkinnedObject3d.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/3d/SkinnedObject3d.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/3d/SkinnedObject3d.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/3d/SkinnedObject3d.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/3d/SkinnedObject3d.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>SceneManager.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(101,42): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(101,16): error C2660: 'ID3D12GraphicsCommandList::IASetVertexBuffers': 関数に 2 個の引数を指定できません。
+1>    C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\d3d12.h(6495,40):
+1>    'ID3D12GraphicsCommandList::IASetVertexBuffers' の宣言を確認してください
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(101,16):
+1>    引数リスト '(int, int)' を一致させようとしているとき
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(104,34): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(107,53): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(107,16): error C2660: 'ID3D12GraphicsCommandList::SetGraphicsRootConstantBufferView': 関数に 1 個の引数を指定できません。
+1>    C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\d3d12.h(6472,40):
+1>    'ID3D12GraphicsCommandList::SetGraphicsRootConstantBufferView' の宣言を確認してください
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(107,16):
+1>    引数リスト '(int)' を一致させようとしているとき
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(110,97): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(110,16): error C2660: 'ID3D12GraphicsCommandList::SetGraphicsRootDescriptorTable': 関数に 1 個の引数を指定できません。
+1>    C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\d3d12.h(6442,40):
+1>    'ID3D12GraphicsCommandList::SetGraphicsRootDescriptorTable' の宣言を確認してください
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(110,16):
+1>    引数リスト '(int)' を一致させようとしているとき
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(113,37): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(125,42): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(125,16): error C2660: 'ID3D12GraphicsCommandList::IASetVertexBuffers': 関数に 2 個の引数を指定できません。
+1>    C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\d3d12.h(6495,40):
+1>    'ID3D12GraphicsCommandList::IASetVertexBuffers' の宣言を確認してください
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(125,16):
+1>    引数リスト '(int, int)' を一致させようとしているとき
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(128,34): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(131,37): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(143,42): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(143,16): error C2660: 'ID3D12GraphicsCommandList::IASetVertexBuffers': 関数に 2 個の引数を指定できません。
+1>    C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\d3d12.h(6495,40):
+1>    'ID3D12GraphicsCommandList::IASetVertexBuffers' の宣言を確認してください
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(143,16):
+1>    引数リスト '(int, int)' を一致させようとしているとき
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(146,34): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(149,53): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(149,16): error C2660: 'ID3D12GraphicsCommandList::SetGraphicsRootConstantBufferView': 関数に 1 個の引数を指定できません。
+1>    C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\d3d12.h(6472,40):
+1>    'ID3D12GraphicsCommandList::SetGraphicsRootConstantBufferView' の宣言を確認してください
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(149,16):
+1>    引数リスト '(int)' を一致させようとしているとき
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(152,97): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(152,16): error C2660: 'ID3D12GraphicsCommandList::SetGraphicsRootDescriptorTable': 関数に 1 個の引数を指定できません。
+1>    C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\d3d12.h(6442,40):
+1>    'ID3D12GraphicsCommandList::SetGraphicsRootDescriptorTable' の宣言を確認してください
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(152,16):
+1>    引数リスト '(int)' を一致させようとしているとき
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(155,37): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(306,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(309,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(309,46): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(310,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(311,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(315,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(320,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(323,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(323,45): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(324,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(325,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(329,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(333,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(336,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(341,4): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(354,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(357,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(357,70): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(360,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(361,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(362,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(363,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(364,3): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(412,7): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(414,4): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(423,7): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(425,4): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(434,7): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(436,4): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(443,49): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(447,59): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(452,49): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(456,55): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(461,49): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(465,56): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(472,7): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(474,50): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(475,52): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(476,4): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(485,7): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(487,52): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(488,58): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(489,4): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(498,7): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(500,50): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(501,58): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.cpp(502,4): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>SceneFactory.cpp
+1>MoveComponent.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'engine/graphics/shadow/ShadowSystem.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/shadow/ShadowSystem.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/shadow/ShadowSystem.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/shadow/ShadowSystem.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/graphics/shadow/ShadowSystem.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/PistolEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/PistolEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/PistolEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/PistolEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/PistolEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>Player.cpp
+1>OBBColliderComponent.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/component/action/GravityPhysicsComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/GravityPhysicsComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/GravityPhysicsComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/GravityPhysicsComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/GravityPhysicsComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/KnifeEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/KnifeEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/KnifeEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/KnifeEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/KnifeEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>ShotgunComponent.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/combatable/weapon/Knife.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/weapon/Knife.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/weapon/Knife.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/weapon/Knife.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/weapon/Knife.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>ShotgunEnemy.cpp
+1>Obstacle.cpp
+1>ObstacleManager.cpp
+1>StageEditScene.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/scene/play/GameClearScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/play/GameClearScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/play/GameClearScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/play/GameClearScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/play/GameClearScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/scene/play/GamePlayScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/play/GamePlayScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/play/GamePlayScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/play/GamePlayScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/play/GamePlayScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/component/action/KnifeEnemyBehavior.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/KnifeEnemyBehavior.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/KnifeEnemyBehavior.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/KnifeEnemyBehavior.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/KnifeEnemyBehavior.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>StageManager.cpp
+1>Stage.cpp
+1>Wave.cpp
+1>Minimap.cpp
+1>ParticleTestScene.cpp
+1>StatusComponent.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'main.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'main.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'main.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'main.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'main.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/scene/play/GameOverScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/play/GameOverScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/play/GameOverScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/play/GameOverScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/play/GameOverScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'engine/scene/manager/SceneManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/scene/manager/SceneManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/scene/manager/SceneManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/scene/manager/SceneManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/scene/manager/SceneManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'engine/scene/MyGame.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/scene/MyGame.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/scene/MyGame.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/scene/MyGame.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/scene/MyGame.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'engine/scene/factory/SceneFactory.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/scene/factory/SceneFactory.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/scene/factory/SceneFactory.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/scene/factory/SceneFactory.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/scene/factory/SceneFactory.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>PlayerUIComponent.cpp
+1>WeaponManagerComponent.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'engine/gameobject/component/collision/OBBColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/OBBColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/OBBColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/OBBColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'engine/gameobject/component/collision/OBBColliderComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/component/action/MoveComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/MoveComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/MoveComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/MoveComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/MoveComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/component/action/ShotgunComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/ShotgunComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/ShotgunComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/ShotgunComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/ShotgunComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/ShotgunEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/ShotgunEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/ShotgunEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/ShotgunEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/enemy/ShotgunEnemy.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/combatable/character/player/Player.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/player/Player.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/player/Player.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/player/Player.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/combatable/character/player/Player.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/obstacle/Obstacle.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/obstacle/Obstacle.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/obstacle/Obstacle.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/obstacle/Obstacle.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/obstacle/Obstacle.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/obstacle/ObstacleManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/obstacle/ObstacleManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/obstacle/ObstacleManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/obstacle/ObstacleManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/obstacle/ObstacleManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/scene/play/TitleScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/play/TitleScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/play/TitleScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/play/TitleScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/play/TitleScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/scene/debug/StageEditScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/debug/StageEditScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/debug/StageEditScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/debug/StageEditScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/debug/StageEditScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/scene/debug/ParticleTestScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/debug/ParticleTestScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/debug/ParticleTestScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/debug/ParticleTestScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/scene/debug/ParticleTestScene.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/component/action/StatusComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/StatusComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/StatusComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/StatusComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/StatusComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/stage/Stage.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/Stage.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/Stage.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/Stage.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/Stage.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/stage/Wave.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/Wave.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/Wave.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/Wave.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/Wave.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/stage/StageManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/StageManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/StageManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/StageManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/stage/StageManager.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/minimap/Minimap.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/minimap/Minimap.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/minimap/Minimap.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/minimap/Minimap.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/minimap/Minimap.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/component/action/WeaponManagerComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/WeaponManagerComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/WeaponManagerComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/WeaponManagerComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/WeaponManagerComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(231,9): error C2011: 'Model::MeshResource': 'struct' 型の再定義
+1>(ソース ファイル 'application/gameObject/component/action/PlayerUIComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(86,96): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/PlayerUIComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(98,89): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/PlayerUIComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(116,87): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/PlayerUIComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(128,90): error C2027: 認識できない型 'Model::MeshResource' が使われています。
+1>(ソース ファイル 'application/gameObject/component/action/PlayerUIComponent.cpp' をコンパイルしています)
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\graphics\3d\Model.h(181,9):
+1>    'Model::MeshResource' の宣言を確認してください
+1>プロジェクト "KentoCompo.vcxproj" のビルドが終了しました -- 失敗。
+========== ビルド: 成功 0、失敗 1、最新の状態 2、スキップ 0 ==========
+=========== ビルド は 19:28 で完了し、12.804 秒 掛かりました ==========
+

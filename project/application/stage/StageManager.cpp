@@ -18,12 +18,13 @@ StageManager::~StageManager()
 
 #include "engine/manager/effect/PostProcessManager.h"
 
-void StageManager::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, CameraManager* camera, PostProcessManager* postProcessManager)
+void StageManager::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, CameraManager* camera, ShadowMapManager* shadowMapManager, PostProcessManager* postProcessManager)
 {
 	object3dCommon_ = object3dCommon;
 	spriteCommon_ = spriteCommon;
 	lightManager_ = lightManager;
 	cameraManager_ = camera;
+	shadowMapManager_ = shadowMapManager;
 	postProcessManager_ = postProcessManager;
 
 	// ステージデータの初期化
@@ -40,7 +41,7 @@ void StageManager::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spri
 
 	// 敵マネージャーの初期化
 	enemyManager_ = std::make_unique<EnemyManager>();
-	enemyManager_->Initialize(object3dCommon_, spriteCommon, camera, lightManager, nullptr); // ターゲットは後で設定
+	enemyManager_->Initialize(object3dCommon_, spriteCommon, camera, lightManager, shadowMapManager, nullptr); // ターゲットは後で設定
 	enemyManager_->SetCameraManager(cameraManager_);
 
 	// 障害物マネージャーの初期化

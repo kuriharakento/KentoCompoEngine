@@ -22,6 +22,36 @@ public:
 	Model() = default;
 
 	/**
+	 * @brief メッシュごとのGPUリソース
+	 */
+	struct MeshResource
+	{
+		// 頂点バッファリソース
+		Microsoft::WRL::ComPtr<ID3D12Resource> vertexBuffer;
+		// インデックスバッファリソース
+		Microsoft::WRL::ComPtr<ID3D12Resource> indexBuffer;
+		// マテリアルバッファリソース
+		Microsoft::WRL::ComPtr<ID3D12Resource> materialBuffer;
+		// 頂点バッファビュー
+		D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
+		// インデックスバッファビュー
+		D3D12_INDEX_BUFFER_VIEW indexBufferView{};
+		// インデックス数
+		uint32_t indexCount = 0;
+		// 使用するマテリアルのインデックス
+		uint32_t materialIndex = 0;
+		// テクスチャインデックス
+		uint32_t textureIndex = 0;
+		// GPU用マテリアルデータへのポインタ
+		Material* gpuMaterial = nullptr;
+	};
+
+	/**
+	 * @brief 全メッシュリソースの取得
+	 */
+	const std::vector<MeshResource>& GetMeshResources() const { return meshResources_; }
+
+	/**
 	 * @brief コピーコンストラクタ
 	 * @param other コピー元のモデル
 	 */
@@ -195,30 +225,6 @@ private: // メンバ関数
 	void InitializeRenderingSettings();
 
 private:
-	/**
-	 * @brief メッシュごとのGPUリソース
-	 */
-	struct MeshResource
-	{
-		// 頂点バッファリソース
-		Microsoft::WRL::ComPtr<ID3D12Resource> vertexBuffer;
-		// インデックスバッファリソース
-		Microsoft::WRL::ComPtr<ID3D12Resource> indexBuffer;
-		// マテリアルバッファリソース
-		Microsoft::WRL::ComPtr<ID3D12Resource> materialBuffer;
-		// 頂点バッファビュー
-		D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
-		// インデックスバッファビュー
-		D3D12_INDEX_BUFFER_VIEW indexBufferView{};
-		// インデックス数
-		uint32_t indexCount = 0;
-		// 使用するマテリアルのインデックス
-		uint32_t materialIndex = 0;
-		// テクスチャインデックス
-		uint32_t textureIndex = 0;
-		// GPU用マテリアルデータへのポインタ
-		Material* gpuMaterial = nullptr;
-	};
 
 	// モデル共通部へのポインタ
 	ModelCommon* modelCommon_ = nullptr;

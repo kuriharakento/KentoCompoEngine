@@ -5,15 +5,21 @@
 #include "BarrierBlock.h"
 #include "engine/gameobject/component/collision/OBBColliderComponent.h"
 #include "manager/editor/JsonEditorManager.h"
+#include "externals/imgui/imgui.h"
 
 void ObstacleManager::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager)
 {
-	// ポインタをメンバ変数に記録
 	object3dCommon_ = object3dCommon;
 	lightManager_ = lightManager;
-
-	// リストの初期化
 	obstacles_.clear();
+
+	// ECS Registry の初期化（最大2000個の障害物を想定）
+	constexpr uint32_t kMaxObstacles = 2000;
+	registry_ = std::make_unique<Registry>();
+	registry_->Initialize(kMaxObstacles);
+	registry_->RegisterComponent<TransformComponent>(kMaxObstacles);
+	registry_->RegisterComponent<RenderComponent>(kMaxObstacles);
+	registry_->RegisterComponent<ObstacleComponent>(kMaxObstacles);
 }
 
 void ObstacleManager::Update()
@@ -113,8 +119,13 @@ void ObstacleManager::DrawShadow()
 
 void ObstacleManager::Clear()
 {
-	// 障害物のリストをクリア
 	obstacles_.clear();
+
+	// ECS側も全エンティティを破棄し再初期化
+	if (registry_)
+	{
+		registry_->Initialize(registry_->GetMaxEntityCount());
+	}
 }
 
 void ObstacleManager::CreateObstacles()
@@ -189,6 +200,9 @@ void ObstacleManager::CreateObstacle(const GameObjectInfo& info)
 	obstacle->SetScale(info.transform.scale);
 	obstacle->SetName(info.name);
 	obstacles_.push_back(std::move(obstacle));
+
+	// ECS側にトランスフォーム属性を登録
+	RegisterToRegistry(info, ObstacleComponent::Type::Obstacle, true);
 }
 
 void ObstacleManager::CreateBarrierBlock(const GameObjectInfo& info)
@@ -201,6 +215,9 @@ void ObstacleManager::CreateBarrierBlock(const GameObjectInfo& info)
 	obstacle->SetScale(info.transform.scale);
 	obstacle->SetName(info.name);
 	obstacles_.push_back(std::move(obstacle));
+
+	// ECS側に登録
+	RegisterToRegistry(info, ObstacleComponent::Type::BarrierBlock, true);
 }
 
 void ObstacleManager::SyncNewObstacleData()
@@ -232,9 +249,8 @@ void ObstacleManager::SyncNewObstacleData()
 
 void ObstacleManager::CreateFloor(const GameObjectInfo& info)
 {
-	// コライダーなしの床オブジェクト（GameObjectを直接使う）
+	// コライダーなしの床オブジェクト
 	auto floor = std::make_unique<Obstacle>(gameObjectTag::item::Floor);
-	// Obstacle::Initializeではなく、GameObject::Initializeを呼ぶことでコライダーを追加しない
 	floor->GameObject::Initialize(object3dCommon_, lightManager_);
 	floor->SetModel(info.fileName);
 	floor->SetPosition(info.transform.translate);
@@ -242,5 +258,35 @@ void ObstacleManager::CreateFloor(const GameObjectInfo& info)
 	floor->SetScale(info.transform.scale);
 	floor->SetName(info.name);
 	obstacles_.push_back(std::move(floor));
+	// ECS側に登録（床はコライダーなし）
+	RegisterToRegistry(info, ObstacleComponent::Type::Floor, false);
 }
 
+void ObstacleManager::RegisterToRegistry(const GameObjectInfo& info, ObstacleComponent::Type type, bool hasCollider)
+{
+	if (!registry_) return;
+
+	EntityID entity = registry_->CreateEntity();
+	if (entity == kInvalidEntity) return;
+
+	// Transform
+	TransformComponent transform;
+	transform.localPosition = {
+		info.transform.translate.x,
+		info.transform.translate.y,
+		info.transform.translate.z
+	};
+	registry_->AddComponent<TransformComponent>(entity, transform);
+
+	// 描画情報
+	RenderComponent render;
+	render.modelName = info.fileName.empty() ? "wall" : info.fileName;
+	render.useInstancing = false; // 障害物は現状インスタンシング非対象
+	registry_->AddComponent<RenderComponent>(entity, render);
+
+	// 障害物属性
+	ObstacleComponent obstacle;
+	obstacle.type = type;
+	obstacle.hasCollider = hasCollider;
+	registry_->AddComponent<ObstacleComponent>(entity, obstacle);
+}

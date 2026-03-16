@@ -1,0 +1,228 @@
+MSBuild のバージョン 17.14.23+b0019275e (.NET Framework)
+2026/03/16 3:17:24 にビルドを開始しました。
+
+ノード 1 上のプロジェクト "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (既定のターゲット)。
+ValidateSolutionConfiguration:
+  ソリューション構成 "Debug|x64" をビルドしています。
+プロジェクト "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (1) は、ノード 1 上に "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj" (2) をビルドしています (既定のターゲット)。
+プロジェクト "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj" (2) は、ノード 1 上に "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\DirectXTex\DirectXTex_Desktop_2022_Win10.vcxproj" (3) をビルドしています (既定のターゲット)。
+PrepareForBuild:
+  構造化出力が有効になっています。コンパイラ診断の書式設定にはエラー階層が反映されます。詳細については、https://aka.ms/cpp/structured-output を参照してください。
+InitializeBuildStatus:
+  "AlwaysCreate" が指定されたため "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\DirectXTex\Debug\DirectXTex.tlog\unsuccessfulbuild" を作成しています。
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\DirectXTex\Debug\DirectXTex.tlog\unsuccessfulbuild" のタッチ タスクを実行しています。
+ClCompile:
+  すべての出力が最新のものです。
+  すべての出力が最新のものです。
+Lib:
+  すべての出力が最新のものです。
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\generated\obj\DirectXTex\Debug\DirectXTex.pdb" から "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\generated\outputs\Debug\DirectXTex.pdb" へファイルをコピーしています。
+  DirectXTex_Desktop_2022_Win10.vcxproj -> C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\generated\outputs\Debug\DirectXTex.lib
+FinalizeBuildStatus:
+  ファイル "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\DirectXTex\Debug\DirectXTex.tlog\unsuccessfulbuild" を削除しています。
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\DirectXTex\Debug\DirectXTex.tlog\DirectXTex.lastbuildstate" のタッチ タスクを実行しています。
+プロジェクト "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\DirectXTex\DirectXTex_Desktop_2022_Win10.vcxproj" (既定のターゲット) のビルドが完了しました。
+PrepareForBuild:
+  構造化出力が有効になっています。コンパイラ診断の書式設定にはエラー階層が反映されます。詳細については、https://aka.ms/cpp/structured-output を参照してください。
+InitializeBuildStatus:
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\KentoCompo.tlog\unsuccessfulbuild" のタッチ タスクを実行しています。
+ClCompile:
+  C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\bin\HostX86\x64\CL.exe /c /IC:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\ /IC:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\ /IC:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\ /IC:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\assimp\include /ZI /JMC /nologo /W3 /WX /diagnostics:column /sdl /MP /Od /D _DEBUG /D _WINDOWS /D USE_IMGUI /D _UNICODE /D UNICODE /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /std:c++20 /permissive- /Fo"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\\" /Fd"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\vc143.pdb" /external:W3 /Gd /TP /FC /errorReport:queue /utf-8 /FS application\scene\EcsDebugScene.cpp
+  EcsDebugScene.cpp
+Link:
+  C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\bin\HostX86\x64\link.exe /ERRORREPORT:QUEUE /OUT:"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\outputs\Debug\KentoCompo.exe" /INCREMENTAL /ILK:"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\KentoCompo.ilk" /NOLOGO /LIBPATH:C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\assimp\lib\Debug /WX "assimp-vc143-mtd.lib" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\outputs\Debug\KentoCompo.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\outputs\Debug\KentoCompo.lib" /MACHINE:X64 /ignore:4049 /ignore:4098 C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\StatusSystem.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ActionNode.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\AssaultRifleComponent.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\AssaultEnemy.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\EnemyManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\BulletTrailManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\AssaultEnemyBehavior.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\WeaponManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ObjectPool.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Registry.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\EcsDebugViewer.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\EcsDebugScene.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\HierarchySystem.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\LifetimeSystem.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\EnemyBehaviorSystem.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\InstancedRenderSystem.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\InstancedModelRenderer.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\CollisionAlgorithm.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\CollisionUtils.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\CompositeNode.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ConditionNode.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\BehaviorTree.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\BlackBoard.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\SphereColliderComponent.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\RayColliderComponent.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\LoadGameResources.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Area.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\AreaManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\AreaWaveData.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\BarrierBlock.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ComboManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\CarnageMode.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\CinematicLetterbox.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\EnemyUIComponent.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Cursor.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ControlsGuide.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\SubEmitterModule.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ParticleEmitter.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ParticleManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ParticleEffect.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\GPUSimulator.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\GPUParticlePipeline.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\SpriteRenderer.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\MeshRenderer.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\PrimitiveGenerator.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ParticleEditor.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\TrailRenderer.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ParticleEffectSerializer.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\BloomEffect.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\DebugCamera.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\CRTEffect.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\BasePostEffect.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\EnemyBase.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\AABBColliderComponent.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Slide.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\GameObject.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Character.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\BulletComponent.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ICollisionComponent.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Bullet.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\CollisionManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\PostProcessPass.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\RenderTexture.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\TopDownCamera.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\SkinnedModel.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\SkinnedObject3d.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\SkinningCompute.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Animator.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ShadowMapPipeline.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ShadowSystem.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\LineManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Audio.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ShadowMapManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\GBuffer.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\GBufferPipeline.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\LightPassPipeline.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\DeferredRenderer.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\CameraManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Sprite.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\SpriteCommon.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Model.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ModelCommon.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ModelManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Object3d.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Object3dCommon.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Camera.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\D3DResourceLeakChecker.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\DirectXCommon.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Logger.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\StringUtility.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\TextureManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\WinApp.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Input.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\MathUtils.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\TimeManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\imgui.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\imgui_demo.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\imgui_draw.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\imgui_impl_dx12.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\imgui_impl_win32.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\imgui_tables.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\imgui_widgets.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ImGuiManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Framework.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\GamePlayScene.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\LightManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Line.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\LineCommon.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\JsonEditorManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\JsonEditableBase.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\FollowCamera.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\PistolComponent.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\GrayscaleEffect.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\PistolEnemy.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\GravityPhysicsComponent.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\JsonSerialization.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\JsonEditorImGuiUtils.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\InverterNode.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\KnifeEnemy.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Knife.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\KnifeEnemyBehavior.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\GameClearScene.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\GameOverScene.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\GameUI.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\PoseMenu.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\FontSprite.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\main.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\SrvManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\MyGame.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\TitleScene.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\SceneManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\SceneFactory.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\OrbitCameraWork.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\SplineData.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Spline.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\SplineCamera.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ParticlePipelineManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\MoveComponent.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Player.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\OBBColliderComponent.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\PostProcessManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\VignetteEffect.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\NoiseEffect.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Skybox.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ShotgunComponent.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ShotgunEnemy.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Obstacle.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ObstacleManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ObstacleData.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\SequenceNode.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\SelectorNode.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\StageEditScene.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\StageManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\StageData.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Timer.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\TimerManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ParallelNode.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Stage.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Wave.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\WaveManager.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\Minimap.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\ParticleTestScene.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\NumberSprite.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\StatusComponent.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\SceneTransitionEffect.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\PlayerUIComponent.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\WeaponManagerComponent.obj
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\generated\outputs\Debug\DirectXTex.lib
+  KentoCompo.vcxproj -> C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\generated\outputs\Debug\KentoCompo.exe
+PostBuildEvent:
+  copy "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\dxcompiler.dll" "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\generated\outputs\Debug\dxcompiler.dll"
+  copy "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\dxil.dll" "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\generated\outputs\Debug\dxil.dll"
+  :VCEnd
+          1 個のファイルをコピーしました。
+          1 個のファイルをコピーしました。
+FinalizeBuildStatus:
+  ファイル "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\KentoCompo.tlog\unsuccessfulbuild" を削除しています。
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\KentoCompo.tlog\KentoCompo.lastbuildstate" のタッチ タスクを実行しています。
+プロジェクト "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj" (既定のターゲット) のビルドが完了しました。
+プロジェクト "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (1) は、ノード 1 上に "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\ImGui\ImGui.vcxproj" (4) をビルドしています (既定のターゲット)。
+PrepareForBuild:
+  構造化出力が有効になっています。コンパイラ診断の書式設定にはエラー階層が反映されます。詳細については、https://aka.ms/cpp/structured-output を参照してください。
+InitializeBuildStatus:
+  "AlwaysCreate" が指定されたため "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\Generated\obj\ImGui\Debug\ImGui.tlog\unsuccessfulbuild" を作成しています。
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\Generated\obj\ImGui\Debug\ImGui.tlog\unsuccessfulbuild" のタッチ タスクを実行しています。
+FinalizeBuildStatus:
+  ファイル "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\Generated\obj\ImGui\Debug\ImGui.tlog\unsuccessfulbuild" を削除しています。
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\Generated\obj\ImGui\Debug\ImGui.tlog\ImGui.lastbuildstate" のタッチ タスクを実行しています。
+プロジェクト "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\ImGui\ImGui.vcxproj" (既定のターゲット) のビルドが完了しました。
+プロジェクト "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (既定のターゲット) のビルドが完了しました。
+
+ビルドに成功しました。
+    0 個の警告
+    0 エラー
+
+経過時間 00:00:05.95

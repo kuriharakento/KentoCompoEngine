@@ -1,0 +1,1252 @@
+﻿
+build_error.log:7:1>C:\Users\kurih\source\repos\kurihara
+kento\KentoCompoEngine\project\engine\graphics\3d\Instan
+cedModelRenderer.h(28,46): error C2061: �\���G���[: ���ʎ
+q 'SrvManager'
+build_error.log:9:1>C:\Users\kurih\source\repos\kurihara
+kento\KentoCompoEngine\project\engine\graphics\3d\Instan
+cedModelRenderer.h(59,15): error C2143: �\���G���[: ';' 
+�� '*' �̑O�ɂ���܂���B
+build_error.log:11:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.h(59,5): error C4430: �^�w��q������܂��
+� - int �Ɖ��肵�܂����B����: C++ �� int �����l�Ƃ��ăT�|�[�g�
+��Ă��܂���
+build_error.log:13:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.h(59,39): error C2238: ';' �̑O�ɖ����ȃg
+�[�N��������܂��B
+build_error.log:15:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.h(28,46): error C2061: �\���G���[: ���
+ʎq 'SrvManager'
+build_error.log:17:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.h(59,15): error C2143: �\���G���[: ';'
+ �� '*' �̑O�ɂ���܂���B
+build_error.log:19:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.h(59,5): error C4430: �^�w��q������܂��
+� - int �Ɖ��肵�܂����B����: C++ �� int �����l�Ƃ��ăT�|�[�g�
+��Ă��܂���
+build_error.log:21:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.h(59,39): error C2238: ';' �̑O�ɖ����ȃg
+�[�N��������܂��B
+build_error.log:23:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.h(28,46): error C2061: �\���G���[: ���
+ʎq 'SrvManager'
+build_error.log:25:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.h(59,15): error C2143: �\���G���[: ';'
+ �� '*' �̑O�ɂ���܂���B
+build_error.log:27:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.h(59,5): error C4430: �^�w��q������܂��
+� - int �Ɖ��肵�܂����B����: C++ �� int �����l�Ƃ��ăT�|�[�g�
+��Ă��܂���
+build_error.log:29:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.h(59,39): error C2238: ';' �̑O�ɖ����ȃg
+�[�N��������܂��B
+build_error.log:31:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\application\scene\EcsDeb
+ugScene.cpp(51,46): error C2039: 'GetInstance': 'SrvMana
+ger' �̃����o�[�ł͂���܂���
+build_error.log:34:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\application\scene\EcsDeb
+ugScene.cpp(51,46): error C3861: 'GetInstance': ���ʎq���
+�����܂���ł���
+build_error.log:35:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\application\scene\EcsDeb
+ugScene.cpp(54,30): error C2660: 'InstancedModelRenderer
+::Initialize': �֐��� 3 �̈�����w��ł��܂���B
+build_error.log:40:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\application\ecs\systems\
+InstancedRenderSystem.cpp(20,45): error C2039: 'GetActiv
+eCount': 'ComponentArray<TransformComponent>' �̃����o�[�
+ł͂���܂���
+build_error.log:43:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.cpp(28,30): error C2511: 'void Instanc
+edModelRenderer::Initialize(DirectXCommon *,SrvManager *
+,Model *)': �I�[�o�[���[�h���ꂽ�����o�[�֐��� 'InstancedMo
+delRenderer' �ɂ���܂���B
+build_error.log:46:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.cpp(30,5): error C2597: �ÓI�łȂ������o�
+[ 'InstancedModelRenderer::m_dxCommon' �ւ̎Q�Ƃ�����������
+܂���B
+build_error.log:49:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.cpp(31,5): error C2065: 'm_srvManager'
+: ��`����Ă��Ȃ����ʎq�ł��B
+build_error.log:50:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.cpp(32,5): error C2597: �ÓI�łȂ������o�
+[ 'InstancedModelRenderer::m_model' �ւ̎Q�Ƃ�����������܂��
+�B
+build_error.log:53:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.cpp(37,39): error C2597: �ÓI�łȂ������o
+�[ 'InstancedModelRenderer::m_maxInstances' �ւ̎Q�Ƃ������
+�����܂���B
+build_error.log:56:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.cpp(37,39): error C3867: 'InstancedMod
+elRenderer::m_maxInstances': ��W���̍\���ł��B�����o�[�Ƀ|�
+C���^��쐬����ɂ� '&' ��g�p���Ă�������
+build_error.log:57:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.cpp(37,39): error C2568: '*': �I�[�o�[
+���[�h�֐��̂����A�ǂ��Ăяo���̂�����ł��܂���B
+build_error.log:58:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.cpp(41,68): error C2597: �ÓI�łȂ������o
+�[ 'InstancedModelRenderer::m_mappedMatrices' �ւ̎Q�Ƃ����
+�������܂���B
+build_error.log:61:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.cpp(41,42): error C2440: 'reinterpret_
+cast': 'DirectX::XMFLOAT4X4 *InstancedModelRenderer::* '
+ ���� 'void **' �ɕϊ��ł��܂���B
+build_error.log:64:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.cpp(44,18): error C2065: 'm_srvManager
+': ��`����Ă��Ȃ����ʎq�ł��B
+build_error.log:65:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.cpp(45,5): error C2065: 'm_srvManager'
+: ��`����Ă��Ȃ����ʎq�ł��B
+build_error.log:66:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.cpp(45,48): error C2597: �ÓI�łȂ������o
+�[ 'InstancedModelRenderer::m_srvIndex' �ւ̎Q�Ƃ����������
+�܂���B
+build_error.log:69:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.cpp(45,87): error C2597: �ÓI�łȂ������o
+�[ 'InstancedModelRenderer::m_maxInstances' �ւ̎Q�Ƃ������
+�����܂���B
+build_error.log:72:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.cpp(48,5): error C2352: 'InstancedMode
+lRenderer::CreateRootSignature': ��ÓI�����o�[�֐��̌Ăяo���
+ɂ̓I�u�W�F�N�g���K�v�ł�
+build_error.log:75:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.cpp(49,5): error C2352: 'InstancedMode
+lRenderer::CreatePipelineState': ��ÓI�����o�[�֐��̌Ăяo���
+ɂ̓I�u�W�F�N�g���K�v�ł�
+build_error.log:78:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.cpp(66,35): error C2679: �񍀉��Z�q '=':
+ �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� (�
+܂��͕ϊ��ł��܂���)�B
+build_error.log:97:1>C:\Users\kurih\source\repos\kurihar
+akento\KentoCompoEngine\project\engine\graphics\3d\Insta
+ncedModelRenderer.cpp(68,35): error C2679: �񍀉��Z�q '=':
+ �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� (�
+܂��͕ϊ��ł��܂���)�B
+build_error.log:116:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(70,35): error C2679: �񍀉��Z�q '='
+: �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� (
+�܂��͕ϊ��ł��܂���)�B
+build_error.log:135:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(93,73): error C2039: 'GetLightCou
+ntResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:138:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(93,22): error C2660: 'ID3D12Graph
+icsCommandList::SetGraphicsRootConstantBufferView': �֐��
+� 1 �̈�����w��ł��܂���B
+build_error.log:143:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(96,73): error C2039: 'GetPointLig
+htResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:146:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(96,22): error C2660: 'ID3D12Graph
+icsCommandList::SetGraphicsRootShaderResourceView': �֐��
+� 1 �̈�����w��ł��܂���B
+build_error.log:151:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(97,73): error C2039: 'GetSpotLigh
+tResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:154:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(97,22): error C2660: 'ID3D12Graph
+icsCommandList::SetGraphicsRootShaderResourceView': �֐��
+� 1 �̈�����w��ł��܂���B
+build_error.log:159:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(106,67): error C2039: 'GetCameraF
+orGPURessource': 'Camera' �̃����o�[�ł͂���܂���
+build_error.log:162:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(106,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootConstantBufferView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:167:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(110,42): error C2039: 'GetMeshRes
+ources': 'Model' �̃����o�[�ł͂���܂���
+build_error.log:170:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(110,31): error C2530: 'meshResour
+ces': �Q�Ƃ����������ꂸ�ɐ錾����Ă��܂��B
+build_error.log:171:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(111,29): error C3536: 'meshResour
+ces': �������O�Ɏg�p���邱�Ƃ͂ł��܂���
+build_error.log:172:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(111,29): error C3312: �^ '<error 
+type>' �ɑ΂��ČĂяo���\�� 'begin' �֐���������܂���
+build_error.log:173:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(111,29): error C3312: �^ '<error 
+type>' �ɑ΂��ČĂяo���\�� 'end' �֐���������܂���
+build_error.log:174:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(111,22): error C2530: 'mesh': �Q�
+Ƃ����������ꂸ�ɐ錾����Ă��܂��B
+build_error.log:175:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(111,22): error C3531: 'mesh': 'au
+to' ��܂ތ^�̃V���{���ɂ͏������q���K�v�ł�
+build_error.log:176:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(111,27): error C2143: �\���G���[:
+ ';' �� ':' �̑O�ɂ���܂���B
+build_error.log:177:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(111,42): error C2143: �\���G���[:
+ ';' �� ')' �̑O�ɂ���܂���B
+build_error.log:178:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(113,22): error C2660: 'ID3D12Grap
+hicsCommandList::IASetVertexBuffers': �֐��� 2 �̈�����w�
+�ł��܂���B
+build_error.log:183:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(117,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootConstantBufferView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:188:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(120,9): error C2065: 'm_srvManage
+r': ��`����Ă��Ȃ����ʎq�ł��B
+build_error.log:189:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\gameObject\
+combatable\character\enemy\EnemyManager.cpp(37,23): erro
+r C2660: 'InstancedModelRenderer::Initialize': �֐��� 0 �
+̈�����w��ł��܂���B
+build_error.log:194:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\gameObject\
+combatable\character\enemy\EnemyManager.cpp(130,26): err
+or C2660: 'InstancedRenderSystem::DrawGrouped': �֐��� 2 
+�̈�����w��ł��܂���B
+build_error.log:221:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\scene\EcsDe
+bugScene.cpp(44,33): error C2228: '.LoadModel' �̍����̓N�
+��X�A�\���́A���p�̂łȂ���΂Ȃ�܂���
+build_error.log:226:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\scene\EcsDe
+bugScene.cpp(51,46): error C2039: 'GetInstance': 'SrvMan
+ager' �̃����o�[�ł͂���܂���
+build_error.log:229:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\scene\EcsDe
+bugScene.cpp(51,46): error C3861: 'GetInstance': ���ʎq��
+������܂���ł���
+build_error.log:230:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\ecs\systems
+\InstancedRenderSystem.cpp(20,45): error C2039: 'GetActi
+veCount': 'ComponentArray<TransformComponent>' �̃����o�[
+�ł͂���܂���
+build_error.log:233:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(66,35): error C2679: �񍀉��Z�q '='
+: �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� (
+�܂��͕ϊ��ł��܂���)�B
+build_error.log:252:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(68,35): error C2679: �񍀉��Z�q '='
+: �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� (
+�܂��͕ϊ��ł��܂���)�B
+build_error.log:271:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(71,35): error C2679: �񍀉��Z�q '='
+: �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� (
+�܂��͕ϊ��ł��܂���)�B
+build_error.log:290:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(94,73): error C2039: 'GetLightCou
+ntResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:293:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(94,22): error C2660: 'ID3D12Graph
+icsCommandList::SetGraphicsRootConstantBufferView': �֐��
+� 1 �̈�����w��ł��܂���B
+build_error.log:298:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(97,73): error C2039: 'GetPointLig
+htResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:301:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(97,22): error C2660: 'ID3D12Graph
+icsCommandList::SetGraphicsRootShaderResourceView': �֐��
+� 1 �̈�����w��ł��܂���B
+build_error.log:306:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(98,73): error C2039: 'GetSpotLigh
+tResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:309:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(98,22): error C2660: 'ID3D12Graph
+icsCommandList::SetGraphicsRootShaderResourceView': �֐��
+� 1 �̈�����w��ł��܂���B
+build_error.log:314:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(107,67): error C2039: 'GetCameraF
+orGPURessource': 'Camera' �̃����o�[�ł͂���܂���
+build_error.log:317:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(107,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootConstantBufferView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:322:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(111,42): error C2039: 'GetMeshRes
+ources': 'Model' �̃����o�[�ł͂���܂���
+build_error.log:325:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(111,31): error C2530: 'meshResour
+ces': �Q�Ƃ����������ꂸ�ɐ錾����Ă��܂��B
+build_error.log:326:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,29): error C3536: 'meshResour
+ces': �������O�Ɏg�p���邱�Ƃ͂ł��܂���
+build_error.log:327:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,29): error C3312: �^ '<error 
+type>' �ɑ΂��ČĂяo���\�� 'begin' �֐���������܂���
+build_error.log:328:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,29): error C3312: �^ '<error 
+type>' �ɑ΂��ČĂяo���\�� 'end' �֐���������܂���
+build_error.log:329:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,22): error C2530: 'mesh': �Q�
+Ƃ����������ꂸ�ɐ錾����Ă��܂��B
+build_error.log:330:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,22): error C3531: 'mesh': 'au
+to' ��܂ތ^�̃V���{���ɂ͏������q���K�v�ł�
+build_error.log:331:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,27): error C2143: �\���G���[:
+ ';' �� ':' �̑O�ɂ���܂���B
+build_error.log:332:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,42): error C2143: �\���G���[:
+ ';' �� ')' �̑O�ɂ���܂���B
+build_error.log:333:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(114,22): error C2660: 'ID3D12Grap
+hicsCommandList::IASetVertexBuffers': �֐��� 2 �̈�����w�
+�ł��܂���B
+build_error.log:338:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(118,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootConstantBufferView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:343:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(121,23): error C2660: 'SrvManager
+::SetGraphicsRootDescriptorTable': �֐��� 1 �̈�����w��ł�
+�܂���B
+build_error.log:348:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\gameObject\
+combatable\character\enemy\EnemyManager.cpp(37,23): erro
+r C2660: 'InstancedModelRenderer::Initialize': �֐��� 0 �
+̈�����w��ł��܂���B
+build_error.log:353:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\gameObject\
+combatable\character\enemy\EnemyManager.cpp(130,26): err
+or C2660: 'InstancedRenderSystem::DrawGrouped': �֐��� 2 
+�̈�����w��ł��܂���B
+build_error.log:372:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\scene\EcsDe
+bugScene.cpp(44,33): error C2228: '.LoadModel' �̍����̓N�
+��X�A�\���́A���p�̂łȂ���΂Ȃ�܂���
+build_error.log:377:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\scene\EcsDe
+bugScene.cpp(51,46): error C2039: 'GetInstance': 'SrvMan
+ager' �̃����o�[�ł͂���܂���
+build_error.log:380:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\scene\EcsDe
+bugScene.cpp(51,46): error C3861: 'GetInstance': ���ʎq��
+������܂���ł���
+build_error.log:381:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\ecs\systems
+\InstancedRenderSystem.cpp(20,45): error C2039: 'GetActi
+veCount': 'ComponentArray<TransformComponent>' �̃����o�[
+�ł͂���܂���
+build_error.log:384:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(66,35): error C2679: �񍀉��Z�q '='
+: �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� (
+�܂��͕ϊ��ł��܂���)�B
+build_error.log:403:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(68,35): error C2679: �񍀉��Z�q '='
+: �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� (
+�܂��͕ϊ��ł��܂���)�B
+build_error.log:422:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(71,35): error C2679: �񍀉��Z�q '='
+: �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� (
+�܂��͕ϊ��ł��܂���)�B
+build_error.log:441:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(94,73): error C2039: 'GetLightCou
+ntResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:444:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(94,22): error C2660: 'ID3D12Graph
+icsCommandList::SetGraphicsRootConstantBufferView': �֐��
+� 1 �̈�����w��ł��܂���B
+build_error.log:449:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(97,73): error C2039: 'GetPointLig
+htResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:452:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(97,22): error C2660: 'ID3D12Graph
+icsCommandList::SetGraphicsRootShaderResourceView': �֐��
+� 1 �̈�����w��ł��܂���B
+build_error.log:457:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(98,73): error C2039: 'GetSpotLigh
+tResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:460:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(98,22): error C2660: 'ID3D12Graph
+icsCommandList::SetGraphicsRootShaderResourceView': �֐��
+� 1 �̈�����w��ł��܂���B
+build_error.log:465:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(107,67): error C2039: 'GetCameraF
+orGPURessource': 'Camera' �̃����o�[�ł͂���܂���
+build_error.log:468:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(107,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootConstantBufferView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:473:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(111,42): error C2039: 'GetMeshRes
+ources': 'Model' �̃����o�[�ł͂���܂���
+build_error.log:476:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(111,31): error C2530: 'meshResour
+ces': �Q�Ƃ����������ꂸ�ɐ錾����Ă��܂��B
+build_error.log:477:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,29): error C3536: 'meshResour
+ces': �������O�Ɏg�p���邱�Ƃ͂ł��܂���
+build_error.log:478:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,29): error C3312: �^ '<error 
+type>' �ɑ΂��ČĂяo���\�� 'begin' �֐���������܂���
+build_error.log:479:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,29): error C3312: �^ '<error 
+type>' �ɑ΂��ČĂяo���\�� 'end' �֐���������܂���
+build_error.log:480:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,22): error C2530: 'mesh': �Q�
+Ƃ����������ꂸ�ɐ錾����Ă��܂��B
+build_error.log:481:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,22): error C3531: 'mesh': 'au
+to' ��܂ތ^�̃V���{���ɂ͏������q���K�v�ł�
+build_error.log:482:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,27): error C2143: �\���G���[:
+ ';' �� ':' �̑O�ɂ���܂���B
+build_error.log:483:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,42): error C2143: �\���G���[:
+ ';' �� ')' �̑O�ɂ���܂���B
+build_error.log:484:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(114,22): error C2660: 'ID3D12Grap
+hicsCommandList::IASetVertexBuffers': �֐��� 2 �̈�����w�
+�ł��܂���B
+build_error.log:489:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(118,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootConstantBufferView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:494:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(121,23): error C2660: 'SrvManager
+::SetGraphicsRootDescriptorTable': �֐��� 1 �̈�����w��ł�
+�܂���B
+build_error.log:499:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\gameObject\
+combatable\character\enemy\EnemyManager.cpp(37,23): erro
+r C2660: 'InstancedModelRenderer::Initialize': �֐��� 0 �
+̈�����w��ł��܂���B
+build_error.log:514:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\scene\EcsDe
+bugScene.cpp(44,33): error C2228: '.LoadModel' �̍����̓N�
+��X�A�\���́A���p�̂łȂ���΂Ȃ�܂���
+build_error.log:519:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\scene\EcsDe
+bugScene.cpp(51,46): error C2039: 'GetInstance': 'SrvMan
+ager' �̃����o�[�ł͂���܂���
+build_error.log:522:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\scene\EcsDe
+bugScene.cpp(51,46): error C3861: 'GetInstance': ���ʎq��
+������܂���ł���
+build_error.log:523:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\ecs\systems
+\InstancedRenderSystem.cpp(20,45): error C2039: 'GetActi
+veCount': 'ComponentArray<TransformComponent>' �̃����o�[
+�ł͂���܂���
+build_error.log:526:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(66,35): error C2679: �񍀉��Z�q '='
+: �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� (
+�܂��͕ϊ��ł��܂���)�B
+build_error.log:545:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(68,35): error C2679: �񍀉��Z�q '='
+: �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� (
+�܂��͕ϊ��ł��܂���)�B
+build_error.log:564:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(71,35): error C2679: �񍀉��Z�q '='
+: �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� (
+�܂��͕ϊ��ł��܂���)�B
+build_error.log:583:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(94,73): error C2039: 'GetLightCou
+ntResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:586:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(94,22): error C2660: 'ID3D12Graph
+icsCommandList::SetGraphicsRootConstantBufferView': �֐��
+� 1 �̈�����w��ł��܂���B
+build_error.log:591:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(97,73): error C2039: 'GetPointLig
+htResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:594:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(97,22): error C2660: 'ID3D12Graph
+icsCommandList::SetGraphicsRootShaderResourceView': �֐��
+� 1 �̈�����w��ł��܂���B
+build_error.log:599:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(98,73): error C2039: 'GetSpotLigh
+tResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:602:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(98,22): error C2660: 'ID3D12Graph
+icsCommandList::SetGraphicsRootShaderResourceView': �֐��
+� 1 �̈�����w��ł��܂���B
+build_error.log:607:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(107,67): error C2039: 'GetCameraF
+orGPURessource': 'Camera' �̃����o�[�ł͂���܂���
+build_error.log:610:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(107,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootConstantBufferView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:615:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(111,42): error C2039: 'GetMeshRes
+ources': 'Model' �̃����o�[�ł͂���܂���
+build_error.log:618:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(111,31): error C2530: 'meshResour
+ces': �Q�Ƃ����������ꂸ�ɐ錾����Ă��܂��B
+build_error.log:619:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,29): error C3536: 'meshResour
+ces': �������O�Ɏg�p���邱�Ƃ͂ł��܂���
+build_error.log:620:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,29): error C3312: �^ '<error 
+type>' �ɑ΂��ČĂяo���\�� 'begin' �֐���������܂���
+build_error.log:621:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,29): error C3312: �^ '<error 
+type>' �ɑ΂��ČĂяo���\�� 'end' �֐���������܂���
+build_error.log:622:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,22): error C2530: 'mesh': �Q�
+Ƃ����������ꂸ�ɐ錾����Ă��܂��B
+build_error.log:623:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,22): error C3531: 'mesh': 'au
+to' ��܂ތ^�̃V���{���ɂ͏������q���K�v�ł�
+build_error.log:624:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,27): error C2143: �\���G���[:
+ ';' �� ':' �̑O�ɂ���܂���B
+build_error.log:625:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,42): error C2143: �\���G���[:
+ ';' �� ')' �̑O�ɂ���܂���B
+build_error.log:626:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(114,22): error C2660: 'ID3D12Grap
+hicsCommandList::IASetVertexBuffers': �֐��� 2 �̈�����w�
+�ł��܂���B
+build_error.log:631:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(118,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootConstantBufferView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:636:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(121,23): error C2660: 'SrvManager
+::SetGraphicsRootDescriptorTable': �֐��� 1 �̈�����w��ł�
+�܂���B
+build_error.log:650:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\scene\EcsDe
+bugScene.cpp(44,33): error C2228: '.LoadModel' �̍����̓N�
+��X�A�\���́A���p�̂łȂ���΂Ȃ�܂���
+build_error.log:655:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\scene\EcsDe
+bugScene.cpp(51,46): error C2039: 'GetInstance': 'SrvMan
+ager' �̃����o�[�ł͂���܂���
+build_error.log:658:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\scene\EcsDe
+bugScene.cpp(51,46): error C3861: 'GetInstance': ���ʎq��
+������܂���ł���
+build_error.log:659:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\ecs\systems
+\InstancedRenderSystem.cpp(20,45): error C2039: 'GetActi
+veCount': 'ComponentArray<TransformComponent>' �̃����o�[
+�ł͂���܂���
+build_error.log:662:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(66,35): error C2679: �񍀉��Z�q '='
+: �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� (
+�܂��͕ϊ��ł��܂���)�B
+build_error.log:681:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(68,35): error C2679: �񍀉��Z�q '='
+: �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� (
+�܂��͕ϊ��ł��܂���)�B
+build_error.log:700:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(71,35): error C2679: �񍀉��Z�q '='
+: �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� (
+�܂��͕ϊ��ł��܂���)�B
+build_error.log:719:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(94,73): error C2039: 'GetLightCou
+ntResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:722:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(94,22): error C2660: 'ID3D12Graph
+icsCommandList::SetGraphicsRootConstantBufferView': �֐��
+� 1 �̈�����w��ł��܂���B
+build_error.log:727:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(97,73): error C2039: 'GetPointLig
+htResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:730:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(97,22): error C2660: 'ID3D12Graph
+icsCommandList::SetGraphicsRootShaderResourceView': �֐��
+� 1 �̈�����w��ł��܂���B
+build_error.log:735:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(98,73): error C2039: 'GetSpotLigh
+tResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:738:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(98,22): error C2660: 'ID3D12Graph
+icsCommandList::SetGraphicsRootShaderResourceView': �֐��
+� 1 �̈�����w��ł��܂���B
+build_error.log:743:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(107,67): error C2039: 'GetCameraF
+orGPURessource': 'Camera' �̃����o�[�ł͂���܂���
+build_error.log:746:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(107,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootConstantBufferView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:751:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(111,42): error C2039: 'GetMeshRes
+ources': 'Model' �̃����o�[�ł͂���܂���
+build_error.log:754:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(111,31): error C2530: 'meshResour
+ces': �Q�Ƃ����������ꂸ�ɐ錾����Ă��܂��B
+build_error.log:755:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,29): error C3536: 'meshResour
+ces': �������O�Ɏg�p���邱�Ƃ͂ł��܂���
+build_error.log:756:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,29): error C3312: �^ '<error 
+type>' �ɑ΂��ČĂяo���\�� 'begin' �֐���������܂���
+build_error.log:757:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,29): error C3312: �^ '<error 
+type>' �ɑ΂��ČĂяo���\�� 'end' �֐���������܂���
+build_error.log:758:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,22): error C2530: 'mesh': �Q�
+Ƃ����������ꂸ�ɐ錾����Ă��܂��B
+build_error.log:759:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,22): error C3531: 'mesh': 'au
+to' ��܂ތ^�̃V���{���ɂ͏������q���K�v�ł�
+build_error.log:760:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,27): error C2143: �\���G���[:
+ ';' �� ':' �̑O�ɂ���܂���B
+build_error.log:761:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,42): error C2143: �\���G���[:
+ ';' �� ')' �̑O�ɂ���܂���B
+build_error.log:762:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(114,22): error C2660: 'ID3D12Grap
+hicsCommandList::IASetVertexBuffers': �֐��� 2 �̈�����w�
+�ł��܂���B
+build_error.log:767:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(118,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootConstantBufferView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:772:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(121,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootDescriptorTable': �֐��� 
+1 �̈�����w��ł��܂���B
+build_error.log:803:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\scene\EcsDe
+bugScene.cpp(44,33): error C2228: '.LoadModel' �̍����̓N�
+��X�A�\���́A���p�̂łȂ���΂Ȃ�܂���
+build_error.log:808:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\scene\EcsDe
+bugScene.cpp(51,46): error C2039: 'GetInstance': 'SrvMan
+ager' �̃����o�[�ł͂���܂���
+build_error.log:811:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\scene\EcsDe
+bugScene.cpp(51,46): error C3861: 'GetInstance': ���ʎq��
+������܂���ł���
+build_error.log:812:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\application\ecs\systems
+\InstancedRenderSystem.cpp(20,45): error C2039: 'GetActi
+veCount': 'ComponentArray<TransformComponent>' �̃����o�[
+�ł͂���܂���
+build_error.log:815:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(66,35): error C2679: �񍀉��Z�q '='
+: �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� (
+�܂��͕ϊ��ł��܂���)�B
+build_error.log:834:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(68,35): error C2679: �񍀉��Z�q '='
+: �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� (
+�܂��͕ϊ��ł��܂���)�B
+build_error.log:853:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(71,35): error C2679: �񍀉��Z�q '='
+: �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� (
+�܂��͕ϊ��ł��܂���)�B
+build_error.log:872:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(94,73): error C2039: 'GetLightCou
+ntResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:875:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(94,22): error C2660: 'ID3D12Graph
+icsCommandList::SetGraphicsRootConstantBufferView': �֐��
+� 1 �̈�����w��ł��܂���B
+build_error.log:880:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(97,73): error C2039: 'GetPointLig
+htResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:883:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(97,22): error C2660: 'ID3D12Graph
+icsCommandList::SetGraphicsRootShaderResourceView': �֐��
+� 1 �̈�����w��ł��܂���B
+build_error.log:888:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(98,73): error C2039: 'GetSpotLigh
+tResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:891:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(98,22): error C2660: 'ID3D12Graph
+icsCommandList::SetGraphicsRootShaderResourceView': �֐��
+� 1 �̈�����w��ł��܂���B
+build_error.log:896:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(107,67): error C2039: 'GetCameraF
+orGPURessource': 'Camera' �̃����o�[�ł͂���܂���
+build_error.log:899:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(107,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootConstantBufferView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:904:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(111,42): error C2039: 'GetMeshRes
+ources': 'Model' �̃����o�[�ł͂���܂���
+build_error.log:907:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(111,31): error C2530: 'meshResour
+ces': �Q�Ƃ����������ꂸ�ɐ錾����Ă��܂��B
+build_error.log:908:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,29): error C3536: 'meshResour
+ces': �������O�Ɏg�p���邱�Ƃ͂ł��܂���
+build_error.log:909:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,29): error C3312: �^ '<error 
+type>' �ɑ΂��ČĂяo���\�� 'begin' �֐���������܂���
+build_error.log:910:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,29): error C3312: �^ '<error 
+type>' �ɑ΂��ČĂяo���\�� 'end' �֐���������܂���
+build_error.log:911:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,22): error C2530: 'mesh': �Q�
+Ƃ����������ꂸ�ɐ錾����Ă��܂��B
+build_error.log:912:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,22): error C3531: 'mesh': 'au
+to' ��܂ތ^�̃V���{���ɂ͏������q���K�v�ł�
+build_error.log:913:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,27): error C2143: �\���G���[:
+ ';' �� ':' �̑O�ɂ���܂���B
+build_error.log:914:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(112,42): error C2143: �\���G���[:
+ ';' �� ')' �̑O�ɂ���܂���B
+build_error.log:915:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(114,22): error C2660: 'ID3D12Grap
+hicsCommandList::IASetVertexBuffers': �֐��� 2 �̈�����w�
+�ł��܂���B
+build_error.log:920:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(118,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootConstantBufferView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:925:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Inst
+ancedModelRenderer.cpp(121,23): error C2660: 'SrvManager
+::BindDescriptorTable': �֐��� 1 �̈�����w��ł��܂���B
+build_error.log:969:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\deferre
+d\DeferredRenderer.cpp(197,17): error C2039: 'SetGraphic
+sRootDescriptorTable': 'SrvManager' �̃����o�[�ł͂���܂���
+build_error.log:972:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\deferre
+d\DeferredRenderer.cpp(210,17): error C2039: 'SetGraphic
+sRootDescriptorTable': 'SrvManager' �̃����o�[�ł͂���܂���
+build_error.log:975:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\deferre
+d\DeferredRenderer.cpp(224,17): error C2039: 'SetGraphic
+sRootDescriptorTable': 'SrvManager' �̃����o�[�ł͂���܂���
+build_error.log:980:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\graphics\3d\Obje
+ct3d.cpp(112,17): error C2039: 'SetGraphicsRootDescripto
+rTable': 'SrvManager' �̃����o�[�ł͂���܂���
+build_error.log:992:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\framework\Framew
+ork.cpp(278,16): error C2039: 'SetGraphicsRootDescriptor
+Table': 'SrvManager' �̃����o�[�ł͂���܂���
+build_error.log:995:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\framework\Framew
+ork.cpp(279,16): error C2039: 'SetGraphicsRootDescriptor
+Table': 'SrvManager' �̃����o�[�ł͂���܂���
+build_error.log:998:1>C:\Users\kurih\source\repos\kuriha
+rakento\KentoCompoEngine\project\engine\framework\Framew
+ork.cpp(280,16): error C2039: 'SetGraphicsRootDescriptor
+Table': 'SrvManager' �̃����o�[�ł͂���܂���
+build_error.log:1001:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\framework\Frame
+work.cpp(281,16): error C2039: 'SetGraphicsRootDescripto
+rTable': 'SrvManager' �̃����o�[�ł͂���܂���
+build_error.log:1040:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\application\scene\EcsD
+ebugScene.cpp(44,33): error C2228: '.LoadModel' �̍����̓N
+���X�A�\���́A���p�̂łȂ���΂Ȃ�܂���
+build_error.log:1045:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\application\scene\EcsD
+ebugScene.cpp(51,46): error C2039: 'GetInstance': 'SrvMa
+nager' �̃����o�[�ł͂���܂���
+build_error.log:1048:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\application\scene\EcsD
+ebugScene.cpp(51,46): error C3861: 'GetInstance': ���ʎq�
+�������܂���ł���
+build_error.log:1050:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(66,35): error C2679: �񍀉��Z�q '=
+': �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� 
+(�܂��͕ϊ��ł��܂���)�B
+build_error.log:1069:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(68,35): error C2679: �񍀉��Z�q '=
+': �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� 
+(�܂��͕ϊ��ł��܂���)�B
+build_error.log:1088:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(71,35): error C2679: �񍀉��Z�q '=
+': �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� 
+(�܂��͕ϊ��ł��܂���)�B
+build_error.log:1107:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(94,73): error C2039: 'GetLightCo
+untResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:1110:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(94,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootConstantBufferView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:1115:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(97,73): error C2039: 'GetPointLi
+ghtResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:1118:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(97,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootShaderResourceView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:1123:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(98,73): error C2039: 'GetSpotLig
+htResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:1126:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(98,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootShaderResourceView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:1131:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(107,67): error C2039: 'GetCamera
+ForGPURessource': 'Camera' �̃����o�[�ł͂���܂���
+build_error.log:1134:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(107,22): error C2660: 'ID3D12Gra
+phicsCommandList::SetGraphicsRootConstantBufferView': �֐
+��� 1 �̈�����w��ł��܂���B
+build_error.log:1139:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(111,42): error C2039: 'GetMeshRe
+sources': 'Model' �̃����o�[�ł͂���܂���
+build_error.log:1142:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(111,31): error C2530: 'meshResou
+rces': �Q�Ƃ����������ꂸ�ɐ錾����Ă��܂��B
+build_error.log:1143:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,29): error C3536: 'meshResou
+rces': �������O�Ɏg�p���邱�Ƃ͂ł��܂���
+build_error.log:1144:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,29): error C3312: �^ '<error
+ type>' �ɑ΂��ČĂяo���\�� 'begin' �֐���������܂���
+build_error.log:1145:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,29): error C3312: �^ '<error
+ type>' �ɑ΂��ČĂяo���\�� 'end' �֐���������܂���
+build_error.log:1146:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,22): error C2530: 'mesh': �Q
+�Ƃ����������ꂸ�ɐ錾����Ă��܂��B
+build_error.log:1147:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,22): error C3531: 'mesh': 'a
+uto' ��܂ތ^�̃V���{���ɂ͏������q���K�v�ł�
+build_error.log:1148:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,27): error C2143: �\���G���[
+: ';' �� ':' �̑O�ɂ���܂���B
+build_error.log:1149:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,42): error C2143: �\���G���[
+: ';' �� ')' �̑O�ɂ���܂���B
+build_error.log:1150:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(114,22): error C2660: 'ID3D12Gra
+phicsCommandList::IASetVertexBuffers': �֐��� 2 �̈�����w
+��ł��܂���B
+build_error.log:1155:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(118,22): error C2660: 'ID3D12Gra
+phicsCommandList::SetGraphicsRootConstantBufferView': �֐
+��� 1 �̈�����w��ł��܂���B
+build_error.log:1160:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(121,22): error C2660: 'ID3D12Gra
+phicsCommandList::SetGraphicsRootDescriptorTable': �֐���
+ 1 �̈�����w��ł��܂���B
+build_error.log:1166:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\application\ecs\system
+s\InstancedRenderSystem.cpp(20,45): error C2039: 'GetAct
+iveCount': 'ComponentArray<TransformComponent>' �̃����o�
+[�ł͂���܂���
+build_error.log:1253:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\application\scene\EcsD
+ebugScene.cpp(44,33): error C2228: '.LoadModel' �̍����̓N
+���X�A�\���́A���p�̂łȂ���΂Ȃ�܂���
+build_error.log:1258:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\application\scene\EcsD
+ebugScene.cpp(51,46): error C2039: 'GetInstance': 'SrvMa
+nager' �̃����o�[�ł͂���܂���
+build_error.log:1261:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\application\scene\EcsD
+ebugScene.cpp(51,46): error C3861: 'GetInstance': ���ʎq�
+�������܂���ł���
+build_error.log:1263:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(66,35): error C2679: �񍀉��Z�q '=
+': �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� 
+(�܂��͕ϊ��ł��܂���)�B
+build_error.log:1282:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(68,35): error C2679: �񍀉��Z�q '=
+': �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� 
+(�܂��͕ϊ��ł��܂���)�B
+build_error.log:1301:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(71,35): error C2679: �񍀉��Z�q '=
+': �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� 
+(�܂��͕ϊ��ł��܂���)�B
+build_error.log:1320:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(94,73): error C2039: 'GetLightCo
+untResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:1323:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(94,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootConstantBufferView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:1328:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(97,73): error C2039: 'GetPointLi
+ghtResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:1331:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(97,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootShaderResourceView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:1336:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(98,73): error C2039: 'GetSpotLig
+htResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:1339:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(98,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootShaderResourceView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:1344:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(107,67): error C2039: 'GetCamera
+ForGPURessource': 'Camera' �̃����o�[�ł͂���܂���
+build_error.log:1347:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(107,22): error C2660: 'ID3D12Gra
+phicsCommandList::SetGraphicsRootConstantBufferView': �֐
+��� 1 �̈�����w��ł��܂���B
+build_error.log:1352:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(111,42): error C2039: 'GetMeshRe
+sources': 'Model' �̃����o�[�ł͂���܂���
+build_error.log:1355:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(111,31): error C2530: 'meshResou
+rces': �Q�Ƃ����������ꂸ�ɐ錾����Ă��܂��B
+build_error.log:1356:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,29): error C3536: 'meshResou
+rces': �������O�Ɏg�p���邱�Ƃ͂ł��܂���
+build_error.log:1357:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,29): error C3312: �^ '<error
+ type>' �ɑ΂��ČĂяo���\�� 'begin' �֐���������܂���
+build_error.log:1358:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,29): error C3312: �^ '<error
+ type>' �ɑ΂��ČĂяo���\�� 'end' �֐���������܂���
+build_error.log:1359:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,22): error C2530: 'mesh': �Q
+�Ƃ����������ꂸ�ɐ錾����Ă��܂��B
+build_error.log:1360:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,22): error C3531: 'mesh': 'a
+uto' ��܂ތ^�̃V���{���ɂ͏������q���K�v�ł�
+build_error.log:1361:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,27): error C2143: �\���G���[
+: ';' �� ':' �̑O�ɂ���܂���B
+build_error.log:1362:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,42): error C2143: �\���G���[
+: ';' �� ')' �̑O�ɂ���܂���B
+build_error.log:1363:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(114,22): error C2660: 'ID3D12Gra
+phicsCommandList::IASetVertexBuffers': �֐��� 2 �̈�����w
+��ł��܂���B
+build_error.log:1368:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(118,22): error C2660: 'ID3D12Gra
+phicsCommandList::SetGraphicsRootConstantBufferView': �֐
+��� 1 �̈�����w��ł��܂���B
+build_error.log:1373:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(121,22): error C2660: 'ID3D12Gra
+phicsCommandList::SetGraphicsRootDescriptorTable': �֐���
+ 1 �̈�����w��ł��܂���B
+build_error.log:1379:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\application\ecs\system
+s\InstancedRenderSystem.cpp(20,45): error C2039: 'GetAct
+iveCount': 'ComponentArray<TransformComponent>' �̃����o�
+[�ł͂���܂���
+build_error.log:1462:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\application\ecs\system
+s\InstancedRenderSystem.cpp(20,45): error C2039: 'GetAct
+iveCount': 'ComponentArray<TransformComponent>' �̃����o�
+[�ł͂���܂���
+build_error.log:1465:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\application\scene\EcsD
+ebugScene.cpp(44,33): error C2228: '.LoadModel' �̍����̓N
+���X�A�\���́A���p�̂łȂ���΂Ȃ�܂���
+build_error.log:1470:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\application\scene\EcsD
+ebugScene.cpp(51,46): error C2039: 'GetInstance': 'SrvMa
+nager' �̃����o�[�ł͂���܂���
+build_error.log:1473:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\application\scene\EcsD
+ebugScene.cpp(51,46): error C3861: 'GetInstance': ���ʎq�
+�������܂���ł���
+build_error.log:1474:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(66,35): error C2679: �񍀉��Z�q '=
+': �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� 
+(�܂��͕ϊ��ł��܂���)�B
+build_error.log:1493:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(68,35): error C2679: �񍀉��Z�q '=
+': �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� 
+(�܂��͕ϊ��ł��܂���)�B
+build_error.log:1512:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(71,35): error C2679: �񍀉��Z�q '=
+': �^ 'Matrix4x4' �̉E�I�y�����h��������Z�q��������܂��� 
+(�܂��͕ϊ��ł��܂���)�B
+build_error.log:1531:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(94,73): error C2039: 'GetLightCo
+untResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:1534:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(94,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootConstantBufferView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:1539:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(97,73): error C2039: 'GetPointLi
+ghtResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:1542:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(97,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootShaderResourceView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:1547:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(98,73): error C2039: 'GetSpotLig
+htResource': 'LightManager' �̃����o�[�ł͂���܂���
+build_error.log:1550:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(98,22): error C2660: 'ID3D12Grap
+hicsCommandList::SetGraphicsRootShaderResourceView': �֐�
+�� 1 �̈�����w��ł��܂���B
+build_error.log:1555:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(107,67): error C2039: 'GetCamera
+ForGPURessource': 'Camera' �̃����o�[�ł͂���܂���
+build_error.log:1558:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(107,22): error C2660: 'ID3D12Gra
+phicsCommandList::SetGraphicsRootConstantBufferView': �֐
+��� 1 �̈�����w��ł��܂���B
+build_error.log:1563:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(111,42): error C2039: 'GetMeshRe
+sources': 'Model' �̃����o�[�ł͂���܂���
+build_error.log:1566:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(111,31): error C2530: 'meshResou
+rces': �Q�Ƃ����������ꂸ�ɐ錾����Ă��܂��B
+build_error.log:1567:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,29): error C3536: 'meshResou
+rces': �������O�Ɏg�p���邱�Ƃ͂ł��܂���
+build_error.log:1568:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,29): error C3312: �^ '<error
+ type>' �ɑ΂��ČĂяo���\�� 'begin' �֐���������܂���
+build_error.log:1569:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,29): error C3312: �^ '<error
+ type>' �ɑ΂��ČĂяo���\�� 'end' �֐���������܂���
+build_error.log:1570:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,22): error C2530: 'mesh': �Q
+�Ƃ����������ꂸ�ɐ錾����Ă��܂��B
+build_error.log:1571:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,22): error C3531: 'mesh': 'a
+uto' ��܂ތ^�̃V���{���ɂ͏������q���K�v�ł�
+build_error.log:1572:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,27): error C2143: �\���G���[
+: ';' �� ':' �̑O�ɂ���܂���B
+build_error.log:1573:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(112,42): error C2143: �\���G���[
+: ';' �� ')' �̑O�ɂ���܂���B
+build_error.log:1574:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(114,22): error C2660: 'ID3D12Gra
+phicsCommandList::IASetVertexBuffers': �֐��� 2 �̈�����w
+��ł��܂���B
+build_error.log:1579:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(118,22): error C2660: 'ID3D12Gra
+phicsCommandList::SetGraphicsRootConstantBufferView': �֐
+��� 1 �̈�����w��ł��܂���B
+build_error.log:1584:1>C:\Users\kurih\source\repos\kurih
+arakento\KentoCompoEngine\project\engine\graphics\3d\Ins
+tancedModelRenderer.cpp(121,22): error C2660: 'ID3D12Gra
+phicsCommandList::SetGraphicsRootDescriptorTable': �֐���
+ 1 �̈�����w��ł��܂���B
+
+

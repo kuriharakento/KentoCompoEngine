@@ -482,6 +482,14 @@
     <ClCompile Include="application\weapon\WeaponManager.cpp" />
     <ClCompile Include="engine\gameobject\component\collision\RayColliderComponent.cpp" />
     <ClCompile Include="engine\base\ObjectPool.cpp" />
+    <ClCompile Include="engine\ecs\Registry.cpp" />
+    <ClCompile Include="engine\ecs\EcsDebugViewer.cpp" />
+    <ClCompile Include="application\scene\EcsDebugScene.cpp" />
+    <ClCompile Include="application\ecs\systems\HierarchySystem.cpp" />
+    <ClCompile Include="application\ecs\systems\LifetimeSystem.cpp" />
+    <ClCompile Include="application\ecs\systems\EnemyBehaviorSystem.cpp" />
+    <ClCompile Include="application\ecs\systems\InstancedRenderSystem.cpp" />
+    <ClCompile Include="engine\graphics\3d\InstancedModelRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine\gameobject\base\GameObject.h">
@@ -1100,6 +1108,24 @@
     <ClInclude Include="engine\gameobject\component\collision\RayColliderComponent.h" />
     <ClInclude Include="engine\math\Ray.h" />
     <ClInclude Include="engine\base\ObjectPool.h" />
+    <ClInclude Include="application\ecs\components\HierarchyComponent.h" />
+    <ClInclude Include="application\ecs\components\LifetimeComponent.h" />
+    <ClInclude Include="application\ecs\components\RenderComponent.h" />
+    <ClInclude Include="application\ecs\components\TagComponent.h" />
+    <ClInclude Include="application\ecs\components\VelocityComponent.h" />
+    <ClInclude Include="application\ecs\components\ObstacleComponent.h" />
+    <ClInclude Include="application\ecs\components\TransformComponent.h" />
+    <ClInclude Include="application\ecs\components\EnemyStateComponent.h" />
+    <ClInclude Include="application\ecs\systems\EnemyBehaviorSystem.h" />
+    <ClInclude Include="application\ecs\systems\HierarchySystem.h" />
+    <ClInclude Include="application\ecs\systems\InstancedRenderSystem.h" />
+    <ClInclude Include="application\ecs\systems\LifetimeSystem.h" />
+    <ClInclude Include="engine\ecs\ComponentArray.h" />
+    <ClInclude Include="engine\ecs\EcsDebugViewer.h" />
+    <ClInclude Include="engine\ecs\Entity.h" />
+    <ClInclude Include="engine\ecs\Registry.h" />
+    <ClInclude Include="application\scene\EcsDebugScene.h" />
+    <ClInclude Include="engine\graphics\3d\InstancedModelRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli">

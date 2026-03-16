@@ -1,0 +1,160 @@
+19:31 でビルドが開始されました...
+1>------ ビルド開始: プロジェクト: KentoCompo, 構成: Debug x64 ------
+1>AssaultRifleComponent.cpp
+1>AssaultEnemy.cpp
+1>EnemyManager.cpp
+1>AssaultEnemyBehavior.cpp
+1>EcsDebugScene.cpp
+1>InstancedRenderSystem.cpp
+1>InstancedModelRenderer.cpp
+1>CollisionAlgorithm.cpp
+1>CollisionUtils.cpp
+1>SphereColliderComponent.cpp
+1>RayColliderComponent.cpp
+1>LoadGameResources.cpp
+1>Area.cpp
+1>AreaManager.cpp
+1>BarrierBlock.cpp
+1>CarnageMode.cpp
+1>EnemyUIComponent.cpp
+1>EnemyBase.cpp
+1>AABBColliderComponent.cpp
+1>GameObject.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\scene\EcsDebugScene.cpp(44,33): error C2228: '.LoadModel' の左側はクラス、構造体、共用体でなければなりません
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\scene\EcsDebugScene.cpp(44,33):
+1>    型は 'ModelManager *' です
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\scene\EcsDebugScene.cpp(44,33):
+1>    代わりに '->' を使用しますか?
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\scene\EcsDebugScene.cpp(53,53): error C2039: 'GetModel': 'ModelManager' のメンバーではありません
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\manager\graphics\ModelManager.h(15,7):
+1>    'ModelManager' の宣言を確認してください
+1>Character.cpp
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(28,26): error C2665: 'std::vector<Matrix4x4,std::allocator<Matrix4x4>>::push_back': オーバーロードされた関数ですべての引数の型を変換できませんでした
+1>    C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vector(936,23):
+1>    'void std::vector<Matrix4x4,std::allocator<Matrix4x4>>::push_back(_Ty &&)' の可能性があります
+1>        with
+1>        [
+1>            _Ty=Matrix4x4
+1>        ]
+1>        C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(28,26):
+1>        'void std::vector<Matrix4x4,std::allocator<Matrix4x4>>::push_back(_Ty &&)': 引数 1 を 'DirectX::XMFLOAT4X4' から '_Ty &&' へ変換できません。
+1>        with
+1>        [
+1>            _Ty=Matrix4x4
+1>        ]
+1>            C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(28,66):
+1>            理由: 'DirectX::XMFLOAT4X4' から '_Ty' へは変換できません。
+1>        with
+1>        [
+1>            _Ty=Matrix4x4
+1>        ]
+1>            C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(28,66):
+1>            この変換を実行可能なユーザー定義変換演算子がないか、または演算子を呼び出せません。
+1>    C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vector(932,23):
+1>    または 'void std::vector<Matrix4x4,std::allocator<Matrix4x4>>::push_back(const _Ty &)'
+1>        with
+1>        [
+1>            _Ty=Matrix4x4
+1>        ]
+1>        C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(28,26):
+1>        'void std::vector<Matrix4x4,std::allocator<Matrix4x4>>::push_back(const _Ty &)': 引数 1 を 'DirectX::XMFLOAT4X4' から 'const _Ty &' へ変換できません。
+1>        with
+1>        [
+1>            _Ty=Matrix4x4
+1>        ]
+1>            C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(28,66):
+1>            理由: 'DirectX::XMFLOAT4X4' から 'const _Ty' へは変換できません。
+1>        with
+1>        [
+1>            _Ty=Matrix4x4
+1>        ]
+1>            C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(28,66):
+1>            この変換を実行可能なユーザー定義変換演算子がないか、または演算子を呼び出せません。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(28,26):
+1>    引数リスト '(DirectX::XMFLOAT4X4)' を一致させようとしているとき
+1>C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(67,47): error C2665: 'std::vector<Matrix4x4,std::allocator<Matrix4x4>>::push_back': オーバーロードされた関数ですべての引数の型を変換できませんでした
+1>    C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vector(936,23):
+1>    'void std::vector<Matrix4x4,std::allocator<Matrix4x4>>::push_back(_Ty &&)' の可能性があります
+1>        with
+1>        [
+1>            _Ty=Matrix4x4
+1>        ]
+1>        C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(67,47):
+1>        'void std::vector<Matrix4x4,std::allocator<Matrix4x4>>::push_back(_Ty &&)': 引数 1 を 'const DirectX::XMFLOAT4X4' から '_Ty &&' へ変換できません。
+1>        with
+1>        [
+1>            _Ty=Matrix4x4
+1>        ]
+1>            C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(67,66):
+1>            理由: 'const DirectX::XMFLOAT4X4' から '_Ty' へは変換できません。
+1>        with
+1>        [
+1>            _Ty=Matrix4x4
+1>        ]
+1>            C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(67,66):
+1>            この変換を実行可能なユーザー定義変換演算子がないか、または演算子を呼び出せません。
+1>    C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vector(932,23):
+1>    または 'void std::vector<Matrix4x4,std::allocator<Matrix4x4>>::push_back(const _Ty &)'
+1>        with
+1>        [
+1>            _Ty=Matrix4x4
+1>        ]
+1>        C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(67,47):
+1>        'void std::vector<Matrix4x4,std::allocator<Matrix4x4>>::push_back(const _Ty &)': 引数 1 を 'const DirectX::XMFLOAT4X4' から 'const _Ty &' へ変換できません。
+1>        with
+1>        [
+1>            _Ty=Matrix4x4
+1>        ]
+1>            C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(67,66):
+1>            理由: 'const DirectX::XMFLOAT4X4' から 'const _Ty' へは変換できません。
+1>        with
+1>        [
+1>            _Ty=Matrix4x4
+1>        ]
+1>            C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(67,66):
+1>            この変換を実行可能なユーザー定義変換演算子がないか、または演算子を呼び出せません。
+1>    C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\InstancedRenderSystem.cpp(67,47):
+1>    引数リスト '(const DirectX::XMFLOAT4X4)' を一致させようとしているとき
+1>BulletComponent.cpp
+1>Bullet.cpp
+1>CollisionManager.cpp
+1>SkinnedObject3d.cpp
+1>ShadowSystem.cpp
+1>Model.cpp
+1>ModelManager.cpp
+1>Object3d.cpp
+1>Framework.cpp
+1>GamePlayScene.cpp
+1>PistolComponent.cpp
+1>PistolEnemy.cpp
+1>GravityPhysicsComponent.cpp
+1>KnifeEnemy.cpp
+1>Knife.cpp
+1>KnifeEnemyBehavior.cpp
+1>GameClearScene.cpp
+1>GameOverScene.cpp
+1>main.cpp
+1>MyGame.cpp
+1>TitleScene.cpp
+1>SceneManager.cpp
+1>SceneFactory.cpp
+1>MoveComponent.cpp
+1>Player.cpp
+1>OBBColliderComponent.cpp
+1>ShotgunComponent.cpp
+1>ShotgunEnemy.cpp
+1>Obstacle.cpp
+1>ObstacleManager.cpp
+1>StageEditScene.cpp
+1>StageManager.cpp
+1>Stage.cpp
+1>Wave.cpp
+1>Minimap.cpp
+1>ParticleTestScene.cpp
+1>StatusComponent.cpp
+1>PlayerUIComponent.cpp
+1>WeaponManagerComponent.cpp
+1>プロジェクト "KentoCompo.vcxproj" のビルドが終了しました -- 失敗。
+========== ビルド: 成功 0、失敗 1、最新の状態 2、スキップ 0 ==========
+=========== ビルド は 19:32 で完了し、13.292 秒 掛かりました ==========
+

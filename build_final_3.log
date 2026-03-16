@@ -1,0 +1,9 @@
+19:41 でビルドが開始されました...
+1>------ ビルド開始: プロジェクト: KentoCompo, 構成: Debug x64 ------
+1>EcsDebugScene.cpp
+1>KentoCompo.vcxproj -> C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\generated\outputs\Debug\KentoCompo.exe
+1>        1 個のファイルをコピーしました。
+1>        1 個のファイルをコピーしました。
+========== ビルド: 成功 1、失敗 0、最新の状態 2、スキップ 0 ==========
+=========== ビルド は 19:41 で完了し、04.762 秒 掛かりました ==========
+

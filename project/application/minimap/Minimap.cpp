@@ -1,4 +1,5 @@
 #include "Minimap.h"
+#include "application/ecs/components/TransformComponent.h"
 
 void Minimap::Initialize(SpriteCommon* spriteCommon, StageManager* stageManager)
 {
@@ -49,14 +50,18 @@ void Minimap::Update()
 	playerIcon_->SetRotation(playerYaw);
 	playerIcon_->Update();
 
-	// 敵アイコンの動的管理
+	// 敵アイコンの動的管理 (ECSからTransformComponentを取得して位置を同期)
 	auto enemyManager = stageManager_->GetEnemyManager();
-	const auto& enemies = enemyManager->GetEnemies();
+	auto registry = enemyManager->GetRegistry();
+
+	// ComponentArrayからTransformを取得 (Viewはshared_ptrを返す)
+	auto transformArray = registry ? registry->View<TransformComponent>() : nullptr;
+	uint32_t activeEnemyCount = registry ? registry->GetActiveEntityCount() : 0;
 
 	// 敵の数に合わせてアイコンを動的に追加/削除
-	if (enemyIcons_.size() < enemies.size())
+	if (enemyIcons_.size() < activeEnemyCount)
 	{
-		for (size_t i = enemyIcons_.size(); i < enemies.size(); ++i)
+		for (size_t i = enemyIcons_.size(); i < activeEnemyCount; ++i)
 		{
 			auto icon = std::make_unique<Sprite>();
 			icon->Initialize(spriteCommon_, "./Resources/red.png");
@@ -65,19 +70,31 @@ void Minimap::Update()
 			enemyIcons_.push_back(std::move(icon));
 		}
 	}
-	else if (enemyIcons_.size() > enemies.size())
+	else if (enemyIcons_.size() > activeEnemyCount)
 	{
-		enemyIcons_.resize(enemies.size());
+		enemyIcons_.resize(activeEnemyCount);
 	}
 
-	for (size_t i = 0; i < enemies.size(); ++i)
+	if (transformArray)
 	{
-		Vector3 enemyPos = enemies[i]->GetPosition();
-		float enemyYaw = enemies[i]->GetRotation().y;
-		Vector2 miniMapPos = WorldToMinimap(enemyPos);
-		enemyIcons_[i]->SetPosition(miniMapPos);
-		enemyIcons_[i]->SetRotation(enemyYaw);
-		enemyIcons_[i]->Update();
+		size_t i = 0;
+		for (const auto& transform : *transformArray)
+		{
+			// UIの上限または登録されているアイコン数まで描画
+			if (i >= enemyIcons_.size()) break;
+
+			// ECSのTransformから位置情報を取得
+			Vector3 enemyPos = { transform.localPosition.x, transform.localPosition.y, transform.localPosition.z };
+			// TODO: 回転成分の実用化 (QuaternionからEulerへの変換など)
+			float enemyYaw = 0.0f; 
+
+			Vector2 miniMapPos = WorldToMinimap(enemyPos);
+			enemyIcons_[i]->SetPosition(miniMapPos);
+			enemyIcons_[i]->SetRotation(enemyYaw);
+			enemyIcons_[i]->Update();
+
+			++i;
+		}
 	}
 
 	// エリアアイコンの動的管理

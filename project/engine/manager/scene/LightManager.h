@@ -369,6 +369,21 @@ public: // ゲッター
 	 * @return スポットライトのGPUデータ
 	 */
 	const GPUSpotLight& GetSpotLight(const std::string& name) const;
+	
+	/**
+	 * @brief ポイントライトリソースの取得
+	 */
+	ID3D12Resource* GetPointLightResource() const { return pointLightResource_.Get(); }
+
+	/**
+	 * @brief スポットライトリソースの取得
+	 */
+	ID3D12Resource* GetSpotLightResource() const { return spotLightResource_.Get(); }
+
+	/**
+	 * @brief ライト数リソースの取得
+	 */
+	ID3D12Resource* GetLightCountResource() const { return lightCountResource_.Get(); }
 
 	/**
 	 * @brief ポイントライトの色を取得

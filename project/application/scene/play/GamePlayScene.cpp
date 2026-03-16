@@ -80,6 +80,7 @@ void GamePlayScene::Initialize()
 		sceneManager_->GetSpriteCommon(),
 		sceneManager_->GetLightManager(),
 		sceneManager_->GetCameraManager(),
+		sceneManager_->GetShadowMapManager(),
 		sceneManager_->GetPostProcessManager()
 	);
 	stageManager_->LoadStage("stage_2");

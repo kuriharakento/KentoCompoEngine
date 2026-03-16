@@ -58,6 +58,10 @@ void SceneManager::Update()
 	{
 		ChangeScene(SceneNames::ParticleTest);
 	}
+	if (ImGui::Button("EcsDebug (ECS 500 Cubes)"))
+	{
+		ChangeScene(SceneNames::EcsDebug);
+	}
 	// --- シーンのステートを直接変更するデバッグ UI ---
 	if (currentScene_)
 	{

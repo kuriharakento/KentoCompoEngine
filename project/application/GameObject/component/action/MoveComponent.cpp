@@ -247,44 +247,18 @@ void MoveComponent::ProcessBulletTime(GameObject* owner)
     // バレットタイム中、クールダウン中、または回避中でない場合はスキップ
     if (isInBulletTime_ || IsBulletTimeCoolingDown() || !isDodging_) { return; }
 
-    // 敵の攻撃をチェック
-    const auto& enemies = enemyManager_->GetEnemies();
-    for (const auto& enemy : enemies)
-    {
-        // 敵の弾との距離をチェック
-        auto assaultRifle = enemy->GetComponent<AssaultRifleComponent>();
-        if (assaultRifle)
-        {
-            const auto& bullets = assaultRifle->GetBullets();
-            for (auto& bullet : bullets)
-            {
-                Vector3 toBullet = bullet->GetPosition() - owner->GetPosition();
-                float distance = toBullet.Length();
+    // 敵の攻撃をチェック (ECS移行により、弾やナイフの判定は別途System化または再実装が必要)
+    auto registry = enemyManager_->GetRegistry();
+    if (!registry) return;
 
-                // バレットタイム範囲内に弾が接近した場合
-                if (distance < bulletTimeRadius_)
-                {
-                    ActivateBulletTime(owner);
-                    return;
-                }
-            }
-        }
+    // TODO: 今後、ECS管理された敵の `EnemyBulletComponent` や `EnemyAttackStateComponent` から
+    // バレットタイムのトリガー判定を行うよう改修する。
+    // 以下は旧GameObjectベースのコードからの移行措置として一旦コメントアウト
 
-        // ナイフ敵の近接攻撃をチェック
-        auto knifeBehavior = enemy->GetComponent<KnifeEnemyBehavior>();
-        if (knifeBehavior && knifeBehavior->IsAttacking())
-        {
-            Vector3 toEnemy = enemy->GetPosition() - owner->GetPosition();
-            float distance = toEnemy.Length();
-
-            // 攻撃範囲内でナイフ敵が攻撃中の場合
-            if (distance < bulletTimeRadius_)
-            {
-                ActivateBulletTime(owner);
-                return;
-            }
-        }
-    }
+    /*
+    const auto* transformArr = registry->GetComponentArray<TransformComponent>();
+    // ... 弾とプレイヤーの距離判定等
+    */
 
 }
 

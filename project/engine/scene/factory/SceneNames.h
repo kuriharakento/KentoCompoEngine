@@ -11,4 +11,5 @@ namespace SceneNames
 	// デバッグ用シーン
 	inline constexpr const char* StageEdit = "STAGEEDIT";
 	inline constexpr const char* ParticleTest = "PARTICLETEST";
+	inline constexpr const char* EcsDebug = "ECS_DEBUG";
 }

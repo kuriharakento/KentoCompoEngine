@@ -9,6 +9,7 @@ class GameObject;
 class Camera;
 class PostProcessManager;
 class Player;
+class CameraManager;
 
 /**
  * @brief エフェクトのイージング種類

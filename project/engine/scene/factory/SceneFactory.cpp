@@ -3,6 +3,7 @@
 #include <unordered_map>
 
 #include "application/scene/debug/ParticleTestScene.h"
+#include "application/scene/EcsDebugScene.h"
 #include "application/scene/debug/StageEditScene.h"
 #include "application/scene/play/GameClearScene.h"
 #include "application/scene/play/GameOverScene.h"
@@ -30,6 +31,7 @@ const std::unordered_map<std::string, SceneCreator> kSceneTable = {
 	{"GAMECLEAR",    CreateSceneImpl<GameClearScene>},
 	{"STAGEEDIT",    CreateSceneImpl<StageEditScene>},
 	{"PARTICLETEST", CreateSceneImpl<ParticleTestScene>},
+	{"ECS_DEBUG", CreateSceneImpl<EcsDebugScene>},
 };
 }
 

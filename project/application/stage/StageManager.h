@@ -14,6 +14,7 @@
 #include "application/gameObject/obstacle/ObstacleManager.h"
 
 class PostProcessManager;
+class ShadowMapManager;
 
 /**
  * @brief ステージ全体とゲームオブジェクトを統合管理するマネージャークラス
@@ -72,12 +73,11 @@ public:
 	 * 各マネージャー（敵、障害物）の初期化と、
 	 * JSON編集システムへのデータ登録を行います。
 	 * 
-	 * @param object3dCommon 3Dオブジェクト共通データへのポインタ
-	 * @param lightManager ライトマネージャーへのポインタ
 	 * @param camera カメラマネージャーへのポインタ
+	 * @param shadowMapManager シャドウマップマネージャーへのポインタ
 	 * @param postProcessManager ポストプロセスマネージャーへのポインタ（グレースケール用）
 	 */
-	void Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, CameraManager* camera, PostProcessManager* postProcessManager = nullptr);
+	void Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, CameraManager* camera, ShadowMapManager* shadowMapManager, PostProcessManager* postProcessManager = nullptr);
 
 	/**
 	 * @brief ステージマネージャーの更新処理
@@ -194,6 +194,7 @@ private:
 	LightManager* lightManager_;      ///< ライトマネージャーへのポインタ
 	CameraManager* cameraManager_;    ///< カメラマネージャーへのポインタ
 	SpriteCommon* spriteCommon_;    ///< 2Dスプライトの共通データへのポインタ
+	ShadowMapManager* shadowMapManager_; ///< シャドウマップマネージャーへのポインタ
 	PostProcessManager* postProcessManager_; ///< ポストプロセスマネージャーへのポインタ
 
 	std::shared_ptr<StageData> stageData_;      ///< ステージデータ（固定オブジェクト配置）

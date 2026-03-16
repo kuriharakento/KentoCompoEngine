@@ -17,7 +17,8 @@ void StageEditScene::Initialize()
 		sceneManager_->GetObject3dCommon(),
 		sceneManager_->GetSpriteCommon(),
 		sceneManager_->GetLightManager(),
-		sceneManager_->GetCameraManager()
+		sceneManager_->GetCameraManager(),
+		sceneManager_->GetShadowMapManager()
 	);
 	stageManager_->LoadStage("field");
 
