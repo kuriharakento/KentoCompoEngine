@@ -117,7 +117,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\weapon\WeaponManager.cpp" />
     <ClCompile Include="engine\base\ObjectPool.cpp" />
     <ClCompile Include="engine\ecs\Registry.cpp" />
-    <ClCompile Include="engine\ecs\EcsDebugViewer.cpp" />
+    <ClCompile Include="engine\ecs\debug\EcsInspector.cpp" />
     <ClCompile Include="application\scene\EcsDebugScene.cpp" />
     <ClCompile Include="application\ecs\systems\HierarchySystem.cpp" />
     <ClCompile Include="application\ecs\systems\LifetimeSystem.cpp" />
@@ -296,7 +296,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\weapon\WeaponManager.h" />
     <ClInclude Include="engine\base\ObjectPool.h" />
     <ClInclude Include="engine\ecs\ComponentArray.h" />
-    <ClInclude Include="engine\ecs\EcsDebugViewer.h" />
+    <ClInclude Include="engine\ecs\debug\EcsInspector.h" />
     <ClInclude Include="engine\ecs\Entity.h" />
     <ClInclude Include="engine\ecs\Registry.h" />
     <ClInclude Include="engine\gameobject\component\collision\AABBColliderComponent.h" />

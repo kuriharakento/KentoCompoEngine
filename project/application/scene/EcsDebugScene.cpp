@@ -47,7 +47,9 @@ void EcsDebugScene::Initialize()
     // 4. レンダラとデバッガの初期化
     if (sceneManager_)
     {
-        // インスタンシングレンダラーの初期化
+        // 50,000 エンティティ分の物理メモリを初期化時に完全に確保（プレタッチ）
+        // [BNS-Optimization] Registry::Initialize 内で既に行っているが、念のため明示的な初期エンティティ作成を検討
+        
         DirectXCommon* dxCommon = sceneManager_->GetObject3dCommon()->GetDXCommon();
         SrvManager* srvManager = sceneManager_->GetObject3dCommon()->GetSrvManager();
         Model* model = ModelManager::GetInstance()->FindModel("cube");
@@ -61,8 +63,8 @@ void EcsDebugScene::Initialize()
         debugCamera_->Start({ 0.0f, 10.0f, -30.0f }, { 0.3f, 0.0f, 0.0f });
     }
 
-    debugViewer_ = std::make_unique<EcsDebugViewer>();
-    debugViewer_->Initialize();
+    inspector_ = std::make_unique<EcsInspector>();
+    inspector_->Initialize();
 
     std::cout << "[EcsDebugScene] Initialized ECS Sandbox with capacity: " << kMaxEntities << "\n";
     
@@ -167,7 +169,7 @@ void EcsDebugScene::CommonUpdate()
     ImGui::End();
 
     // ECS 状態のビューワー描画
-    debugViewer_->DrawWindow(registry_);
+    inspector_->Draw(registry_);
 
     // デバッグカメラの更新
     if (debugCamera_)

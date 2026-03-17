@@ -4,11 +4,13 @@
 #include <vector>
 #include <cassert>
 #include <type_traits>
+#include <algorithm>
 
 // Deleted kento_compo and ecs namespaces
 
 /**
  * @brief ComponentArray共通のインターフェース。
+ *
  * Registryが型を意識せずに破棄（Entity削除時）を呼べるようにする。
  */
 class IComponentArray
@@ -33,11 +35,12 @@ enum class PoolExhaustionPolicy
 
 /**
  * @brief 特定のコンポーネントTを隙間なく連続メモリ上に保持するSparse Set実装。
- * 
+ *
+ * [BNS-Standard] 高性能SoAデータストア。
  * - O(1) でのコンポーネントアクセス、追加、削除 (Swap & Pop) を実現する。
  * - キャッシュ局所性を最大化するため、denseArray_ にデータが物理的に詰まっている。
- * - 動的拡張（再確保）によるイテレータ無効化を防ぐため、初期化時に最大要素数を確保する。
- * 
+ * - 動적拡張（再確保）によるイテレータ無効化を防ぐため、初期化時に最大要素数を確保する。
+ *
  * @tparam T 格納するコンポーネントの型。POD（Plain Old Data）推奨。
  */
 template <typename T>
@@ -50,15 +53,16 @@ public:
      * @param maxComponents このコンポーネントを同時に持つことができる最大数
      */
     ComponentArray(uint32_t maxEntities, uint32_t maxComponents)
-        : m_maxComponents(maxComponents)
-        , m_validCount(0)
+        : maxComponents_(maxComponents)
+        , validCount_(0)
     {
-        // 索引配列（Sparse）はインデックス指定でアクセスするため全確保
-        m_sparseArray.resize(maxEntities, kInvalidEntity);
+        // [BNS-Optimization] 索引配列は全確保し、物理ページを確定（Pre-touch）させる
+        sparseArray_.resize(maxEntities);
+        std::fill(sparseArray_.begin(), sparseArray_.end(), kInvalidEntity);
 
-        // データ配列（Dense）と逆引き配列（Entity）は予約のみ
-        m_denseArray.resize(maxComponents);
-        m_entityArray.resize(maxComponents);
+        // [BNS-Optimization] データ配列は予約のみを行い、デフォルトコンストラクタの無駄な呼び出しを避ける
+        denseArray_.reserve(maxComponents);
+        entityArray_.reserve(maxComponents);
     }
 
     /**
@@ -71,18 +75,18 @@ public:
     bool Insert(EntityID entity, const T& component, PoolExhaustionPolicy policy = PoolExhaustionPolicy::AssertAndCrash)
     {
         uint32_t index = GetEntityIndex(entity);
-        assert(index < m_sparseArray.size() && "Entity index out of range.");
+        assert(index < sparseArray_.size() && "Entity index out of range.");
 
         // すでに持っている場合は上書き
-        if (m_sparseArray[index] != kInvalidEntity)
+        if (sparseArray_[index] != kInvalidEntity)
         {
-            uint32_t denseIndex = m_sparseArray[index];
-            m_denseArray[denseIndex] = component;
+            uint32_t denseIndex = sparseArray_[index];
+            denseArray_[denseIndex] = component;
             return true;
         }
 
         // キャパシティオーバーの場合のフェイルセーフ
-        if (m_validCount >= m_maxComponents)
+        if (validCount_ >= maxComponents_)
         {
             switch (policy)
             {
@@ -91,8 +95,7 @@ public:
 
             case PoolExhaustionPolicy::OverwriteOldest:
                 // 最も古いもの（通常はDenseの先頭=インデックス0）を犠牲にして新しいものを追加する
-                // 実装をシンプルにするため、インデックス0番目の所有者を強制破棄し、その末尾に追加する
-                Remove(m_entityArray[0]);
+                Remove(entityArray_[0]);
                 break;
 
             case PoolExhaustionPolicy::AssertAndCrash:
@@ -103,12 +106,14 @@ public:
         }
 
         // --- 追加処理 ---
-        uint32_t newDenseIndex = m_validCount;
-        m_denseArray[newDenseIndex] = component;   // 末尾に実体保存
-        m_entityArray[newDenseIndex] = entity;     // 逆引き登録
-        m_sparseArray[index] = newDenseIndex;      // 索引登録
-        
-        m_validCount++;
+        uint32_t newDenseIndex = validCount_;
+
+        // reserve しているので push_back で再確保は発生しない
+        denseArray_.push_back(component);
+        entityArray_.push_back(entity);
+        sparseArray_[index] = newDenseIndex;
+
+        validCount_++;
         return true;
     }
 
@@ -119,31 +124,38 @@ public:
     void Remove(EntityID entity)
     {
         uint32_t index = GetEntityIndex(entity);
-        assert(index < m_sparseArray.size());
+        assert(index < sparseArray_.size());
 
-        uint32_t removedDenseIndex = m_sparseArray[index];
-        if (removedDenseIndex == kInvalidEntity) return; // 持っていないなら何もしない
+        uint32_t removedDenseIndex = sparseArray_[index];
+        if (removedDenseIndex == kInvalidEntity)
+        {
+            return; // 持っていないなら何もしない
+        }
 
         // Sparse Set削除（Swap & Pop）の魔法
-        uint32_t lastDenseIndex = m_validCount - 1;
+        uint32_t lastDenseIndex = validCount_ - 1;
 
         if (removedDenseIndex != lastDenseIndex)
         {
             // 末尾の要素を、削除対象の場所にコピー（移動）して上書きする
-            m_denseArray[removedDenseIndex] = m_denseArray[lastDenseIndex];
-            
+            denseArray_[removedDenseIndex] = denseArray_[lastDenseIndex];
+
             // 逆引き配列も同様に末尾のものを上書き
-            EntityID lastEntity = m_entityArray[lastDenseIndex];
-            m_entityArray[removedDenseIndex] = lastEntity;
+            EntityID lastEntity = entityArray_[lastDenseIndex];
+            entityArray_[removedDenseIndex] = lastEntity;
 
             // 移動してきた末尾要素の持ち主（Entity）の索引（Sparse）を更新
             uint32_t lastEntityIndex = GetEntityIndex(lastEntity);
-            m_sparseArray[lastEntityIndex] = removedDenseIndex;
+            sparseArray_[lastEntityIndex] = removedDenseIndex;
         }
 
         // 削除対象の索引を無効化し、サイズを減らす
-        m_sparseArray[index] = kInvalidEntity;
-        m_validCount--;
+        sparseArray_[index] = kInvalidEntity;
+
+        denseArray_.pop_back();
+        entityArray_.pop_back();
+
+        validCount_--;
     }
 
     /**
@@ -154,11 +166,11 @@ public:
     T& GetData(EntityID entity)
     {
         uint32_t index = GetEntityIndex(entity);
-        assert(index < m_sparseArray.size());
-        uint32_t denseIndex = m_sparseArray[index];
+        assert(index < sparseArray_.size());
+        uint32_t denseIndex = sparseArray_[index];
         assert(denseIndex != kInvalidEntity && "Entity does not have this component.");
-        
-        return m_denseArray[denseIndex];
+
+        return denseArray_[denseIndex];
     }
 
     /**
@@ -167,8 +179,11 @@ public:
     bool HasComponent(EntityID entity) const
     {
         uint32_t index = GetEntityIndex(entity);
-        if (index >= m_sparseArray.size()) return false;
-        return m_sparseArray[index] != kInvalidEntity;
+        if (index >= sparseArray_.size())
+        {
+            return false;
+        }
+        return sparseArray_[index] != kInvalidEntity;
     }
 
     /**
@@ -183,34 +198,60 @@ public:
     }
 
     // --- Data locality アクセス用 ---
-    // これにより、Systemは denseArray_ をイテレータで純粋かつ高速に走査できる。
 
-    uint32_t GetSize() const { return m_validCount; }
-    
-    // 直アクセスのイテレータ（std::vector のイテレータをそのまま公開）
-    // 注意: Swap & Popの性質上、順序は保証されませんが、全結合処理の場合は最速です。
-    auto begin() { return m_denseArray.begin(); }
-    auto end() { return m_denseArray.begin() + m_validCount; }
-    
-    // 特定のインデックスから逆引きでEntityを取得する（Systemが「誰のデータか」知るため）
+    /**
+     * @brief 現在格納されている個数を取得
+     */
+    uint32_t GetSize() const { return validCount_; }
+
+    /**
+     * @brief イテレータ開始
+     */
+    auto begin() { return denseArray_.begin(); }
+
+    /**
+     * @brief イテレータ終了
+     */
+    auto end() { return denseArray_.begin() + validCount_; }
+
+    /**
+     * @brief 特定の密度インデックスからEntityを取得
+     * @param denseIndex 密度配列上のインデックス
+     * @return 対応するEntityID
+     */
     EntityID GetEntityFromDenseIndex(uint32_t denseIndex) const
     {
-        assert(denseIndex < m_validCount);
-        return m_entityArray[denseIndex];
+        assert(denseIndex < validCount_);
+        return entityArray_[denseIndex];
+    }
+
+    /**
+     * @brief 密度インデックスからデータを直接取得（SoA高速走査用）
+     * @param denseIndex 密度配列上のインデックス
+     * @return コンポーネントの参照
+     */
+    T& GetDataFromDenseIndex(uint32_t denseIndex)
+    {
+        assert(denseIndex < validCount_);
+        return denseArray_[denseIndex];
+    }
+
+    const T& GetDataFromDenseIndex(uint32_t denseIndex) const
+    {
+        assert(denseIndex < validCount_);
+        return denseArray_[denseIndex];
     }
 
 private:
     // 密配列：実際のデータが隙間なく詰まっている
-    std::vector<T> m_denseArray;
+    std::vector<T> denseArray_;
     // 逆引き：denseArrayの各インデックスの持ち主
-    std::vector<EntityID> m_entityArray;
+    std::vector<EntityID> entityArray_;
     // 疎配列：EntityのIndexをキーとするルックアップテーブル
-    std::vector<uint32_t> m_sparseArray;
+    std::vector<uint32_t> sparseArray_;
 
     // このプールの最大容量（リアロケーション防止用）
-    uint32_t m_maxComponents;
+    uint32_t maxComponents_;
     // 現在有効なデータ数
-    uint32_t m_validCount;
+    uint32_t validCount_;
 };
-
-

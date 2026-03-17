@@ -5,6 +5,10 @@
 #include "base/Camera.h"
 #include "manager/scene/LightManager.h"
 
+// 静的メンバの定義
+std::vector<Matrix4x4> InstancedRenderSystem::s_instanceMatrices;
+std::unordered_map<std::string, std::vector<Matrix4x4>> InstancedRenderSystem::s_groupedMatrices;
+
 void InstancedRenderSystem::Update(Registry& registry)
 {
     (void)registry;
@@ -12,37 +16,32 @@ void InstancedRenderSystem::Update(Registry& registry)
 
 void InstancedRenderSystem::Draw(Registry& registry, InstancedModelRenderer& renderer, Camera* camera, LightManager* lightManager, ShadowMapManager* shadowMapManager)
 {
-    auto transformView = registry.View<TransformComponent>();
-    if (!transformView)
-    {
-        return;
-    }
-
-    uint32_t activeCount = transformView->GetSize();
+    // [BNS-Optimization] ハッシュマップ検索なしで配列を直接取得
+    auto& transforms = registry.GetArray<TransformComponent>();
+    uint32_t activeCount = transforms.GetSize();
     if (activeCount == 0)
     {
         return;
     }
 
-    std::vector<Matrix4x4> instanceMatrices;
-    instanceMatrices.reserve(activeCount);
+    // [BNS-Optimization] ワークバッファを再利用（メモリ確保を 0 に）
+    s_instanceMatrices.clear();
+    s_instanceMatrices.reserve(activeCount);
     
     // 全ての TransformComponent を収集
     for (uint32_t i = 0; i < activeCount; ++i)
     {
-        EntityID entity = transformView->GetEntityFromDenseIndex(i);
-        const Matrix4x4& worldMatrix = transformView->GetData(entity).worldMatrix_;
-        
-        instanceMatrices.push_back(worldMatrix);
+        // 直接 SoA 配列から Matrix を取得
+        s_instanceMatrices.push_back(transforms.GetDataFromDenseIndex(i).worldMatrix_);
     }
 
-    if (instanceMatrices.empty())
+    if (s_instanceMatrices.empty())
     {
         return;
     }
 
     // GPUバッファに転送
-    renderer.UpdateBuffer(instanceMatrices.data(), static_cast<uint32_t>(instanceMatrices.size()), camera);
+    renderer.UpdateBuffer(s_instanceMatrices.data(), static_cast<uint32_t>(s_instanceMatrices.size()), camera);
 
     // 描画実行
     renderer.DrawInstanced(camera, lightManager, shadowMapManager);
@@ -55,25 +54,26 @@ void InstancedRenderSystem::DrawGrouped(
     LightManager* lightManager,
     ShadowMapManager* shadowMapManager)
 {
-    auto renderView = registry.View<RenderComponent>();
-    if (!renderView)
-    {
-        return;
-    }
-
-    uint32_t componentCount = renderView->GetSize();
+    // [BNS-Optimization] ハッシュマップ検索なしで配列を直接取得
+    auto& renders = registry.GetArray<RenderComponent>();
+    uint32_t componentCount = renders.GetSize();
     if (componentCount == 0)
     {
         return;
     }
 
-    // モデル名ごとに WorldMatrix をグルーピング
-    std::unordered_map<std::string, std::vector<Matrix4x4>> groupedMatrices;
+    // [BNS-Optimization] ワークバッファを再利用。前回のデータをクリア
+    for (auto& [name, vec] : s_groupedMatrices)
+    {
+        vec.clear();
+    }
+
+    auto& transforms = registry.GetArray<TransformComponent>();
 
     for (uint32_t i = 0; i < componentCount; ++i)
     {
-        EntityID entity = renderView->GetEntityFromDenseIndex(i);
-        const RenderComponent& render = renderView->GetData(entity);
+        EntityID entity = renders.GetEntityFromDenseIndex(i);
+        const RenderComponent& render = renders.GetDataFromDenseIndex(i);
 
         // 描画対象外はスキップ
         if (!render.isVisible_ || !render.useInstancing_)
@@ -81,19 +81,18 @@ void InstancedRenderSystem::DrawGrouped(
             continue;
         }
 
-        if (registry.HasComponent<TransformComponent>(entity))
+        if (transforms.HasComponent(entity))
         {
-            const TransformComponent& transform = registry.GetComponent<TransformComponent>(entity);
-            
-            Matrix4x4 m;
-            std::memcpy(&m, &transform.worldMatrix_, sizeof(Matrix4x4));
-            groupedMatrices[render.modelName_].push_back(m);
+            const TransformComponent& transform = transforms.GetData(entity);
+            s_groupedMatrices[render.modelName_].push_back(transform.worldMatrix_);
         }
     }
 
     // レンダラへ転送して描画
-    for (auto& [modelName, matrices] : groupedMatrices)
+    for (auto& [modelName, matrices] : s_groupedMatrices)
     {
+        if (matrices.empty()) continue;
+
         auto it = renderers.find(modelName);
         if (it == renderers.end() || it->second == nullptr)
         {

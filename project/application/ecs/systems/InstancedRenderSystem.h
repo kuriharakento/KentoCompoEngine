@@ -9,35 +9,17 @@
 #include <memory>
 #include <string>
 
+#include "../../../engine/math/MatrixFunc.h"
+
 class Camera;
 class LightManager;
 
 class InstancedRenderSystem
 {
 public:
-    /**
-     * @brief 事前計算などを行う
-     */
+    // ... 前略 ...
     static void Update(Registry& registry);
-
-    /**
-     * @brief 全TransformComponentを1つのレンダラへ転送して描画する
-     * @param registry 対象のRegistry
-     * @param renderer 描画先インスタンシングレンダラ
-     * @param camera 使用するカメラ
-     * @param lightManager ライトマネージャー
-     * @param shadowMapManager シャドウマップマネージャー
-     */
     static void Draw(Registry& registry, InstancedModelRenderer& renderer, Camera* camera, LightManager* lightManager, class ShadowMapManager* shadowMapManager);
-
-    /**
-     * @brief モデル名でグルーピングして描画する
-     * @param registry 対象のRegistry
-     * @param renderers モデル名 → レンダラのマップ
-     * @param camera 使用するカメラ
-     * @param lightManager ライトマネージャー
-     * @param shadowMapManager シャドウマップマネージャー
-     */
     static void DrawGrouped(
         Registry& registry,
         const std::unordered_map<std::string, std::unique_ptr<InstancedModelRenderer>>& renderers,
@@ -45,4 +27,9 @@ public:
         LightManager* lightManager,
         class ShadowMapManager* shadowMapManager
     );
+
+private:
+    // [BNS-Optimization] 毎フレームの動的確保を避けるためのワークバッファ
+    static std::vector<Matrix4x4> s_instanceMatrices;
+    static std::unordered_map<std::string, std::vector<Matrix4x4>> s_groupedMatrices;
 };

@@ -21,4 +21,8 @@ struct TransformComponent
     // キャッシュされた行列
     Matrix4x4 localMatrix_ = MakeIdentity4x4();
     Matrix4x4 worldMatrix_ = MakeIdentity4x4();
+
+    // [BNS-Optimization] 変更があったかどうかのフラグ
+    // これが false の間、HierarchySystem は行列の再計算をスキップできる。
+    bool isDirty_ = true;
 };

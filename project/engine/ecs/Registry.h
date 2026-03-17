@@ -10,8 +10,6 @@
 #include <cassert>
 #include <iostream>
 
-// Deleted kento_compo and ecs namespaces
-
 /**
  * @brief Entityと各ComponentArrayを統括するシステムコア。
  * 
@@ -44,19 +42,18 @@ public:
     /**
      * @brief Entityが有効（現在生きているか）を判定する。
      * @param entity 対象のEntityID
-     * @return 生きていれば true。別世代が再利用中、または破棄済みなら false。
+     * @return 生きていれば true。
      */
     bool IsAlive(EntityID entity) const;
 
     /**
-     * @brief [安全] エンティティの破棄をただちに実行せず、フレーム終端まで予約する。
-     * ※Systemのループ処理中に配列のSwap&Popが発火してイテレータが壊れるのを防ぐためのメインAPI。
+     * @brief エンティティの破棄をフレーム終端まで予約する。
      * @param entity 破棄したいEntityID
      */
     void DestroyEntityDeferred(EntityID entity);
 
     /**
-     * @brief フレームの最後に1回だけ呼ばれ、予約されたEntityと関連Componentを一括削除する。
+     * @brief 予約されたEntityと関連Componentを一括削除する。
      */
     void FlushGarbageCollection();
 
@@ -73,9 +70,9 @@ public:
     void RegisterComponent(uint32_t maxComponents)
     {
         std::type_index typeName = std::type_index(typeid(T));
-        assert(m_componentArrays.find(typeName) == m_componentArrays.end() && "Component already registered.");
+        assert(componentArrays_.find(typeName) == componentArrays_.end() && "Component already registered.");
 
-        m_componentArrays.insert({typeName, std::make_shared<ComponentArray<T>>(m_maxEntities, maxComponents)});
+        componentArrays_.insert({ typeName, std::make_shared<ComponentArray<T>>(maxEntities_, maxComponents) });
     }
 
     /**
@@ -83,7 +80,7 @@ public:
      * @tparam T 追加するコンポーネントの型
      * @param entity 対象のエンティティ
      * @param component 初期データ
-     * @param policy キャパシティオーバー時の処理（デフォルトはAssertで落とす）
+     * @param policy キャパシティオーバー時の処理
      * @return 成功したか
      */
     template <typename T>
@@ -95,7 +92,7 @@ public:
 
     /**
      * @brief Entityが持つコンポーネントを削除する（即時）。
-     * ※これをSystemのUpdateループ中に呼ぶとイテレータが壊れるリスクがあるので注意。
+     * @param entity 対象のエンティティ
      */
     template <typename T>
     void RemoveComponent(EntityID entity)
@@ -108,6 +105,8 @@ public:
 
     /**
      * @brief Entityから特定のコンポーネントの参照を取得する。
+     * @param entity 対象のエンティティ
+     * @return コンポーネントへの参照
      */
     template <typename T>
     T& GetComponent(EntityID entity)
@@ -118,67 +117,97 @@ public:
 
     /**
      * @brief Entityが特定のコンポーネントを持っているか判定する。
+     * @param entity 対象のエンティティ
+     * @return 持っていれば true
      */
     template <typename T>
     bool HasComponent(EntityID entity)
     {
-        if (!IsAlive(entity)) return false;
+        if (!IsAlive(entity))
+        {
+            return false;
+        }
         return GetComponentArray<T>()->HasComponent(entity);
     }
 
     // =========================================================================
-    // System Integration API
+    // System Integration API (High-Performance)
     // =========================================================================
 
     /**
+     * @brief ComponentArray を直接取得する。
+     * @tparam T コンポーネント型
+     * @return ComponentArrayへの参照
+     */
+    template <typename T>
+    ComponentArray<T>& GetArray()
+    {
+        std::type_index typeName = std::type_index(typeid(T));
+        assert(componentArrays_.find(typeName) != componentArrays_.end() && "Component not registered.");
+        return *std::static_pointer_cast<ComponentArray<T>>(componentArrays_[typeName]);
+    }
+
+    /**
+     * @brief 指定したコンポーネント型が登録されているか判定する。
+     * @return 登録済みなら true
+     */
+    template <typename T>
+    bool HasComponentArray() const
+    {
+        return componentArrays_.find(std::type_index(typeid(T))) != componentArrays_.end();
+    }
+
+    /**
      * @brief 指定したコンポーネント配列全体を走査するためのビューを取得する。
-     * @tparam T 取得したいコンポーネントの型
-     * @return その型のComponentArrayを返す
-     * 
-     * [使用例]
-     * auto view = registry.View<TransformComponent>();
-     * for(auto& transform : view) { ... }
+     * @tparam T コンポーネント型
+     * @return ComponentArrayを格納したshared_ptr
      */
     template <typename T>
     std::shared_ptr<ComponentArray<T>> View()
     {
-        return GetComponentArray<T>();
+        std::type_index typeName = std::type_index(typeid(T));
+        assert(componentArrays_.find(typeName) != componentArrays_.end() && "Component not registered.");
+        return std::static_pointer_cast<ComponentArray<T>>(componentArrays_[typeName]);
     }
 
     // =========================================================================
     // Debug & Metrics API
     // =========================================================================
-    uint32_t GetActiveEntityCount() const { return m_activeEntityCount; }
-    uint32_t GetMaxEntityCount() const { return m_maxEntities; }
+
+    /**
+     * @brief 生きているEntity数を取得
+     */
+    uint32_t GetActiveEntityCount() const { return activeEntityCount_; }
+
+    /**
+     * @brief 最大Entityキャパシティを取得
+     */
+    uint32_t GetMaxEntityCount() const { return maxEntities_; }
 
 private:
     /**
-     * @brief 登録済みのComponentArrayをキャストして取得する内部関数。
+     * @brief 内部的なComponentArray取得
      */
     template <typename T>
     std::shared_ptr<ComponentArray<T>> GetComponentArray()
     {
-        std::type_index typeName = std::type_index(typeid(T));
-        assert(m_componentArrays.find(typeName) != m_componentArrays.end() && "Component not registered before use.");
-
-        return std::static_pointer_cast<ComponentArray<T>>(m_componentArrays[typeName]);
+        return std::static_pointer_cast<ComponentArray<T>>(componentArrays_[std::type_index(typeid(T))]);
     }
 
 private:
-    uint32_t m_maxEntities = 0;
-    uint32_t m_activeEntityCount = 0;
+    // 最大Entity数
+    uint32_t maxEntities_ = 0;
+    // 現在の生存Entity数
+    uint32_t activeEntityCount_ = 0;
 
     // 世代管理用（index -> generation）
-    std::vector<uint32_t> m_generations;
-
+    std::vector<uint32_t> generations_;
     // リサイクル可能なIndexキュー
-    std::queue<uint32_t> m_availableIndices;
+    std::queue<uint32_t> availableIndices_;
 
     // 各コンポーネント型と、それを管理するComponentArray群へのポインタ
-    std::unordered_map<std::type_index, std::shared_ptr<IComponentArray>> m_componentArrays;
+    std::unordered_map<std::type_index, std::shared_ptr<IComponentArray>> componentArrays_;
 
     // フレーム末尾の破棄実行（Flush）を待つ予約キュー
-    std::vector<EntityID> m_destroyQueue;
+    std::vector<EntityID> destroyQueue_;
 };
-
-

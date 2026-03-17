@@ -25,5 +25,5 @@ private:
     /**
      * @brief Entityの子孫に対して再帰的にWorldMatrix計算を伝播させる
      */
-    static void UpdateChildrenRecursive(Registry& registry, EntityID parentEntity);
+    static void UpdateChildrenRecursive(Registry& registry, EntityID parentEntity, bool parentDirty);
 };

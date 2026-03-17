@@ -2,7 +2,7 @@
 
 #include <memory>
 #include "engine/ecs/Registry.h"
-#include "engine/ecs/EcsDebugViewer.h"
+#include "engine/ecs/debug/EcsInspector.h"
 #include "engine/camerawork/debug/DebugCamera.h"
 #include "engine/graphics/3d/InstancedModelRenderer.h"
 #include "engine/scene/interface/BaseScene.h"
@@ -52,7 +52,7 @@ public:
 private:
     // --- ECS Core ---
     Registry registry_;
-    std::unique_ptr<EcsDebugViewer> debugViewer_;
+    std::unique_ptr<EcsInspector> inspector_;
 
     // --- Systems & Renderers ---
     std::unique_ptr<InstancedModelRenderer> instancedRenderer_;

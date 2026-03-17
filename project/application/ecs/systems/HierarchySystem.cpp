@@ -2,21 +2,23 @@
 
 void HierarchySystem::Update(Registry& registry)
 {
-    // 全ての TransformComponent を抽出
-    auto transformView = registry.View<TransformComponent>();
-    if (!transformView || transformView->GetSize() == 0)
+    // [BNS-Optimization] View を取得する際、非公開だった配列に直接アクセス
+    auto& transforms = registry.GetArray<TransformComponent>();
+    uint32_t size = transforms.GetSize();
+    if (size == 0)
     {
         return;
     }
 
-    for (uint32_t i = 0; i < transformView->GetSize(); ++i)
+    // 階層情報（親子関係）がある場合の処理
+    const bool hasHierarchy = registry.HasComponentArray<HierarchyComponent>();
+
+    for (uint32_t i = 0; i < size; ++i)
     {
-        EntityID entity = transformView->GetEntityFromDenseIndex(i);
+        EntityID entity = transforms.GetEntityFromDenseIndex(i);
         
-        // 階層情報がない、もしくはルート（親がいない）である場合のみ処理を開始
-        // ツリーの根本から順番に WorldMatrix を計算していく
         bool isRoot = true;
-        if (registry.HasComponent<HierarchyComponent>(entity))
+        if (hasHierarchy && registry.HasComponent<HierarchyComponent>(entity))
         {
             if (registry.GetComponent<HierarchyComponent>(entity).parent_ != kInvalidEntity)
             {
@@ -26,11 +28,20 @@ void HierarchySystem::Update(Registry& registry)
 
         if (isRoot)
         {
-            // トランスフォームを更新
-            UpdateTransform(registry, entity);
-            
-            // 子へ再帰的に伝播
-            UpdateChildrenRecursive(registry, entity);
+            TransformComponent& transform = transforms.GetData(entity);
+
+            // ルートが Dirty なら更新し、子へ伝播
+            if (transform.isDirty_)
+            {
+                UpdateTransform(registry, entity);
+                UpdateChildrenRecursive(registry, entity, true);
+                transform.isDirty_ = false;
+            }
+            else
+            {
+                // 自分は動いていなくても、子が個別に動いている可能性があるため再帰は必要
+                UpdateChildrenRecursive(registry, entity, false);
+            }
         }
     }
 }
@@ -55,7 +66,7 @@ void HierarchySystem::UpdateTransform(Registry& registry, EntityID entity)
     transform.worldMatrix_ = transform.localMatrix_;
 }
 
-void HierarchySystem::UpdateChildrenRecursive(Registry& registry, EntityID parentEntity)
+void HierarchySystem::UpdateChildrenRecursive(Registry& registry, EntityID parentEntity, bool parentDirty)
 {
     if (!registry.HasComponent<HierarchyComponent>(parentEntity) ||
         !registry.HasComponent<TransformComponent>(parentEntity))
@@ -70,19 +81,33 @@ void HierarchySystem::UpdateChildrenRecursive(Registry& registry, EntityID paren
 
     while (currentChild != kInvalidEntity)
     {
-        // 子のTransformを更新
-        UpdateTransform(registry, currentChild);
-
         if (registry.HasComponent<TransformComponent>(currentChild))
         {
             TransformComponent& childTransform = registry.GetComponent<TransformComponent>(currentChild);
+            
+            bool needsUpdate = parentDirty || childTransform.isDirty_;
 
-            // WorldMatrix を親と結合
-            childTransform.worldMatrix_ = Multiply(childTransform.localMatrix_, parentTransform.worldMatrix_);
+            if (needsUpdate)
+            {
+                // LocalMatrix を再計算（自分自身が変更された場合のみで本当は良いが、
+                // 一旦親が動いた場合も再計算する安全側に倒す。本来は localDirty を分けるべき）
+                UpdateTransform(registry, currentChild);
+
+                // WorldMatrix を親と結合
+                childTransform.worldMatrix_ = Multiply(childTransform.localMatrix_, parentTransform.worldMatrix_);
+                
+                // 次の子孫へ伝播（自分が動いたので、子も必ず更新が必要）
+                UpdateChildrenRecursive(registry, currentChild, true);
+                
+                childTransform.isDirty_ = false;
+            }
+            else
+            {
+                // 自分も親も動いていない。
+                // ただし、更にその孫が個別に動いている可能性があるため、parentDirty=false で探索継続。
+                UpdateChildrenRecursive(registry, currentChild, false);
+            }
         }
-
-        // 下孫へ伝播
-        UpdateChildrenRecursive(registry, currentChild);
 
         // 次の兄弟へ
         if (registry.HasComponent<HierarchyComponent>(currentChild))
