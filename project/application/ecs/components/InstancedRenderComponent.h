@@ -10,7 +10,7 @@
  * InstancedRenderSystem はこのコンポーネントの modelName を
  * グルーピングキーとして、モデル種別ごとに一括描画（インスタンシング）を行う。
  */
-struct RenderComponent
+struct InstancedRenderComponent
 {
     // モデル名
     std::string modelName_;

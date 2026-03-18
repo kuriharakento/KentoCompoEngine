@@ -18,7 +18,7 @@ void ObstacleManager::Initialize(Object3dCommon* object3dCommon, LightManager* l
 	registry_ = std::make_unique<Registry>();
 	registry_->Initialize(kMaxObstacles);
 	registry_->RegisterComponent<TransformComponent>(kMaxObstacles);
-	registry_->RegisterComponent<RenderComponent>(kMaxObstacles);
+	registry_->RegisterComponent<InstancedRenderComponent>(kMaxObstacles);
 	registry_->RegisterComponent<ObstacleComponent>(kMaxObstacles);
 }
 
@@ -279,10 +279,10 @@ void ObstacleManager::RegisterToRegistry(const GameObjectInfo& info, ObstacleCom
 	registry_->AddComponent<TransformComponent>(entity, transform);
 
 	// 描画情報
-	RenderComponent render;
+	InstancedRenderComponent render;
 	render.modelName_ = info.fileName.empty() ? "wall" : info.fileName;
 	render.useInstancing_ = false; // 障害物は現状インスタンシング非対象
-	registry_->AddComponent<RenderComponent>(entity, render);
+	registry_->AddComponent<InstancedRenderComponent>(entity, render);
 
 	// 障害物属性
 	ObstacleComponent obstacle;

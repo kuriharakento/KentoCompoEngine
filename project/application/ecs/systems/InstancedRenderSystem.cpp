@@ -1,6 +1,6 @@
 #include "InstancedRenderSystem.h"
 #include "application/ecs/components/TransformComponent.h"
-#include "application/ecs/components/RenderComponent.h"
+#include "application/ecs/components/InstancedRenderComponent.h"
 #include "graphics/3d/InstancedModelRenderer.h"
 #include "base/Camera.h"
 #include "manager/scene/LightManager.h"
@@ -55,7 +55,7 @@ void InstancedRenderSystem::DrawGrouped(
     ShadowMapManager* shadowMapManager)
 {
     // [BNS-Optimization] ハッシュマップ検索なしで配列を直接取得
-    auto& renders = registry.GetArray<RenderComponent>();
+    auto& renders = registry.GetArray<InstancedRenderComponent>();
     uint32_t componentCount = renders.GetSize();
     if (componentCount == 0)
     {
@@ -73,7 +73,7 @@ void InstancedRenderSystem::DrawGrouped(
     for (uint32_t i = 0; i < componentCount; ++i)
     {
         EntityID entity = renders.GetEntityFromDenseIndex(i);
-        const RenderComponent& render = renders.GetDataFromDenseIndex(i);
+        const InstancedRenderComponent& render = renders.GetDataFromDenseIndex(i);
 
         // 描画対象外はスキップ
         if (!render.isVisible_ || !render.useInstancing_)

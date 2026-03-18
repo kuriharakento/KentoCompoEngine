@@ -11,7 +11,7 @@
 // ECS Components
 #include "application/ecs/components/TransformComponent.h"
 #include "application/ecs/components/EnemyStateComponent.h"
-#include "application/ecs/components/RenderComponent.h"
+#include "application/ecs/components/InstancedRenderComponent.h"
 
 // ECS Systems
 #include "application/ecs/systems/EnemyBehaviorSystem.h"
@@ -35,7 +35,7 @@ void EnemyManager::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spri
 	registry_->Initialize(10000); // 最大10000体を想定（デバッグ用）
 	registry_->RegisterComponent<TransformComponent>(10000);
 	registry_->RegisterComponent<EnemyStateComponent>(10000);
-	registry_->RegisterComponent<RenderComponent>(10000);
+	registry_->RegisterComponent<InstancedRenderComponent>(10000);
 
 	// レンダラ群の初期化
 	renderers_["enemy"] = std::make_unique<InstancedModelRenderer>(10000);
@@ -181,7 +181,7 @@ void EnemyManager::AddPistolEnemy(uint32_t count)
 		// ピストル敵固有の初期化
 		registry_->AddComponent<EnemyStateComponent>(entity, state);
 
-		AssignRenderComponent(entity, "enemy");
+		AssignInstancedRenderComponent(entity, "enemy");
 
 		// 既存実体の生成
 		auto enemy = std::make_unique<PistolEnemy>();
@@ -209,7 +209,7 @@ void EnemyManager::AddAssaultEnemy(uint32_t count)
 		EnemyStateComponent state;
 		registry_->AddComponent<EnemyStateComponent>(entity, state);
 
-		AssignRenderComponent(entity, "enemy");
+		AssignInstancedRenderComponent(entity, "enemy");
 
 		// 既存実体の生成
 		auto enemy = std::make_unique<AssaultEnemy>();
@@ -237,7 +237,7 @@ void EnemyManager::AddShotgunEnemy(uint32_t count)
 		EnemyStateComponent state;
 		registry_->AddComponent<EnemyStateComponent>(entity, state);
 
-		AssignRenderComponent(entity, "enemy");
+		AssignInstancedRenderComponent(entity, "enemy");
 
 		// 既存実体の生成
 		auto enemy = std::make_unique<ShotgunEnemy>();
@@ -265,7 +265,7 @@ void EnemyManager::AddKnifeEnemy(uint32_t count)
 		EnemyStateComponent state;
 		registry_->AddComponent<EnemyStateComponent>(entity, state);
 
-		AssignRenderComponent(entity, "enemy");
+		AssignInstancedRenderComponent(entity, "enemy");
 
 		// 既存実体の生成
 		auto enemy = std::make_unique<KnifeEnemy>();
@@ -299,7 +299,7 @@ void EnemyManager::AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo
 		EnemyStateComponent state;
 		registry_->AddComponent<EnemyStateComponent>(entity, state);
 
-		AssignRenderComponent(entity, "enemy");
+		AssignInstancedRenderComponent(entity, "enemy");
 
 		// 既存実体の生成
 		auto enemy = std::make_unique<AssaultEnemy>();
@@ -341,7 +341,7 @@ void EnemyManager::CreateAssaultEnemyFromData()
 		EnemyStateComponent state;
 		registry_->AddComponent<EnemyStateComponent>(entity, state);
 
-		AssignRenderComponent(entity, "enemy");
+		AssignInstancedRenderComponent(entity, "enemy");
 
 		// 既存実体の生成
 		auto enemy = std::make_unique<AssaultEnemy>();
@@ -357,13 +357,13 @@ void EnemyManager::CleanupPendingRemovals()
 	// ECS遅延評価に移行したため未使用
 }
 
-void EnemyManager::AssignRenderComponent(EntityID entity, const std::string& modelName)
+void EnemyManager::AssignInstancedRenderComponent(EntityID entity, const std::string& modelName)
 {
 	if (!registry_) return;
 	
-	RenderComponent render;
+	InstancedRenderComponent render;
 	render.modelName_ = modelName;
 	render.useInstancing_ = true;
 	render.isVisible_ = true;
-	registry_->AddComponent<RenderComponent>(entity, render);
+	registry_->AddComponent<InstancedRenderComponent>(entity, render);
 }

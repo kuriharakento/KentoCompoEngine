@@ -47,8 +47,8 @@ private:
 	// フレーム末クリーンアップ（外部から呼ぶ必要はありません。Draw 内で呼び出します）
 	void CleanupPendingRemovals();
 
-	// Entity生成時にRenderComponentを付与する共通処理
-	void AssignRenderComponent(EntityID entity, const std::string& modelName);
+	// Entity生成時にInstancedRenderComponentを付与する共通処理
+	void AssignInstancedRenderComponent(EntityID entity, const std::string& modelName);
 
 	// 敵全滅時のコールバック関数
 	std::function<void()> onAllEnemiesDefeatedCallback_ = nullptr;

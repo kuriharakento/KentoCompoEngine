@@ -18,6 +18,11 @@ void Registry::Initialize(uint32_t maxEntities)
     }
 }
 
+Entity Registry::Create()
+{
+    return Entity(CreateEntity(), this);
+}
+
 EntityID Registry::CreateEntity()
 {
     if (availableIndices_.empty())

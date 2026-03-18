@@ -3,7 +3,7 @@
 #include "../ecs/components/EnemyStateComponent.h"
 #include "../ecs/components/LifetimeComponent.h"
 #include "../ecs/components/HierarchyComponent.h"
-#include "../ecs/components/RenderComponent.h"
+#include "../ecs/components/InstancedRenderComponent.h"
 
 #include "../ecs/systems/EnemyBehaviorSystem.h"
 #include "../ecs/systems/HierarchySystem.h"
@@ -38,7 +38,7 @@ void EcsDebugScene::Initialize()
     registry_.RegisterComponent<HierarchyComponent>(10000);
     registry_.RegisterComponent<LifetimeComponent>(kMaxEntities);
     registry_.RegisterComponent<EnemyStateComponent>(kMaxEntities);
-    registry_.RegisterComponent<RenderComponent>(kMaxEntities);
+    registry_.RegisterComponent<InstancedRenderComponent>(kMaxEntities);
 
     // 3. モデルのロード
     ModelManager::GetInstance()->LoadModel("cube");
@@ -127,10 +127,10 @@ void EcsDebugScene::CommonUpdate()
             registry_.AddComponent<LifetimeComponent>(entity, life);
 
             // モデル名は "cube" を指定
-            RenderComponent rc;
+            InstancedRenderComponent rc;
             rc.modelName_ = "cube";
             rc.useInstancing_ = true;
-            registry_.AddComponent<RenderComponent>(entity, rc);
+            registry_.AddComponent<InstancedRenderComponent>(entity, rc);
         }
     }
     
@@ -153,10 +153,10 @@ void EcsDebugScene::CommonUpdate()
                 registry_.AddComponent<EnemyStateComponent>(entity, state);
 
                 // 「cube」モデルで描画
-                RenderComponent render{};
+                InstancedRenderComponent render{};
                 render.modelName_ = "cube";
                 render.useInstancing_ = true;
-                registry_.AddComponent<RenderComponent>(entity, render);
+                registry_.AddComponent<InstancedRenderComponent>(entity, render);
 
                 // 5〜10秒のランダムな寿命を設定
                 LifetimeComponent life{};

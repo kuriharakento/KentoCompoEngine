@@ -3,7 +3,7 @@
 #include "../../../engine/ecs/Registry.h"
 #include "../../../engine/graphics/3d/InstancedModelRenderer.h"
 #include "../components/TransformComponent.h"
-#include "../components/RenderComponent.h"
+#include "../components/InstancedRenderComponent.h"
 #include <vector>
 #include <unordered_map>
 #include <memory>

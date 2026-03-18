@@ -53,15 +53,71 @@ inline uint32_t GetEntityGeneration(EntityID id)
     return (id >> entity_mask::kIndexBits) & entity_mask::kGenerationMask;
 }
 
-/**
- * @brief インデックスと世代から新しいEntityIDを組み立てる。
- * @param index インデックス（20bit以内）
- * @param generation 世代（12bit以内）
- * @return 組み立てられたEntityID
- */
 inline EntityID MakeEntityID(uint32_t index, uint32_t generation)
 {
     return (index & entity_mask::kIndexMask) | ((generation & entity_mask::kGenerationMask) << entity_mask::kIndexBits);
 }
 
+class Registry;
 
+/**
+ * @brief オブジェクト指向的にECSを操作するためのEntityラッパークラス
+ * 
+ * 内部的には EntityID(伝票番号) と Registry(倉庫) へのポインタを持つだけであり、
+ * メソッド呼び出しをRegistryへの委譲に変換する軽量なラッパーです。
+ */
+class Entity
+{
+public:
+    Entity() = default;
+    Entity(EntityID id, Registry* registry) : id_(id), registry_(registry) {}
+
+    /**
+     * @brief コンポーネントを追加する
+     * @return 自身への参照（メソッドチェーン可能）
+     */
+    template<typename T>
+    Entity& Add(T component);
+
+    /**
+     * @brief コンポーネントを取得する
+     * @return コンポーネントへの参照
+     */
+    template<typename T>
+    T& Get();
+
+    /**
+     * @brief コンポーネントを所持しているか判定
+     */
+    template<typename T>
+    bool Has() const;
+
+    /**
+     * @brief コンポーネントを削除する
+     */
+    template<typename T>
+    void Remove();
+
+    /**
+     * @brief このエンティティ自身を破棄（フレーム終端で削除）する
+     */
+    void Destroy();
+
+    /**
+     * @brief 現在このエンティティが有効（生きている）か判定
+     */
+    bool IsValid() const;
+
+    /**
+     * @brief 生のEntityIDを取得
+     */
+    EntityID GetID() const { return id_; }
+
+    bool operator==(const Entity& other) const { return id_ == other.id_ && registry_ == other.registry_; }
+    bool operator!=(const Entity& other) const { return !(*this == other); }
+    explicit operator bool() const { return IsValid(); }
+
+private:
+    EntityID id_ = kInvalidEntity;
+    Registry* registry_ = nullptr;
+};

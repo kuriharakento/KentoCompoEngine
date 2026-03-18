@@ -107,6 +107,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="application\ecs\systems\Object3dSystem.cpp" />
     <ClCompile Include="application\gameObject\combatable\base\StatusSystem.cpp" />
     <ClCompile Include="application\gameObject\combatable\character\enemy\base\Node\ActionNode.cpp" />
     <ClCompile Include="application\gameObject\component\action\AssaultRifleComponent.cpp" />
@@ -116,6 +117,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\gameObject\component\action\AssaultEnemyBehavior.cpp" />
     <ClCompile Include="application\weapon\WeaponManager.cpp" />
     <ClCompile Include="engine\base\ObjectPool.cpp" />
+    <ClCompile Include="engine\ecs\EcsDebugViewer.cpp" />
     <ClCompile Include="engine\ecs\Registry.cpp" />
     <ClCompile Include="engine\ecs\debug\EcsInspector.cpp" />
     <ClCompile Include="application\scene\EcsDebugScene.cpp" />
@@ -283,10 +285,12 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\ecs\components\EnemyStateComponent.h" />
+    <ClInclude Include="application\ecs\components\Object3dComponent.h" />
     <ClInclude Include="application\ecs\systems\EnemyBehaviorSystem.h" />
     <ClInclude Include="application\ecs\systems\HierarchySystem.h" />
     <ClInclude Include="application\ecs\systems\InstancedRenderSystem.h" />
     <ClInclude Include="application\ecs\systems\LifetimeSystem.h" />
+    <ClInclude Include="application\ecs\systems\Object3dSystem.h" />
     <ClInclude Include="application\gameObject\base\GameObjectTag.h" />
     <ClInclude Include="application\gameObject\combatable\base\StatusSystem.h" />
     <ClInclude Include="application\gameObject\combatable\character\enemy\base\EnemyBase.h" />
@@ -298,7 +302,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\base\ObjectPool.h" />
     <ClInclude Include="engine\ecs\ComponentArray.h" />
     <ClInclude Include="engine\ecs\debug\EcsInspector.h" />
+    <ClInclude Include="engine\ecs\EcsDebugViewer.h" />
     <ClInclude Include="engine\ecs\Entity.h" />
+    <ClInclude Include="engine\ecs\EntityView.h" />
     <ClInclude Include="engine\ecs\Registry.h" />
     <ClInclude Include="engine\gameobject\component\collision\AABBColliderComponent.h" />
     <ClInclude Include="application\gameObject\component\action\AssaultRifleComponent.h" />
@@ -499,7 +505,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\graphics\2d\NumberSprite.h" />
     <ClInclude Include="application\ecs\components\HierarchyComponent.h" />
     <ClInclude Include="application\ecs\components\LifetimeComponent.h" />
-    <ClInclude Include="application\ecs\components\RenderComponent.h" />
+    <ClInclude Include="application\ecs\components\InstancedRenderComponent.h" />
     <ClInclude Include="application\ecs\components\TagComponent.h" />
     <ClInclude Include="application\ecs\components\VelocityComponent.h" />
     <ClInclude Include="application\ecs\components\ObstacleComponent.h" />

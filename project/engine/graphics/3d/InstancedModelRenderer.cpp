@@ -63,7 +63,9 @@ void InstancedModelRenderer::UpdateBuffer(const Matrix4x4* matrices, uint32_t co
         TransformationMatrix data;
         data.WVP = wvp;
         data.World = world;
-        data.WorldInverseTranspose = MathUtils::Transpose(Inverse(world));
+        // StructuredBufferはHLSL側で読み込む際に列優先となるため、
+        // 意図した行優先数学に合わせるためにTransposeを省く（自動的に転置されて正しい逆行列が渡る）
+        data.WorldInverseTranspose = Inverse(world);
 
         mappedData[i] = data;
     }

@@ -34,7 +34,13 @@ public:
     // =========================================================================
 
     /**
-     * @brief 新しいEntityを生成する。
+     * @brief 新しいEntityを生成する。(ラッパーを返す推奨API)
+     * @return Entityラッパーオブジェクト
+     */
+    Entity Create();
+
+    /**
+     * @brief 新しいEntityを生成する。(従来の生IDを返すAPI)
      * @return プールに空きがあれば生成されたEntityID。枯渇時は kInvalidEntity。
      */
     EntityID CreateEntity();
@@ -87,7 +93,7 @@ public:
     bool AddComponent(EntityID entity, T component, PoolExhaustionPolicy policy = PoolExhaustionPolicy::AssertAndCrash)
     {
         assert(IsAlive(entity) && "Cannot add component to a dead entity.");
-        return GetComponentArray<T>()->Insert(entity, component, policy);
+        return GetComponentArray<T>()->Insert(entity, std::move(component), policy);
     }
 
     /**
@@ -211,3 +217,49 @@ private:
     // フレーム末尾の破棄実行（Flush）を待つ予約キュー
     std::vector<EntityID> destroyQueue_;
 };
+
+// =========================================================================
+// Entity Wrapper Template Implementations
+// =========================================================================
+
+template<typename T>
+inline Entity& Entity::Add(T component)
+{
+    assert(IsValid() && "Cannot add component to an invalid/dead entity.");
+    registry_->AddComponent<T>(id_, std::move(component));
+    return *this;
+}
+
+template<typename T>
+inline T& Entity::Get()
+{
+    assert(IsValid() && "Cannot get component from an invalid/dead entity.");
+    return registry_->GetComponent<T>(id_);
+}
+
+template<typename T>
+inline bool Entity::Has() const
+{
+    if (!IsValid()) return false;
+    return registry_->HasComponent<T>(id_);
+}
+
+template<typename T>
+inline void Entity::Remove()
+{
+    if (IsValid()) {
+        registry_->RemoveComponent<T>(id_);
+    }
+}
+
+inline void Entity::Destroy()
+{
+    if (IsValid()) {
+        registry_->DestroyEntityDeferred(id_);
+    }
+}
+
+inline bool Entity::IsValid() const
+{
+    return registry_ != nullptr && registry_->IsAlive(id_);
+}

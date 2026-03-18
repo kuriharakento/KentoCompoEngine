@@ -7,7 +7,7 @@
 #include "application/stage/StageData.h"
 #include "engine/ecs/Registry.h"
 #include "application/ecs/components/TransformComponent.h"
-#include "application/ecs/components/RenderComponent.h"
+#include "application/ecs/components/InstancedRenderComponent.h"
 #include "application/ecs/components/ObstacleComponent.h"
 
 class CameraManager;

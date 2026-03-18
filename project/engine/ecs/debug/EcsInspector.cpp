@@ -1,7 +1,7 @@
 #include "EcsInspector.h"
 #include "imgui/imgui.h"
 #include "../../../application/ecs/components/TransformComponent.h"
-#include "../../../application/ecs/components/RenderComponent.h"
+#include "../../../application/ecs/components/InstancedRenderComponent.h"
 #include "../../../application/ecs/components/EnemyStateComponent.h"
 #include "../../../application/ecs/components/LifetimeComponent.h"
 
@@ -104,12 +104,12 @@ void EcsInspector::DrawComponentEditor(Registry& registry, EntityID entity)
         }
     }
 
-    // RenderComponent
-    if (registry.HasComponent<RenderComponent>(entity))
+    // InstancedRenderComponent
+    if (registry.HasComponent<InstancedRenderComponent>(entity))
     {
-        if (ImGui::CollapsingHeader("RenderComponent", ImGuiTreeNodeFlags_DefaultOpen))
+        if (ImGui::CollapsingHeader("InstancedRenderComponent", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            auto& r = registry.GetComponent<RenderComponent>(entity);
+            auto& r = registry.GetComponent<InstancedRenderComponent>(entity);
             char buf[64];
             strncpy_s(buf, r.modelName_.c_str(), sizeof(buf));
             if (ImGui::InputText("Model Name", buf, sizeof(buf)))

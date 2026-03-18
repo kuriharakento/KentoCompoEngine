@@ -6,8 +6,6 @@
 #include <type_traits>
 #include <algorithm>
 
-// Deleted kento_compo and ecs namespaces
-
 /**
  * @brief ComponentArray共通のインターフェース。
  *
@@ -72,7 +70,7 @@ public:
      * @param policy キャパシティを超えた場合の振る舞い
      * @return 実際に追加（または上書き）されたか
      */
-    bool Insert(EntityID entity, const T& component, PoolExhaustionPolicy policy = PoolExhaustionPolicy::AssertAndCrash)
+    bool Insert(EntityID entity, T component, PoolExhaustionPolicy policy = PoolExhaustionPolicy::AssertAndCrash)
     {
         uint32_t index = GetEntityIndex(entity);
         assert(index < sparseArray_.size() && "Entity index out of range.");
@@ -81,7 +79,7 @@ public:
         if (sparseArray_[index] != kInvalidEntity)
         {
             uint32_t denseIndex = sparseArray_[index];
-            denseArray_[denseIndex] = component;
+            denseArray_[denseIndex] = std::move(component);
             return true;
         }
 
@@ -109,7 +107,7 @@ public:
         uint32_t newDenseIndex = validCount_;
 
         // reserve しているので push_back で再確保は発生しない
-        denseArray_.push_back(component);
+        denseArray_.push_back(std::move(component));
         entityArray_.push_back(entity);
         sparseArray_[index] = newDenseIndex;
 
@@ -138,7 +136,7 @@ public:
         if (removedDenseIndex != lastDenseIndex)
         {
             // 末尾の要素を、削除対象の場所にコピー（移動）して上書きする
-            denseArray_[removedDenseIndex] = denseArray_[lastDenseIndex];
+            denseArray_[removedDenseIndex] = std::move(denseArray_[lastDenseIndex]);
 
             // 逆引き配列も同様に末尾のものを上書き
             EntityID lastEntity = entityArray_[lastDenseIndex];
