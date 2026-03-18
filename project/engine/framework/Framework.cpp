@@ -15,6 +15,7 @@
 #include "effects/particle/ParticleManager.h"
 #include "manager/graphics/ModelManager.h"
 #include "manager/graphics/LineManager.h"
+#include "manager/graphics/SkinnedModelManager.h"
 #include "time/TimeManager.h"
 #include "time/TimerManager.h"
 #include "manager/graphics/InstancedModelPipelineManager.h"
@@ -70,6 +71,9 @@ void Framework::Initialize()
 
 	// 3Dモデルマネージャーの初期化
 	ModelManager::GetInstance()->Initialize(dxCommon_.get());
+
+	// スキニングモデルマネージャーの初期化
+	SkinnedModelManager::GetInstance()->Initialize(dxCommon_.get());
 
 	// パーティクルマネージャーの初期化
 	ParticleManager::GetInstance()->Initialize(dxCommon_.get(), srvManager_.get());
@@ -213,6 +217,7 @@ void Framework::Finalize()
 	spriteCommon_.reset();
 	objectCommon_.reset();
 	ModelManager::GetInstance()->Finalize();
+	SkinnedModelManager::GetInstance()->Finalize();
 	ParticleManager::GetInstance()->Finalize();
 	InstancedModelPipelineManager::GetInstance()->Finalize();
 	SkinningPipelineManager::GetInstance()->Finalize();

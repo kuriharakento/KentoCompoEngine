@@ -283,6 +283,9 @@
     <ClCompile Include="engine\manager\graphics\ModelManager.cpp">
       <Filter>engine\manager\graphics</Filter>
     </ClCompile>
+    <ClCompile Include="engine\manager\graphics\SkinnedModelManager.cpp">
+      <Filter>engine\manager\graphics</Filter>
+    </ClCompile>
     <ClCompile Include="engine\manager\scene\CameraManager.cpp">
       <Filter>engine\manager\scene</Filter>
     </ClCompile>
@@ -811,6 +814,9 @@
       <Filter>engine\manager\graphics</Filter>
     </ClInclude>
     <ClInclude Include="engine\manager\graphics\ModelManager.h">
+      <Filter>engine\manager\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\manager\graphics\SkinnedModelManager.h">
       <Filter>engine\manager\graphics</Filter>
     </ClInclude>
     <ClInclude Include="engine\manager\scene\CameraManager.h">

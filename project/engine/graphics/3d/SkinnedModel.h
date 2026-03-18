@@ -7,11 +7,13 @@
 #include "ModelCommon.h"
 #include "base/GraphicsTypes.h"
 #include "math/MathUtils.h"
+#include "manager/graphics/SkinnedModelManager.h"
 
 /**
  * @brief スキニングモデルクラス
- * @details ボーンアニメーション付きの3Dモデルを読み込み管理する。
- *          Assimpライブラリを使用してスケルトンとアニメーションデータを解析する。
+ * @details ボーンアニメーション付きの3Dモデルのインスタンス。
+ *          静的なデータ（頂点・インデックス・ボーン情報）は SkinnedModelManager で共有される。
+ *          このクラスは各インスタンス固有のデータ（変形後頂点バッファ、マテリアル）を保持する。
  */
 class SkinnedModel
 {
@@ -53,17 +55,17 @@ public: // アクセッサ
 	/**
 	 * @brief スキニングモデルデータの取得
 	 */
-	SkinnedModelData& GetModelData() { return modelData_; }
+	const SkinnedModelData& GetModelData() const { return sharedResource_->modelData; }
 
 	/**
 	 * @brief スケルトンの取得
 	 */
-	const Skeleton& GetSkeleton() const { return modelData_.skeleton; }
+	const Skeleton& GetSkeleton() const { return sharedResource_->modelData.skeleton; }
 
 	/**
 	 * @brief アニメーション一覧の取得
 	 */
-	const std::vector<AnimationClip>& GetAnimations() const { return modelData_.animations; }
+	const std::vector<AnimationClip>& GetAnimations() const { return sharedResource_->modelData.animations; }
 
 	/**
 	 * @brief メッシュ数の取得
@@ -73,17 +75,17 @@ public: // アクセッサ
 	/**
 	 * @brief マテリアル数の取得
 	 */
-	size_t GetMaterialCount() const { return modelData_.materials.size(); }
+	size_t GetMaterialCount() const { return sharedResource_->modelData.materials.size(); }
 
 	/**
 	 * @brief 頂点総数の取得
 	 */
-	uint32_t GetTotalVertexCount() const { return totalVertexCount_; }
+	uint32_t GetTotalVertexCount() const { return sharedResource_->totalVertexCount; }
 
 	/**
 	 * @brief スキニング入力バッファの取得（CS用）
 	 */
-	ID3D12Resource* GetSkinnedVertexInputBuffer() const { return skinnedVertexInputBuffer_.Get(); }
+	ID3D12Resource* GetSkinnedVertexInputBuffer() const { return sharedResource_->inputVertexBuffer.Get(); }
 
 	/**
 	 * @brief スキニング出力バッファの取得（CS用）
@@ -114,36 +116,6 @@ public: // アクセッサ
 	 */
 	void SetEnableLighting(bool enable);
 
-public: // 静的読み込み関数
-	/**
-	 * @brief スキニングモデルファイルの読み込み
-	 * @param directoryPath ファイルのディレクトリパス
-	 * @param filename ファイル名
-	 * @return スキニングモデルデータ
-	 */
-	static SkinnedModelData LoadSkinnedModelFile(const std::string& directoryPath, const std::string& filename);
-
-private:
-	/**
-	 * @brief Assimpからボーン情報を抽出
-	 */
-	static void ExtractBones(const aiScene* scene, SkinnedModelData& modelData);
-
-	/**
-	 * @brief Assimpからアニメーションを抽出
-	 */
-	static void ExtractAnimations(const aiScene* scene, SkinnedModelData& modelData);
-
-	/**
-	 * @brief 頂点ごとのボーンウェイトを抽出
-	 */
-	static void ExtractBoneWeights(aiMesh* mesh, const Skeleton& skeleton, SkinnedMeshData& meshData);
-
-	/**
-	 * @brief ノードの読み取り
-	 */
-	static Node ReadNode(aiNode* node);
-
 private: // メンバ関数
 	/**
 	 * @brief メッシュリソースの生成
@@ -173,8 +145,6 @@ private:
 	{
 		// 頂点バッファビュー
 		D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
-		// インデックスバッファリソース
-		Microsoft::WRL::ComPtr<ID3D12Resource> indexBuffer;
 		// インデックスバッファビュー
 		D3D12_INDEX_BUFFER_VIEW indexBufferView{};
 		// インデックス数
@@ -194,17 +164,11 @@ private:
 	// モデル共通部へのポインタ
 	ModelCommon* modelCommon_ = nullptr;
 
-	// スキニングモデルデータ
-	SkinnedModelData modelData_;
+	// 共有リソースへのポインタ
+	const SkinnedModelSharedResource* sharedResource_ = nullptr;
 
 	// メッシュリソース
 	std::vector<MeshResource> meshResources_;
-
-	// 全頂点数
-	uint32_t totalVertexCount_ = 0;
-
-	// スキニング用入力バッファ（SkinnedVertexData）
-	Microsoft::WRL::ComPtr<ID3D12Resource> skinnedVertexInputBuffer_;
 
 	// スキニング用出力バッファ（変形後VertexData）
 	Microsoft::WRL::ComPtr<ID3D12Resource> skinnedVertexOutputBuffer_;
