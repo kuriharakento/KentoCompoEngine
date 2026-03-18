@@ -53,6 +53,12 @@ inline uint32_t GetEntityGeneration(EntityID id)
     return (id >> entity_mask::kIndexBits) & entity_mask::kGenerationMask;
 }
 
+/**
+ * @brief インデックスと世代からEntityIDを合成する。
+ * @param index 20bitインデックス
+ * @param generation 12bit世代
+ * @return 合成されたEntityID
+ */
 inline EntityID MakeEntityID(uint32_t index, uint32_t generation)
 {
     return (index & entity_mask::kIndexMask) | ((generation & entity_mask::kGenerationMask) << entity_mask::kIndexBits);
@@ -64,7 +70,7 @@ class Registry;
  * @brief オブジェクト指向的にECSを操作するためのEntityラッパークラス
  * 
  * 内部的には EntityID(伝票番号) と Registry(倉庫) へのポインタを持つだけであり、
- * メソッド呼び出しをRegistryへの委譲に変換する軽量なラッパーです。
+ * メソッド呼び出しをRegistryへの委譲に変換する軽量なラッパー。
  */
 class Entity
 {

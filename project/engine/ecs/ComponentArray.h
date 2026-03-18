@@ -172,7 +172,9 @@ public:
     }
 
     /**
-     * @brief エンティティがこのコンポーネントを持っているか？
+     * @brief エンティティがこのコンポーネントを持っているか判定する。
+     * @param entity 対象のエンティティID
+     * @return 持っていれば true
      */
     bool HasComponent(EntityID entity) const
     {
