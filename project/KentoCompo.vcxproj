@@ -282,8 +282,11 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\gameObject\component\action\WeaponManagerComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="application\ecs\components\BulletComponent.h" />
     <ClInclude Include="application\ecs\components\EnemyStateComponent.h" />
     <ClInclude Include="application\ecs\components\PlayerComponent.h" />
+    <ClInclude Include="application\ecs\components\StatusComponent.h" />
+    <ClInclude Include="engine\ecs\components\CollisionResponseComponent.h" />
     <ClInclude Include="engine\ecs\components\EnemyAIComponent.h" />
     <ClInclude Include="engine\ecs\components\Object3dComponent.h" />
     <ClInclude Include="application\ecs\systems\EnemyBehaviorSystem.h" />

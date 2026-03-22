@@ -39,6 +39,7 @@
 #include "application/ecs/components/StatusComponent.h"
 #include "engine/ecs/components/EnemyAIComponent.h"
 #include "engine/ecs/components/InstancedRenderComponent.h"
+#include "engine/ecs/components/CollisionResponseComponent.h"
 
 // Systems
 #include "engine/ecs/system/HierarchySystem.h"
@@ -113,6 +114,7 @@ void GamePlayScene::Initialize()
 	registry_->RegisterComponent<PlayerComponent>(1);
 	registry_->RegisterComponent<ecs::StatusComponent>(10000);
 	registry_->RegisterComponent<ObstacleComponent>(10000);
+	registry_->RegisterComponent<CollisionResponseComponent>(10000);
 
 	systemManager_ = std::make_unique<SystemManager>();
 	systemManager_->AddSystem(std::make_shared<HierarchySystem>());
@@ -524,6 +526,9 @@ void GamePlayScene::Draw3D()
 	BaseScene::Draw3D();
 
 	stageManager_->Draw3D();
+
+	// ECS Systemの描画 (コライダーのデバッグ表示など)
+	systemManager_->Draw(*registry_, sceneManager_->GetCameraManager()->GetActiveCamera(), sceneManager_->GetLightManager(), sceneManager_->GetShadowMapManager());
 
 	splineCamera_->DrawSplineLine();
 }

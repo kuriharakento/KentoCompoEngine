@@ -3,7 +3,10 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <algorithm>
+#include <unordered_set>
 #include "math/Vector3.h"
+#include "math/AABB.h"
 #include "engine/ecs/Entity.h"
 
 /**
@@ -26,16 +29,26 @@ public:
     SpatialGrid(float cellSize) : cellSize_(cellSize) {}
 
     /**
-     * @brief エンティティを指定座標のセルに登録する
+     * @brief エンティティの境界ボックス（AABB）を元にグリッドへ登録する
      */
-    void Add(EntityID entity, const Vector3& position)
+    void Add(EntityID entity, const AABB& bounds)
     {
-        int64_t x = static_cast<int64_t>(std::floor(position.x / cellSize_));
-        int64_t y = static_cast<int64_t>(std::floor(position.y / cellSize_));
-        int64_t z = static_cast<int64_t>(std::floor(position.z / cellSize_));
+        int64_t minX = static_cast<int64_t>(std::floor(bounds.min_.x / cellSize_));
+        int64_t minY = static_cast<int64_t>(std::floor(bounds.min_.y / cellSize_));
+        int64_t minZ = static_cast<int64_t>(std::floor(bounds.min_.z / cellSize_));
         
-        uint64_t key = GetKey(x, y, z);
-        grid_[key].entities.push_back(entity);
+        int64_t maxX = static_cast<int64_t>(std::floor(bounds.max_.x / cellSize_));
+        int64_t maxY = static_cast<int64_t>(std::floor(bounds.max_.y / cellSize_));
+        int64_t maxZ = static_cast<int64_t>(std::floor(bounds.max_.z / cellSize_));
+
+        for (int64_t x = minX; x <= maxX; ++x) {
+            for (int64_t y = minY; y <= maxY; ++y) {
+                for (int64_t z = minZ; z <= maxZ; ++z) {
+                    uint64_t key = GetKey(x, y, z);
+                    grid_[key].entities.push_back(entity);
+                }
+            }
+        }
     }
 
     /**
@@ -47,26 +60,36 @@ public:
     }
 
     /**
-     * @brief 指定座標の周辺セルのエンティティを取得する
+     * @brief 指定境界ボックス（AABB）が触れるセルの全エンティティを取得する
      */
-    void GetNearbyEntities(const Vector3& position, std::vector<EntityID>& outEntities) const
+    void GetNearbyEntities(const AABB& bounds, std::vector<EntityID>& outEntities) const
     {
-        int64_t cx = static_cast<int64_t>(std::floor(position.x / cellSize_));
-        int64_t cy = static_cast<int64_t>(std::floor(position.y / cellSize_));
-        int64_t cz = static_cast<int64_t>(std::floor(position.z / cellSize_));
+        int64_t minX = static_cast<int64_t>(std::floor(bounds.min_.x / cellSize_));
+        int64_t minY = static_cast<int64_t>(std::floor(bounds.min_.y / cellSize_));
+        int64_t minZ = static_cast<int64_t>(std::floor(bounds.min_.z / cellSize_));
+        
+        int64_t maxX = static_cast<int64_t>(std::floor(bounds.max_.x / cellSize_));
+        int64_t maxY = static_cast<int64_t>(std::floor(bounds.max_.y / cellSize_));
+        int64_t maxZ = static_cast<int64_t>(std::floor(bounds.max_.z / cellSize_));
 
-        // 3x3x3 セルを走査
-        for (int64_t x = cx - 1; x <= cx + 1; ++x) {
-            for (int64_t y = cy - 1; y <= cy + 1; ++y) {
-                for (int64_t z = cz - 1; z <= cz + 1; ++z) {
+        // 重複を避けるためのセット
+        std::unordered_set<EntityID> resultSet;
+
+        for (int64_t x = minX; x <= maxX; ++x) {
+            for (int64_t y = minY; y <= maxY; ++y) {
+                for (int64_t z = minZ; z <= maxZ; ++z) {
                     uint64_t key = GetKey(x, y, z);
                     auto it = grid_.find(key);
                     if (it != grid_.end()) {
-                        outEntities.insert(outEntities.end(), it->second.entities.begin(), it->second.entities.end());
+                        for (EntityID entity : it->second.entities) {
+                            resultSet.insert(entity);
+                        }
                     }
                 }
             }
         }
+        
+        outEntities.assign(resultSet.begin(), resultSet.end());
     }
 
 private:

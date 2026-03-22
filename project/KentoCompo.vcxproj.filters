@@ -176,6 +176,8 @@
     <ClCompile Include="application\effect\SceneTransitionEffect.cpp" />
     <ClCompile Include="application\gameObject\component\action\PlayerUIComponent.cpp" />
     <ClCompile Include="application\gameObject\component\action\WeaponManagerComponent.cpp" />
+    <ClCompile Include="engine\ecs\system\EcsStatusSystem.cpp" />
+    <ClCompile Include="engine\ecs\system\CollisionResponseSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\ecs\components\EnemyStateComponent.h" />
@@ -416,6 +418,11 @@
     <ClInclude Include="application\gameObject\component\action\IWeaponComponent.h" />
     <ClInclude Include="application\gameObject\component\action\WeaponManagerComponent.h" />
     <ClInclude Include="engine\ecs\components\EnemyAIComponent.h" />
+    <ClInclude Include="engine\ecs\system\EcsStatusSystem.h" />
+    <ClInclude Include="engine\ecs\components\CollisionResponseComponent.h" />
+    <ClInclude Include="application\ecs\components\BulletComponent.h" />
+    <ClInclude Include="application\ecs\components\StatusComponent.h" />
+    <ClInclude Include="engine\ecs\system\CollisionResponseSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli" />

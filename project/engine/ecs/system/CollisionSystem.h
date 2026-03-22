@@ -11,6 +11,7 @@ class CollisionSystem : public ISystem
 public:
     CollisionSystem();
     void Update(Registry& registry) override;
+    void Draw(Registry& registry, Camera* camera, LightManager* lightManager, ShadowMapManager* shadowMapManager) override;
 
 private:
     std::unique_ptr<SpatialGrid> grid_;

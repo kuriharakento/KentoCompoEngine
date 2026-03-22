@@ -11,6 +11,7 @@
 #include "engine/ecs/components/TagComponent.h"
 #include "engine/ecs/components/ColliderComponent.h"
 #include "engine/ecs/components/CollisionLayerComponent.h"
+#include "engine/ecs/components/CollisionResponseComponent.h"
 #include "engine/math/AABB.h"
 
 
@@ -51,7 +52,7 @@ void ObstacleManager::Update()
 	ImGui::End();
 #endif
 
-	// 新しい障害物チE?Eタの同期
+	// 新しい障害物データの同期
 	SyncNewObstacleData();
 
 	// 障害物の更新
@@ -79,7 +80,7 @@ void ObstacleManager::Draw(CameraManager* camera)
 			{
 				auto cameraPos = camera->GetActiveCamera()->GetTranslate();
 				float distance = (obstacle->GetPosition() - cameraPos).Length();
-				if (distance > 200.0f) // カメラからの距離が一定以上なら描画しなぁE
+				if (distance > 200.0f) // カメラからの距離が一定以上なら描画しない
 				{
 					continue;
 				}
@@ -97,13 +98,13 @@ void ObstacleManager::DrawShadow()
 		{
 			if (culling_)
 			{
-				// シャドウマップ描画でもカリングを行うか?E要検討だが、E
-				// パフォーマンス向上?Eため同様?E距離チェチE??を?Eれておく
-				// (カメラからの距離が遠すぎる影は描画しなぁE
-				// ※ 本来はライト方向から?E視点でカリングすべきだが、簡易的にカメラ距離を使用
+				// シャドウマップ描画でもカリングを行うか？要検討だが、
+				// パフォーマンス向上のため同様の距離チェックを入れておく
+				// (カメラからの距離が遠すぎる影は描画しない)
+				// ※ 本来はライト方向からの視点でカリングすべきだが、簡易的にカメラ距離を使用
 				/*
-				// 厳?E??はシャドウカリングはライト視点が?E??だが、E
-				// 簡易実裁E??して通常のDrawと同じ距離制限をかける場合！E
+				// 厳密にはシャドウカリングはライト視点が適切だが、
+				// 簡易実装として通常のDrawと同じ距離制限をかける場合：
 				auto cameraPos = object3dCommon_->GetDefaultCamera()->GetTranslate();
 				float distance = (obstacle->GetPosition() - cameraPos).Length();
 				if (distance > 200.0f)
@@ -121,7 +122,7 @@ void ObstacleManager::Clear()
 {
 	obstacles_.clear();
 
-	// ECS側も?EエンチE??チE??を破?E??再?E期化
+	// ECS側も全エンティティを破棄・再初期化
 	if (registry_)
 	{
 		registry_->Initialize(registry_->GetMaxEntityCount());
@@ -130,10 +131,10 @@ void ObstacleManager::Clear()
 
 void ObstacleManager::CreateObstacles()
 {
-	// 既存?E障害物をクリア
+	// 既存の障害物をクリア
 	obstacles_.clear();
 
-	// 障害物を生?E
+	// 障害物を生成
 	auto obstacles = obstacleData_->GetObstacles();
 	for (const auto& obstacle : obstacles)
 	{
@@ -145,7 +146,7 @@ void ObstacleManager::CreateObstacles()
 		{
 			CreateFloor(obstacle);
 		}
-		else // チE??ォルト?E通常の障害物
+		else // デフォルトは通常の障害物
 		{
 			CreateObstacle(obstacle);
 		}
@@ -162,11 +163,11 @@ void ObstacleManager::ApplyObstacleData()
 		{
 			if (obstacle->GetName() == info.name)
 			{
-				// Jsonの配置?E??を適用
+				// Jsonの配置情報を適用
 				obstacle->SetPosition(info.transform.translate);
 				obstacle->SetRotation(info.transform.rotate);
 				obstacle->SetScale(info.transform.scale);
-				// コンポ?Eネント?E更新
+				// コンポーネントの更新
 				obstacle->Update();
 				break;
 			}
@@ -176,17 +177,17 @@ void ObstacleManager::ApplyObstacleData()
 
 void ObstacleManager::LoadObstacleData(const std::string& path)
 {
-	// 障害物チE?Eタの読み込み
+	// 障害物データの読み込み
 	obstacleData_->Initialize(path);
-	// 生?E
+	// 生成
 	CreateObstacles();
 }
 
 void ObstacleManager::SetObstacleData(ObstacleData* data)
 {
-	// 障害物チE?Eタの設?E
+	// 障害物データの設定
 	obstacleData_ = data;
-	// 障害物の生?E
+	// 障害物の生成
 	CreateObstacles();
 }
 
@@ -225,14 +226,14 @@ void ObstacleManager::SyncNewObstacleData()
 	if (!obstacleData_) return;
 	auto data = obstacleData_->GetObstacles();
 
-	// 既存障害物の名前リストを作?E
+	// 既存障害物の名前リストを作成
 	std::unordered_set<std::string> existingNames;
 	for (const auto& obj : obstacles_)
 	{
 		if (obj) existingNames.insert(obj->GetName());
 	}
 
-	// チE?Eタ側でまだ存在しなぁE??のだけ生?E
+	// データ側でまだ存在しないものだけ生成
 	for (const auto& info : data)
 	{
 		if (existingNames.count(info.name) == 0)
@@ -249,7 +250,7 @@ void ObstacleManager::SyncNewObstacleData()
 
 void ObstacleManager::CreateFloor(const GameObjectInfo& info)
 {
-	// コライダーなし?E床オブジェクチE
+	// コライダーなしの床オブジェクト
 	auto floor = std::make_unique<Obstacle>(gameObjectTag::item::Floor);
 	floor->GameObject::Initialize(object3dCommon_, lightManager_);
 	floor->SetModel(info.fileName);
@@ -258,7 +259,7 @@ void ObstacleManager::CreateFloor(const GameObjectInfo& info)
 	floor->SetScale(info.transform.scale);
 	floor->SetName(info.name);
 	obstacles_.push_back(std::move(floor));
-	// ECS側に登録?E?床?Eコライダーなし！E
+	// ECS側に登録（床はコライダーなし）
 	RegisterToRegistry(info, ObstacleComponent::Type::Floor, false);
 }
 
@@ -300,13 +301,15 @@ void ObstacleManager::RegisterToRegistry(const GameObjectInfo& info, ObstacleCom
 	{
 		ColliderComponent col;
 		col.type_ = ColliderType::AABB;
-		// 障害物のサイズ設定（暫定：1.0x1.0x1.0 をスケールに合わせる）
-		col.aabb_ = AABB({ -1.0f, -1.0f, -1.0f }, { 1.0f, 1.0f, 1.0f });
+		// 障害物のスケールをそのままAABBの範囲として設定（半サイズを使用するため -0.5 ~ 0.5）
+		col.aabb_ = AABB(info.transform.scale * -0.5f, info.transform.scale * 0.5f);
 		registry_->AddComponent<ColliderComponent>(entity, col);
 
 		CollisionLayerComponent layer;
 		layer.category_ = CollisionLayerComponent::kObstacle;
 		layer.mask_ = CollisionLayerComponent::kPlayer | CollisionLayerComponent::kEnemy | CollisionLayerComponent::kPlayerBullet | CollisionLayerComponent::kEnemyBullet;
 		registry_->AddComponent<CollisionLayerComponent>(entity, layer);
+
+		registry_->AddComponent<CollisionResponseComponent>(entity, {});
 	}
 }

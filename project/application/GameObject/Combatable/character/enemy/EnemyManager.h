@@ -49,6 +49,7 @@ public:
 private:
 	void CreateAssaultEnemyFromData();
 	void AssignInstancedRenderComponent(EntityID entity, const std::string& modelName);
+	void AddCollisionComponents(EntityID entity);
 
 	std::function<void()> onAllEnemiesDefeatedCallback_ = nullptr;
 

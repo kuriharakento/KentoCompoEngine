@@ -7,6 +7,7 @@
 #include "engine/ecs/components/TagComponent.h"
 #include "application/ecs/components/PlayerComponent.h"
 #include "application/ecs/components/StatusComponent.h"
+#include "engine/ecs/components/CollisionResponseComponent.h"
 #include "manager/editor/JsonEditorManager.h"
 #include "engine/ecs/system/InstancedRenderSystem.h"
 #include "engine/graphics/3d/InstancedModelRenderer.h"
@@ -281,6 +282,13 @@ void StageManager::CreateInfosFromStageData()
 				registry_->AddComponent<MovementComponent>(playerEntity_, {});
 				registry_->AddComponent<PlayerComponent>(playerEntity_, {});
 				registry_->AddComponent<ecs::StatusComponent>(playerEntity_, {});
+				registry_->AddComponent<CollisionResponseComponent>(playerEntity_, {});
+
+				// コライダー設定 (OBB)
+				ColliderComponent col;
+				col.type_ = ColliderType::OBB;
+				col.obb_.size = objInfo.transform.scale * 0.5f; // スケールをベースサイズ（半サイズ）として適用
+				registry_->AddComponent<ColliderComponent>(playerEntity_, col);
 
 				// レイヤー設定
 				CollisionLayerComponent layer;

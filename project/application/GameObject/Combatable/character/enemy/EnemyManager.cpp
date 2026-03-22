@@ -12,6 +12,9 @@
 #include "application/ecs/components/StatusComponent.h"
 #include "engine/ecs/components/EnemyAIComponent.h"
 #include "engine/ecs/components/InstancedRenderComponent.h"
+#include "engine/ecs/components/CollisionResponseComponent.h"
+#include "engine/ecs/components/ColliderComponent.h"
+#include "engine/ecs/components/CollisionLayerComponent.h"
 #include "engine/ecs/system/InstancedRenderSystem.h"
 #include "engine/manager/scene/CameraManager.h"
 #include "engine/gameobject/component/collision/OBBColliderComponent.h"
@@ -263,6 +266,7 @@ void EnemyManager::AddPistolEnemy(uint32_t count)
 		ai.behaviorTree_ = BuildPistolEnemyTree();
 		// Assuming Player is target, or wait for Scene to assign TargetEntity
 		registry_->AddComponent<EnemyAIComponent>(entity, std::move(ai));
+		AddCollisionComponents(entity);
 	}
 }
 
@@ -288,6 +292,7 @@ void EnemyManager::AddAssaultEnemy(uint32_t count)
 		EnemyAIComponent ai;
 		ai.behaviorTree_ = BuildAssaultEnemyTree();
 		registry_->AddComponent<EnemyAIComponent>(entity, std::move(ai));
+		AddCollisionComponents(entity);
 	}
 }
 
@@ -321,6 +326,7 @@ void EnemyManager::AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo
 		EnemyAIComponent ai;
 		ai.behaviorTree_ = BuildAssaultEnemyTree();
 		registry_->AddComponent<EnemyAIComponent>(entity, std::move(ai));
+		AddCollisionComponents(entity);
 	}
 }
 
@@ -343,4 +349,27 @@ void EnemyManager::AssignInstancedRenderComponent(EntityID entity, const std::st
 	render.useInstancing_ = true;
 	render.isVisible_ = true;
 	registry_->AddComponent<InstancedRenderComponent>(entity, render);
+}
+
+void EnemyManager::AddCollisionComponents(EntityID entity)
+{
+	if (!registry_) return;
+
+	auto& transform = registry_->GetComponent<TransformComponent>(entity);
+
+	// コライダー設定 (OBB)
+	ColliderComponent col;
+	col.type_ = ColliderType::OBB;
+	// オブジェクトのスケールをベースサイズ（半サイズとして適用）
+	col.obb_.size = transform.localScale_ * 0.5f;
+	registry_->AddComponent<ColliderComponent>(entity, col);
+
+	// レイヤー設定
+	CollisionLayerComponent layer;
+	layer.category_ = CollisionLayerComponent::kEnemy;
+	layer.mask_ = CollisionLayerComponent::kPlayer | CollisionLayerComponent::kObstacle | CollisionLayerComponent::kPlayerBullet;
+	registry_->AddComponent<CollisionLayerComponent>(entity, layer);
+
+	// レスポンス設定
+	registry_->AddComponent<CollisionResponseComponent>(entity, {});
 }
