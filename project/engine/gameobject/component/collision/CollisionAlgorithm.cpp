@@ -36,24 +36,27 @@ namespace collisionAlgorithm
 		int axisCount = 0;
 		for (int i = 0; i < 3; ++i) testAxes[axisCount++] = axesA[i];
 		for (int i = 0; i < 3; ++i) testAxes[axisCount++] = axesB[i];
-		for (int i = 0; i < 3; ++i) {
-			for (int j = 0; j < 3; ++j) {
+		for (int i = 0; i < 3; ++i)
+		{
+			for (int j = 0; j < 3; ++j)
+			{
 				testAxes[axisCount++] = Vector3::Normalize(Vector3::Cross(axesA[i], axesB[j]));
 			}
 		}
 
 		Vector3 toCenter = b.center - a.center;
-		for (int i = 0; i < 15; ++i) {
+		for (int i = 0; i < 15; ++i)
+		{
 			const Vector3& axis = testAxes[i];
 			if (axis.x == 0 && axis.y == 0 && axis.z == 0) continue;
 
 			float aProj = std::abs(Vector3::Dot(axesA[0] * a.size.x, axis)) +
-						  std::abs(Vector3::Dot(axesA[1] * a.size.y, axis)) +
-						  std::abs(Vector3::Dot(axesA[2] * a.size.z, axis));
+				std::abs(Vector3::Dot(axesA[1] * a.size.y, axis)) +
+				std::abs(Vector3::Dot(axesA[2] * a.size.z, axis));
 
 			float bProj = std::abs(Vector3::Dot(axesB[0] * b.size.x, axis)) +
-						  std::abs(Vector3::Dot(axesB[1] * b.size.y, axis)) +
-						  std::abs(Vector3::Dot(axesB[2] * b.size.z, axis));
+				std::abs(Vector3::Dot(axesB[1] * b.size.y, axis)) +
+				std::abs(Vector3::Dot(axesB[2] * b.size.z, axis));
 
 			float distance = std::abs(Vector3::Dot(toCenter, axis));
 			if (distance > aProj + bProj) return false;
@@ -79,15 +82,16 @@ namespace collisionAlgorithm
 		testAxes[4] = Vector3(0, 1, 0);
 		testAxes[5] = Vector3(0, 0, 1);
 
-		for (int i = 0; i < 6; ++i) {
+		for (int i = 0; i < 6; ++i)
+		{
 			const Vector3& axis = testAxes[i];
 			float aProj = std::abs(Vector3::Dot(axis, Vector3(aHalfSize.x, 0.0f, 0.0f))) +
-						  std::abs(Vector3::Dot(axis, Vector3(0.0f, aHalfSize.y, 0.0f))) +
-						  std::abs(Vector3::Dot(axis, Vector3(0.0f, 0.0f, aHalfSize.z)));
+				std::abs(Vector3::Dot(axis, Vector3(0.0f, aHalfSize.y, 0.0f))) +
+				std::abs(Vector3::Dot(axis, Vector3(0.0f, 0.0f, aHalfSize.z)));
 
 			float bProj = std::abs(Vector3::Dot(axes[0] * b.size.x, axis)) +
-						  std::abs(Vector3::Dot(axes[1] * b.size.y, axis)) +
-						  std::abs(Vector3::Dot(axes[2] * b.size.z, axis));
+				std::abs(Vector3::Dot(axes[1] * b.size.y, axis)) +
+				std::abs(Vector3::Dot(axes[2] * b.size.z, axis));
 
 			float distance = std::abs(Vector3::Dot(toCenter, axis));
 			if (distance > aProj + bProj) return false;
@@ -119,7 +123,8 @@ namespace collisionAlgorithm
 		Vector3 closest = b.center;
 		const float sizes[3] = { b.size.x, b.size.y, b.size.z };
 
-		for (int i = 0; i < 3; ++i) {
+		for (int i = 0; i < 3; ++i)
+		{
 			Vector3 axis(b.rotate.m[i][0], b.rotate.m[i][1], b.rotate.m[i][2]);
 			float dist = Vector3::Dot(d, axis);
 			float clamped = (std::max)(-sizes[i], (std::min)(dist, sizes[i]));
@@ -174,8 +179,10 @@ namespace collisionAlgorithm
 		int axisCount = 0;
 		for (int i = 0; i < 3; ++i) testAxes[axisCount++] = axesA[i];
 		for (int i = 0; i < 3; ++i) testAxes[axisCount++] = axesB[i];
-		for (int i = 0; i < 3; ++i) {
-			for (int j = 0; j < 3; ++j) {
+		for (int i = 0; i < 3; ++i)
+		{
+			for (int j = 0; j < 3; ++j)
+			{
 				Vector3 cross = Vector3::Cross(axesA[i], axesB[j]);
 				if (cross.LengthSquared() > 1e-6f) testAxes[axisCount++] = Vector3::Normalize(cross);
 			}
@@ -185,21 +192,23 @@ namespace collisionAlgorithm
 		float minOverlap = FLT_MAX;
 		Vector3 smallestAxis;
 
-		for (int i = 0; i < axisCount; ++i) {
+		for (int i = 0; i < axisCount; ++i)
+		{
 			const Vector3& axis = testAxes[i];
 			float aProj = std::abs(Vector3::Dot(axesA[0] * a.size.x, axis)) +
-						  std::abs(Vector3::Dot(axesA[1] * a.size.y, axis)) +
-						  std::abs(Vector3::Dot(axesA[2] * a.size.z, axis));
+				std::abs(Vector3::Dot(axesA[1] * a.size.y, axis)) +
+				std::abs(Vector3::Dot(axesA[2] * a.size.z, axis));
 
 			float bProj = std::abs(Vector3::Dot(axesB[0] * b.size.x, axis)) +
-						  std::abs(Vector3::Dot(axesB[1] * b.size.y, axis)) +
-						  std::abs(Vector3::Dot(axesB[2] * b.size.z, axis));
+				std::abs(Vector3::Dot(axesB[1] * b.size.y, axis)) +
+				std::abs(Vector3::Dot(axesB[2] * b.size.z, axis));
 
 			float distance = std::abs(Vector3::Dot(toCenter, axis));
 			float overlap = (aProj + bProj) - distance;
 
 			if (overlap < 0) return false;
-			if (overlap < minOverlap) {
+			if (overlap < minOverlap)
+			{
 				minOverlap = overlap;
 				smallestAxis = axis;
 			}
@@ -217,9 +226,12 @@ namespace collisionAlgorithm
 		float radiusSum = a.radius + b.radius;
 		if (dist > radiusSum) return false;
 
-		if (dist < 1e-6f) {
+		if (dist < 1e-6f)
+		{
 			mtv = Vector3(0, 1, 0) * radiusSum;
-		} else {
+		}
+		else
+		{
 			mtv = (diff / dist) * (radiusSum - dist);
 		}
 		return true;
@@ -235,14 +247,15 @@ namespace collisionAlgorithm
 
 		Vector3 diff = closest - a.center;
 		float distSq = diff.LengthSquared();
-		
-		if (distSq > 0.0001f) {
+
+		if (distSq > 0.0001f)
+		{
 			float dist = std::sqrt(distSq);
 			if (dist > a.radius) return false;
 			mtv = (diff / dist) * (dist - a.radius);
 			return true;
 		}
-		
+
 		float dMin[6] = {
 			a.center.x - b.min_.x,
 			b.max_.x - a.center.x,
@@ -251,26 +264,29 @@ namespace collisionAlgorithm
 			a.center.z - b.min_.z,
 			b.max_.z - a.center.z
 		};
-		
+
 		float minDist = dMin[0];
 		int minIndex = 0;
-		for(int i = 1; i < 6; ++i) {
-			if(dMin[i] < minDist) {
+		for (int i = 1; i < 6; ++i)
+		{
+			if (dMin[i] < minDist)
+			{
 				minDist = dMin[i];
 				minIndex = i;
 			}
 		}
-		
+
 		float pushDist = minDist + a.radius;
-		switch(minIndex) {
-			case 0: mtv = {-pushDist, 0, 0}; break;
-			case 1: mtv = { pushDist, 0, 0}; break;
-			case 2: mtv = {0, -pushDist, 0}; break;
-			case 3: mtv = {0,  pushDist, 0}; break;
-			case 4: mtv = {0, 0, -pushDist}; break;
-			case 5: mtv = {0, 0,  pushDist}; break;
+		switch (minIndex)
+		{
+		case 0: mtv = { -pushDist, 0, 0 }; break;
+		case 1: mtv = { pushDist, 0, 0 }; break;
+		case 2: mtv = { 0, -pushDist, 0 }; break;
+		case 3: mtv = { 0,  pushDist, 0 }; break;
+		case 4: mtv = { 0, 0, -pushDist }; break;
+		case 5: mtv = { 0, 0,  pushDist }; break;
 		}
-		
+
 		return true;
 	}
 
@@ -282,12 +298,13 @@ namespace collisionAlgorithm
 			Vector3::Dot(d, Vector3(b.rotate.m[1][0], b.rotate.m[1][1], b.rotate.m[1][2])),
 			Vector3::Dot(d, Vector3(b.rotate.m[2][0], b.rotate.m[2][1], b.rotate.m[2][2]))
 		};
-		
+
 		AABB localAABB(-b.size, b.size);
 		Sphere localSphere(localCenter, a.radius);
-		
+
 		Vector3 localMTV;
-		if (CheckSpherevsAABBMTV(localSphere, localAABB, localMTV)) {
+		if (CheckSpherevsAABBMTV(localSphere, localAABB, localMTV))
+		{
 			mtv = {
 				localMTV.x * b.rotate.m[0][0] + localMTV.y * b.rotate.m[1][0] + localMTV.z * b.rotate.m[2][0],
 				localMTV.x * b.rotate.m[0][1] + localMTV.y * b.rotate.m[1][1] + localMTV.z * b.rotate.m[2][1],
@@ -304,16 +321,20 @@ namespace collisionAlgorithm
 	{
 		float tmin = 0.0f;
 		float tmax = ray.length;
-		for (int i = 0; i < 3; ++i) {
+		for (int i = 0; i < 3; ++i)
+		{
 			float invD, t0, t1;
 			float start = (i == 0) ? ray.start.x : (i == 1 ? ray.start.y : ray.start.z);
 			float dir = (i == 0) ? ray.direction.x : (i == 1 ? ray.direction.y : ray.direction.z);
 			float minBound = (i == 0) ? aabb.min_.x : (i == 1 ? aabb.min_.y : aabb.min_.z);
 			float maxBound = (i == 0) ? aabb.max_.x : (i == 1 ? aabb.max_.y : aabb.max_.z);
 
-			if (std::abs(dir) < 1e-6f) {
+			if (std::abs(dir) < 1e-6f)
+			{
 				if (start < minBound || start > maxBound) return false;
-			} else {
+			}
+			else
+			{
 				invD = 1.0f / dir;
 				t0 = (minBound - start) * invD;
 				t1 = (maxBound - start) * invD;
@@ -341,10 +362,14 @@ namespace collisionAlgorithm
 		const float starts[3] = { localRayStart.x, localRayStart.y, localRayStart.z };
 		const float dirs[3] = { localRayDir.x, localRayDir.y, localRayDir.z };
 
-		for (int i = 0; i < 3; ++i) {
-			if (std::abs(dirs[i]) < 1e-6f) {
+		for (int i = 0; i < 3; ++i)
+		{
+			if (std::abs(dirs[i]) < 1e-6f)
+			{
 				if (starts[i] < -sizes[i] || starts[i] > sizes[i]) return false;
-			} else {
+			}
+			else
+			{
 				float invD = 1.0f / dirs[i];
 				float t0 = (-sizes[i] - starts[i]) * invD;
 				float t1 = (sizes[i] - starts[i]) * invD;
@@ -362,7 +387,8 @@ namespace collisionAlgorithm
 	{
 		Vector3 m = ray.start - sphere.center;
 		float c = Vector3::Dot(m, m) - sphere.radius * sphere.radius;
-		if (c <= 0.0f) {
+		if (c <= 0.0f)
+		{
 			if (outT) *outT = 0.0f;
 			return true;
 		}
@@ -371,7 +397,8 @@ namespace collisionAlgorithm
 		float disc = bDot * bDot - c;
 		if (disc < 0.0f) return false;
 		float t = -bDot - std::sqrt(disc);
-		if (t >= 0.0f && t <= ray.length) {
+		if (t >= 0.0f && t <= ray.length)
+		{
 			if (outT) *outT = t;
 			return true;
 		}
@@ -386,7 +413,8 @@ namespace collisionAlgorithm
 		if (CheckAABBvsAABB(a, b)) return true;
 		float maxDist = (std::max)((a.GetCenter() - prevA).Length(), (b.GetCenter() - prevB).Length());
 		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE)));
-		for (int step = 1; step < subStepCount; ++step) {
+		for (int step = 1; step < subStepCount; ++step)
+		{
 			float t = (float)step / subStepCount;
 			Vector3 subPosA = MathUtils::Lerp(prevA, a.GetCenter(), t);
 			Vector3 subPosB = MathUtils::Lerp(prevB, b.GetCenter(), t);
@@ -403,7 +431,8 @@ namespace collisionAlgorithm
 		if (CheckOBBvsOBB(a, b)) return true;
 		float maxDist = (std::max)((a.center - prevA).Length(), (b.center - prevB).Length());
 		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE)));
-		for (int step = 1; step < subStepCount; ++step) {
+		for (int step = 1; step < subStepCount; ++step)
+		{
 			float t = (float)step / subStepCount;
 			OBB subA = a; subA.center = MathUtils::Lerp(prevA, a.center, t);
 			OBB subB = b; subB.center = MathUtils::Lerp(prevB, b.center, t);
@@ -418,7 +447,8 @@ namespace collisionAlgorithm
 		if (CheckAABBvsOBB(a, b)) return true;
 		float maxDist = (std::max)((a.GetCenter() - prevA).Length(), (b.center - prevB).Length());
 		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE)));
-		for (int step = 1; step < subStepCount; ++step) {
+		for (int step = 1; step < subStepCount; ++step)
+		{
 			float t = (float)step / subStepCount;
 			Vector3 subPosA = MathUtils::Lerp(prevA, a.GetCenter(), t);
 			Vector3 subPosB = MathUtils::Lerp(prevB, b.center, t);
@@ -435,7 +465,8 @@ namespace collisionAlgorithm
 		if (CheckSpherevsSphere(a, b)) return true;
 		float maxDist = (std::max)((a.center - prevA).Length(), (b.center - prevB).Length());
 		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE)));
-		for (int step = 1; step < subStepCount; ++step) {
+		for (int step = 1; step < subStepCount; ++step)
+		{
 			float t = (float)step / subStepCount;
 			Sphere subA(MathUtils::Lerp(prevA, a.center, t), a.radius);
 			Sphere subB(MathUtils::Lerp(prevB, b.center, t), b.radius);
@@ -450,7 +481,8 @@ namespace collisionAlgorithm
 		if (CheckSpherevsAABB(a, b)) return true;
 		float maxDist = (std::max)((a.center - prevA).Length(), (b.GetCenter() - prevB).Length());
 		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE)));
-		for (int step = 1; step < subStepCount; ++step) {
+		for (int step = 1; step < subStepCount; ++step)
+		{
 			float t = (float)step / subStepCount;
 			Sphere subA(MathUtils::Lerp(prevA, a.center, t), a.radius);
 			Vector3 subPosB = MathUtils::Lerp(prevB, b.GetCenter(), t);
@@ -466,7 +498,8 @@ namespace collisionAlgorithm
 		if (CheckSpherevsOBB(a, b)) return true;
 		float maxDist = (std::max)((a.center - prevA).Length(), (b.center - prevB).Length());
 		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE)));
-		for (int step = 1; step < subStepCount; ++step) {
+		for (int step = 1; step < subStepCount; ++step)
+		{
 			float t = (float)step / subStepCount;
 			Sphere subA(MathUtils::Lerp(prevA, a.center, t), a.radius);
 			OBB subB = b; subB.center = MathUtils::Lerp(prevB, b.center, t);
@@ -485,7 +518,8 @@ namespace collisionAlgorithm
 
 bool collisionAlgorithm::CheckOBBvsOBB3D(const OBBColliderComponent* a, const OBBColliderComponent* b)
 {
-	if (CheckOBBvsOBB(a->GetOBB(), b->GetOBB())) {
+	if (CheckOBBvsOBB(a->GetOBB(), b->GetOBB()))
+	{
 		const_cast<OBBColliderComponent*>(a)->SetCollisionPosition(a->GetOBB().center);
 		const_cast<OBBColliderComponent*>(b)->SetCollisionPosition(b->GetOBB().center);
 		return true;
@@ -495,7 +529,8 @@ bool collisionAlgorithm::CheckOBBvsOBB3D(const OBBColliderComponent* a, const OB
 
 bool collisionAlgorithm::CheckAABBvsOBB3D(const AABBColliderComponent* a, const OBBColliderComponent* b)
 {
-	if (CheckAABBvsOBB(a->GetAABB(), b->GetOBB())) {
+	if (CheckAABBvsOBB(a->GetAABB(), b->GetOBB()))
+	{
 		const_cast<AABBColliderComponent*>(a)->SetCollisionPosition(a->GetAABB().GetCenter());
 		const_cast<OBBColliderComponent*>(b)->SetCollisionPosition(b->GetOBB().center);
 		return true;
@@ -505,7 +540,8 @@ bool collisionAlgorithm::CheckAABBvsOBB3D(const AABBColliderComponent* a, const 
 
 bool collisionAlgorithm::CheckSpherevsSphere3D(const SphereColliderComponent* a, const SphereColliderComponent* b)
 {
-	if (CheckSpherevsSphere(a->GetSphere(), b->GetSphere())) {
+	if (CheckSpherevsSphere(a->GetSphere(), b->GetSphere()))
+	{
 		const_cast<SphereColliderComponent*>(a)->SetCollisionPosition(a->GetSphere().center);
 		const_cast<SphereColliderComponent*>(b)->SetCollisionPosition(b->GetSphere().center);
 		return true;
@@ -571,7 +607,8 @@ bool collisionAlgorithm::CheckSpherevsOBB3D(const SphereColliderComponent* a, co
 bool collisionAlgorithm::CheckRayvsAABB3D(const RayColliderComponent* a, const AABBColliderComponent* b)
 {
 	float t;
-	if (CheckRayvsAABB(a->GetRay(), b->GetAABB(), &t)) {
+	if (CheckRayvsAABB(a->GetRay(), b->GetAABB(), &t))
+	{
 		Vector3 hitPos = a->GetRay().start + a->GetRay().direction * t;
 		const_cast<RayColliderComponent*>(a)->SetCollisionPosition(hitPos);
 		const_cast<AABBColliderComponent*>(b)->SetCollisionPosition(hitPos);
@@ -583,7 +620,8 @@ bool collisionAlgorithm::CheckRayvsAABB3D(const RayColliderComponent* a, const A
 bool collisionAlgorithm::CheckRayvsOBB3D(const RayColliderComponent* a, const OBBColliderComponent* b)
 {
 	float t;
-	if (CheckRayvsOBB(a->GetRay(), b->GetOBB(), &t)) {
+	if (CheckRayvsOBB(a->GetRay(), b->GetOBB(), &t))
+	{
 		Vector3 hitPos = a->GetRay().start + a->GetRay().direction * t;
 		const_cast<RayColliderComponent*>(a)->SetCollisionPosition(hitPos);
 		const_cast<OBBColliderComponent*>(b)->SetCollisionPosition(hitPos);
@@ -595,7 +633,8 @@ bool collisionAlgorithm::CheckRayvsOBB3D(const RayColliderComponent* a, const OB
 bool collisionAlgorithm::CheckRayvsSphere3D(const RayColliderComponent* a, const SphereColliderComponent* b)
 {
 	float t;
-	if (CheckRayvsSphere(a->GetRay(), b->GetSphere(), &t)) {
+	if (CheckRayvsSphere(a->GetRay(), b->GetSphere(), &t))
+	{
 		Vector3 hitPos = a->GetRay().start + a->GetRay().direction * t;
 		const_cast<RayColliderComponent*>(a)->SetCollisionPosition(hitPos);
 		const_cast<SphereColliderComponent*>(b)->SetCollisionPosition(hitPos);
@@ -610,7 +649,8 @@ bool collisionAlgorithm::CheckAABBvsAABBSubstep3D(const AABBColliderComponent* a
 {
 	Vector3 prevA = a->GetPreviousPosition();
 	Vector3 prevB = b->GetPreviousPosition();
-	if (CheckAABBvsAABBSubstep(a->GetAABB(), prevA, b->GetAABB(), prevB)) {
+	if (CheckAABBvsAABBSubstep(a->GetAABB(), prevA, b->GetAABB(), prevB))
+	{
 		const_cast<AABBColliderComponent*>(a)->SetCollisionPosition(a->GetAABB().GetCenter());
 		const_cast<AABBColliderComponent*>(b)->SetCollisionPosition(b->GetAABB().GetCenter());
 		return true;
@@ -622,7 +662,8 @@ bool collisionAlgorithm::CheckOBBvsOBBSubstep3D(const OBBColliderComponent* a, c
 {
 	Vector3 prevA = a->GetPreviousPosition();
 	Vector3 prevB = b->GetPreviousPosition();
-	if (CheckOBBvsOBBSubstep(a->GetOBB(), prevA, b->GetOBB(), prevB)) {
+	if (CheckOBBvsOBBSubstep(a->GetOBB(), prevA, b->GetOBB(), prevB))
+	{
 		const_cast<OBBColliderComponent*>(a)->SetCollisionPosition(a->GetOBB().center);
 		const_cast<OBBColliderComponent*>(b)->SetCollisionPosition(b->GetOBB().center);
 		return true;
@@ -634,7 +675,8 @@ bool collisionAlgorithm::CheckAABBvsOBBSubstep3D(const AABBColliderComponent* a,
 {
 	Vector3 prevA = a->GetPreviousPosition();
 	Vector3 prevB = b->GetPreviousPosition();
-	if (CheckAABBvsOBBSubstep(a->GetAABB(), prevA, b->GetOBB(), prevB)) {
+	if (CheckAABBvsOBBSubstep(a->GetAABB(), prevA, b->GetOBB(), prevB))
+	{
 		const_cast<AABBColliderComponent*>(a)->SetCollisionPosition(a->GetAABB().GetCenter());
 		const_cast<OBBColliderComponent*>(b)->SetCollisionPosition(b->GetOBB().center);
 		return true;
@@ -646,7 +688,8 @@ bool collisionAlgorithm::CheckSpherevsSphereSubstep3D(const SphereColliderCompon
 {
 	Vector3 prevA = a->GetPreviousPosition();
 	Vector3 prevB = b->GetPreviousPosition();
-	if (CheckSpherevsSphereSubstep(a->GetSphere(), prevA, b->GetSphere(), prevB)) {
+	if (CheckSpherevsSphereSubstep(a->GetSphere(), prevA, b->GetSphere(), prevB))
+	{
 		const_cast<SphereColliderComponent*>(a)->SetCollisionPosition(a->GetSphere().center);
 		const_cast<SphereColliderComponent*>(b)->SetCollisionPosition(b->GetSphere().center);
 		return true;
@@ -658,7 +701,8 @@ bool collisionAlgorithm::CheckSpherevsAABBSubstep3D(const SphereColliderComponen
 {
 	Vector3 prevA = a->GetPreviousPosition();
 	Vector3 prevB = b->GetPreviousPosition();
-	if (CheckSpherevsAABBSubstep(a->GetSphere(), prevA, b->GetAABB(), prevB)) {
+	if (CheckSpherevsAABBSubstep(a->GetSphere(), prevA, b->GetAABB(), prevB))
+	{
 		const_cast<SphereColliderComponent*>(a)->SetCollisionPosition(a->GetSphere().center);
 		const_cast<AABBColliderComponent*>(b)->SetCollisionPosition(b->GetAABB().GetCenter());
 		return true;
@@ -670,7 +714,8 @@ bool collisionAlgorithm::CheckSpherevsOBBSubstep3D(const SphereColliderComponent
 {
 	Vector3 prevA = a->GetPreviousPosition();
 	Vector3 prevB = b->GetPreviousPosition();
-	if (CheckSpherevsOBBSubstep(a->GetSphere(), prevA, b->GetOBB(), prevB)) {
+	if (CheckSpherevsOBBSubstep(a->GetSphere(), prevA, b->GetOBB(), prevB))
+	{
 		const_cast<SphereColliderComponent*>(a)->SetCollisionPosition(a->GetSphere().center);
 		const_cast<OBBColliderComponent*>(b)->SetCollisionPosition(b->GetOBB().center);
 		return true;
@@ -1445,134 +1490,149 @@ bool collisionAlgorithm::CheckCirclevsOBBSubstep2D(const SphereColliderComponent
 			return true;
 		}
 	}
-	bool CheckAABBvsAABBMTV(const AABB& a, const AABB& b, Vector3& mtv)
+	return false;
+}
+
+bool CheckAABBvsAABBMTV(const AABB& a, const AABB& b, Vector3& mtv)
+{
+	float overlapX = (std::min)(a.max_.x, b.max_.x) - (std::max)(a.min_.x, b.min_.x);
+	float overlapY = (std::min)(a.max_.y, b.max_.y) - (std::max)(a.min_.y, b.min_.y);
+	float overlapZ = (std::min)(a.max_.z, b.max_.z) - (std::max)(a.min_.z, b.min_.z);
+
+	if (overlapX < 0 || overlapY < 0 || overlapZ < 0) return false;
+
+	if (overlapX < overlapY && overlapX < overlapZ)
 	{
-		float overlapX = (std::min)(a.max_.x, b.max_.x) - (std::max)(a.min_.x, b.min_.x);
-		float overlapY = (std::min)(a.max_.y, b.max_.y) - (std::max)(a.min_.y, b.min_.y);
-		float overlapZ = (std::min)(a.max_.z, b.max_.z) - (std::max)(a.min_.z, b.min_.z);
+		mtv = { (a.max_.x + a.min_.x) < (b.max_.x + b.min_.x) ? -overlapX : overlapX, 0, 0 };
+	}
+	else if (overlapY < overlapZ)
+	{
+		mtv = { 0, (a.max_.y + a.min_.y) < (b.max_.y + b.min_.y) ? -overlapY : overlapY, 0 };
+	}
+	else
+	{
+		mtv = { 0, 0, (a.max_.z + a.min_.z) < (b.max_.z + b.min_.z) ? -overlapZ : overlapZ };
+	}
+	return true;
+}
 
-		if (overlapX < 0 || overlapY < 0 || overlapZ < 0) return false;
+bool CheckOBBvsOBBMTV(const OBB& a, const OBB& b, Vector3& mtv)
+{
+	Vector3 axesA[3] = {
+		Vector3::Normalize({a.rotate.m[0][0], a.rotate.m[0][1], a.rotate.m[0][2]}),
+		Vector3::Normalize({a.rotate.m[1][0], a.rotate.m[1][1], a.rotate.m[1][2]}),
+		Vector3::Normalize({a.rotate.m[2][0], a.rotate.m[2][1], a.rotate.m[2][2]})
+	};
+	Vector3 axesB[3] = {
+		Vector3::Normalize({b.rotate.m[0][0], b.rotate.m[0][1], b.rotate.m[0][2]}),
+		Vector3::Normalize({b.rotate.m[1][0], b.rotate.m[1][1], b.rotate.m[1][2]}),
+		Vector3::Normalize({b.rotate.m[2][0], b.rotate.m[2][1], b.rotate.m[2][2]})
+	};
 
-		if (overlapX < overlapY && overlapX < overlapZ) {
-			mtv = { (a.max_.x + a.min_.x) < (b.max_.x + b.min_.x) ? -overlapX : overlapX, 0, 0 };
-		} else if (overlapY < overlapZ) {
-			mtv = { 0, (a.max_.y + a.min_.y) < (b.max_.y + b.min_.y) ? -overlapY : overlapY, 0 };
-		} else {
-			mtv = { 0, 0, (a.max_.z + a.min_.z) < (b.max_.z + b.min_.z) ? -overlapZ : overlapZ };
+	Vector3 testAxes[15];
+	int axisCount = 0;
+	for (int i = 0; i < 3; ++i) testAxes[axisCount++] = axesA[i];
+	for (int i = 0; i < 3; ++i) testAxes[axisCount++] = axesB[i];
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+		{
+			Vector3 cross = Vector3::Cross(axesA[i], axesB[j]);
+			if (cross.LengthSquared() > 0.0001f) testAxes[axisCount++] = Vector3::Normalize(cross);
 		}
+	}
+
+	float minOverlap = 1e10f;
+	Vector3 bestAxis = { 0,0,0 };
+
+	Vector3 toCenter = b.center - a.center;
+
+	for (int i = 0; i < axisCount; ++i)
+	{
+		const Vector3& axis = testAxes[i];
+		float rA = std::abs(Vector3::Dot(axesA[0] * a.size.x, axis)) + std::abs(Vector3::Dot(axesA[1] * a.size.y, axis)) + std::abs(Vector3::Dot(axesA[2] * a.size.z, axis));
+		float rB = std::abs(Vector3::Dot(axesB[0] * b.size.x, axis)) + std::abs(Vector3::Dot(axesB[1] * b.size.y, axis)) + std::abs(Vector3::Dot(axesB[2] * b.size.z, axis));
+		float dist = std::abs(Vector3::Dot(toCenter, axis));
+
+		float overlap = rA + rB - dist;
+		if (overlap <= 0.0f) return false;
+		if (overlap < minOverlap)
+		{
+			minOverlap = overlap;
+			bestAxis = axis;
+		}
+	}
+
+	if (Vector3::Dot(toCenter, bestAxis) < 0) bestAxis = bestAxis * -1.0f;
+	mtv = bestAxis * -minOverlap;
+	return true;
+}
+
+bool CheckSpherevsSphereMTV(const Sphere& a, const Sphere& b, Vector3& mtv)
+{
+	Vector3 diff = a.center - b.center;
+	float dist = diff.Length();
+	float overlap = (a.radius + b.radius) - dist;
+	if (overlap <= 0) return false;
+	mtv = (dist > 0) ? (diff / dist) : Vector3(0, 1, 0);
+	mtv *= overlap;
+	return true;
+}
+
+bool CheckSpherevsAABBMTV(const Sphere& a, const AABB& b, Vector3& mtv)
+{
+	Vector3 closest = {
+		(std::max)(b.min_.x, (std::min)(a.center.x, b.max_.x)),
+		(std::max)(b.min_.y, (std::min)(a.center.y, b.max_.y)),
+		(std::max)(b.min_.z, (std::min)(a.center.z, b.max_.z))
+	};
+	Vector3 diff = a.center - closest;
+	float distSq = diff.LengthSquared();
+	if (distSq > a.radius * a.radius) return false;
+
+	float dist = std::sqrt(distSq);
+	if (dist > 0.0001f)
+	{
+		mtv = (diff / dist) * (a.radius - dist);
+	}
+	else
+	{
+		// めり込みが中心にある場合、一番近い面から押し出す
+		Vector3 dMin = a.center - b.min_;
+		Vector3 dMax = b.max_ - a.center;
+		float minD = (std::min)({ dMin.x, dMin.y, dMin.z, dMax.x, dMax.y, dMax.z });
+		if (minD == dMin.x) mtv = { -a.radius, 0, 0 };
+		else if (minD == dMax.x) mtv = { a.radius, 0, 0 };
+		else if (minD == dMin.y) mtv = { 0, -a.radius, 0 };
+		else if (minD == dMax.y) mtv = { 0, a.radius, 0 };
+		else if (minD == dMin.z) mtv = { 0, 0, -a.radius };
+		else mtv = { 0, 0, a.radius };
+	}
+	return true;
+}
+
+bool CheckSpherevsOBBMTV(const Sphere& a, const OBB& b, Vector3& mtv)
+{
+	// SphereをOBBローカル空間へ
+	Vector3 d = a.center - b.center;
+	Vector3 localCenter = {
+		Vector3::Dot(d, {b.rotate.m[0][0], b.rotate.m[0][1], b.rotate.m[0][2]}),
+		Vector3::Dot(d, {b.rotate.m[1][0], b.rotate.m[1][1], b.rotate.m[1][2]}),
+		Vector3::Dot(d, {b.rotate.m[2][0], b.rotate.m[2][1], b.rotate.m[2][2]})
+	};
+
+	AABB localAABB(-b.size, b.size);
+	Sphere localSphere(localCenter, a.radius);
+	Vector3 localMTV;
+	if (CheckSpherevsAABBMTV(localSphere, localAABB, localMTV))
+	{
+		// MTVをワールド空間へ戻す
+		mtv = {
+			localMTV.x * b.rotate.m[0][0] + localMTV.y * b.rotate.m[1][0] + localMTV.z * b.rotate.m[2][0],
+			localMTV.x * b.rotate.m[0][1] + localMTV.y * b.rotate.m[1][1] + localMTV.z * b.rotate.m[2][1],
+			localMTV.x * b.rotate.m[0][2] + localMTV.y * b.rotate.m[1][2] + localMTV.z * b.rotate.m[2][2]
+		};
 		return true;
 	}
-
-	bool CheckOBBvsOBBMTV(const OBB& a, const OBB& b, Vector3& mtv)
-	{
-		Vector3 axesA[3] = {
-			Vector3::Normalize({a.rotate.m[0][0], a.rotate.m[0][1], a.rotate.m[0][2]}),
-			Vector3::Normalize({a.rotate.m[1][0], a.rotate.m[1][1], a.rotate.m[1][2]}),
-			Vector3::Normalize({a.rotate.m[2][0], a.rotate.m[2][1], a.rotate.m[2][2]})
-		};
-		Vector3 axesB[3] = {
-			Vector3::Normalize({b.rotate.m[0][0], b.rotate.m[0][1], b.rotate.m[0][2]}),
-			Vector3::Normalize({b.rotate.m[1][0], b.rotate.m[1][1], b.rotate.m[1][2]}),
-			Vector3::Normalize({b.rotate.m[2][0], b.rotate.m[2][1], b.rotate.m[2][2]})
-		};
-
-		Vector3 testAxes[15];
-		int axisCount = 0;
-		for (int i = 0; i < 3; ++i) testAxes[axisCount++] = axesA[i];
-		for (int i = 0; i < 3; ++i) testAxes[axisCount++] = axesB[i];
-		for (int i = 0; i < 3; ++i) {
-			for (int j = 0; j < 3; ++j) {
-				Vector3 cross = Vector3::Cross(axesA[i], axesB[j]);
-				if (cross.LengthSq() > 0.0001f) testAxes[axisCount++] = Vector3::Normalize(cross);
-			}
-		}
-
-		float minOverlap = 1e10f;
-		Vector3 bestAxis = {0,0,0};
-
-		Vector3 toCenter = b.center - a.center;
-
-		for (int i = 0; i < axisCount; ++i) {
-			const Vector3& axis = testAxes[i];
-			float rA = std::abs(Vector3::Dot(axesA[0] * a.size.x, axis)) + std::abs(Vector3::Dot(axesA[1] * a.size.y, axis)) + std::abs(Vector3::Dot(axesA[2] * a.size.z, axis));
-			float rB = std::abs(Vector3::Dot(axesB[0] * b.size.x, axis)) + std::abs(Vector3::Dot(axesB[1] * b.size.y, axis)) + std::abs(Vector3::Dot(axesB[2] * b.size.z, axis));
-			float dist = std::abs(Vector3::Dot(toCenter, axis));
-
-			float overlap = rA + rB - dist;
-			if (overlap <= 0.0f) return false;
-			if (overlap < minOverlap) {
-				minOverlap = overlap;
-				bestAxis = axis;
-			}
-		}
-
-		if (Vector3::Dot(toCenter, bestAxis) < 0) bestAxis = bestAxis * -1.0f;
-		mtv = bestAxis * -minOverlap;
-		return true;
-	}
-
-	bool CheckSpherevsSphereMTV(const Sphere& a, const Sphere& b, Vector3& mtv)
-	{
-		Vector3 diff = a.center - b.center;
-		float dist = diff.Length();
-		float overlap = (a.radius + b.radius) - dist;
-		if (overlap <= 0) return false;
-		mtv = (dist > 0) ? (diff / dist) : Vector3(0, 1, 0);
-		mtv *= overlap;
-		return true;
-	}
-
-	bool CheckSpherevsAABBMTV(const Sphere& a, const AABB& b, Vector3& mtv)
-	{
-		Vector3 closest = {
-			(std::max)(b.min_.x, (std::min)(a.center.x, b.max_.x)),
-			(std::max)(b.min_.y, (std::min)(a.center.y, b.max_.y)),
-			(std::max)(b.min_.z, (std::min)(a.center.z, b.max_.z))
-		};
-		Vector3 diff = a.center - closest;
-		float distSq = diff.LengthSq();
-		if (distSq > a.radius * a.radius) return false;
-
-		float dist = std::sqrt(distSq);
-		if (dist > 0.0001f) {
-			mtv = (diff / dist) * (a.radius - dist);
-		} else {
-			// めり込みが中心にある場合、一番近い面から押し出す
-			Vector3 dMin = a.center - b.min_;
-			Vector3 dMax = b.max_ - a.center;
-			float minD = (std::min)({dMin.x, dMin.y, dMin.z, dMax.x, dMax.y, dMax.z});
-			if (minD == dMin.x) mtv = {-a.radius, 0, 0};
-			else if (minD == dMax.x) mtv = {a.radius, 0, 0};
-			else if (minD == dMin.y) mtv = {0, -a.radius, 0};
-			else if (minD == dMax.y) mtv = {0, a.radius, 0};
-			else if (minD == dMin.z) mtv = {0, 0, -a.radius};
-			else mtv = {0, 0, a.radius};
-		}
-		return true;
-	}
-
-	bool CheckSpherevsOBBMTV(const Sphere& a, const OBB& b, Vector3& mtv)
-	{
-		// SphereをOBBローカル空間へ
-		Vector3 d = a.center - b.center;
-		Vector3 localCenter = {
-			Vector3::Dot(d, {b.rotate.m[0][0], b.rotate.m[0][1], b.rotate.m[0][2]}),
-			Vector3::Dot(d, {b.rotate.m[1][0], b.rotate.m[1][1], b.rotate.m[1][2]}),
-			Vector3::Dot(d, {b.rotate.m[2][0], b.rotate.m[2][1], b.rotate.m[2][2]})
-		};
-
-		AABB localAABB(-b.size, b.size);
-		Sphere localSphere(localCenter, a.radius);
-		Vector3 localMTV;
-		if (CheckSpherevsAABBMTV(localSphere, localAABB, localMTV)) {
-			// MTVをワールド空間へ戻す
-			mtv = {
-				localMTV.x * b.rotate.m[0][0] + localMTV.y * b.rotate.m[1][0] + localMTV.z * b.rotate.m[2][0],
-				localMTV.x * b.rotate.m[0][1] + localMTV.y * b.rotate.m[1][1] + localMTV.z * b.rotate.m[2][1],
-				localMTV.x * b.rotate.m[0][2] + localMTV.y * b.rotate.m[1][2] + localMTV.z * b.rotate.m[2][2]
-			};
-			return true;
-		}
-		return false;
-	}
+	return false;
 }
