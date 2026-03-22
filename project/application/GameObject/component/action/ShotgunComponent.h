@@ -40,11 +40,6 @@ public:
     // --- IWeaponComponent インターフェース実装 ---
 
     /**
-     * @brief 武器の発射処理
-     */
-    void Fire() override;
-
-    /**
      * @brief リロード開始
      */
     void StartReload() override;
@@ -109,8 +104,7 @@ private:
 
     // プレイヤー用の弾発射処理
     void FireBullets(GameObject* owner);
-    // 敵用の弾発射処理（ターゲット指定）
-    void FireBullets(GameObject* owner, const Vector3& targetPosition);
+
     // リロード処理
 	void Reload(float deltaTime);
 

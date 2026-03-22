@@ -1,6 +1,16 @@
 #include "StageManager.h"
-
+#include "engine/ecs/components/TransformComponent.h"
+#include "engine/ecs/components/MovementComponent.h"
+#include "engine/ecs/components/ColliderComponent.h"
+#include "engine/ecs/components/CollisionLayerComponent.h"
+#include "engine/ecs/components/InstancedRenderComponent.h"
+#include "engine/ecs/components/TagComponent.h"
+#include "application/ecs/components/PlayerComponent.h"
+#include "application/ecs/components/StatusComponent.h"
 #include "manager/editor/JsonEditorManager.h"
+#include "engine/ecs/system/InstancedRenderSystem.h"
+#include "engine/graphics/3d/InstancedModelRenderer.h"
+#include "manager/graphics/ModelManager.h"
 
 StageManager::StageManager()
 {
@@ -10,7 +20,6 @@ StageManager::~StageManager()
 {
 	// 各ゲームオブジェクトを明示的に解放
 	stageData_.reset();
-	player_.reset();
 	enemyManager_.reset();
 	obstacleManager_.reset();
 	stage_.reset();
@@ -18,7 +27,7 @@ StageManager::~StageManager()
 
 #include "engine/manager/effect/PostProcessManager.h"
 
-void StageManager::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, CameraManager* camera, ShadowMapManager* shadowMapManager, PostProcessManager* postProcessManager)
+void StageManager::Initialize(Registry* registry, SystemManager* systemManager, Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, CameraManager* camera, ShadowMapManager* shadowMapManager, PostProcessManager* postProcessManager)
 {
 	object3dCommon_ = object3dCommon;
 	spriteCommon_ = spriteCommon;
@@ -26,6 +35,8 @@ void StageManager::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spri
 	cameraManager_ = camera;
 	shadowMapManager_ = shadowMapManager;
 	postProcessManager_ = postProcessManager;
+	registry_ = registry;
+	systemManager_ = systemManager;
 
 	// ステージデータの初期化
 	stageData_ = std::make_unique<StageData>();
@@ -39,14 +50,29 @@ void StageManager::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spri
 
 	// --- 各マネージャーの初期化 --- //
 
-	// 敵マネージャーの初期化
 	enemyManager_ = std::make_unique<EnemyManager>();
-	enemyManager_->Initialize(object3dCommon_, spriteCommon, camera, lightManager, shadowMapManager, nullptr); // ターゲットは後で設定
+	enemyManager_->Initialize(registry, systemManager, object3dCommon_, spriteCommon, camera, lightManager, shadowMapManager, nullptr); // ターゲットは後で設定
 	enemyManager_->SetCameraManager(cameraManager_);
 
 	// 障害物マネージャーの初期化
 	obstacleManager_ = std::make_unique<ObstacleManager>();
-	obstacleManager_->Initialize(object3dCommon_, lightManager);
+	obstacleManager_->Initialize(registry_, object3dCommon_, lightManager_);
+
+	// --- ECS レンダラーの初期化 --- //
+	
+	// 主要なモデルのレンダラーを事前生成
+	// [BNS-Fix] ステージで使用されるモデル（"street", "knife" 等）を追加
+	const std::vector<std::string> modelNames = { "player", "enemy", "wall", "cube", "street", "knife" };
+	for (const auto& name : modelNames)
+	{
+		Model* model = ModelManager::GetInstance()->FindModel(name);
+		if (model)
+		{
+			auto renderer = std::make_unique<InstancedModelRenderer>(10000);
+			renderer->Initialize(object3dCommon_->GetDXCommon(), object3dCommon_->GetSrvManager(), model);
+			ecsRenderers_[name] = std::move(renderer);
+		}
+	}
 }
 
 void StageManager::Update()
@@ -54,11 +80,19 @@ void StageManager::Update()
 	// デバッグUIの更新
 	DrawImGui();
 
-	// プレイヤーの更新
-	if (player_)
+	// プレイヤーデータの同期（カメラ用など）
+	if (playerEntity_ == kInvalidEntity) return; // Changed return true to return; as Update is void.
+	if (registry_ && registry_->HasComponent<ecs::StatusComponent>(playerEntity_)) // Changed condition to check for StatusComponent and registry
 	{
-		player_->Update();
+		if (registry_->HasComponent<TransformComponent>(playerEntity_))
+		{
+			auto& transform = registry_->GetComponent<TransformComponent>(playerEntity_);
+			lastPlayerPos_ = transform.localPosition_;
+			lastPlayerRot_ = transform.localRotation_;
+		}
 	}
+
+	// プレイヤーの更新（ECS SystemManagerで一括更新されるため、ここでは何もしない）
 
 	// 敵マネージャーの更新
 	if (enemyManager_)
@@ -92,17 +126,9 @@ void StageManager::Update()
 
 void StageManager::UpdateTransforms(CameraManager* camera)
 {
-	// プレイヤーの行列更新
-	if (player_)
-	{
-		player_->UpdateTransform(camera);
-	}
+	// プレイヤーの行列更新（ECS SystemManagerで一括更新されるため、ここでは何もしない）
 
-	// 敵マネージャーの行列更新
-	if (enemyManager_)
-	{
-		enemyManager_->UpdateTransform(cameraManager_);
-	}
+
 
 	// 障害物マネージャーの行列更新
 	if (obstacleManager_)
@@ -113,44 +139,39 @@ void StageManager::UpdateTransforms(CameraManager* camera)
 
 void StageManager::Draw3D()
 {
-	// プレイヤーの描画
-	if (player_)
+	// ECS インスタンス描画
+	if (registry_)
 	{
-		player_->Draw3D(cameraManager_);
+		InstancedRenderSystem::DrawGrouped(*registry_, ecsRenderers_, cameraManager_->GetActiveCamera(), lightManager_, shadowMapManager_);
 	}
 
-	// 敵マネージャーの通常描画（非ECS）
+	// [Fix] ECS インスタンス描画でルートシグネチャが上書きされるため、通常描画用に設定を戻す
+	if (object3dCommon_)
+	{
+		object3dCommon_->CommonRenderingSetting();
+	}
+
+	// 敵マネージャーの通常描画（非ECS：弾など）
 	if (enemyManager_)
 	{
 		enemyManager_->DrawStandard3D(cameraManager_);
 	}
 
-	// 障害物の描画
+	// 障害物の描画は ECS 側 (InstancedRenderSystem) で一括して行われるため、
+	// 従来の GameObject 版 Draw は不要（呼び出すとルートシグネチャの不一致でクラッシュする）
+	/*
 	if (obstacleManager_)
 	{
 		obstacleManager_->Draw(cameraManager_);
 	}
-
-	// 敵マネージャーのECSインスタンス描画（ルートシグネチャが変わるため最後に実行）
-	if (enemyManager_)
-	{
-		enemyManager_->DrawInstanced3D(cameraManager_);
-	}
+	*/
 }
 
 void StageManager::DrawShadow()
 {
-	// プレイヤーのシャドウ描画
-	if (player_)
-	{
-		player_->DrawShadow();
-	}
+	// プレイヤーのシャドウ描画（TODO: ECSでのシャドウ描画対応）
 
-	// 敵マネージャーのシャドウ描画
-	if (enemyManager_)
-	{
-		enemyManager_->DrawShadow();
-	}
+
 
 	// 障害物のシャドウ描画
 	if (obstacleManager_)
@@ -161,16 +182,8 @@ void StageManager::DrawShadow()
 
 void StageManager::Draw2D()
 {
-	// プレイヤーの2D描画
-	if (player_)
-	{
-		player_->Draw2D();
-	}
-	// 敵マネージャーの2D描画
-	if (enemyManager_)
-	{
-		enemyManager_->Draw2D();
-	}
+	// プレイヤーの2D描画（TODO: ECSでのUI表示対応）
+
 }
 
 void StageManager::DrawImGui()
@@ -215,7 +228,6 @@ void StageManager::LoadStage(const std::string& stageName)
 	std::string areaJson = "_area" + json;
 
 	// 既存のゲームオブジェクトをクリア
-	player_.reset();              // プレイヤーは1体のみなのでリセット
 	enemyManager_->Clear();       // 敵を全削除
 	obstacleManager_->Clear();    // 障害物と床を全削除
 
@@ -259,20 +271,32 @@ void StageManager::CreateInfosFromStageData()
 		if (objInfo.type == "PlayerSpawn")
 		{
 			// プレイヤーのスポーン処理
-			// ゲーム中に1体のみなのでここで生成
-			if (!player_)
+			if (playerEntity_ == kInvalidEntity && registry_)
 			{
-				player_ = std::make_unique<Player>();
-			}
-			// 敵マネージャーにプレイヤーをターゲットとして設定
-			enemyManager_->SetTarget(player_.get());
+				playerEntity_ = registry_->CreateEntity();
+				
+				// コンポーネント付与
+				registry_->AddComponent<TagComponent>(playerEntity_, { TagComponent::Type::Player });
+				registry_->AddComponent<TransformComponent>(playerEntity_, { objInfo.transform.translate, objInfo.transform.rotate, objInfo.transform.scale });
+				registry_->AddComponent<MovementComponent>(playerEntity_, {});
+				registry_->AddComponent<PlayerComponent>(playerEntity_, {});
+				registry_->AddComponent<ecs::StatusComponent>(playerEntity_, {});
 
-			// プレイヤーの初期化と配置
-			player_->Initialize(object3dCommon_, spriteCommon_, lightManager_, enemyManager_.get(), cameraManager_, postProcessManager_);
-			player_->SetModel("player");
-			player_->SetPosition(objInfo.transform.translate);
-			player_->SetRotation(objInfo.transform.rotate);
-			player_->SetScale(objInfo.transform.scale);
+				// レイヤー設定
+				CollisionLayerComponent layer;
+				layer.category_ = CollisionLayerComponent::kPlayer;
+				layer.mask_ = CollisionLayerComponent::kEnemy | CollisionLayerComponent::kObstacle | CollisionLayerComponent::kEnemyBullet;
+				registry_->AddComponent<CollisionLayerComponent>(playerEntity_, layer);
+
+				// 描画設定
+				InstancedRenderComponent irc;
+				irc.modelName_ = "player";
+				registry_->AddComponent<InstancedRenderComponent>(playerEntity_, irc);
+
+				// 敵マネージャーのターゲット設定（EntityIDへの対応は追って検討）
+				// 現状は GameObject 依存が残っている可能性があるため null 設定
+				enemyManager_->SetTarget(nullptr);
+			}
 		}
 		else if (objInfo.type == "EnemySpawn")
 		{
@@ -289,4 +313,20 @@ void StageManager::CreateInfosFromStageData()
 	// 障害物データを設定
 	obstacleData_->SetObstacles(obstacleInfos);
 	obstacleManager_->SetObstacleData(obstacleData_.get());
+}
+
+bool StageManager::IsPlayerAlive() const
+{
+	if (playerEntity_ == kInvalidEntity || !registry_)
+	{
+		return false;
+	}
+
+	if (!registry_->HasComponent<ecs::StatusComponent>(playerEntity_))
+	{
+		return false;
+	}
+
+	const auto& status = registry_->GetComponent<ecs::StatusComponent>(playerEntity_);
+	return status.isAlive_;
 }

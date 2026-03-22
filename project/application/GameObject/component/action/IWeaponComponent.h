@@ -17,9 +17,9 @@ public:
     /**
      * @brief 武器の発射処理
      * 
-     * 敵クラスから呼び出すための発射メソッド
+     * 敵クラスから呼び出すための発射メソッド(廃止)
      */
-    virtual void Fire() = 0;
+    // virtual void Fire() = 0;
 
     /**
      * @brief リロード開始

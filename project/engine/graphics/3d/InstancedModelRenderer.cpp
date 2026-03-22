@@ -55,17 +55,24 @@ void InstancedModelRenderer::UpdateBuffer(const Matrix4x4* matrices, uint32_t co
     Matrix4x4 viewProjection = camera->GetViewProjectionMatrix();
     TransformationMatrix* mappedData = reinterpret_cast<TransformationMatrix*>(mappedMatrices_);
 
+    // モデルのルートノード行列を取得（座標系変換や初期スケールが含まれる場合がある）
+    Matrix4x4 rootMatrix = MakeIdentity4x4();
+    if (model_)
+    {
+        rootMatrix = model_->GetModelData().rootNode.localMatrix;
+    }
+
     for (uint32_t i = 0; i < currentInstanceCount_; ++i)
     {
-        Matrix4x4 world = matrices[i];
+        // 従来の Object3d と同様、モデル自身のルート行列を適用する
+        Matrix4x4 world = Multiply(rootMatrix, matrices[i]);
         Matrix4x4 wvp = Multiply(world, viewProjection);
         
         TransformationMatrix data;
         data.WVP = wvp;
         data.World = world;
-        // StructuredBufferはHLSL側で読み込む際に列優先となるため、
-        // 意図した行優先数学に合わせるためにTransposeを省く（自動的に転置されて正しい逆行列が渡る）
-        data.WorldInverseTranspose = Inverse(world);
+        // 法線変換用行列の計算（逆転置）
+        data.WorldInverseTranspose = MathUtils::Transpose(Inverse(world));
 
         mappedData[i] = data;
     }

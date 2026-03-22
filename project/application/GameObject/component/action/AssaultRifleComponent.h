@@ -2,7 +2,6 @@
 #include "application/gameObject/combatable/weapon/Bullet.h"
 #include "application/gameObject/component/action/IWeaponComponent.h"
 
-class EnemyBase;
 
 /**
  * @brief アサルトライフル武器コンポーネント
@@ -36,10 +35,6 @@ public:
      */
     void Draw3D(CameraManager* camera) override;
 
-    /**
-     * @brief 敵クラスから呼び出すための発射メソッド
-     */
-	void Fire();
 
     /**
      * @brief 発射された弾のリストを取得する
@@ -110,8 +105,7 @@ private:
 
     // プレイヤー用の弾発射処理
     void FireBullet(GameObject* owner);
-    // 敵用の弾発射処理（ターゲット指定）
-    void FireBullet(GameObject* owner, const Vector3& targetPosition);
+
     // リロード処理
     void Reload(float deltaTime);
 
@@ -119,8 +113,6 @@ private:
     Object3dCommon* object3dCommon_ = nullptr;
     // ライトマネージャー
     LightManager* lightManager_ = nullptr;
-    // 敵が任意のタイミングで発射するために敵のポインタを保持
-	EnemyBase* enemy_ = nullptr;
 
     // 発射クールダウン時間
     float fireCooldown_;

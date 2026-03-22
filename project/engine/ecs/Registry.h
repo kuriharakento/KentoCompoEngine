@@ -93,7 +93,9 @@ public:
     bool AddComponent(EntityID entity, T component, PoolExhaustionPolicy policy = PoolExhaustionPolicy::AssertAndCrash)
     {
         assert(IsAlive(entity) && "Cannot add component to a dead entity.");
-        return GetComponentArray<T>()->Insert(entity, std::move(component), policy);
+        auto array = GetComponentArray<T>();
+        assert(array && "Component not registered.");
+        return array->Insert(entity, std::move(component), policy);
     }
 
     /**
@@ -105,7 +107,9 @@ public:
     {
         if (IsAlive(entity))
         {
-            GetComponentArray<T>()->Remove(entity);
+            auto array = GetComponentArray<T>();
+            assert(array && "Component not registered.");
+            array->Remove(entity);
         }
     }
 
@@ -118,7 +122,9 @@ public:
     T& GetComponent(EntityID entity)
     {
         assert(IsAlive(entity) && "Cannot get component from a dead entity.");
-        return GetComponentArray<T>()->GetData(entity);
+        auto array = GetComponentArray<T>();
+        assert(array && "Component not registered.");
+        return array->GetData(entity);
     }
 
     /**
@@ -133,7 +139,9 @@ public:
         {
             return false;
         }
-        return GetComponentArray<T>()->HasComponent(entity);
+        auto array = GetComponentArray<T>();
+        if (!array) return false;
+        return array->HasComponent(entity);
     }
 
     // =========================================================================
@@ -172,6 +180,14 @@ public:
     std::shared_ptr<ComponentArray<T>> View()
     {
         std::type_index typeName = std::type_index(typeid(T));
+        if (componentArrays_.find(typeName) == componentArrays_.end()) {
+            FILE* f;
+            fopen_s(&f, "missing_component_log.txt", "w");
+            if (f) {
+                fprintf(f, "Missing component: %s\n", typeName.name());
+                fclose(f);
+            }
+        }
         assert(componentArrays_.find(typeName) != componentArrays_.end() && "Component not registered.");
         return std::static_pointer_cast<ComponentArray<T>>(componentArrays_[typeName]);
     }
@@ -197,7 +213,13 @@ private:
     template <typename T>
     std::shared_ptr<ComponentArray<T>> GetComponentArray()
     {
-        return std::static_pointer_cast<ComponentArray<T>>(componentArrays_[std::type_index(typeid(T))]);
+        std::type_index typeName = std::type_index(typeid(T));
+        auto it = componentArrays_.find(typeName);
+        if (it == componentArrays_.end())
+        {
+            return nullptr;
+        }
+        return std::static_pointer_cast<ComponentArray<T>>(it->second);
     }
 
 private:

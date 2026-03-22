@@ -1,9 +1,9 @@
-#include "EcsInspector.h"
+﻿#include "EcsInspector.h"
 #include "imgui/imgui.h"
-#include "../../../application/ecs/components/TransformComponent.h"
-#include "../../../application/ecs/components/InstancedRenderComponent.h"
+#include "../../../engine/ecs/components/TransformComponent.h"
+#include "../../../engine/ecs/components/InstancedRenderComponent.h"
 #include "../../../application/ecs/components/EnemyStateComponent.h"
-#include "../../../application/ecs/components/LifetimeComponent.h"
+#include "../../../engine/ecs/components/LifetimeComponent.h"
 
 void EcsInspector::Initialize()
 {
@@ -20,7 +20,7 @@ void EcsInspector::Draw(Registry& registry)
 
     ImGui::Begin("ECS Inspector (BNS Edition)", &showWindow_);
 
-    // 1. レジストリ全体の統計情報
+    // 1. レジストリ全体?E統計情報
     if (ImGui::CollapsingHeader("Registry Statistics", ImGuiTreeNodeFlags_DefaultOpen))
     {
         uint32_t active = registry.GetActiveEntityCount();
@@ -32,15 +32,15 @@ void EcsInspector::Draw(Registry& registry)
 
     ImGui::Separator();
 
-    // 2. エンティティリストと詳細表示の2ペイン
+    // 2. エンチE??チE??リストと詳細表示の2ペイン
     ImGui::Columns(2, "InspectorColumns");
 
-    // 左ペイン: Entity リスト
+    // 左ペイン: Entity リスチE
     DrawEntityList(registry);
 
     ImGui::NextColumn();
 
-    // 右ペイン: Component エディタ
+    // 右ペイン: Component エチE??タ
     if (selectedEntity_ != 0xFFFFFFFF && registry.IsAlive(selectedEntity_))
     {
         DrawComponentEditor(registry, selectedEntity_);
@@ -61,16 +61,16 @@ void EcsInspector::DrawEntityList(Registry& registry)
 
     ImGui::BeginChild("EntityScrollList", ImVec2(0, 0), true);
 
-    // 簡易的に生存 Entity を探してリストアップ
-    // TODO: Registry に正確な全生存 Entity 取得 API を追加するのが望ましい
+    // 簡易的に生?EEntity を探してリストアチE?E
+    // TODO: Registry に正確な全生?EEntity 取征EAPI を追加するのが望ましい
     uint32_t maxEnt = registry.GetMaxEntityCount();
     uint32_t count = 0;
     for (uint32_t i = 0; i < maxEnt && count < 500; ++i)
     {
-        // 今回の Registry 実装では index と世代が一致すれば Alive
-        // デバッグ表示用として、index=i で何らかの EntityID が Alive か全走査（重いので上限付き）
-        // ※実際には 0x000FFFFF マスクで index を抽出しているため
-        // Registry 側に全生存 Entity を返すイテレータがあると良い
+        // 今回の Registry 実裁E??は index と世代が一致すれば Alive
+        // チE??チE??表示用として、index=i で何らか?E EntityID ぁEAlive か?E走査?E?重ぁE?Eで上限付き?E?E
+        // ※実際には 0x000FFFFF マスクで index を抽出してぁE??ため
+        // Registry 側に全生?EEntity を返すイチE??ータがあると良ぁE
     }
 
     ImGui::Text("(Full iteration pending registry API optimization)");

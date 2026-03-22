@@ -1,0 +1,116 @@
+MSBuild 縺ｮ繝舌・繧ｸ繝ｧ繝ｳ 17.14.23+b0019275e (.NET Framework)
+2026/03/23 5:47:33 縺ｫ繝薙Ν繝峨ｒ髢句ｧ九＠縺ｾ縺励◆縲・
+
+繝弱・繝・1 荳翫・繝励Ο繧ｸ繧ｧ繧ｯ繝・"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (Build 繧ｿ繝ｼ繧ｲ繝・ヨ)縲・
+ValidateSolutionConfiguration:
+  繧ｽ繝ｪ繝･繝ｼ繧ｷ繝ｧ繝ｳ讒区・ "Debug|x64" 繧偵ン繝ｫ繝峨＠縺ｦ縺・∪縺吶・
+繝励Ο繧ｸ繧ｧ繧ｯ繝・"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (1) 縺ｯ縲√ヮ繝ｼ繝・1 荳翫↓ "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj" (2) 繧偵ン繝ｫ繝峨＠縺ｦ縺・∪縺・(譌｢螳壹・繧ｿ繝ｼ繧ｲ繝・ヨ)縲・
+繝励Ο繧ｸ繧ｧ繧ｯ繝・"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj" (2) 縺ｯ縲√ヮ繝ｼ繝・1 荳翫↓ "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\DirectXTex\DirectXTex_Desktop_2022_Win10.vcxproj" (3) 繧偵ン繝ｫ繝峨＠縺ｦ縺・∪縺・(譌｢螳壹・繧ｿ繝ｼ繧ｲ繝・ヨ)縲・
+PrepareForBuild:
+  讒矩蛹門・蜉帙′譛牙柑縺ｫ縺ｪ縺｣縺ｦ縺・∪縺吶ゅさ繝ｳ繝代う繝ｩ險ｺ譁ｭ縺ｮ譖ｸ蠑剰ｨｭ螳壹↓縺ｯ繧ｨ繝ｩ繝ｼ髫主ｱ､縺悟渚譏縺輔ｌ縺ｾ縺吶りｩｳ邏ｰ縺ｫ縺､縺・※縺ｯ縲”ttps://aka.ms/cpp/structured-output 繧貞盾辣ｧ縺励※縺上□縺輔＞縲・
+InitializeBuildStatus:
+  "AlwaysCreate" 縺梧欠螳壹＆繧後◆縺溘ａ "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\DirectXTex\Debug\DirectXTex.tlog\unsuccessfulbuild" 繧剃ｽ懈・縺励※縺・∪縺吶・
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\DirectXTex\Debug\DirectXTex.tlog\unsuccessfulbuild" 縺ｮ繧ｿ繝・メ 繧ｿ繧ｹ繧ｯ繧貞ｮ溯｡後＠縺ｦ縺・∪縺吶・
+ClCompile:
+  縺吶∋縺ｦ縺ｮ蜃ｺ蜉帙′譛譁ｰ縺ｮ繧ゅ・縺ｧ縺吶・
+  縺吶∋縺ｦ縺ｮ蜃ｺ蜉帙′譛譁ｰ縺ｮ繧ゅ・縺ｧ縺吶・
+Lib:
+  縺吶∋縺ｦ縺ｮ蜃ｺ蜉帙′譛譁ｰ縺ｮ繧ゅ・縺ｧ縺吶・
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\generated\obj\DirectXTex\Debug\DirectXTex.pdb" 縺九ｉ "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\generated\outputs\Debug\DirectXTex.pdb" 縺ｸ繝輔ぃ繧､繝ｫ繧偵さ繝斐・縺励※縺・∪縺吶・
+  DirectXTex_Desktop_2022_Win10.vcxproj -> C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\generated\outputs\Debug\DirectXTex.lib
+FinalizeBuildStatus:
+  繝輔ぃ繧､繝ｫ "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\DirectXTex\Debug\DirectXTex.tlog\unsuccessfulbuild" 繧貞炎髯､縺励※縺・∪縺吶・
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\DirectXTex\Debug\DirectXTex.tlog\DirectXTex.lastbuildstate" 縺ｮ繧ｿ繝・メ 繧ｿ繧ｹ繧ｯ繧貞ｮ溯｡後＠縺ｦ縺・∪縺吶・
+繝励Ο繧ｸ繧ｧ繧ｯ繝・"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\DirectXTex\DirectXTex_Desktop_2022_Win10.vcxproj" (譌｢螳壹・繧ｿ繝ｼ繧ｲ繝・ヨ) 縺ｮ繝薙Ν繝峨′螳御ｺ・＠縺ｾ縺励◆縲・
+PrepareForBuild:
+  讒矩蛹門・蜉帙′譛牙柑縺ｫ縺ｪ縺｣縺ｦ縺・∪縺吶ゅさ繝ｳ繝代う繝ｩ險ｺ譁ｭ縺ｮ譖ｸ蠑剰ｨｭ螳壹↓縺ｯ繧ｨ繝ｩ繝ｼ髫主ｱ､縺悟渚譏縺輔ｌ縺ｾ縺吶りｩｳ邏ｰ縺ｫ縺､縺・※縺ｯ縲”ttps://aka.ms/cpp/structured-output 繧貞盾辣ｧ縺励※縺上□縺輔＞縲・
+InitializeBuildStatus:
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\KentoCompo.tlog\unsuccessfulbuild" 縺ｮ繧ｿ繝・メ 繧ｿ繧ｹ繧ｯ繧貞ｮ溯｡後＠縺ｦ縺・∪縺吶・
+ClCompile:
+  C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\bin\HostX64\x64\CL.exe /c /IC:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\ /IC:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\ /IC:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\ /IC:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\assimp\include /ZI /JMC /nologo /W3 /WX /diagnostics:column /sdl /MP /Od /D _DEBUG /D _WINDOWS /D USE_IMGUI /D _UNICODE /D UNICODE /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /std:c++20 /permissive- /Fo"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\\" /Fd"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\vc143.pdb" /external:W3 /Gd /TP /FC /errorReport:queue /utf-8 /FS application\gameObject\combatable\character\enemy\EnemyManager.cpp application\scene\play\GamePlayScene.cpp application\scene\play\TitleScene.cpp engine\scene\factory\SceneFactory.cpp application\gameObject\component\action\MoveComponent.cpp application\scene\debug\StageEditScene.cpp application\stage\StageManager.cpp application\stage\Wave.cpp application\minimap\Minimap.cpp
+  EnemyManager.cpp
+  GamePlayScene.cpp
+  TitleScene.cpp
+  SceneFactory.cpp
+  MoveComponent.cpp
+  StageEditScene.cpp
+  StageManager.cpp
+  Wave.cpp
+  Minimap.cpp
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(27,7): error C2535: 'void EnemyManager::DrawStandard3D(CameraManager *)': 繝｡繝ｳ繝舌・髢｢謨ｰ縺ｯ縲∵里縺ｫ螳夂ｾｩ縺ｾ縺溘・螳｣險縺輔ｌ縺ｦ縺・∪縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  (繧ｽ繝ｼ繧ｹ 繝輔ぃ繧､繝ｫ 'application/gameObject/combatable/character/enemy/EnemyManager.cpp' 繧偵さ繝ｳ繝代う繝ｫ縺励※縺・∪縺・
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(26,7):
+      'EnemyManager::DrawStandard3D' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(27,7): error C2535: 'void EnemyManager::DrawStandard3D(CameraManager *)': 繝｡繝ｳ繝舌・髢｢謨ｰ縺ｯ縲∵里縺ｫ螳夂ｾｩ縺ｾ縺溘・螳｣險縺輔ｌ縺ｦ縺・∪縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  (繧ｽ繝ｼ繧ｹ 繝輔ぃ繧､繝ｫ 'application/stage/Wave.cpp' 繧偵さ繝ｳ繝代う繝ｫ縺励※縺・∪縺・
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(26,7):
+      'EnemyManager::DrawStandard3D' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(27,7): error C2535: 'void EnemyManager::DrawStandard3D(CameraManager *)': 繝｡繝ｳ繝舌・髢｢謨ｰ縺ｯ縲∵里縺ｫ螳夂ｾｩ縺ｾ縺溘・螳｣險縺輔ｌ縺ｦ縺・∪縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  (繧ｽ繝ｼ繧ｹ 繝輔ぃ繧､繝ｫ 'application/scene/play/GamePlayScene.cpp' 繧偵さ繝ｳ繝代う繝ｫ縺励※縺・∪縺・
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(26,7):
+      'EnemyManager::DrawStandard3D' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(27,7): error C2535: 'void EnemyManager::DrawStandard3D(CameraManager *)': 繝｡繝ｳ繝舌・髢｢謨ｰ縺ｯ縲∵里縺ｫ螳夂ｾｩ縺ｾ縺溘・螳｣險縺輔ｌ縺ｦ縺・∪縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  (繧ｽ繝ｼ繧ｹ 繝輔ぃ繧､繝ｫ 'application/scene/play/TitleScene.cpp' 繧偵さ繝ｳ繝代う繝ｫ縺励※縺・∪縺・
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(26,7):
+      'EnemyManager::DrawStandard3D' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\GameObject\Combatable\character\enemy\EnemyManager.h(27,7): error C2535: 'void EnemyManager::DrawStandard3D(CameraManager *)': 繝｡繝ｳ繝舌・髢｢謨ｰ縺ｯ縲∵里縺ｫ螳夂ｾｩ縺ｾ縺溘・螳｣險縺輔ｌ縺ｦ縺・∪縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  (繧ｽ繝ｼ繧ｹ 繝輔ぃ繧､繝ｫ 'application/gameObject/component/action/MoveComponent.cpp' 繧偵さ繝ｳ繝代う繝ｫ縺励※縺・∪縺・
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\GameObject\Combatable\character\enemy\EnemyManager.h(26,7):
+      'EnemyManager::DrawStandard3D' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(27,7): error C2535: 'void EnemyManager::DrawStandard3D(CameraManager *)': 繝｡繝ｳ繝舌・髢｢謨ｰ縺ｯ縲∵里縺ｫ螳夂ｾｩ縺ｾ縺溘・螳｣險縺輔ｌ縺ｦ縺・∪縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  (繧ｽ繝ｼ繧ｹ 繝輔ぃ繧､繝ｫ 'application/stage/StageManager.cpp' 繧偵さ繝ｳ繝代う繝ｫ縺励※縺・∪縺・
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(26,7):
+      'EnemyManager::DrawStandard3D' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(27,7): error C2535: 'void EnemyManager::DrawStandard3D(CameraManager *)': 繝｡繝ｳ繝舌・髢｢謨ｰ縺ｯ縲∵里縺ｫ螳夂ｾｩ縺ｾ縺溘・螳｣險縺輔ｌ縺ｦ縺・∪縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  (繧ｽ繝ｼ繧ｹ 繝輔ぃ繧､繝ｫ 'application/scene/debug/StageEditScene.cpp' 繧偵さ繝ｳ繝代う繝ｫ縺励※縺・∪縺・
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(26,7):
+      'EnemyManager::DrawStandard3D' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(27,7): error C2535: 'void EnemyManager::DrawStandard3D(CameraManager *)': 繝｡繝ｳ繝舌・髢｢謨ｰ縺ｯ縲∵里縺ｫ螳夂ｾｩ縺ｾ縺溘・螳｣險縺輔ｌ縺ｦ縺・∪縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  (繧ｽ繝ｼ繧ｹ 繝輔ぃ繧､繝ｫ 'application/minimap/Minimap.cpp' 繧偵さ繝ｳ繝代う繝ｫ縺励※縺・∪縺・
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(26,7):
+      'EnemyManager::DrawStandard3D' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(27,7): error C2535: 'void EnemyManager::DrawStandard3D(CameraManager *)': 繝｡繝ｳ繝舌・髢｢謨ｰ縺ｯ縲∵里縺ｫ螳夂ｾｩ縺ｾ縺溘・螳｣險縺輔ｌ縺ｦ縺・∪縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  (繧ｽ繝ｼ繧ｹ 繝輔ぃ繧､繝ｫ 'engine/scene/factory/SceneFactory.cpp' 繧偵さ繝ｳ繝代う繝ｫ縺励※縺・∪縺・
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(26,7):
+      'EnemyManager::DrawStandard3D' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+繝励Ο繧ｸ繧ｧ繧ｯ繝・"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj" (譌｢螳壹・繧ｿ繝ｼ繧ｲ繝・ヨ) 縺ｮ繝薙Ν繝峨′邨ゆｺ・＠縺ｾ縺励◆ -- 螟ｱ謨励・
+繝励Ο繧ｸ繧ｧ繧ｯ繝・"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (1) 縺ｯ縲√ヮ繝ｼ繝・1 荳翫↓ "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\ImGui\ImGui.vcxproj" (4) 繧偵ン繝ｫ繝峨＠縺ｦ縺・∪縺・(譌｢螳壹・繧ｿ繝ｼ繧ｲ繝・ヨ)縲・
+PrepareForBuild:
+  讒矩蛹門・蜉帙′譛牙柑縺ｫ縺ｪ縺｣縺ｦ縺・∪縺吶ゅさ繝ｳ繝代う繝ｩ險ｺ譁ｭ縺ｮ譖ｸ蠑剰ｨｭ螳壹↓縺ｯ繧ｨ繝ｩ繝ｼ髫主ｱ､縺悟渚譏縺輔ｌ縺ｾ縺吶りｩｳ邏ｰ縺ｫ縺､縺・※縺ｯ縲”ttps://aka.ms/cpp/structured-output 繧貞盾辣ｧ縺励※縺上□縺輔＞縲・
+InitializeBuildStatus:
+  "AlwaysCreate" 縺梧欠螳壹＆繧後◆縺溘ａ "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\Generated\obj\ImGui\Debug\ImGui.tlog\unsuccessfulbuild" 繧剃ｽ懈・縺励※縺・∪縺吶・
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\Generated\obj\ImGui\Debug\ImGui.tlog\unsuccessfulbuild" 縺ｮ繧ｿ繝・メ 繧ｿ繧ｹ繧ｯ繧貞ｮ溯｡後＠縺ｦ縺・∪縺吶・
+FinalizeBuildStatus:
+  繝輔ぃ繧､繝ｫ "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\Generated\obj\ImGui\Debug\ImGui.tlog\unsuccessfulbuild" 繧貞炎髯､縺励※縺・∪縺吶・
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\Generated\obj\ImGui\Debug\ImGui.tlog\ImGui.lastbuildstate" 縺ｮ繧ｿ繝・メ 繧ｿ繧ｹ繧ｯ繧貞ｮ溯｡後＠縺ｦ縺・∪縺吶・
+繝励Ο繧ｸ繧ｧ繧ｯ繝・"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\ImGui\ImGui.vcxproj" (譌｢螳壹・繧ｿ繝ｼ繧ｲ繝・ヨ) 縺ｮ繝薙Ν繝峨′螳御ｺ・＠縺ｾ縺励◆縲・
+繝励Ο繧ｸ繧ｧ繧ｯ繝・"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (Build 繧ｿ繝ｼ繧ｲ繝・ヨ) 縺ｮ繝薙Ν繝峨′邨ゆｺ・＠縺ｾ縺励◆ -- 螟ｱ謨励・
+
+繝薙Ν繝峨↓螟ｱ謨励＠縺ｾ縺励◆縲・
+
+"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (Build 繧ｿ繝ｼ繧ｲ繝・ヨ) (1) ->
+"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj" (譌｢螳壹・繧ｿ繝ｼ繧ｲ繝・ヨ) (2) ->
+(ClCompile 繧ｿ繝ｼ繧ｲ繝・ヨ) -> 
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(27,7): error C2535: 'void EnemyManager::DrawStandard3D(CameraManager *)': 繝｡繝ｳ繝舌・髢｢謨ｰ縺ｯ縲∵里縺ｫ螳夂ｾｩ縺ｾ縺溘・螳｣險縺輔ｌ縺ｦ縺・∪縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(27,7): error C2535: 'void EnemyManager::DrawStandard3D(CameraManager *)': 繝｡繝ｳ繝舌・髢｢謨ｰ縺ｯ縲∵里縺ｫ螳夂ｾｩ縺ｾ縺溘・螳｣險縺輔ｌ縺ｦ縺・∪縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(27,7): error C2535: 'void EnemyManager::DrawStandard3D(CameraManager *)': 繝｡繝ｳ繝舌・髢｢謨ｰ縺ｯ縲∵里縺ｫ螳夂ｾｩ縺ｾ縺溘・螳｣險縺輔ｌ縺ｦ縺・∪縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(27,7): error C2535: 'void EnemyManager::DrawStandard3D(CameraManager *)': 繝｡繝ｳ繝舌・髢｢謨ｰ縺ｯ縲∵里縺ｫ螳夂ｾｩ縺ｾ縺溘・螳｣險縺輔ｌ縺ｦ縺・∪縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\GameObject\Combatable\character\enemy\EnemyManager.h(27,7): error C2535: 'void EnemyManager::DrawStandard3D(CameraManager *)': 繝｡繝ｳ繝舌・髢｢謨ｰ縺ｯ縲∵里縺ｫ螳夂ｾｩ縺ｾ縺溘・螳｣險縺輔ｌ縺ｦ縺・∪縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(27,7): error C2535: 'void EnemyManager::DrawStandard3D(CameraManager *)': 繝｡繝ｳ繝舌・髢｢謨ｰ縺ｯ縲∵里縺ｫ螳夂ｾｩ縺ｾ縺溘・螳｣險縺輔ｌ縺ｦ縺・∪縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(27,7): error C2535: 'void EnemyManager::DrawStandard3D(CameraManager *)': 繝｡繝ｳ繝舌・髢｢謨ｰ縺ｯ縲∵里縺ｫ螳夂ｾｩ縺ｾ縺溘・螳｣險縺輔ｌ縺ｦ縺・∪縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(27,7): error C2535: 'void EnemyManager::DrawStandard3D(CameraManager *)': 繝｡繝ｳ繝舌・髢｢謨ｰ縺ｯ縲∵里縺ｫ螳夂ｾｩ縺ｾ縺溘・螳｣險縺輔ｌ縺ｦ縺・∪縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\character\enemy\EnemyManager.h(27,7): error C2535: 'void EnemyManager::DrawStandard3D(CameraManager *)': 繝｡繝ｳ繝舌・髢｢謨ｰ縺ｯ縲∵里縺ｫ螳夂ｾｩ縺ｾ縺溘・螳｣險縺輔ｌ縺ｦ縺・∪縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+
+    0 蛟九・隴ｦ蜻・
+    9 繧ｨ繝ｩ繝ｼ
+
+邨碁℃譎る俣 00:00:02.61

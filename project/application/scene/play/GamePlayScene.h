@@ -13,6 +13,8 @@
 
 // scene
 #include "engine/scene/interface/BaseScene.h"
+#include "engine/ecs/Registry.h"
+#include "engine/ecs/system/SystemManager.h"
 
 // graphics
 #include "graphics/3d/Object3d.h"
@@ -276,6 +278,11 @@ private:
     std::unique_ptr<ObstacleManager> obstacleManager_;
     // ステージ・プレイヤー管理
     std::unique_ptr<StageManager> stageManager_;
+
+    // ECS Integration
+    std::unique_ptr<Registry> registry_;
+    std::unique_ptr<SystemManager> systemManager_;
+
     // シーン遷移エフェクト（フェードイン/アウト）
     SceneTransitionEffect transitionEffect_;
     // レターボックスエフェクト（映画的演出）

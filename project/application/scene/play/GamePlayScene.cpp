@@ -24,6 +24,31 @@
 #include "effects/particle/ParticleManager.h"
 #include "application/UI/PoseMenu.h"
 
+// ECS Integration
+#include "engine/ecs/system/HierarchySystem.h"
+#include "application/ecs/systems/EnemyBehaviorSystem.h"
+#include "engine/ecs/system/InstancedRenderSystem.h"
+#include "engine/ecs/components/TransformComponent.h"
+#include "engine/ecs/components/HierarchyComponent.h"
+#include "engine/ecs/components/TagComponent.h"
+#include "engine/ecs/components/MovementComponent.h"
+#include "engine/ecs/components/ColliderComponent.h"
+#include "engine/ecs/components/CollisionLayerComponent.h"
+#include "application/ecs/components/PlayerComponent.h"
+#include "application/ecs/components/EnemyStateComponent.h"
+#include "application/ecs/components/StatusComponent.h"
+#include "engine/ecs/components/EnemyAIComponent.h"
+#include "engine/ecs/components/InstancedRenderComponent.h"
+
+// Systems
+#include "engine/ecs/system/HierarchySystem.h"
+#include "engine/ecs/system/MovementSystem.h"
+#include "engine/ecs/system/CollisionSystem.h"
+#include "engine/ecs/system/PlayerSystem.h"
+#include "engine/ecs/system/EcsStatusSystem.h"
+#include "engine/ecs/system/InstancedRenderSystem.h"
+#include "application/ecs/systems/EnemyBehaviorSystem.h"
+
 void GamePlayScene::Initialize()
 {
 	Audio::GetInstance()->LoadWave("game_bgm", "bgm/game.wav", SoundGroup::BGM);
@@ -74,8 +99,38 @@ void GamePlayScene::Initialize()
 	ComboManager::GetInstance().Initialize(sceneManager_->GetSpriteCommon());
 	ComboManager::GetInstance().Reset();
 
+	registry_ = std::make_unique<Registry>();
+	registry_->Initialize(10000);
+	registry_->RegisterComponent<TransformComponent>(10000);
+	registry_->RegisterComponent<EnemyStateComponent>(10000);
+	registry_->RegisterComponent<InstancedRenderComponent>(10000);
+	registry_->RegisterComponent<EnemyAIComponent>(10000);
+	registry_->RegisterComponent<HierarchyComponent>(10000);
+	registry_->RegisterComponent<TagComponent>(10000);
+	registry_->RegisterComponent<MovementComponent>(10000);
+	registry_->RegisterComponent<ColliderComponent>(10000);
+	registry_->RegisterComponent<CollisionLayerComponent>(10000);
+	registry_->RegisterComponent<PlayerComponent>(1);
+	registry_->RegisterComponent<ecs::StatusComponent>(10000);
+	registry_->RegisterComponent<ObstacleComponent>(10000);
+
+	systemManager_ = std::make_unique<SystemManager>();
+	systemManager_->AddSystem(std::make_shared<HierarchySystem>());
+	systemManager_->AddSystem(std::make_shared<MovementSystem>());
+	systemManager_->AddSystem(std::make_shared<EcsStatusSystem>()); // Changed from StatusSystem
+	systemManager_->AddSystem(std::make_shared<CollisionSystem>());
+
+	auto playerSystem = std::make_shared<PlayerSystem>();
+	playerSystem->SetCameraManager(sceneManager_->GetCameraManager());
+	systemManager_->AddSystem(playerSystem);
+
+	systemManager_->AddSystem(std::make_shared<EnemyBehaviorSystem>());
+	systemManager_->AddSystem(std::make_shared<InstancedRenderSystem>());
+
 	stageManager_ = std::make_unique<StageManager>();
 	stageManager_->Initialize(
+		registry_.get(),
+		systemManager_.get(),
 		sceneManager_->GetObject3dCommon(),
 		sceneManager_->GetSpriteCommon(),
 		sceneManager_->GetLightManager(),
@@ -92,7 +147,7 @@ void GamePlayScene::Initialize()
 	splineCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
 	splineCamera_->LoadJson("spline.json");
 	splineCamera_->Start(kSplineCameraSpeed, false);
-	splineCamera_->SetTarget(&stageManager_->GetPlayer()->GetPosition());
+	splineCamera_->SetTarget(stageManager_->GetPlayerPositionPtr());
 
 	topDownCamera_ = std::make_unique<TopDownCamera>();
 	topDownCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
@@ -110,7 +165,7 @@ void GamePlayScene::Initialize()
 	debugCamera_ = std::make_unique<DebugCamera>();
 	debugCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
 
-	carnageMode_ = std::make_unique<CarnageMode>(stageManager_->GetPlayer());
+	carnageMode_ = std::make_unique<CarnageMode>(registry_.get(), stageManager_->GetPlayerEntity());
 
 	transitionEffect_.Initialize(
 		sceneManager_->GetSpriteCommon(),
@@ -229,7 +284,7 @@ void GamePlayScene::OnUpdateIntro()
 	auto activeCamera = sceneManager_->GetCameraManager()->GetActiveCamera();
 
 	// イントロ演出：カメラをプレイヤー位置へ滑らかに移動
-	Vector3 targetPos = stageManager_->GetPlayer()->GetPosition() + Vector3{ 0.0f, topDownCamera_->GetHeight(), 0.0f };
+	Vector3 targetPos = stageManager_->GetPlayerPosition() + Vector3{ 0.0f, topDownCamera_->GetHeight(), 0.0f };
 	Vector3 targetRot = { topDownCamera_->GetPitch(), topDownCamera_->GetYaw(), 0.0f };
 
 	Vector3 nextPos = MathUtils::Lerp(cameraInitialPosition_, targetPos, eased);
@@ -263,7 +318,7 @@ void GamePlayScene::OnEnterPlaying()
 {
 	topDownCamera_->Start(
 		kTopDownCameraHeight,
-		&stageManager_->GetPlayer()->GetPosition()
+		stageManager_->GetPlayerPositionPtr()
 	);
 
 	// 操作ガイド表示
@@ -280,7 +335,7 @@ void GamePlayScene::OnUpdatePlaying()
 		return;
 	}
 
-	if (!stageManager_->GetPlayer()->IsAlive())
+	if (!stageManager_->IsPlayerAlive())
 	{
 		gameOver_ = true;
 		ChangeState(SceneState::End);
@@ -299,6 +354,11 @@ void GamePlayScene::OnUpdatePlaying()
 	reticle_->Update();
 
 	stageManager_->Update();
+
+	if (registry_ && systemManager_) {
+		systemManager_->Update(*registry_);
+		registry_->FlushGarbageCollection();
+	}
 
 	skydome_->Update(sceneManager_->GetCameraManager());
 	ground_->Update(sceneManager_->GetCameraManager());
@@ -338,7 +398,7 @@ void GamePlayScene::OnEnterEnd()
 
 		TimerManager::GetInstance().AddTimer(std::move(timer));	
 
-		float playerYaw = stageManager_->GetPlayer()->GetRotation().y;
+		float playerYaw = stageManager_->GetPlayerRotation().y;
 
 		Vector3 forward = { std::sin(playerYaw), 0.0f, std::cos(playerYaw) };
 
@@ -351,7 +411,7 @@ void GamePlayScene::OnEnterEnd()
 		float initialAngle = MathUtils::NormalizeAngleRad(baseOrbitAngle + offsetRad);
 
 		orbitCamera_->Start(
-			&stageManager_->GetPlayer()->GetPosition(),
+			stageManager_->GetPlayerPositionPtr(),
 			kOrbitCameraDistance,
 			kOrbitCameraSpeed,
 			initialAngle,

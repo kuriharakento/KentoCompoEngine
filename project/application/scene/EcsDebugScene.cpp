@@ -1,14 +1,14 @@
 #include "EcsDebugScene.h"
-#include "../ecs/components/TransformComponent.h"
+#include "../../engine/ecs/components/TransformComponent.h"
 #include "../ecs/components/EnemyStateComponent.h"
-#include "../ecs/components/LifetimeComponent.h"
-#include "../ecs/components/HierarchyComponent.h"
-#include "../ecs/components/InstancedRenderComponent.h"
+#include "../../engine/ecs/components/LifetimeComponent.h"
+#include "../../engine/ecs/components/HierarchyComponent.h"
+#include "../../engine/ecs/components/InstancedRenderComponent.h"
 
 #include "../ecs/systems/EnemyBehaviorSystem.h"
-#include "../ecs/systems/HierarchySystem.h"
-#include "../ecs/systems/LifetimeSystem.h"
-#include "../ecs/systems/InstancedRenderSystem.h"
+#include "../../engine/ecs/system/HierarchySystem.h"
+#include "../../engine/ecs/system/LifetimeSystem.h"
+#include "../../engine/ecs/system/InstancedRenderSystem.h"
 
 #include "engine/manager/graphics/ModelManager.h"
 #include "engine/manager/system/SrvManager.h"
@@ -29,26 +29,26 @@ EcsDebugScene::~EcsDebugScene()
 
 void EcsDebugScene::Initialize()
 {
-    // 1. Registry の初期化（最大50,000エンティティ）
+    // 1. Registry の初期化（最大50,000エンチE??チE???E?E
     constexpr uint32_t kMaxEntities = 50000;
     registry_.Initialize(kMaxEntities);
 
-    // 2. 各 ComponentArray のプールを事前確保
+    // 2. 吁EComponentArray のプ?Eルを事前確?E
     registry_.RegisterComponent<TransformComponent>(kMaxEntities);
     registry_.RegisterComponent<HierarchyComponent>(10000);
     registry_.RegisterComponent<LifetimeComponent>(kMaxEntities);
     registry_.RegisterComponent<EnemyStateComponent>(kMaxEntities);
     registry_.RegisterComponent<InstancedRenderComponent>(kMaxEntities);
 
-    // 3. モデルのロード
+    // 3. モチE??のローチE
     ModelManager::GetInstance()->LoadModel("cube");
     Model* cubeModel = ModelManager::GetInstance()->FindModel("cube");
 
-    // 4. レンダラとデバッガの初期化
+    // 4. レンダラとチE??チE??の初期匁E
     if (sceneManager_)
     {
-        // 50,000 エンティティ分の物理メモリを初期化時に完全に確保（プレタッチ）
-        // [BNS-Optimization] Registry::Initialize 内で既に行っているが、念のため明示的な初期エンティティ作成を検討
+        // 50,000 エンチE??チE???E?E物?E??モリを?E期化時に完?Eに確保（?EレタチE???E?E
+        // [BNS-Optimization] Registry::Initialize ?E??既に行ってぁE??が、念のため明示?E??初期エンチE??チE??作?Eを検?E
         
         DirectXCommon* dxCommon = sceneManager_->GetObject3dCommon()->GetDXCommon();
         SrvManager* srvManager = sceneManager_->GetObject3dCommon()->GetSrvManager();
@@ -57,7 +57,7 @@ void EcsDebugScene::Initialize()
         instancedRenderer_ = std::make_unique<InstancedModelRenderer>(50000);
         instancedRenderer_->Initialize(dxCommon, srvManager, model);
 
-        // デバッグカメラの初期化
+        // チE??チE??カメラの初期匁E
         debugCamera_ = std::make_unique<DebugCamera>();
         debugCamera_->Initialize(sceneManager_->GetCameraManager()->GetActiveCamera());
         debugCamera_->Start({ 0.0f, 10.0f, -30.0f }, { 0.3f, 0.0f, 0.0f });
@@ -66,9 +66,15 @@ void EcsDebugScene::Initialize()
     inspector_ = std::make_unique<EcsInspector>();
     inspector_->Initialize();
 
+    systemManager_ = std::make_unique<SystemManager>();
+    systemManager_->AddSystem(std::make_shared<EnemyBehaviorSystem>());
+    systemManager_->AddSystem(std::make_shared<HierarchySystem>());
+    systemManager_->AddSystem(std::make_shared<LifetimeSystem>());
+    systemManager_->AddSystem(std::make_shared<InstancedRenderSystem>());
+
     std::cout << "[EcsDebugScene] Initialized ECS Sandbox with capacity: " << kMaxEntities << "\n";
     
-    // BaseSceneの初期化作法（StartState）
+    // BaseSceneの初期化作法！EtartState?E?E
     StartState(SceneState::Playing);
 }
 
@@ -80,7 +86,7 @@ void EcsDebugScene::CommonUpdate()
 {
     float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
 
-    // --- ImGui によるデバッグ操作UI ---
+    // --- ImGui によるチE??チE??操作UI ---
     ImGui::Begin("ECS Sandbox Control");
     
     if (debugCamera_)
@@ -113,7 +119,7 @@ void EcsDebugScene::CommonUpdate()
             }
 
             TransformComponent transform;
-            // -50 ~ +50 の範囲でばらまく
+            // -50 ~ +50 の篁E??でばらまぁE
             float rx = ((rand() % 1000) / 10.0f) - 50.0f;
             float ry = ((rand() % 1000) / 10.0f);
             float rz = ((rand() % 1000) / 10.0f) - 50.0f;
@@ -126,7 +132,7 @@ void EcsDebugScene::CommonUpdate()
             life.currentAge_ = 0.0f;
             registry_.AddComponent<LifetimeComponent>(entity, life);
 
-            // モデル名は "cube" を指定
+            // モチE??名?E "cube" を指?E
             InstancedRenderComponent rc;
             rc.modelName_ = "cube";
             rc.useInstancing_ = true;
@@ -142,7 +148,7 @@ void EcsDebugScene::CommonUpdate()
             if (entity != kInvalidEntity)
             {
                 TransformComponent transform{};
-                // 広範囲にランダム配置
+                // 庁E??E??にランダム配置
                 transform.localPosition_.x = ((rand() % 2000) / 10.0f) - 100.0f;
                 transform.localPosition_.y = ((rand() % 500) / 10.0f);
                 transform.localPosition_.z = ((rand() % 2000) / 10.0f) - 100.0f;
@@ -152,13 +158,13 @@ void EcsDebugScene::CommonUpdate()
                 state.currentState_ = EnemyStateComponent::State::Idle;
                 registry_.AddComponent<EnemyStateComponent>(entity, state);
 
-                // 「cube」モデルで描画
+                // 「cube」モチE??で描画
                 InstancedRenderComponent render{};
                 render.modelName_ = "cube";
                 render.useInstancing_ = true;
                 registry_.AddComponent<InstancedRenderComponent>(entity, render);
 
-                // 5〜10秒のランダムな寿命を設定
+                // 5、E0秒?Eランダムな寿命を設?E
                 LifetimeComponent life{};
                 life.maxLifetime_ = 5.0f + (static_cast<float>(rand()) / RAND_MAX) * 5.0f;
                 registry_.AddComponent<LifetimeComponent>(entity, life);
@@ -168,33 +174,27 @@ void EcsDebugScene::CommonUpdate()
 
     ImGui::End();
 
-    // ECS 状態のビューワー描画
+    // ECS 状態?Eビューワー描画
     inspector_->Draw(registry_);
 
-    // デバッグカメラの更新
+    // チE??チE??カメラの更新
     if (debugCamera_)
     {
         debugCamera_->Update();
     }
 
-    // --- メインループのパイプライン ---
+    // --- メインループ?Eパイプライン ---
 
-    // 1. 各エンティティのAIやローカル位置の更新
-    EnemyBehaviorSystem::Update(registry_, deltaTime);
+    // 1-3. SystemManagerによる一括更新
+    systemManager_->Update(registry_);
 
-    // 2. 親子関係の解決（LocalからWorldMatrixの計算）
-    HierarchySystem::Update(registry_);
-
-    // 3. 寿命判定（尽きたものはDeferredQueueへ）
-    LifetimeSystem::Update(registry_, deltaTime);
-
-    // 4. フレーム末尾の破棄実行
+    // 4. フレーム末尾の破?E???E
     registry_.FlushGarbageCollection();
 }
 
 void EcsDebugScene::Draw3D()
 {
-    // ECS以外を描画する場合
+    // ECS以外を描画する場吁E
     BaseScene::Draw3D();
     
     if (sceneManager_ && instancedRenderer_)
@@ -204,7 +204,8 @@ void EcsDebugScene::Draw3D()
         ShadowMapManager* shadowMapManager = sceneManager_->GetShadowMapManager();
 
         // コンポーネント単位の描画
-        InstancedRenderSystem::Draw(registry_, *instancedRenderer_, camera, lightManager, shadowMapManager);
+        auto irs = systemManager_->GetSystem<InstancedRenderSystem>();
+        if (irs) irs->Draw(registry_, *instancedRenderer_, camera, lightManager, shadowMapManager);
     }
 }
 

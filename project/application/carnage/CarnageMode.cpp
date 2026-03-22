@@ -1,11 +1,11 @@
 #include "CarnageMode.h"
 #include "application/combo/ComboManager.h"
-#include "application/GameObject/Combatable/character/player/Player.h"
+#include "application/ecs/components/PlayerComponent.h"
 #include "imgui/imgui.h"
 #include "time/TimeManager.h"
 
-CarnageMode::CarnageMode(Player* player)
-    : player_(player)
+CarnageMode::CarnageMode(Registry* registry, EntityID playerEntity)
+    : registry_(registry), playerEntity_(playerEntity)
 {
     timer_ = std::make_unique<Timer>("CarnageTimer", initialTime_);
     timer_->SetOnFinish([this]() {
@@ -34,8 +34,6 @@ void CarnageMode::Update()
 
     TryStart();
 
-	// コンボが途切れた場合は強制終了（時間が残っていても）
-	// ゲームデザイン上、連続撃破の報酬としての位置づけのため
     if (IsActive() && ComboManager::GetInstance().GetComboCount() <= 0)
     {
         timer_->Stop();
@@ -58,39 +56,36 @@ void CarnageMode::ExtendTimer()
 
 bool CarnageMode::IsActive() const
 {
-    return timer_->IsRunning();
+    return timer_ ? timer_->IsRunning() : false;
 }
 
 float CarnageMode::GetTimeLeft() const
 {
-    return timer_->GetRemainingTime();
+    return timer_ ? timer_->GetRemainingTime() : 0.0f;
 }
 
 void CarnageMode::ApplyBuffs()
 {
-	auto status = player_->GetComponent<StatusComponent>();
-    if (!status) return;
+    if (!registry_ || playerEntity_ == kInvalidEntity) return;
+    if (!registry_->HasComponent<PlayerComponent>(playerEntity_)) return;
 
-    //status->attackPower.AddBuff(BuffConfig("CarnageAttackUp", attackUpRate_, BuffType::Percentage));
-	//status->moveSpeed.AddBuff(BuffConfig("CarnageSpeedUp", speedUpRate_, BuffType::Percentage));
+    auto& p = registry_->GetComponent<PlayerComponent>(playerEntity_);
+    p.attackMultiplier_ = 1.0f + attackUpRate_;
+    p.moveSpeedMultiplier_ = 1.0f + speedUpRate_;
 }
 
 void CarnageMode::RemoveBuffs()
 {
-	auto status = player_->GetComponent<StatusComponent>();
-    if (!status) return;
+    if (!registry_ || playerEntity_ == kInvalidEntity) return;
+    if (!registry_->HasComponent<PlayerComponent>(playerEntity_)) return;
 
-    //status->attackPower.RemoveBuff("CarnageAttackUp");
-	//status->moveSpeed.RemoveBuff("CarnageSpeedUp");
+    auto& p = registry_->GetComponent<PlayerComponent>(playerEntity_);
+    p.attackMultiplier_ = 1.0f;
+    p.moveSpeedMultiplier_ = 1.0f;
 }
 
-void CarnageMode::ShowUI()
-{
-}
-
-void CarnageMode::HideUI()
-{
-}
+void CarnageMode::ShowUI() {}
+void CarnageMode::HideUI() {}
 
 void CarnageMode::ImGui()
 {
@@ -103,16 +98,6 @@ void CarnageMode::ImGui()
     {
         ExtendTimer();
     }
-
-    auto status = player_->GetComponent<StatusComponent>();
-    if (status)
-    {
-        if (ImGui::CollapsingHeader("palyer status"))
-        {
-            ImGui::Text("HP: %.2f / %.2f", status->hp.GetValue(), status->maxHp.GetValue());
-            ImGui::Text("Attack Power: %.2f", status->attackPower.GetValue());
-        }
-    }
     ImGui::End();
 #endif
-}
+}

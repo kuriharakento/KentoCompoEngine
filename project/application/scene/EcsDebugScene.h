@@ -6,6 +6,7 @@
 #include "engine/camerawork/debug/DebugCamera.h"
 #include "engine/graphics/3d/InstancedModelRenderer.h"
 #include "engine/scene/interface/BaseScene.h"
+#include "engine/ecs/system/SystemManager.h"
 
 // 既存エンジンのインターフェース(Scene基底など)がある場合は継承してください
 // #include "IScene.h"
@@ -53,6 +54,7 @@ private:
     // --- ECS Core ---
     Registry registry_;
     std::unique_ptr<EcsInspector> inspector_;
+    std::unique_ptr<SystemManager> systemManager_;
 
     // --- Systems & Renderers ---
     std::unique_ptr<InstancedModelRenderer> instancedRenderer_;

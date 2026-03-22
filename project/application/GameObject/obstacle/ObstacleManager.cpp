@@ -7,19 +7,19 @@
 #include "manager/editor/JsonEditorManager.h"
 #include "externals/imgui/imgui.h"
 
-void ObstacleManager::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager)
+// ECS Components
+#include "engine/ecs/components/TagComponent.h"
+#include "engine/ecs/components/ColliderComponent.h"
+#include "engine/ecs/components/CollisionLayerComponent.h"
+#include "engine/math/AABB.h"
+
+
+void ObstacleManager::Initialize(Registry* registry, Object3dCommon* object3dCommon, LightManager* lightManager)
 {
+	registry_ = registry;
 	object3dCommon_ = object3dCommon;
 	lightManager_ = lightManager;
 	obstacles_.clear();
-
-	// ECS Registry の初期化（最大2000個の障害物を想定）
-	constexpr uint32_t kMaxObstacles = 2000;
-	registry_ = std::make_unique<Registry>();
-	registry_->Initialize(kMaxObstacles);
-	registry_->RegisterComponent<TransformComponent>(kMaxObstacles);
-	registry_->RegisterComponent<InstancedRenderComponent>(kMaxObstacles);
-	registry_->RegisterComponent<ObstacleComponent>(kMaxObstacles);
 }
 
 void ObstacleManager::Update()
@@ -51,7 +51,7 @@ void ObstacleManager::Update()
 	ImGui::End();
 #endif
 
-	// 新しい障害物データの同期
+	// 新しい障害物チE?Eタの同期
 	SyncNewObstacleData();
 
 	// 障害物の更新
@@ -79,7 +79,7 @@ void ObstacleManager::Draw(CameraManager* camera)
 			{
 				auto cameraPos = camera->GetActiveCamera()->GetTranslate();
 				float distance = (obstacle->GetPosition() - cameraPos).Length();
-				if (distance > 200.0f) // カメラからの距離が一定以上なら描画しない
+				if (distance > 200.0f) // カメラからの距離が一定以上なら描画しなぁE
 				{
 					continue;
 				}
@@ -97,13 +97,13 @@ void ObstacleManager::DrawShadow()
 		{
 			if (culling_)
 			{
-				// シャドウマップ描画でもカリングを行うかは要検討だが、
-				// パフォーマンス向上のため同様の距離チェックを入れておく
-				// (カメラからの距離が遠すぎる影は描画しない)
-				// ※ 本来はライト方向からの視点でカリングすべきだが、簡易的にカメラ距離を使用
+				// シャドウマップ描画でもカリングを行うか?E要検討だが、E
+				// パフォーマンス向上?Eため同様?E距離チェチE??を?Eれておく
+				// (カメラからの距離が遠すぎる影は描画しなぁE
+				// ※ 本来はライト方向から?E視点でカリングすべきだが、簡易的にカメラ距離を使用
 				/*
-				// 厳密にはシャドウカリングはライト視点が必要だが、
-				// 簡易実装として通常のDrawと同じ距離制限をかける場合：
+				// 厳?E??はシャドウカリングはライト視点が?E??だが、E
+				// 簡易実裁E??して通常のDrawと同じ距離制限をかける場合！E
 				auto cameraPos = object3dCommon_->GetDefaultCamera()->GetTranslate();
 				float distance = (obstacle->GetPosition() - cameraPos).Length();
 				if (distance > 200.0f)
@@ -121,7 +121,7 @@ void ObstacleManager::Clear()
 {
 	obstacles_.clear();
 
-	// ECS側も全エンティティを破棄し再初期化
+	// ECS側も?EエンチE??チE??を破?E??再?E期化
 	if (registry_)
 	{
 		registry_->Initialize(registry_->GetMaxEntityCount());
@@ -130,10 +130,10 @@ void ObstacleManager::Clear()
 
 void ObstacleManager::CreateObstacles()
 {
-	// 既存の障害物をクリア
+	// 既存?E障害物をクリア
 	obstacles_.clear();
 
-	// 障害物を生成
+	// 障害物を生?E
 	auto obstacles = obstacleData_->GetObstacles();
 	for (const auto& obstacle : obstacles)
 	{
@@ -145,7 +145,7 @@ void ObstacleManager::CreateObstacles()
 		{
 			CreateFloor(obstacle);
 		}
-		else // デフォルトは通常の障害物
+		else // チE??ォルト?E通常の障害物
 		{
 			CreateObstacle(obstacle);
 		}
@@ -162,11 +162,11 @@ void ObstacleManager::ApplyObstacleData()
 		{
 			if (obstacle->GetName() == info.name)
 			{
-				// Jsonの配置情報を適用
+				// Jsonの配置?E??を適用
 				obstacle->SetPosition(info.transform.translate);
 				obstacle->SetRotation(info.transform.rotate);
 				obstacle->SetScale(info.transform.scale);
-				// コンポーネントの更新
+				// コンポ?Eネント?E更新
 				obstacle->Update();
 				break;
 			}
@@ -176,17 +176,17 @@ void ObstacleManager::ApplyObstacleData()
 
 void ObstacleManager::LoadObstacleData(const std::string& path)
 {
-	// 障害物データの読み込み
+	// 障害物チE?Eタの読み込み
 	obstacleData_->Initialize(path);
-	// 生成
+	// 生?E
 	CreateObstacles();
 }
 
 void ObstacleManager::SetObstacleData(ObstacleData* data)
 {
-	// 障害物データの設定
+	// 障害物チE?Eタの設?E
 	obstacleData_ = data;
-	// 障害物の生成
+	// 障害物の生?E
 	CreateObstacles();
 }
 
@@ -225,14 +225,14 @@ void ObstacleManager::SyncNewObstacleData()
 	if (!obstacleData_) return;
 	auto data = obstacleData_->GetObstacles();
 
-	// 既存障害物の名前リストを作成
+	// 既存障害物の名前リストを作?E
 	std::unordered_set<std::string> existingNames;
 	for (const auto& obj : obstacles_)
 	{
 		if (obj) existingNames.insert(obj->GetName());
 	}
 
-	// データ側でまだ存在しないものだけ生成
+	// チE?Eタ側でまだ存在しなぁE??のだけ生?E
 	for (const auto& info : data)
 	{
 		if (existingNames.count(info.name) == 0)
@@ -249,7 +249,7 @@ void ObstacleManager::SyncNewObstacleData()
 
 void ObstacleManager::CreateFloor(const GameObjectInfo& info)
 {
-	// コライダーなしの床オブジェクト
+	// コライダーなし?E床オブジェクチE
 	auto floor = std::make_unique<Obstacle>(gameObjectTag::item::Floor);
 	floor->GameObject::Initialize(object3dCommon_, lightManager_);
 	floor->SetModel(info.fileName);
@@ -258,7 +258,7 @@ void ObstacleManager::CreateFloor(const GameObjectInfo& info)
 	floor->SetScale(info.transform.scale);
 	floor->SetName(info.name);
 	obstacles_.push_back(std::move(floor));
-	// ECS側に登録（床はコライダーなし）
+	// ECS側に登録?E?床?Eコライダーなし！E
 	RegisterToRegistry(info, ObstacleComponent::Type::Floor, false);
 }
 
@@ -269,6 +269,9 @@ void ObstacleManager::RegisterToRegistry(const GameObjectInfo& info, ObstacleCom
 	EntityID entity = registry_->CreateEntity();
 	if (entity == kInvalidEntity) return;
 
+	// Tag
+	registry_->AddComponent<TagComponent>(entity, { TagComponent::Type::Obstacle });
+
 	// Transform
 	TransformComponent transform;
 	transform.localPosition_ = {
@@ -276,12 +279,14 @@ void ObstacleManager::RegisterToRegistry(const GameObjectInfo& info, ObstacleCom
 		info.transform.translate.y,
 		info.transform.translate.z
 	};
+	transform.localRotation_ = info.transform.rotate;
+	transform.localScale_ = info.transform.scale;
 	registry_->AddComponent<TransformComponent>(entity, transform);
 
-	// 描画情報
+	// 描画設定
 	InstancedRenderComponent render;
 	render.modelName_ = info.fileName.empty() ? "wall" : info.fileName;
-	render.useInstancing_ = false; // 障害物は現状インスタンシング非対象
+	render.useInstancing_ = true; // 障害物もインスタンシング対象にする（性能向上のため）
 	registry_->AddComponent<InstancedRenderComponent>(entity, render);
 
 	// 障害物属性
@@ -289,4 +294,19 @@ void ObstacleManager::RegisterToRegistry(const GameObjectInfo& info, ObstacleCom
 	obstacle.type = type;
 	obstacle.hasCollider = hasCollider;
 	registry_->AddComponent<ObstacleComponent>(entity, obstacle);
+
+	// 当たり判定 (AABB)
+	if (hasCollider)
+	{
+		ColliderComponent col;
+		col.type_ = ColliderType::AABB;
+		// 障害物のサイズ設定（暫定：1.0x1.0x1.0 をスケールに合わせる）
+		col.aabb_ = AABB({ -1.0f, -1.0f, -1.0f }, { 1.0f, 1.0f, 1.0f });
+		registry_->AddComponent<ColliderComponent>(entity, col);
+
+		CollisionLayerComponent layer;
+		layer.category_ = CollisionLayerComponent::kObstacle;
+		layer.mask_ = CollisionLayerComponent::kPlayer | CollisionLayerComponent::kEnemy | CollisionLayerComponent::kPlayerBullet | CollisionLayerComponent::kEnemyBullet;
+		registry_->AddComponent<CollisionLayerComponent>(entity, layer);
+	}
 }
