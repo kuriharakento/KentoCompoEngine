@@ -5,6 +5,7 @@
 #include "application/ecs/components/PlayerComponent.h"
 #include "application/ecs/components/StatusComponent.h"
 #include "engine/ecs/components/TransformComponent.h"
+#include "engine/ecs/components/ColliderComponent.h"
 
 #include "math/MathUtils.h"
 #include "math/MatrixFunc.h"
@@ -92,6 +93,12 @@ void PlayerSystem::Update(Registry& registry)
             pRef.dodgeTargetPosition_ = pRef.dodgeStartPosition_ + pRef.dodgeDirection_ * pRef.dodgeDistance_;
             pRef.invincibleTimer_ = pRef.dodgeInvincibleTime_;
             pRef.isInvincible_ = true;
+            // ダッシュ開始時に previousPosition_ をリセット
+            // これにより、ダッシュ経路全体をサブステップがカバーできる
+            if (registry.HasComponent<ColliderComponent>(entity))
+            {
+                registry.GetComponent<ColliderComponent>(entity).previousPosition_ = tRef.localPosition_;
+            }
             continue;
         }
 

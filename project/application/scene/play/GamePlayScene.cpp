@@ -117,14 +117,14 @@ void GamePlayScene::Initialize()
 	registry_->RegisterComponent<CollisionResponseComponent>(10000);
 
 	systemManager_ = std::make_unique<SystemManager>();
-	systemManager_->AddSystem(std::make_shared<HierarchySystem>());
-	systemManager_->AddSystem(std::make_shared<MovementSystem>());
-	systemManager_->AddSystem(std::make_shared<EcsStatusSystem>()); // Changed from StatusSystem
-	systemManager_->AddSystem(std::make_shared<CollisionSystem>());
+	systemManager_->AddSystem(std::make_shared<HierarchySystem>());  // worldMatrix の構築
 
 	auto playerSystem = std::make_shared<PlayerSystem>();
 	playerSystem->SetCameraManager(sceneManager_->GetCameraManager());
+	systemManager_->AddSystem(std::make_shared<MovementSystem>());
 	systemManager_->AddSystem(playerSystem);
+	systemManager_->AddSystem(std::make_shared<EcsStatusSystem>());
+	systemManager_->AddSystem(std::make_shared<CollisionSystem>());  // 衝突判定・押し戻し（内部でローカル座標から直接計算）
 
 	systemManager_->AddSystem(std::make_shared<EnemyBehaviorSystem>());
 	systemManager_->AddSystem(std::make_shared<InstancedRenderSystem>());
@@ -345,6 +345,9 @@ void GamePlayScene::OnUpdatePlaying()
 	}
 
 	CollisionManager::GetInstance()->UpdatePreviousPositions();
+	if (auto collisionSystem = systemManager_->GetSystem<CollisionSystem>()) {
+		collisionSystem->UpdatePreviousPositions(*registry_);
+	}
 
 	if (!isDebugCameraActive_)
 	{

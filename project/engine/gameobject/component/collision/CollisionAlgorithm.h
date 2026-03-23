@@ -51,6 +51,7 @@ namespace collisionAlgorithm
 	bool CheckSpherevsSphereMTV(const Sphere& a, const Sphere& b, Vector3& mtv);
 	bool CheckSpherevsAABBMTV(const Sphere& a, const AABB& b, Vector3& mtv);
 	bool CheckSpherevsOBBMTV(const Sphere& a, const OBB& b, Vector3& mtv);
+	bool CheckAABBvsOBBMTV(const AABB& a, const OBB& b, Vector3& mtv);
 
 	// --- サブステップ判定 (数学版) ---
 	
@@ -60,6 +61,13 @@ namespace collisionAlgorithm
 	bool CheckSpherevsSphereSubstep(const Sphere& a, const Vector3& prevA, const Sphere& b, const Vector3& prevB);
 	bool CheckSpherevsAABBSubstep(const Sphere& a, const Vector3& prevA, const AABB& b, const Vector3& prevB);
 	bool CheckSpherevsOBBSubstep(const Sphere& a, const Vector3& prevA, const OBB& b, const Vector3& prevB);
+
+	// --- サブステップ判定 (MTV付き) ---
+	bool CheckAABBvsAABBSubstepMTV(const AABB& a, const Vector3& prevA, const AABB& b, const Vector3& prevB, Vector3& mtv);
+	bool CheckOBBvsOBBSubstepMTV(const OBB& a, const Vector3& prevA, const OBB& b, const Vector3& prevB, Vector3& mtv);
+	bool CheckSpherevsOBBSubstepMTV(const Sphere& a, const Vector3& prevA, const OBB& b, const Vector3& prevB, Vector3& mtv);
+	bool CheckSpherevsAABBSubstepMTV(const Sphere& a, const Vector3& prevA, const AABB& b, const Vector3& prevB, Vector3& mtv);
+	bool CheckAABBvsOBBSubstepMTV(const AABB& a, const Vector3& prevA, const OBB& b, const Vector3& prevB, Vector3& mtv);
 
 	// --- 3D用判定 (既存のコンポーネント版) ---
 	

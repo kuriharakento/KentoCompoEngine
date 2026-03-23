@@ -279,7 +279,9 @@ void StageManager::CreateInfosFromStageData()
 				// コンポーネント付与
 				registry_->AddComponent<TagComponent>(playerEntity_, { TagComponent::Type::Player });
 				registry_->AddComponent<TransformComponent>(playerEntity_, { objInfo.transform.translate, objInfo.transform.rotate, objInfo.transform.scale });
-				registry_->AddComponent<MovementComponent>(playerEntity_, {});
+				MovementComponent movement;
+				movement.useGravity_ = true;
+				registry_->AddComponent<MovementComponent>(playerEntity_, movement);
 				registry_->AddComponent<PlayerComponent>(playerEntity_, {});
 				registry_->AddComponent<ecs::StatusComponent>(playerEntity_, {});
 				registry_->AddComponent<CollisionResponseComponent>(playerEntity_, {});
@@ -287,7 +289,9 @@ void StageManager::CreateInfosFromStageData()
 				// コライダー設定 (OBB)
 				ColliderComponent col;
 				col.type_ = ColliderType::OBB;
-				col.obb_.size = objInfo.transform.scale * 0.5f; // スケールをベースサイズ（半サイズ）として適用
+				// obb_.size は CollisionSystem で使われない（worldScale を直接使用）
+				col.useSubstep_ = true;
+				col.previousPosition_ = objInfo.transform.translate;
 				registry_->AddComponent<ColliderComponent>(playerEntity_, col);
 
 				// レイヤー設定

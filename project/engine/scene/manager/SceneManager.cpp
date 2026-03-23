@@ -58,7 +58,7 @@ void SceneManager::Update()
 	{
 		ChangeScene(SceneNames::ParticleTest);
 	}
-	if (ImGui::Button("EcsDebug (ECS 500 Cubes)"))
+	if (ImGui::Button("EcsDebug"))
 	{
 		ChangeScene(SceneNames::EcsDebug);
 	}

@@ -30,6 +30,12 @@ void MovementSystem::Update(Registry& registry)
         move.velocity_.y *= std::pow(move.friction_, deltaTime * 60.0f);
         move.velocity_.z *= std::pow(move.friction_, deltaTime * 60.0f);
 
+        // 重力適用
+        if (move.useGravity_ && !move.isGrounded_)
+        {
+            move.velocity_.y -= move.gravity_ * deltaTime;
+        }
+
         // 最高速度制限
         float speedSq = move.velocity_.LengthSquared();
         if (speedSq > move.maxSpeed_ * move.maxSpeed_)
@@ -44,6 +50,14 @@ void MovementSystem::Update(Registry& registry)
         transform.localPosition_.x += move.velocity_.x * deltaTime;
         transform.localPosition_.y += move.velocity_.y * deltaTime;
         transform.localPosition_.z += move.velocity_.z * deltaTime;
+
+        // 地面接地（簡易的な Y=0 制限）
+        if (move.useGravity_ && transform.localPosition_.y < 1.0f)
+        {
+            transform.localPosition_.y = 1.0f;
+            move.velocity_.y = 0.0f;
+            move.isGrounded_ = true;
+        }
 
         // 加速度をリセット（外部から毎フレーム加算される想定）
         move.acceleration_ = { 0.0f, 0.0f, 0.0f };

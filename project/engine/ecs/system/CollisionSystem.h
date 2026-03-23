@@ -10,6 +10,7 @@ class CollisionSystem : public ISystem
 {
 public:
     CollisionSystem();
+    void UpdatePreviousPositions(Registry& registry);
     void Update(Registry& registry) override;
     void Draw(Registry& registry, Camera* camera, LightManager* lightManager, ShadowMapManager* shadowMapManager) override;
 

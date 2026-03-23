@@ -296,13 +296,12 @@ void ObstacleManager::RegisterToRegistry(const GameObjectInfo& info, ObstacleCom
 	obstacle.hasCollider = hasCollider;
 	registry_->AddComponent<ObstacleComponent>(entity, obstacle);
 
-	// 当たり判定 (AABB)
+	// 当たり判定 (OBB)
 	if (hasCollider)
 	{
 		ColliderComponent col;
-		col.type_ = ColliderType::AABB;
-		// 障害物のスケールをそのままAABBの範囲として設定（半サイズを使用するため -0.5 ~ 0.5）
-		col.aabb_ = AABB(info.transform.scale * -0.5f, info.transform.scale * 0.5f);
+		col.type_ = ColliderType::OBB;
+		// obb_.size は CollisionSystem で worldScale を直接使うため設定不要
 		registry_->AddComponent<ColliderComponent>(entity, col);
 
 		CollisionLayerComponent layer;
