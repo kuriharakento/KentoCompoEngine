@@ -1,0 +1,66 @@
+MSBuild のバージョン 17.14.23+b0019275e (.NET Framework)
+
+  DirectXTex_Desktop_2022_Win10.vcxproj -> C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\generated\outputs\Debug\DirectXTex.lib
+  CollisionSystem.cpp
+  CollisionUtils.cpp
+  CollisionManager.cpp
+  Obstacle.cpp
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\obstacle\Obstacle.cpp(7,11): error C2084: 関数 'Obstacle::Obstacle(const std::string &)' は既に本体を持っています。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\obstacle\Obstacle.h(11,2):
+      'Obstacle::Obstacle' の以前の定義を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\obstacle\Obstacle.cpp(11,16): error C2511: 'void Obstacle::Initialize(Object3dCommon *,LightManager *,const Transform &)': オーバーロードされたメンバー関数が 'Obstacle' にありません。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\obstacle\Obstacle.h(7,7):
+      'Obstacle' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\obstacle\Obstacle.cpp(13,14): error C2352: 'GameObject::Initialize': 非静的メンバー関数の呼び出しにはオブジェクトが必要です [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameObject\base\GameObject.h(53,15):
+      'GameObject::Initialize' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\obstacle\Obstacle.cpp(16,78): error C2671: 'Obstacle::Initialize': 静的なメンバー関数は 'this' ポインターをアクセスすることができません。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\obstacle\Obstacle.cpp(16,44): error C2672: 'std::make_unique': 一致するオーバーロードされた関数が見つかりませんでした。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(3640,6):
+      'void std::make_unique(_Types ...)' の可能性があります
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(3634,57):
+      または 'std::unique_ptr<_Ty,std::default_delete<_Ty>> std::make_unique(const size_t)'
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(3629,57):
+      または 'std::unique_ptr<_Ty,std::default_delete<_Ty>> std::make_unique(_Types ...)'
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\obstacle\Obstacle.cpp(16,2): error C2660: 'Obstacle::AddComponent': 関数に 1 個の引数を指定できません。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\obstacle\Obstacle.h(15,7):
+      'Obstacle::AddComponent' の宣言を確認してください
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\obstacle\Obstacle.cpp(16,2):
+      引数リスト '(const char [21])' を一致させようとしているとき
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(99,12): error C2039: 'GetIsActive': 'ICollisionComponent' のメンバーではありません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\base\ICollisionComponent.h(35,7):
+      'ICollisionComponent' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(99,33): error C2039: 'GetIsActive': 'ICollisionComponent' のメンバーではありません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\base\ICollisionComponent.h(35,7):
+      'ICollisionComponent' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(165,12): error C2039: 'OnEnter': 'ICollisionComponent' のメンバーではありません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\base\ICollisionComponent.h(35,7):
+      'ICollisionComponent' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(166,12): error C2039: 'OnEnter': 'ICollisionComponent' のメンバーではありません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\base\ICollisionComponent.h(35,7):
+      'ICollisionComponent' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(172,12): error C2039: 'OnStay': 'ICollisionComponent' のメンバーではありません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\base\ICollisionComponent.h(35,7):
+      'ICollisionComponent' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(173,12): error C2039: 'OnStay': 'ICollisionComponent' のメンバーではありません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\base\ICollisionComponent.h(35,7):
+      'ICollisionComponent' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(182,12): error C2039: 'OnExit': 'ICollisionComponent' のメンバーではありません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\base\ICollisionComponent.h(35,7):
+      'ICollisionComponent' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(183,12): error C2039: 'OnExit': 'ICollisionComponent' のメンバーではありません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\base\ICollisionComponent.h(35,7):
+      'ICollisionComponent' の宣言を確認してください
+  

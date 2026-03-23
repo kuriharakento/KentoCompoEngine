@@ -1,0 +1,8 @@
+MSBuild のバージョン 17.14.23+b0019275e (.NET Framework)
+
+  DirectXTex_Desktop_2022_Win10.vcxproj -> C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\generated\outputs\Debug\DirectXTex.lib
+  CollisionManager.cpp
+  Obstacle.cpp
+  KentoCompo.vcxproj -> C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\generated\outputs\Debug\KentoCompo.exe
+          1 個のファイルをコピーしました。
+          1 個のファイルをコピーしました。

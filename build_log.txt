@@ -1,0 +1,105 @@
+MSBuild のバージョン 17.14.23+b0019275e (.NET Framework)
+
+  DirectXTex_Desktop_2022_Win10.vcxproj -> C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\generated\outputs\Debug\DirectXTex.lib
+  CollisionSystem.cpp
+  CollisionUtils.cpp
+  CollisionManager.cpp
+  Obstacle.cpp
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\ecs\system\CollisionSystem.cpp(31,26): error C2039: 'GetView': 'Registry' のメンバーではありません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\ecs\Registry.h(20,7):
+      'Registry' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\ecs\system\CollisionSystem.cpp(31,53): error C3531: 'TransformComponent': 'auto' を含む型のシンボルには初期化子が必要です [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\ecs\system\CollisionSystem.cpp(31,71): error C2143: 構文エラー: ';' が '>' の前にありません。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\ecs\system\CollisionSystem.cpp(31,71): error C2059: 構文エラー: '>' [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\ecs\system\CollisionSystem.cpp(32,30): error C3536: 'view': 初期化前に使用することはできません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\ecs\system\CollisionSystem.cpp(34,24): error C2530: 'collider': 参照が初期化されずに宣言されています。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\ecs\system\CollisionSystem.cpp(35,25): error C2530: 'transform': 参照が初期化されずに宣言されています。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\ecs\system\CollisionSystem.cpp(38,9): error C3536: 'collider': 初期化前に使用することはできません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\ecs\system\CollisionSystem.cpp(38,72): error C3536: 'transform': 初期化前に使用することはできません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionUtils.cpp(20,7): error C2653: 'collisionAlgorithm': 識別子がクラス名でも名前空間名でもありません。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionUtils.cpp(20,27): error C3861: 'CheckOBBvsOBBSubstepMTV': 識別子が見つかりませんでした [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionUtils.cpp(29,1): error C2059: 構文エラー: '}' [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionUtils.cpp(29,1): error C2143: 構文エラー: ';' が '}' の前にありません。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(73,4): error C2181: else 文が if と一致しません。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(75,42): error C2065: 'i': 定義されていない識別子です。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(81,9): error C4430: 型指定子がありません - int と仮定しました。メモ: C++ は int を既定値としてサポートしていません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(81,9): error C2365: 'ImGui::SeparatorText': 再定義; 以前の定義は '関数' でした。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\externals\imgui\imgui.h(552,29):
+      'ImGui::SeparatorText' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(81,9): error C2513: 'ImGui::SeparatorText': 指定された型は、識別子の名前を指定せずに宣言されています。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(83,9): error C4430: 型指定子がありません - int と仮定しました。メモ: C++ は int を既定値としてサポートしていません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(83,9): error C2365: 'ImGui::Text': 再定義; 以前の定義は '関数' でした。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\externals\imgui\imgui.h(540,29):
+      'ImGui::Text' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(83,9): error C2513: 'ImGui::Text': 指定された型は、識別子の名前を指定せずに宣言されています。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(83,43): error C2065: 'colliders_': 定義されていない識別子です。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(84,2): error C2059: 構文エラー: 'for' [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(84,19): error C2143: 構文エラー: ')' が ';' の前にありません。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(84,25): error C2065: 'colliders_': 定義されていない識別子です。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(84,42): error C2143: 構文エラー: '>' が ';' の前にありません。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(84,21): error C7568: 想定される関数テンプレート 'i' の後に引数リストがありません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(84,21): warning C4091: '': 変数が何も宣言されていないときは、'<error type>' の左辺を無視します。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(84,44): error C2059: 構文エラー: '++' [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(84,47): error C2059: 構文エラー: ')' [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(85,2): error C2143: 構文エラー: ';' が '{' の前にありません。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(85,2): error C2447: '{': 対応する関数ヘッダーがありません (旧形式の仮引数リスト?) [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(103,9): error C4430: 型指定子がありません - int と仮定しました。メモ: C++ は int を既定値としてサポートしていません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(103,9): error C2556: 'int End(void)': オーバーロード関数は、'void ImGui::End(void)' と戻り値の型のみが異なります。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\externals\imgui\imgui.h(375,29):
+      'ImGui::End' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(103,9): error C2371: 'ImGui::End': 再定義されています。異なる基本型です。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\externals\imgui\imgui.h(375,29):
+      'ImGui::End' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(107,21): error C2065: 'CollisionPair': 定義されていない識別子です。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(107,36): error C2065: 'CollisionPairHash': 定義されていない識別子です。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(107,7): error C2923: 'std::unordered_set': 'CollisionPair' は、パラメーター '_Kty' の有効な テンプレート 型引数ではありません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(107,21):
+      'CollisionPair' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(107,7): error C2923: 'std::unordered_set': 'CollisionPairHash' は、パラメーター '_Hasher' の有効な テンプレート 型引数ではありません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(107,36):
+      'CollisionPairHash' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(107,7): error C2976: 'std::unordered_set': 引数 テンプレート が少なすぎます [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\unordered_set(59,7):
+      'std::unordered_set' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(107,55): error C2641: 'std::unordered_set' のテンプレート引数を推測できません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(107,55): error C2783: 'std::unordered_set<_Kty,_Hasher,_Keyeq,_Alloc> std::unordered_set(void)': '_Kty' の テンプレート 引数を推測できませんでした [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\unordered_set(97,5):
+      'std::unordered_set' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(107,55): error C2780: 'std::unordered_set<_Kty,_Hasher,_Keyeq,_Alloc> std::unordered_set(std::unordered_set<_Kty,_Hasher,_Keyeq,_Alloc>)': 1 引数が必要です - 0 が指定されました [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\unordered_set(59,7):
+      'std::unordered_set' の宣言を確認してください
+  
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(110,2): error C2059: 構文エラー: 'for' [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(110,19): error C2143: 構文エラー: ')' が ';' の前にありません。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(110,25): error C2065: 'colliders_': 定義されていない識別子です。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(110,42): error C2143: 構文エラー: '>' が ';' の前にありません。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(110,21): error C7568: 想定される関数テンプレート 'i' の後に引数リストがありません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(110,21): warning C4091: '': 変数が何も宣言されていないときは、'<error type>' の左辺を無視します。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(110,44): error C2059: 構文エラー: '++' [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(110,47): error C2059: 構文エラー: ')' [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(111,2): error C2143: 構文エラー: ';' が '{' の前にありません。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(111,2): error C2447: '{': 対応する関数ヘッダーがありません (旧形式の仮引数リスト?) [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(321,26): error C2065: 'currentCollisions_': 定義されていない識別子です。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(321,2): error C2059: 構文エラー: 'for' [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(321,44): error C2059: 構文エラー: ')' [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(321,26): error C4430: 型指定子がありません - int と仮定しました。メモ: C++ は int を既定値としてサポートしていません [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(323,3): error C2059: 構文エラー: 'if' [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(324,3): error C2143: 構文エラー: ';' が '{' の前にありません。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(324,3): error C2447: '{': 対応する関数ヘッダーがありません (旧形式の仮引数リスト?) [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(329,2): error C2059: 構文エラー: '}' [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(329,2): error C2143: 構文エラー: ';' が '}' の前にありません。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(332,1): error C2059: 構文エラー: '}' [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(332,1): error C2143: 構文エラー: ';' が '}' の前にありません。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(335,1): error C2143: 構文エラー: ';' が '{' の前にありません。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\engine\gameobject\component\collision\CollisionManager.cpp(335,1): error C2447: '{': 対応する関数ヘッダーがありません (旧形式の仮引数リスト?) [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\obstacle\Obstacle.cpp(73,6): error C2653: 'collisionAlgorithm': 識別子がクラス名でも名前空間名でもありません。 [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\obstacle\Obstacle.cpp(73,26): error C3861: 'CheckOBBvsOBBSubstepMTV': 識別子が見つかりませんでした [C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]

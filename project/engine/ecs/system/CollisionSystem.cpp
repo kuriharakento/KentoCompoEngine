@@ -31,22 +31,13 @@ void CollisionSystem::UpdatePreviousPositions(Registry& registry)
     auto& colliderArray = registry.GetArray<ColliderComponent>();
     for (uint32_t i = 0; i < colliderArray.GetSize(); ++i) {
         EntityID entity = colliderArray.GetEntityFromDenseIndex(i);
-        auto& collider = colliderArray.GetDataFromDenseIndex(i);
-        
         if (!registry.HasComponent<TransformComponent>(entity)) continue;
 
-        // worldShape の中心を前フレームの位置として記録
-        // サブステップ判定は worldObb_.center を使うため座標系を合わせる
-        switch (collider.type_) {
-            case ColliderType::OBB:    collider.previousPosition_ = collider.worldObb_.center;       break;
-            case ColliderType::AABB:   collider.previousPosition_ = collider.worldAabb_.GetCenter(); break;
-            case ColliderType::Sphere: collider.previousPosition_ = collider.worldSphere_.center;    break;
-            default: {
-                const auto& t = registry.GetComponent<TransformComponent>(entity);
-                collider.previousPosition_ = t.localPosition_;
-                break;
-            }
-        }
+        auto& collider = colliderArray.GetDataFromDenseIndex(i);
+        auto& transform = registry.GetComponent<TransformComponent>(entity);
+
+        // トンネリング(CCD)判定を正しく行うため、ワールド座標で保持する
+        collider.previousPosition_ = MathUtils::GetTranslateFromMatrix(transform.worldMatrix_);
     }
 }
 
