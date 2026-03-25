@@ -112,17 +112,17 @@ void CollisionSystem::Update(Registry& registry)
         Vector3 rotatedOffset = MathUtils::TransformNormal(collider.offset_, worldRot);
         Vector3 center        = worldPos + rotatedOffset;
 
+        AABB currentAabb;
         if (collider.type_ == ColliderType::AABB) {
             Vector3 halfSize = collider.aabb_.GetHalfSize() * worldScale;
-            collider.worldAabb_ = AABB(center - halfSize, center + halfSize);
+            currentAabb = AABB(center - halfSize, center + halfSize);
         } else if (collider.type_ == ColliderType::Sphere) {
             float maxS = std::max({ worldScale.x, worldScale.y, worldScale.z });
             float r = collider.sphere_.radius * maxS;
             collider.worldSphere_ = Sphere(center, r);
-            collider.worldAabb_ = AABB(center - Vector3(r, r, r), center + Vector3(r, r, r));
+            currentAabb = AABB(center - Vector3(r, r, r), center + Vector3(r, r, r));
         } else if (collider.type_ == ColliderType::OBB) {
             collider.worldObb_.center = center;
-            // ローカルサイズが設定されていない(0,0,0)場合は worldScale をそのまま使う
             Vector3 baseSize = (collider.obb_.size.LengthSquared() > 1e-6f) ? collider.obb_.size : Vector3(1.0f, 1.0f, 1.0f);
             collider.worldObb_.size   = worldScale * baseSize;
             collider.worldObb_.rotate = worldRot;
@@ -138,7 +138,28 @@ void CollisionSystem::Update(Registry& registry)
                 std::abs(Vector3::Dot(axes[0]*collider.worldObb_.size.x, {0,1,0})) + std::abs(Vector3::Dot(axes[1]*collider.worldObb_.size.y, {0,1,0})) + std::abs(Vector3::Dot(axes[2]*collider.worldObb_.size.z, {0,1,0})),
                 std::abs(Vector3::Dot(axes[0]*collider.worldObb_.size.x, {0,0,1})) + std::abs(Vector3::Dot(axes[1]*collider.worldObb_.size.y, {0,0,1})) + std::abs(Vector3::Dot(axes[2]*collider.worldObb_.size.z, {0,0,1}))
             };
-            collider.worldAabb_ = AABB(center - halfExtents, center + halfExtents);
+            currentAabb = AABB(center - halfExtents, center + halfExtents);
+        }
+
+        // --- Swept AABB (移動経路を包含するAABB) の計算 ---
+        if (collider.useSubstep_) {
+            // [リードプログラマーによるセーフガード]
+            // 前フレーム位置が初期地 {0,0,0} かつ現在地が原点でない場合、
+            // 生成直後の同期漏れと判断して現在地で初期化し、原点への不自然な押し戻しを防ぐ。
+            if (collider.previousPosition_.IsZero() && !center.IsZero()) {
+                collider.previousPosition_ = center - rotatedOffset; // offsetなしのワールド位置
+            }
+
+            // 前フレーム位置（オフセット考慮）での中心
+            Vector3 prevCenter = collider.previousPosition_ + rotatedOffset;
+            Vector3 halfSize = currentAabb.GetHalfSize();
+            AABB prevAabb(prevCenter - halfSize, prevCenter + halfSize);
+            
+            // 2つのAABBを包む最小のAABBを計算（ブロードフェーズ用）
+            collider.worldAabb_.min_ = Vector3::Min(currentAabb.min_, prevAabb.min_);
+            collider.worldAabb_.max_ = Vector3::Max(currentAabb.max_, prevAabb.max_);
+        } else {
+            collider.worldAabb_ = currentAabb;
         }
     }
 

@@ -301,6 +301,8 @@ void ObstacleManager::RegisterToRegistry(const GameObjectInfo& info, ObstacleCom
 	{
 		ColliderComponent col;
 		col.type_ = ColliderType::OBB;
+		// [Fix] 初期位置を同期（原点への押し戻しを防ぐ）
+		col.previousPosition_ = transform.localPosition_;
 		// obb_.size は CollisionSystem で worldScale を直接使うため設定不要
 		registry_->AddComponent<ColliderComponent>(entity, col);
 

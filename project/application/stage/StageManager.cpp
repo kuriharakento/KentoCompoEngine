@@ -291,6 +291,7 @@ void StageManager::CreateInfosFromStageData()
 				col.type_ = ColliderType::OBB;
 				// obb_.size は CollisionSystem で使われない（worldScale を直接使用）
 				col.useSubstep_ = true;
+				// [Fix] 初期位置を同期（原点への押し戻しを防ぐ）
 				col.previousPosition_ = objInfo.transform.translate;
 				registry_->AddComponent<ColliderComponent>(playerEntity_, col);
 

@@ -362,6 +362,9 @@ void EnemyManager::AddCollisionComponents(EntityID entity)
 	col.type_ = ColliderType::OBB;
 	// オブジェクトのスケールをベースサイズ（半サイズとして適用）
 	col.obb_.size = transform.localScale_ * 0.5f;
+	col.useSubstep_ = true;
+	// [Fix] 初期位置を同期（原点への押し戻しを防ぐ）
+	col.previousPosition_ = transform.localPosition_;
 	registry_->AddComponent<ColliderComponent>(entity, col);
 
 	// レイヤー設定

@@ -569,10 +569,11 @@ namespace collisionAlgorithm
 
 	bool CheckAABBvsAABBSubstepMTV(const AABB& a, const Vector3& prevA, const AABB& b, const Vector3& prevB, Vector3& mtv)
 	{
+		constexpr float MAX_STEP_DISTANCE = 1.0f;
 		if (CheckAABBvsAABBMTV(a, b, mtv)) return true;
 		float maxDist = (std::max)((a.GetCenter() - prevA).Length(), (b.GetCenter() - prevB).Length());
 		if (maxDist < 0.001f) return false;
-		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / 1.0f)));
+		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE)));
 		for (int step = 0; step < subStepCount; ++step)
 		{
 			float t = (float)(step + 1) / subStepCount;
@@ -624,7 +625,8 @@ namespace collisionAlgorithm
 		if (CheckSpherevsOBBMTV(a, b, mtv)) return true;
 		float maxDist = (std::max)((a.center - prevA).Length(), (b.center - prevB).Length());
 		if (maxDist < 0.001f) return false;
-		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / 1.0f)));
+		constexpr float MAX_STEP_DISTANCE_SPHERE_OBB = 1.0f;
+		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE_SPHERE_OBB)));
 		for (int step = 0; step < subStepCount; ++step)
 		{
 			float t = (float)(step + 1) / subStepCount;
@@ -646,7 +648,8 @@ namespace collisionAlgorithm
 		if (CheckSpherevsAABBMTV(a, b, mtv)) return true;
 		float maxDist = (std::max)((a.center - prevA).Length(), (b.GetCenter() - prevB).Length());
 		if (maxDist < 0.001f) return false;
-		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / 1.0f)));
+		constexpr float MAX_STEP_DISTANCE_SPHERE_AABB = 1.0f;
+		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE_SPHERE_AABB)));
 		for (int step = 0; step < subStepCount; ++step)
 		{
 			float t = (float)(step + 1) / subStepCount;
@@ -657,8 +660,8 @@ namespace collisionAlgorithm
 			if (CheckSpherevsAABBMTV(subA, subB, subMtv))
 			{
 				// AABB(b) を動かす方向で統一。subPosB を基準にする
-				Vector3 subPosB = MathUtils::Lerp(prevB, b.GetCenter(), t);
-				mtv = (subPosB + subMtv) - b.GetCenter();
+				Vector3 subPosB2 = MathUtils::Lerp(prevB, b.GetCenter(), t);
+				mtv = (subPosB2 + subMtv) - b.GetCenter();
 				return true;
 			}
 		}
@@ -670,7 +673,8 @@ namespace collisionAlgorithm
 		if (CheckAABBvsOBBMTV(a, b, mtv)) return true;
 		float maxDist = (std::max)((a.GetCenter() - prevA).Length(), (b.center - prevB).Length());
 		if (maxDist < 0.001f) return false;
-		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / 1.0f)));
+		constexpr float MAX_STEP_DISTANCE_AABB_OBB = 1.0f;
+		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE_AABB_OBB)));
 		for (int step = 0; step < subStepCount; ++step)
 		{
 			float t = (float)(step + 1) / subStepCount;
