@@ -4,65 +4,132 @@
 #include <unordered_map>
 #include <memory>
 #include <algorithm>
-#include <unordered_set>
 #include "math/Vector3.h"
 #include "math/AABB.h"
 #include "engine/ecs/Entity.h"
 
 /**
- * @brief 空間分割用のグリッドセル
+ * @brief 原子的な操作を避けるため、各スレッドが独立してカウントし、
+ *        最後に統合するなどの工夫も可能だが、まずはシンプルな2パス実装とする。
  */
-struct GridCell
-{
-    std::vector<EntityID> entities;
-};
-
-/**
- * @brief 一律グリッド（Uniform Grid）による空間分割の実装。
- * 
- * インクリメンタルゲームのような大量のオブジェクトが動き回る環境で、
- * 衝突判定を O(N^2) から大幅に削減する。
- */
-class SpatialGrid
+class LinearSpatialHash
 {
 public:
-    SpatialGrid(float cellSize) : cellSize_(cellSize) {}
+    static constexpr uint32_t kBucketCount = 8192;
+    static constexpr uint32_t kMaxEntitiesPerFrame = 10000;
+    static constexpr uint32_t kMaxEntries = kMaxEntitiesPerFrame * 8; // 1エンティティあたり平均8セル
 
-    /**
-     * @brief エンティティの境界ボックス（AABB）を元にグリッドへ登録する
-     */
-    void Add(EntityID entity, const AABB& bounds)
+    struct alignas(64) BucketHeader
     {
-        int64_t minX = static_cast<int64_t>(std::floor(bounds.min_.x / cellSize_));
-        int64_t minY = static_cast<int64_t>(std::floor(bounds.min_.y / cellSize_));
-        int64_t minZ = static_cast<int64_t>(std::floor(bounds.min_.z / cellSize_));
-        
-        int64_t maxX = static_cast<int64_t>(std::floor(bounds.max_.x / cellSize_));
-        int64_t maxY = static_cast<int64_t>(std::floor(bounds.max_.y / cellSize_));
-        int64_t maxZ = static_cast<int64_t>(std::floor(bounds.max_.z / cellSize_));
+        uint32_t offset = 0;
+        uint32_t count = 0;
+    };
 
-        for (int64_t x = minX; x <= maxX; ++x) {
-            for (int64_t y = minY; y <= maxY; ++y) {
-                for (int64_t z = minZ; z <= maxZ; ++z) {
-                    uint64_t key = GetKey(x, y, z);
-                    grid_[key].entities.push_back(entity);
-                }
-            }
-        }
+    LinearSpatialHash(float cellSize) : cellSize_(cellSize)
+    {
+        entityBuffer_.resize(kMaxEntries);
+        tempCounts_.resize(kBucketCount);
     }
 
     /**
-     * @brief グリッドをクリアする（毎フレーム再構築を想定）
+     * @brief 空間ハッシュをリセットする
      */
     void Clear()
     {
-        grid_.clear();
+        for (uint32_t i = 0; i < kBucketCount; ++i)
+        {
+            buckets_[i].offset = 0;
+            buckets_[i].count = 0;
+            tempCounts_[i] = 0;
+        }
+        currentEntryCount_ = 0;
     }
 
     /**
-     * @brief 指定境界ボックス（AABB）が触れるセルの全エンティティを取得する
+     * @brief パス1: 各バケットの密度をカウントする
      */
-    void GetNearbyEntities(const AABB& bounds, std::vector<EntityID>& outEntities) const
+    void AddCount(const AABB& bounds)
+    {
+        IterateCells(bounds, [this](uint32_t hash) {
+            buckets_[hash].count++;
+        });
+    }
+
+    /**
+     * @brief パス2: オフセットを確定させる
+     */
+    void BuildOffsets()
+    {
+        uint32_t offset = 0;
+        for (uint32_t i = 0; i < kBucketCount; ++i)
+        {
+            buckets_[i].offset = offset;
+            offset += buckets_[i].count;
+            // 密度を再利用するためカウントは一旦0に戻すが、offsetは保持する
+            // 実際の追加時に使う用
+            tempCounts_[i] = 0; 
+        }
+        currentEntryCount_ = offset;
+        
+        // バッファが不足した場合は拡張（計画書のフェイルセーフ）
+        if (currentEntryCount_ > entityBuffer_.size())
+        {
+            entityBuffer_.resize(currentEntryCount_ * 2);
+        }
+    }
+
+    /**
+     * @brief パス3: エンティティを登録する
+     */
+    void AddEntity(EntityID entity, const AABB& bounds)
+    {
+        IterateCells(bounds, [this, entity](uint32_t hash) {
+            uint32_t writeIdx = buckets_[hash].offset + tempCounts_[hash]++;
+            if (writeIdx < entityBuffer_.size())
+            {
+                entityBuffer_[writeIdx] = entity;
+            }
+        });
+    }
+
+    /**
+     * @brief 指定境界ボックスに重なるエンティティを走査する
+     */
+    template<typename Func>
+    void QueryNearby(const AABB& bounds, Func&& func) const
+    {
+        IterateCells(bounds, [this, &func](uint32_t hash) {
+            const auto& bucket = buckets_[hash];
+            for (uint32_t i = 0; i < bucket.count; ++i)
+            {
+                func(entityBuffer_[bucket.offset + i]);
+            }
+        });
+    }
+
+    /**
+     * @brief 指定バケットのオブジェクト密度を取得（ヒートマップ用）
+     */
+    uint32_t GetBucketCount(uint32_t hash) const { return buckets_[hash].count; }
+
+private:
+    /**
+     * @brief 3D座標からハッシュ値を生成
+     */
+    uint32_t GetHash(int64_t x, int64_t y, int64_t z) const
+    {
+        // 空間ハッシュ関数の定番 (Z-order curve風またはビット混同)
+        const int64_t p1 = 73856093;
+        const int64_t p2 = 19349663;
+        const int64_t p3 = 83492791;
+        return static_cast<uint32_t>((x * p1) ^ (y * p2) ^ (z * p3)) % kBucketCount;
+    }
+
+    /**
+     * @brief AABBが覆うセルに対して関数を実行する
+     */
+    template<typename Func>
+    void IterateCells(const AABB& bounds, Func&& func) const
     {
         int64_t minX = static_cast<int64_t>(std::floor(bounds.min_.x / cellSize_));
         int64_t minY = static_cast<int64_t>(std::floor(bounds.min_.y / cellSize_));
@@ -72,36 +139,25 @@ public:
         int64_t maxY = static_cast<int64_t>(std::floor(bounds.max_.y / cellSize_));
         int64_t maxZ = static_cast<int64_t>(std::floor(bounds.max_.z / cellSize_));
 
-        // 重複を避けるためのセット
-        std::unordered_set<EntityID> resultSet;
+        // 安全のためセル範囲を制限（異常なAABBによるフリーズ防止）
+        maxX = (std::min)(maxX, minX + 8);
+        maxY = (std::min)(maxY, minY + 8);
+        maxZ = (std::min)(maxZ, minZ + 8);
 
         for (int64_t x = minX; x <= maxX; ++x) {
             for (int64_t y = minY; y <= maxY; ++y) {
                 for (int64_t z = minZ; z <= maxZ; ++z) {
-                    uint64_t key = GetKey(x, y, z);
-                    auto it = grid_.find(key);
-                    if (it != grid_.end()) {
-                        for (EntityID entity : it->second.entities) {
-                            resultSet.insert(entity);
-                        }
-                    }
+                    func(GetHash(x, y, z));
                 }
             }
         }
-        
-        outEntities.assign(resultSet.begin(), resultSet.end());
-    }
-
-private:
-    // 3D座標をユニークなキーに変換
-    uint64_t GetKey(int64_t x, int64_t y, int64_t z) const
-    {
-        // 簡易的なハッシュ化（グリッドが巨大な場合はオフセット等で調整が必要）
-        return (static_cast<uint64_t>(x) & 0x1FFFFF) |
-               ((static_cast<uint64_t>(y) & 0x1FFFFF) << 21) |
-               ((static_cast<uint64_t>(z) & 0x3FFFFF) << 42);
     }
 
     float cellSize_;
-    std::unordered_map<uint64_t, GridCell> grid_;
+    BucketHeader buckets_[kBucketCount];
+    std::vector<EntityID> entityBuffer_;
+    std::vector<uint32_t> tempCounts_; // Build後の追加用一時カウンタ
+    uint32_t currentEntryCount_ = 0;
 };
+
+
