@@ -2,6 +2,11 @@
 
 #include "ISystem.h"
 #include "SpatialPartition.h"
+#include "engine/ecs/Entity.h"
+#include "math/Vector3.h"
+
+#include <mutex>
+#include <set>
 
 /**
  * @brief 空間分割（Grid）を用いて効率的に衝突判定を行うシステム。
@@ -9,17 +14,34 @@
 class CollisionSystem : public ISystem
 {
 public:
+    struct CollisionEvent {
+        EntityID a, b;
+        bool isSolid;
+        Vector3 mtv;
+    };
+
     CollisionSystem();
     void UpdatePreviousPositions(Registry& registry);
     void Update(Registry& registry) override;
     void Draw(Registry& registry, Camera* camera, LightManager* lightManager, ShadowMapManager* shadowMapManager) override;
 
-private:
-    std::unique_ptr<LinearSpatialHash> grid_;
+    // スレッドごとに独立して保持する判定用ワークエリア
+    struct ThreadLocalContext {
+        std::vector<EntityID> neighbors;
+    };
 
-    // --- パフォーマンス最適化用の再利用バッファ ---
-    // 毎フレームのアロケーションを避けるため、メンバ変数として保持する
-    mutable std::vector<EntityID> neighbors_;
-    mutable std::vector<uint32_t> marker_;
-    uint32_t markerFrame_ = 0;
+private:
+    // 判定フェーズ (Parallel)
+    void DetectCollisions(Registry& registry);
+    // レスポンスフェーズ (Serial)
+    void ResolveCollisions(Registry& registry);
+
+    // 判定結果
+    std::vector<CollisionEvent> collisions_;
+    std::mutex mergeMutex_;
+    
+    // 前フレーム位置更新用の一時インデックス
+    std::vector<uint32_t> colliderIndices_;
+
+    std::unique_ptr<LinearSpatialHash> grid_;
 };

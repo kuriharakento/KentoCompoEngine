@@ -25,7 +25,7 @@ public:
         uint32_t count = 0;
     };
 
-    LinearSpatialHash(float cellSize) : cellSize_(cellSize)
+    LinearSpatialHash(float cellSize) : cellSize_(cellSize), cellSizeInv_(1.0f / cellSize)
     {
         entityBuffer_.resize(kMaxEntries);
         tempCounts_.resize(kBucketCount);
@@ -36,12 +36,9 @@ public:
      */
     void Clear()
     {
-        for (uint32_t i = 0; i < kBucketCount; ++i)
-        {
-            buckets_[i].offset = 0;
-            buckets_[i].count = 0;
-            tempCounts_[i] = 0;
-        }
+        // ゼロ初期化を最優先（memset等と同等の速度を期待）
+        std::fill(std::begin(buckets_), std::end(buckets_), BucketHeader{});
+        std::fill(tempCounts_.begin(), tempCounts_.end(), 0u);
         currentEntryCount_ = 0;
     }
 
@@ -71,7 +68,7 @@ public:
         }
         currentEntryCount_ = offset;
         
-        // バッファが不足した場合は拡張（計画書のフェイルセーフ）
+        // バッファが不足した場合は拡張
         if (currentEntryCount_ > entityBuffer_.size())
         {
             entityBuffer_.resize(currentEntryCount_ * 2);
@@ -100,9 +97,11 @@ public:
     {
         IterateCells(bounds, [this, &func](uint32_t hash) {
             const auto& bucket = buckets_[hash];
-            for (uint32_t i = 0; i < bucket.count; ++i)
+            const uint32_t count = bucket.count;
+            const uint32_t offset = bucket.offset;
+            for (uint32_t i = 0; i < count; ++i)
             {
-                func(entityBuffer_[bucket.offset + i]);
+                func(entityBuffer_[offset + i]);
             }
         });
     }
@@ -114,15 +113,15 @@ public:
 
 private:
     /**
-     * @brief 3D座標からハッシュ値を生成
+     * @brief 3D座標からハッシュ値を生成 (高速版)
      */
     uint32_t GetHash(int64_t x, int64_t y, int64_t z) const
     {
-        // 空間ハッシュ関数の定番 (Z-order curve風またはビット混同)
-        const int64_t p1 = 73856093;
-        const int64_t p2 = 19349663;
-        const int64_t p3 = 83492791;
-        return static_cast<uint32_t>((x * p1) ^ (y * p2) ^ (z * p3)) % kBucketCount;
+        // 空間ハッシュ関数の定番
+        constexpr uint32_t p1 = 73856093u;
+        constexpr uint32_t p2 = 19349663u;
+        constexpr uint32_t p3 = 83492791u;
+        return ((uint32_t)x * p1 ^ (uint32_t)y * p2 ^ (uint32_t)z * p3) % kBucketCount;
     }
 
     /**
@@ -131,18 +130,28 @@ private:
     template<typename Func>
     void IterateCells(const AABB& bounds, Func&& func) const
     {
-        int64_t minX = static_cast<int64_t>(std::floor(bounds.min_.x / cellSize_));
-        int64_t minY = static_cast<int64_t>(std::floor(bounds.min_.y / cellSize_));
-        int64_t minZ = static_cast<int64_t>(std::floor(bounds.min_.z / cellSize_));
+        const float invS = cellSizeInv_;
+        int64_t minX = static_cast<int64_t>(bounds.min_.x * invS);
+        int64_t minY = static_cast<int64_t>(bounds.min_.y * invS);
+        int64_t minZ = static_cast<int64_t>(bounds.min_.z * invS);
         
-        int64_t maxX = static_cast<int64_t>(std::floor(bounds.max_.x / cellSize_));
-        int64_t maxY = static_cast<int64_t>(std::floor(bounds.max_.y / cellSize_));
-        int64_t maxZ = static_cast<int64_t>(std::floor(bounds.max_.z / cellSize_));
+        int64_t maxX = static_cast<int64_t>(bounds.max_.x * invS);
+        int64_t maxY = static_cast<int64_t>(bounds.max_.y * invS);
+        int64_t maxZ = static_cast<int64_t>(bounds.max_.z * invS);
 
-        // 安全のためセル範囲を制限（異常なAABBによるフリーズ防止）
-        maxX = (std::min)(maxX, minX + 8);
-        maxY = (std::min)(maxY, minY + 8);
-        maxZ = (std::min)(maxZ, minZ + 8);
+        // 床関数(floor)相当。負の座標対応。
+        if (bounds.min_.x < 0) minX--;
+        if (bounds.min_.y < 0) minY--;
+        if (bounds.min_.z < 0) minZ--;
+        if (bounds.max_.x < 0) maxX--;
+        if (bounds.max_.y < 0) maxY--;
+        if (bounds.max_.z < 0) maxZ--;
+
+        // 走査範囲を制限（巨大なAABBによるストール防止）
+        constexpr int64_t kMaxCellRange = 4; // 1軸あたり最大5セルまで
+        maxX = (std::min)(maxX, minX + kMaxCellRange);
+        maxY = (std::min)(maxY, minY + kMaxCellRange);
+        maxZ = (std::min)(maxZ, minZ + kMaxCellRange);
 
         for (int64_t x = minX; x <= maxX; ++x) {
             for (int64_t y = minY; y <= maxY; ++y) {
@@ -154,9 +163,10 @@ private:
     }
 
     float cellSize_;
+    float cellSizeInv_;
     BucketHeader buckets_[kBucketCount];
     std::vector<EntityID> entityBuffer_;
-    std::vector<uint32_t> tempCounts_; // Build後の追加用一時カウンタ
+    std::vector<uint32_t> tempCounts_;
     uint32_t currentEntryCount_ = 0;
 };
 
