@@ -67,7 +67,7 @@ void EnemyBehaviorSystem::UpdateMeleeBehavior(EntityID entity, Registry& registr
     // 接近してくる (1.5f まで)
     if (distance > 1.5f)
     {
-        toPlayer.Normalize();
+        toPlayer.NormalizeSelf();
         float speed = status.moveSpeed_.GetValue();
         float moveAmount = (std::min)(speed * dt, distance - 1.5f);
         trans.localPosition_ = trans.localPosition_ + toPlayer * moveAmount;
