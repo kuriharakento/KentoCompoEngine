@@ -2,6 +2,8 @@
 
 #include "engine/ecs/Registry.h"
 #include "engine/ecs/system/ISystem.h"
+#include "application/ecs/components/EnemyTypeComponent.h"
+#include "math/Vector3.h"
 
 /**
  * @brief 敵のAIと振る舞いを更新するシステム (Pure ECS版)
@@ -17,8 +19,12 @@ public:
     void Update(Registry& registry) override;
 
 private:
+    // 型別の更新処理
+    void UpdateMeleeBehavior(EntityID entity, Registry& registry, const Vector3& playerPos, float dt);
+    
+    // 遠距離型（将来用）
+    void UpdateRangedBehavior(EntityID entity, Registry& registry, const Vector3& playerPos, float dt);
+
     // ヘルパー関数
-    bool IsTargetVisible(Registry& registry, EntityID entity, struct EnemyAIComponent& ai);
     bool IsInAttackRange(Registry& registry, EntityID entity, struct EnemyAIComponent& ai);
-    bool IsInExtendedAttackRange(Registry& registry, EntityID entity, struct EnemyAIComponent& ai);
 };

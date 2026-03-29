@@ -217,11 +217,16 @@ public:
     // ステータス変更時のコールバック関数型
     using ChangeCallback = std::function<void(const StatusChangeEvent&)>;
 
-    /**
-     * @brief StatusValueのコンストラクタ
-     * @param baseValue 基礎値（デフォルト: 0.0f）
-     */
     explicit StatusValue(float baseValue = 0.0f);
+    virtual ~StatusValue() = default;
+
+    // ムーブを許可
+    StatusValue(StatusValue&&) noexcept = default;
+    StatusValue& operator=(StatusValue&&) noexcept = default;
+
+    // コピーは禁止（unique_ptrが含まれるため）
+    StatusValue(const StatusValue&) = delete;
+    StatusValue& operator=(const StatusValue&) = delete;
 
     // ===============================================
     // 基礎値の取得・設定

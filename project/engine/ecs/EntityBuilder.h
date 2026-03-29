@@ -10,7 +10,7 @@
  * Entity entity = EntityBuilder(registry)
  *     .Create()
  *     .AddTransform({0, 10, 0})
- *     .AddTag(TagComponent::Type::Player)
+ *     .Add(EcsTagComponent{ EcsTagComponent::Type::Player })
  *     .Build();
  */
 class EntityBuilder

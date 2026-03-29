@@ -2,8 +2,8 @@
 #include <memory>
 
 // app
-#include "application/gameObject/combatable/character/enemy/EnemyManager.h"
-#include "application/gameObject/combatable/character/player/Player.h"
+#include "application/GameObject/Combatable/character/enemy/EnemyManager.h"
+#include "application/GameObject/Combatable/character/player/Player.h"
 #include "application/gameObject/obstacle/ObstacleManager.h"
 #include "application/stage/StageManager.h"
 // camerawork
@@ -15,6 +15,7 @@
 #include "engine/scene/interface/BaseScene.h"
 #include "engine/ecs/Registry.h"
 #include "engine/ecs/system/SystemManager.h"
+#include "application/ecs/systems/EnemySpawnSystem.h"
 
 // graphics
 #include "graphics/3d/Object3d.h"
@@ -248,45 +249,41 @@ private:
 	static constexpr float kLetterboxShowDuration = 1.0f;
 	static constexpr float kClearToExitDelay = 2.0f;
 
-	// =========================
+    // =========================
     //  ゲームプレイ
-	// =========================
-    
-    // ミニマップUI（敵・エリアの位置表示）
-    std::unique_ptr<Minimap> minimap_;
+    // =========================
+
     // レティクル
-	std::unique_ptr<Cursor> reticle_;
+    std::unique_ptr<Cursor> reticle_;
     // スカイドーム（背景天球）
     std::unique_ptr<Object3d> skydome_;
     // 地面オブジェクト
     std::unique_ptr<Object3d> ground_;
-    // カーネージモード（コンボ達成時の強化システム）
-    std::unique_ptr<CarnageMode> carnageMode_;
-    // スプラインカメラ（演出用）
-    std::unique_ptr<SplineCamera> splineCamera_;
-    // デバッグカメラ
-    std::unique_ptr<DebugCamera> debugCamera_;
-    // デバッグカメラの有効フラグ
-    bool isDebugCameraActive_ = false;
-    // トップダウンカメラ（ゲームプレイ用）
-    std::unique_ptr<TopDownCamera> topDownCamera_;
-    // オービットカメラワーク（デバッグ用）
-	std::unique_ptr<OrbitCameraWork> orbitCamera_;
     // 敵管理
     std::unique_ptr<EnemyManager> enemyManager_;
-    // 障害物管理
-    std::unique_ptr<ObstacleManager> obstacleManager_;
-    // ステージ・プレイヤー管理
-    std::unique_ptr<StageManager> stageManager_;
+
+    // カメラワーク
+    std::unique_ptr<DebugCamera> debugCamera_;
+    bool isDebugCameraActive_ = false;
+    std::unique_ptr<SplineCamera> splineCamera_;
+    std::unique_ptr<TopDownCamera> topDownCamera_;
+    std::unique_ptr<OrbitCameraWork> orbitCamera_;
 
     // ECS Integration
     std::unique_ptr<Registry> registry_;
     std::unique_ptr<SystemManager> systemManager_;
+    std::shared_ptr<EnemySpawnSystem> enemySpawnSystem_;
+
+    // インスタンス描画用レンダラーのマップ
+    std::unordered_map<std::string, std::unique_ptr<InstancedModelRenderer>> instancedRenderers_;
+
+    // プレイヤーEntity ID
+    EntityID playerEntity_ = kInvalidEntity;
 
     // シーン遷移エフェクト（フェードイン/アウト）
     SceneTransitionEffect transitionEffect_;
     // レターボックスエフェクト（映画的演出）
-	CinematicLetterbox cinematicLetterbox_;
+    CinematicLetterbox cinematicLetterbox_;
     // ゲームオーバー演出の持続時間（秒）
     float gameOverEffectDuration_ = 3.0f;
     // ゲームオーバー演出の経過時間（秒）

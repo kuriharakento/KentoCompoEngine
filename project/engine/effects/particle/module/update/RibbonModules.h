@@ -278,6 +278,38 @@ public:
 	}
 
 	/**
+	 * @brief ソースを登録（手動更新版）
+	 * @return ribbonId（更新・解除時に必要）
+	 */
+	uint32_t RegisterSourceManual()
+	{
+		uint32_t ribbonId = nextRibbonId_++;
+		SourceInfo info;
+		info.transform = nullptr;
+		info.useManualPosition = true;
+		info.manualPosition = Vector3{};
+		info.spawnAccumulator = 0.0f;
+		info.previousPosition = Vector3{};
+		info.hasPreviousPosition = false;
+		sources_[ribbonId] = info;
+		return ribbonId;
+	}
+
+	/**
+	 * @brief ソースの位置を手動更新
+	 * @param ribbonId 登録時に返されたID
+	 * @param position 新しい座標
+	 */
+	void UpdateSourcePosition(uint32_t ribbonId, const Vector3& position)
+	{
+		auto it = sources_.find(ribbonId);
+		if (it != sources_.end() && it->second.useManualPosition)
+		{
+			it->second.manualPosition = position;
+		}
+	}
+
+	/**
 	 * @brief 全ソースをクリア
 	 */
 	void ClearSources()
@@ -311,9 +343,17 @@ public:
 			if (it == sources_.end()) continue;
 
 			SourceInfo& info = it->second;
-			if (!info.transform) continue;
-
-			Vector3 currentPos = info.transform->translate;
+			
+			Vector3 currentPos;
+			if (info.useManualPosition)
+			{
+				currentPos = info.manualPosition;
+			}
+			else
+			{
+				if (!info.transform) continue;
+				currentPos = info.transform->translate;
+			}
 
 			// 移動検出（オプション）
 			if (spawnOnlyWhenMoving_ && info.hasPreviousPosition)
@@ -384,6 +424,8 @@ private:
 	struct SourceInfo
 	{
 		Transform* transform = nullptr;
+		bool useManualPosition = false;
+		Vector3 manualPosition = {};
 		float spawnAccumulator = 0.0f;
 		Vector3 previousPosition = {};
 		bool hasPreviousPosition = false;

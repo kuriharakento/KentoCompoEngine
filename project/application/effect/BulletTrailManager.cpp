@@ -57,8 +57,23 @@ uint32_t BulletTrailManager::RegisterBullet(Transform* bulletTransform)
 	}
 
 	// MultiSourceRibbonModuleにソースを登録
-	// 戻り値のribbonIdをそのままtrailIdとして使用
 	return multiSourceModule_->RegisterSource(bulletTransform);
+}
+
+uint32_t BulletTrailManager::RegisterBulletManual()
+{
+	if (!initialized_) Initialize();
+	if (!multiSourceModule_) return 0;
+
+	return multiSourceModule_->RegisterSourceManual();
+}
+
+void BulletTrailManager::UpdateBulletManual(uint32_t trailId, const Vector3& position)
+{
+	if (multiSourceModule_ && trailId > 0)
+	{
+		multiSourceModule_->UpdateSourcePosition(trailId, position);
+	}
 }
 
 void BulletTrailManager::UnregisterBullet(uint32_t trailId)

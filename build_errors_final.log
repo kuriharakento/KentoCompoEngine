@@ -1,0 +1,182 @@
+MSBuild 縺ｮ繝舌・繧ｸ繝ｧ繝ｳ 18.4.0+6e61e96ac (.NET Framework)
+2026/03/29 4:01:40 縺ｫ繝薙Ν繝峨ｒ髢句ｧ九＠縺ｾ縺励◆縲・
+
+繝弱・繝・1 荳翫・繝励Ο繧ｸ繧ｧ繧ｯ繝・"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (Build 繧ｿ繝ｼ繧ｲ繝・ヨ)縲・
+ValidateSolutionConfiguration:
+  繧ｽ繝ｪ繝･繝ｼ繧ｷ繝ｧ繝ｳ讒区・ "Debug|x64" 繧偵ン繝ｫ繝峨＠縺ｦ縺・∪縺吶・
+繝励Ο繧ｸ繧ｧ繧ｯ繝・"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (1) 縺ｯ縲√ヮ繝ｼ繝・1 荳翫↓ "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj" (2) 繧偵ン繝ｫ繝峨＠縺ｦ縺・∪縺・(譌｢螳壹・繧ｿ繝ｼ繧ｲ繝・ヨ)縲・
+繝励Ο繧ｸ繧ｧ繧ｯ繝・"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj" (2) 縺ｯ縲√ヮ繝ｼ繝・1 荳翫↓ "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\DirectXTex\DirectXTex_Desktop_2022_Win10.vcxproj" (3) 繧偵ン繝ｫ繝峨＠縺ｦ縺・∪縺・(譌｢螳壹・繧ｿ繝ｼ繧ｲ繝・ヨ)縲・
+PrepareForBuild:
+  讒矩蛹門・蜉帙′譛牙柑縺ｫ縺ｪ縺｣縺ｦ縺・∪縺吶ゅさ繝ｳ繝代う繝ｩ險ｺ譁ｭ縺ｮ譖ｸ蠑剰ｨｭ螳壹↓縺ｯ繧ｨ繝ｩ繝ｼ髫主ｱ､縺悟渚譏縺輔ｌ縺ｾ縺吶りｩｳ邏ｰ縺ｫ縺､縺・※縺ｯ縲”ttps://aka.ms/cpp/structured-output 繧貞盾辣ｧ縺励※縺上□縺輔＞縲・
+InitializeBuildStatus:
+  "AlwaysCreate" 縺梧欠螳壹＆繧後◆縺溘ａ "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\DirectXTex\Debug\DirectXTex.tlog\unsuccessfulbuild" 繧剃ｽ懈・縺励※縺・∪縺吶・
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\DirectXTex\Debug\DirectXTex.tlog\unsuccessfulbuild" 縺ｮ繧ｿ繝・メ 繧ｿ繧ｹ繧ｯ繧貞ｮ溯｡後＠縺ｦ縺・∪縺吶・
+ClCompile:
+  縺吶∋縺ｦ縺ｮ蜃ｺ蜉帙′譛譁ｰ縺ｮ繧ゅ・縺ｧ縺吶・
+  縺吶∋縺ｦ縺ｮ蜃ｺ蜉帙′譛譁ｰ縺ｮ繧ゅ・縺ｧ縺吶・
+Lib:
+  縺吶∋縺ｦ縺ｮ蜃ｺ蜉帙′譛譁ｰ縺ｮ繧ゅ・縺ｧ縺吶・
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\generated\obj\DirectXTex\Debug\DirectXTex.pdb" 縺九ｉ "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\generated\outputs\Debug\DirectXTex.pdb" 縺ｸ繝輔ぃ繧､繝ｫ繧偵さ繝斐・縺励※縺・∪縺吶・
+  DirectXTex_Desktop_2022_Win10.vcxproj -> C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\generated\outputs\Debug\DirectXTex.lib
+FinalizeBuildStatus:
+  繝輔ぃ繧､繝ｫ "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\DirectXTex\Debug\DirectXTex.tlog\unsuccessfulbuild" 繧貞炎髯､縺励※縺・∪縺吶・
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\DirectXTex\Debug\DirectXTex.tlog\DirectXTex.lastbuildstate" 縺ｮ繧ｿ繝・メ 繧ｿ繧ｹ繧ｯ繧貞ｮ溯｡後＠縺ｦ縺・∪縺吶・
+繝励Ο繧ｸ繧ｧ繧ｯ繝・"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\DirectXTex\DirectXTex_Desktop_2022_Win10.vcxproj" (譌｢螳壹・繧ｿ繝ｼ繧ｲ繝・ヨ) 縺ｮ繝薙Ν繝峨′螳御ｺ・＠縺ｾ縺励◆縲・
+PrepareForBuild:
+  讒矩蛹門・蜉帙′譛牙柑縺ｫ縺ｪ縺｣縺ｦ縺・∪縺吶ゅさ繝ｳ繝代う繝ｩ險ｺ譁ｭ縺ｮ譖ｸ蠑剰ｨｭ螳壹↓縺ｯ繧ｨ繝ｩ繝ｼ髫主ｱ､縺悟渚譏縺輔ｌ縺ｾ縺吶りｩｳ邏ｰ縺ｫ縺､縺・※縺ｯ縲”ttps://aka.ms/cpp/structured-output 繧貞盾辣ｧ縺励※縺上□縺輔＞縲・
+InitializeBuildStatus:
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\KentoCompo.tlog\unsuccessfulbuild" 縺ｮ繧ｿ繝・メ 繧ｿ繧ｹ繧ｯ繧貞ｮ溯｡後＠縺ｦ縺・∪縺吶・
+ClCompile:
+  C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\bin\HostX86\x64\CL.exe /c /IC:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\ /IC:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\ /IC:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\ /IC:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\assimp\include /ZI /JMC /nologo /W3 /WX /diagnostics:column /sdl /MP /Od /D _DEBUG /D _WINDOWS /D USE_IMGUI /D _UNICODE /D UNICODE /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /std:c++20 /permissive- /Fo"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\\" /Fd"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\generated\obj\KentoCompo\Debug\vc143.pdb" /external:W3 /Gd /TP /FC /errorReport:queue /utf-8 /FS application\ecs\systems\AnnihilationSystem.cpp application\ecs\systems\EnemySpawnSystem.cpp application\ecs\systems\PlayerActionSystem.cpp application\ecs\systems\ProgressionSystem.cpp application\ecs\systems\ProjectileSystem.cpp
+  AnnihilationSystem.cpp
+  EnemySpawnSystem.cpp
+  PlayerActionSystem.cpp
+  ProgressionSystem.cpp
+  ProjectileSystem.cpp
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProjectileSystem.h(14,27): error C2061: 讒区枚繧ｨ繝ｩ繝ｼ: 隴伜挨蟄・'EntityID' [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  (繧ｽ繝ｼ繧ｹ 繝輔ぃ繧､繝ｫ 'application/ecs/systems/ProjectileSystem.cpp' 繧偵さ繝ｳ繝代う繝ｫ縺励※縺・∪縺・
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.h(17,30): error C2061: 讒区枚繧ｨ繝ｩ繝ｼ: 隴伜挨蟄・'EntityID' [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  (繧ｽ繝ｼ繧ｹ 繝輔ぃ繧､繝ｫ 'application/ecs/systems/ProgressionSystem.cpp' 繧偵さ繝ｳ繝代う繝ｫ縺励※縺・∪縺・
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.h(17,27): error C2061: 讒区枚繧ｨ繝ｩ繝ｼ: 隴伜挨蟄・'EntityID' [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  (繧ｽ繝ｼ繧ｹ 繝輔ぃ繧､繝ｫ 'application/ecs/systems/AnnihilationSystem.cpp' 繧偵さ繝ｳ繝代う繝ｫ縺励※縺・∪縺・
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(28,13): error C2660: 'ProgressionSystem::ApplyLevelUpRewards': 髢｢謨ｰ縺ｫ 3 蛟九・蠑墓焚繧呈欠螳壹〒縺阪∪縺帙ｓ縲・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.h(17,10):
+      'ProgressionSystem::ApplyLevelUpRewards' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(28,13):
+      蠑墓焚繝ｪ繧ｹ繝・'(EntityID, uint32_t, Registry)' 繧剃ｸ閾ｴ縺輔○繧医≧縺ｨ縺励※縺・ｋ縺ｨ縺・
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(33,25): error C2511: 'void ProgressionSystem::ApplyLevelUpRewards(EntityID,uint32_t,Registry &)': 繧ｪ繝ｼ繝舌・繝ｭ繝ｼ繝峨＆繧後◆繝｡繝ｳ繝舌・髢｢謨ｰ縺・'ProgressionSystem' 縺ｫ縺ゅｊ縺ｾ縺帙ｓ縲・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.h(10,7):
+      'ProgressionSystem' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(52,23): error C2039: 'SetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\base\StatusSystem.h(214,7):
+      'StatusValue' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(52,50): error C2039: 'GetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\base\StatusSystem.h(214,7):
+      'StatusValue' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(53,20): error C2039: 'SetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\base\StatusSystem.h(214,7):
+      'StatusValue' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(53,44): error C2039: 'GetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\base\StatusSystem.h(214,7):
+      'StatusValue' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(54,29): error C2039: 'SetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\base\StatusSystem.h(214,7):
+      'StatusValue' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(54,62): error C2039: 'GetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\base\StatusSystem.h(214,7):
+      'StatusValue' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(55,27): error C2039: 'SetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\base\StatusSystem.h(214,7):
+      'StatusValue' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(55,58): error C2039: 'GetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\base\StatusSystem.h(214,7):
+      'StatusValue' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.cpp(27,13): error C2660: 'AnnihilationSystem::TriggerExplosion': 髢｢謨ｰ縺ｫ 2 蛟九・蠑墓焚繧呈欠螳壹〒縺阪∪縺帙ｓ縲・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.h(17,10):
+      'AnnihilationSystem::TriggerExplosion' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.cpp(27,13):
+      蠑墓焚繝ｪ繧ｹ繝・'(EntityID, Registry)' 繧剃ｸ閾ｴ縺輔○繧医≧縺ｨ縺励※縺・ｋ縺ｨ縺・
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.cpp(46,26): error C2511: 'void AnnihilationSystem::TriggerExplosion(EntityID,Registry &)': 繧ｪ繝ｼ繝舌・繝ｭ繝ｼ繝峨＆繧後◆繝｡繝ｳ繝舌・髢｢謨ｰ縺・'AnnihilationSystem' 縺ｫ縺ゅｊ縺ｾ縺帙ｓ縲・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.h(10,7):
+      'AnnihilationSystem' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.cpp(74,25): error C2039: 'SetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\base\StatusSystem.h(214,7):
+      'StatusValue' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.cpp(74,50): error C2039: 'GetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\base\StatusSystem.h(214,7):
+      'StatusValue' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.cpp(83,29): error C2039: 'GetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\base\StatusSystem.h(214,7):
+      'StatusValue' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.cpp(48,5): warning C4390: ';': 蛻ｶ蠕｡縺檎ｩｺ縺ｮ譁・′隕九▽縺九ｊ縺ｾ縺励◆縲よэ蝗ｳ縺励◆險倩ｿｰ縺ｧ縺励ｇ縺・°? [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.cpp(56,5): warning C4390: ';': 蛻ｶ蠕｡縺檎ｩｺ縺ｮ譁・′隕九▽縺九ｊ縺ｾ縺励◆縲よэ蝗ｳ縺励◆險倩ｿｰ縺ｧ縺励ｇ縺・°? [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\PlayerActionSystem.cpp(240,52): error C2039: 'kPlayerEffect': 'CollisionLayerComponent' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\ecs\components\CollisionLayerComponent.h(8,8):
+      'CollisionLayerComponent' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\PlayerActionSystem.cpp(240,52): error C2065: 'kPlayerEffect': 螳夂ｾｩ縺輔ｌ縺ｦ縺・↑縺・ｭ伜挨蟄舌〒縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\EnemySpawnSystem.cpp(90,16): error C2039: 'SetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\base\StatusSystem.h(214,7):
+      'StatusValue' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\EnemySpawnSystem.cpp(91,23): error C2039: 'SetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\gameObject\combatable\base\StatusSystem.h(214,7):
+      'StatusValue' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\EnemySpawnSystem.cpp(115,79): error C2039: 'kPlayerEffect': 'CollisionLayerComponent' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+      C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\engine\ecs\components\CollisionLayerComponent.h(8,8):
+      'CollisionLayerComponent' 縺ｮ螳｣險繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞
+  
+C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\EnemySpawnSystem.cpp(115,79): error C2065: 'kPlayerEffect': 螳夂ｾｩ縺輔ｌ縺ｦ縺・↑縺・ｭ伜挨蟄舌〒縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+繝励Ο繧ｸ繧ｧ繧ｯ繝・"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj" (譌｢螳壹・繧ｿ繝ｼ繧ｲ繝・ヨ) 縺ｮ繝薙Ν繝峨′邨ゆｺ・＠縺ｾ縺励◆ -- 螟ｱ謨励・
+繝励Ο繧ｸ繧ｧ繧ｯ繝・"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (1) 縺ｯ縲√ヮ繝ｼ繝・1 荳翫↓ "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\ImGui\ImGui.vcxproj" (4) 繧偵ン繝ｫ繝峨＠縺ｦ縺・∪縺・(譌｢螳壹・繧ｿ繝ｼ繧ｲ繝・ヨ)縲・
+PrepareForBuild:
+  讒矩蛹門・蜉帙′譛牙柑縺ｫ縺ｪ縺｣縺ｦ縺・∪縺吶ゅさ繝ｳ繝代う繝ｩ險ｺ譁ｭ縺ｮ譖ｸ蠑剰ｨｭ螳壹↓縺ｯ繧ｨ繝ｩ繝ｼ髫主ｱ､縺悟渚譏縺輔ｌ縺ｾ縺吶りｩｳ邏ｰ縺ｫ縺､縺・※縺ｯ縲”ttps://aka.ms/cpp/structured-output 繧貞盾辣ｧ縺励※縺上□縺輔＞縲・
+InitializeBuildStatus:
+  "AlwaysCreate" 縺梧欠螳壹＆繧後◆縺溘ａ "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\Generated\obj\ImGui\Debug\ImGui.tlog\unsuccessfulbuild" 繧剃ｽ懈・縺励※縺・∪縺吶・
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\Generated\obj\ImGui\Debug\ImGui.tlog\unsuccessfulbuild" 縺ｮ繧ｿ繝・メ 繧ｿ繧ｹ繧ｯ繧貞ｮ溯｡後＠縺ｦ縺・∪縺吶・
+FinalizeBuildStatus:
+  繝輔ぃ繧､繝ｫ "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\Generated\obj\ImGui\Debug\ImGui.tlog\unsuccessfulbuild" 繧貞炎髯､縺励※縺・∪縺吶・
+  "C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\..\Generated\obj\ImGui\Debug\ImGui.tlog\ImGui.lastbuildstate" 縺ｮ繧ｿ繝・メ 繧ｿ繧ｹ繧ｯ繧貞ｮ溯｡後＠縺ｦ縺・∪縺吶・
+繝励Ο繧ｸ繧ｧ繧ｯ繝・"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\externals\ImGui\ImGui.vcxproj" (譌｢螳壹・繧ｿ繝ｼ繧ｲ繝・ヨ) 縺ｮ繝薙Ν繝峨′螳御ｺ・＠縺ｾ縺励◆縲・
+繝励Ο繧ｸ繧ｧ繧ｯ繝・"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (Build 繧ｿ繝ｼ繧ｲ繝・ヨ) 縺ｮ繝薙Ν繝峨′邨ゆｺ・＠縺ｾ縺励◆ -- 螟ｱ謨励・
+
+繝薙Ν繝峨↓螟ｱ謨励＠縺ｾ縺励◆縲・
+
+"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (Build 繧ｿ繝ｼ繧ｲ繝・ヨ) (1) ->
+"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj" (譌｢螳壹・繧ｿ繝ｼ繧ｲ繝・ヨ) (2) ->
+(ClCompile 繧ｿ繝ｼ繧ｲ繝・ヨ) -> 
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.cpp(48,5): warning C4390: ';': 蛻ｶ蠕｡縺檎ｩｺ縺ｮ譁・′隕九▽縺九ｊ縺ｾ縺励◆縲よэ蝗ｳ縺励◆險倩ｿｰ縺ｧ縺励ｇ縺・°? [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.cpp(56,5): warning C4390: ';': 蛻ｶ蠕｡縺檎ｩｺ縺ｮ譁・′隕九▽縺九ｊ縺ｾ縺励◆縲よэ蝗ｳ縺励◆險倩ｿｰ縺ｧ縺励ｇ縺・°? [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+
+
+"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.sln" (Build 繧ｿ繝ｼ繧ｲ繝・ヨ) (1) ->
+"C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj" (譌｢螳壹・繧ｿ繝ｼ繧ｲ繝・ヨ) (2) ->
+(ClCompile 繧ｿ繝ｼ繧ｲ繝・ヨ) -> 
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProjectileSystem.h(14,27): error C2061: 讒区枚繧ｨ繝ｩ繝ｼ: 隴伜挨蟄・'EntityID' [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.h(17,30): error C2061: 讒区枚繧ｨ繝ｩ繝ｼ: 隴伜挨蟄・'EntityID' [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.h(17,27): error C2061: 讒区枚繧ｨ繝ｩ繝ｼ: 隴伜挨蟄・'EntityID' [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(28,13): error C2660: 'ProgressionSystem::ApplyLevelUpRewards': 髢｢謨ｰ縺ｫ 3 蛟九・蠑墓焚繧呈欠螳壹〒縺阪∪縺帙ｓ縲・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(33,25): error C2511: 'void ProgressionSystem::ApplyLevelUpRewards(EntityID,uint32_t,Registry &)': 繧ｪ繝ｼ繝舌・繝ｭ繝ｼ繝峨＆繧後◆繝｡繝ｳ繝舌・髢｢謨ｰ縺・'ProgressionSystem' 縺ｫ縺ゅｊ縺ｾ縺帙ｓ縲・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(52,23): error C2039: 'SetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(52,50): error C2039: 'GetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(53,20): error C2039: 'SetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(53,44): error C2039: 'GetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(54,29): error C2039: 'SetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(54,62): error C2039: 'GetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(55,27): error C2039: 'SetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\ProgressionSystem.cpp(55,58): error C2039: 'GetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.cpp(27,13): error C2660: 'AnnihilationSystem::TriggerExplosion': 髢｢謨ｰ縺ｫ 2 蛟九・蠑墓焚繧呈欠螳壹〒縺阪∪縺帙ｓ縲・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.cpp(46,26): error C2511: 'void AnnihilationSystem::TriggerExplosion(EntityID,Registry &)': 繧ｪ繝ｼ繝舌・繝ｭ繝ｼ繝峨＆繧後◆繝｡繝ｳ繝舌・髢｢謨ｰ縺・'AnnihilationSystem' 縺ｫ縺ゅｊ縺ｾ縺帙ｓ縲・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.cpp(74,25): error C2039: 'SetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.cpp(74,50): error C2039: 'GetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\AnnihilationSystem.cpp(83,29): error C2039: 'GetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\PlayerActionSystem.cpp(240,52): error C2039: 'kPlayerEffect': 'CollisionLayerComponent' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\PlayerActionSystem.cpp(240,52): error C2065: 'kPlayerEffect': 螳夂ｾｩ縺輔ｌ縺ｦ縺・↑縺・ｭ伜挨蟄舌〒縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\EnemySpawnSystem.cpp(90,16): error C2039: 'SetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\EnemySpawnSystem.cpp(91,23): error C2039: 'SetBaseValue': 'StatusValue' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\EnemySpawnSystem.cpp(115,79): error C2039: 'kPlayerEffect': 'CollisionLayerComponent' 縺ｮ繝｡繝ｳ繝舌・縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ [C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+  C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\application\ecs\systems\EnemySpawnSystem.cpp(115,79): error C2065: 'kPlayerEffect': 螳夂ｾｩ縺輔ｌ縺ｦ縺・↑縺・ｭ伜挨蟄舌〒縺吶・[C:\Users\kurih\source\repos\kuriharakento\KentoCompoEngine\project\KentoCompo.vcxproj]
+
+    2 蛟九・隴ｦ蜻・
+    24 繧ｨ繝ｩ繝ｼ
+
+邨碁℃譎る俣 00:00:02.66

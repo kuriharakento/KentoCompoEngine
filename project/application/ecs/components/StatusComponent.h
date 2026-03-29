@@ -8,6 +8,16 @@ namespace ecs
  */
 struct StatusComponent
 {
+    StatusComponent() = default;
+    ~StatusComponent() = default;
+
+    // ムーブを許可
+    StatusComponent(StatusComponent&&) noexcept = default;
+    StatusComponent& operator=(StatusComponent&&) noexcept = default;
+
+    // コピーは禁止（StatusValueにunique_ptrが含まれるため）
+    StatusComponent(const StatusComponent&) = delete;
+    StatusComponent& operator=(const StatusComponent&) = delete;
     // 現在のHP
     StatusValue hp_{ 100.0f };
     // 最大HP

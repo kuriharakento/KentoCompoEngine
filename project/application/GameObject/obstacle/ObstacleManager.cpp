@@ -271,7 +271,9 @@ void ObstacleManager::RegisterToRegistry(const GameObjectInfo& info, ObstacleCom
 	if (entity == kInvalidEntity) return;
 
 	// Tag
-	registry_->AddComponent<TagComponent>(entity, { TagComponent::Type::Obstacle });
+	ecs::EcsTagComponent obstacleTag;
+	obstacleTag.type = ecs::EcsTagComponent::Type::Obstacle;
+	registry_->AddComponent<ecs::EcsTagComponent>(entity, obstacleTag);
 
 	// Transform
 	TransformComponent transform;

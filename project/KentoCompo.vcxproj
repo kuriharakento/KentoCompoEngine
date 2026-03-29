@@ -280,6 +280,11 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\effect\SceneTransitionEffect.cpp" />
     <ClCompile Include="application\gameObject\component\action\PlayerUIComponent.cpp" />
     <ClCompile Include="application\gameObject\component\action\WeaponManagerComponent.cpp" />
+    <ClCompile Include="application\ecs\systems\AnnihilationSystem.cpp" />
+    <ClCompile Include="application\ecs\systems\EnemySpawnSystem.cpp" />
+    <ClCompile Include="application\ecs\systems\PlayerActionSystem.cpp" />
+    <ClCompile Include="application\ecs\systems\ProgressionSystem.cpp" />
+    <ClCompile Include="application\ecs\systems\ProjectileSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\ecs\components\BulletComponent.h" />
@@ -527,6 +532,16 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\graphics\2d\FontSprite.h" />
     <ClInclude Include="application\gameObject\component\action\IWeaponComponent.h" />
     <ClInclude Include="application\gameObject\component\action\WeaponManagerComponent.h" />
+    <ClInclude Include="application\ecs\systems\AnnihilationSystem.h" />
+    <ClInclude Include="application\ecs\systems\EnemySpawnSystem.h" />
+    <ClInclude Include="application\ecs\systems\PlayerActionSystem.h" />
+    <ClInclude Include="application\ecs\systems\ProgressionSystem.h" />
+    <ClInclude Include="application\ecs\systems\ProjectileSystem.h" />
+    <ClInclude Include="application\ecs\components\DodgeComponent.h" />
+    <ClInclude Include="application\ecs\components\ImpactChargeComponent.h" />
+    <ClInclude Include="application\ecs\components\PlayerProgressionComponent.h" />
+    <ClInclude Include="application\ecs\components\ProjectileComponent.h" />
+    <ClInclude Include="application\ecs\components\SkillComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />

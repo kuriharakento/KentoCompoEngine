@@ -2,15 +2,14 @@
 
 #include <cstdint>
 
-// No namespaces
-
+namespace ecs
+{
 /**
  * @brief エンティティの種別を表すタグコンポーネント。
  *
- * 型ではなく数値タグで種別を持つことで、Systemが特定種別だけを
- * O(1) でフィルタリングできる。
+ * 名称が既存エンジンと衝突しやすいため、EcsTagComponent として定義。
  */
-struct TagComponent
+struct EcsTagComponent
 {
     // エンティティ種別
     enum class Type : uint32_t
@@ -25,3 +24,4 @@ struct TagComponent
 
     Type type = Type::Unknown;
 };
+}

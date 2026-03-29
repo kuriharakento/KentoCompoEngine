@@ -15,6 +15,7 @@
 #include "engine/ecs/components/CollisionResponseComponent.h"
 #include "engine/ecs/components/ColliderComponent.h"
 #include "engine/ecs/components/CollisionLayerComponent.h"
+#include "engine/ecs/components/TagComponent.h" // ecs::EcsTagComponent
 #include "engine/ecs/system/InstancedRenderSystem.h"
 #include "engine/manager/scene/CameraManager.h"
 #include "engine/gameobject/component/collision/OBBColliderComponent.h"
@@ -123,11 +124,17 @@ namespace {
 
 			float optimalDistance = (ai.attackRange_ + ai.minRange_) / 2.0f;
 			auto& status = reg->GetComponent<ecs::StatusComponent>(owner);
-			float moveFactor = TimeManager::GetInstance().GetGameContext().deltaTime * status.moveSpeed_.GetValue();
+			
+			// [BNS-Fix] 瞬間移動防止のため deltaTime を制限
+			float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
+			dt = (std::min)(dt, 0.033f);
+			float moveFactor = dt * status.moveSpeed_.GetValue();
 
 			if (dist > optimalDistance) {
 				direction.NormalizeSelf();
-				transform.localPosition_ += direction * moveFactor;
+				// [BNS-Fix] 移動量を残りの距離でクランプ
+				float actualMove = (std::min)(moveFactor, dist - optimalDistance);
+				transform.localPosition_ += direction * actualMove;
 			}
 			AimAtTarget(transform, targetPos);
 			return NodeStatus::Running;
@@ -257,9 +264,13 @@ void EnemyManager::AddPistolEnemy(uint32_t count)
 		transform.localPosition_ = randomPos;
 		registry_->AddComponent<TransformComponent>(entity, transform);
 		
+		ecs::EcsTagComponent enemyTag;
+		enemyTag.type = ecs::EcsTagComponent::Type::Enemy;
+		registry_->AddComponent<ecs::EcsTagComponent>(entity, enemyTag);
+
 		EnemyStateComponent state;
 		registry_->AddComponent<EnemyStateComponent>(entity, state);
-		registry_->AddComponent<ecs::StatusComponent>(entity, {});
+		registry_->AddComponent<ecs::StatusComponent>(entity, ecs::StatusComponent{});
 		AssignInstancedRenderComponent(entity, "enemy");
 
 		EnemyAIComponent ai;
@@ -284,9 +295,13 @@ void EnemyManager::AddAssaultEnemy(uint32_t count)
 		transform.localPosition_ = randomPos;
 		registry_->AddComponent<TransformComponent>(entity, transform);
 		
+		ecs::EcsTagComponent enemyTag;
+		enemyTag.type = ecs::EcsTagComponent::Type::Enemy;
+		registry_->AddComponent<ecs::EcsTagComponent>(entity, enemyTag);
+
 		EnemyStateComponent state;
 		registry_->AddComponent<EnemyStateComponent>(entity, state);
-		registry_->AddComponent<ecs::StatusComponent>(entity, {});
+		registry_->AddComponent<ecs::StatusComponent>(entity, ecs::StatusComponent{});
 		AssignInstancedRenderComponent(entity, "enemy");
 
 		EnemyAIComponent ai;
@@ -318,9 +333,13 @@ void EnemyManager::AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo
 		transform.localPosition_ = {data[i].transform.translate.x, data[i].transform.translate.y, data[i].transform.translate.z};
 		registry_->AddComponent<TransformComponent>(entity, transform);
 
+		ecs::EcsTagComponent enemyTag;
+		enemyTag.type = ecs::EcsTagComponent::Type::Enemy;
+		registry_->AddComponent<ecs::EcsTagComponent>(entity, enemyTag);
+
 		EnemyStateComponent state;
 		registry_->AddComponent<EnemyStateComponent>(entity, state);
-		registry_->AddComponent<ecs::StatusComponent>(entity, {});
+		registry_->AddComponent<ecs::StatusComponent>(entity, ecs::StatusComponent{});
 		AssignInstancedRenderComponent(entity, "enemy");
 
 		EnemyAIComponent ai;
@@ -357,11 +376,10 @@ void EnemyManager::AddCollisionComponents(EntityID entity)
 
 	auto& transform = registry_->GetComponent<TransformComponent>(entity);
 
-	// コライダー設定 (OBB)
+	// コライダー設定 (Sphere)
 	ColliderComponent col;
-	col.type_ = ColliderType::OBB;
-	// オブジェクトのスケールをベースサイズ（半サイズとして適用）
-	col.obb_.size = transform.localScale_ * 0.5f;
+	col.type_ = ColliderType::Sphere;
+	col.sphere_.radius = 1.0f;
 	col.useSubstep_ = true;
 	// [Fix] 初期位置を同期（原点への押し戻しを防ぐ）
 	col.previousPosition_ = transform.localPosition_;

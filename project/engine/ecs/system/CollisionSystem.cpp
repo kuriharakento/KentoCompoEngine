@@ -314,12 +314,24 @@ void CollisionSystem::ResolveCollisions(Registry& registry)
             }
         }
 
-        // 特殊ロジック（Player vs Enemy）
+        // 特殊ロジック（Player vs Enemy / Bullet vs Enemy）
         if (layerArray) {
             uint32_t catA = (layerArray->HasComponent(ev.a)) ? layerArray->GetData(ev.a).category_ : 0;
             uint32_t catB = (layerArray->HasComponent(ev.b)) ? layerArray->GetData(ev.b).category_ : 0;
+            
+            // Player vs Enemy
             if ((catA & CollisionLayerComponent::kPlayer) && (catB & CollisionLayerComponent::kEnemy)) registry.DestroyEntityDeferred(ev.b);
             else if ((catB & CollisionLayerComponent::kPlayer) && (catA & CollisionLayerComponent::kEnemy)) registry.DestroyEntityDeferred(ev.a);
+            
+            // PlayerBullet vs Enemy [BNS-Fix]
+            if ((catA & CollisionLayerComponent::kPlayerBullet) && (catB & CollisionLayerComponent::kEnemy)) {
+                registry.DestroyEntityDeferred(ev.a); // 弾消滅
+                registry.DestroyEntityDeferred(ev.b); // 敵消滅
+            }
+            else if ((catB & CollisionLayerComponent::kPlayerBullet) && (catA & CollisionLayerComponent::kEnemy)) {
+                registry.DestroyEntityDeferred(ev.b); // 弾消滅
+                registry.DestroyEntityDeferred(ev.a); // 敵消滅
+            }
         }
     }
 }

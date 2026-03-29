@@ -277,13 +277,15 @@ void StageManager::CreateInfosFromStageData()
 				playerEntity_ = registry_->CreateEntity();
 				
 				// コンポーネント付与
-				registry_->AddComponent<TagComponent>(playerEntity_, { TagComponent::Type::Player });
+				ecs::EcsTagComponent playerTag;
+				playerTag.type = ecs::EcsTagComponent::Type::Player;
+				registry_->AddComponent<ecs::EcsTagComponent>(playerEntity_, playerTag);
 				registry_->AddComponent<TransformComponent>(playerEntity_, { objInfo.transform.translate, objInfo.transform.rotate, objInfo.transform.scale });
 				MovementComponent movement;
 				movement.useGravity_ = true;
 				registry_->AddComponent<MovementComponent>(playerEntity_, movement);
 				registry_->AddComponent<PlayerComponent>(playerEntity_, {});
-				registry_->AddComponent<ecs::StatusComponent>(playerEntity_, {});
+				registry_->AddComponent<ecs::StatusComponent>(playerEntity_, ecs::StatusComponent{});
 				registry_->AddComponent<CollisionResponseComponent>(playerEntity_, {});
 
 				// コライダー設定 (OBB)
