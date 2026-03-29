@@ -15,9 +15,10 @@
 #include "engine/ecs/components/CollisionResponseComponent.h"
 #include "engine/ecs/components/ColliderComponent.h"
 #include "application/ecs/CollisionConfig.h"
-#include "engine/ecs/components/TagComponent.h" // ecs::EcsTagComponent
+#include "engine/ecs/components/TagComponent.h" // ecs::TagComponent
 #include "engine/ecs/system/InstancedRenderSystem.h"
 #include "engine/manager/scene/CameraManager.h"
+#include "math/VectorColorCodes.h"
 #include "engine/gameobject/component/collision/OBBColliderComponent.h"
 
 // Engine
@@ -264,9 +265,9 @@ void EnemyManager::AddPistolEnemy(uint32_t count)
 		transform.localPosition_ = randomPos;
 		registry_->AddComponent<TransformComponent>(entity, transform);
 		
-		ecs::EcsTagComponent enemyTag;
-		enemyTag.type = ecs::EcsTagComponent::Type::Enemy;
-		registry_->AddComponent<ecs::EcsTagComponent>(entity, enemyTag);
+		ecs::TagComponent enemyTag;
+		enemyTag.type = ecs::TagComponent::Type::Enemy;
+		registry_->AddComponent<ecs::TagComponent>(entity, enemyTag);
 
 		EnemyStateComponent state;
 		registry_->AddComponent<EnemyStateComponent>(entity, state);
@@ -295,9 +296,9 @@ void EnemyManager::AddAssaultEnemy(uint32_t count)
 		transform.localPosition_ = randomPos;
 		registry_->AddComponent<TransformComponent>(entity, transform);
 		
-		ecs::EcsTagComponent enemyTag;
-		enemyTag.type = ecs::EcsTagComponent::Type::Enemy;
-		registry_->AddComponent<ecs::EcsTagComponent>(entity, enemyTag);
+		ecs::TagComponent enemyTag;
+		enemyTag.type = ecs::TagComponent::Type::Enemy;
+		registry_->AddComponent<ecs::TagComponent>(entity, enemyTag);
 
 		EnemyStateComponent state;
 		registry_->AddComponent<EnemyStateComponent>(entity, state);
@@ -333,9 +334,9 @@ void EnemyManager::AddEnemiesFromGameObjectInfo(const std::vector<GameObjectInfo
 		transform.localPosition_ = {data[i].transform.translate.x, data[i].transform.translate.y, data[i].transform.translate.z};
 		registry_->AddComponent<TransformComponent>(entity, transform);
 
-		ecs::EcsTagComponent enemyTag;
-		enemyTag.type = ecs::EcsTagComponent::Type::Enemy;
-		registry_->AddComponent<ecs::EcsTagComponent>(entity, enemyTag);
+		ecs::TagComponent enemyTag;
+		enemyTag.type = ecs::TagComponent::Type::Enemy;
+		registry_->AddComponent<ecs::TagComponent>(entity, enemyTag);
 
 		EnemyStateComponent state;
 		registry_->AddComponent<EnemyStateComponent>(entity, state);
@@ -377,7 +378,7 @@ void EnemyManager::AddCollisionComponents(EntityID entity)
 	auto& transform = registry_->GetComponent<TransformComponent>(entity);
 
 	// コライダー設定 (Sphere)
-	ColliderComponent col;
+	ecs::ColliderComponent col;
 	col.type_ = ColliderType::Sphere;
 	col.sphere_.radius = 1.0f;
 	col.useSubstep_ = true;
@@ -388,9 +389,9 @@ void EnemyManager::AddCollisionComponents(EntityID entity)
 	col.mask = CollisionLayer::Player | CollisionLayer::Obstacle | CollisionLayer::PlayerBullet;
 
 	// 衝突応答
-	col.onCollisionEnter = [reg = registry_, entity](const CollisionPartnerInfo& other) {
-		if (reg->HasComponent<ColliderComponent>(other.entity)) {
-			auto& otherCol = reg->GetComponent<ColliderComponent>(other.entity);
+	col.onCollisionEnter = [reg = registry_, entity](const ecs::CollisionPartnerInfo& other) {
+		if (reg->HasComponent<ecs::ColliderComponent>(other.entity)) {
+			auto& otherCol = reg->GetComponent<ecs::ColliderComponent>(other.entity);
 			
 			// プレイヤーの弾に当たったら、自分（敵）を消す
 			if (otherCol.layer & CollisionLayer::PlayerBullet) {
@@ -408,7 +409,7 @@ void EnemyManager::AddCollisionComponents(EntityID entity)
 		}
 	};
 
-	registry_->AddComponent<ColliderComponent>(entity, col);
+	registry_->AddComponent<ecs::ColliderComponent>(entity, col);
 
 	// レスポンス状態追跡用コンポーネント
 	registry_->AddComponent<CollisionResponseComponent>(entity, {});

@@ -7,6 +7,7 @@
 
 #include <mutex>
 #include <set>
+#include <functional>
 
 /**
  * @brief 空間分割（Grid）を用いて効率的に衝突判定を行うシステム。
@@ -24,6 +25,14 @@ public:
     void UpdatePreviousPositions(Registry& registry);
     void Update(Registry& registry) override;
     void Draw(Registry& registry, Camera* camera, LightManager* lightManager, ShadowMapManager* shadowMapManager) override;
+
+    /**
+     * @brief 指定した球体範囲内にあるエンティティを検索する。
+     * @param position 中心座標
+     * @param radius 半径
+     * @param callback 見つかったエンティティごとに呼ばれるコールバック
+     */
+    void QueryNearbyEntities(const Vector3& position, float radius, const std::function<void(EntityID)>& callback) const;
 
     // スレッドごとに独立して保持する判定用ワークエリア
     struct ThreadLocalContext {

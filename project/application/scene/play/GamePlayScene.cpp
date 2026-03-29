@@ -38,7 +38,7 @@
 #include "engine/ecs/system/InstancedRenderSystem.h"
 #include "engine/ecs/components/TransformComponent.h"
 #include "engine/ecs/components/HierarchyComponent.h"
-#include "engine/ecs/components/TagComponent.h" // ecs::EcsTagComponent
+#include "engine/ecs/components/TagComponent.h" // ecs::TagComponent
 #include "engine/ecs/components/MovementComponent.h"
 #include "engine/ecs/components/ColliderComponent.h"
 #include "application/ecs/components/PlayerProgressionComponent.h"
@@ -51,6 +51,7 @@
 #include "engine/ecs/components/EnemyAIComponent.h"
 #include "engine/ecs/components/InstancedRenderComponent.h"
 #include "engine/ecs/components/CollisionResponseComponent.h"
+#include "application/ecs/components/InducedExplosionComponent.h"
 #include "engine/ecs/components/LifetimeComponent.h"
 #include "application/ecs/components/ObstacleComponent.h"
 #include "application/ecs/components/BulletComponent.h"
@@ -104,10 +105,10 @@ void GamePlayScene::Initialize()
 	// コンポーネント登録
 	registry_->RegisterComponent<TransformComponent>(10000);
 	registry_->RegisterComponent<HierarchyComponent>(10000);
-	registry_->RegisterComponent<ecs::EcsTagComponent>(10000);
+	registry_->RegisterComponent<ecs::TagComponent>(10000);
 	registry_->RegisterComponent<MovementComponent>(10000);
 	registry_->RegisterComponent<InstancedRenderComponent>(10000);
-	registry_->RegisterComponent<ColliderComponent>(10000);
+	registry_->RegisterComponent<ecs::ColliderComponent>(10000);
 	registry_->RegisterComponent<PlayerProgressionComponent>(1);
 	registry_->RegisterComponent<SkillComponent>(1);
 	registry_->RegisterComponent<DodgeComponent>(1);
@@ -119,6 +120,7 @@ void GamePlayScene::Initialize()
 	registry_->RegisterComponent<EnemyAIComponent>(5000);
 	registry_->RegisterComponent<EnemyStateComponent>(5000);
 	registry_->RegisterComponent<LifetimeComponent>(10000);
+	registry_->RegisterComponent<ecs::InducedExplosionComponent>(5000);
 	registry_->RegisterComponent<ObstacleComponent>(1000);
 	registry_->RegisterComponent<BulletComponent>(10000);
 	registry_->RegisterComponent<EnemyTypeComponent>(10000);   // 敵種別タグ
@@ -141,6 +143,7 @@ void GamePlayScene::Initialize()
 	
 	auto playerActionSystem = std::make_shared<PlayerActionSystem>();
 	playerActionSystem->SetCameraManager(sceneManager_->GetCameraManager());
+	playerActionSystem->SetSystemManager(systemManager_.get());
 	systemManager_->AddSystem(playerActionSystem);
 
 	systemManager_->AddSystem(std::make_shared<EnemyBehaviorSystem>());
@@ -199,18 +202,24 @@ void GamePlayScene::Initialize()
 	// --- プレイヤーEntityの生成 ---
 	playerEntity_ = registry_->CreateEntity();
 	if (playerEntity_ != kInvalidEntity) {
-		ecs::EcsTagComponent playerTag;
-		playerTag.type = ecs::EcsTagComponent::Type::Player;
-		registry_->AddComponent<ecs::EcsTagComponent>(playerEntity_, playerTag);
+		ecs::TagComponent playerTag;
+		playerTag.type = ecs::TagComponent::Type::Player;
+		registry_->AddComponent<ecs::TagComponent>(playerEntity_, playerTag);
 		
 		registry_->AddComponent<TransformComponent>(playerEntity_, { {0.0f, 1.0f, 0.0f}, {0,0,0}, {1,1,1} });
 		registry_->AddComponent<PlayerProgressionComponent>(playerEntity_, {});
-		registry_->AddComponent<SkillComponent>(playerEntity_, {});
+		
+		SkillComponent skill;
+		skill.isRmbUnlocked_ = true;
+		skill.isDecoyUnlocked_ = true;
+		skill.isImpactUnlocked_ = true;
+		registry_->AddComponent<SkillComponent>(playerEntity_, skill);
+
 		registry_->AddComponent<DodgeComponent>(playerEntity_, {});
 		registry_->AddComponent<ecs::StatusComponent>(playerEntity_, ecs::StatusComponent{});
 		
 		// コライダー設定
-		ColliderComponent col;
+		ecs::ColliderComponent col;
 		col.type_ = ColliderType::Sphere;
 		col.sphere_.radius = 1.0f;
 		
@@ -218,7 +227,7 @@ void GamePlayScene::Initialize()
 		col.layer = CollisionLayer::Player;
 		col.mask = CollisionLayer::Enemy | CollisionLayer::Obstacle;
 		
-		registry_->AddComponent<ColliderComponent>(playerEntity_, col);
+		registry_->AddComponent<ecs::ColliderComponent>(playerEntity_, col);
 		
 		registry_->AddComponent<CollisionResponseComponent>(playerEntity_, {});
 

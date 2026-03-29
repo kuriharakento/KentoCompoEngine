@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "engine/gameobject/component/base/ICollisionComponent.h" // ColliderType 利用
 #include "math/AABB.h"
@@ -8,6 +8,8 @@
 #include "engine/ecs/Entity.h"
 #include <functional>
 
+namespace ecs
+{
 struct CollisionPartnerInfo
 {
     EntityID entity; // 衝突した相手のID
@@ -54,3 +56,4 @@ struct ColliderComponent
     CollisionCallback onCollisionStay;  // 衝突継続中（毎フレーム）
     CollisionCallback onCollisionExit;  // 衝突終了時
 };
+}

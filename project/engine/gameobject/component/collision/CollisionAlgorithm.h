@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AABBColliderComponent.h"
 #include "OBBColliderComponent.h"
 #include "SphereColliderComponent.h"
@@ -30,7 +30,8 @@ enum class CollisionPlane
  * 
  * @note サブステップ判定は高速移動体のすり抜けを防ぎます
  */
-struct ColliderComponent;
+namespace ecs { struct ColliderComponent; }
+using ColliderComponent = ecs::ColliderComponent;
 
 namespace collisionAlgorithm
 {
@@ -52,7 +53,7 @@ namespace collisionAlgorithm
 	// --- 高速関数テーブル用シグネチャ ---
 	// 戻り値: 衝突したか
 	// 引数: A, B, mtv(必要なら算出)
-	using CollisionFunc = bool(*)(const ColliderComponent& a, const ColliderComponent& b, Vector3* outMtv);
+	using CollisionFunc = bool(*)(const ecs::ColliderComponent& a, const ecs::ColliderComponent& b, Vector3* outMtv);
 
 	// --- 関数テーブルの宣言 ---
 	// ColliderType (AABB=0, Sphere=1, OBB=2, Ray=3)

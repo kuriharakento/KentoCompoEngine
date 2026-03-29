@@ -93,10 +93,10 @@ void PlayerSystem::Update(Registry& registry)
             pRef.dodgeTargetPosition_ = pRef.dodgeStartPosition_ + pRef.dodgeDirection_ * pRef.dodgeDistance_;
             pRef.invincibleTimer_ = pRef.dodgeInvincibleTime_;
             pRef.isInvincible_ = true;
-            if (registry.HasComponent<ColliderComponent>(entity))
+            if (registry.HasComponent<ecs::ColliderComponent>(entity))
             {
                 // CCD判定用に現在(ダッシュ開始時)のワールド位置を記録
-                auto& coll = registry.GetComponent<ColliderComponent>(entity);
+                auto& coll = registry.GetComponent<ecs::ColliderComponent>(entity);
                 coll.previousPosition_ = MathUtils::GetTranslateFromMatrix(tRef.worldMatrix_);
             }
             continue;

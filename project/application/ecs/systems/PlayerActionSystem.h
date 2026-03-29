@@ -3,6 +3,7 @@
 #include "engine/ecs/Entity.h"
 
 class CameraManager;
+class SystemManager;
 
 /**
  * @brief プレイヤーの入力に基づき、移動やスキルの発動を制御するシステム。
@@ -16,6 +17,7 @@ public:
     void Update(Registry& registry) override;
 
     void SetCameraManager(CameraManager* cameraManager) { cameraManager_ = cameraManager; }
+    void SetSystemManager(SystemManager* systemManager) { systemManager_ = systemManager; }
 
 private:
     // 回避（Dodge）の更新
@@ -33,4 +35,5 @@ private:
     void UpdateR(EntityID entity, Registry& registry, float deltaTime);
 
     CameraManager* cameraManager_ = nullptr;
+    SystemManager* systemManager_ = nullptr;
 };

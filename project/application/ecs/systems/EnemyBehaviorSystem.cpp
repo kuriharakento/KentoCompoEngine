@@ -13,15 +13,24 @@ void EnemyBehaviorSystem::Update(Registry& registry)
 
     // プレイヤーの座標取得
     EntityID playerEntity = kInvalidEntity;
-    auto tagView = registry.View<ecs::EcsTagComponent>();
+    std::vector<Vector3> decoyPositions;
+    auto tagView = registry.View<ecs::TagComponent>();
     if (tagView)
     {
         for (uint32_t i = 0; i < tagView->GetSize(); ++i)
         {
-            if (tagView->GetDataFromDenseIndex(i).type == ecs::EcsTagComponent::Type::Player)
+            EntityID ent = tagView->GetEntityFromDenseIndex(i);
+            auto type = tagView->GetDataFromDenseIndex(i).type;
+            if (type == ecs::TagComponent::Type::Player)
             {
-                playerEntity = tagView->GetEntityFromDenseIndex(i);
-                break;
+                playerEntity = ent;
+            }
+            else if (type == ecs::TagComponent::Type::Decoy)
+            {
+                if (registry.HasComponent<TransformComponent>(ent))
+                {
+                    decoyPositions.push_back(registry.GetComponent<TransformComponent>(ent).localPosition_);
+                }
             }
         }
     }
@@ -36,16 +45,32 @@ void EnemyBehaviorSystem::Update(Registry& registry)
     for (uint32_t i = 0; i < aiView->GetSize(); ++i)
     {
         EntityID entity = aiView->GetEntityFromDenseIndex(i);
-        if (!registry.HasComponent<EnemyTypeComponent>(entity)) continue;
+        if (!registry.HasComponent<EnemyTypeComponent>(entity) || !registry.HasComponent<TransformComponent>(entity)) continue;
+
+        const Vector3& enemyPos = registry.GetComponent<TransformComponent>(entity).localPosition_;
+
+        // ターゲット選定（プレイヤーまたは最も近いデコイ）
+        Vector3 targetPos = playerPos;
+        float minTargetDistSq = (playerPos - enemyPos).LengthSquared();
+
+        for (const auto& dPos : decoyPositions)
+        {
+            float distSq = (dPos - enemyPos).LengthSquared();
+            if (distSq < minTargetDistSq)
+            {
+                minTargetDistSq = distSq;
+                targetPos = dPos;
+            }
+        }
 
         auto& typeComp = registry.GetComponent<EnemyTypeComponent>(entity);
         switch (typeComp.type)
         {
         case EnemyType::Melee:
-            UpdateMeleeBehavior(entity, registry, playerPos, dt);
+            UpdateMeleeBehavior(entity, registry, targetPos, dt);
             break;
         case EnemyType::Ranged:
-            UpdateRangedBehavior(entity, registry, playerPos, dt);
+            UpdateRangedBehavior(entity, registry, targetPos, dt);
             break;
         }
     }

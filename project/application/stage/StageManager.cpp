@@ -279,9 +279,9 @@ void StageManager::CreateInfosFromStageData()
 				playerEntity_ = registry_->CreateEntity();
 				
 				// コンポーネント付与
-				ecs::EcsTagComponent playerTag;
-				playerTag.type = ecs::EcsTagComponent::Type::Player;
-				registry_->AddComponent<ecs::EcsTagComponent>(playerEntity_, playerTag);
+				ecs::TagComponent playerTag;
+				playerTag.type = ecs::TagComponent::Type::Player;
+				registry_->AddComponent<ecs::TagComponent>(playerEntity_, playerTag);
 				registry_->AddComponent<TransformComponent>(playerEntity_, { objInfo.transform.translate, objInfo.transform.rotate, objInfo.transform.scale });
 				MovementComponent movement;
 				movement.useGravity_ = true;
@@ -291,7 +291,7 @@ void StageManager::CreateInfosFromStageData()
 				registry_->AddComponent<CollisionResponseComponent>(playerEntity_, {});
 
 				// コライダー設定 (OBB)
-				ColliderComponent col;
+				ecs::ColliderComponent col;
 				col.type_ = ColliderType::OBB;
 				col.useSubstep_ = true;
 				// [Fix] 初期位置を同期（原点への押し戻しを防ぐ）
@@ -301,7 +301,7 @@ void StageManager::CreateInfosFromStageData()
 				col.layer = CollisionLayer::Player;
 				col.mask = CollisionLayer::Enemy | CollisionLayer::Obstacle | CollisionLayer::EnemyBullet;
 
-				registry_->AddComponent<ColliderComponent>(playerEntity_, col);
+				registry_->AddComponent<ecs::ColliderComponent>(playerEntity_, col);
 
 				// 描画設定
 				InstancedRenderComponent irc;

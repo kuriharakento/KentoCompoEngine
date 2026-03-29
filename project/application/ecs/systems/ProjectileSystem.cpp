@@ -1,7 +1,7 @@
 #include "ProjectileSystem.h"
 #include "engine/ecs/Registry.h"
 #include "engine/ecs/components/TransformComponent.h"
-#include "engine/ecs/components/TagComponent.h" // ecs::EcsTagComponent
+#include "engine/ecs/components/TagComponent.h" // ecs::TagComponent
 #include "application/ecs/components/ProjectileComponent.h"
 #include "engine/time/TimeManager.h"
 #include "application/effect/BulletTrailManager.h"

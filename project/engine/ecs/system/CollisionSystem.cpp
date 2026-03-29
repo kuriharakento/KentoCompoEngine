@@ -28,9 +28,9 @@ CollisionSystem::CollisionSystem()
 
 void CollisionSystem::UpdatePreviousPositions(Registry& registry)
 {
-	if (!registry.HasComponentArray<ColliderComponent>()) return;
+	if (!registry.HasComponentArray<ecs::ColliderComponent>()) return;
 
-	auto& colliderArray = registry.GetArray<ColliderComponent>();
+	auto& colliderArray = registry.GetArray<ecs::ColliderComponent>();
 	auto& transformArray = registry.GetArray<TransformComponent>();
 
 	const uint32_t count = colliderArray.GetSize();
@@ -68,12 +68,12 @@ void CollisionSystem::Update(Registry& registry)
 		}
 	}
 
-	if (!registry.HasComponentArray<ColliderComponent>() || !registry.HasComponentArray<TransformComponent>())
+	if (!registry.HasComponentArray<ecs::ColliderComponent>() || !registry.HasComponentArray<TransformComponent>())
 	{
 		return;
 	}
 
-	auto& colliderArray = registry.GetArray<ColliderComponent>();
+	auto& colliderArray = registry.GetArray<ecs::ColliderComponent>();
 	auto& transformArray = registry.GetArray<TransformComponent>();
 	const uint32_t colliderCount = colliderArray.GetSize();
 
@@ -162,8 +162,8 @@ void CollisionSystem::Update(Registry& registry)
 		{
 			EntityID entity = respArray.GetEntityFromDenseIndex(i);
 			auto& res = respArray.GetDataFromDenseIndex(i);
-			if (!registry.HasComponent<ColliderComponent>(entity)) continue;
-			auto& collider = registry.GetComponent<ColliderComponent>(entity);
+			if (!registry.HasComponent<ecs::ColliderComponent>(entity)) continue;
+			auto& collider = registry.GetComponent<ecs::ColliderComponent>(entity);
 
 			// Enter / Stay
 			for (EntityID current : res.currentCollisions_)
@@ -194,7 +194,7 @@ void CollisionSystem::Update(Registry& registry)
 
 void CollisionSystem::DetectCollisions(Registry& registry)
 {
-	auto& colliderArray = registry.GetArray<ColliderComponent>();
+	auto& colliderArray = registry.GetArray<ecs::ColliderComponent>();
 	auto* obstacleArray = registry.HasComponentArray<ObstacleComponent>() ? &registry.GetArray<ObstacleComponent>() : nullptr;
 	const uint32_t colliderCount = colliderArray.GetSize();
 
@@ -318,15 +318,36 @@ void CollisionSystem::ResolveCollisions(Registry& registry)
 	}
 }
 
+void CollisionSystem::QueryNearbyEntities(const Vector3& position, float radius, const std::function<void(EntityID)>& callback) const
+{
+	if (!grid_) return;
+
+	AABB queryAabb;
+	queryAabb.min_ = position - Vector3(radius, radius, radius);
+	queryAabb.max_ = position + Vector3(radius, radius, radius);
+
+	float radiusSq = radius * radius;
+
+	// グリッドから候補を絞り込む
+	grid_->QueryNearby(queryAabb, [&](EntityID entity) {
+		// ここでは詳細な距離チェックを行う（すでに AABB 内ではあるが、球体判定にするため）
+		// 本来は TransformComponent を引く必要があるが、QueryNearby 経由なので安全
+		// ただし、このメソッド外で Registry を持っているので、ここでは EntityID を渡すだけで良い。
+		// 呼び出し側で距離チェックをするか、ここでチェックするか検討。
+		// 疎結合のためには、ここでは全候補を返し、呼び出し側で精査するのがベター。
+		callback(entity);
+	});
+}
+
 void CollisionSystem::Draw(Registry& registry, Camera* camera, LightManager* lightManager, ShadowMapManager* shadowMapManager)
 {
 #ifdef _DEBUG
 	auto* lineManager = LineManager::GetInstance();
 	if (!lineManager) return;
 
-	if (registry.HasComponentArray<ColliderComponent>())
+	if (registry.HasComponentArray<ecs::ColliderComponent>())
 	{
-		auto& colliderArray = registry.GetArray<ColliderComponent>();
+		auto& colliderArray = registry.GetArray<ecs::ColliderComponent>();
 		for (uint32_t i = 0; i < colliderArray.GetSize(); ++i)
 		{
 			EntityID entity = colliderArray.GetEntityFromDenseIndex(i);

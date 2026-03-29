@@ -271,9 +271,9 @@ void ObstacleManager::RegisterToRegistry(const GameObjectInfo& info, ObstacleCom
 	if (entity == kInvalidEntity) return;
 
 	// Tag
-	ecs::EcsTagComponent obstacleTag;
-	obstacleTag.type = ecs::EcsTagComponent::Type::Obstacle;
-	registry_->AddComponent<ecs::EcsTagComponent>(entity, obstacleTag);
+	ecs::TagComponent obstacleTag;
+	obstacleTag.type = ecs::TagComponent::Type::Obstacle;
+	registry_->AddComponent<ecs::TagComponent>(entity, obstacleTag);
 
 	// Transform
 	TransformComponent transform;
@@ -301,7 +301,7 @@ void ObstacleManager::RegisterToRegistry(const GameObjectInfo& info, ObstacleCom
 	// 当たり判定 (OBB)
 	if (hasCollider)
 	{
-		ColliderComponent col;
+		ecs::ColliderComponent col;
 		col.type_ = ColliderType::OBB;
 		col.previousPosition_ = transform.localPosition_;
 		
@@ -309,7 +309,7 @@ void ObstacleManager::RegisterToRegistry(const GameObjectInfo& info, ObstacleCom
 		col.layer = CollisionLayer::Obstacle;
 		col.mask  = CollisionLayer::All;
 
-		registry_->AddComponent<ColliderComponent>(entity, col);
+		registry_->AddComponent<ecs::ColliderComponent>(entity, col);
 		registry_->AddComponent<CollisionResponseComponent>(entity, {});
 	}
 }

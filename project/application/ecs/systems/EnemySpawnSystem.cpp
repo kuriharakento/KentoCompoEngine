@@ -1,7 +1,7 @@
 #include "EnemySpawnSystem.h"
 #include "engine/ecs/Registry.h"
 #include "engine/ecs/components/TransformComponent.h"
-#include "engine/ecs/components/TagComponent.h" // EcsTagComponent
+#include "engine/ecs/components/TagComponent.h" // ecs::TagComponent
 #include "engine/ecs/components/EnemyAIComponent.h"
 #include "application/ecs/components/StatusComponent.h"
 #include "application/ecs/components/ImpactChargeComponent.h"
@@ -51,14 +51,14 @@ void EnemySpawnSystem::Update(Registry& registry)
 
 void EnemySpawnSystem::SpawnEnemy(Registry& registry)
 {
-    // プレイヤーの位置を取得 (ecs::EcsTagComponent::Type::Player で探す)
+    // プレイヤーの位置を取得 (ecs::TagComponent::Type::Player で探す)
     Vector3 playerPos = { 0, 0, 0 };
-    auto tagView = registry.View<ecs::EcsTagComponent>();
+    auto tagView = registry.View<ecs::TagComponent>();
     if (tagView)
     {
         for (uint32_t i = 0; i < tagView->GetSize(); ++i)
         {
-            if (tagView->GetDataFromDenseIndex(i).type == ecs::EcsTagComponent::Type::Player)
+            if (tagView->GetDataFromDenseIndex(i).type == ecs::TagComponent::Type::Player)
             {
                 EntityID player = tagView->GetEntityFromDenseIndex(i);
                 if (registry.HasComponent<TransformComponent>(player))
@@ -88,9 +88,9 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
     // Entity作成
     EntityID enemy = registry.CreateEntity();
     
-    ecs::EcsTagComponent tag;
-    tag.type = ecs::EcsTagComponent::Type::Enemy;
-    registry.AddComponent<ecs::EcsTagComponent>(enemy, tag);
+    ecs::TagComponent tag;
+    tag.type = ecs::TagComponent::Type::Enemy;
+    registry.AddComponent<ecs::TagComponent>(enemy, tag);
 
     registry.AddComponent<TransformComponent>(enemy, { spawnPos, {0,0,0}, defaultScale });
     
@@ -114,7 +114,7 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
     registry.AddComponent<InstancedRenderComponent>(enemy, render);
 
     // Collider
-    ColliderComponent col;
+    ecs::ColliderComponent col;
     col.type_ = ColliderType::Sphere;
     col.sphere_.radius = 1.0f;
     col.previousPosition_ = spawnPos;
@@ -124,9 +124,9 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
     col.mask = CollisionLayer::Player | CollisionLayer::PlayerBullet;
 
     // 衝突応答
-    col.onCollisionEnter = [&registry, enemy](const CollisionPartnerInfo& other) {
-        if (registry.HasComponent<ColliderComponent>(other.entity)) {
-            auto& otherCol = registry.GetComponent<ColliderComponent>(other.entity);
+    col.onCollisionEnter = [&registry, enemy](const ecs::CollisionPartnerInfo& other) {
+        if (registry.HasComponent<ecs::ColliderComponent>(other.entity)) {
+            auto& otherCol = registry.GetComponent<ecs::ColliderComponent>(other.entity);
             
             // プレイヤーの弾に当たったら、自分（敵）を消す
             if (otherCol.layer & CollisionLayer::PlayerBullet) {
@@ -143,7 +143,7 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
             }
         }
     };
-    registry.AddComponent<ColliderComponent>(enemy, col);
+    registry.AddComponent<ecs::ColliderComponent>(enemy, col);
     registry.AddComponent<CollisionResponseComponent>(enemy, {});
 
     // [New] 敵の種別（近接型をデフォルトとして追加）
@@ -158,10 +158,10 @@ void EnemySpawnSystem::Draw(Registry& registry, Camera* camera, LightManager* li
 #ifdef _DEBUG
     // プレイヤーの位置を取得
     Vector3 playerPos = { 0, 0, 0 };
-    auto tagView = registry.View<ecs::EcsTagComponent>();
+    auto tagView = registry.View<ecs::TagComponent>();
     if (tagView) {
         for (uint32_t i = 0; i < tagView->GetSize(); ++i) {
-            if (tagView->GetDataFromDenseIndex(i).type == ecs::EcsTagComponent::Type::Player) {
+            if (tagView->GetDataFromDenseIndex(i).type == ecs::TagComponent::Type::Player) {
                 EntityID player = tagView->GetEntityFromDenseIndex(i);
                 if (registry.HasComponent<TransformComponent>(player)) {
                     playerPos = registry.GetComponent<TransformComponent>(player).localPosition_;

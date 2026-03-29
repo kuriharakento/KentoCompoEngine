@@ -11,54 +11,54 @@ namespace collisionAlgorithm
 	// 全て「BをAから遠ざける方向のMTV」を返すよう統一する
 
 	// AABB vs ...
-	static bool AABBvsAABB_W(const ColliderComponent& a, const ColliderComponent& b, Vector3* mtv) {
+	static bool AABBvsAABB_W(const ecs::ColliderComponent& a, const ecs::ColliderComponent& b, Vector3* mtv) {
 		return mtv ? CheckAABBvsAABBMTV(a.worldAabb_, b.worldAabb_, *mtv) : CheckAABBvsAABB(a.worldAabb_, b.worldAabb_);
 	}
-	static bool AABBvsSphere_W(const ColliderComponent& a, const ColliderComponent& b, Vector3* mtv) {
+	static bool AABBvsSphere_W(const ecs::ColliderComponent& a, const ecs::ColliderComponent& b, Vector3* mtv) {
 		if (mtv) { bool hit = CheckSpherevsAABBMTV(b.worldSphere_, a.worldAabb_, *mtv); if (hit) *mtv = -(*mtv); return hit; }
 		return CheckSpherevsAABB(b.worldSphere_, a.worldAabb_);
 	}
-	static bool AABBvsOBB_W(const ColliderComponent& a, const ColliderComponent& b, Vector3* mtv) {
+	static bool AABBvsOBB_W(const ecs::ColliderComponent& a, const ecs::ColliderComponent& b, Vector3* mtv) {
 		return mtv ? CheckAABBvsOBBMTV(a.worldAabb_, b.worldObb_, *mtv) : CheckAABBvsOBB(a.worldAabb_, b.worldObb_);
 	}
 
 	// Sphere vs ...
-	static bool SpherevsAABB_W(const ColliderComponent& a, const ColliderComponent& b, Vector3* mtv) {
+	static bool SpherevsAABB_W(const ecs::ColliderComponent& a, const ecs::ColliderComponent& b, Vector3* mtv) {
 		return mtv ? CheckSpherevsAABBMTV(a.worldSphere_, b.worldAabb_, *mtv) : CheckSpherevsAABB(a.worldSphere_, b.worldAabb_);
 	}
-	static bool SpherevsSphere_W(const ColliderComponent& a, const ColliderComponent& b, Vector3* mtv) {
+	static bool SpherevsSphere_W(const ecs::ColliderComponent& a, const ecs::ColliderComponent& b, Vector3* mtv) {
 		return mtv ? CheckSpherevsSphereMTV(a.worldSphere_, b.worldSphere_, *mtv) : CheckSpherevsSphere(a.worldSphere_, b.worldSphere_);
 	}
-	static bool SpherevsOBB_W(const ColliderComponent& a, const ColliderComponent& b, Vector3* mtv) {
+	static bool SpherevsOBB_W(const ecs::ColliderComponent& a, const ecs::ColliderComponent& b, Vector3* mtv) {
 		return mtv ? CheckSpherevsOBBMTV(a.worldSphere_, b.worldObb_, *mtv) : CheckSpherevsOBB(a.worldSphere_, b.worldObb_);
 	}
 
 	// OBB vs ...
-	static bool OBBvsAABB_W(const ColliderComponent& a, const ColliderComponent& b, Vector3* mtv) {
+	static bool OBBvsAABB_W(const ecs::ColliderComponent& a, const ecs::ColliderComponent& b, Vector3* mtv) {
 		if (mtv) { bool hit = CheckAABBvsOBBMTV(b.worldAabb_, a.worldObb_, *mtv); if (hit) *mtv = -(*mtv); return hit; }
 		return CheckAABBvsOBB(b.worldAabb_, a.worldObb_);
 	}
-	static bool OBBvsSphere_W(const ColliderComponent& a, const ColliderComponent& b, Vector3* mtv) {
+	static bool OBBvsSphere_W(const ecs::ColliderComponent& a, const ecs::ColliderComponent& b, Vector3* mtv) {
 		if (mtv) { bool hit = CheckSpherevsOBBMTV(b.worldSphere_, a.worldObb_, *mtv); if (hit) *mtv = -(*mtv); return hit; }
 		return CheckSpherevsOBB(b.worldSphere_, a.worldObb_);
 	}
-	static bool OBBvsOBB_W(const ColliderComponent& a, const ColliderComponent& b, Vector3* mtv) {
+	static bool OBBvsOBB_W(const ecs::ColliderComponent& a, const ecs::ColliderComponent& b, Vector3* mtv) {
 		return mtv ? CheckOBBvsOBBMTV(a.worldObb_, b.worldObb_, *mtv) : CheckOBBvsOBB(a.worldObb_, b.worldObb_);
 	}
 
 	// Ray vs ... (MTVは非対応)
-	static bool RayvsAABB_W(const ColliderComponent& a, const ColliderComponent& b, Vector3*) { return CheckRayvsAABB3D(nullptr, nullptr); } // 既存はコンポーネント版のみ。実際は更新時に数学版を呼ぶ
+	static bool RayvsAABB_W(const ecs::ColliderComponent& a, const ecs::ColliderComponent& b, Vector3*) { return CheckRayvsAABB3D(nullptr, nullptr); } // 既存はコンポーネント版のみ。実際は更新時に数学版を呼ぶ
 
 	// --- CCD (Substep) ラッパー ---
-	static bool AABBvsAABB_CCD(const ColliderComponent& a, const ColliderComponent& b, Vector3* mtv) {
+	static bool AABBvsAABB_CCD(const ecs::ColliderComponent& a, const ecs::ColliderComponent& b, Vector3* mtv) {
 		return mtv ? CheckAABBvsAABBSubstepMTV(a.worldAabb_, a.previousPosition_, b.worldAabb_, b.previousPosition_, *mtv) 
 			       : CheckAABBvsAABBSubstep(a.worldAabb_, a.previousPosition_, b.worldAabb_, b.previousPosition_);
 	}
-	static bool SpherevsSphere_CCD(const ColliderComponent& a, const ColliderComponent& b, Vector3* mtv) {
+	static bool SpherevsSphere_CCD(const ecs::ColliderComponent& a, const ecs::ColliderComponent& b, Vector3* mtv) {
 		// ※現状 SpherevsSphereSubstepMTV は未実装なので通常判定を呼ぶか、必要なら追加する
 		return CheckSpherevsSphereSubstep(a.worldSphere_, a.previousPosition_, b.worldSphere_, b.previousPosition_);
 	}
-	static bool SpherevsOBB_CCD(const ColliderComponent& a, const ColliderComponent& b, Vector3* mtv) {
+	static bool SpherevsOBB_CCD(const ecs::ColliderComponent& a, const ecs::ColliderComponent& b, Vector3* mtv) {
 		return mtv ? CheckSpherevsOBBSubstepMTV(a.worldSphere_, a.previousPosition_, b.worldObb_, b.previousPosition_, *mtv)
 			       : CheckSpherevsOBBSubstep(a.worldSphere_, a.previousPosition_, b.worldObb_, b.previousPosition_);
 	}
