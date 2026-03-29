@@ -57,6 +57,12 @@
 #include "application/ecs/components/PlayerComponent.h"
 #include "application/ecs/components/EnemyTypeComponent.h"
 #include "application/ecs/CollisionConfig.h"
+#include "application/ecs/components/PlayerProgressionComponent.h"
+#include "application/ecs/components/SkillComponent.h"
+#include "application/ecs/components/StatusComponent.h"
+#include "engine/ecs/components/TagComponent.h"
+#include "engine/ecs/components/TransformComponent.h"
+#include "engine/ecs/components/ColliderComponent.h"
 
 // Systems
 #include "engine/ecs/system/HierarchySystem.h"
@@ -197,7 +203,7 @@ void GamePlayScene::Initialize()
 		playerTag.type = ecs::EcsTagComponent::Type::Player;
 		registry_->AddComponent<ecs::EcsTagComponent>(playerEntity_, playerTag);
 		
-		registry_->AddComponent<TransformComponent>(playerEntity_, {});
+		registry_->AddComponent<TransformComponent>(playerEntity_, { {0.0f, 0.5f, 0.0f}, {0,0,0}, {1,1,1} });
 		registry_->AddComponent<PlayerProgressionComponent>(playerEntity_, {});
 		registry_->AddComponent<SkillComponent>(playerEntity_, {});
 		registry_->AddComponent<DodgeComponent>(playerEntity_, {});
@@ -331,6 +337,11 @@ void GamePlayScene::Draw3D()
 		sceneManager_->GetLightManager(),
 		sceneManager_->GetShadowMapManager()
 	);
+	
+	// スポーン範囲の可視化
+	if (enemySpawnSystem_) {
+		enemySpawnSystem_->Draw(*registry_);
+	}
 
 	// 従来の GameObject 描画 (デバッグ用・弾など)
 	enemyManager_->DrawStandard3D(sceneManager_->GetCameraManager());
@@ -350,12 +361,74 @@ void GamePlayScene::Draw2D()
 
 void GamePlayScene::DrawImGui()
 {
-	// ECS Monitor
-	ImGui::Begin("ECS Debug");
+#ifdef USE_IMGUI
+	// --- ECS Central Hub ---
+	ImGui::Begin("ECS Debug Hub");
+
 	if (registry_) {
-		ImGui::Text("Total Entities: %d", registry_->GetActiveEntityCount());
+		ImGui::Text("Active Entities: %d", registry_->GetActiveEntityCount());
+		ImGui::Separator();
 	}
+
+	// 1. プレイヤーステータス
+	if (registry_ && playerEntity_ != kInvalidEntity) {
+		if (ImGui::CollapsingHeader("Player Stats", ImGuiTreeNodeFlags_DefaultOpen)) {
+			// HP (StatusComponent)
+			if (registry_->HasComponent<ecs::StatusComponent>(playerEntity_)) {
+				auto& status = registry_->GetComponent<ecs::StatusComponent>(playerEntity_);
+				float hp = status.hp_.GetValue();
+				float maxHp = status.maxHp_.GetValue();
+				ImGui::Text("HP: %.1f / %.1f", hp, maxHp);
+				ImGui::ProgressBar(hp / maxHp, ImVec2(-1.0f, 0.0f));
+			}
+
+			// レベル・経験値 (PlayerProgressionComponent)
+			if (registry_->HasComponent<PlayerProgressionComponent>(playerEntity_)) {
+				auto& prog = registry_->GetComponent<PlayerProgressionComponent>(playerEntity_);
+				ImGui::Text("Level: %d", prog.level_);
+				ImGui::Text("Exp: %.1f / %.1f", prog.currentExp_, prog.nextLevelExp_);
+				ImGui::ProgressBar(prog.currentExp_ / prog.nextLevelExp_, ImVec2(-1.0f, 0.0f));
+			}
+		}
+
+		// 2. スキル情報
+		if (registry_->HasComponent<SkillComponent>(playerEntity_)) {
+			if (ImGui::CollapsingHeader("Skills", ImGuiTreeNodeFlags_DefaultOpen)) {
+				auto& skill = registry_->GetComponent<SkillComponent>(playerEntity_);
+				
+				auto drawSkillInfo = [](const char* name, bool unlocked, float timer) {
+					ImGui::Text("%-8s: %s (Timer: %.2f)", 
+						name, 
+						unlocked ? "Unlocked" : "Locked", 
+						timer > 0 ? timer : 0.0f);
+				};
+
+				drawSkillInfo("LMB", skill.isLmbUnlocked_, skill.lmbTimer_);
+				drawSkillInfo("RMB", skill.isRmbUnlocked_, skill.rmbTimer_);
+				drawSkillInfo("Q", skill.isDecoyUnlocked_, skill.decoyTimer_);
+				drawSkillInfo("E", skill.isImpactUnlocked_, skill.impactTimer_);
+				drawSkillInfo("R", skill.isBeamUnlocked_, skill.beamTimer_);
+			}
+		}
+	}
+
+	// 3. スポーン設定
+	if (enemySpawnSystem_) {
+		if (ImGui::CollapsingHeader("Spawn Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+			float inner = enemySpawnSystem_->GetInnerRadius();
+			float outer = enemySpawnSystem_->GetOuterRadius();
+
+			if (ImGui::SliderFloat("Inner Radius", &inner, 0.0f, 50.0f)) {
+				enemySpawnSystem_->SetInnerRadius(inner);
+			}
+			if (ImGui::SliderFloat("Outer Radius", &outer, inner, 100.0f)) {
+				enemySpawnSystem_->SetOuterRadius(outer);
+			}
+		}
+	}
+
 	ImGui::End();
+#endif
 }
 
 void GamePlayScene::OnEnterEnter()

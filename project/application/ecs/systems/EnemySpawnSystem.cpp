@@ -12,6 +12,9 @@
 #include "application/ecs/CollisionConfig.h"
 #include "engine/time/TimeManager.h"
 #include "math/MathUtils.h"
+#include "math/VectorColorCodes.h"
+#include "engine/manager/graphics/LineManager.h"
+#include "engine/ecs/components/TagComponent.h"
 
 // 必要なマネージャーのヘッダーを明示
 #include "engine/manager/scene/CameraManager.h"
@@ -78,6 +81,10 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
     Vector3 spawnOffset = { std::cos(angle) * radius, 0, std::sin(angle) * radius };
     Vector3 spawnPos = playerPos + spawnOffset;
 
+    // 接地高さの調整 (Scale.y * 0.5f)
+    Vector3 defaultScale = { 1.0f, 1.0f, 1.0f };
+    spawnPos.y = defaultScale.y * 0.5f;
+
     // Entity作成
     EntityID enemy = registry.CreateEntity();
     
@@ -85,7 +92,7 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
     tag.type = ecs::EcsTagComponent::Type::Enemy;
     registry.AddComponent<ecs::EcsTagComponent>(enemy, tag);
 
-    registry.AddComponent<TransformComponent>(enemy, { spawnPos, {0,0,0}, {1,1,1} });
+    registry.AddComponent<TransformComponent>(enemy, { spawnPos, {0,0,0}, defaultScale });
     
     // Status
     ecs::StatusComponent status;
@@ -143,4 +150,49 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
     EnemyTypeComponent typeComp;
     typeComp.type = EnemyType::Melee;
     registry.AddComponent<EnemyTypeComponent>(enemy, typeComp);
+}
+
+void EnemySpawnSystem::Draw(Registry& registry)
+{
+#ifdef _DEBUG
+    // プレイヤーの位置を取得
+    Vector3 playerPos = { 0, 0, 0 };
+    auto tagView = registry.View<ecs::EcsTagComponent>();
+    if (tagView) {
+        for (uint32_t i = 0; i < tagView->GetSize(); ++i) {
+            if (tagView->GetDataFromDenseIndex(i).type == ecs::EcsTagComponent::Type::Player) {
+                EntityID player = tagView->GetEntityFromDenseIndex(i);
+                if (registry.HasComponent<TransformComponent>(player)) {
+                    playerPos = registry.GetComponent<TransformComponent>(player).localPosition_;
+                }
+                break;
+            }
+        }
+    }
+
+    auto* lm = LineManager::GetInstance();
+    if (!lm) return;
+
+    // 地面より少し上に描画
+    float h = 0.05f;
+    const uint32_t kSegments = 32;
+    
+    // 内径 (Aqua)
+    for (uint32_t i = 0; i < kSegments; ++i) {
+        float a1 = (float)i / kSegments * 2.0f * 3.14159f;
+        float a2 = (float)(i + 1) / kSegments * 2.0f * 3.14159f;
+        Vector3 p1 = playerPos + Vector3(cos(a1) * innerRadius_, h, sin(a1) * innerRadius_);
+        Vector3 p2 = playerPos + Vector3(cos(a2) * innerRadius_, h, sin(a2) * innerRadius_);
+        lm->DrawLine(p1, p2, VectorColorCodes::Cyan);
+    }
+
+    // 外径 (Lime)
+    for (uint32_t i = 0; i < kSegments; ++i) {
+        float a1 = (float)i / kSegments * 2.0f * 3.14159f;
+        float a2 = (float)(i + 1) / kSegments * 2.0f * 3.14159f;
+        Vector3 p1 = playerPos + Vector3(cos(a1) * outerRadius_, h, sin(a1) * outerRadius_);
+        Vector3 p2 = playerPos + Vector3(cos(a2) * outerRadius_, h, sin(a2) * outerRadius_);
+        lm->DrawLine(p1, p2, VectorColorCodes::Lime);
+    }
+#endif
 }

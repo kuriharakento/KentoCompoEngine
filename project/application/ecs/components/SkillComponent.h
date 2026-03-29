@@ -22,8 +22,8 @@ struct SkillComponent
     float beamTimer_ = 0.0f;
 
     // 定数（初期値）: 実際は武器やスキルによって変動
-    static constexpr float kLmbCooldown = 0.1f;
-    static constexpr float kRmbCooldown = 0.15f;
+    static constexpr float kLmbCooldown = 0.4f;
+    static constexpr float kRmbCooldown = 0.8f;
     static constexpr float kDecoyCooldown = 5.0f;
     static constexpr float kImpactCooldown = 0.2f;
     static constexpr float kBeamCooldown = 15.0f;

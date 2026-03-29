@@ -177,7 +177,11 @@
     <ClCompile Include="application\gameObject\component\action\PlayerUIComponent.cpp" />
     <ClCompile Include="application\gameObject\component\action\WeaponManagerComponent.cpp" />
     <ClCompile Include="engine\ecs\system\EcsStatusSystem.cpp" />
-    <ClCompile Include="engine\ecs\system\CollisionResponseSystem.cpp" />
+    <ClCompile Include="application\ecs\systems\AnnihilationSystem.cpp" />
+    <ClCompile Include="application\ecs\systems\EnemySpawnSystem.cpp" />
+    <ClCompile Include="application\ecs\systems\PlayerActionSystem.cpp" />
+    <ClCompile Include="application\ecs\systems\ProgressionSystem.cpp" />
+    <ClCompile Include="application\ecs\systems\ProjectileSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\ecs\components\EnemyStateComponent.h" />
@@ -421,7 +425,18 @@
     <ClInclude Include="engine\ecs\components\CollisionResponseComponent.h" />
     <ClInclude Include="application\ecs\components\BulletComponent.h" />
     <ClInclude Include="application\ecs\components\StatusComponent.h" />
-    <ClInclude Include="engine\ecs\system\CollisionResponseSystem.h" />
+    <ClInclude Include="application\ecs\systems\AnnihilationSystem.h" />
+    <ClInclude Include="application\ecs\systems\EnemySpawnSystem.h" />
+    <ClInclude Include="application\ecs\systems\PlayerActionSystem.h" />
+    <ClInclude Include="application\ecs\systems\ProgressionSystem.h" />
+    <ClInclude Include="application\ecs\systems\ProjectileSystem.h" />
+    <ClInclude Include="application\ecs\components\DodgeComponent.h" />
+    <ClInclude Include="application\ecs\components\ImpactChargeComponent.h" />
+    <ClInclude Include="application\ecs\components\PlayerProgressionComponent.h" />
+    <ClInclude Include="application\ecs\components\ProjectileComponent.h" />
+    <ClInclude Include="application\ecs\components\SkillComponent.h" />
+    <ClInclude Include="application\ecs\CollisionConfig.h" />
+    <ClInclude Include="application\ecs\components\EnemyTypeComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli" />

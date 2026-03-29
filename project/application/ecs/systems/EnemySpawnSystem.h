@@ -27,6 +27,15 @@ public:
     // スポーン設定
     void SetSpawnRadius(float inner, float outer) { innerRadius_ = inner; outerRadius_ = outer; }
     void SetInitialSpawnRate(float rate) { spawnRate_ = rate; }
+    
+    // スポーン可視化 (デバッグ描画)
+    void Draw(Registry& registry);
+
+    // 半径アクセサ (ImGui用)
+    float GetInnerRadius() const { return innerRadius_; }
+    void SetInnerRadius(float r) { innerRadius_ = r; }
+    float GetOuterRadius() const { return outerRadius_; }
+    void SetOuterRadius(float r) { outerRadius_ = r; }
 
 private:
     void SpawnEnemy(Registry& registry);
@@ -37,8 +46,8 @@ private:
 
     float spawnTimer_ = 0.0f;
     float spawnRate_ = 1.0f; // 1秒間に何体
-    float innerRadius_ = 20.0f;
-    float outerRadius_ = 40.0f;
+    float innerRadius_ = 45.0f;
+    float outerRadius_ = 65.0f;
 
     float elapsedTime_ = 0.0f;
 };

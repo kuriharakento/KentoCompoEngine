@@ -34,7 +34,7 @@ void PlayerActionSystem::Update(Registry& registry)
     auto tagView = registry.View<ecs::EcsTagComponent>();
     if (!tagView) return;
 
-    float dt = TimeManager::GetInstance().GetGameContext().realDeltaTime;
+    float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
     if (dt <= 0.0f) dt = 0.0166f;
 
     for (uint32_t i = 0; i < tagView->GetSize(); ++i)
@@ -221,7 +221,8 @@ void PlayerActionSystem::UpdateLMB(EntityID entity, Registry& registry, float)
         Vector3 dir = { sin(yaw), 0, cos(yaw) };
         
         EntityID proj = registry.CreateEntity();
-        registry.AddComponent<TransformComponent>(proj, { trans.localPosition_, trans.localRotation_, {1,1,1} });
+        Vector3 spawnPos = { trans.localPosition_.x, 0.5f, trans.localPosition_.z };
+        registry.AddComponent<TransformComponent>(proj, { spawnPos, trans.localRotation_, {1,1,1} });
         
         ProjectileComponent pc;
         pc.type_ = ProjectileComponent::Type::Lmb;

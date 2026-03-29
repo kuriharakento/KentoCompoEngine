@@ -3,6 +3,12 @@
 #include "engine/ecs/components/MovementComponent.h"
 #include "engine/ecs/components/ColliderComponent.h"
 #include "application/ecs/CollisionConfig.h"
+#include "engine/ecs/Registry.h"
+#include "engine/ecs/Entity.h"
+#include "engine/ecs/system/SystemManager.h"
+#include "application/ecs/systems/EnemySpawnSystem.h"
+#include "externals/imgui/imgui.h"
+#include <memory>
 #include "engine/ecs/components/InstancedRenderComponent.h"
 #include "engine/ecs/components/TagComponent.h"
 #include "application/ecs/components/PlayerComponent.h"
@@ -210,18 +216,8 @@ void StageManager::DrawImGui()
 		}
 	}
 
-	// プレイヤー情報の表示
-	if (playerEntity_ != kInvalidEntity && registry_->HasComponent<ecs::StatusComponent>(playerEntity_))
-	{
-		auto& status = registry_->GetComponent<ecs::StatusComponent>(playerEntity_);
-		float hp = status.hp_.GetValue();
-		float maxHp = status.maxHp_.GetValue();
-		
-		ImGui::Separator();
-		ImGui::Text("Player HP: %.1f / %.1f", hp, maxHp);
-		ImGui::ProgressBar(hp / maxHp, ImVec2(-1.0f, 0.0f));
-	}
-
+	// プレイヤー情報の表示 (現在は GamePlayScene::DrawImGui で一括表示)
+	
 	ImGui::End();
 	
 #endif

@@ -2,7 +2,7 @@
 #include "engine/time/TimeManager.h"
 #include "engine/ecs/components/TransformComponent.h"
 #include "engine/ecs/components/EnemyAIComponent.h"
-#include "engine/ecs/components/TagComponent.h" // ecs::EcsTagComponent
+#include "engine/ecs/components/TagComponent.h"
 #include "application/ecs/components/StatusComponent.h"
 #include "math/MathUtils.h"
 #include <algorithm>
@@ -10,8 +10,6 @@
 void EnemyBehaviorSystem::Update(Registry& registry)
 {
     float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
-    if (dt <= 0.0f) dt = 0.0166f;
-    dt = (std::min)(dt, 0.033f);
 
     // プレイヤーの座標取得
     EntityID playerEntity = kInvalidEntity;
