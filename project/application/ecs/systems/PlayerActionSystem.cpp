@@ -222,7 +222,7 @@ void PlayerActionSystem::UpdateLMB(EntityID entity, Registry& registry, float)
         
         EntityID proj = registry.CreateEntity();
         Vector3 spawnPos = { trans.localPosition_.x, 0.5f, trans.localPosition_.z };
-        registry.AddComponent<TransformComponent>(proj, { spawnPos, trans.localRotation_, {1,1,1} });
+        registry.AddComponent<TransformComponent>(proj, { spawnPos, trans.localRotation_, {1.5f, 1.5f, 1.5f} });
         
         ProjectileComponent pc;
         pc.type_ = ProjectileComponent::Type::Lmb;
@@ -241,7 +241,7 @@ void PlayerActionSystem::UpdateLMB(EntityID entity, Registry& registry, float)
         // コライダー設定 (BNS-Style: 振る舞いをデータとして持たせる)
         ColliderComponent col;
         col.type_ = ColliderType::Sphere;
-        col.sphere_.radius = 0.2f;
+        col.sphere_.radius = 0.4f;
         col.previousPosition_ = trans.localPosition_;
         col.isTrigger_ = true; // 物理的に押し返さない
 

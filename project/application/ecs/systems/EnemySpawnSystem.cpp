@@ -152,8 +152,9 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
     registry.AddComponent<EnemyTypeComponent>(enemy, typeComp);
 }
 
-void EnemySpawnSystem::Draw(Registry& registry)
+void EnemySpawnSystem::Draw(Registry& registry, Camera* camera, LightManager* lightManager, ShadowMapManager* shadowMapManager)
 {
+    (void)camera; (void)lightManager; (void)shadowMapManager;
 #ifdef _DEBUG
     // プレイヤーの位置を取得
     Vector3 playerPos = { 0, 0, 0 };

@@ -29,7 +29,7 @@ public:
     void SetInitialSpawnRate(float rate) { spawnRate_ = rate; }
     
     // スポーン可視化 (デバッグ描画)
-    void Draw(Registry& registry);
+    void Draw(Registry& registry, Camera* camera, LightManager* lightManager, ShadowMapManager* shadowMapManager) override;
 
     // 半径アクセサ (ImGui用)
     float GetInnerRadius() const { return innerRadius_; }
