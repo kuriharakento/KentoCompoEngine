@@ -41,7 +41,6 @@
 #include "engine/ecs/components/TagComponent.h" // ecs::EcsTagComponent
 #include "engine/ecs/components/MovementComponent.h"
 #include "engine/ecs/components/ColliderComponent.h"
-#include "engine/ecs/components/CollisionLayerComponent.h"
 #include "application/ecs/components/PlayerProgressionComponent.h"
 #include "application/ecs/components/SkillComponent.h"
 #include "application/ecs/components/DodgeComponent.h"
@@ -53,11 +52,11 @@
 #include "engine/ecs/components/InstancedRenderComponent.h"
 #include "engine/ecs/components/CollisionResponseComponent.h"
 #include "engine/ecs/components/LifetimeComponent.h"
-#include "application/ecs/components/EnemyStateComponent.h"
 #include "application/ecs/components/ObstacleComponent.h"
 #include "application/ecs/components/BulletComponent.h"
 #include "application/ecs/components/PlayerComponent.h"
 #include "application/ecs/components/EnemyTypeComponent.h"
+#include "application/ecs/CollisionConfig.h"
 
 // Systems
 #include "engine/ecs/system/HierarchySystem.h"
@@ -103,7 +102,6 @@ void GamePlayScene::Initialize()
 	registry_->RegisterComponent<MovementComponent>(10000);
 	registry_->RegisterComponent<InstancedRenderComponent>(10000);
 	registry_->RegisterComponent<ColliderComponent>(10000);
-	registry_->RegisterComponent<CollisionLayerComponent>(10000);
 	registry_->RegisterComponent<PlayerProgressionComponent>(1);
 	registry_->RegisterComponent<SkillComponent>(1);
 	registry_->RegisterComponent<DodgeComponent>(1);
@@ -209,12 +207,12 @@ void GamePlayScene::Initialize()
 		ColliderComponent col;
 		col.type_ = ColliderType::OBB;
 		col.obb_.size = { 1.0f, 1.0f, 1.0f }; // 暫定サイズ
+		
+		// フィルタリング設定
+		col.layer = CollisionLayer::Player;
+		col.mask = CollisionLayer::Enemy | CollisionLayer::Obstacle;
+		
 		registry_->AddComponent<ColliderComponent>(playerEntity_, col);
-
-		CollisionLayerComponent layer;
-		layer.category_ = CollisionLayerComponent::kPlayer;
-		layer.mask_ = CollisionLayerComponent::kEnemy | CollisionLayerComponent::kObstacle;
-		registry_->AddComponent<CollisionLayerComponent>(playerEntity_, layer);
 		
 		registry_->AddComponent<CollisionResponseComponent>(playerEntity_, {});
 

@@ -42,17 +42,6 @@ namespace collisionAlgorithm
 		CCD			// 高精度: サブステップ (トンネリング防止) 判定 (LOD3)
 	};
 
-	// レイヤーインデックスの定数化 (CollisionLayerComponentに対応)
-	enum CollisionLayerIdx
-	{
-		kLyrPlayer = 0,
-		kLyrEnemy = 1,
-		kLyrObstacle = 2,
-		kLyrPlayerBullet = 3,
-		kLyrEnemyBullet = 4,
-		kLyrCount = 5
-	};
-
 	// --- 判定用コンテキスト ---
 	struct CollisionCheckContext
 	{
@@ -64,17 +53,6 @@ namespace collisionAlgorithm
 	// 戻り値: 衝突したか
 	// 引数: A, B, mtv(必要なら算出)
 	using CollisionFunc = bool(*)(const ColliderComponent& a, const ColliderComponent& b, Vector3* outMtv);
-
-	// --- ベテランの知恵: LOD行列の定義 ---
-	// 行: LayerA, 列: LayerB
-	static constexpr CollisionLOD kLODMatrix[5][5] = {
-		// Player, Enemy, Obstacle, PBullet, EBullet
-		{ CollisionLOD::Precise, CollisionLOD::Precise, CollisionLOD::CCD,     CollisionLOD::Precise, CollisionLOD::CCD },     // Player
-		{ CollisionLOD::Precise, CollisionLOD::Sphere,  CollisionLOD::Precise, CollisionLOD::Precise, CollisionLOD::Precise }, // Enemy
-		{ CollisionLOD::CCD,     CollisionLOD::Precise, CollisionLOD::Precise, CollisionLOD::Precise, CollisionLOD::Precise }, // Obstacle
-		{ CollisionLOD::Precise, CollisionLOD::Precise, CollisionLOD::Precise, CollisionLOD::Precise, CollisionLOD::Precise }, // PBullet
-		{ CollisionLOD::CCD,     CollisionLOD::Precise, CollisionLOD::Precise, CollisionLOD::Precise, CollisionLOD::Precise }  // EBullet
-	};
 
 	// --- 関数テーブルの宣言 ---
 	// ColliderType (AABB=0, Sphere=1, OBB=2, Ray=3)

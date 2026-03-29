@@ -2,7 +2,7 @@
 #include "engine/ecs/components/TransformComponent.h"
 #include "engine/ecs/components/MovementComponent.h"
 #include "engine/ecs/components/ColliderComponent.h"
-#include "engine/ecs/components/CollisionLayerComponent.h"
+#include "application/ecs/CollisionConfig.h"
 #include "engine/ecs/components/InstancedRenderComponent.h"
 #include "engine/ecs/components/TagComponent.h"
 #include "application/ecs/components/PlayerComponent.h"
@@ -210,10 +210,16 @@ void StageManager::DrawImGui()
 		}
 	}
 
-	// ステージをロードするボタン（デバッグ用）
-	if (ImGui::Button("Load Stage"))
+	// プレイヤー情報の表示
+	if (playerEntity_ != kInvalidEntity && registry_->HasComponent<ecs::StatusComponent>(playerEntity_))
 	{
-		LoadStage("field"); // サンプルステージをロード
+		auto& status = registry_->GetComponent<ecs::StatusComponent>(playerEntity_);
+		float hp = status.hp_.GetValue();
+		float maxHp = status.maxHp_.GetValue();
+		
+		ImGui::Separator();
+		ImGui::Text("Player HP: %.1f / %.1f", hp, maxHp);
+		ImGui::ProgressBar(hp / maxHp, ImVec2(-1.0f, 0.0f));
 	}
 
 	ImGui::End();
@@ -291,17 +297,15 @@ void StageManager::CreateInfosFromStageData()
 				// コライダー設定 (OBB)
 				ColliderComponent col;
 				col.type_ = ColliderType::OBB;
-				// obb_.size は CollisionSystem で使われない（worldScale を直接使用）
 				col.useSubstep_ = true;
 				// [Fix] 初期位置を同期（原点への押し戻しを防ぐ）
 				col.previousPosition_ = objInfo.transform.translate;
-				registry_->AddComponent<ColliderComponent>(playerEntity_, col);
 
-				// レイヤー設定
-				CollisionLayerComponent layer;
-				layer.category_ = CollisionLayerComponent::kPlayer;
-				layer.mask_ = CollisionLayerComponent::kEnemy | CollisionLayerComponent::kObstacle | CollisionLayerComponent::kEnemyBullet;
-				registry_->AddComponent<CollisionLayerComponent>(playerEntity_, layer);
+				// フィルタリング設定
+				col.layer = CollisionLayer::Player;
+				col.mask = CollisionLayer::Enemy | CollisionLayer::Obstacle | CollisionLayer::EnemyBullet;
+
+				registry_->AddComponent<ColliderComponent>(playerEntity_, col);
 
 				// 描画設定
 				InstancedRenderComponent irc;

@@ -403,7 +403,6 @@
     <ClInclude Include="engine\ecs\components\TagComponent.h" />
     <ClInclude Include="engine\ecs\components\MovementComponent.h" />
     <ClInclude Include="engine\ecs\components\ColliderComponent.h" />
-    <ClInclude Include="engine\ecs\components\CollisionLayerComponent.h" />
     <ClInclude Include="engine\ecs\components\VelocityComponent.h" />
     <ClInclude Include="application\ecs\components\ObstacleComponent.h" />
     <ClInclude Include="engine\ecs\components\TransformComponent.h" />

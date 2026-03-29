@@ -8,20 +8,27 @@
 #include "engine/ecs/Entity.h"
 #include <functional>
 
+struct CollisionPartnerInfo
+{
+    EntityID entity; // 衝突した相手のID
+};
+
 /**
  * @brief 衝突判定の形状とデータを保持するコンポーネント。
  */
 struct ColliderComponent
 {
-    // コライダーの種類
+    // --- フィルタリング設定 ---
+    uint32_t layer = 0;              // 自身が属するレイヤー（CollisionLayer::Player 等）
+    uint32_t mask  = 0xFFFFFFFF;     // 衝突を検知したい相手のレイヤーマスク
+
+    // --- 形状データ ---
     ColliderType type_ = ColliderType::AABB;
-    
-    // 形状データ（ローカル・サイズ設定用）
     AABB aabb_;
     OBB obb_;
     Sphere sphere_;
 
-    // 形状データ（ワールド・毎フレーム更新・読み取り用）
+    // 形状データ（ワールド座標更新後・読み取り用）
     AABB worldAabb_;
     OBB worldObb_;
     Sphere worldSphere_;
@@ -41,8 +48,9 @@ struct ColliderComponent
     // 前フレームのワールド座標（すり抜け防止カウント用）
     Vector3 previousPosition_ = { 0.0f, 0.0f, 0.0f };
 
-    // 衝突時のコールバック
-    std::function<void(EntityID other)> onEnter_;
-    std::function<void(EntityID other)> onStay_;
-    std::function<void(EntityID other)> onExit_;
+    // --- コールバック ---
+    using CollisionCallback = std::function<void(const CollisionPartnerInfo& other)>;
+    CollisionCallback onCollisionEnter; // 衝突開始時
+    CollisionCallback onCollisionStay;  // 衝突継続中（毎フレーム）
+    CollisionCallback onCollisionExit;  // 衝突終了時
 };

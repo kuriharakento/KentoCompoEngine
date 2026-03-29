@@ -14,7 +14,7 @@
 #include "engine/ecs/components/InstancedRenderComponent.h"
 #include "engine/ecs/components/CollisionResponseComponent.h"
 #include "engine/ecs/components/ColliderComponent.h"
-#include "engine/ecs/components/CollisionLayerComponent.h"
+#include "application/ecs/CollisionConfig.h"
 #include "engine/ecs/components/TagComponent.h" // ecs::EcsTagComponent
 #include "engine/ecs/system/InstancedRenderSystem.h"
 #include "engine/manager/scene/CameraManager.h"
@@ -381,16 +381,35 @@ void EnemyManager::AddCollisionComponents(EntityID entity)
 	col.type_ = ColliderType::Sphere;
 	col.sphere_.radius = 1.0f;
 	col.useSubstep_ = true;
-	// [Fix] 初期位置を同期（原点への押し戻しを防ぐ）
 	col.previousPosition_ = transform.localPosition_;
+
+	// フィルタリング
+	col.layer = CollisionLayer::Enemy;
+	col.mask = CollisionLayer::Player | CollisionLayer::Obstacle | CollisionLayer::PlayerBullet;
+
+	// 衝突応答
+	col.onCollisionEnter = [reg = registry_, entity](const CollisionPartnerInfo& other) {
+		if (reg->HasComponent<ColliderComponent>(other.entity)) {
+			auto& otherCol = reg->GetComponent<ColliderComponent>(other.entity);
+			
+			// プレイヤーの弾に当たったら、自分（敵）を消す
+			if (otherCol.layer & CollisionLayer::PlayerBullet) {
+				reg->DestroyEntityDeferred(entity);
+			}
+			// プレイヤーに当たったら、ダメージを与えて自分（敵）を消す
+			else if (otherCol.layer & CollisionLayer::Player) {
+				if (reg->HasComponent<ecs::StatusComponent>(other.entity)) {
+					auto& status = reg->GetComponent<ecs::StatusComponent>(other.entity);
+					float currentHp = status.hp_.GetBase();
+					status.hp_.SetBase(currentHp - 1.0f); // 暫定1ダメージ
+				}
+				reg->DestroyEntityDeferred(entity);
+			}
+		}
+	};
+
 	registry_->AddComponent<ColliderComponent>(entity, col);
 
-	// レイヤー設定
-	CollisionLayerComponent layer;
-	layer.category_ = CollisionLayerComponent::kEnemy;
-	layer.mask_ = CollisionLayerComponent::kPlayer | CollisionLayerComponent::kObstacle | CollisionLayerComponent::kPlayerBullet;
-	registry_->AddComponent<CollisionLayerComponent>(entity, layer);
-
-	// レスポンス設定
+	// レスポンス状態追跡用コンポーネント
 	registry_->AddComponent<CollisionResponseComponent>(entity, {});
 }

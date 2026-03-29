@@ -10,7 +10,7 @@
 // ECS Components
 #include "engine/ecs/components/TagComponent.h"
 #include "engine/ecs/components/ColliderComponent.h"
-#include "engine/ecs/components/CollisionLayerComponent.h"
+#include "application/ecs/CollisionConfig.h"
 #include "engine/ecs/components/CollisionResponseComponent.h"
 #include "engine/math/AABB.h"
 
@@ -303,16 +303,13 @@ void ObstacleManager::RegisterToRegistry(const GameObjectInfo& info, ObstacleCom
 	{
 		ColliderComponent col;
 		col.type_ = ColliderType::OBB;
-		// [Fix] 初期位置を同期（原点への押し戻しを防ぐ）
 		col.previousPosition_ = transform.localPosition_;
-		// obb_.size は CollisionSystem で worldScale を直接使うため設定不要
+		
+		// フィルタリング設定
+		col.layer = CollisionLayer::Obstacle;
+		col.mask  = CollisionLayer::All;
+
 		registry_->AddComponent<ColliderComponent>(entity, col);
-
-		CollisionLayerComponent layer;
-		layer.category_ = CollisionLayerComponent::kObstacle;
-		layer.mask_ = CollisionLayerComponent::kPlayer | CollisionLayerComponent::kEnemy | CollisionLayerComponent::kPlayerBullet | CollisionLayerComponent::kEnemyBullet;
-		registry_->AddComponent<CollisionLayerComponent>(entity, layer);
-
 		registry_->AddComponent<CollisionResponseComponent>(entity, {});
 	}
 }

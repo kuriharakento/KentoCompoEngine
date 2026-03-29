@@ -5,7 +5,7 @@
 #include "engine/ecs/components/TransformComponent.h"
 #include "engine/ecs/components/TagComponent.h" // ecs::EcsTagComponent
 #include "engine/ecs/components/ColliderComponent.h"
-#include "engine/ecs/components/CollisionLayerComponent.h"
+#include "engine/ecs/components/CollisionResponseComponent.h"
 #include "engine/ecs/components/InstancedRenderComponent.h"
 #include "engine/time/TimeManager.h"
 
@@ -15,6 +15,7 @@
 #include "application/ecs/components/DodgeComponent.h"
 #include "application/ecs/components/StatusComponent.h"
 #include "application/ecs/components/ProjectileComponent.h"
+#include "application/ecs/CollisionConfig.h"
 
 // app systems/managers
 #include "input/Input.h"
@@ -236,17 +237,30 @@ void PlayerActionSystem::UpdateLMB(EntityID entity, Registry& registry, float)
         render.useInstancing_ = true;
         registry.AddComponent<InstancedRenderComponent>(proj, render);
 
-        // コライダー (PlayerProjectile)
+        // コライダー設定 (BNS-Style: 振る舞いをデータとして持たせる)
         ColliderComponent col;
         col.type_ = ColliderType::Sphere;
         col.sphere_.radius = 0.2f;
         col.previousPosition_ = trans.localPosition_;
-        registry.AddComponent<ColliderComponent>(proj, col);
+        col.isTrigger_ = true; // 物理的に押し返さない
 
-        CollisionLayerComponent layer;
-        layer.category_ = CollisionLayerComponent::kPlayerBullet;
-        layer.mask_ = CollisionLayerComponent::kEnemy;
-        registry.AddComponent<CollisionLayerComponent>(proj, layer);
+        // フィルタリング設定
+        col.layer = CollisionLayer::PlayerBullet;
+        col.mask = CollisionLayer::Enemy | CollisionLayer::Obstacle;
+
+        // 衝突応答
+        col.onCollisionEnter = [&registry, proj](const CollisionPartnerInfo& other) {
+            // 弾は Enemy または Obstacle に当たったら自身を消す
+            if (registry.HasComponent<ColliderComponent>(other.entity)) {
+                auto& otherCol = registry.GetComponent<ColliderComponent>(other.entity);
+                if (otherCol.layer & (CollisionLayer::Enemy | CollisionLayer::Obstacle)) {
+                    registry.DestroyEntityDeferred(proj);
+                }
+            }
+        };
+
+        registry.AddComponent<ColliderComponent>(proj, col);
+        registry.AddComponent<CollisionResponseComponent>(proj, {});
 
         skill.lmbTimer_ = skill.kLmbCooldown;
     }

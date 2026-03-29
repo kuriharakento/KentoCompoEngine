@@ -7,8 +7,9 @@
 #include "application/ecs/components/ImpactChargeComponent.h"
 #include "engine/ecs/components/InstancedRenderComponent.h"
 #include "engine/ecs/components/ColliderComponent.h"
-#include "engine/ecs/components/CollisionLayerComponent.h"
+#include "engine/ecs/components/CollisionResponseComponent.h"
 #include "application/ecs/components/EnemyTypeComponent.h"
+#include "application/ecs/CollisionConfig.h"
 #include "engine/time/TimeManager.h"
 #include "math/MathUtils.h"
 
@@ -110,15 +111,36 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
     col.type_ = ColliderType::Sphere;
     col.sphere_.radius = 1.0f;
     col.previousPosition_ = spawnPos;
+    
+    // フィルタリング設定
+    col.layer = CollisionLayer::Enemy;
+    col.mask = CollisionLayer::Player | CollisionLayer::PlayerBullet;
+
+    // 衝突応答
+    col.onCollisionEnter = [&registry, enemy](const CollisionPartnerInfo& other) {
+        if (registry.HasComponent<ColliderComponent>(other.entity)) {
+            auto& otherCol = registry.GetComponent<ColliderComponent>(other.entity);
+            
+            // プレイヤーの弾に当たったら、自分（敵）を消す
+            if (otherCol.layer & CollisionLayer::PlayerBullet) {
+                registry.DestroyEntityDeferred(enemy);
+            }
+            // プレイヤーに当たったら、ダメージを与えて自分（敵）を消す
+            else if (otherCol.layer & CollisionLayer::Player) {
+                if (registry.HasComponent<ecs::StatusComponent>(other.entity)) {
+                    auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
+                    float currentHp = status.hp_.GetBase();
+                    status.hp_.SetBase(currentHp - 1.0f); // 暫定1ダメージ
+                }
+                registry.DestroyEntityDeferred(enemy);
+            }
+        }
+    };
     registry.AddComponent<ColliderComponent>(enemy, col);
+    registry.AddComponent<CollisionResponseComponent>(enemy, {});
 
     // [New] 敵の種別（近接型をデフォルトとして追加）
     EnemyTypeComponent typeComp;
     typeComp.type = EnemyType::Melee;
     registry.AddComponent<EnemyTypeComponent>(enemy, typeComp);
-
-    CollisionLayerComponent layer;
-    layer.category_ = CollisionLayerComponent::kEnemy;
-    layer.mask_ = CollisionLayerComponent::kPlayer | CollisionLayerComponent::kPlayerBullet;
-    registry.AddComponent<CollisionLayerComponent>(enemy, layer);
 }
