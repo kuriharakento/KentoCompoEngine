@@ -291,6 +291,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\ecs\components\BulletComponent.h" />
     <ClInclude Include="application\ecs\components\EnemyStateComponent.h" />
     <ClInclude Include="application\ecs\components\EnemyTypeComponent.h" />
+    <ClInclude Include="application\ecs\components\InducedExplosionComponent.h" />
     <ClInclude Include="application\ecs\components\PlayerComponent.h" />
     <ClInclude Include="application\ecs\components\StatusComponent.h" />
     <ClInclude Include="engine\ecs\components\CollisionResponseComponent.h" />

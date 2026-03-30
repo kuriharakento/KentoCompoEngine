@@ -437,6 +437,7 @@
     <ClInclude Include="application\ecs\components\SkillComponent.h" />
     <ClInclude Include="application\ecs\CollisionConfig.h" />
     <ClInclude Include="application\ecs\components\EnemyTypeComponent.h" />
+    <ClInclude Include="application\ecs\components\InducedExplosionComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli" />

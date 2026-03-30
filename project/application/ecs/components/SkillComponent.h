@@ -9,9 +9,9 @@ struct SkillComponent
 {
     // 各スキルの解放状況
     bool isLmbUnlocked_ = true;     // 初期開放
-    bool isRmbUnlocked_ = false;
-    bool isDecoyUnlocked_ = false;
-    bool isImpactUnlocked_ = false;
+    bool isRmbUnlocked_ = true;
+    bool isDecoyUnlocked_ = true;
+    bool isImpactUnlocked_ = true;
     bool isBeamUnlocked_ = false;
 
     // クールタイムタイマー (0以下で発動可能)

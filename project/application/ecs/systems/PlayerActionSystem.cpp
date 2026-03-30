@@ -211,6 +211,24 @@ void PlayerActionSystem::UpdateSkills(EntityID entity, Registry& registry, float
     UpdateQ(entity, registry, dt);
     UpdateE(entity, registry, dt);
     UpdateR(entity, registry, dt);
+
+    // デコイの可視化 (デバッグ用)
+    auto decoyView = registry.View<ecs::TagComponent>();
+    if (decoyView)
+    {
+        for (uint32_t i = 0; i < decoyView->GetSize(); ++i)
+        {
+            if (decoyView->GetDataFromDenseIndex(i).type == ecs::TagComponent::Type::Decoy)
+            {
+                EntityID decoyEnt = decoyView->GetEntityFromDenseIndex(i);
+                if (registry.HasComponent<TransformComponent>(decoyEnt))
+                {
+                    auto& dTrans = registry.GetComponent<TransformComponent>(decoyEnt);
+                    LineManager::GetInstance()->DrawCube(dTrans.localPosition_, 1.0f, VectorColorCodes::Yellow);
+                }
+            }
+        }
+    }
 }
 
 void PlayerActionSystem::UpdateLMB(EntityID entity, Registry& registry, float)
@@ -279,7 +297,7 @@ void PlayerActionSystem::UpdateRMB(EntityID entity, Registry& registry, float)
     if (!skill.isRmbUnlocked_) return;
     if (skill.rmbTimer_ > 0.0f) return;
 
-    if (Input::GetInstance()->IsMouseButtonPressed(1)) // 右クリック
+    if (Input::GetInstance()->IsMouseButtonPressed(2)) // 右クリック
     {
         auto& trans = registry.GetComponent<TransformComponent>(entity);
         float yaw = trans.localRotation_.y;
@@ -294,11 +312,18 @@ void PlayerActionSystem::UpdateRMB(EntityID entity, Registry& registry, float)
         pc.velocity_ = dir * 60.0f;
         pc.damage_ = 2.0f; // 低火力
         pc.lifetime_ = 1.0f;
+        pc.trailId_ = BulletTrailManager::GetInstance().RegisterBulletManual();
         registry.AddComponent<ProjectileComponent>(proj, pc);
+
+        // ecs::TagComponent を追加
+        ecs::TagComponent tag;
+        tag.type = ecs::TagComponent::Type::Bullet;
+        registry.AddComponent<ecs::TagComponent>(proj, tag);
 
         InstancedRenderComponent render;
         render.modelName_ = "bullet";
         render.useInstancing_ = true;
+        render.isVisible_ = false; // パーティクルのみにする
         registry.AddComponent<InstancedRenderComponent>(proj, render);
 
         ecs::ColliderComponent col;
@@ -331,13 +356,9 @@ void PlayerActionSystem::UpdateRMB(EntityID entity, Registry& registry, float)
                         if (registry.HasComponent<ecs::TagComponent>(victim) &&
                             registry.GetComponent<ecs::TagComponent>(victim).type == ecs::TagComponent::Type::Enemy)
                         {
-                            // ダメージ
-                            if (registry.HasComponent<ecs::StatusComponent>(victim)) {
-                                auto& victimStatus = registry.GetComponent<ecs::StatusComponent>(victim);
-                                float damage = 2.0f;
-                                victimStatus.hp_.SetBase(victimStatus.hp_.GetBase() - damage);
-                                if (victimStatus.hp_.GetBase() <= 0.0f) victimStatus.isAlive_ = false;
-                            }
+                            // 開発用：当たったら即消す
+                            registry.DestroyEntityDeferred(victim);
+
                             // 雷描画 (とりあえずラインマネージャー)
                             Vector3 victimPos = registry.GetComponent<TransformComponent>(victim).localPosition_;
                             LineManager::GetInstance()->DrawLine(hitPos, victimPos, VectorColorCodes::Cyan);
@@ -346,6 +367,8 @@ void PlayerActionSystem::UpdateRMB(EntityID entity, Registry& registry, float)
                         }
                     });
                 }
+                // 最初に当たった敵も即消す
+                registry.DestroyEntityDeferred(other.entity);
                 registry.DestroyEntityDeferred(proj);
             }
         };
