@@ -13,6 +13,7 @@
 #include "engine/ecs/components/LifetimeComponent.h"
 #include "engine/manager/graphics/LineManager.h"
 #include "math/VectorColorCodes.h"
+#include "engine/effects/particle/ParticleManager.h"
 
 // app components
 #include "application/ecs/components/PlayerProgressionComponent.h"
@@ -21,6 +22,7 @@
 #include "application/ecs/components/StatusComponent.h"
 #include "application/ecs/components/ProjectileComponent.h"
 #include "application/ecs/components/InducedExplosionComponent.h"
+#include "application/ecs/components/ImpactChargeComponent.h"
 #include "application/ecs/CollisionConfig.h"
 
 // app systems/managers
@@ -282,16 +284,22 @@ void PlayerActionSystem::UpdateLMB(EntityID entity, Registry& registry, float)
                     // 誘爆スタックの加算
                     if (registry.HasComponent<ecs::InducedExplosionComponent>(other.entity)) {
                         auto& stack = registry.GetComponent<ecs::InducedExplosionComponent>(other.entity);
-                        stack.count_++;
+                        stack.count_ += 3;
                         if (stack.count_ >= ecs::InducedExplosionComponent::kMaxCount) {
                             SpawnExplosion(other.entity, registry);
                         }
                     }
 
-                    // ダメージ処理 (20ダメージに調整)
+                    // ヒットエフェクトの再生
+                    if (registry.HasComponent<TransformComponent>(proj)) {
+                        auto& bulletTrans = registry.GetComponent<TransformComponent>(proj);
+                        ParticleManager::GetInstance()->Play("hit_effect_ver2", bulletTrans.localPosition_);
+                    }
+
+                    // ダメージ処理 (80ダメージに調整)
                     if (registry.HasComponent<ecs::StatusComponent>(other.entity)) {
                         auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
-                        status.hp_.SetBase(status.hp_.GetBase() - 20.0f);
+                        status.hp_.SetBase(status.hp_.GetBase() - 80.0f);
                     }
 
                     registry.DestroyEntityDeferred(proj);
@@ -410,6 +418,12 @@ void PlayerActionSystem::UpdateRMB(EntityID entity, Registry& registry, float)
                     }
                 }
                 
+                // ヒットエフェクトの再生
+                if (registry.HasComponent<TransformComponent>(proj)) {
+                    auto& bulletTrans = registry.GetComponent<TransformComponent>(proj);
+                    ParticleManager::GetInstance()->Play("hit_effect_ver2", bulletTrans.localPosition_);
+                }
+
                 // ダメージ処理 (15ダメージに調整)
                 if (registry.HasComponent<ecs::StatusComponent>(other.entity)) {
                     auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
@@ -468,6 +482,9 @@ void PlayerActionSystem::UpdateE(EntityID entity, Registry& registry, float)
     {
         auto& trans = registry.GetComponent<TransformComponent>(entity);
         
+        // Eスキルパーティクルの再生
+        ParticleManager::GetInstance()->Play("E_skill", trans.localPosition_);
+        
         // インパクトエンティティ（透明な衝撃波判定）
         EntityID impact = registry.CreateEntity();
         registry.AddComponent<TransformComponent>(impact, { trans.localPosition_, {0,0,0}, {1,1,1} });
@@ -475,7 +492,7 @@ void PlayerActionSystem::UpdateE(EntityID entity, Registry& registry, float)
 
         ecs::ColliderComponent col;
         col.type_ = ColliderType::Sphere;
-        col.sphere_.radius = 10.0f;
+        col.sphere_.radius = 15.0f;
         col.isTrigger_ = true;
         col.layer = CollisionLayer::PlayerBullet;
         col.mask = CollisionLayer::Enemy;
