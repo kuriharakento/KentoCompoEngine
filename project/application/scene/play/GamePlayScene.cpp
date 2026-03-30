@@ -146,6 +146,9 @@ void GamePlayScene::Initialize()
 	playerActionSystem->SetSystemManager(systemManager_.get());
 	systemManager_->AddSystem(playerActionSystem);
 
+	// パーティクル定義のロード
+	ParticleManager::GetInstance()->LoadEffectDefinition("enemy_death", "./Resources/json/particle/enemy_death.json");
+
 	systemManager_->AddSystem(std::make_shared<EnemyBehaviorSystem>());
 	systemManager_->AddSystem(std::make_shared<MovementSystem>());
 	systemManager_->AddSystem(std::make_shared<ProjectileSystem>());

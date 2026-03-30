@@ -94,6 +94,16 @@ void EnemyBehaviorSystem::Update(Registry& registry)
             Vector3 markerPos = trans.localPosition_ + Vector3(0.0f, 2.5f, 0.0f);
             LineManager::GetInstance()->DrawCube(markerPos, 0.4f, color);
         }
+
+        // 死亡判定
+        if (registry.HasComponent<ecs::StatusComponent>(entity))
+        {
+            auto& status = registry.GetComponent<ecs::StatusComponent>(entity);
+            if (status.hp_.GetValue() <= 0.0f)
+            {
+                status.isAlive_ = false;
+            }
+        }
     }
 }
 

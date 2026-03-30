@@ -5,7 +5,9 @@
 #include "application/ecs/components/StatusComponent.h"
 #include "application/ecs/components/ImpactChargeComponent.h"
 #include "application/ecs/components/PlayerProgressionComponent.h"
+#include "engine/ecs/components/TagComponent.h"
 #include "math/MathUtils.h"
+#include "engine/effects/particle/ParticleManager.h"
 
 void AnnihilationSystem::Update(Registry& registry)
 {
@@ -45,6 +47,22 @@ void AnnihilationSystem::Update(Registry& registry)
             }
 
             // 最終的にエンティティを破棄
+            if (registry.HasComponent<TransformComponent>(entity))
+            {
+                // 敵の場合のみ死亡パーティクルを再生
+                bool isEnemy = false;
+                if (registry.HasComponent<ecs::TagComponent>(entity))
+                {
+                    isEnemy = (registry.GetComponent<ecs::TagComponent>(entity).type == ecs::TagComponent::Type::Enemy);
+                }
+
+                if (isEnemy)
+                {
+                    auto& trans = registry.GetComponent<TransformComponent>(entity);
+                    ParticleManager::GetInstance()->Play("enemy_death", trans.localPosition_);
+                }
+            }
+
             registry.DestroyEntityDeferred(entity);
         }
     }

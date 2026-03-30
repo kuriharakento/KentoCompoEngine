@@ -393,18 +393,21 @@ void EnemyManager::AddCollisionComponents(EntityID entity)
 		if (reg->HasComponent<ecs::ColliderComponent>(other.entity)) {
 			auto& otherCol = reg->GetComponent<ecs::ColliderComponent>(other.entity);
 			
-			// プレイヤーの弾に当たったら、自分（敵）を消す
+			// プレイヤーの弾に当たった時の処理（ダメージは弾側でも処理されるが、一応ここでもHPを減らすか、空にする）
 			if (otherCol.layer & CollisionLayer::PlayerBullet) {
-				reg->DestroyEntityDeferred(entity);
+				// ここでは何もしない。PlayerActionSystem または他の弾丸処理でHPを減らす。
 			}
-			// プレイヤーに当たったら、ダメージを与えて自分（敵）を消す
+			// プレイヤーに当たったらダメージを与え、自分（敵）もダメージを受ける
 			else if (otherCol.layer & CollisionLayer::Player) {
 				if (reg->HasComponent<ecs::StatusComponent>(other.entity)) {
 					auto& status = reg->GetComponent<ecs::StatusComponent>(other.entity);
 					float currentHp = status.hp_.GetBase();
-					status.hp_.SetBase(currentHp - 1.0f); // 暫定1ダメージ
+					status.hp_.SetBase(currentHp - 10.0f); // プレイヤーへのダメージ
 				}
-				reg->DestroyEntityDeferred(entity);
+				if (reg->HasComponent<ecs::StatusComponent>(entity)) {
+					auto& status = reg->GetComponent<ecs::StatusComponent>(entity);
+					status.hp_.SetBase(status.hp_.GetBase() - 50.0f); // 衝突による敵へのダメージ
+				}
 			}
 		}
 	};

@@ -292,7 +292,6 @@ void PlayerActionSystem::UpdateLMB(EntityID entity, Registry& registry, float)
                     if (registry.HasComponent<ecs::StatusComponent>(other.entity)) {
                         auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
                         status.hp_.SetBase(status.hp_.GetBase() - 20.0f);
-                        if (status.hp_.GetBase() <= 0.0f) status.isAlive_ = false;
                     }
 
                     registry.DestroyEntityDeferred(proj);
@@ -393,7 +392,6 @@ void PlayerActionSystem::UpdateRMB(EntityID entity, Registry& registry, float)
                             if (registry.HasComponent<ecs::StatusComponent>(victim)) {
                                 auto& status = registry.GetComponent<ecs::StatusComponent>(victim);
                                 status.hp_.SetBase(status.hp_.GetBase() - 15.0f);
-                                if (status.hp_.GetBase() <= 0.0f) status.isAlive_ = false;
                             }
 
                             // 雷描画 (とりあえずラインマネージャー)
@@ -416,7 +414,6 @@ void PlayerActionSystem::UpdateRMB(EntityID entity, Registry& registry, float)
                 if (registry.HasComponent<ecs::StatusComponent>(other.entity)) {
                     auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
                     status.hp_.SetBase(status.hp_.GetBase() - 15.0f);
-                    if (status.hp_.GetBase() <= 0.0f) status.isAlive_ = false;
                 }
                 
                 registry.DestroyEntityDeferred(proj);
@@ -498,7 +495,6 @@ void PlayerActionSystem::UpdateE(EntityID entity, Registry& registry, float)
                 if (registry.HasComponent<ecs::StatusComponent>(other.entity)) {
                     auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
                     status.hp_.SetBase(status.hp_.GetBase() - 20.0f);
-                    if (status.hp_.GetBase() <= 0.0f) status.isAlive_ = false;
                 }
             }
         };
