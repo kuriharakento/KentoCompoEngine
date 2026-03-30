@@ -506,7 +506,7 @@ void GamePlayScene::DrawImGui()
 void GamePlayScene::OnEnterEnter()
 {
 	transitionEffect_.SetFadeType(FadeType::FadeOut);
-	transitionEffect_.Start(kEnterTransitionDuration, VectorColorCodes::Black, VectorColorCodes::Red);
+	transitionEffect_.Start(kEnterTransitionDuration, VectorColorCodes::Red, VectorColorCodes::Black);
 }
 
 void GamePlayScene::OnUpdateEnter()
