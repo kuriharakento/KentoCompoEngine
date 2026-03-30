@@ -96,7 +96,7 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
     
     // Status
     ecs::StatusComponent status;
-    status.hp_.SetBase(10.0f + elapsedTime_ * 0.1f); // 時間とともに硬くなる
+    status.hp_.SetBase(100.0f); // 時間とともに硬くなる
     status.moveSpeed_.SetBase(3.5f + static_cast<float>(rand() % 100) / 100.0f * 1.0f);
     registry.AddComponent<ecs::StatusComponent>(enemy, std::move(status));
 
@@ -128,9 +128,10 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
         if (registry.HasComponent<ecs::ColliderComponent>(other.entity)) {
             auto& otherCol = registry.GetComponent<ecs::ColliderComponent>(other.entity);
             
-            // プレイヤーの弾に当たったら、自分（敵）を消す
+            // プレイヤーの弾に当たった際、以前はここで即時破棄していたが
+            // 現在は PlayerActionSystem 側でダメージ計算をするため何もしない
             if (otherCol.layer & CollisionLayer::PlayerBullet) {
-                registry.DestroyEntityDeferred(enemy);
+                // Nothing to do here. Damage is handled in PlayerActionSystem or similar.
             }
             // プレイヤーに当たったら、ダメージを与えて自分（敵）を消す
             else if (otherCol.layer & CollisionLayer::Player) {

@@ -274,11 +274,30 @@ void PlayerActionSystem::UpdateLMB(EntityID entity, Registry& registry, float)
         col.mask = CollisionLayer::Enemy | CollisionLayer::Obstacle;
 
         // 衝突応答
-        col.onCollisionEnter = [&registry, proj](const ecs::CollisionPartnerInfo& other) {
+        col.onCollisionEnter = [this, &registry, proj](const ecs::CollisionPartnerInfo& other) {
             // 弾は Enemy または Obstacle に当たったら自身を消す
             if (registry.HasComponent<ecs::ColliderComponent>(other.entity)) {
                 auto& otherCol = registry.GetComponent<ecs::ColliderComponent>(other.entity);
-                if (otherCol.layer & (CollisionLayer::Enemy | CollisionLayer::Obstacle)) {
+                if (otherCol.layer & (CollisionLayer::Enemy)) {
+                    // 誘爆スタックの加算
+                    if (registry.HasComponent<ecs::InducedExplosionComponent>(other.entity)) {
+                        auto& stack = registry.GetComponent<ecs::InducedExplosionComponent>(other.entity);
+                        stack.count_++;
+                        if (stack.count_ >= ecs::InducedExplosionComponent::kMaxCount) {
+                            SpawnExplosion(other.entity, registry);
+                        }
+                    }
+
+                    // ダメージ処理 (20ダメージに調整)
+                    if (registry.HasComponent<ecs::StatusComponent>(other.entity)) {
+                        auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
+                        status.hp_.SetBase(status.hp_.GetBase() - 20.0f);
+                        if (status.hp_.GetBase() <= 0.0f) status.isAlive_ = false;
+                    }
+
+                    registry.DestroyEntityDeferred(proj);
+                }
+                else if (otherCol.layer & (CollisionLayer::Obstacle)) {
                     registry.DestroyEntityDeferred(proj);
                 }
             }
@@ -336,7 +355,7 @@ void PlayerActionSystem::UpdateRMB(EntityID entity, Registry& registry, float)
         // 連鎖ロジック用キャプチャ
         SystemManager* sysMgr = systemManager_;
 
-        col.onCollisionEnter = [&registry, proj, sysMgr](const ecs::CollisionPartnerInfo& other) {
+        col.onCollisionEnter = [this, &registry, proj, sysMgr](const ecs::CollisionPartnerInfo& other) {
             if (registry.HasComponent<ecs::TagComponent>(other.entity) &&
                 registry.GetComponent<ecs::TagComponent>(other.entity).type == ecs::TagComponent::Type::Enemy)
             {
@@ -349,26 +368,57 @@ void PlayerActionSystem::UpdateRMB(EntityID entity, Registry& registry, float)
                 {
                     int chainCount = 0;
                     const int kMaxChain = 5;
-                    colSys->QueryNearbyEntities(hitPos, 8.0f, [&](EntityID victim) {
+                    colSys->QueryNearbyEntities(hitPos, 8.0f, [this, &registry, hitPos, &chainCount, kMaxChain](EntityID victim) {
                         if (chainCount >= kMaxChain) return;
-                        if (victim == other.entity) return; // 自分以外
+                        if (victim == kInvalidEntity) return;
 
                         if (registry.HasComponent<ecs::TagComponent>(victim) &&
                             registry.GetComponent<ecs::TagComponent>(victim).type == ecs::TagComponent::Type::Enemy)
                         {
-                            // 開発用：当たったら即消す
-                            registry.DestroyEntityDeferred(victim);
+                            // 距離の精査 (8.0f以内)
+                            Vector3 victimPos = registry.GetComponent<TransformComponent>(victim).localPosition_;
+                            float distSq = (victimPos - hitPos).LengthSquared();
+                            if (distSq > 8.0f * 8.0f) return;
+
+                            // 誘爆スタックの加算
+                            if (registry.HasComponent<ecs::InducedExplosionComponent>(victim)) {
+                                auto& stack = registry.GetComponent<ecs::InducedExplosionComponent>(victim);
+                                stack.count_++;
+                                if (stack.count_ >= ecs::InducedExplosionComponent::kMaxCount) {
+                                    SpawnExplosion(victim, registry);
+                                }
+                            }
+                            
+                            // ダメージ処理 (15ダメージに調整)
+                            if (registry.HasComponent<ecs::StatusComponent>(victim)) {
+                                auto& status = registry.GetComponent<ecs::StatusComponent>(victim);
+                                status.hp_.SetBase(status.hp_.GetBase() - 15.0f);
+                                if (status.hp_.GetBase() <= 0.0f) status.isAlive_ = false;
+                            }
 
                             // 雷描画 (とりあえずラインマネージャー)
-                            Vector3 victimPos = registry.GetComponent<TransformComponent>(victim).localPosition_;
                             LineManager::GetInstance()->DrawLine(hitPos, victimPos, VectorColorCodes::Cyan);
                             
                             chainCount++;
                         }
                     });
                 }
-                // 最初に当たった敵も即消す
-                registry.DestroyEntityDeferred(other.entity);
+                // 最初に当たった敵のスタックとダメージ処理
+                if (registry.HasComponent<ecs::InducedExplosionComponent>(other.entity)) {
+                    auto& stack = registry.GetComponent<ecs::InducedExplosionComponent>(other.entity);
+                    stack.count_++;
+                    if (stack.count_ >= ecs::InducedExplosionComponent::kMaxCount) {
+                        SpawnExplosion(other.entity, registry);
+                    }
+                }
+                
+                // ダメージ処理 (15ダメージに調整)
+                if (registry.HasComponent<ecs::StatusComponent>(other.entity)) {
+                    auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
+                    status.hp_.SetBase(status.hp_.GetBase() - 15.0f);
+                    if (status.hp_.GetBase() <= 0.0f) status.isAlive_ = false;
+                }
+                
                 registry.DestroyEntityDeferred(proj);
             }
         };
@@ -435,37 +485,20 @@ void PlayerActionSystem::UpdateE(EntityID entity, Registry& registry, float)
 
         SystemManager* sysMgr = systemManager_;
 
-        col.onCollisionEnter = [&registry, sysMgr](const ecs::CollisionPartnerInfo& other) {
-            if (registry.HasComponent<ecs::StatusComponent>(other.entity))
+        col.onCollisionEnter = [&registry](const ecs::CollisionPartnerInfo& other) {
+            if (registry.HasComponent<ecs::TagComponent>(other.entity) &&
+                registry.GetComponent<ecs::TagComponent>(other.entity).type == ecs::TagComponent::Type::Enemy)
             {
-                // 誘爆スタックの付与/加算
+                // 爆弾コンポーネントを付与するだけ。スタックは更新しない。
                 if (!registry.HasComponent<ecs::InducedExplosionComponent>(other.entity)) {
-                    registry.AddComponent<ecs::InducedExplosionComponent>(other.entity, { 1 });
-                } else {
-                    auto& stack = registry.GetComponent<ecs::InducedExplosionComponent>(other.entity);
-                    stack.count_++;
-                    
-                    if (stack.count_ >= ecs::InducedExplosionComponent::kMaxCount)
-                    {
-                        // 誘爆発生！
-                        Vector3 expPos = registry.GetComponent<TransformComponent>(other.entity).localPosition_;
-                        auto colSys = sysMgr->GetSystem<CollisionSystem>();
-                        if (colSys) {
-                            colSys->QueryNearbyEntities(expPos, ecs::InducedExplosionComponent::kExplosionRadius, [&](EntityID victim) {
-                                if (registry.HasComponent<ecs::StatusComponent>(victim)) {
-                                    auto& victimStatus = registry.GetComponent<ecs::StatusComponent>(victim);
-                                    victimStatus.hp_.SetBase(victimStatus.hp_.GetBase() - ecs::InducedExplosionComponent::kExplosionDamage);
-                                    if (victimStatus.hp_.GetBase() <= 0.0f) victimStatus.isAlive_ = false;
-                                }
-                            });
-                        }
-                        // 爆発した敵自身も大ダメージ
-                        auto& selfStatus = registry.GetComponent<ecs::StatusComponent>(other.entity);
-                        selfStatus.hp_.SetBase(selfStatus.hp_.GetBase() - ecs::InducedExplosionComponent::kExplosionDamage);
-                        if (selfStatus.hp_.GetBase() <= 0.0f) selfStatus.isAlive_ = false;
+                    registry.AddComponent<ecs::InducedExplosionComponent>(other.entity, { 0 }); // スタック0で開始
+                }
 
-                        registry.RemoveComponent<ecs::InducedExplosionComponent>(other.entity);
-                    }
+                // ダメージ処理 (20ダメージ追加)
+                if (registry.HasComponent<ecs::StatusComponent>(other.entity)) {
+                    auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
+                    status.hp_.SetBase(status.hp_.GetBase() - 20.0f);
+                    if (status.hp_.GetBase() <= 0.0f) status.isAlive_ = false;
                 }
             }
         };
@@ -482,4 +515,54 @@ void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
     auto& skill = registry.GetComponent<SkillComponent>(entity);
     if (!skill.isBeamUnlocked_) return;
     // 実装予定
+}
+
+void PlayerActionSystem::SpawnExplosion(EntityID sourceEntity, Registry& registry)
+{
+    if (!registry.IsAlive(sourceEntity)) return;
+    if (!registry.HasComponent<TransformComponent>(sourceEntity)) return;
+
+    Vector3 expPos = registry.GetComponent<TransformComponent>(sourceEntity).localPosition_;
+
+    // 爆発エンティティ（透明な衝撃波判定）
+    EntityID explosion = registry.CreateEntity();
+    registry.AddComponent<TransformComponent>(explosion, { expPos, {0,0,0}, {1,1,1} });
+    registry.AddComponent<LifetimeComponent>(explosion, { 0.0f, 0.1f });
+
+    ecs::ColliderComponent col;
+    col.type_ = ColliderType::Sphere;
+    col.sphere_.radius = ecs::InducedExplosionComponent::kExplosionRadius;
+    col.isTrigger_ = true;
+    col.layer = CollisionLayer::PlayerBullet;
+    col.mask = CollisionLayer::Enemy;
+
+    // 爆発のコールバック：周囲の敵にダメージ（または即死）
+    col.onCollisionEnter = [&registry](const ecs::CollisionPartnerInfo& other) {
+        if (registry.HasComponent<ecs::TagComponent>(other.entity) &&
+            registry.GetComponent<ecs::TagComponent>(other.entity).type == ecs::TagComponent::Type::Enemy)
+        {
+            // 爆発に巻き込まれた敵に大ダメージを与える (500ダメージ)
+            if (registry.HasComponent<ecs::StatusComponent>(other.entity)) {
+                auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
+                status.hp_.SetBase(status.hp_.GetBase() - 500.0f);
+                if (status.hp_.GetBase() <= 0.0f) status.isAlive_ = false;
+            }
+        }
+    };
+
+    registry.AddComponent<ecs::ColliderComponent>(explosion, col);
+    registry.AddComponent<CollisionResponseComponent>(explosion, {});
+
+    // 元の敵自身にもダメージ（または破棄）
+    if (registry.HasComponent<ecs::StatusComponent>(sourceEntity)) {
+        auto& status = registry.GetComponent<ecs::StatusComponent>(sourceEntity);
+        status.hp_.SetBase(status.hp_.GetBase() - 500.0f);
+        if (status.hp_.GetBase() <= 0.0f) status.isAlive_ = false;
+    }
+    
+    registry.RemoveComponent<ecs::InducedExplosionComponent>(sourceEntity);
+    // registry.DestroyEntityDeferred(sourceEntity); // HPが0になれば消去システム側で破棄される前提
+
+    // デバッグ表示
+    LineManager::GetInstance()->DrawSphere(expPos, ecs::InducedExplosionComponent::kExplosionRadius, VectorColorCodes::Red);
 }

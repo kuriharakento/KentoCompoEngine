@@ -18,18 +18,21 @@ void AnnihilationSystem::Update(Registry& registry)
         EntityID entity = view->GetEntityFromDenseIndex(i);
         auto& status = view->GetDataFromDenseIndex(i);
 
-        // 必要なコンポーネント（ImpactChargeComponent）があるか確認
-        if (!registry.HasComponent<ImpactChargeComponent>(entity)) continue;
-        auto& impact = registry.GetComponent<ImpactChargeComponent>(entity);
-
-        // 死亡時かつ最大チャージ時のみ誘爆
-        if (!status.isAlive_ && impact.stackCount_ >= impact.kMaxStacks)
+        // 死亡している場合
+        if (!status.isAlive_)
         {
-            TriggerExplosion(entity, registry);
-            
-            // 誘爆は一度きり (フラグを折る)
-            impact.stackCount_ = 0;
-            
+            // 必要なコンポーネント（ImpactChargeComponent）があるか確認して誘爆処理
+            if (registry.HasComponent<ImpactChargeComponent>(entity))
+            {
+                auto& impact = registry.GetComponent<ImpactChargeComponent>(entity);
+                if (impact.stackCount_ >= impact.kMaxStacks)
+                {
+                    TriggerExplosion(entity, registry);
+                    // 誘爆は一度きり (フラグを折る)
+                    impact.stackCount_ = 0;
+                }
+            }
+
             // プレイヤーにスコア加算 (暫定)
             auto progView = registry.View<PlayerProgressionComponent>();
             if (progView)
@@ -40,6 +43,9 @@ void AnnihilationSystem::Update(Registry& registry)
                     progView->GetDataFromDenseIndex(j).currentExp_ += 10.0f;
                 }
             }
+
+            // 最終的にエンティティを破棄
+            registry.DestroyEntityDeferred(entity);
         }
     }
 }

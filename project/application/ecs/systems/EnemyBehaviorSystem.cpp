@@ -5,7 +5,12 @@
 #include "engine/ecs/components/TagComponent.h"
 #include "application/ecs/components/StatusComponent.h"
 #include "math/MathUtils.h"
+#include "application/ecs/components/InducedExplosionComponent.h"
+#include "application/ecs/components/EnemyTypeComponent.h"
+#include "engine/manager/graphics/LineManager.h"
+#include "engine/math/VectorColorCodes.h"
 #include <algorithm>
+#include <cmath>
 
 void EnemyBehaviorSystem::Update(Registry& registry)
 {
@@ -72,6 +77,22 @@ void EnemyBehaviorSystem::Update(Registry& registry)
         case EnemyType::Ranged:
             UpdateRangedBehavior(entity, registry, targetPos, dt);
             break;
+        }
+
+        // 誘爆スタックの可視化
+        if (registry.HasComponent<ecs::InducedExplosionComponent>(entity))
+        {
+            auto& explosion = registry.GetComponent<ecs::InducedExplosionComponent>(entity);
+            auto& trans = registry.GetComponent<TransformComponent>(entity);
+
+            // スタック数に応じた色
+            Vector4 color = VectorColorCodes::Lime;
+            if (explosion.count_ == 2) color = VectorColorCodes::Orange;
+            else if (explosion.count_ >= 3) color = VectorColorCodes::Red;
+
+            // 敵の少し上に描画 (オフセット調整可能)
+            Vector3 markerPos = trans.localPosition_ + Vector3(0.0f, 2.5f, 0.0f);
+            LineManager::GetInstance()->DrawCube(markerPos, 0.4f, color);
         }
     }
 }
