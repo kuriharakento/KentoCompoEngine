@@ -296,6 +296,8 @@ private:
     bool gameClear_ = false;
     // ゲームオーバーフラグ
 	bool gameOver_ = false;
+    // ゲーム時間のカウント
+    float gameTime_ = 0.0f;
 
 	// --- UI ---
 	std::unique_ptr<ControlsGuide> controlsGuide_ = nullptr;

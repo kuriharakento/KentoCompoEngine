@@ -101,7 +101,7 @@ void GamePlayScene::Initialize()
 	// --- ECS の初期化 ---
 	registry_ = std::make_unique<Registry>();
 	registry_->Initialize(10000);
-	
+
 	// コンポーネント登録
 	registry_->RegisterComponent<TransformComponent>(10000);
 	registry_->RegisterComponent<HierarchyComponent>(10000);
@@ -140,7 +140,7 @@ void GamePlayScene::Initialize()
 	auto playerSystem = std::make_shared<PlayerSystem>();
 	playerSystem->SetCameraManager(sceneManager_->GetCameraManager());
 	systemManager_->AddSystem(playerSystem);
-	
+
 	auto playerActionSystem = std::make_shared<PlayerActionSystem>();
 	playerActionSystem->SetCameraManager(sceneManager_->GetCameraManager());
 	playerActionSystem->SetSystemManager(systemManager_.get());
@@ -153,7 +153,7 @@ void GamePlayScene::Initialize()
 	systemManager_->AddSystem(std::make_shared<MovementSystem>());
 	systemManager_->AddSystem(std::make_shared<ProjectileSystem>());
 	systemManager_->AddSystem(std::make_shared<ProgressionSystem>());
-	
+
 	// 3. 行列更新・物理計算 (worldMatrix の構築)
 	// 移動後に実行することで、最新の座標をワールド行列に反映させる
 	systemManager_->AddSystem(std::make_shared<HierarchySystem>());
@@ -166,7 +166,7 @@ void GamePlayScene::Initialize()
 	systemManager_->AddSystem(std::make_shared<AnnihilationSystem>());
 	systemManager_->AddSystem(std::make_shared<LifetimeSystem>());
 	systemManager_->AddSystem(std::make_shared<EcsStatusSystem>());
-	
+
 	// 6. 描画準備
 	systemManager_->AddSystem(std::make_shared<InstancedRenderSystem>());
 
@@ -182,8 +182,8 @@ void GamePlayScene::Initialize()
 	{
 		auto renderer = std::make_unique<InstancedModelRenderer>(5000); // 最大5000体
 		renderer->Initialize(
-			obj3dCommon->GetDXCommon(), 
-			obj3dCommon->GetSrvManager(), 
+			obj3dCommon->GetDXCommon(),
+			obj3dCommon->GetSrvManager(),
 			enemyModel
 		);
 		instancedRenderers_["enemy"] = std::move(renderer);
@@ -195,8 +195,8 @@ void GamePlayScene::Initialize()
 	{
 		auto renderer = std::make_unique<InstancedModelRenderer>(1); // 1体
 		renderer->Initialize(
-			obj3dCommon->GetDXCommon(), 
-			obj3dCommon->GetSrvManager(), 
+			obj3dCommon->GetDXCommon(),
+			obj3dCommon->GetSrvManager(),
 			playerModel
 		);
 		instancedRenderers_["player"] = std::move(renderer);
@@ -204,14 +204,15 @@ void GamePlayScene::Initialize()
 
 	// --- プレイヤーEntityの生成 ---
 	playerEntity_ = registry_->CreateEntity();
-	if (playerEntity_ != kInvalidEntity) {
+	if (playerEntity_ != kInvalidEntity)
+	{
 		ecs::TagComponent playerTag;
 		playerTag.type = ecs::TagComponent::Type::Player;
 		registry_->AddComponent<ecs::TagComponent>(playerEntity_, playerTag);
-		
+
 		registry_->AddComponent<TransformComponent>(playerEntity_, { {0.0f, 1.0f, 0.0f}, {0,0,0}, {1,1,1} });
 		registry_->AddComponent<PlayerProgressionComponent>(playerEntity_, {});
-		
+
 		SkillComponent skill;
 		skill.isRmbUnlocked_ = true;
 		skill.isDecoyUnlocked_ = true;
@@ -220,18 +221,18 @@ void GamePlayScene::Initialize()
 
 		registry_->AddComponent<DodgeComponent>(playerEntity_, {});
 		registry_->AddComponent<ecs::StatusComponent>(playerEntity_, ecs::StatusComponent{});
-		
+
 		// コライダー設定
 		ecs::ColliderComponent col;
 		col.type_ = ColliderType::Sphere;
 		col.sphere_.radius = 1.0f;
-		
+
 		// フィルタリング設定
 		col.layer = CollisionLayer::Player;
 		col.mask = CollisionLayer::Enemy | CollisionLayer::Obstacle;
-		
+
 		registry_->AddComponent<ecs::ColliderComponent>(playerEntity_, col);
-		
+
 		registry_->AddComponent<CollisionResponseComponent>(playerEntity_, {});
 
 		// プレイヤーコンポーネント追加
@@ -245,7 +246,7 @@ void GamePlayScene::Initialize()
 
 	// --- 敵管理の初期化 ---
 	enemyManager_ = std::make_unique<EnemyManager>();
-	
+
 	// 引数の型を明示的に渡す (コンパイラの推論エラー対策)
 	Registry* reg = registry_.get();
 	SystemManager* sys = systemManager_.get();
@@ -263,7 +264,7 @@ void GamePlayScene::Initialize()
 		cam,
 		light,
 		shadow,
-		nullptr 
+		nullptr
 	);
 
 	// --- カメラの初期化 ---
@@ -291,7 +292,7 @@ void GamePlayScene::Initialize()
 	// --- UI・演出の初期化 ---
 	reticle_ = std::make_unique<Cursor>();
 	reticle_->Initialize(sceneManager_->GetSpriteCommon(), "./Resources/UI/reticle.png");
-	
+
 	controlsGuide_ = std::make_unique<ControlsGuide>();
 	controlsGuide_->Initialize(sceneManager_->GetSpriteCommon(), "luna");
 
@@ -299,7 +300,7 @@ void GamePlayScene::Initialize()
 	hpBarBG_->Initialize(sceneManager_->GetSpriteCommon(), "./Resources/white1x1.png");
 	hpBarBG_->SetScreenPosition({ 439.0f, 650.0f });
 	hpBarBG_->SetSize({ 402.0f, 32.0f });
-	hpBarBG_->SetColor(VectorColorCodes::DarkGray); 
+	hpBarBG_->SetColor(VectorColorCodes::DarkGray);
 	hpBarBG_->SetAnchorPoint({ 0.0f, 0.5f });
 
 	hpBarFG_ = std::make_unique<GameUI>();
@@ -311,7 +312,8 @@ void GamePlayScene::Initialize()
 
 	displayedHp_ = 0.0f;
 	maxHp_ = 100.0f;
-	if (playerEntity_ != kInvalidEntity && registry_->HasComponent<ecs::StatusComponent>(playerEntity_)) {
+	if (playerEntity_ != kInvalidEntity && registry_->HasComponent<ecs::StatusComponent>(playerEntity_))
+	{
 		auto& status = registry_->GetComponent<ecs::StatusComponent>(playerEntity_);
 		displayedHp_ = status.hp_.GetValue();
 		maxHp_ = status.maxHp_.GetValue();
@@ -363,15 +365,16 @@ void GamePlayScene::Draw3D()
 
 	// --- インスタンス描画 (一括呼び出し) ---
 	InstancedRenderSystem::DrawGrouped(
-		*registry_, 
-		instancedRenderers_, 
-		sceneManager_->GetCameraManager()->GetActiveCamera(), 
+		*registry_,
+		instancedRenderers_,
+		sceneManager_->GetCameraManager()->GetActiveCamera(),
 		sceneManager_->GetLightManager(),
 		sceneManager_->GetShadowMapManager()
 	);
-	
+
 	// --- ECS システムの描画 (衝突判定の可視化、スポーン範囲など) ---
-	if (systemManager_) {
+	if (systemManager_)
+	{
 		systemManager_->Draw(
 			*registry_,
 			sceneManager_->GetCameraManager()->GetActiveCamera(),
@@ -397,7 +400,8 @@ void GamePlayScene::UpdateUI()
 	float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
 	if (dt <= 0.0f) dt = 0.0166f;
 
-	if (playerEntity_ != kInvalidEntity && registry_->HasComponent<ecs::StatusComponent>(playerEntity_)) {
+	if (playerEntity_ != kInvalidEntity && registry_->HasComponent<ecs::StatusComponent>(playerEntity_))
+	{
 		auto& status = registry_->GetComponent<ecs::StatusComponent>(playerEntity_);
 		float targetHp = status.hp_.GetValue();
 		maxHp_ = status.maxHp_.GetValue();
@@ -437,16 +441,20 @@ void GamePlayScene::DrawImGui()
 	// --- ECS Central Hub ---
 	ImGui::Begin("ECS Debug Hub");
 
-	if (registry_) {
+	if (registry_)
+	{
 		ImGui::Text("Active Entities: %d", registry_->GetActiveEntityCount());
 		ImGui::Separator();
 	}
 
 	// 1. プレイヤーステータス
-	if (registry_ && playerEntity_ != kInvalidEntity) {
-		if (ImGui::CollapsingHeader("Player Stats", ImGuiTreeNodeFlags_DefaultOpen)) {
+	if (registry_ && playerEntity_ != kInvalidEntity)
+	{
+		if (ImGui::CollapsingHeader("Player Stats", ImGuiTreeNodeFlags_DefaultOpen))
+		{
 			// HP (StatusComponent)
-			if (registry_->HasComponent<ecs::StatusComponent>(playerEntity_)) {
+			if (registry_->HasComponent<ecs::StatusComponent>(playerEntity_))
+			{
 				auto& status = registry_->GetComponent<ecs::StatusComponent>(playerEntity_);
 				float hp = status.hp_.GetValue();
 				float maxHp = status.maxHp_.GetValue();
@@ -455,7 +463,8 @@ void GamePlayScene::DrawImGui()
 			}
 
 			// レベル・経験値 (PlayerProgressionComponent)
-			if (registry_->HasComponent<PlayerProgressionComponent>(playerEntity_)) {
+			if (registry_->HasComponent<PlayerProgressionComponent>(playerEntity_))
+			{
 				auto& prog = registry_->GetComponent<PlayerProgressionComponent>(playerEntity_);
 				ImGui::Text("Level: %d", prog.level_);
 				ImGui::Text("Exp: %.1f / %.1f", prog.currentExp_, prog.nextLevelExp_);
@@ -464,16 +473,18 @@ void GamePlayScene::DrawImGui()
 		}
 
 		// 2. スキル情報
-		if (registry_->HasComponent<SkillComponent>(playerEntity_)) {
-			if (ImGui::CollapsingHeader("Skills", ImGuiTreeNodeFlags_DefaultOpen)) {
+		if (registry_->HasComponent<SkillComponent>(playerEntity_))
+		{
+			if (ImGui::CollapsingHeader("Skills", ImGuiTreeNodeFlags_DefaultOpen))
+			{
 				auto& skill = registry_->GetComponent<SkillComponent>(playerEntity_);
-				
+
 				auto drawSkillInfo = [](const char* name, bool unlocked, float timer) {
-					ImGui::Text("%-8s: %s (Timer: %.2f)", 
-						name, 
-						unlocked ? "Unlocked" : "Locked", 
-						timer > 0 ? timer : 0.0f);
-				};
+					ImGui::Text("%-8s: %s (Timer: %.2f)",
+								name,
+								unlocked ? "Unlocked" : "Locked",
+								timer > 0 ? timer : 0.0f);
+					};
 
 				drawSkillInfo("LMB", skill.isLmbUnlocked_, skill.lmbTimer_);
 				drawSkillInfo("RMB", skill.isRmbUnlocked_, skill.rmbTimer_);
@@ -485,15 +496,19 @@ void GamePlayScene::DrawImGui()
 	}
 
 	// 3. スポーン設定
-	if (enemySpawnSystem_) {
-		if (ImGui::CollapsingHeader("Spawn Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+	if (enemySpawnSystem_)
+	{
+		if (ImGui::CollapsingHeader("Spawn Settings", ImGuiTreeNodeFlags_DefaultOpen))
+		{
 			float inner = enemySpawnSystem_->GetInnerRadius();
 			float outer = enemySpawnSystem_->GetOuterRadius();
 
-			if (ImGui::SliderFloat("Inner Radius", &inner, 0.0f, 50.0f)) {
+			if (ImGui::SliderFloat("Inner Radius", &inner, 0.0f, 50.0f))
+			{
 				enemySpawnSystem_->SetInnerRadius(inner);
 			}
-			if (ImGui::SliderFloat("Outer Radius", &outer, inner, 100.0f)) {
+			if (ImGui::SliderFloat("Outer Radius", &outer, inner, 100.0f))
+			{
 				enemySpawnSystem_->SetOuterRadius(outer);
 			}
 		}
@@ -528,7 +543,8 @@ void GamePlayScene::OnEnterIntro()
 
 void GamePlayScene::OnUpdateIntro()
 {
-	if (Input::GetInstance()->TriggerKey(DIK_P)) {
+	if (Input::GetInstance()->TriggerKey(DIK_P))
+	{
 		ChangeState(SceneState::Playing);
 	}
 }
@@ -551,6 +567,25 @@ void GamePlayScene::OnUpdatePlaying()
 
 	// 予約されたエンティティを物理削除
 	registry_->FlushGarbageCollection();
+
+	// 簡易的になゲームオーバー判定 (プレイヤーHPが0以下)
+	if (playerEntity_ != kInvalidEntity && registry_->HasComponent<ecs::StatusComponent>(playerEntity_))
+	{
+		auto& status = registry_->GetComponent<ecs::StatusComponent>(playerEntity_);
+		if (status.hp_.GetValue() <= 0.0f)
+		{
+			gameOver_ = true;
+			ChangeState(SceneState::End);
+		}
+	}
+
+	// ゲームクリア判定 (時間の経過)
+	gameTime_ += TimeManager::GetInstance().GetGameContext().deltaTime;
+	if (gameTime_ >= 60.0f)
+	{
+		gameClear_ = true;
+		ChangeState(SceneState::End);
+	}
 }
 
 void GamePlayScene::OnExitPlaying()
@@ -559,10 +594,25 @@ void GamePlayScene::OnExitPlaying()
 
 void GamePlayScene::OnEnterEnd()
 {
+	transitionEffect_.SetFadeType(FadeType::FadeIn);
+	transitionEffect_.Start(kEnterTransitionDuration, VectorColorCodes::Red, VectorColorCodes::Black);
 }
 
 void GamePlayScene::OnUpdateEnd()
 {
+	if (transitionEffect_.GetState() == TransitionState::Done)
+	{
+		if(gameOver_)
+		{
+			// ゲームオーバー画面へ
+			sceneManager_->ChangeScene(SceneNames::GameOver);
+		}
+		else if (gameClear_)
+		{
+			// ゲームクリア画面へ
+			sceneManager_->ChangeScene(SceneNames::GameClear);
+		}
+	}
 }
 
 void GamePlayScene::OnExitEnd()
@@ -573,7 +623,7 @@ void GamePlayScene::OnEnterExit()
 {
 	// FadeIn（黒が現れる ＝ シーン終了）
 	transitionEffect_.SetFadeType(FadeType::FadeIn);
-	transitionEffect_.Start(kExitTransitionDuration, {0,0,0,1}, {0,0,0,1});
+	transitionEffect_.Start(kExitTransitionDuration, { 0,0,0,1 }, { 0,0,0,1 });
 }
 
 void GamePlayScene::OnUpdateExit()
@@ -593,7 +643,7 @@ void GamePlayScene::CommonUpdate()
 	transitionEffect_.Update();
 	cinematicLetterbox_.Update();
 	UpdateUI();
-	
+
 	// カメラの更新
 	if (isDebugCameraActive_) debugCamera_->Update();
 	else if (gameClear_) orbitCamera_->Update();
