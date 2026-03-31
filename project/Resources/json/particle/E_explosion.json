@@ -2,7 +2,7 @@
     "deltaTimeType": 0,
     "emitters": [
         {
-            "duration": 0.20000000298023224,
+            "duration": 0.0,
             "followEmitterIndex": -1,
             "followOffset": {
                 "x": 0.0,
@@ -16,45 +16,62 @@
             "minMoveDistance": 0.05000000074505806,
             "modules": [
                 {
-                    "count": 15,
+                    "count": 300,
                     "delay": 0.0,
                     "interval": 0.0,
                     "loops": 1,
                     "type": "SpawnBurst"
                 },
                 {
-                    "max": 0.20000000298023224,
-                    "min": 0.20000000298023224,
+                    "max": 0.5,
+                    "min": 0.5,
                     "type": "InitialLifetime"
                 },
                 {
-                    "maxAngle": 360.0,
-                    "maxAngle_v3": {
-                        "x": 360.0,
-                        "y": 360.0,
-                        "z": 360.0
+                    "max": {
+                        "x": 20.0,
+                        "y": 20.0,
+                        "z": 20.0
                     },
-                    "minAngle": 0.0,
-                    "minAngle_v3": {
-                        "x": 0.0,
-                        "y": 0.0,
-                        "z": 0.0
+                    "min": {
+                        "x": -20.0,
+                        "y": -10.0,
+                        "z": -20.0
                     },
-                    "type": "InitialRotation"
+                    "type": "InitialVelocity"
                 },
                 {
-                    "easingType": 0,
+                    "max": {
+                        "x": 0.05000000074505806,
+                        "y": 0.05000000074505806,
+                        "z": 1.0
+                    },
+                    "min": {
+                        "x": 0.05000000074505806,
+                        "y": 0.05000000074505806,
+                        "z": 1.0
+                    },
+                    "type": "InitialScale"
+                },
+                {
+                    "easingType": 2,
                     "end": {
-                        "x": 2.0,
-                        "y": 60.0,
-                        "z": 2.0
+                        "a": 0.0,
+                        "b": 0.0,
+                        "g": 0.0,
+                        "r": 1.0
                     },
                     "start": {
-                        "x": 0.0,
-                        "y": 0.0,
-                        "z": 0.0
+                        "a": 1.0,
+                        "b": 0.08823531866073608,
+                        "g": 1.0,
+                        "r": 0.7318339943885803
                     },
-                    "type": "ScaleOverLifetime"
+                    "type": "ColorFade",
+                    "useInitialColor": false
+                },
+                {
+                    "type": "FaceVelocity"
                 }
             ],
             "name": "e1",
@@ -64,7 +81,7 @@
                 "z": 0.0
             },
             "renderer": {
-                "billboard": true,
+                "billboard": false,
                 "blendMode": 1,
                 "primitiveOptions": {
                     "cubeFaceVisible": [
@@ -90,14 +107,14 @@
                     "turns": 2.0,
                     "withCaps": true
                 },
-                "primitiveType": 0,
-                "scale": 1.0,
+                "primitiveType": 3,
+                "scale": 10.0,
                 "texture": "resources/star.png",
                 "tintColor": {
                     "a": 1.0,
-                    "b": 0.01441754586994648,
-                    "g": 0.01441754586994648,
-                    "r": 0.9803921580314636
+                    "b": 0.9656862616539001,
+                    "g": 0.9656862616539001,
+                    "r": 0.9656862616539001
                 },
                 "type": "Mesh"
             },
@@ -105,8 +122,8 @@
             "startDelay": 0.0
         },
         {
-            "duration": 0.20000000298023224,
-            "followEmitterIndex": 0,
+            "duration": 0.0,
+            "followEmitterIndex": -1,
             "followOffset": {
                 "x": 0.0,
                 "y": 0.0,
@@ -114,35 +131,78 @@
             },
             "inactiveResponse": 0,
             "loopBehavior": 0,
-            "loopCount": 3,
+            "loopCount": 1,
             "maxParticles": 1000,
             "minMoveDistance": 0.05000000074505806,
             "modules": [
                 {
-                    "count": 1,
+                    "count": 20,
                     "delay": 0.0,
                     "interval": 0.0,
                     "loops": 1,
                     "type": "SpawnBurst"
                 },
                 {
-                    "max": 0.20000000298023224,
-                    "min": 0.20000000298023224,
+                    "max": 0.4000000059604645,
+                    "min": 0.4000000059604645,
                     "type": "InitialLifetime"
                 },
                 {
-                    "easingType": 0,
+                    "arcAngle": 360.0,
+                    "boxSize": {
+                        "x": 5.0,
+                        "y": 5.0,
+                        "z": 5.0
+                    },
+                    "coneHeight": 2.0,
+                    "emitFromSurface": false,
+                    "initialSpeed": 0.0,
+                    "innerRadius": 0.0,
+                    "lineEnd": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": 0.0
+                    },
+                    "lineStart": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "outerRadius": 1.0,
+                    "shapeType": 3,
+                    "spawnLocation": 0,
+                    "type": "SpawnShape"
+                },
+                {
+                    "easingType": 4,
                     "end": {
-                        "x": 10.0,
-                        "y": 10.0,
-                        "z": 1.0
+                        "x": 4.0,
+                        "y": 4.0,
+                        "z": 4.0
                     },
                     "start": {
                         "x": 0.0,
                         "y": 0.0,
-                        "z": 1.0
+                        "z": 0.0
                     },
                     "type": "ScaleOverLifetime"
+                },
+                {
+                    "easingType": 0,
+                    "end": {
+                        "a": 0.0,
+                        "b": 0.21780085563659668,
+                        "g": 0.21780085563659668,
+                        "r": 0.5049020051956177
+                    },
+                    "start": {
+                        "a": 0.7843137383460999,
+                        "b": 0.10731451958417892,
+                        "g": 0.3945385813713074,
+                        "r": 0.9950980544090271
+                    },
+                    "type": "ColorFade",
+                    "useInitialColor": false
                 }
             ],
             "name": "e2",
@@ -153,7 +213,7 @@
             },
             "renderer": {
                 "billboard": true,
-                "blendMode": 1,
+                "blendMode": 0,
                 "primitiveOptions": {
                     "cubeFaceVisible": [
                         true,
@@ -169,8 +229,8 @@
                         "z": 1.0
                     },
                     "doubleSided": false,
-                    "innerRadius": 1.0,
-                    "outerRadius": 1.059999942779541,
+                    "innerRadius": 0.9300000071525574,
+                    "outerRadius": 1.090000033378601,
                     "points": 5,
                     "rings": 8,
                     "segments": 16,
@@ -178,14 +238,14 @@
                     "turns": 2.0,
                     "withCaps": true
                 },
-                "primitiveType": 1,
-                "scale": 0.27000001072883606,
-                "texture": "resources/white1x1.png",
+                "primitiveType": 0,
+                "scale": 1.649999976158142,
+                "texture": "resources/circle2.png",
                 "tintColor": {
                     "a": 1.0,
-                    "b": 0.17358709871768951,
-                    "g": 0.40989890694618225,
-                    "r": 0.843137264251709
+                    "b": 1.0,
+                    "g": 1.0,
+                    "r": 1.0
                 },
                 "type": "Mesh"
             },
@@ -193,7 +253,7 @@
             "startDelay": 0.0
         }
     ],
-    "name": "hit_effect_ver2",
+    "name": "E_explosion",
     "position": {
         "x": 0.0,
         "y": 0.0,

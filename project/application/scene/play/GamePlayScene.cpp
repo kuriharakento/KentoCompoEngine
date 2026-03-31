@@ -149,6 +149,7 @@ void GamePlayScene::Initialize()
 	// パーティクル定義のロード
 	ParticleManager::GetInstance()->LoadEffectDefinition("enemy_death", "./Resources/json/particle/enemy_death.json");
 	ParticleManager::GetInstance()->LoadEffectDefinition("E_skill", "./Resources/json/particle/E_skill.json");
+	ParticleManager::GetInstance()->LoadEffectDefinition("E_explosion", "./Resources/json/particle/E_explosion.json");
 	ParticleManager::GetInstance()->LoadEffectDefinition("hit_effect_ver2", "./Resources/json/particle/hit_effect_ver2.json");
 
 	systemManager_->AddSystem(std::make_shared<EnemyBehaviorSystem>());

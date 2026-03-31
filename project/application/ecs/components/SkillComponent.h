@@ -25,6 +25,6 @@ struct SkillComponent
     static constexpr float kLmbCooldown = 0.9f;
     static constexpr float kRmbCooldown = 0.4f;
     static constexpr float kDecoyCooldown = 5.0f;
-    static constexpr float kImpactCooldown = 0.2f;
+    static constexpr float kImpactCooldown = 2.0f;
     static constexpr float kBeamCooldown = 15.0f;
 };
