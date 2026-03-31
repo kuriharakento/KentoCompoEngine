@@ -238,6 +238,14 @@ template <class T> T EaseInOutExpo(T x)
 //============================================
 
 /**
+ * @brief EaseInQuad - 2乗で徐々に加速
+ * @tparam T 値の型
+ * @param x 進行度（0.0〜1.0）
+ * @return イージング適用後の値
+ */
+template<class T> T EaseInQuad(T x) { return x * x; }
+
+/**
  * @brief EaseOutQuad - 2乗で徐々に減速（1 - (1-x)^2）
  * @tparam T 値の型
  * @param x 進行度（0.0〜1.0）
@@ -245,9 +253,61 @@ template <class T> T EaseInOutExpo(T x)
  */
 template<class T> T EaseOutQuad(T x) { return static_cast<T>(1 - (1 - x) * (1 - x)); }
 
+/**
+ * @brief EaseInOutQuad - 2乗で加速後減速
+ * @tparam T 値の型
+ * @param x 進行度（0.0〜1.0）
+ * @return イージング適用後の値
+ */
+template<class T> T EaseInOutQuad(T x) { return x < kHalfValue ? static_cast<T>(kDoubleValue * x * x) : static_cast<T>(1 - pow(-kDoubleValue * x + kDoubleValue, kDoubleValue) / kDoubleValue); }
+
+//============================================
+// Cubic - 3乗に基づくイージング
+//============================================
+
+/**
+ * @brief EaseInCubic - 3乗で徐々に加速
+ * @tparam T 値の型
+ * @param x 進行度（0.0〜1.0）
+ * @return イージング適用後の値
+ */
+template<class T> T EaseInCubic(T x) { return x * x * x; }
+
+/**
+ * @brief EaseOutCubic - 3乗で徐々に減速
+ * @tparam T 値の型
+ * @param x 進行度（0.0〜1.0）
+ * @return イージング適用後の値
+ */
+template<class T> T EaseOutCubic(T x) { return static_cast<T>(1 - pow(1 - x, 3)); }
+
+/**
+ * @brief EaseInOutCubic - 3乗で加速後減速
+ * @tparam T 値の型
+ * @param x 進行度（0.0〜1.0）
+ * @return イージング適用後の値
+ */
+template<class T> T EaseInOutCubic(T x) { return x < kHalfValue ? static_cast<T>(4 * x * x * x) : static_cast<T>(1 - pow(-kDoubleValue * x + kDoubleValue, 3) / kDoubleValue); }
+
 //============================================
 // Quart - 4乗に基づくイージング
 //============================================
+
+/**
+ * @brief EaseInQuart - 4乗で徐々に加速
+ * @tparam T 値の型
+ * @param x 進行度（0.0〜1.0）
+ * @return イージング適用後の値
+ */
+template<class T> T EaseInQuart(T x) { return x * x * x * x; }
+
+/**
+ * @brief EaseOutQuart - 4乗で徐々に減速
+ * @tparam T 値の型
+ * @param x 進行度（0.0〜1.0）
+ * @return イージング適用後の値
+ */
+template<class T> T EaseOutQuart(T x) { return static_cast<T>(1 - pow(1 - x, kPowerFour)); }
 
 /**
  * @brief EaseInOutQuart - 4乗で加速後減速
