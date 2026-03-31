@@ -36,6 +36,17 @@ void MyGame::LoadTextures()
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/retry.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/back_to_title.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/remaining_ammo.png");
+
+	// Skill Icons & Descriptions
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/button/LMB.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/button/RMB.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/button/Q.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/button/E.png");
+
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/LMB.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/RMB.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/Q.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/E.png");
 }
 
 void MyGame::LoadModels()

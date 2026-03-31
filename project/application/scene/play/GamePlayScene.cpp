@@ -297,37 +297,9 @@ void GamePlayScene::Initialize()
 	reticle_->Initialize(sceneManager_->GetSpriteCommon(), "./Resources/UI/reticle.png");
 
 	controlsGuide_ = std::make_unique<ControlsGuide>();
-	controlsGuide_->Initialize(sceneManager_->GetSpriteCommon(), "luna");
+	controlsGuide_->Initialize(sceneManager_->GetSpriteCommon(), registry_.get(), playerEntity_);
 
-	hpBarBG_ = std::make_unique<GameUI>();
-	hpBarBG_->Initialize(sceneManager_->GetSpriteCommon(), "./Resources/white1x1.png");
-	hpBarBG_->SetScreenPosition({ 439.0f, 650.0f });
-	hpBarBG_->SetSize({ 402.0f, 32.0f });
-	hpBarBG_->SetColor(VectorColorCodes::DarkGray);
-	hpBarBG_->SetAnchorPoint({ 0.0f, 0.5f });
-
-	hpBarFG_ = std::make_unique<GameUI>();
-	hpBarFG_->Initialize(sceneManager_->GetSpriteCommon(), "./Resources/white1x1.png");
-	hpBarFG_->SetScreenPosition({ 440.0f, 650.0f });
-	hpBarFG_->SetSize({ 400.0f, 30.0f });
-	hpBarFG_->SetColor(VectorColorCodes::Lime);
-	hpBarFG_->SetAnchorPoint({ 0.0f, 0.5f });
-
-	displayedHp_ = 0.0f;
-	maxHp_ = 100.0f;
-	if (playerEntity_ != kInvalidEntity && registry_->HasComponent<ecs::StatusComponent>(playerEntity_))
-	{
-		auto& status = registry_->GetComponent<ecs::StatusComponent>(playerEntity_);
-		displayedHp_ = status.hp_.GetValue();
-		maxHp_ = status.maxHp_.GetValue();
-	}
-
-	controlsGuide_->SetText("WASD: Move\nShoot: Left Click\nDodge: Space\n");
-	constexpr float kControlsGuidePosX = 30.0f;
-	constexpr float kControlsGuidePosY = 30.0f;
-	controlsGuide_->SetPosition({ kControlsGuidePosX, kControlsGuidePosY });
-	controlsGuide_->SetScale(kControlsGuideScale);
-	controlsGuide_->SetVisible(false);
+	controlsGuide_->SetVisible(true);
 
 	// シーン遷移エフェクトの初期化
 	const std::string transitionPath = "./Resources/black.png";
@@ -400,40 +372,12 @@ void GamePlayScene::Draw2D()
 
 void GamePlayScene::UpdateUI()
 {
-	float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
-	if (dt <= 0.0f) dt = 0.0166f;
-
-	if (playerEntity_ != kInvalidEntity && registry_->HasComponent<ecs::StatusComponent>(playerEntity_))
-	{
-		auto& status = registry_->GetComponent<ecs::StatusComponent>(playerEntity_);
-		float targetHp = status.hp_.GetValue();
-		maxHp_ = status.maxHp_.GetValue();
-
-		// イージング処理 (指数移動平均)
-		// 1フレームあたり 10% ずつ近づける (約0.2秒で追従)
-		displayedHp_ += (targetHp - displayedHp_) * (1.0f - expf(-8.0f * dt));
-
-		// 表示用比率
-		float ratio = (std::max)(0.0f, (std::min)(1.0f, displayedHp_ / maxHp_));
-		hpBarFG_->SetSize({ 400.0f * ratio, 30.0f });
-
-		// 色の変化 (緑 -> 黄 -> 赤)
-		Vector4 color = VectorColorCodes::Lime;
-		if (ratio < 0.2f) color = VectorColorCodes::Red;
-		else if (ratio < 0.5f) color = VectorColorCodes::Yellow;
-		hpBarFG_->SetColor(color);
-	}
-
-	if (hpBarBG_) hpBarBG_->Update();
-	if (hpBarFG_) hpBarFG_->Update();
 	if (reticle_) reticle_->Update();
 	if (controlsGuide_) controlsGuide_->Update();
 }
 
 void GamePlayScene::DrawUI()
 {
-	if (hpBarBG_) hpBarBG_->Draw();
-	if (hpBarFG_) hpBarFG_->Draw();
 	if (reticle_) reticle_->Draw();
 	if (controlsGuide_) controlsGuide_->Draw();
 }

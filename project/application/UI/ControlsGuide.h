@@ -1,28 +1,48 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <vector>
 #include "graphics/2d/FontSprite.h"
+#include "graphics/2d/Sprite.h"
 #include "graphics/2d/SpriteCommon.h"
+#include "engine/ecs/Registry.h"
 
 /**
  * @class ControlsGuide
- * @brief 操作説明UIを表示するクラス
+ * @brief 操作説明UIとプレイヤー情報を表示するクラス
  *
- * 複数シーンで再利用可能な操作ガイドUI。
- * FontSpriteを使用してテキストベースで操作方法を表示する。
+ * プレイヤーのスキル解放状況に応じた操作ガイドと、
+ * HPバー、クールタイム演出を一括管理します。
  */
 class ControlsGuide
 {
 public:
 	/**
+	 * @struct ControlPrompt
+	 * @brief 一つの操作ガイド要素（アイコン＋説明＋クールタイム影）
+	 */
+	struct ControlPrompt
+	{
+		std::unique_ptr<Sprite> icon_;
+		std::unique_ptr<Sprite> overlay_;     // クールタイム用
+		std::unique_ptr<Sprite> description_; // 説明テキスト
+		std::string actionName_;              // 判定用
+		std::string iconPath_;                // テクスチャパス保持
+		float y_ = 0.0f;                      // 元のY座標
+	};
+
+public:
+	/**
 	 * @brief 初期化処理
 	 * @param spriteCommon スプライト共通設定
-	 * @param fontName フォント名（Resources/fonts/配下の名前）
+	 * @param registry ECSレジストリへのポインタ
+	 * @param playerEntity プレイヤーのEntityID
 	 */
-	void Initialize(SpriteCommon* spriteCommon, const std::string& fontName);
+	void Initialize(SpriteCommon* spriteCommon, Registry* registry, EntityID playerEntity);
 
 	/**
 	 * @brief 更新処理
+	 * @details ECSからプレイヤー情報を取得し、UIの状態を更新します。
 	 */
 	void Update();
 
@@ -30,30 +50,6 @@ public:
 	 * @brief 描画処理
 	 */
 	void Draw();
-
-	/**
-	 * @brief 表示テキストを設定（デフォルトを上書き）
-	 * @param text 表示するテキスト（改行は\nで指定）
-	 */
-	void SetText(const std::string& text);
-
-	/**
-	 * @brief 表示位置を設定
-	 * @param position 表示位置
-	 */
-	void SetPosition(const Vector2& position);
-
-	/**
-	 * @brief 文字サイズを設定
-	 * @param scale スケール値（1.0がデフォルト）
-	 */
-	void SetScale(float scale);
-
-	/**
-	 * @brief 行間を設定
-	 * @param lineSpacing 行間
-	 */
-	void SetLineSpacing(float lineSpacing);
 
 	/**
 	 * @brief 表示/非表示を設定
@@ -68,21 +64,43 @@ public:
 	bool IsVisible() const;
 
 private:
+	/**
+	 * @brief スキルプロンプトの追加
+	 * @param actionName アクション名（内部キー）
+	 * @param iconPath アイコンの画像パス
+	 * @param text 説明テキスト
+	 */
+	void AddPrompt(const std::string& actionName, const std::string& iconPath, const std::string& text);
+
+private:
 	// =========================
-	//  デフォルト設定定数
+	//  定数
 	// =========================
-	static constexpr float kDefaultPositionX = 20.0f;
-	static constexpr float kDefaultPositionY = 550.0f;
-	static constexpr float kDefaultScale = 0.5f;
-	static constexpr float kDefaultLineSpacing = 5.0f;
+	static constexpr float kDefaultScale = 0.4f;
+	static constexpr float kPromptBaseX = 71.0f;   
+	static constexpr float kPromptBaseY = 625.0f;  
+	static constexpr float kPromptSpacingY = -60.0f; 
+	
+	// HP Bar
+	static constexpr float kHpBarX = 350.0f; 
+	static constexpr float kHpBarY = 650.0f;  
+	static constexpr float kHpBarWidth = 600.0f; 
+	static constexpr float kHpBarHeight = 40.0f; 
 
 	// =========================
 	//  メンバ変数
 	// =========================
+	SpriteCommon* spriteCommon_ = nullptr;
+	Registry* registry_ = nullptr;
+	EntityID playerEntity_ = kInvalidEntity;
 
-	// フォントスプライト（テキスト描画用）
-	std::unique_ptr<FontSprite> text_;
+	// 操作ガイド要素のリスト
+	std::vector<ControlPrompt> prompts_;
+
+	// HPバー
+	std::unique_ptr<Sprite> hpBarFG_;
+	std::unique_ptr<Sprite> hpBarFrame_;
 
 	// 表示フラグ
 	bool isVisible_ = true;
-};
+};

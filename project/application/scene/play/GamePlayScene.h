@@ -302,12 +302,6 @@ private:
 	// --- UI ---
 	std::unique_ptr<ControlsGuide> controlsGuide_ = nullptr;
 	std::unique_ptr<PoseMenu> poseMenu_ = nullptr;
-	
-	// HP Bar
-	std::unique_ptr<GameUI> hpBarBG_ = nullptr;
-	std::unique_ptr<GameUI> hpBarFG_ = nullptr;
-	float displayedHp_ = 0.0f;
-	float maxHp_ = 0.0f;
 
 	// ========================
 	//  イントロ演出
