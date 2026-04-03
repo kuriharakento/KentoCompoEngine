@@ -57,6 +57,7 @@
 #include "application/ecs/components/BulletComponent.h"
 #include "application/ecs/components/PlayerComponent.h"
 #include "application/ecs/components/EnemyTypeComponent.h"
+#include "application/ecs/components/EnemyChargerComponent.h"
 #include "application/ecs/CollisionConfig.h"
 #include "application/ecs/components/PlayerProgressionComponent.h"
 #include "application/ecs/components/SkillComponent.h"
@@ -124,6 +125,7 @@ void GamePlayScene::Initialize()
 	registry_->RegisterComponent<ObstacleComponent>(1000);
 	registry_->RegisterComponent<BulletComponent>(10000);
 	registry_->RegisterComponent<EnemyTypeComponent>(10000);   // 敵種別タグ
+	registry_->RegisterComponent<EnemyChargerComponent>(5000); // 突進型コンポーネント
 
 	systemManager_ = std::make_unique<SystemManager>();
 

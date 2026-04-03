@@ -25,6 +25,9 @@ private:
     // 遠距離型（将来用）
     void UpdateRangedBehavior(EntityID entity, Registry& registry, const Vector3& playerPos, float dt);
 
+    // 突進型
+    void UpdateChargerBehavior(EntityID entity, Registry& registry, const Vector3& playerPos, float dt);
+
     // ヘルパー関数
     bool IsInAttackRange(Registry& registry, EntityID entity, struct EnemyAIComponent& ai);
 };

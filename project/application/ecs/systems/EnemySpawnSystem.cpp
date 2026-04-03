@@ -9,6 +9,7 @@
 #include "engine/ecs/components/ColliderComponent.h"
 #include "engine/ecs/components/CollisionResponseComponent.h"
 #include "application/ecs/components/EnemyTypeComponent.h"
+#include "application/ecs/components/EnemyChargerComponent.h"
 #include "application/ecs/CollisionConfig.h"
 #include "engine/time/TimeManager.h"
 #include "math/MathUtils.h"
@@ -147,9 +148,28 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
     registry.AddComponent<ecs::ColliderComponent>(enemy, col);
     registry.AddComponent<CollisionResponseComponent>(enemy, {});
 
-    // [New] 敵の種別（近接型をデフォルトとして追加）
+    // [New] 敵の種別（30%の確率で突進型になるようにする）
     EnemyTypeComponent typeComp;
-    typeComp.type = EnemyType::Melee;
+    if ((rand() % 100) < 30)
+    {
+        typeComp.type = EnemyType::Charger;
+        
+        // 突進型専用のコンポーネントを追加
+        EnemyChargerComponent chargerComp;
+        registry.AddComponent<EnemyChargerComponent>(enemy, chargerComp);
+
+        // 分かりやすいようにデフォルトのスケールを大きくする
+        if (registry.HasComponent<TransformComponent>(enemy))
+        {
+            auto& trans = registry.GetComponent<TransformComponent>(enemy);
+            trans.localScale_ = { 1.5f, 1.5f, 1.5f };
+            trans.isDirty_ = true;
+        }
+    }
+    else
+    {
+        typeComp.type = EnemyType::Melee;
+    }
     registry.AddComponent<EnemyTypeComponent>(enemy, typeComp);
 }
 

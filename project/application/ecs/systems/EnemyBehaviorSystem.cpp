@@ -7,6 +7,7 @@
 #include "math/MathUtils.h"
 #include "application/ecs/components/InducedExplosionComponent.h"
 #include "application/ecs/components/EnemyTypeComponent.h"
+#include "application/ecs/components/EnemyChargerComponent.h"
 #include "engine/manager/graphics/LineManager.h"
 #include "engine/math/VectorColorCodes.h"
 #include <algorithm>
@@ -77,6 +78,9 @@ void EnemyBehaviorSystem::Update(Registry& registry)
         case EnemyType::Ranged:
             UpdateRangedBehavior(entity, registry, targetPos, dt);
             break;
+        case EnemyType::Charger:
+            UpdateChargerBehavior(entity, registry, targetPos, dt);
+            break;
         }
 
         // 誘爆スタックの可視化
@@ -136,6 +140,65 @@ void EnemyBehaviorSystem::UpdateMeleeBehavior(EntityID entity, Registry& registr
 void EnemyBehaviorSystem::UpdateRangedBehavior(EntityID, Registry&, const Vector3&, float)
 {
     // 将来用：射撃型などのロジックをここに書く
+}
+
+void EnemyBehaviorSystem::UpdateChargerBehavior(EntityID entity, Registry& registry, const Vector3& playerPos, float dt)
+{
+    if (!registry.HasComponent<TransformComponent>(entity) || 
+        !registry.HasComponent<ecs::StatusComponent>(entity) ||
+        !registry.HasComponent<EnemyChargerComponent>(entity)) return;
+
+    auto& trans = registry.GetComponent<TransformComponent>(entity);
+    auto& status = registry.GetComponent<ecs::StatusComponent>(entity);
+    auto& charger = registry.GetComponent<EnemyChargerComponent>(entity);
+
+    Vector3 toPlayer = playerPos - trans.localPosition_;
+    float distance = toPlayer.Length();
+    
+    charger.timer_ += dt;
+
+    if (charger.state_ == 0) // 照準・待機
+    {
+        // プレイヤーの方向を向く
+        if (distance > 0.0f) {
+            float targetYaw = std::atan2(toPlayer.x, toPlayer.z);
+            trans.localRotation_.y = MathUtils::LerpAngle(trans.localRotation_.y, targetYaw, 0.1f);
+            trans.isDirty_ = true;
+        }
+
+        // 1.5秒待機したら突進開始
+        if (charger.timer_ >= 1.5f) {
+            charger.state_ = 1;
+            charger.timer_ = 0.0f;
+            if (distance > 0.0f) {
+                charger.chargeDirection_ = toPlayer;
+                charger.chargeDirection_.NormalizeSelf();
+            } else {
+                charger.chargeDirection_ = {0.0f, 0.0f, 1.0f}; // 念のためのフォールバック
+            }
+        }
+    }
+    else if (charger.state_ == 1) // 突進中
+    {
+        // 高速で直線的に移動する (通常移動速度の4倍)
+        float dashSpeed = status.moveSpeed_.GetValue() * 4.0f; 
+        trans.localPosition_ = trans.localPosition_ + charger.chargeDirection_ * (dashSpeed * dt);
+        trans.isDirty_ = true;
+
+        // 0.8秒間突進したらクールダウンへ
+        if (charger.timer_ >= 0.8f) {
+            charger.state_ = 2;
+            charger.timer_ = 0.0f;
+        }
+    }
+    else if (charger.state_ == 2) // クールダウン（硬直）
+    {
+        // 1.5秒休んだら再び照準へ戻る
+        if (charger.timer_ >= 1.5f) {
+            charger.state_ = 0;
+            charger.timer_ = 0.0f;
+        }
+    }
 }
 
 bool EnemyBehaviorSystem::IsInAttackRange(Registry& registry, EntityID entity, EnemyAIComponent& ai)
