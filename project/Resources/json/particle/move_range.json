@@ -1,0 +1,150 @@
+{
+    "deltaTimeType": 0,
+    "emitters": [
+        {
+            "duration": 0.0,
+            "followEmitterIndex": -1,
+            "followOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "inactiveResponse": 0,
+            "loopBehavior": 1,
+            "loopCount": 1,
+            "maxParticles": 1000,
+            "minMoveDistance": 0.05000000074505806,
+            "modules": [
+                {
+                    "rate": 510.5,
+                    "type": "SpawnRate"
+                },
+                {
+                    "arcAngle": 360.0,
+                    "boxSize": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "coneHeight": 2.0,
+                    "emitFromSurface": true,
+                    "initialSpeed": 0.0,
+                    "innerRadius": 99.30000305175781,
+                    "lineEnd": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": 0.0
+                    },
+                    "lineStart": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "outerRadius": 100.0,
+                    "shapeType": 2,
+                    "spawnLocation": 1,
+                    "type": "SpawnShape"
+                },
+                {
+                    "max": {
+                        "x": 0.0,
+                        "y": 5.0,
+                        "z": 0.0
+                    },
+                    "min": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": 0.0
+                    },
+                    "type": "InitialVelocity"
+                },
+                {
+                    "max": {
+                        "x": 0.10000000149011612,
+                        "y": 0.10000000149011612,
+                        "z": 1.0
+                    },
+                    "min": {
+                        "x": 0.10000000149011612,
+                        "y": 0.10000000149011612,
+                        "z": 1.0
+                    },
+                    "type": "InitialScale"
+                },
+                {
+                    "direction": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": 0.0
+                    },
+                    "easingType": 2,
+                    "endStrength": 0.0,
+                    "startStrength": 16.0,
+                    "type": "ForceOverLifetime"
+                },
+                {
+                    "easeIn": false,
+                    "easeOut": true,
+                    "endAlpha": 0.0,
+                    "startAlpha": 1.0,
+                    "type": "AlphaFade"
+                },
+                {
+                    "type": "FaceVelocity"
+                }
+            ],
+            "name": "e1",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "renderer": {
+                "billboard": false,
+                "blendMode": 1,
+                "primitiveOptions": {
+                    "cubeFaceVisible": [
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true
+                    ],
+                    "cubeSize": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "doubleSided": false,
+                    "innerRadius": 0.5,
+                    "outerRadius": 1.0,
+                    "points": 5,
+                    "rings": 8,
+                    "segments": 16,
+                    "tubeRadius": 0.30000001192092896,
+                    "turns": 2.0,
+                    "withCaps": true
+                },
+                "primitiveType": 3,
+                "scale": 1.0,
+                "texture": "resources/white1x1.png",
+                "tintColor": {
+                    "a": 1.0,
+                    "b": 1.0,
+                    "g": 1.0,
+                    "r": 1.0
+                },
+                "type": "Mesh"
+            },
+            "spawnOnlyWhenMoving": false,
+            "startDelay": 0.0
+        }
+    ],
+    "name": "move_range",
+    "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    }
+}

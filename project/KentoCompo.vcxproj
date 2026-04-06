@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -128,6 +128,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\ecs\system\CollisionSystem.cpp" />
     <ClCompile Include="engine\ecs\system\PlayerSystem.cpp" />
     <ClCompile Include="engine\ecs\system\EcsStatusSystem.cpp" />
+    <ClCompile Include="engine\ecs\system\WorldBoundarySystem.cpp" />
     <ClCompile Include="engine\graphics\3d\InstancedModelRenderer.cpp" />
     <ClCompile Include="engine\gameobject\component\collision\CollisionAlgorithm.cpp" />
     <ClCompile Include="engine\gameobject\component\collision\CollisionUtils.cpp" />
@@ -307,6 +308,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\ecs\system\EcsStatusSystem.h" />
     <ClInclude Include="engine\ecs\system\SpatialPartition.h" />
     <ClInclude Include="engine\ecs\system\Object3dSystem.h" />
+    <ClInclude Include="engine\ecs\system\WorldBoundarySystem.h" />
     <ClInclude Include="application\gameObject\base\GameObjectTag.h" />
     <ClInclude Include="application\gameObject\combatable\base\StatusSystem.h" />
     <ClInclude Include="application\gameObject\combatable\character\enemy\base\Node\ActionNode.h" />
@@ -524,6 +526,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\ecs\components\VelocityComponent.h" />
     <ClInclude Include="application\ecs\components\ObstacleComponent.h" />
     <ClInclude Include="engine\ecs\components\TransformComponent.h" />
+    <ClInclude Include="engine\ecs\components\WorldBoundaryComponent.h" />
     <ClInclude Include="application\gameObject\component\action\StatusComponent.h" />
     <ClInclude Include="application\effect\SceneTransitionEffect.h" />
     <ClInclude Include="application\scene\play\GameClearScene.h" />

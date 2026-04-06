@@ -29,6 +29,7 @@
 #include "time/TimeManager.h"
 #include "application/effect/BulletTrailManager.h"
 #include "effects/particle/ParticleManager.h"
+#include "effects/particle/module/spawn/SpawnShapeModules.h" // SpawnShapeModule
 #include "application/UI/PoseMenu.h"
 #include "base/WinApp.h"
 
@@ -65,6 +66,7 @@
 #include "engine/ecs/components/TagComponent.h"
 #include "engine/ecs/components/TransformComponent.h"
 #include "engine/ecs/components/ColliderComponent.h"
+#include "engine/ecs/components/WorldBoundaryComponent.h"
 
 // Systems
 #include "engine/ecs/system/HierarchySystem.h"
@@ -77,6 +79,7 @@
 #include "application/ecs/systems/ProjectileSystem.h"
 #include "application/ecs/systems/AnnihilationSystem.h"
 #include "engine/ecs/system/EcsStatusSystem.h"
+#include "engine/ecs/system/WorldBoundarySystem.h"
 
 void GamePlayScene::Initialize()
 {
@@ -126,6 +129,7 @@ void GamePlayScene::Initialize()
 	registry_->RegisterComponent<BulletComponent>(10000);
 	registry_->RegisterComponent<EnemyTypeComponent>(10000);   // 敵種別タグ
 	registry_->RegisterComponent<EnemyChargerComponent>(5000); // 突進型コンポーネント
+	registry_->RegisterComponent<WorldBoundaryComponent>(1);  // フィールド全体で1つ
 
 	systemManager_ = std::make_unique<SystemManager>();
 
@@ -153,11 +157,20 @@ void GamePlayScene::Initialize()
 	ParticleManager::GetInstance()->LoadEffectDefinition("E_skill", "./Resources/json/particle/E_skill.json");
 	ParticleManager::GetInstance()->LoadEffectDefinition("E_explosion", "./Resources/json/particle/E_explosion.json");
 	ParticleManager::GetInstance()->LoadEffectDefinition("hit_effect_ver2", "./Resources/json/particle/hit_effect_ver2.json");
+	ParticleManager::GetInstance()->LoadEffectDefinition("move_range", "./Resources/json/particle/move_range.json");
+
+	// 移動制限範囲の可視化エフェクトを開始
+	rangeEffect_ = ParticleManager::GetInstance()->Play("move_range", { 0.0f, 0.1f, 0.0f });
+	if (rangeEffect_)
+	{
+		rangeEffect_->SetAutoRemove(false);
+	}
 
 	systemManager_->AddSystem(std::make_shared<EnemyBehaviorSystem>());
 	systemManager_->AddSystem(std::make_shared<MovementSystem>());
 	systemManager_->AddSystem(std::make_shared<ProjectileSystem>());
 	systemManager_->AddSystem(std::make_shared<ProgressionSystem>());
+	systemManager_->AddSystem(std::make_shared<WorldBoundarySystem>());
 
 	// 3. 行列更新・物理計算 (worldMatrix の構築)
 	// 移動後に実行することで、最新の座標をワールド行列に反映させる
@@ -247,6 +260,9 @@ void GamePlayScene::Initialize()
 		InstancedRenderComponent render;
 		render.modelName_ = "player";
 		registry_->AddComponent<InstancedRenderComponent>(playerEntity_, render);
+		// 移動制限を追加 (100.0f)
+		// 容量は1なので、プレイヤー以外には付与できない（メモリ最小限）
+		registry_->AddComponent<WorldBoundaryComponent>(playerEntity_, { 100.0f, true });
 	}
 
 	// --- 敵管理の初期化 ---
@@ -444,7 +460,21 @@ void GamePlayScene::DrawImGui()
 		}
 	}
 
-	// 3. スポーン設定
+	// 3. フィールド制限設定
+	if (registry_ && playerEntity_ != kInvalidEntity)
+	{
+		if (registry_->HasComponent<WorldBoundaryComponent>(playerEntity_))
+		{
+			if (ImGui::CollapsingHeader("World Boundary", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				auto& boundary = registry_->GetComponent<WorldBoundaryComponent>(playerEntity_);
+				ImGui::SliderFloat("Boundary Radius", &boundary.radius_, 0.0f, 1000.0f);
+				ImGui::Checkbox("Boundary Active", &boundary.active_);
+			}
+		}
+	}
+
+	// 4. スポーン設定
 	if (enemySpawnSystem_)
 	{
 		if (ImGui::CollapsingHeader("Spawn Settings", ImGuiTreeNodeFlags_DefaultOpen))
@@ -601,4 +631,28 @@ void GamePlayScene::CommonUpdate()
 	// 背景オブジェクトの更新
 	skydome_->Update();
 	ground_->Update();
+
+	// 移動制限範囲エフェクトの同期
+	if (rangeEffect_ && registry_ && playerEntity_ != kInvalidEntity)
+	{
+		if (registry_->HasComponent<WorldBoundaryComponent>(playerEntity_))
+		{
+			auto& boundary = registry_->GetComponent<WorldBoundaryComponent>(playerEntity_);
+			
+			// 全エミッターの SpawnShapeModule を更新
+			for (uint32_t i = 0; i < rangeEffect_->GetEmitterCount(); ++i)
+			{
+				auto* emitter = rangeEffect_->GetEmitter(i);
+				if (auto* shape = emitter->GetModule<SpawnShapeModule>())
+				{
+					// innerRadius を境界半径に、outerRadius を +0.5 に設定
+					shape->SetRadius(boundary.radius_, boundary.radius_ + 0.5f);
+				}
+			}
+
+			// エフェクトの有効/無効を同期
+			if (boundary.active_ && !rangeEffect_->IsPlaying()) rangeEffect_->Play();
+			else if (!boundary.active_ && rangeEffect_->IsPlaying()) rangeEffect_->Stop();
+		}
+	}
 }
