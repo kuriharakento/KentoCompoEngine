@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <cstdint>
+#include "engine/ecs/Entity.h"
 
 class ParticleEffect;
 
@@ -26,6 +27,10 @@ struct SkillComponent
     // 現在再生中のビームパーティクル (1つのみ)
     ParticleEffect* activeBeamParticle_ = nullptr;
     float beamActiveTimer_ = 0.0f;
+
+    // 現在再生中のデコイパーティクル (1つのみ)
+    ParticleEffect* activeDecoyParticle_ = nullptr;
+    EntityID activeDecoyEntity_ = kInvalidEntity;
 
     // 定数（初期値）: 実際は武器やスキルによって変動
     static constexpr float kLmbCooldown = 0.9f;

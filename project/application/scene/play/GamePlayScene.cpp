@@ -160,6 +160,7 @@ void GamePlayScene::Initialize()
 	ParticleManager::GetInstance()->LoadEffectDefinition("hit_effect_ver2", "./Resources/json/particle/hit_effect_ver2.json");
 	ParticleManager::GetInstance()->LoadEffectDefinition("move_range", "./Resources/json/particle/move_range.json");
 	ParticleManager::GetInstance()->LoadEffectDefinition("R_skill", "./Resources/json/particle/R_skill.json");
+	ParticleManager::GetInstance()->LoadEffectDefinition("Q_skill", "./Resources/json/particle/Q_skill.json");
 
 	// 移動制限範囲の可視化エフェクトを開始
 	rangeEffect_ = ParticleManager::GetInstance()->Play("move_range", { 0.0f, 0.1f, 0.0f });

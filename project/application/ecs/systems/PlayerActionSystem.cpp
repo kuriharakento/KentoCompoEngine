@@ -276,6 +276,7 @@ void PlayerActionSystem::UpdateSkills(EntityID entity, Registry& registry, float
 	UpdateE(entity, registry, dt);
 	UpdateR(entity, registry, dt);
 
+#ifdef _DEBUG
 	// デコイの可視化 (デバッグ用)
 	auto decoyView = registry.View<ecs::TagComponent>();
 	if (decoyView)
@@ -293,6 +294,7 @@ void PlayerActionSystem::UpdateSkills(EntityID entity, Registry& registry, float
 			}
 		}
 	}
+#endif
 }
 
 void PlayerActionSystem::UpdateLMB(EntityID entity, Registry& registry, float)
@@ -521,6 +523,24 @@ void PlayerActionSystem::UpdateQ(EntityID entity, Registry& registry, float)
 {
 	auto& skill = registry.GetComponent<SkillComponent>(entity);
 	if (!skill.isDecoyUnlocked_) return;
+
+	// デコイのライフサイクル管理 (パーティクルの追従と停止)
+	if (skill.activeDecoyParticle_)
+	{
+		if (skill.decoyTimer_ <= 0.0f)
+		{
+			skill.activeDecoyParticle_->Stop();
+			skill.activeDecoyParticle_ = nullptr;
+			skill.activeDecoyEntity_ = kInvalidEntity;
+		}
+		else if (registry.IsAlive(skill.activeDecoyEntity_))
+		{
+			// デコイの現在位置にパーティクルを更新
+			auto& dTrans = registry.GetComponent<TransformComponent>(skill.activeDecoyEntity_);
+			skill.activeDecoyParticle_->SetPosition(dTrans.localPosition_);
+		}
+	}
+
 	if (skill.decoyTimer_ > 0.0f) return;
 
 	if (Input::GetInstance()->TriggerKey(DIK_Q))
@@ -529,6 +549,7 @@ void PlayerActionSystem::UpdateQ(EntityID entity, Registry& registry, float)
 		float yaw = trans.localRotation_.y;
 		Vector3 forward = { sin(yaw), 0, cos(yaw) };
 
+		// デコイの生成
 		EntityID decoy = registry.CreateEntity();
 		Vector3 spawnPos = trans.localPosition_ + forward * 3.0f;
 		registry.AddComponent<TransformComponent>(decoy, { spawnPos, {0,0,0}, {1,1,1} });
@@ -537,10 +558,9 @@ void PlayerActionSystem::UpdateQ(EntityID entity, Registry& registry, float)
 		tag.type = ecs::TagComponent::Type::Decoy;
 		registry.AddComponent<ecs::TagComponent>(decoy, tag);
 
-		InstancedRenderComponent render;
-		render.modelName_ = "cube"; // 仮
-		render.useInstancing_ = true;
-		registry.AddComponent<InstancedRenderComponent>(decoy, render);
+		// パーティクル演出の再生 (デコイの座標に配置し、Entityを保持して追従させる)
+		skill.activeDecoyParticle_ = ParticleManager::GetInstance()->Play("Q_skill", spawnPos);
+		skill.activeDecoyEntity_ = decoy;
 
 		registry.AddComponent<LifetimeComponent>(decoy, { 0.0f, 5.0f });
 
@@ -808,6 +828,8 @@ void PlayerActionSystem::SpawnExplosion(EntityID sourceEntity, Registry& registr
 
 	registry.RemoveComponent<ecs::InducedExplosionComponent>(sourceEntity);
 
+#ifdef _DEBUG
 	// デバッグ表示
 	LineManager::GetInstance()->DrawSphere(expPos, ecs::InducedExplosionComponent::kExplosionRadius, VectorColorCodes::Red);
+#endif
 }

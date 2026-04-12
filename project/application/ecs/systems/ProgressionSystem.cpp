@@ -62,12 +62,12 @@ void ProgressionSystem::ApplyLevelUpRewards(EntityID entity, uint32_t newLevel, 
     {
         auto& status = registry.GetComponent<ecs::StatusComponent>(entity);
         
-        // ステータス強化
-        float boost = 1.1f; // 10%増
-        status.maxHp_.SetBase(status.maxHp_.GetBase() * boost);
-        status.hp_.SetBase(status.hp_.GetBase() * boost); // 回復を兼ねるか検討
-        status.attackPower_.SetBase(status.attackPower_.GetBase() * boost);
-        status.moveSpeed_.SetBase(status.moveSpeed_.GetBase() * 1.05f); // 速度は控えめに
+        //// ステータス強化
+        //float boost = 1.1f; // 10%増
+        //status.maxHp_.SetBase(status.maxHp_.GetBase() * boost);
+        //status.hp_.SetBase(status.hp_.GetBase() * boost); // 回復を兼ねるか検討
+        //status.attackPower_.SetBase(status.attackPower_.GetBase() * boost);
+        //status.moveSpeed_.SetBase(status.moveSpeed_.GetBase() * 1.05f); // 速度は控えめに
     }
 }
 

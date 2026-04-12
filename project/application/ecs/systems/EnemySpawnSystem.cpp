@@ -69,7 +69,7 @@ void EnemySpawnSystem::Update(Registry& registry)
     {
         tickTimer_ = 0.0f;
         
-        uint32_t tickAmount = (playerLevel >= 5) ? 7 : playerLevel;
+        uint32_t tickAmount = (playerLevel >= 5) ? 4 : playerLevel;
         for (uint32_t i = 0; i < tickAmount; ++i)
         {
             if (currentEnemyCount >= currentMaxEnemies) break;
@@ -86,7 +86,7 @@ void EnemySpawnSystem::Update(Registry& registry)
         {
             burstTimer_ = 0.0f;
 
-            uint32_t burstSize = (playerLevel >= 5) ? 25 : 15;
+            uint32_t burstSize = (playerLevel >= 5) ? 15 : 15;
             for (uint32_t i = 0; i < burstSize; ++i)
             {
                 if (currentEnemyCount >= currentMaxEnemies) break;
@@ -171,7 +171,7 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
     // Collider
     ecs::ColliderComponent col;
     col.type_ = ColliderType::Sphere;
-    col.sphere_.radius = 0.7f; // 当たり判定をさらに小さく（すり抜けやすく）
+    col.sphere_.radius = 0.5f;
     col.previousPosition_ = spawnPos;
     
     // フィルタリング設定
@@ -226,7 +226,7 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
         if (registry.HasComponent<ecs::ColliderComponent>(enemy))
         {
             auto& c = registry.GetComponent<ecs::ColliderComponent>(enemy);
-            c.sphere_.radius = 0.7f; // 突進型も同様に縮小
+            c.sphere_.radius = 0.6f;
         }
 
         render.modelName_ = "tank_enemy";

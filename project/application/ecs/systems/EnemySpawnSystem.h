@@ -53,7 +53,7 @@ private:
     const uint32_t kMaxEnemiesLv2 = 20;
     const uint32_t kMaxEnemiesLv3 = 40;
     const uint32_t kMaxEnemiesLv4 = 60;
-    const uint32_t kMaxEnemiesLv5 = 500;
+    const uint32_t kMaxEnemiesLv5 = 250;
 
     // 基本設定
     float spawnRate_ = 1.0f; 
