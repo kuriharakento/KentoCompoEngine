@@ -193,11 +193,13 @@ void GamePlayScene::Initialize()
 
 	// --- モデルとインスタンスレンダラーの準備 ---
 	ModelManager::GetInstance()->LoadModel("enemy");
+	ModelManager::GetInstance()->LoadModel("weak_enemy", ".gltf");
+	ModelManager::GetInstance()->LoadModel("tank_enemy", ".gltf");
 	ModelManager::GetInstance()->LoadModel("player");
 
 	Object3dCommon* obj3dCommon = sceneManager_->GetObject3dCommon();
 
-	// 敵用レンダラー
+	// 敵用レンダラー (共通・互換用)
 	Model* enemyModel = ModelManager::GetInstance()->FindModel("enemy");
 	if (enemyModel)
 	{
@@ -210,8 +212,34 @@ void GamePlayScene::Initialize()
 		instancedRenderers_["enemy"] = std::move(renderer);
 	}
 
+	// 近接型敵用レンダラー
+	Model* weakEnemyModel = ModelManager::GetInstance()->FindModel("weak_enemy");
+	if (weakEnemyModel)
+	{
+		auto renderer = std::make_unique<InstancedModelRenderer>(5000);
+		renderer->Initialize(
+			obj3dCommon->GetDXCommon(),
+			obj3dCommon->GetSrvManager(),
+			weakEnemyModel
+		);
+		instancedRenderers_["weak_enemy"] = std::move(renderer);
+	}
+
+	// 突進型敵用レンダラー
+	Model* tankEnemyModel = ModelManager::GetInstance()->FindModel("tank_enemy");
+	if (tankEnemyModel)
+	{
+		auto renderer = std::make_unique<InstancedModelRenderer>(1000); // 突進型は少なめ
+		renderer->Initialize(
+			obj3dCommon->GetDXCommon(),
+			obj3dCommon->GetSrvManager(),
+			tankEnemyModel
+		);
+		instancedRenderers_["tank_enemy"] = std::move(renderer);
+	}
+
 	// プレイヤー用レンダラー
-	Model* playerModel = ModelManager::GetInstance()->FindModel("player");
+	Model* playerModel = ModelManager::GetInstance()->FindModel("chicken");
 	if (playerModel)
 	{
 		auto renderer = std::make_unique<InstancedModelRenderer>(1); // 1体
@@ -220,7 +248,7 @@ void GamePlayScene::Initialize()
 			obj3dCommon->GetSrvManager(),
 			playerModel
 		);
-		instancedRenderers_["player"] = std::move(renderer);
+		instancedRenderers_["chicken"] = std::move(renderer);
 	}
 
 	// --- プレイヤーEntityの生成 ---
@@ -231,7 +259,7 @@ void GamePlayScene::Initialize()
 		playerTag.type = ecs::TagComponent::Type::Player;
 		registry_->AddComponent<ecs::TagComponent>(playerEntity_, playerTag);
 
-		registry_->AddComponent<TransformComponent>(playerEntity_, { {0.0f, 1.0f, 0.0f}, {0,0,0}, {1,1,1} });
+		registry_->AddComponent<TransformComponent>(playerEntity_, { {0.0f, 1.0f, 0.0f}, {0,0,0}, { 1.5f,1.5f,1.5f } });
 		registry_->AddComponent<PlayerProgressionComponent>(playerEntity_, {});
 
 		SkillComponent skill;
@@ -259,7 +287,7 @@ void GamePlayScene::Initialize()
 
 		// 描画コンポーネント追加
 		InstancedRenderComponent render;
-		render.modelName_ = "player";
+		render.modelName_ = "chicken";
 		registry_->AddComponent<InstancedRenderComponent>(playerEntity_, render);
 		// 移動制限を追加 (100.0f)
 		// 容量は1なので、プレイヤー以外には付与できない（メモリ最小限）
@@ -570,7 +598,7 @@ void GamePlayScene::OnUpdatePlaying()
 
 	// ゲームクリア判定 (時間の経過)
 	gameTime_ += TimeManager::GetInstance().GetGameContext().deltaTime;
-	if (gameTime_ >= 120.0f)
+	if (gameTime_ >= 180.0f)
 	{
 		gameClear_ = true;
 		ChangeState(SceneState::End);

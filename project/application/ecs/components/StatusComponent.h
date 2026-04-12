@@ -25,7 +25,7 @@ struct StatusComponent
     // 攻撃力
     StatusValue attackPower_{ 10.0f };
     // 移動速度
-    StatusValue moveSpeed_{ 9.0f };
+    StatusValue moveSpeed_{ 5.0f };
     
     // 生存フラグ
     bool isAlive_ = true;

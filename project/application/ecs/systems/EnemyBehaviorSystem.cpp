@@ -75,9 +75,6 @@ void EnemyBehaviorSystem::Update(Registry& registry)
         case EnemyType::Melee:
             UpdateMeleeBehavior(entity, registry, targetPos, dt);
             break;
-        case EnemyType::Ranged:
-            UpdateRangedBehavior(entity, registry, targetPos, dt);
-            break;
         case EnemyType::Charger:
             UpdateChargerBehavior(entity, registry, targetPos, dt);
             break;

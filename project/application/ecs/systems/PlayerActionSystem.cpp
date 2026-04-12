@@ -77,47 +77,47 @@ void PlayerActionSystem::Update(Registry& registry)
 				auto& skill = registry.GetComponent<SkillComponent>(entity);
 				if (skill.activeBeamParticle_)
 				{
-						if (skill.beamActiveTimer_ > 0.0f)
+					if (skill.beamActiveTimer_ > 0.0f)
+					{
+						skill.beamActiveTimer_ -= dt;
+						if (registry.HasComponent<TransformComponent>(entity))
 						{
-							skill.beamActiveTimer_ -= dt;
-							if (registry.HasComponent<TransformComponent>(entity))
+							auto& trans = registry.GetComponent<TransformComponent>(entity);
+
+							// エフェクトの基準位置はプレイヤーの足元に同期
+							skill.activeBeamParticle_->SetPosition(trans.localPosition_);
+
+							// e2, e3 エミッターのピボット位置を、プレイヤーの向きに合わせて回転させる
+							float yaw = trans.localRotation_.y;
+							Vector3 forward = { std::sin(yaw), 0.0f, std::cos(yaw) };
+
+							if (auto* e2 = skill.activeBeamParticle_->GetEmitter("e2"))
 							{
-								auto& trans = registry.GetComponent<TransformComponent>(entity);
-								
-								// エフェクトの基準位置はプレイヤーの足元に同期
-								skill.activeBeamParticle_->SetPosition(trans.localPosition_);
+								// ビーム中心を前方60ユニットへ
+								e2->SetFollowOffset(forward * 60.0f);
 
-								// e2, e3 エミッターのピボット位置を、プレイヤーの向きに合わせて回転させる
-								float yaw = trans.localRotation_.y;
-								Vector3 forward = { std::sin(yaw), 0.0f, std::cos(yaw) };
-								
-								if (auto* e2 = skill.activeBeamParticle_->GetEmitter("e2"))
+								// 発生角度を水平方向に更新
+								if (auto* rot = e2->GetModule<InitialRotationModule>())
 								{
-									// ビーム中心を前方60ユニットへ
-									e2->SetFollowOffset(forward * 60.0f);
-
-									// 発生角度を水平方向に更新
-									if (auto* rot = e2->GetModule<InitialRotationModule>())
-									{
-										float radToDeg = 180.0f / 3.14159265f;
-										Vector3 rotDeg = { -90.0f, yaw * radToDeg, 0.0f };
-										rot->SetRotationRange(rotDeg, rotDeg);
-									}
-								}
-								if (auto* e3 = skill.activeBeamParticle_->GetEmitter("e3"))
-								{
-									// 光の筋の中心を前方50ユニットへ
-									e3->SetFollowOffset(forward * 50.0f);
-
-									// 発生角度を水平方向に更新
-									if (auto* rot = e3->GetModule<InitialRotationModule>())
-									{
-										float radToDeg = 180.0f / 3.14159265f;
-										Vector3 rotDeg = { -90.0f, yaw * radToDeg, 0.0f };
-										rot->SetRotationRange(rotDeg, rotDeg);
-									}
+									float radToDeg = 180.0f / 3.14159265f;
+									Vector3 rotDeg = { -90.0f, yaw * radToDeg, 0.0f };
+									rot->SetRotationRange(rotDeg, rotDeg);
 								}
 							}
+							if (auto* e3 = skill.activeBeamParticle_->GetEmitter("e3"))
+							{
+								// 光の筋の中心を前方50ユニットへ
+								e3->SetFollowOffset(forward * 50.0f);
+
+								// 発生角度を水平方向に更新
+								if (auto* rot = e3->GetModule<InitialRotationModule>())
+								{
+									float radToDeg = 180.0f / 3.14159265f;
+									Vector3 rotDeg = { -90.0f, yaw * radToDeg, 0.0f };
+									rot->SetRotationRange(rotDeg, rotDeg);
+								}
+							}
+						}
 
 						if (skill.beamActiveTimer_ <= 0.0f)
 						{
@@ -621,8 +621,8 @@ void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
 		// ビームのパラメータ
 		const float kBeamLength = 300.0f;
 		const float kBeamWidth = 20.0f;
-		const float kBeamDuration = 6.0f;
-		const float kDamagePerSecond = 1500.0f;
+		const float kBeamDuration = 1.0f;
+		const float kDamagePerSecond = 800.0f;
 
 		// 1. ビームエンティティの生成
 		EntityID beam = registry.CreateEntity();
@@ -638,7 +638,7 @@ void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
 			registry.AddComponent<HierarchyComponent>(entity, {});
 		}
 		auto& playerHier = registry.GetComponent<HierarchyComponent>(entity);
-		
+
 		// 既存の子の先頭に自身を挿入する
 		auto& currentBeamHier = registry.GetComponent<HierarchyComponent>(beam);
 		currentBeamHier.nextSibling_ = playerHier.firstChild_;
@@ -666,7 +666,7 @@ void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
 
 			float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
 
-			// ダメージ処理 (DoT: Damage over Time)
+			// ダメージ処理 
 			if (registry.HasComponent<ecs::StatusComponent>(other.entity))
 			{
 				auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
@@ -677,14 +677,10 @@ void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
 			if (registry.HasComponent<ecs::InducedExplosionComponent>(other.entity))
 			{
 				auto& stack = registry.GetComponent<ecs::InducedExplosionComponent>(other.entity);
-				// 毎フレーム約10%の確率でスタック追加 (約0.2秒に1回爆発する計算)
-				if (rand() % 10 == 0)
+				stack.count_++;
+				if (stack.count_ >= ecs::InducedExplosionComponent::kMaxCount)
 				{
-					stack.count_++;
-					if (stack.count_ >= ecs::InducedExplosionComponent::kMaxCount)
-					{
-						SpawnExplosion(other.entity, registry);
-					}
+					SpawnExplosion(other.entity, registry);
 				}
 			}
 			else
@@ -707,7 +703,7 @@ void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
 
 		// 演出: 発射時に画面を少し揺らすなどのフック（将来用）
 		// ParticleManager::GetInstance()->Play("beam_launch_flash", ...);
-		
+
 		// Rスキルパーティクルの再生
 		if (ParticleManager* pm = ParticleManager::GetInstance())
 		{
@@ -715,7 +711,7 @@ void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
 			if (registry.HasComponent<TransformComponent>(entity))
 			{
 				auto& playerTrans = registry.GetComponent<TransformComponent>(entity);
-				
+
 				// パーティクルの再生 (基準位置はプレイヤーの位置)
 				ParticleEffect* effect = pm->Play("R_skill", playerTrans.localPosition_);
 				if (effect)

@@ -138,9 +138,12 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
     Vector3 spawnOffset = { std::cos(angle) * radius, 0, std::sin(angle) * radius };
     Vector3 spawnPos = playerPos + spawnOffset;
 
-    // 接地高さの調整 (Scale.y * 0.5f)
-    Vector3 defaultScale = { 1.0f, 1.0f, 1.0f };
-    spawnPos.y = defaultScale.y * 0.5f;
+    // スケール設定（さらに巨大化）
+    Vector3 meleeScale = { 2.5f, 2.5f, 2.5f };
+    Vector3 chargerScale = { 4.5f, 4.5f, 4.5f };
+
+    // 暫定的に近接型のスケールで高さを調整（後で種別ごとに上書き）
+    spawnPos.y = meleeScale.y * 0.5f;
 
     // Entity作成
     EntityID enemy = registry.CreateEntity();
@@ -149,7 +152,7 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
     tag.type = ecs::TagComponent::Type::Enemy;
     registry.AddComponent<ecs::TagComponent>(enemy, tag);
 
-    registry.AddComponent<TransformComponent>(enemy, { spawnPos, {0,0,0}, defaultScale });
+    registry.AddComponent<TransformComponent>(enemy, { spawnPos, {0,0,0}, meleeScale });
     
     // Status
     ecs::StatusComponent status;
@@ -165,15 +168,10 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
     // Impact Charge (誘爆用)
     registry.AddComponent<ImpactChargeComponent>(enemy, {});
 
-    // Rendering (Instanced)
-    InstancedRenderComponent render;
-    render.modelName_ = "enemy"; 
-    registry.AddComponent<InstancedRenderComponent>(enemy, render);
-
     // Collider
     ecs::ColliderComponent col;
     col.type_ = ColliderType::Sphere;
-    col.sphere_.radius = 1.0f;
+    col.sphere_.radius = 0.7f; // 当たり判定をさらに小さく（すり抜けやすく）
     col.previousPosition_ = spawnPos;
     
     // フィルタリング設定
@@ -206,6 +204,8 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
 
     // [New] 敵の種別（30%の確率で突進型になるようにする）
     EnemyTypeComponent typeComp;
+    InstancedRenderComponent render;
+
     if ((rand() % 100) < 30)
     {
         typeComp.type = EnemyType::Charger;
@@ -214,19 +214,30 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
         EnemyChargerComponent chargerComp;
         registry.AddComponent<EnemyChargerComponent>(enemy, chargerComp);
 
-        // 分かりやすいようにデフォルトのスケールを大きくする
+        // スケールとコライダー半径の調整
         if (registry.HasComponent<TransformComponent>(enemy))
         {
             auto& trans = registry.GetComponent<TransformComponent>(enemy);
-            trans.localScale_ = { 1.5f, 1.5f, 1.5f };
+            trans.localScale_ = chargerScale;
+            trans.localPosition_.y = chargerScale.y * 0.5f; // 高さを再調整
             trans.isDirty_ = true;
         }
+
+        if (registry.HasComponent<ecs::ColliderComponent>(enemy))
+        {
+            auto& c = registry.GetComponent<ecs::ColliderComponent>(enemy);
+            c.sphere_.radius = 0.7f; // 突進型も同様に縮小
+        }
+
+        render.modelName_ = "tank_enemy";
     }
     else
     {
         typeComp.type = EnemyType::Melee;
+        render.modelName_ = "weak_enemy";
     }
     registry.AddComponent<EnemyTypeComponent>(enemy, typeComp);
+    registry.AddComponent<InstancedRenderComponent>(enemy, render);
 }
 
 void EnemySpawnSystem::Draw(Registry& registry, Camera* camera, LightManager* lightManager, ShadowMapManager* shadowMapManager)

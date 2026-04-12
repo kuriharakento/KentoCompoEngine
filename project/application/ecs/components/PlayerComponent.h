@@ -32,7 +32,7 @@ struct PlayerComponent
     // 固定値（MoveComponentのデフォルト）
     float dodgeDistance_ = 8.0f;
     float dodgeDuration_ = 0.25f;
-    float dodgeCooldown_ = 0.8f;
+    float dodgeCooldown_ = 1.5f;
     float dodgeInvincibleTime_ = 0.25f;
 
     bool hasMovementInput_ = false;

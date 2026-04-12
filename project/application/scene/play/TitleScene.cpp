@@ -63,13 +63,13 @@ void TitleScene::Initialize()
 		}
 	};
 	setupRenderer("enemy", 500);
-	setupRenderer("player", 1);
+	setupRenderer("chicken", 1);
 
 	// --- Entity 生成 ---
 	// プレイヤー
 	playerEntity_ = registry_->CreateEntity();
 	registry_->AddComponent<TransformComponent>(playerEntity_, { {0, 1.0f, 0}, {0,0,0}, {1,1,1} }); // 高さを1に
-	registry_->AddComponent<InstancedRenderComponent>(playerEntity_, { "player" });
+	registry_->AddComponent<InstancedRenderComponent>(playerEntity_, { "chicken" });
 
 	// 敵 300体
 	const int kEnemyCount = 300;

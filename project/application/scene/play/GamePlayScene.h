@@ -78,7 +78,7 @@ private:
 	static constexpr float kBgmVolume = 0.2f;
 	static constexpr float KSeVolume = 0.3f;
 	static constexpr Vector3 kLightDirection = { -0.4f, -1.0f, 1.0f };
-	static constexpr float kLightIntensity = 0.3f;
+	static constexpr float kLightIntensity = 1.0f;
 	static constexpr float kSkydomeLightIntensity = 0.5f;
 	static constexpr float kSkydomeScale = 0.5f;
 	static constexpr float kSplineCameraSpeed = 0.001f;
