@@ -48,7 +48,7 @@
                 {
                     "max": {
                         "x": 0.0,
-                        "y": 15.0,
+                        "y": 45.70000076293945,
                         "z": 0.0
                     },
                     "min": {
@@ -60,14 +60,14 @@
                 },
                 {
                     "max": {
-                        "x": 0.10000000149011612,
-                        "y": 0.10000000149011612,
-                        "z": 10.0
+                        "x": 0.4000000059604645,
+                        "y": 0.0,
+                        "z": 20.0
                     },
                     "min": {
-                        "x": 0.10000000149011612,
-                        "y": 0.10000000149011612,
-                        "z": 10.0
+                        "x": 0.4000000059604645,
+                        "y": 0.4000000059604645,
+                        "z": 5.0
                     },
                     "type": "InitialScale"
                 },
@@ -83,11 +83,21 @@
                     "type": "ForceOverLifetime"
                 },
                 {
-                    "easeIn": false,
-                    "easeOut": true,
-                    "endAlpha": 0.0,
-                    "startAlpha": 1.0,
-                    "type": "AlphaFade"
+                    "easingType": 0,
+                    "end": {
+                        "a": 0.0,
+                        "b": 0.006776260212063789,
+                        "g": 0.006776260212063789,
+                        "r": 0.6911764740943909
+                    },
+                    "start": {
+                        "a": 1.0,
+                        "b": 0.3341022729873657,
+                        "g": 0.7850035429000854,
+                        "r": 0.8627451062202454
+                    },
+                    "type": "ColorFade",
+                    "useInitialColor": false
                 },
                 {
                     "type": "FaceVelocity"
@@ -101,7 +111,7 @@
             },
             "renderer": {
                 "billboard": false,
-                "blendMode": 1,
+                "blendMode": 0,
                 "primitiveOptions": {
                     "cubeFaceVisible": [
                         true,
@@ -126,7 +136,7 @@
                     "turns": 2.0,
                     "withCaps": true
                 },
-                "primitiveType": 3,
+                "primitiveType": 9,
                 "scale": 1.0,
                 "texture": "resources/white1x1.png",
                 "tintColor": {

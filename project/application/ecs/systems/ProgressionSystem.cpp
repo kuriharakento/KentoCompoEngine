@@ -26,8 +26,12 @@ void ProgressionSystem::Update(Registry& registry)
             prog.currentExp_ -= prog.nextLevelExp_;
             prog.level_++;
             
-            // 次のレベルの目標値を更新 (インクリメンタルな増加)
-            prog.nextLevelExp_ *= 1.2f;
+            // 次のレベルの目標値を更新 (ユーザー指定のテーブル準拠)
+            if (prog.level_ == 2) prog.nextLevelExp_ = 15.0f;
+            else if (prog.level_ == 3) prog.nextLevelExp_ = 25.0f;
+            else if (prog.level_ == 4) prog.nextLevelExp_ = 50.0f;
+            else if (prog.level_ == 5) prog.nextLevelExp_ = 80.0f;
+            else prog.nextLevelExp_ *= 1.5f; // Lv.6以降は1.5倍ずつ増加
 
             // 報酬の適用
             ApplyLevelUpRewards(entity, prog.level_, registry);

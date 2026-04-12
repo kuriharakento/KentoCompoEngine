@@ -15,7 +15,7 @@ struct PlayerProgressionComponent
     // 現在の成長状態
     uint32_t level_ = 1;
     float currentExp_ = 0.0f;
-    float nextLevelExp_ = 100.0f; // 次のレベルに必要な経験値の閾値
+    float nextLevelExp_ = 5.0f; // 次のレベルに必要な経験値の閾値 (初期値: 5体)
     
     // インクリメンタル倍率（将来的にはここを成長させる）
     float expMultiplier_ = 1.0f;

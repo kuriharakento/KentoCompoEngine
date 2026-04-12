@@ -42,7 +42,7 @@ void AnnihilationSystem::Update(Registry& registry)
                 for (uint32_t j = 0; j < progView->GetSize(); ++j)
                 {
                     progView->GetDataFromDenseIndex(j).totalScore_ += 100;
-                    progView->GetDataFromDenseIndex(j).currentExp_ += 10.0f;
+                    progView->GetDataFromDenseIndex(j).currentExp_ += 1.0f; // 1体 = 1EXP に変更
                 }
             }
 
