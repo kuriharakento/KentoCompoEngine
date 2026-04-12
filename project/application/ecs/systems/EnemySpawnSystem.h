@@ -39,15 +39,26 @@ public:
 
 private:
     void SpawnEnemy(Registry& registry);
+    uint32_t GetMaxEnemies(uint32_t level);
 
     Object3dCommon* object3dCommon_ = nullptr;
     LightManager* lightManager_ = nullptr;
     CameraManager* cameraManager_ = nullptr;
 
-    float spawnTimer_ = 0.0f;
-    float spawnRate_ = 1.0f; // 1秒間に何体
-    float innerRadius_ = 45.0f;
-    float outerRadius_ = 65.0f;
+    float tickTimer_ = 0.0f;  // 通常スポーン (1s毎)
+    float burstTimer_ = 0.0f; // バースト増援 (10s毎)
+
+    // 設定定数 (レベル別上限)
+    const uint32_t kMaxEnemiesLv1 = 6;
+    const uint32_t kMaxEnemiesLv2 = 20;
+    const uint32_t kMaxEnemiesLv3 = 40;
+    const uint32_t kMaxEnemiesLv4 = 60;
+    const uint32_t kMaxEnemiesLv5 = 500;
+
+    // 基本設定
+    float spawnRate_ = 1.0f; 
+    float innerRadius_ = 60.0f;
+    float outerRadius_ = 80.0f;
 
     float elapsedTime_ = 0.0f;
 };

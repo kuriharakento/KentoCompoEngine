@@ -10,6 +10,7 @@
 #include "engine/ecs/components/CollisionResponseComponent.h"
 #include "application/ecs/components/EnemyTypeComponent.h"
 #include "application/ecs/components/EnemyChargerComponent.h"
+#include "application/ecs/components/PlayerProgressionComponent.h"
 #include "application/ecs/CollisionConfig.h"
 #include "engine/time/TimeManager.h"
 #include "math/MathUtils.h"
@@ -37,17 +38,72 @@ void EnemySpawnSystem::Update(Registry& registry)
     if (dt <= 0.0f) dt = 0.0166f;
 
     elapsedTime_ += dt;
-    spawnTimer_ += dt;
 
-    // 時間経過に応じたスポーンレートの増加 (指数関数的、または時間比例)
-    float currentSpawnRate = spawnRate_ * (1.0f + elapsedTime_ * 0.05f);
-    float spawnInterval = 1.0f / (currentSpawnRate > 0.1f ? currentSpawnRate : 0.1f);
-
-    if (spawnTimer_ >= spawnInterval)
+    // --- プレイヤーレベルの取得 ---
+    uint32_t playerLevel = 1;
+    auto progView = registry.View<PlayerProgressionComponent>();
+    if (progView && progView->GetSize() > 0)
     {
-        spawnTimer_ = 0.0f;
-        SpawnEnemy(registry);
+        playerLevel = progView->GetDataFromDenseIndex(0).level_;
     }
+
+    // --- 現在の敵生存数のカウント ---
+    uint32_t currentEnemyCount = 0;
+    auto tagView = registry.View<ecs::TagComponent>();
+    if (tagView)
+    {
+        for (uint32_t i = 0; i < tagView->GetSize(); ++i)
+        {
+            if (tagView->GetDataFromDenseIndex(i).type == ecs::TagComponent::Type::Enemy)
+            {
+                currentEnemyCount++;
+            }
+        }
+    }
+
+    uint32_t currentMaxEnemies = GetMaxEnemies(playerLevel);
+
+    // --- 1. 通常スポーン (1.0sおきに常時) ---
+    tickTimer_ += dt;
+    if (tickTimer_ >= 1.0f)
+    {
+        tickTimer_ = 0.0f;
+        
+        uint32_t tickAmount = (playerLevel >= 5) ? 7 : playerLevel;
+        for (uint32_t i = 0; i < tickAmount; ++i)
+        {
+            if (currentEnemyCount >= currentMaxEnemies) break;
+            SpawnEnemy(registry);
+            currentEnemyCount++;
+        }
+    }
+
+    // --- 2. バースト増援 (10sおきにLv.4以上) ---
+    if (playerLevel >= 4)
+    {
+        burstTimer_ += dt;
+        if (burstTimer_ >= 10.0f)
+        {
+            burstTimer_ = 0.0f;
+
+            uint32_t burstSize = (playerLevel >= 5) ? 25 : 15;
+            for (uint32_t i = 0; i < burstSize; ++i)
+            {
+                if (currentEnemyCount >= currentMaxEnemies) break;
+                SpawnEnemy(registry);
+                currentEnemyCount++;
+            }
+        }
+    }
+}
+
+uint32_t EnemySpawnSystem::GetMaxEnemies(uint32_t level)
+{
+    if (level >= 5) return kMaxEnemiesLv5;
+    if (level == 4) return kMaxEnemiesLv4;
+    if (level == 3) return kMaxEnemiesLv3;
+    if (level == 2) return kMaxEnemiesLv2;
+    return kMaxEnemiesLv1;
 }
 
 void EnemySpawnSystem::SpawnEnemy(Registry& registry)
