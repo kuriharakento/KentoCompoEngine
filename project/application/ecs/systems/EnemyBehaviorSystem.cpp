@@ -91,8 +91,9 @@ void EnemyBehaviorSystem::Update(Registry& registry)
             if (explosion.count_ == 2) color = VectorColorCodes::Orange;
             else if (explosion.count_ >= 3) color = VectorColorCodes::Red;
 
-            // 敵の少し上に描画 (オフセット調整可能)
-            Vector3 markerPos = trans.localPosition_ + Vector3(0.0f, 2.5f, 0.0f);
+            // 敵の大きさに合わせて表示位置を調整（頭の上に十分な余白を開ける）
+            float markerHeight = trans.localScale_.y + 2.0f;
+            Vector3 markerPos = { trans.localPosition_.x, markerHeight, trans.localPosition_.z };
             LineManager::GetInstance()->DrawCube(markerPos, 0.4f, color);
         }
 

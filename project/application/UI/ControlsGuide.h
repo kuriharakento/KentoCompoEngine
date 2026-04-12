@@ -76,22 +76,25 @@ private:
 	// =========================
 	//  定数
 	// =========================
-	static constexpr float kDefaultScale = 0.4f;
-	static constexpr float kPromptBaseX = 71.0f;   
-	static constexpr float kPromptBaseY = 625.0f;  
-	static constexpr float kPromptSpacingY = -60.0f; 
+	// Prompt Layout
+	static constexpr float kIconSize = 48.0f;
+	static constexpr float kDescriptionWidth = 88.0f;
+	static constexpr float kDescriptionHeight = 30.0f;
+	static constexpr float kPromptBaseX = 48.0f;   
+	static constexpr float kPromptBaseY = 660.0f;  
+	static constexpr float kPromptSpacingY = -64.0f; 
 	
 	// HP Bar
 	static constexpr float kHpBarX = 350.0f; 
-	static constexpr float kHpBarY = 650.0f;  
-	static constexpr float kHpBarWidth = 600.0f; 
-	static constexpr float kHpBarHeight = 40.0f; 
+	static constexpr float kHpBarY = 660.0f;  
+	static constexpr float kHpBarWidth = 500.0f; 
+	static constexpr float kHpBarHeight = 16.0f; // 16pxに微調整
 
 	// EXP Bar
 	static constexpr float kExpBarX = 350.0f;
-	static constexpr float kExpBarY = 690.0f;
-	static constexpr float kExpBarWidth = 600.0f;
-	static constexpr float kExpBarHeight = 10.0f;
+	static constexpr float kExpBarY = 640.0f; // HPバーの上に配置
+	static constexpr float kExpBarWidth = 500.0f;
+	static constexpr float kExpBarHeight = 6.0f;
 
 	// =========================
 	//  メンバ変数
@@ -113,4 +116,4 @@ private:
 
 	// 表示フラグ
 	bool isVisible_ = true;
-};
+};

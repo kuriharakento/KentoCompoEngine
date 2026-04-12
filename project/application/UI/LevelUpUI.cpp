@@ -6,13 +6,13 @@
 
 void LevelUpUI::Initialize(SpriteCommon* spriteCommon)
 {
-    // 暫定テクスチャ uvChecker.png
-    GameUI::Initialize(spriteCommon, "./Resources/uvChecker.png");
+    // レベルアップ用テクスチャ
+    GameUI::Initialize(spriteCommon, "./Resources/UI/text/level_up.png");
 
     SetAnchorPoint({ 0.5f, 0.5f });
     
-    // 画面中央。30%ほどの高さに配置
-    SetScreenPosition({ static_cast<float>(WinApp::kClientWidth) * 0.5f, static_cast<float>(WinApp::kClientHeight) * 0.35f });
+    // 画面中央。25%ほどの高さに配置（少し上に移動）
+    SetScreenPosition({ static_cast<float>(WinApp::kClientWidth) * 0.5f, static_cast<float>(WinApp::kClientHeight) * 0.25f });
     
     // 幅広のバナー状にする
     SetSize({ 600.0f, 120.0f });

@@ -62,7 +62,7 @@ void TitleScene::Initialize()
 			instancedRenderers_[name] = std::move(renderer);
 		}
 	};
-	setupRenderer("enemy", 500);
+	setupRenderer("weak_enemy", 500);
 	setupRenderer("chicken", 1);
 
 	// --- Entity 生成 ---
@@ -90,7 +90,7 @@ void TitleScene::Initialize()
 		float rotY = atan2f(toPlayer.x, toPlayer.z);
 
 		registry_->AddComponent<TransformComponent>(enemy, { pos, {0, rotY, 0}, {1,1,1} });
-		registry_->AddComponent<InstancedRenderComponent>(enemy, { "enemy" });
+		registry_->AddComponent<InstancedRenderComponent>(enemy, { "weak_enemy" });
 	}
 
 	titleLogo_ = std::make_unique<Sprite>();

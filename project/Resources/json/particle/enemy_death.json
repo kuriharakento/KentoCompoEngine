@@ -23,8 +23,8 @@
                     "type": "SpawnBurst"
                 },
                 {
-                    "max": 0.699999988079071,
-                    "min": 0.699999988079071,
+                    "max": 1.5,
+                    "min": 1.5,
                     "type": "InitialLifetime"
                 },
                 {
@@ -55,16 +55,31 @@
                 },
                 {
                     "max": {
-                        "x": 4.0,
-                        "y": 4.0,
-                        "z": 4.0
+                        "x": 6.0,
+                        "y": 6.0,
+                        "z": 6.0
                     },
                     "min": {
-                        "x": -4.0,
+                        "x": -6.0,
                         "y": 1.0,
-                        "z": -4.0
+                        "z": -6.0
                     },
                     "type": "InitialVelocity"
+                },
+                {
+                    "axis": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": 0.0
+                    },
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "range": 11.5,
+                    "strength": 12.399999618530273,
+                    "type": "Vortex"
                 },
                 {
                     "easingType": 0,
@@ -97,7 +112,7 @@
             },
             "renderer": {
                 "billboard": true,
-                "blendMode": 0,
+                "blendMode": 1,
                 "primitiveOptions": {
                     "cubeFaceVisible": [
                         true,
@@ -123,7 +138,7 @@
                     "withCaps": true
                 },
                 "primitiveType": 0,
-                "scale": 7.0,
+                "scale": 9.010000228881836,
                 "texture": "resources/star.png",
                 "tintColor": {
                     "a": 1.0,

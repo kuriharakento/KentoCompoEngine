@@ -20,6 +20,7 @@ void ControlsGuide::Initialize(SpriteCommon* spriteCommon, Registry* registry, E
 	AddPrompt("RMB", "./Resources/UI/button/RMB.png", "./Resources/UI/text/RMB.png");
 	AddPrompt("Q", "./Resources/UI/button/Q.png", "./Resources/UI/text/Q.png");
 	AddPrompt("E", "./Resources/UI/button/E.png", "./Resources/UI/text/E.png");
+	AddPrompt("R", "./Resources/UI/button/R.png", "./Resources/UI/text/R.png");
 
 	// HPバーの初期化
 	// 中身
@@ -38,16 +39,16 @@ void ControlsGuide::Initialize(SpriteCommon* spriteCommon, Registry* registry, E
 	hpBarFrame_->SetColor({ 1,1,1,1 });
 	hpBarFrame_->SetAnchorPoint({ 0.0f, 0.5f });
 
-	// EXPバーの初期化 (暫定 uvChecker)
+	// EXPバーの初期化
 	expBarFG_ = std::make_unique<Sprite>();
-	expBarFG_->Initialize(spriteCommon_, "./Resources/uvChecker.png");
+	expBarFG_->Initialize(spriteCommon_, "./Resources/white1x1.png");
 	expBarFG_->SetPosition({ kExpBarX, kExpBarY });
 	expBarFG_->SetSize({ kExpBarWidth, kExpBarHeight });
 	expBarFG_->SetColor(VectorColorCodes::Cyan);
 	expBarFG_->SetAnchorPoint({ 0.0f, 0.5f });
 
 	expBarFrame_ = std::make_unique<Sprite>();
-	expBarFrame_->Initialize(spriteCommon_, "./Resources/uvChecker.png");
+	expBarFrame_->Initialize(spriteCommon_, "./Resources/white1x1.png");
 	expBarFrame_->SetPosition({ kExpBarX - 2.0f, kExpBarY });
 	expBarFrame_->SetSize({ kExpBarWidth + 4.0f, kExpBarHeight + 4.0f });
 	expBarFrame_->SetColor({ 0.2f, 0.2f, 0.2f, 1.0f });
@@ -73,6 +74,7 @@ void ControlsGuide::Update()
 			else if (prompt.actionName_ == "RMB") { timer = skill.rmbTimer_; maxTimer = SkillComponent::kRmbCooldown; unlocked = skill.isRmbUnlocked_; }
 			else if (prompt.actionName_ == "Q") { timer = skill.decoyTimer_; maxTimer = SkillComponent::kDecoyCooldown; unlocked = skill.isDecoyUnlocked_; }
 			else if (prompt.actionName_ == "E") { timer = skill.impactTimer_; maxTimer = SkillComponent::kImpactCooldown; unlocked = skill.isImpactUnlocked_; }
+			else if (prompt.actionName_ == "R") { timer = skill.beamTimer_; maxTimer = SkillComponent::kBeamCooldown; unlocked = skill.isBeamUnlocked_; }
 
 			// クールタイム進捗 (0.0: 開始, 1.0: 完了)
 			float progress = 1.0f;
@@ -93,9 +95,9 @@ void ControlsGuide::Update()
 				prompt.icon_->SetColor({ 0.3f, 0.3f, 0.3f, 1.0f });
 
 				// オーバーレイ（明るい）を下から満たしていく
-				float currentH = 75.0f * progress;
-				prompt.overlay_->SetSize({ 75.0f, currentH });
-				
+				float currentH = kIconSize * progress;
+				prompt.overlay_->SetSize({ kIconSize, currentH });
+
 				// テクスチャ切り出し (下から progress 分)
 				float cutH = texH * progress;
 				prompt.overlay_->SetTextureLeftTop({ 0.0f, texH - cutH });
@@ -103,7 +105,7 @@ void ControlsGuide::Update()
 
 				// Y座標を調整（下端を固定して上に伸ばす）
 				// アンカーが 0.5, 0.5 なので、全体の中心から progress 分だけ下にずらした位置が中心になる
-				float yOffset = (75.0f * 0.5f) * (1.0f - progress);
+				float yOffset = (kIconSize * 0.5f) * (1.0f - progress);
 				prompt.overlay_->SetPosition({ kPromptBaseX, prompt.y_ + yOffset });
 				prompt.overlay_->SetColor({ 1, 1, 1, 1 });
 			}
@@ -125,13 +127,13 @@ void ControlsGuide::Update()
 	{
 		auto& status = registry_->GetComponent<ecs::StatusComponent>(playerEntity_);
 		float ratio = (std::max)(0.0f, (std::min)(1.0f, status.hp_.GetValue() / status.maxHp_.GetValue()));
-		
+
 		hpBarFG_->SetSize({ kHpBarWidth * ratio, kHpBarHeight });
-		
+
 		if (ratio < 0.25f) hpBarFG_->SetColor(VectorColorCodes::Red);
 		else if (ratio < 0.5f) hpBarFG_->SetColor(VectorColorCodes::Yellow);
 		else hpBarFG_->SetColor(VectorColorCodes::Lime);
-		
+
 		hpBarFG_->Update();
 		hpBarFrame_->Update();
 	}
@@ -141,7 +143,7 @@ void ControlsGuide::Update()
 	{
 		auto& prog = registry_->GetComponent<PlayerProgressionComponent>(playerEntity_);
 		float ratio = (std::max)(0.0f, (std::min)(1.0f, prog.currentExp_ / prog.nextLevelExp_));
-		
+
 		expBarFG_->SetSize({ kExpBarWidth * ratio, kExpBarHeight });
 		expBarFG_->Update();
 		expBarFrame_->Update();
@@ -162,8 +164,8 @@ void ControlsGuide::Draw()
 	hpBarFG_->Draw();
 	hpBarFrame_->Draw();
 
-	expBarFG_->Draw();
 	expBarFrame_->Draw();
+	expBarFG_->Draw();
 }
 
 void ControlsGuide::SetVisible(bool isVisible)
@@ -189,7 +191,7 @@ void ControlsGuide::AddPrompt(const std::string& actionName, const std::string& 
 	prompt.icon_ = std::make_unique<Sprite>();
 	prompt.icon_->Initialize(spriteCommon_, iconPath);
 	prompt.icon_->SetPosition({ kPromptBaseX, y });
-	prompt.icon_->SetSize({ 75.0f, 75.0f });
+	prompt.icon_->SetSize({ kIconSize, kIconSize });
 	prompt.icon_->SetAnchorPoint({ 0.5f, 0.5f });
 	prompt.icon_->SetColor({ 0.3f, 0.3f, 0.3f, 1.0f }); // デフォルトを少し暗めに
 
@@ -197,15 +199,15 @@ void ControlsGuide::AddPrompt(const std::string& actionName, const std::string& 
 	prompt.overlay_ = std::make_unique<Sprite>();
 	prompt.overlay_->Initialize(spriteCommon_, iconPath);
 	prompt.overlay_->SetPosition({ kPromptBaseX, y });
-	prompt.overlay_->SetSize({ 75.0f, 75.0f });
+	prompt.overlay_->SetSize({ kIconSize, kIconSize });
 	prompt.overlay_->SetColor({ 1, 1, 1, 0 }); // 初期は透明
 	prompt.overlay_->SetAnchorPoint({ 0.5f, 0.5f });
 
 	// 説明テキスト
 	prompt.description_ = std::make_unique<Sprite>();
 	prompt.description_->Initialize(spriteCommon_, descriptionPath);
-	prompt.description_->SetPosition({ kPromptBaseX + 50.0f, y });
-	prompt.description_->SetSize({ 138.0f, 48.0f }); 
+	prompt.description_->SetPosition({ kPromptBaseX + kIconSize * 0.7f, y });
+	prompt.description_->SetSize({ kDescriptionWidth, kDescriptionHeight }); 
 	prompt.description_->SetAnchorPoint({ 0.0f, 0.5f });
 
 	prompts_.push_back(std::move(prompt));
