@@ -37,6 +37,9 @@
 #include <algorithm>
 #include <cmath>
 
+#include "engine/effects/particle/module/spawn/SpawnShapeModules.h"
+#include "engine/effects/particle/ParticleEffect.h"
+
 void PlayerActionSystem::Update(Registry& registry)
 {
 	// プレイヤーエンティティを取得 (ecs::TagComponent::Type::Player で探す)
@@ -69,6 +72,65 @@ void PlayerActionSystem::Update(Registry& registry)
 			if (registry.HasComponent<SkillComponent>(entity))
 			{
 				UpdateSkills(entity, registry, dt);
+
+				// --- パーティクルの追従と停止制御 (リファクタ版: SkillComponentで直接管理) ---
+				auto& skill = registry.GetComponent<SkillComponent>(entity);
+				if (skill.activeBeamParticle_)
+				{
+						if (skill.beamActiveTimer_ > 0.0f)
+						{
+							skill.beamActiveTimer_ -= dt;
+							if (registry.HasComponent<TransformComponent>(entity))
+							{
+								auto& trans = registry.GetComponent<TransformComponent>(entity);
+								
+								// エフェクトの基準位置はプレイヤーの足元に同期
+								skill.activeBeamParticle_->SetPosition(trans.localPosition_);
+
+								// e2, e3 エミッターのピボット位置を、プレイヤーの向きに合わせて回転させる
+								float yaw = trans.localRotation_.y;
+								Vector3 forward = { std::sin(yaw), 0.0f, std::cos(yaw) };
+								
+								if (auto* e2 = skill.activeBeamParticle_->GetEmitter("e2"))
+								{
+									// ビーム中心を前方60ユニットへ
+									e2->SetFollowOffset(forward * 60.0f);
+
+									// 発生角度を水平方向に更新
+									if (auto* rot = e2->GetModule<InitialRotationModule>())
+									{
+										float radToDeg = 180.0f / 3.14159265f;
+										Vector3 rotDeg = { -90.0f, yaw * radToDeg, 0.0f };
+										rot->SetRotationRange(rotDeg, rotDeg);
+									}
+								}
+								if (auto* e3 = skill.activeBeamParticle_->GetEmitter("e3"))
+								{
+									// 光の筋の中心を前方50ユニットへ
+									e3->SetFollowOffset(forward * 50.0f);
+
+									// 発生角度を水平方向に更新
+									if (auto* rot = e3->GetModule<InitialRotationModule>())
+									{
+										float radToDeg = 180.0f / 3.14159265f;
+										Vector3 rotDeg = { -90.0f, yaw * radToDeg, 0.0f };
+										rot->SetRotationRange(rotDeg, rotDeg);
+									}
+								}
+							}
+
+						if (skill.beamActiveTimer_ <= 0.0f)
+						{
+							skill.activeBeamParticle_->Stop();
+							skill.activeBeamParticle_ = nullptr;
+						}
+					}
+					else
+					{
+						skill.activeBeamParticle_->Stop();
+						skill.activeBeamParticle_ = nullptr;
+					}
+				}
 			}
 		}
 	}
@@ -645,8 +707,59 @@ void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
 
 		// 演出: 発射時に画面を少し揺らすなどのフック（将来用）
 		// ParticleManager::GetInstance()->Play("beam_launch_flash", ...);
+		
+		// Rスキルパーティクルの再生
+		if (ParticleManager* pm = ParticleManager::GetInstance())
+		{
+			// プレイヤーのTransformを取得して発射位置と回転を確定
+			if (registry.HasComponent<TransformComponent>(entity))
+			{
+				auto& playerTrans = registry.GetComponent<TransformComponent>(entity);
+				
+				// パーティクルの再生 (基準位置はプレイヤーの位置)
+				ParticleEffect* effect = pm->Play("R_skill", playerTrans.localPosition_);
+				if (effect)
+				{
+					// 向きの設定
+					float yaw = playerTrans.localRotation_.y;
+					Vector3 forward = { std::sin(yaw), 0.0f, std::cos(yaw) };
+
+					// エミッターの初期オフセットを設定
+					if (auto* e2 = effect->GetEmitter("e2")) e2->SetFollowOffset(forward * 60.0f);
+					if (auto* e3 = effect->GetEmitter("e3")) e3->SetFollowOffset(forward * 50.0f);
+
+					// 方向の設定 (InitialRotationModule)
+					// 方向の設定 (InitialRotationModule)
+					// ラジアンから度に変換
+					float radToDeg = 180.0f / 3.14159265f;
+					Vector3 rotDeg = {
+						-90.0f,
+						playerTrans.localRotation_.y * radToDeg,
+						0.0f
+					};
+
+					for (size_t i = 0; i < effect->GetEmitterCount(); ++i)
+					{
+						if (auto* emitter = effect->GetEmitter(i))
+						{
+							if (auto* rotModule = emitter->GetModule<InitialRotationModule>())
+							{
+								// 発射方向に合わせる（既存のパーティクルは影響を受けない）
+								rotModule->SetRotationRange(rotDeg, rotDeg);
+							}
+						}
+					}
+
+					// SkillComponent に管理情報を保存
+					skill.activeBeamParticle_ = effect;
+					skill.beamActiveTimer_ = kBeamDuration;
+				}
+			}
+		}
 	}
 }
+
+// UpdateBeamParticles は廃止 (Updateスキル内に統合)
 
 void PlayerActionSystem::SpawnExplosion(EntityID sourceEntity, Registry& registry)
 {

@@ -2,6 +2,8 @@
 #include <array>
 #include <cstdint>
 
+class ParticleEffect;
+
 /**
  * @brief プレイヤースキルの解放状況とクールタイムを管理するコンポーネント。
  */
@@ -20,6 +22,10 @@ struct SkillComponent
     float decoyTimer_ = 0.0f;
     float impactTimer_ = 0.0f;
     float beamTimer_ = 0.0f;
+
+    // 現在再生中のビームパーティクル (1つのみ)
+    ParticleEffect* activeBeamParticle_ = nullptr;
+    float beamActiveTimer_ = 0.0f;
 
     // 定数（初期値）: 実際は武器やスキルによって変動
     static constexpr float kLmbCooldown = 0.9f;

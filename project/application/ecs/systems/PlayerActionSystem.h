@@ -33,7 +33,6 @@ private:
     void UpdateQ(EntityID entity, Registry& registry, float deltaTime);
     void UpdateE(EntityID entity, Registry& registry, float deltaTime);
     void UpdateR(EntityID entity, Registry& registry, float deltaTime);
-    
     // 誘爆を発生させる
     void SpawnExplosion(EntityID sourceEntity, Registry& registry);
 
