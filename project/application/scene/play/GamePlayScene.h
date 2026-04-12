@@ -38,6 +38,7 @@
 #include "application/ui/Cursor.h"
 #include "application/ui/ControlsGuide.h"
 #include "application/ui/PoseMenu.h"
+#include "application/ui/LevelUpUI.h"
 
 /**
  * @brief メインゲームプレイシーン
@@ -122,6 +123,7 @@ private:
 	// --- UI ---
 	std::unique_ptr<ControlsGuide> controlsGuide_ = nullptr;
 	std::unique_ptr<PoseMenu> poseMenu_ = nullptr;
+	std::unique_ptr<LevelUpUI> levelUpUI_ = nullptr;
 
 	// --- イントロ演出 ---
     float introElapsed_ = 0.0f;

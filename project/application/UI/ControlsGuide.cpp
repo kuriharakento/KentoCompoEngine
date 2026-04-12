@@ -1,6 +1,7 @@
 #include "ControlsGuide.h"
 #include "application/ecs/components/SkillComponent.h"
 #include "application/ecs/components/StatusComponent.h"
+#include "application/ecs/components/PlayerProgressionComponent.h"
 #include "math/VectorColorCodes.h"
 #include "manager/graphics/TextureManager.h"
 #include <algorithm>
@@ -36,6 +37,21 @@ void ControlsGuide::Initialize(SpriteCommon* spriteCommon, Registry* registry, E
 	hpBarFrame_->SetSize({ kHpBarWidth + 8.0f, kHpBarHeight + 8.0f });
 	hpBarFrame_->SetColor({ 1,1,1,1 });
 	hpBarFrame_->SetAnchorPoint({ 0.0f, 0.5f });
+
+	// EXPバーの初期化 (暫定 uvChecker)
+	expBarFG_ = std::make_unique<Sprite>();
+	expBarFG_->Initialize(spriteCommon_, "./Resources/uvChecker.png");
+	expBarFG_->SetPosition({ kExpBarX, kExpBarY });
+	expBarFG_->SetSize({ kExpBarWidth, kExpBarHeight });
+	expBarFG_->SetColor(VectorColorCodes::Cyan);
+	expBarFG_->SetAnchorPoint({ 0.0f, 0.5f });
+
+	expBarFrame_ = std::make_unique<Sprite>();
+	expBarFrame_->Initialize(spriteCommon_, "./Resources/uvChecker.png");
+	expBarFrame_->SetPosition({ kExpBarX - 2.0f, kExpBarY });
+	expBarFrame_->SetSize({ kExpBarWidth + 4.0f, kExpBarHeight + 4.0f });
+	expBarFrame_->SetColor({ 0.2f, 0.2f, 0.2f, 1.0f });
+	expBarFrame_->SetAnchorPoint({ 0.0f, 0.5f });
 }
 
 void ControlsGuide::Update()
@@ -119,6 +135,17 @@ void ControlsGuide::Update()
 		hpBarFG_->Update();
 		hpBarFrame_->Update();
 	}
+
+	// --- EXPバーの更新 ---
+	if (registry_->HasComponent<PlayerProgressionComponent>(playerEntity_))
+	{
+		auto& prog = registry_->GetComponent<PlayerProgressionComponent>(playerEntity_);
+		float ratio = (std::max)(0.0f, (std::min)(1.0f, prog.currentExp_ / prog.nextLevelExp_));
+		
+		expBarFG_->SetSize({ kExpBarWidth * ratio, kExpBarHeight });
+		expBarFG_->Update();
+		expBarFrame_->Update();
+	}
 }
 
 void ControlsGuide::Draw()
@@ -134,6 +161,9 @@ void ControlsGuide::Draw()
 
 	hpBarFG_->Draw();
 	hpBarFrame_->Draw();
+
+	expBarFG_->Draw();
+	expBarFrame_->Draw();
 }
 
 void ControlsGuide::SetVisible(bool isVisible)

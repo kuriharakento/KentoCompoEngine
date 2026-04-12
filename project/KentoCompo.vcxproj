@@ -286,10 +286,12 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\ecs\systems\PlayerActionSystem.cpp" />
     <ClCompile Include="application\ecs\systems\ProgressionSystem.cpp" />
     <ClCompile Include="application\ecs\systems\ProjectileSystem.cpp" />
+    <ClCompile Include="application\ui\LevelUpUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\ecs\CollisionConfig.h" />
     <ClInclude Include="application\ecs\components\BulletComponent.h" />
+    <ClInclude Include="application\ecs\components\EnemyChargerComponent.h" />
     <ClInclude Include="application\ecs\components\EnemyStateComponent.h" />
     <ClInclude Include="application\ecs\components\EnemyTypeComponent.h" />
     <ClInclude Include="application\ecs\components\InducedExplosionComponent.h" />
@@ -547,6 +549,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\ecs\components\PlayerProgressionComponent.h" />
     <ClInclude Include="application\ecs\components\ProjectileComponent.h" />
     <ClInclude Include="application\ecs\components\SkillComponent.h" />
+    <ClInclude Include="application\ui\LevelUpUI.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />

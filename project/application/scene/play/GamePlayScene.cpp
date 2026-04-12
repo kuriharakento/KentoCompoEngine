@@ -4,6 +4,7 @@
 #include "audio/Audio.h"
 // scene
 #include "engine/scene/manager/SceneManager.h"
+#include "application/ui/LevelUpUI.h"
 // editor
 #include "externals/imgui/imgui.h"
 // input
@@ -169,7 +170,8 @@ void GamePlayScene::Initialize()
 	systemManager_->AddSystem(std::make_shared<EnemyBehaviorSystem>());
 	systemManager_->AddSystem(std::make_shared<MovementSystem>());
 	systemManager_->AddSystem(std::make_shared<ProjectileSystem>());
-	systemManager_->AddSystem(std::make_shared<ProgressionSystem>());
+	auto progressionSystem = std::make_shared<ProgressionSystem>();
+	systemManager_->AddSystem(progressionSystem);
 	systemManager_->AddSystem(std::make_shared<WorldBoundarySystem>());
 
 	// 3. 行列更新・物理計算 (worldMatrix の構築)
@@ -232,9 +234,7 @@ void GamePlayScene::Initialize()
 		registry_->AddComponent<PlayerProgressionComponent>(playerEntity_, {});
 
 		SkillComponent skill;
-		skill.isRmbUnlocked_ = true;
-		skill.isDecoyUnlocked_ = true;
-		skill.isImpactUnlocked_ = true;
+		// 初期状態ではLMBのみアンロック（デフォルト値を使用）
 		registry_->AddComponent<SkillComponent>(playerEntity_, skill);
 
 		registry_->AddComponent<DodgeComponent>(playerEntity_, {});
@@ -319,6 +319,13 @@ void GamePlayScene::Initialize()
 
 	controlsGuide_->SetVisible(true);
 
+	levelUpUI_ = std::make_unique<LevelUpUI>();
+	levelUpUI_->Initialize(sceneManager_->GetSpriteCommon());
+
+	// ProgressionSystem に通知先を設定
+	progressionSystem->SetLevelUpUI(levelUpUI_.get());
+	progressionSystem->SetPostProcessManager(sceneManager_->GetPostProcessManager());
+
 	// シーン遷移エフェクトの初期化
 	const std::string transitionPath = "./Resources/black.png";
 	const float sW = static_cast<float>(WinApp::kClientWidth);
@@ -392,12 +399,14 @@ void GamePlayScene::UpdateUI()
 {
 	if (reticle_) reticle_->Update();
 	if (controlsGuide_) controlsGuide_->Update();
+	if (levelUpUI_) levelUpUI_->Update();
 }
 
 void GamePlayScene::DrawUI()
 {
 	if (reticle_) reticle_->Draw();
 	if (controlsGuide_) controlsGuide_->Draw();
+	if (levelUpUI_) levelUpUI_->Draw();
 }
 
 void GamePlayScene::DrawImGui()

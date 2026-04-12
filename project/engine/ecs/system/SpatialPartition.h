@@ -148,7 +148,7 @@ private:
         if (bounds.max_.z < 0) maxZ--;
 
         // 走査範囲を制限（巨大なAABBによるストール防止）
-        constexpr int64_t kMaxCellRange = 4; // 1軸あたり最大5セルまで
+        constexpr int64_t kMaxCellRange = 64; // 長大なビームなどを考慮し引き上げ
         maxX = (std::min)(maxX, minX + kMaxCellRange);
         maxY = (std::min)(maxY, minY + kMaxCellRange);
         maxZ = (std::min)(maxZ, minZ + kMaxCellRange);

@@ -182,6 +182,8 @@
     <ClCompile Include="application\ecs\systems\PlayerActionSystem.cpp" />
     <ClCompile Include="application\ecs\systems\ProgressionSystem.cpp" />
     <ClCompile Include="application\ecs\systems\ProjectileSystem.cpp" />
+    <ClCompile Include="engine\ecs\system\WorldBoundarySystem.cpp" />
+    <ClCompile Include="application\ui\LevelUpUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\ecs\components\EnemyStateComponent.h" />
@@ -438,6 +440,10 @@
     <ClInclude Include="application\ecs\CollisionConfig.h" />
     <ClInclude Include="application\ecs\components\EnemyTypeComponent.h" />
     <ClInclude Include="application\ecs\components\InducedExplosionComponent.h" />
+    <ClInclude Include="engine\ecs\system\WorldBoundarySystem.h" />
+    <ClInclude Include="engine\ecs\components\WorldBoundaryComponent.h" />
+    <ClInclude Include="application\ui\LevelUpUI.h" />
+    <ClInclude Include="application\ecs\components\EnemyChargerComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli" />

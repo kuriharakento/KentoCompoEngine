@@ -87,6 +87,12 @@ private:
 	static constexpr float kHpBarWidth = 600.0f; 
 	static constexpr float kHpBarHeight = 40.0f; 
 
+	// EXP Bar
+	static constexpr float kExpBarX = 350.0f;
+	static constexpr float kExpBarY = 690.0f;
+	static constexpr float kExpBarWidth = 600.0f;
+	static constexpr float kExpBarHeight = 10.0f;
+
 	// =========================
 	//  メンバ変数
 	// =========================
@@ -100,6 +106,10 @@ private:
 	// HPバー
 	std::unique_ptr<Sprite> hpBarFG_;
 	std::unique_ptr<Sprite> hpBarFrame_;
+
+	// EXPバー
+	std::unique_ptr<Sprite> expBarFG_;
+	std::unique_ptr<Sprite> expBarFrame_;
 
 	// 表示フラグ
 	bool isVisible_ = true;

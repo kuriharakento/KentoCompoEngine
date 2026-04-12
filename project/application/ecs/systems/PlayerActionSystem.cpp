@@ -11,6 +11,7 @@
 #include "engine/ecs/system/SystemManager.h"
 #include "engine/ecs/system/CollisionSystem.h"
 #include "engine/ecs/components/LifetimeComponent.h"
+#include "engine/ecs/components/HierarchyComponent.h"
 #include "engine/manager/graphics/LineManager.h"
 #include "math/VectorColorCodes.h"
 #include "engine/effects/particle/ParticleManager.h"
@@ -43,7 +44,6 @@ void PlayerActionSystem::Update(Registry& registry)
 	if (!tagView) return;
 
 	float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
-	if (dt <= 0.0f) dt = 0.0166f;
 
 	for (uint32_t i = 0; i < tagView->GetSize(); ++i)
 	{
@@ -552,7 +552,100 @@ void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
 {
 	auto& skill = registry.GetComponent<SkillComponent>(entity);
 	if (!skill.isBeamUnlocked_) return;
-	// 実装予定
+	if (skill.beamTimer_ > 0.0f) return;
+
+	if (Input::GetInstance()->TriggerKey(DIK_R))
+	{
+		// ビームのパラメータ
+		const float kBeamLength = 300.0f;
+		const float kBeamWidth = 20.0f;
+		const float kBeamDuration = 6.0f;
+		const float kDamagePerSecond = 1500.0f;
+
+		// 1. ビームエンティティの生成
+		EntityID beam = registry.CreateEntity();
+
+		// 2. 親子関係の設定 (プレイヤーに追従させる)
+		HierarchyComponent beamHier;
+		beamHier.parent_ = entity;
+		registry.AddComponent<HierarchyComponent>(beam, beamHier);
+
+		// プレイヤー側の HierarchyComponent を更新（子リストへの登録）
+		if (!registry.HasComponent<HierarchyComponent>(entity))
+		{
+			registry.AddComponent<HierarchyComponent>(entity, {});
+		}
+		auto& playerHier = registry.GetComponent<HierarchyComponent>(entity);
+		
+		// 既存の子の先頭に自身を挿入する
+		auto& currentBeamHier = registry.GetComponent<HierarchyComponent>(beam);
+		currentBeamHier.nextSibling_ = playerHier.firstChild_;
+		playerHier.firstChild_ = beam;
+
+		// 3. Transform の設定
+		// 中心をビームの長さの半分だけ前方にずらすことで、プレイヤーの手元から伸びているように見せる
+		TransformComponent beamTrans;
+		beamTrans.localPosition_ = { 0.0f, 0.5f, kBeamLength * 0.5f };
+		beamTrans.localScale_ = { 1.0f, 1.0f, 1.0f };
+		registry.AddComponent<TransformComponent>(beam, beamTrans);
+
+		// 4. 当たり判定（OBB）の設定
+		ecs::ColliderComponent col;
+		col.type_ = ColliderType::OBB;
+		// half-extent (半径) で指定。高さも 5.0f に広げる
+		col.obb_.size = { kBeamWidth * 0.5f, 5.0f, kBeamLength * 0.5f };
+		col.isTrigger_ = true;
+		col.layer = CollisionLayer::PlayerBullet;
+		col.mask = CollisionLayer::Enemy;
+
+		// 5. 衝突時のダメージロジック (Enter/Stay 共通)
+		auto collisionHandler = [this, &registry, kDamagePerSecond](const ecs::CollisionPartnerInfo& other) {
+			if (!registry.IsAlive(other.entity)) return;
+
+			float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
+
+			// ダメージ処理 (DoT: Damage over Time)
+			if (registry.HasComponent<ecs::StatusComponent>(other.entity))
+			{
+				auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
+				status.hp_.SetBase(status.hp_.GetBase() - (kDamagePerSecond * dt));
+			}
+
+			// 誘爆スタックの付与 (一定確率でスタックを加算し、爆発を引き起こす)
+			if (registry.HasComponent<ecs::InducedExplosionComponent>(other.entity))
+			{
+				auto& stack = registry.GetComponent<ecs::InducedExplosionComponent>(other.entity);
+				// 毎フレーム約10%の確率でスタック追加 (約0.2秒に1回爆発する計算)
+				if (rand() % 10 == 0)
+				{
+					stack.count_++;
+					if (stack.count_ >= ecs::InducedExplosionComponent::kMaxCount)
+					{
+						SpawnExplosion(other.entity, registry);
+					}
+				}
+			}
+			else
+			{
+				// スタックがない場合は付与する (UpdateEと同様)
+				registry.AddComponent<ecs::InducedExplosionComponent>(other.entity, { 1 });
+			}
+			};
+
+		col.onCollisionEnter = collisionHandler;
+		col.onCollisionStay = collisionHandler;
+
+		registry.AddComponent<ecs::ColliderComponent>(beam, col);
+		registry.AddComponent<CollisionResponseComponent>(beam, {});
+
+		// 6. 生存期間の設定
+		registry.AddComponent<LifetimeComponent>(beam, { 0.0f, kBeamDuration });
+
+		skill.beamTimer_ = skill.kBeamCooldown;
+
+		// 演出: 発射時に画面を少し揺らすなどのフック（将来用）
+		// ParticleManager::GetInstance()->Play("beam_launch_flash", ...);
+	}
 }
 
 void PlayerActionSystem::SpawnExplosion(EntityID sourceEntity, Registry& registry)

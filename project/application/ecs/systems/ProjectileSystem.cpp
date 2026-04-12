@@ -9,7 +9,6 @@
 void ProjectileSystem::Update(Registry& registry)
 {
     float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
-    if (dt <= 0.0f) dt = 0.0166f;
 
     auto view = registry.View<ProjectileComponent>();
     if (!view) return;

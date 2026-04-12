@@ -3,6 +3,10 @@
 #include "application/ecs/components/PlayerProgressionComponent.h"
 #include "application/ecs/components/SkillComponent.h"
 #include "application/ecs/components/StatusComponent.h"
+#include "engine/ecs/components/TransformComponent.h"
+#include "engine/effects/particle/ParticleManager.h"
+#include "engine/manager/effect/PostProcessManager.h"
+#include "application/UI/LevelUpUI.h"
 
 void ProgressionSystem::Update(Registry& registry)
 {
@@ -15,6 +19,7 @@ void ProgressionSystem::Update(Registry& registry)
         EntityID entity = view->GetEntityFromDenseIndex(i);
         auto& prog = view->GetDataFromDenseIndex(i);
         
+        bool leveledUp = false;
         // --- 経験値チェック ---
         while (prog.currentExp_ >= prog.nextLevelExp_)
         {
@@ -26,6 +31,12 @@ void ProgressionSystem::Update(Registry& registry)
 
             // 報酬の適用
             ApplyLevelUpRewards(entity, prog.level_, registry);
+            leveledUp = true;
+        }
+
+        if (leveledUp)
+        {
+            PlayLevelUpEffects(entity, registry);
         }
     }
 }
@@ -53,5 +64,33 @@ void ProgressionSystem::ApplyLevelUpRewards(EntityID entity, uint32_t newLevel, 
         status.hp_.SetBase(status.hp_.GetBase() * boost); // 回復を兼ねるか検討
         status.attackPower_.SetBase(status.attackPower_.GetBase() * boost);
         status.moveSpeed_.SetBase(status.moveSpeed_.GetBase() * 1.05f); // 速度は控えめに
+    }
+}
+
+void ProgressionSystem::PlayLevelUpEffects(EntityID entity, Registry& registry)
+{
+    // 1. VFX (エフェクト名を仮定。後で追加可能)
+    if (registry.HasComponent<TransformComponent>(entity))
+    {
+        auto& trans = registry.GetComponent<TransformComponent>(entity);
+        // ParticleManager::GetInstance()->Play("level_up", trans.localPosition_);
+    }
+
+    // 2. SFX (サウンドを仮定)
+    // Audio::Play("level_up_se");
+
+    // 3. PostProcess (ビネットのパルス演出)
+    if (postProcessManager_ && postProcessManager_->vignetteEffect_)
+    {
+        // ビネットを一瞬強める (本来はタイマー管理が必要だが、
+        // 今回の要請では「器」を作ることに専念する)
+        // postProcessManager_->vignetteEffect_->SetEnabled(true);
+        // postProcessManager_->vignetteEffect_->SetIntensity(0.8f);
+    }
+
+    // 4. UI通知
+    if (levelUpUI_)
+    {
+        levelUpUI_->Trigger();
     }
 }
