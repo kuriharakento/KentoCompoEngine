@@ -162,6 +162,15 @@ void GamePlayScene::Initialize()
 	ParticleManager::GetInstance()->LoadEffectDefinition("R_skill", "./Resources/json/particle/R_skill.json");
 	ParticleManager::GetInstance()->LoadEffectDefinition("Q_skill", "./Resources/json/particle/Q_skill.json");
 
+	// 音声のロード
+	Audio::GetInstance()->LoadWave("game", "bgm/game.wav", SoundGroup::BGM);
+	Audio::GetInstance()->PlayWave("game", true);
+	Audio::GetInstance()->LoadWave("enemy_kill", "se/enemy_kill.wav", SoundGroup::SE);
+	Audio::GetInstance()->LoadWave("fire", "se/fire.wav", SoundGroup::SE);
+	Audio::GetInstance()->LoadWave("R", "se/R.wav", SoundGroup::SE);
+	Audio::GetInstance()->LoadWave("skill_lock", "se/skill_lock.wav", SoundGroup::SE);
+	Audio::GetInstance()->LoadWave("explosion", "se/explosion.wav", SoundGroup::SE);
+
 	// 移動制限範囲の可視化エフェクトを開始
 	rangeEffect_ = ParticleManager::GetInstance()->Play("move_range", { 0.0f, 0.1f, 0.0f });
 	if (rangeEffect_)
@@ -384,6 +393,7 @@ void GamePlayScene::Initialize()
 
 void GamePlayScene::Finalize()
 {
+	Audio::GetInstance()->StopWave("game");
 	BulletTrailManager::GetInstance().Clear();
 	if (registry_) registry_.reset();
 }

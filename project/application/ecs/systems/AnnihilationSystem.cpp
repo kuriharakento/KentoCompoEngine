@@ -8,6 +8,7 @@
 #include "engine/ecs/components/TagComponent.h"
 #include "math/MathUtils.h"
 #include "engine/effects/particle/ParticleManager.h"
+#include "audio/Audio.h"
 
 void AnnihilationSystem::Update(Registry& registry)
 {
@@ -60,6 +61,7 @@ void AnnihilationSystem::Update(Registry& registry)
                 {
                     auto& trans = registry.GetComponent<TransformComponent>(entity);
                     ParticleManager::GetInstance()->Play("enemy_death", trans.localPosition_);
+                    Audio::GetInstance()->PlayWave("enemy_kill", false);
                 }
             }
 

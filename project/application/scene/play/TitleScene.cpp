@@ -25,10 +25,11 @@
 
 void TitleScene::Initialize()
 {
-	Audio::GetInstance()->LoadWave("title_bgm", "bgm/title.wav", SoundGroup::BGM);
-	Audio::GetInstance()->PlayWave("title_bgm", true);
-	Audio::GetInstance()->SetVolume("title_bgm", kBgmVolume);
+	Audio::GetInstance()->LoadWave("title", "bgm/title.wav", SoundGroup::BGM);
+	Audio::GetInstance()->PlayWave("title", true);
+	Audio::GetInstance()->SetVolume("title", kBgmVolume);
 	Audio::GetInstance()->LoadWave("start_se", "se/tap.wav", SoundGroup::SE);
+	Audio::GetInstance()->LoadWave("explosion", "se/explosion.wav", SoundGroup::SE);
 
 	// パーティクルをJsonから読み込み
 	ParticleManager::GetInstance()->LoadEffectDefinition("title_particle", "./Resources/json/particle/title_particle.json");
@@ -150,7 +151,7 @@ void TitleScene::Finalize()
 	ClearObjects();
 	sceneManager_->GetPostProcessManager()->crtEffect_->SetEnabled(false);
 
-	Audio::GetInstance()->StopWave("title_bgm");
+	Audio::GetInstance()->StopWave("title");
 }
 
 void TitleScene::OnEnterPlaying()
@@ -173,16 +174,23 @@ void TitleScene::OnUpdatePlaying()
 		bool isTrigger = false;
 #ifdef _DEBUG
 		// デバッグ時は右クリックのみ
-		isTrigger = Input::GetInstance()->IsMouseButtonTriggered(2);
+		isTrigger = Input::GetInstance()->IsMouseButtonTriggered(2) || Input::GetInstance()->TriggerKey(DIK_SPACE);
 #else
 		// 通常時は左右どちらかのクリック
-		isTrigger = Input::GetInstance()->IsMouseButtonTriggered(0) || Input::GetInstance()->IsMouseButtonTriggered(2);
+		isTrigger = Input::GetInstance()->IsMouseButtonTriggered(0) || Input::GetInstance()->IsMouseButtonTriggered(2) || Input::GetInstance()->TriggerKey(DIK_SPACE);
 #endif
 
 		if (isTrigger)
 		{
 			isTriggered_ = true;
-			Audio::GetInstance()->PlayWave("start_se", false);
+			if (Input::GetInstance()->TriggerKey(DIK_SPACE))
+			{
+				Audio::GetInstance()->PlayWave("explosion", false);
+			}
+			else
+			{
+				Audio::GetInstance()->PlayWave("start_se", false);
+			}
 			
 			// 背景エフェクトを即座に再生
 			ParticleManager::GetInstance()->Play("title_direction", { 0, 1.0f, 0 });

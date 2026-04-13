@@ -102,18 +102,22 @@ void GameClearScene::Initialize()
 	retryFontSprite_->SetPosition(kRetryFontSpritePosition);
 	retryFontSprite_->SetScale(kButtonFontScale);
 
-	// ゲームオーバーロゴ
+	// ゲームクリアロゴ
 	gameClearLogoFontSprite_ = std::make_unique<FontSprite>();
 	gameClearLogoFontSprite_->Initialize(sceneManager_->GetSpriteCommon(), "luna");
 	gameClearLogoFontSprite_->SetText("Game Clear");
 	gameClearLogoFontSprite_->SetPosition(kGameClearLogoPosition);
 	gameClearLogoFontSprite_->SetScale(kLogoFontScale);
 
+	Audio::GetInstance()->LoadWave("gameclear", "bgm/gameclear.wav", SoundGroup::BGM);
+	Audio::GetInstance()->PlayWave("gameclear", true);
+
 	StartState(SceneState::Enter);
 }
 
 void GameClearScene::Finalize()
 {
+	Audio::GetInstance()->StopWave("gameclear");
 	ClearObjects();
 	sceneManager_->GetPostProcessManager()->bloomEffect_->SetEnabled(true);
 }

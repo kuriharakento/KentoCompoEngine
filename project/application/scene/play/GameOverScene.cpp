@@ -109,11 +109,15 @@ void GameOverScene::Initialize()
 	gameOverLogoFontSprite_->SetPosition(kGameOverLogoPosition);
 	gameOverLogoFontSprite_->SetScale(kLogoFontScale);
 
+	Audio::GetInstance()->LoadWave("gameover", "bgm/gameover.wav", SoundGroup::BGM);
+	Audio::GetInstance()->PlayWave("gameover", true);
+
 	StartState(SceneState::Enter);
 }
 
 void GameOverScene::Finalize()
 {
+	Audio::GetInstance()->StopWave("gameover");
 	ClearObjects();
 	sceneManager_->GetPostProcessManager()->bloomEffect_->SetEnabled(true);
 }

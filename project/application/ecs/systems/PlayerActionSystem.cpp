@@ -39,6 +39,7 @@
 
 #include "engine/effects/particle/module/spawn/SpawnShapeModules.h"
 #include "engine/effects/particle/ParticleEffect.h"
+#include "audio/Audio.h"
 
 void PlayerActionSystem::Update(Registry& registry)
 {
@@ -300,11 +301,17 @@ void PlayerActionSystem::UpdateSkills(EntityID entity, Registry& registry, float
 void PlayerActionSystem::UpdateLMB(EntityID entity, Registry& registry, float)
 {
 	auto& skill = registry.GetComponent<SkillComponent>(entity);
-	if (!skill.isLmbUnlocked_) return;
+	if (!skill.isLmbUnlocked_)
+	{
+		if (Input::GetInstance()->IsMouseButtonTriggered(0))
+			Audio::GetInstance()->PlayWave("skill_lock", false);
+		return;
+	}
 	if (skill.lmbTimer_ > 0.0f) return;
 
 	if (Input::GetInstance()->IsMouseButtonPressed(0))
 	{
+		Audio::GetInstance()->PlayWave("fire", false);
 		// 弾を生成
 		auto& trans = registry.GetComponent<TransformComponent>(entity);
 		float yaw = trans.localRotation_.y;
@@ -391,11 +398,17 @@ void PlayerActionSystem::UpdateLMB(EntityID entity, Registry& registry, float)
 void PlayerActionSystem::UpdateRMB(EntityID entity, Registry& registry, float)
 {
 	auto& skill = registry.GetComponent<SkillComponent>(entity);
-	if (!skill.isRmbUnlocked_) return;
+	if (!skill.isRmbUnlocked_)
+	{
+		if (Input::GetInstance()->IsMouseButtonTriggered(2))
+			Audio::GetInstance()->PlayWave("skill_lock", false);
+		return;
+	}
 	if (skill.rmbTimer_ > 0.0f) return;
 
 	if (Input::GetInstance()->IsMouseButtonPressed(2)) // 右クリック
 	{
+		Audio::GetInstance()->PlayWave("fire", false);
 		auto& trans = registry.GetComponent<TransformComponent>(entity);
 		float yaw = trans.localRotation_.y;
 		Vector3 dir = { sin(yaw), 0, cos(yaw) };
@@ -522,7 +535,12 @@ void PlayerActionSystem::UpdateRMB(EntityID entity, Registry& registry, float)
 void PlayerActionSystem::UpdateQ(EntityID entity, Registry& registry, float)
 {
 	auto& skill = registry.GetComponent<SkillComponent>(entity);
-	if (!skill.isDecoyUnlocked_) return;
+	if (!skill.isDecoyUnlocked_)
+	{
+		if (Input::GetInstance()->TriggerKey(DIK_Q))
+			Audio::GetInstance()->PlayWave("skill_lock", false);
+		return;
+	}
 
 	// デコイのライフサイクル管理 (パーティクルの追従と停止)
 	if (skill.activeDecoyParticle_)
@@ -571,7 +589,12 @@ void PlayerActionSystem::UpdateQ(EntityID entity, Registry& registry, float)
 void PlayerActionSystem::UpdateE(EntityID entity, Registry& registry, float)
 {
 	auto& skill = registry.GetComponent<SkillComponent>(entity);
-	if (!skill.isImpactUnlocked_) return;
+	if (!skill.isImpactUnlocked_)
+	{
+		if (Input::GetInstance()->TriggerKey(DIK_E))
+			Audio::GetInstance()->PlayWave("skill_lock", false);
+		return;
+	}
 	if (skill.impactTimer_ > 0.0f) return;
 
 	if (Input::GetInstance()->TriggerKey(DIK_E))
@@ -633,11 +656,17 @@ void PlayerActionSystem::UpdateE(EntityID entity, Registry& registry, float)
 void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
 {
 	auto& skill = registry.GetComponent<SkillComponent>(entity);
-	if (!skill.isBeamUnlocked_) return;
+	if (!skill.isBeamUnlocked_)
+	{
+		if (Input::GetInstance()->TriggerKey(DIK_R))
+			Audio::GetInstance()->PlayWave("skill_lock", false);
+		return;
+	}
 	if (skill.beamTimer_ > 0.0f) return;
 
 	if (Input::GetInstance()->TriggerKey(DIK_R))
 	{
+		Audio::GetInstance()->PlayWave("R", false);
 		// ビームのパラメータ
 		const float kBeamLength = 300.0f;
 		const float kBeamWidth = 20.0f;
@@ -803,6 +832,7 @@ void PlayerActionSystem::SpawnExplosion(EntityID sourceEntity, Registry& registr
 		{
 			// 爆発演出の再生
 			ParticleManager::GetInstance()->Play("E_explosion", expPos);
+			Audio::GetInstance()->PlayWave("explosion", false);
 			// 爆発に巻き込まれた敵に大ダメージを与える (500ダメージ)
 			if (registry.HasComponent<ecs::StatusComponent>(other.entity))
 			{
@@ -824,6 +854,7 @@ void PlayerActionSystem::SpawnExplosion(EntityID sourceEntity, Registry& registr
 		if (status.hp_.GetBase() <= 0.0f) status.isAlive_ = false;
 		// 爆発演出の再生
 		ParticleManager::GetInstance()->Play("E_explosion", expPos);
+		Audio::GetInstance()->PlayWave("explosion", false);
 	}
 
 	registry.RemoveComponent<ecs::InducedExplosionComponent>(sourceEntity);
