@@ -57,14 +57,10 @@ void MyGame::LoadModels()
 	ModelManager::GetInstance()->LoadModel("cube");
 	ModelManager::GetInstance()->LoadModel("terrain");
 	ModelManager::GetInstance()->LoadModel("skydome");
-	ModelManager::GetInstance()->LoadModel("bullet");
-	ModelManager::GetInstance()->LoadModel("wall");
 	ModelManager::GetInstance()->LoadModel("player");
 	ModelManager::GetInstance()->LoadModel("chicken", ".gltf");
 	ModelManager::GetInstance()->LoadModel("enemy");
 	ModelManager::GetInstance()->LoadModel("plane", ".gltf");
-	ModelManager::GetInstance()->LoadModel("walk", ".gltf");
 	ModelManager::GetInstance()->LoadModel("weak_enemy", ".gltf");
 	ModelManager::GetInstance()->LoadModel("tank_enemy", ".gltf");
-	ModelManager::GetInstance()->LoadModel("street", ".gltf");
 }
