@@ -21,7 +21,6 @@ void MyGame::LoadTextures()
 	TextureManager::GetInstance()->LoadTexture("./Resources/flowerfun.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/star.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/skybox.dds");
-	TextureManager::GetInstance()->LoadTexture("./Resources/minimap_frame.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/numbers.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/title_logo.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/fonts/luna_atlas.png");
@@ -35,7 +34,6 @@ void MyGame::LoadTextures()
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/dot_reticle.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/retry.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/back_to_title.png");
-	TextureManager::GetInstance()->LoadTexture("./Resources/UI/remaining_ammo.png");
 
 	// Skill Icons & Descriptions
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/button/LMB.png");
