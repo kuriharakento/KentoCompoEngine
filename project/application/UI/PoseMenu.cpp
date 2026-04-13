@@ -56,6 +56,26 @@ void PoseMenu::Initialize(SpriteCommon* spriteCommon)
 		isRetryHovered_ = false;
 										 });
 
+	// タイトルへボタン
+	toTitleButton_ = std::make_unique<GameUI>();
+	toTitleButton_->Initialize(spriteCommon, "./Resources/white1x1.png");
+	toTitleButton_->SetColor(Vector4(0.3f, 0.3f, 0.3f, 0.9f));
+	toTitleButton_->SetVisible(false);
+	toTitleButton_->SetOnClickCallback([this]() {
+		Audio::GetInstance()->PlayWave("start_se", false);
+		SetPaused(false);
+		if (onTitleCallback_)
+		{
+			onTitleCallback_();
+		}
+									 });
+	toTitleButton_->SetOnHoverEnterCallback([this]() {
+		isTitleHovered_ = true;
+										  });
+	toTitleButton_->SetOnHoverExitCallback([this]() {
+		isTitleHovered_ = false;
+										 });
+
 	// 終了ボタン
 	exitButton_ = std::make_unique<GameUI>();
 	exitButton_->Initialize(spriteCommon, "./Resources/white1x1.png");
@@ -91,6 +111,11 @@ void PoseMenu::Initialize(SpriteCommon* spriteCommon)
 	retryText_->SetText("Retry");
 	retryText_->SetVisible(false);
 
+	toTitleText_ = std::make_unique<FontSprite>();
+	toTitleText_->Initialize(spriteCommon, "luna");
+	toTitleText_->SetText("Title");
+	toTitleText_->SetVisible(false);
+
 	exitText_ = std::make_unique<FontSprite>();
 	exitText_->Initialize(spriteCommon, "luna");
 	exitText_->SetText("Exit");
@@ -117,6 +142,7 @@ void PoseMenu::Update()
 		// ボタン更新
 		resumeButton_->Update();
 		retryButton_->Update();
+		toTitleButton_->Update();
 		exitButton_->Update();
 
 		// ホバーアニメーション進行度を更新（UIコンテキスト使用=ポーズ中でも動く）
@@ -141,6 +167,16 @@ void PoseMenu::Update()
 		else
 		{
 			retryHoverProgress_ = (std::max)(retryHoverProgress_ - animSpeed, 0.0f);
+		}
+
+		// Title
+		if (isTitleHovered_)
+		{
+			titleHoverProgress_ = (std::min)(titleHoverProgress_ + animSpeed, 1.0f);
+		}
+		else
+		{
+			titleHoverProgress_ = (std::max)(titleHoverProgress_ - animSpeed, 0.0f);
 		}
 
 		// Exit
@@ -171,12 +207,14 @@ void PoseMenu::Draw()
 	// ボタン描画
 	resumeButton_->Draw();
 	retryButton_->Draw();
+	toTitleButton_->Draw();
 	exitButton_->Draw();
 
 	// テキスト描画
 	titleText_->Draw();
 	resumeText_->Draw();
 	retryText_->Draw();
+	toTitleText_->Draw();
 	exitText_->Draw();
 }
 
@@ -223,6 +261,7 @@ void PoseMenu::DrawImGui()
 		ImGui::Separator();
 		layoutChanged |= ImGui::DragFloat2("Resume Offset", &resumeTextOffset_.x, 1.0f, -200.0f, 200.0f);
 		layoutChanged |= ImGui::DragFloat2("Retry Offset", &retryTextOffset_.x, 1.0f, -200.0f, 200.0f);
+		layoutChanged |= ImGui::DragFloat2("Title Offset", &toTitleTextOffset_.x, 1.0f, -200.0f, 200.0f);
 		layoutChanged |= ImGui::DragFloat2("Exit Offset", &exitTextOffset_.x, 1.0f, -200.0f, 200.0f);
 	}
 
@@ -252,7 +291,11 @@ void PoseMenu::UpdateLayout()
 	retryButton_->SetSize(buttonSize_);
 	retryButton_->SetColor(buttonNormalColor_);
 
-	exitButton_->SetScreenPosition(Vector2(centerX, startY + (buttonSize_.y + buttonSpacing_) * 2.0f));
+	toTitleButton_->SetScreenPosition(Vector2(centerX, startY + (buttonSize_.y + buttonSpacing_) * 2.0f));
+	toTitleButton_->SetSize(buttonSize_);
+	toTitleButton_->SetColor(buttonNormalColor_);
+
+	exitButton_->SetScreenPosition(Vector2(centerX, startY + (buttonSize_.y + buttonSpacing_) * 3.0f));
 	exitButton_->SetSize(buttonSize_);
 	exitButton_->SetColor(buttonNormalColor_);
 
@@ -270,7 +313,11 @@ void PoseMenu::UpdateLayout()
 	retryText_->SetScale(textScale_);
 	retryText_->SetColor(textColor_);
 
-	exitText_->SetPosition(Vector2(centerX + exitTextOffset_.x, startY + (buttonSize_.y + buttonSpacing_) * 2.0f + exitTextOffset_.y));
+	toTitleText_->SetPosition(Vector2(centerX + toTitleTextOffset_.x, startY + (buttonSize_.y + buttonSpacing_) * 2.0f + toTitleTextOffset_.y));
+	toTitleText_->SetScale(textScale_);
+	toTitleText_->SetColor(textColor_);
+
+	exitText_->SetPosition(Vector2(centerX + exitTextOffset_.x, startY + (buttonSize_.y + buttonSpacing_) * 3.0f + exitTextOffset_.y));
 	exitText_->SetScale(textScale_);
 	exitText_->SetColor(textColor_);
 }
@@ -297,10 +344,12 @@ void PoseMenu::SetPaused(bool paused)
 	// UI表示切り替え
 	resumeButton_->SetVisible(isPaused_);
 	retryButton_->SetVisible(isPaused_);
+	toTitleButton_->SetVisible(isPaused_);
 	exitButton_->SetVisible(isPaused_);
 	titleText_->SetVisible(isPaused_);
 	resumeText_->SetVisible(isPaused_);
 	retryText_->SetVisible(isPaused_);
+	toTitleText_->SetVisible(isPaused_);
 	exitText_->SetVisible(isPaused_);
 }
 
@@ -312,6 +361,7 @@ void PoseMenu::ApplyHoverAnimation()
 	// イージング関数を適用
 	const float resumeEased = EaseOutQuad(resumeHoverProgress_);
 	const float retryEased = EaseOutQuad(retryHoverProgress_);
+	const float titleEased = EaseOutQuad(titleHoverProgress_);
 	const float exitEased = EaseOutQuad(exitHoverProgress_);
 
 	// Resume ボタン
@@ -347,18 +397,35 @@ void PoseMenu::ApplyHoverAnimation()
 		retryText_->SetScale(textScale_ * scale);
 	}
 
+	// Title ボタン
+	{
+		const float slideX = hoverSlideOffset_ * titleEased;
+		const float scale = MathUtils::Lerp(1.0f, hoverScaleMultiplier_, titleEased);
+		const Vector4 color = Vector4::Lerp(buttonNormalColor_, buttonHoverColor_, titleEased);
+
+		const float buttonY = startY + (buttonSize_.y + buttonSpacing_) * 2.0f;
+		toTitleButton_->SetScreenPosition(Vector2(centerX + slideX, buttonY));
+		toTitleButton_->SetSize(Vector2(buttonSize_.x * scale, buttonSize_.y * scale));
+		toTitleButton_->SetColor(color);
+
+		// テキストも連動（buttonPosにはすでにslideXが含まれている）
+		const Vector2 buttonPos = toTitleButton_->GetScreenPosition();
+		toTitleText_->SetPosition(Vector2(buttonPos.x + toTitleTextOffset_.x, buttonPos.y + toTitleTextOffset_.y));
+		toTitleText_->SetScale(textScale_ * scale);
+	}
+
 	// Exit ボタン
 	{
 		const float slideX = hoverSlideOffset_ * exitEased;
 		const float scale = MathUtils::Lerp(1.0f, hoverScaleMultiplier_, exitEased);
 		const Vector4 color = Vector4::Lerp(buttonNormalColor_, buttonHoverColor_, exitEased);
 
-		const float buttonY = startY + (buttonSize_.y + buttonSpacing_) * 2.0f;
+		const float buttonY = startY + (buttonSize_.y + buttonSpacing_) * 3.0f;
 		exitButton_->SetScreenPosition(Vector2(centerX + slideX, buttonY));
 		exitButton_->SetSize(Vector2(buttonSize_.x * scale, buttonSize_.y * scale));
 		exitButton_->SetColor(color);
 
-		// テキストも連動（buttonPosにはすでにslideXが含まれている）
+		// テキストも連動
 		const Vector2 buttonPos = exitButton_->GetScreenPosition();
 		exitText_->SetPosition(Vector2(buttonPos.x + exitTextOffset_.x, buttonPos.y + exitTextOffset_.y));
 		exitText_->SetScale(textScale_ * scale);

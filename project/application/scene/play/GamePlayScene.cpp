@@ -365,6 +365,20 @@ void GamePlayScene::Initialize()
 	progressionSystem->SetLevelUpUI(levelUpUI_.get());
 	progressionSystem->SetPostProcessManager(sceneManager_->GetPostProcessManager());
 
+	// ポーズメニューの初期化
+	poseMenu_ = std::make_unique<PoseMenu>();
+	poseMenu_->Initialize(sceneManager_->GetSpriteCommon());
+	poseMenu_->SetOnResumeCallback([this]() { poseMenu_->SetPaused(false); });
+	poseMenu_->SetOnRetryCallback([this]() {
+		sceneManager_->ChangeScene(SceneNames::GamePlay);
+	});
+	poseMenu_->SetOnTitleCallback([this]() {
+		sceneManager_->ChangeScene(SceneNames::Title);
+	});
+	poseMenu_->SetOnExitCallback([this]() {
+		PostQuitMessage(0); // ゲーム終了
+	});
+
 	// シーン遷移エフェクトの初期化
 	const std::string transitionPath = "./Resources/black.png";
 	const float sW = static_cast<float>(WinApp::kClientWidth);
@@ -440,6 +454,7 @@ void GamePlayScene::UpdateUI()
 	if (reticle_) reticle_->Update();
 	if (controlsGuide_) controlsGuide_->Update();
 	if (levelUpUI_) levelUpUI_->Update();
+	if (poseMenu_) poseMenu_->Update();
 }
 
 void GamePlayScene::DrawUI()
@@ -447,6 +462,8 @@ void GamePlayScene::DrawUI()
 	if (reticle_) reticle_->Draw();
 	if (controlsGuide_) controlsGuide_->Draw();
 	if (levelUpUI_) levelUpUI_->Draw();
+	// ポーズメニューは最前面に表示
+	if (poseMenu_) poseMenu_->Draw();
 }
 
 void GamePlayScene::DrawImGui()
@@ -543,6 +560,12 @@ void GamePlayScene::DrawImGui()
 	}
 
 	ImGui::End();
+
+	// ポーズメニューのImGui
+	if (poseMenu_)
+	{
+		poseMenu_->DrawImGui();
+	}
 #endif
 }
 
@@ -586,6 +609,9 @@ void GamePlayScene::OnEnterPlaying()
 void GamePlayScene::OnUpdatePlaying()
 {
 	if (!registry_ || !systemManager_) return;
+
+	// ポーズ中はゲームの進行処理をスキップ
+	if (poseMenu_ && poseMenu_->IsPaused()) return;
 
 	// すべてのECSシステムを更新
 	systemManager_->Update(*registry_);
