@@ -91,6 +91,17 @@ private:
 	static constexpr float kEnterTransitionDuration = 1.5f;
 	static constexpr float kExitTransitionDuration = 2.0f;
 
+	// --- 制限時間表示 ---
+	static constexpr float kGameTimeLimit = 180.0f;
+	static constexpr float kTimerDigitWidth = 64.0f;
+	static constexpr float kTimerDigitHeight = 64.0f;
+	static constexpr float kTimerPosX = 640.0f;
+	static constexpr float kTimerPosY = 50.0f;
+	static constexpr float kTimerSpacing = -5.0f;
+	static constexpr float kTimerScale = 0.8f;
+	// 残り時間が少ないときの警告閾値（秒）
+	static constexpr float kTimerWarningThreshold = 30.0f;
+
     // --- ゲームプレイ ---
     std::unique_ptr<Cursor> reticle_;
     std::unique_ptr<Object3d> skydome_;
@@ -119,6 +130,9 @@ private:
     bool gameClear_ = false;
 	bool gameOver_ = false;
     float gameTime_ = 0.0f;
+
+	// 制限時間の数値表示
+	std::unique_ptr<NumberSprite> timerSprite_;
 
 	// --- UI ---
 	std::unique_ptr<ControlsGuide> controlsGuide_ = nullptr;

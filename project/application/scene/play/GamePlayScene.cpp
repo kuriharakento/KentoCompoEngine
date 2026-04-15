@@ -361,6 +361,15 @@ void GamePlayScene::Initialize()
 	levelUpUI_ = std::make_unique<LevelUpUI>();
 	levelUpUI_->Initialize(sceneManager_->GetSpriteCommon());
 
+	// 制限時間表示用 NumberSprite の初期化
+	timerSprite_ = std::make_unique<NumberSprite>();
+	timerSprite_->Initialize(sprCommon, "./Resources/numbers.png", { kTimerDigitWidth, kTimerDigitHeight });
+	timerSprite_->SetPosition({ kTimerPosX, kTimerPosY });
+	timerSprite_->SetSpacing(kTimerSpacing);
+	timerSprite_->SetScale(kTimerScale);
+	timerSprite_->SetAlignment(NumberAlignment::Center);
+	timerSprite_->SetMinDigits(3); // 最低3桁表示（例: 060）
+
 	// ProgressionSystem に通知先を設定
 	progressionSystem->SetLevelUpUI(levelUpUI_.get());
 	progressionSystem->SetPostProcessManager(sceneManager_->GetPostProcessManager());
@@ -455,6 +464,27 @@ void GamePlayScene::UpdateUI()
 	if (controlsGuide_) controlsGuide_->Update();
 	if (levelUpUI_) levelUpUI_->Update();
 	if (poseMenu_) poseMenu_->Update();
+
+	// 制限時間の残り秒数を更新
+	if (timerSprite_)
+	{
+		float remaining = kGameTimeLimit - gameTime_;
+		if (remaining < 0.0f) remaining = 0.0f;
+		int remainingSeconds = static_cast<int>(remaining);
+		timerSprite_->SetNumber(remainingSeconds);
+
+		// 残り時間が少ないときは赤く警告
+		if (remaining <= kTimerWarningThreshold)
+		{
+			timerSprite_->SetColor(VectorColorCodes::Red);
+		}
+		else
+		{
+			timerSprite_->SetColor(VectorColorCodes::White);
+		}
+
+		timerSprite_->Update();
+	}
 }
 
 void GamePlayScene::DrawUI()
@@ -462,6 +492,8 @@ void GamePlayScene::DrawUI()
 	if (reticle_) reticle_->Draw();
 	if (controlsGuide_) controlsGuide_->Draw();
 	if (levelUpUI_) levelUpUI_->Draw();
+	// 制限時間表示
+	if (timerSprite_) timerSprite_->Draw();
 	// ポーズメニューは最前面に表示
 	if (poseMenu_) poseMenu_->Draw();
 }
@@ -635,7 +667,7 @@ void GamePlayScene::OnUpdatePlaying()
 
 	// ゲームクリア判定 (時間の経過)
 	gameTime_ += TimeManager::GetInstance().GetGameContext().deltaTime;
-	if (gameTime_ >= 180.0f)
+	if (gameTime_ >= kGameTimeLimit)
 	{
 		gameClear_ = true;
 		ChangeState(SceneState::End);
