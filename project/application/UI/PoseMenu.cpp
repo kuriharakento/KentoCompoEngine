@@ -97,27 +97,27 @@ void PoseMenu::Initialize(SpriteCommon* spriteCommon)
 
 	// テキスト初期化
 	titleText_ = std::make_unique<FontSprite>();
-	titleText_->Initialize(spriteCommon, "luna");
+	titleText_->Initialize(spriteCommon, "nico");
 	titleText_->SetText("PAUSED");
 	titleText_->SetVisible(false);
 
 	resumeText_ = std::make_unique<FontSprite>();
-	resumeText_->Initialize(spriteCommon, "luna");
+	resumeText_->Initialize(spriteCommon, "nico");
 	resumeText_->SetText("Resume");
 	resumeText_->SetVisible(false);
 
 	retryText_ = std::make_unique<FontSprite>();
-	retryText_->Initialize(spriteCommon, "luna");
+	retryText_->Initialize(spriteCommon, "nico");
 	retryText_->SetText("Retry");
 	retryText_->SetVisible(false);
 
 	toTitleText_ = std::make_unique<FontSprite>();
-	toTitleText_->Initialize(spriteCommon, "luna");
+	toTitleText_->Initialize(spriteCommon, "nico");
 	toTitleText_->SetText("Title");
 	toTitleText_->SetVisible(false);
 
 	exitText_ = std::make_unique<FontSprite>();
-	exitText_->Initialize(spriteCommon, "luna");
+	exitText_->Initialize(spriteCommon, "nico");
 	exitText_->SetText("Exit");
 	exitText_->SetVisible(false);
 

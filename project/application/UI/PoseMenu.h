@@ -114,22 +114,22 @@ private:
 	std::function<void()> onExitCallback_;
 
 	// レイアウト設定
-	Vector2 menuPosition_ = { 640.0f, 402.0f };  // メニュー中心位置
+	Vector2 menuPosition_ = { 640.0f, 360.0f };  // メニュー中心位置
 	Vector2 buttonSize_ = { 500.0f, 74.0f };     // ボタンサイズ
 	float buttonSpacing_ = 35.0f;                 // ボタン間隔
 
 	// タイトル設定
-	Vector2 titleOffset_ = { -300.0f, -140.0f };  // タイトルのオフセット
-	float titleScale_ = 1.5f;                     // タイトルスケール
-	Vector4 titleColor_ = { 1.0f, 1.0f, 1.0f, 1.0f };  // タイトル色
+	Vector2 titleOffset_ = { -352.0f, -240.0f };
+	float titleScale_ = 1.1f;
+	Vector4 titleColor_ = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 	// ボタンテキスト設定
-	float textScale_ = 0.8f;                      // ボタンテキストスケール
-	Vector2 resumeTextOffset_ = { -186.0f, -1.0f };  // Resumeテキストオフセット
-	Vector2 retryTextOffset_ = { -156.0f, -2.0f };   // Retryテキストオフセット
-	Vector2 toTitleTextOffset_ = { -156.0f, -2.0f }; // Titleテキストオフセット
-	Vector2 exitTextOffset_ = { -130.0f, -1.0f };    // Exitテキストオフセット
-	Vector4 textColor_ = { 1.0f, 1.0f, 1.0f, 1.0f }; // テキスト色
+	float textScale_ = 0.55f;
+	Vector2 resumeTextOffset_ = { -176.0f, 5.0f };
+	Vector2 retryTextOffset_ = { -141.0f, 5.0f };
+	Vector2 toTitleTextOffset_ = { -141.0f, 5.0f };
+	Vector2 exitTextOffset_ = { -106.0f, 5.0f };
+	Vector4 textColor_ = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 	// 背景オーバーレイ設定
 	Vector4 overlayColor_ = { 0.0f, 0.0f, 0.0f, 0.7f };

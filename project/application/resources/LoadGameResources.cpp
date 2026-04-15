@@ -24,6 +24,7 @@ void MyGame::LoadTextures()
 	TextureManager::GetInstance()->LoadTexture("./Resources/numbers.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/title_logo.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/fonts/luna_atlas.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/fonts/nico_atlas.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/simplexNoise.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/flameEye.png");
 	
