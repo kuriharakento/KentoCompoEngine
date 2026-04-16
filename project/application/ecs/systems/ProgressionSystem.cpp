@@ -6,6 +6,8 @@
 #include "engine/ecs/components/TransformComponent.h"
 #include "engine/effects/particle/ParticleManager.h"
 #include "engine/manager/effect/PostProcessManager.h"
+#include "engine/time/TimeManager.h"
+#include "engine/math/Easing.h"
 #include "application/UI/LevelUpUI.h"
 
 void ProgressionSystem::Update(Registry& registry)
@@ -36,11 +38,38 @@ void ProgressionSystem::Update(Registry& registry)
             // 報酬の適用
             ApplyLevelUpRewards(entity, prog.level_, registry);
             leveledUp = true;
+
+            // スキル選択が必要なら一旦中断（次フレームで選択後に残りEXPを処理する）
+            if (pendingSkillSelection_) break;
         }
 
         if (leveledUp)
         {
             PlayLevelUpEffects(entity, registry);
+        }
+    }
+
+    // --- ビネット演出の更新 ---
+    if (isVignetteActive_ && postProcessManager_ && postProcessManager_->vignetteEffect_)
+    {
+        float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
+        vignetteTimer_ += dt;
+
+        float progress = std::clamp(vignetteTimer_ / kVignetteDuration, 0.0f, 1.0f);
+        
+        // パルス強度: 最初は強く、徐々に消える (EaseOutQuad で減衰)
+        float intensity = 0.8f * (1.0f - EaseOutQuad(progress));
+
+        auto& vignette = postProcessManager_->vignetteEffect_;
+        vignette->SetEnabled(true);
+        vignette->SetColor({ 1.0f, 1.0f, 0.0f }); // 黄色
+        vignette->SetIntensity(intensity);
+
+        if (progress >= 1.0f)
+        {
+            isVignetteActive_ = false;
+            vignette->SetEnabled(false);
+            vignette->SetColor({ 0.0f, 0.0f, 0.0f }); // 元に戻す
         }
     }
 }
@@ -50,24 +79,20 @@ void ProgressionSystem::ApplyLevelUpRewards(EntityID entity, uint32_t newLevel, 
     if (registry.HasComponent<SkillComponent>(entity))
     {
         auto& skill = registry.GetComponent<SkillComponent>(entity);
-        
-        // スキル解放テーブル (Rev.4)
-        if (newLevel == 2) skill.isRmbUnlocked_ = true;
-        if (newLevel == 3) skill.isDecoyUnlocked_ = true;
-        if (newLevel == 4) skill.isImpactUnlocked_ = true;
-        if (newLevel == 5) skill.isBeamUnlocked_ = true;
-    }
 
-    if (registry.HasComponent<ecs::StatusComponent>(entity))
-    {
-        auto& status = registry.GetComponent<ecs::StatusComponent>(entity);
-        
-        //// ステータス強化
-        //float boost = 1.1f; // 10%増
-        //status.maxHp_.SetBase(status.maxHp_.GetBase() * boost);
-        //status.hp_.SetBase(status.hp_.GetBase() * boost); // 回復を兼ねるか検討
-        //status.attackPower_.SetBase(status.attackPower_.GetBase() * boost);
-        //status.moveSpeed_.SetBase(status.moveSpeed_.GetBase() * 1.05f); // 速度は控えめに
+        if (newLevel == 2 || newLevel == 3)
+        {
+            // LV2/LV3: スキル選択UIで処理する（ここでは何もしない）
+            // SkillSelectionUI が ProgressionSystem から呼ばれる
+            pendingSkillSelection_ = true;
+            pendingSelectionLevel_ = newLevel;
+        }
+        else if (newLevel >= 4)
+        {
+            // LV4以降: 3枚の候補からランダムに、アップグレードを選択
+            pendingSkillSelection_ = true;
+            pendingSelectionLevel_ = newLevel;
+        }
     }
 }
 
@@ -77,19 +102,22 @@ void ProgressionSystem::PlayLevelUpEffects(EntityID entity, Registry& registry)
     if (registry.HasComponent<TransformComponent>(entity))
     {
         auto& trans = registry.GetComponent<TransformComponent>(entity);
-        // ParticleManager::GetInstance()->Play("level_up", trans.localPosition_);
+        ParticleManager::GetInstance()->Play("level_up", trans.localPosition_);
     }
 
     // 2. SFX (サウンドを仮定)
     // Audio::Play("level_up_se");
 
-    // 3. PostProcess (ビネットのパルス演出)
+    // 3. PostProcess (黄色いビネットのパルス演出)
     if (postProcessManager_ && postProcessManager_->vignetteEffect_)
     {
-        // ビネットを一瞬強める (本来はタイマー管理が必要だが、
-        // 今回の要請では「器」を作ることに専念する)
-        // postProcessManager_->vignetteEffect_->SetEnabled(true);
-        // postProcessManager_->vignetteEffect_->SetIntensity(0.8f);
+        isVignetteActive_ = true;
+        vignetteTimer_ = 0.0f;
+        
+        // 初期状態を設定
+        postProcessManager_->vignetteEffect_->SetEnabled(true);
+        postProcessManager_->vignetteEffect_->SetColor({ 1.0f, 1.0f, 0.0f });
+        postProcessManager_->vignetteEffect_->SetIntensity(0.8f);
     }
 
     // 4. UI通知

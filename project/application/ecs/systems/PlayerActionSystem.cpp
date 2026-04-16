@@ -1,4 +1,5 @@
 #include "PlayerActionSystem.h"
+#include <algorithm>
 
 // engine
 #include "engine/ecs/Registry.h"
@@ -19,12 +20,21 @@
 // app components
 #include "application/ecs/components/PlayerProgressionComponent.h"
 #include "application/ecs/components/SkillComponent.h"
-#include "application/ecs/components/DodgeComponent.h"
-#include "application/ecs/components/StatusComponent.h"
+#include "engine/ecs/components/ColliderComponent.h"
+#include "engine/ecs/components/Object3dComponent.h"
+#include "engine/ecs/components/LifetimeComponent.h"
+#include "engine/ecs/components/TagComponent.h"
 #include "application/ecs/components/ProjectileComponent.h"
 #include "application/ecs/components/InducedExplosionComponent.h"
-#include "application/ecs/components/ImpactChargeComponent.h"
 #include "application/ecs/CollisionConfig.h"
+#include "application/effect/BulletTrailManager.h"
+#include "application/effect/HomingTrailManager.h"
+#include "application/ecs/components/DodgeComponent.h"
+#include "application/ecs/components/StatusComponent.h"
+#include "application/ecs/components/TurretComponent.h"
+#include "application/ecs/components/SprinklerComponent.h"
+#include "application/ecs/components/DamageStackComponent.h"
+#include "application/ecs/components/DecoyComponent.h"
 
 // app systems/managers
 #include "input/Input.h"
@@ -74,7 +84,7 @@ void PlayerActionSystem::Update(Registry& registry)
 			{
 				UpdateSkills(entity, registry, dt);
 
-				// --- パーティクルの追従と停止制御 (リファクタ版: SkillComponentで直接管理) ---
+				// ビームパーティクルの追従と停止
 				auto& skill = registry.GetComponent<SkillComponent>(entity);
 				if (skill.activeBeamParticle_)
 				{
@@ -94,10 +104,8 @@ void PlayerActionSystem::Update(Registry& registry)
 
 							if (auto* e2 = skill.activeBeamParticle_->GetEmitter("e2"))
 							{
-								// ビーム中心を前方60ユニットへ
 								e2->SetFollowOffset(forward * 60.0f);
 
-								// 発生角度を水平方向に更新
 								if (auto* rot = e2->GetModule<InitialRotationModule>())
 								{
 									float radToDeg = 180.0f / 3.14159265f;
@@ -107,10 +115,8 @@ void PlayerActionSystem::Update(Registry& registry)
 							}
 							if (auto* e3 = skill.activeBeamParticle_->GetEmitter("e3"))
 							{
-								// 光の筋の中心を前方50ユニットへ
 								e3->SetFollowOffset(forward * 50.0f);
 
-								// 発生角度を水平方向に更新
 								if (auto* rot = e3->GetModule<InitialRotationModule>())
 								{
 									float radToDeg = 180.0f / 3.14159265f;
@@ -266,403 +272,502 @@ void PlayerActionSystem::UpdateSkills(EntityID entity, Registry& registry, float
 
 	// タイマー更新
 	if (skill.lmbTimer_ > 0.0f) skill.lmbTimer_ -= dt;
-	if (skill.rmbTimer_ > 0.0f) skill.rmbTimer_ -= dt;
-	if (skill.decoyTimer_ > 0.0f) skill.decoyTimer_ -= dt;
-	if (skill.impactTimer_ > 0.0f) skill.impactTimer_ -= dt;
-	if (skill.beamTimer_ > 0.0f) skill.beamTimer_ -= dt;
+	if (skill.baseSkillTimer_ > 0.0f) skill.baseSkillTimer_ -= dt;
+	if (skill.specialSkillTimer_ > 0.0f) skill.specialSkillTimer_ -= dt;
 
-	UpdateLMB(entity, registry, dt);
-	UpdateRMB(entity, registry, dt);
-	UpdateQ(entity, registry, dt);
-	UpdateE(entity, registry, dt);
-	UpdateR(entity, registry, dt);
-
-#ifdef _DEBUG
-	// デコイの可視化 (デバッグ用)
-	auto decoyView = registry.View<ecs::TagComponent>();
-	if (decoyView)
+	// タレットバフのタイマー
+	if (skill.isTurretBuffActive_)
 	{
-		for (uint32_t i = 0; i < decoyView->GetSize(); ++i)
+		skill.turretBuffTimer_ -= dt;
+		if (skill.turretBuffTimer_ <= 0.0f)
 		{
-			if (decoyView->GetDataFromDenseIndex(i).type == ecs::TagComponent::Type::Decoy)
-			{
-				EntityID decoyEnt = decoyView->GetEntityFromDenseIndex(i);
-				if (registry.HasComponent<TransformComponent>(decoyEnt))
-				{
-					auto& dTrans = registry.GetComponent<TransformComponent>(decoyEnt);
-					LineManager::GetInstance()->DrawCube(dTrans.localPosition_, 1.0f, VectorColorCodes::Yellow);
-				}
-			}
+			skill.isTurretBuffActive_ = false;
 		}
 	}
-#endif
+
+	UpdateLMB(entity, registry, dt);
+
+	// Qスキル: LV2でルート選択後のみ使用可能
+	if (skill.route_ != SkillRoute::None)
+	{
+		UpdateSkill1(entity, registry, dt);
+	}
+
+	// Eスキル: LV3で派生選択後のみ使用可能
+	if (skill.special_ != SkillSpecialChoice::None)
+	{
+		UpdateSkill2(entity, registry, dt);
+	}
+
+	UpdateR(entity, registry, dt);
 }
 
 void PlayerActionSystem::UpdateLMB(EntityID entity, Registry& registry, float)
 {
 	auto& skill = registry.GetComponent<SkillComponent>(entity);
-	if (!skill.isLmbUnlocked_)
-	{
-		if (Input::GetInstance()->IsMouseButtonTriggered(0))
-			Audio::GetInstance()->PlayWave("skill_lock", false);
-		return;
-	}
+	if (!skill.isLmbUnlocked_) return;
 	if (skill.lmbTimer_ > 0.0f) return;
 
 	if (Input::GetInstance()->IsMouseButtonPressed(0))
 	{
 		Audio::GetInstance()->PlayWave("fire", false);
-		// 弾を生成
+		// 弾を生成 (lmbBulletCount_ に基づくマルチショット)
 		auto& trans = registry.GetComponent<TransformComponent>(entity);
-		float yaw = trans.localRotation_.y;
-		Vector3 dir = { sin(yaw), 0, cos(yaw) };
+		float baseYaw = trans.localRotation_.y;
 
-		EntityID proj = registry.CreateEntity();
-		Vector3 spawnPos = { trans.localPosition_.x, 0.5f, trans.localPosition_.z };
-		registry.AddComponent<TransformComponent>(proj, { spawnPos, trans.localRotation_, {1.5f, 1.5f, 1.5f} });
+		uint32_t bulletPool = skill.lmbBulletCount_;
+		float spreadAngle = 0.15f; // 拡散角
+		float startYaw = baseYaw - spreadAngle * (bulletPool - 1) * 0.5f;
 
-		ProjectileComponent pc;
-		pc.type_ = ProjectileComponent::Type::Lmb;
-		pc.velocity_ = dir * 80.0f;
-		pc.damage_ = 10.0f;
-		pc.lifetime_ = 1.5f;
-		pc.trailId_ = BulletTrailManager::GetInstance().RegisterBulletManual();
-		registry.AddComponent<ProjectileComponent>(proj, pc);
+		for (uint32_t bIdx = 0; bIdx < bulletPool; ++bIdx)
+		{
+			float curYaw = startYaw + spreadAngle * bIdx;
+			Vector3 dir = { sin(curYaw), 0, cos(curYaw) };
 
-		// Rendering
-		InstancedRenderComponent render;
-		render.modelName_ = "bullet";
-		render.useInstancing_ = true;
-		registry.AddComponent<InstancedRenderComponent>(proj, render);
+			EntityID proj = registry.CreateEntity();
+			Vector3 spawnPos = { trans.localPosition_.x, 0.5f, trans.localPosition_.z };
+			registry.AddComponent<TransformComponent>(proj, { spawnPos, {0, curYaw, 0}, {1.5f, 1.5f, 1.5f} });
 
-		// コライダー設定 (BNS-Style: 振る舞いをデータとして持たせる)
-		ecs::ColliderComponent col;
-		col.type_ = ColliderType::Sphere;
-		col.sphere_.radius = 0.4f;
-		col.previousPosition_ = trans.localPosition_;
-		col.isTrigger_ = true; // 物理的に押し返さない
+			ProjectileComponent pc;
+			pc.type_ = ProjectileComponent::Type::Lmb;
+			pc.velocity_ = dir * skill.lmbProjectileSpeed_;
+			pc.damage_ = 80.0f * skill.lmbDamageMultiplier_;
+			pc.lifetime_ = 1.5f;
+			pc.pierceCount_ = skill.lmbPierceCount_; // 貫通数
+			pc.trailId_ = BulletTrailManager::GetInstance().RegisterBulletManual();
+			registry.AddComponent<ProjectileComponent>(proj, pc);
 
-		// フィルタリング設定
-		col.layer = CollisionLayer::PlayerBullet;
-		col.mask = CollisionLayer::Enemy | CollisionLayer::Obstacle;
+			// Rendering
+			InstancedRenderComponent render;
+			render.modelName_ = "bullet";
+			render.useInstancing_ = true;
+			registry.AddComponent<InstancedRenderComponent>(proj, render);
 
-		// 衝突応答
-		col.onCollisionEnter = [this, &registry, proj](const ecs::CollisionPartnerInfo& other) {
-			// 弾は Enemy または Obstacle に当たったら自身を消す
-			if (registry.HasComponent<ecs::ColliderComponent>(other.entity))
-			{
-				auto& otherCol = registry.GetComponent<ecs::ColliderComponent>(other.entity);
-				if (otherCol.layer & (CollisionLayer::Enemy))
+			// コライダー設定
+			ecs::ColliderComponent col;
+			col.type_ = ColliderType::Sphere;
+			col.sphere_.radius = 0.4f;
+			col.previousPosition_ = trans.localPosition_;
+			col.isTrigger_ = true;
+			col.layer = CollisionLayer::PlayerBullet;
+			col.mask = CollisionLayer::Enemy | CollisionLayer::Obstacle;
+
+			uint32_t pierceLimit = skill.lmbPierceCount_;
+
+			col.onCollisionEnter = [this, &registry, proj, pierceLimit](const ecs::CollisionPartnerInfo& other) {
+				if (!registry.IsAlive(proj)) return;
+
+				if (registry.HasComponent<ecs::ColliderComponent>(other.entity))
 				{
-					// 誘爆スタックの加算
-					if (registry.HasComponent<ecs::InducedExplosionComponent>(other.entity))
+					auto& otherCol = registry.GetComponent<ecs::ColliderComponent>(other.entity);
+					if (otherCol.layer & (CollisionLayer::Enemy))
 					{
-						auto& stack = registry.GetComponent<ecs::InducedExplosionComponent>(other.entity);
-						stack.count_ += 3;
-						if (stack.count_ >= ecs::InducedExplosionComponent::kMaxCount)
+						// ダメージ処理
+						if (registry.HasComponent<ecs::StatusComponent>(other.entity))
 						{
-							SpawnExplosion(other.entity, registry);
+							auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
+							float bonusDamage = 0.0f;
+
+							if (registry.HasComponent<DamageStackComponent>(other.entity))
+							{
+								auto& dmgStack = registry.GetComponent<DamageStackComponent>(other.entity);
+								bonusDamage = dmgStack.count_ * DamageStackComponent::kDamagePerStack;
+								dmgStack.count_ = 0;
+							}
+
+							status.hp_.SetBase(status.hp_.GetBase() - (80.0f + bonusDamage));
+						}
+
+						// 誘爆スタック
+						if (registry.HasComponent<ecs::InducedExplosionComponent>(other.entity))
+						{
+							auto& stack = registry.GetComponent<ecs::InducedExplosionComponent>(other.entity);
+							stack.count_ += 3;
+							if (stack.count_ >= ecs::InducedExplosionComponent::kMaxCount)
+							{
+								SpawnExplosion(other.entity, registry);
+							}
+						}
+
+						// ヒットエフェクト
+						if (registry.HasComponent<TransformComponent>(proj)) {
+							ParticleManager::GetInstance()->Play("hit_effect_ver2", registry.GetComponent<TransformComponent>(proj).localPosition_);
+						}
+
+						// 貫通チェック
+						auto& pc = registry.GetComponent<ProjectileComponent>(proj);
+						if (pc.pierceCount_ > 0)
+						{
+							pc.pierceCount_--;
+						}
+						else
+						{
+							registry.DestroyEntityDeferred(proj);
 						}
 					}
-
-					// ヒットエフェクトの再生
-					if (registry.HasComponent<TransformComponent>(proj))
+					else if (otherCol.layer & (CollisionLayer::Obstacle))
 					{
-						auto& bulletTrans = registry.GetComponent<TransformComponent>(proj);
-						ParticleManager::GetInstance()->Play("hit_effect_ver2", bulletTrans.localPosition_);
+						registry.DestroyEntityDeferred(proj);
 					}
-
-					// ダメージ処理 (80ダメージに調整)
-					if (registry.HasComponent<ecs::StatusComponent>(other.entity))
-					{
-						auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
-						status.hp_.SetBase(status.hp_.GetBase() - 80.0f);
-					}
-
-					registry.DestroyEntityDeferred(proj);
 				}
-				else if (otherCol.layer & (CollisionLayer::Obstacle))
-				{
-					registry.DestroyEntityDeferred(proj);
-				}
-			}
-			};
+				};
 
-		registry.AddComponent<ecs::ColliderComponent>(proj, col);
-		registry.AddComponent<CollisionResponseComponent>(proj, {});
+			registry.AddComponent<ecs::ColliderComponent>(proj, col);
+			registry.AddComponent<CollisionResponseComponent>(proj, {});
+		}
 
-		skill.lmbTimer_ = skill.kLmbCooldown;
+		// クールタイム（倍率適用）
+		skill.lmbTimer_ = SkillComponent::kLmbBaseCooldown * skill.lmbCooldownMultiplier_;
 	}
 }
 
-void PlayerActionSystem::UpdateRMB(EntityID entity, Registry& registry, float)
+void PlayerActionSystem::UpdateSkill1(EntityID entity, Registry& registry, float)
 {
 	auto& skill = registry.GetComponent<SkillComponent>(entity);
-	if (!skill.isRmbUnlocked_)
+	if (skill.baseSkillTimer_ > 0.0f) return;
+
+	if (Input::GetInstance()->TriggerKey(DIK_Q))
 	{
-		if (Input::GetInstance()->IsMouseButtonTriggered(2))
-			Audio::GetInstance()->PlayWave("skill_lock", false);
-		return;
+		if (skill.route_ == SkillRoute::Bomb)
+		{
+			// 自分から衝撃波
+			FireBombWave(entity, registry);
+
+			// 生きている全デコイからも衝撃波
+			for (auto it = skill.activeDecoyEntities_.begin(); it != skill.activeDecoyEntities_.end(); )
+			{
+				if (registry.IsAlive(*it))
+				{
+					FireBombWave(*it, registry);
+					++it;
+				}
+				else
+				{
+					it = skill.activeDecoyEntities_.erase(it);
+				}
+			}
+		}
+		else if (skill.route_ == SkillRoute::Turret)
+		{
+			SpawnTurret(entity, registry);
+		}
+
+		skill.baseSkillTimer_ = SkillComponent::kBaseSkillCooldown * skill.qCooldownMultiplier_;
 	}
-	if (skill.rmbTimer_ > 0.0f) return;
+}
 
-	if (Input::GetInstance()->IsMouseButtonPressed(2)) // 右クリック
+void PlayerActionSystem::UpdateSkill2(EntityID entity, Registry& registry, float)
+{
+	auto& skill = registry.GetComponent<SkillComponent>(entity);
+	if (skill.specialSkillTimer_ > 0.0f) return;
+
+	if (Input::GetInstance()->TriggerKey(DIK_E))
 	{
-		Audio::GetInstance()->PlayWave("fire", false);
-		auto& trans = registry.GetComponent<TransformComponent>(entity);
-		float yaw = trans.localRotation_.y;
-		Vector3 dir = { sin(yaw), 0, cos(yaw) };
+		switch (skill.special_)
+		{
+		case SkillSpecialChoice::HomingMissile:
+			FireHomingMissile(entity, registry);
+			break;
+		case SkillSpecialChoice::DecoyBomb:
+			SpawnDecoy(entity, registry);
+			break;
+		case SkillSpecialChoice::MissileSalvo:
+		case SkillSpecialChoice::PlasmaLaser:
+			// タレット特殊射撃モード発動
+			skill.isTurretBuffActive_ = true;
+			skill.turretBuffTimer_ = SkillComponent::kTurretBuffDuration;
+			if (registry.HasComponent<TransformComponent>(entity)) {
+				ParticleManager::GetInstance()->Play("hit_effect_ver2", registry.GetComponent<TransformComponent>(entity).localPosition_);
+			}
+			break;
+		default:
+			break;
+		}
 
+		skill.specialSkillTimer_ = SkillComponent::kSpecialSkillCooldown * skill.eCooldownMultiplier_;
+	}
+}
+
+void PlayerActionSystem::FireBombWave(EntityID entity, Registry& registry)
+{
+	if (!registry.HasComponent<TransformComponent>(entity)) return;
+	auto& trans = registry.GetComponent<TransformComponent>(entity);
+
+	// 使用者のスキルコンポーネント（範囲アップ適用のため、プレイヤーを探す）
+	float range = 15.0f;
+	auto skillView = registry.View<SkillComponent>();
+	if (skillView && skillView->GetSize() > 0)
+	{
+		range = skillView->GetDataFromDenseIndex(0).qRange_;
+	}
+
+	// 全方位衝撃波エンティティ（Sphereトリガー）
+	EntityID wave = registry.CreateEntity();
+	Vector3 wavePos = trans.localPosition_;
+	wavePos.y = 0.5f;
+	registry.AddComponent<TransformComponent>(wave, { wavePos, {0,0,0}, {1,1,1} });
+	registry.AddComponent<LifetimeComponent>(wave, { 0.0f, 0.15f });
+
+	ecs::ColliderComponent col;
+	col.type_ = ColliderType::Sphere;
+	col.sphere_.radius = range;
+	col.isTrigger_ = true;
+	col.layer = CollisionLayer::PlayerBullet;
+	col.mask = CollisionLayer::Enemy;
+
+	static constexpr float kWaveDamage = 20.0f;
+
+	col.onCollisionEnter = [this, &registry](const ecs::CollisionPartnerInfo& other) {
+		if (registry.HasComponent<ecs::TagComponent>(other.entity) &&
+			registry.GetComponent<ecs::TagComponent>(other.entity).type == ecs::TagComponent::Type::Enemy)
+		{
+			// ボムスタック付与
+			if (!registry.HasComponent<ecs::InducedExplosionComponent>(other.entity))
+			{
+				registry.AddComponent<ecs::InducedExplosionComponent>(other.entity, { 1 });
+			}
+			else
+			{
+				auto& stack = registry.GetComponent<ecs::InducedExplosionComponent>(other.entity);
+				stack.count_++;
+				if (stack.count_ >= ecs::InducedExplosionComponent::kMaxCount)
+				{
+					SpawnExplosion(other.entity, registry);
+				}
+			}
+
+			// ダメージ処理
+			if (registry.HasComponent<ecs::StatusComponent>(other.entity))
+			{
+				auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
+				status.hp_.SetBase(status.hp_.GetBase() - kWaveDamage);
+			}
+		}
+		};
+
+	registry.AddComponent<ecs::ColliderComponent>(wave, col);
+	registry.AddComponent<CollisionResponseComponent>(wave, {});
+
+	// パーティクル
+	ParticleManager::GetInstance()->Play("E_skill", trans.localPosition_);
+}
+
+void PlayerActionSystem::FireHomingMissile(EntityID entity, Registry& registry)
+{
+	auto& skill = registry.GetComponent<SkillComponent>(entity);
+	auto& trans = registry.GetComponent<TransformComponent>(entity);
+
+	// 近くの敵でボムスタック持ちを検索
+	auto colSys = systemManager_->GetSystem<CollisionSystem>();
+	if (!colSys) return;
+
+	static constexpr float kHomingSearchRadius = 100.0f; // 範囲拡大
+	static constexpr int kMaxMissiles = 5;
+
+	// ターゲット候補の収集
+	std::vector<EntityID> markedTargets;
+	std::vector<EntityID> ordinaryTargets;
+
+	colSys->QueryNearbyEntities(trans.localPosition_, kHomingSearchRadius, [&](EntityID target) {
+		if (!registry.HasComponent<ecs::TagComponent>(target)) return;
+		if (registry.GetComponent<ecs::TagComponent>(target).type != ecs::TagComponent::Type::Enemy) return;
+
+		// マーク（爆発成分）持ちを優先
+		if (registry.HasComponent<ecs::InducedExplosionComponent>(target))
+		{
+			auto& stack = registry.GetComponent<ecs::InducedExplosionComponent>(target);
+			if (stack.count_ > 0)
+			{
+				markedTargets.push_back(target);
+				return;
+			}
+		}
+		// 一般ターゲット（フォールバック用）
+		ordinaryTargets.push_back(target);
+	});
+
+	// ターゲットの選定
+	std::vector<EntityID> finalTargets;
+	std::vector<EntityID>& candidates = markedTargets.empty() ? ordinaryTargets : markedTargets;
+
+	if (!candidates.empty())
+	{
+		// ターゲット候補を繰り返して最大数まで埋める
+		for (int i = 0; i < kMaxMissiles; ++i)
+		{
+			finalTargets.push_back(candidates[i % candidates.size()]);
+		}
+	}
+
+	uint32_t missileCount = skill.eMissileCount_;
+
+	Audio::GetInstance()->PlayWave("fire", false);
+
+	for (uint32_t i = 0; i < missileCount; ++i)
+	{
+		// ミサイルEntityの生成
 		EntityID proj = registry.CreateEntity();
-		Vector3 spawnPos = { trans.localPosition_.x, 0.5f, trans.localPosition_.z };
+		
+		// 少し左右に散らす
+		float offsetX = (i - (missileCount - 1) * 0.5f) * 0.5f;
+		Vector3 spawnPos = { trans.localPosition_.x + offsetX, 0.5f, trans.localPosition_.z };
 		registry.AddComponent<TransformComponent>(proj, { spawnPos, trans.localRotation_, {1.0f, 1.0f, 1.0f} });
-
+		
+		// ProjectileComponent
 		ProjectileComponent pc;
-		pc.type_ = ProjectileComponent::Type::Rmb;
-		pc.velocity_ = dir * 60.0f;
-		pc.damage_ = 2.0f; // 低火力
-		pc.lifetime_ = 1.0f;
-		pc.trailId_ = BulletTrailManager::GetInstance().RegisterBulletManual();
+		pc.type_ = ProjectileComponent::Type::Lmb; 
+		pc.speed_ = 40.0f; // 追従を見やすくするため減速
+		
+		// 初期速度設定
+		Matrix4x4 rot = MakeRotateMatrix(trans.localRotation_);
+		pc.velocity_ = MathUtils::Transform({ 0, 0, 1 }, rot) * pc.speed_;
+
+		pc.damage_ = 20.0f;
+		pc.lifetime_ = 2.0f;
+		
+		// ターゲット収集
+		EntityID target = kInvalidEntity;
+		if (i < finalTargets.size()) target = finalTargets[i];
+
+		pc.isHoming_ = (target != kInvalidEntity);
+		pc.targetEntity_ = target;
+		
+		// トレイル設定
+		pc.trailType_ = ProjectileComponent::TrailType::Homing;
+		pc.trailId_ = HomingTrailManager::GetInstance().RegisterBulletManual();
+		HomingTrailManager::GetInstance().UpdateBulletManual(pc.trailId_, spawnPos);
+		
 		registry.AddComponent<ProjectileComponent>(proj, pc);
 
-		// ecs::TagComponent を追加
-		ecs::TagComponent tag;
-		tag.type = ecs::TagComponent::Type::Bullet;
-		registry.AddComponent<ecs::TagComponent>(proj, tag);
-
-		InstancedRenderComponent render;
-		render.modelName_ = "bullet";
-		render.useInstancing_ = true;
-		render.isVisible_ = false; // パーティクルのみにする
-		registry.AddComponent<InstancedRenderComponent>(proj, render);
-
+		// コライダー設定
 		ecs::ColliderComponent col;
 		col.type_ = ColliderType::Sphere;
 		col.sphere_.radius = 0.5f;
 		col.isTrigger_ = true;
 		col.layer = CollisionLayer::PlayerBullet;
-		col.mask = CollisionLayer::Enemy;
+		col.mask = CollisionLayer::Enemy | CollisionLayer::Obstacle;
 
-		// 連鎖ロジック用キャプチャ
-		SystemManager* sysMgr = systemManager_;
-
-		col.onCollisionEnter = [this, &registry, proj, sysMgr](const ecs::CollisionPartnerInfo& other) {
+		col.onCollisionEnter = [this, &registry, proj](const ecs::CollisionPartnerInfo& other) {
+			if (!registry.IsAlive(proj)) return;
 			if (registry.HasComponent<ecs::TagComponent>(other.entity) &&
 				registry.GetComponent<ecs::TagComponent>(other.entity).type == ecs::TagComponent::Type::Enemy)
 			{
-				// 命中地点
-				Vector3 hitPos = registry.GetComponent<TransformComponent>(other.entity).localPosition_;
-
-				// 近くの敵を検索して連鎖
-				auto colSys = sysMgr->GetSystem<CollisionSystem>();
-				if (colSys)
-				{
-					int chainCount = 0;
-					const int kMaxChain = 5;
-					colSys->QueryNearbyEntities(hitPos, 8.0f, [this, &registry, hitPos, &chainCount, kMaxChain](EntityID victim) {
-						if (chainCount >= kMaxChain) return;
-						if (victim == kInvalidEntity) return;
-
-						if (registry.HasComponent<ecs::TagComponent>(victim) &&
-							registry.GetComponent<ecs::TagComponent>(victim).type == ecs::TagComponent::Type::Enemy)
-						{
-							// 距離の精査 (8.0f以内)
-							Vector3 victimPos = registry.GetComponent<TransformComponent>(victim).localPosition_;
-							float distSq = (victimPos - hitPos).LengthSquared();
-							if (distSq > 8.0f * 8.0f) return;
-
-							// 誘爆スタックの加算
-							if (registry.HasComponent<ecs::InducedExplosionComponent>(victim))
-							{
-								auto& stack = registry.GetComponent<ecs::InducedExplosionComponent>(victim);
-								stack.count_++;
-								if (stack.count_ >= ecs::InducedExplosionComponent::kMaxCount)
-								{
-									SpawnExplosion(victim, registry);
-								}
-							}
-
-							// ダメージ処理 (15ダメージに調整)
-							if (registry.HasComponent<ecs::StatusComponent>(victim))
-							{
-								auto& status = registry.GetComponent<ecs::StatusComponent>(victim);
-								status.hp_.SetBase(status.hp_.GetBase() - 15.0f);
-							}
-
-							// 雷描画 (とりあえずラインマネージャー)
-							LineManager::GetInstance()->DrawLine(hitPos, victimPos, VectorColorCodes::Cyan);
-
-							chainCount++;
-						}
-												});
-				}
-				// 最初に当たった敵のスタックとダメージ処理
-				if (registry.HasComponent<ecs::InducedExplosionComponent>(other.entity))
-				{
-					auto& stack = registry.GetComponent<ecs::InducedExplosionComponent>(other.entity);
-					stack.count_++;
-					if (stack.count_ >= ecs::InducedExplosionComponent::kMaxCount)
-					{
-						SpawnExplosion(other.entity, registry);
-					}
-				}
-
-				// ヒットエフェクトの再生
-				if (registry.HasComponent<TransformComponent>(proj))
-				{
-					auto& bulletTrans = registry.GetComponent<TransformComponent>(proj);
-					ParticleManager::GetInstance()->Play("hit_effect_ver2", bulletTrans.localPosition_);
-				}
-
-				// ダメージ処理 (15ダメージに調整)
-				if (registry.HasComponent<ecs::StatusComponent>(other.entity))
-				{
-					auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
-					status.hp_.SetBase(status.hp_.GetBase() - 15.0f);
-				}
-
+				SpawnExplosion(other.entity, registry);
 				registry.DestroyEntityDeferred(proj);
 			}
-			};
+		};
 
 		registry.AddComponent<ecs::ColliderComponent>(proj, col);
 		registry.AddComponent<CollisionResponseComponent>(proj, {});
-
-		skill.rmbTimer_ = skill.kRmbCooldown;
 	}
 }
 
-void PlayerActionSystem::UpdateQ(EntityID entity, Registry& registry, float)
+void PlayerActionSystem::SpawnDecoy(EntityID entity, Registry& registry)
 {
 	auto& skill = registry.GetComponent<SkillComponent>(entity);
-	if (!skill.isDecoyUnlocked_)
+	auto& trans = registry.GetComponent<TransformComponent>(entity);
+
+	// 無効なデコイをリストから削除（クリーンアップ）
+	skill.activeDecoyEntities_.erase(
+		std::remove_if(skill.activeDecoyEntities_.begin(), skill.activeDecoyEntities_.end(),
+			[&registry](EntityID e) { return !registry.IsAlive(e); }),
+		skill.activeDecoyEntities_.end());
+
+	// 最大数（デコイはとりあえず1つのままにするがコンテナを使う）
+	if (skill.activeDecoyEntities_.size() >= 1)
 	{
-		if (Input::GetInstance()->TriggerKey(DIK_Q))
-			Audio::GetInstance()->PlayWave("skill_lock", false);
-		return;
+		EntityID oldest = skill.activeDecoyEntities_[0];
+		registry.DestroyEntityDeferred(oldest);
+		skill.activeDecoyEntities_.erase(skill.activeDecoyEntities_.begin());
 	}
 
-	// デコイのライフサイクル管理 (パーティクルの追従と停止)
-	if (skill.activeDecoyParticle_)
-	{
-		if (skill.decoyTimer_ <= 0.0f)
-		{
-			skill.activeDecoyParticle_->Stop();
-			skill.activeDecoyParticle_ = nullptr;
-			skill.activeDecoyEntity_ = kInvalidEntity;
-		}
-		else if (registry.IsAlive(skill.activeDecoyEntity_))
-		{
-			// デコイの現在位置にパーティクルを更新
-			auto& dTrans = registry.GetComponent<TransformComponent>(skill.activeDecoyEntity_);
-			skill.activeDecoyParticle_->SetPosition(dTrans.localPosition_);
-		}
-	}
+	// デコイを設置
+	EntityID decoy = registry.CreateEntity();
+	Vector3 spawnPos = trans.localPosition_;
+	spawnPos.y = 0.1f;
+	registry.AddComponent<TransformComponent>(decoy, { spawnPos, {0,0,0}, {1,1,1} });
 
-	if (skill.decoyTimer_ > 0.0f) return;
+	DecoyComponent dc;
+	dc.owner_ = entity;
+	registry.AddComponent<DecoyComponent>(decoy, dc);
+	
+	// タグ付け（敵が狙うため）
+	ecs::TagComponent tag;
+	tag.type = ecs::TagComponent::Type::Decoy;
+	registry.AddComponent<ecs::TagComponent>(decoy, tag);
 
-	if (Input::GetInstance()->TriggerKey(DIK_Q))
-	{
-		auto& trans = registry.GetComponent<TransformComponent>(entity);
-		float yaw = trans.localRotation_.y;
-		Vector3 forward = { sin(yaw), 0, cos(yaw) };
+	registry.AddComponent<LifetimeComponent>(decoy, { 0.0f, skill.eDecoyDuration_ });
 
-		// デコイの生成
-		EntityID decoy = registry.CreateEntity();
-		Vector3 spawnPos = trans.localPosition_ + forward * 3.0f;
-		registry.AddComponent<TransformComponent>(decoy, { spawnPos, {0,0,0}, {1,1,1} });
+	// 描画成分 (スプリンクラーの時と同じように敵モデル代用か、プレイヤー色違いなど)
+	InstancedRenderComponent render;
+	render.modelName_ = "player"; // プレイヤーのデコイっぽく
+	render.useInstancing_ = true;
+	registry.AddComponent<InstancedRenderComponent>(decoy, render);
 
-		ecs::TagComponent tag;
-		tag.type = ecs::TagComponent::Type::Decoy;
-		registry.AddComponent<ecs::TagComponent>(decoy, tag);
+	skill.activeDecoyEntities_.push_back(decoy);
 
-		// パーティクル演出の再生 (デコイの座標に配置し、Entityを保持して追従させる)
-		skill.activeDecoyParticle_ = ParticleManager::GetInstance()->Play("Q_skill", spawnPos);
-		skill.activeDecoyEntity_ = decoy;
-
-		registry.AddComponent<LifetimeComponent>(decoy, { 0.0f, 5.0f });
-
-		skill.decoyTimer_ = skill.kDecoyCooldown;
-	}
+#ifdef _DEBUG
+	LineManager::GetInstance()->DrawSphere(spawnPos, 5.0f, VectorColorCodes::Green);
+#endif
 }
 
-void PlayerActionSystem::UpdateE(EntityID entity, Registry& registry, float)
+void PlayerActionSystem::SpawnTurret(EntityID entity, Registry& registry)
 {
 	auto& skill = registry.GetComponent<SkillComponent>(entity);
-	if (!skill.isImpactUnlocked_)
+	auto& trans = registry.GetComponent<TransformComponent>(entity);
+
+	Vector3 spawnPos = trans.localPosition_;
+	spawnPos.y = 0.5f;
+
+	// 無効なタレットをリストから削除（クリーンアップ）
+	skill.activeTurretEntities_.erase(
+		std::remove_if(skill.activeTurretEntities_.begin(), skill.activeTurretEntities_.end(),
+			[&registry](EntityID e) { return !registry.IsAlive(e); }),
+		skill.activeTurretEntities_.end());
+
+	// すでに最大数設置されている場合は、最古のものをワープさせる
+	if (skill.activeTurretEntities_.size() >= skill.qMaxTurrets_)
 	{
-		if (Input::GetInstance()->TriggerKey(DIK_E))
-			Audio::GetInstance()->PlayWave("skill_lock", false);
+		EntityID oldest = skill.activeTurretEntities_[0];
+		
+		auto& tTrans = registry.GetComponent<TransformComponent>(oldest);
+		tTrans.localPosition_ = spawnPos;
+		tTrans.isDirty_ = true;
+		
+		// 先頭から削除して末尾に追加（最古を更新）
+		skill.activeTurretEntities_.erase(skill.activeTurretEntities_.begin());
+		skill.activeTurretEntities_.push_back(oldest);
 		return;
 	}
-	if (skill.impactTimer_ > 0.0f) return;
 
-	if (Input::GetInstance()->TriggerKey(DIK_E))
-	{
-		auto& trans = registry.GetComponent<TransformComponent>(entity);
+	// 新規設置
+	EntityID turret = registry.CreateEntity();
+	registry.AddComponent<TransformComponent>(turret, { spawnPos, {0,0,0}, {1.5f, 1.5f, 1.5f} });
 
-		// Eスキルパーティクルの再生
-		ParticleManager::GetInstance()->Play("E_skill", trans.localPosition_);
+	TurretComponent tc;
+	tc.owner_ = entity;
+	// tc.lifetime_ は不要（永続）
+	registry.AddComponent<TurretComponent>(turret, tc);
 
-		// インパクトエンティティ（透明な衝撃波判定）
-		EntityID impact = registry.CreateEntity();
-		registry.AddComponent<TransformComponent>(impact, { trans.localPosition_, {0,0,0}, {1,1,1} });
-		registry.AddComponent<LifetimeComponent>(impact, { 0.0f, 0.1f }); // 1フレームに近い
+	// タレット用描画
+	InstancedRenderComponent render;
+	render.modelName_ = "enemy"; 
+	render.useInstancing_ = true;
+	registry.AddComponent<InstancedRenderComponent>(turret, render);
 
-		ecs::ColliderComponent col;
-		col.type_ = ColliderType::Sphere;
-		col.sphere_.radius = 15.0f;
-		col.isTrigger_ = true;
-		col.layer = CollisionLayer::PlayerBullet;
-		col.mask = CollisionLayer::Enemy;
+	skill.activeTurretEntities_.push_back(turret);
 
-		SystemManager* sysMgr = systemManager_;
-
-		col.onCollisionEnter = [this, &registry](const ecs::CollisionPartnerInfo& other) {
-			if (registry.HasComponent<ecs::TagComponent>(other.entity) &&
-				registry.GetComponent<ecs::TagComponent>(other.entity).type == ecs::TagComponent::Type::Enemy)
-			{
-				// 誘爆スタックの付与・更新
-				if (!registry.HasComponent<ecs::InducedExplosionComponent>(other.entity))
-				{
-					registry.AddComponent<ecs::InducedExplosionComponent>(other.entity, { 1 });
-				}
-				else
-				{
-					auto& stack = registry.GetComponent<ecs::InducedExplosionComponent>(other.entity);
-					stack.count_++;
-					if (stack.count_ >= ecs::InducedExplosionComponent::kMaxCount)
-					{
-						SpawnExplosion(other.entity, registry);
-					}
-				}
-
-				// ダメージ処理 (20ダメージ追加)
-				if (registry.HasComponent<ecs::StatusComponent>(other.entity))
-				{
-					auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
-					status.hp_.SetBase(status.hp_.GetBase() - 20.0f);
-				}
-			}
-			};
-
-		registry.AddComponent<ecs::ColliderComponent>(impact, col);
-		registry.AddComponent<CollisionResponseComponent>(impact, {});
-
-		skill.impactTimer_ = skill.kImpactCooldown;
-	}
+#ifdef _DEBUG
+	LineManager::GetInstance()->DrawCube(spawnPos, 2.0f, VectorColorCodes::Blue);
+#endif
 }
 
 void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
 {
 	auto& skill = registry.GetComponent<SkillComponent>(entity);
-	if (!skill.isBeamUnlocked_)
-	{
-		if (Input::GetInstance()->TriggerKey(DIK_R))
-			Audio::GetInstance()->PlayWave("skill_lock", false);
-		return;
-	}
-	if (skill.beamTimer_ > 0.0f) return;
+
+	// チャージが満タンでない場合は使用不可
+	if (!skill.isBeamReady_) return;
 
 	if (Input::GetInstance()->TriggerKey(DIK_R))
 	{
@@ -694,7 +799,6 @@ void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
 		playerHier.firstChild_ = beam;
 
 		// 3. Transform の設定
-		// 中心をビームの長さの半分だけ前方にずらすことで、プレイヤーの手元から伸びているように見せる
 		TransformComponent beamTrans;
 		beamTrans.localPosition_ = { 0.0f, 0.5f, kBeamLength * 0.5f };
 		beamTrans.localScale_ = { 1.0f, 1.0f, 1.0f };
@@ -703,7 +807,6 @@ void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
 		// 4. 当たり判定（OBB）の設定
 		ecs::ColliderComponent col;
 		col.type_ = ColliderType::OBB;
-		// half-extent (半径) で指定。高さも 5.0f に広げる
 		col.obb_.size = { kBeamWidth * 0.5f, 5.0f, kBeamLength * 0.5f };
 		col.isTrigger_ = true;
 		col.layer = CollisionLayer::PlayerBullet;
@@ -715,14 +818,14 @@ void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
 
 			float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
 
-			// ダメージ処理 
+			// ダメージ処理
 			if (registry.HasComponent<ecs::StatusComponent>(other.entity))
 			{
 				auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
 				status.hp_.SetBase(status.hp_.GetBase() - (kDamagePerSecond * dt));
 			}
 
-			// 誘爆スタックの付与 (一定確率でスタックを加算し、爆発を引き起こす)
+			// 誘爆スタックの付与
 			if (registry.HasComponent<ecs::InducedExplosionComponent>(other.entity))
 			{
 				auto& stack = registry.GetComponent<ecs::InducedExplosionComponent>(other.entity);
@@ -734,7 +837,6 @@ void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
 			}
 			else
 			{
-				// スタックがない場合は付与する (UpdateEと同様)
 				registry.AddComponent<ecs::InducedExplosionComponent>(other.entity, { 1 });
 			}
 			};
@@ -748,34 +850,26 @@ void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
 		// 6. 生存期間の設定
 		registry.AddComponent<LifetimeComponent>(beam, { 0.0f, kBeamDuration });
 
-		skill.beamTimer_ = skill.kBeamCooldown;
-
-		// 演出: 発射時に画面を少し揺らすなどのフック（将来用）
-		// ParticleManager::GetInstance()->Play("beam_launch_flash", ...);
+		// チャージをリセット
+		skill.beamCharge_ = 0.0f;
+		skill.isBeamReady_ = false;
 
 		// Rスキルパーティクルの再生
 		if (ParticleManager* pm = ParticleManager::GetInstance())
 		{
-			// プレイヤーのTransformを取得して発射位置と回転を確定
 			if (registry.HasComponent<TransformComponent>(entity))
 			{
 				auto& playerTrans = registry.GetComponent<TransformComponent>(entity);
 
-				// パーティクルの再生 (基準位置はプレイヤーの位置)
 				ParticleEffect* effect = pm->Play("R_skill", playerTrans.localPosition_);
 				if (effect)
 				{
-					// 向きの設定
 					float yaw = playerTrans.localRotation_.y;
 					Vector3 forward = { std::sin(yaw), 0.0f, std::cos(yaw) };
 
-					// エミッターの初期オフセットを設定
 					if (auto* e2 = effect->GetEmitter("e2")) e2->SetFollowOffset(forward * 60.0f);
 					if (auto* e3 = effect->GetEmitter("e3")) e3->SetFollowOffset(forward * 50.0f);
 
-					// 方向の設定 (InitialRotationModule)
-					// 方向の設定 (InitialRotationModule)
-					// ラジアンから度に変換
 					float radToDeg = 180.0f / 3.14159265f;
 					Vector3 rotDeg = {
 						-90.0f,
@@ -789,13 +883,11 @@ void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
 						{
 							if (auto* rotModule = emitter->GetModule<InitialRotationModule>())
 							{
-								// 発射方向に合わせる（既存のパーティクルは影響を受けない）
 								rotModule->SetRotationRange(rotDeg, rotDeg);
 							}
 						}
 					}
 
-					// SkillComponent に管理情報を保存
 					skill.activeBeamParticle_ = effect;
 					skill.beamActiveTimer_ = kBeamDuration;
 				}
@@ -803,8 +895,6 @@ void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
 		}
 	}
 }
-
-// UpdateBeamParticles は廃止 (Updateスキル内に統合)
 
 void PlayerActionSystem::SpawnExplosion(EntityID sourceEntity, Registry& registry)
 {
@@ -833,11 +923,11 @@ void PlayerActionSystem::SpawnExplosion(EntityID sourceEntity, Registry& registr
 			// 爆発演出の再生
 			ParticleManager::GetInstance()->Play("E_explosion", expPos);
 			Audio::GetInstance()->PlayWave("explosion", false);
-			// 爆発に巻き込まれた敵に大ダメージを与える (500ダメージ)
+			// 爆発に巻き込まれた敵に大ダメージを与える
 			if (registry.HasComponent<ecs::StatusComponent>(other.entity))
 			{
 				auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
-				status.hp_.SetBase(status.hp_.GetBase() - 500.0f);
+				status.hp_.SetBase(status.hp_.GetBase() - ecs::InducedExplosionComponent::kExplosionDamage);
 				if (status.hp_.GetBase() <= 0.0f) status.isAlive_ = false;
 			}
 		}
@@ -850,7 +940,7 @@ void PlayerActionSystem::SpawnExplosion(EntityID sourceEntity, Registry& registr
 	if (registry.HasComponent<ecs::StatusComponent>(sourceEntity))
 	{
 		auto& status = registry.GetComponent<ecs::StatusComponent>(sourceEntity);
-		status.hp_.SetBase(status.hp_.GetBase() - 500.0f);
+		status.hp_.SetBase(status.hp_.GetBase() - ecs::InducedExplosionComponent::kExplosionDamage);
 		if (status.hp_.GetBase() <= 0.0f) status.isAlive_ = false;
 		// 爆発演出の再生
 		ParticleManager::GetInstance()->Play("E_explosion", expPos);

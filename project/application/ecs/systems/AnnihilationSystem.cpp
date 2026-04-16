@@ -5,6 +5,7 @@
 #include "application/ecs/components/StatusComponent.h"
 #include "application/ecs/components/ImpactChargeComponent.h"
 #include "application/ecs/components/PlayerProgressionComponent.h"
+#include "application/ecs/components/SkillComponent.h"
 #include "engine/ecs/components/TagComponent.h"
 #include "math/MathUtils.h"
 #include "engine/effects/particle/ParticleManager.h"
@@ -36,7 +37,7 @@ void AnnihilationSystem::Update(Registry& registry)
                 }
             }
 
-            // プレイヤーにスコア加算 (暫定)
+            // プレイヤーにスコア・EXP加算
             auto progView = registry.View<PlayerProgressionComponent>();
             if (progView)
             {
@@ -44,6 +45,22 @@ void AnnihilationSystem::Update(Registry& registry)
                 {
                     progView->GetDataFromDenseIndex(j).totalScore_ += 100;
                     progView->GetDataFromDenseIndex(j).currentExp_ += 1.0f; // 1体 = 1EXP に変更
+                }
+            }
+
+            // ビームチャージを加算
+            auto skillView = registry.View<SkillComponent>();
+            if (skillView)
+            {
+                for (uint32_t j = 0; j < skillView->GetSize(); ++j)
+                {
+                    auto& skill = skillView->GetDataFromDenseIndex(j);
+                    skill.beamCharge_ += SkillComponent::kChargePerKill;
+                    if (skill.beamCharge_ >= SkillComponent::kBeamChargeMax)
+                    {
+                        skill.beamCharge_ = SkillComponent::kBeamChargeMax;
+                        skill.isBeamReady_ = true;
+                    }
                 }
             }
 

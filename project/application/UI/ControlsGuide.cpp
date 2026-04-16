@@ -15,9 +15,8 @@ void ControlsGuide::Initialize(SpriteCommon* spriteCommon, Registry* registry, E
 	// プロンプトをクリア
 	prompts_.clear();
 
-	// スキルの順に追加
+	// スキルの順に追加（新スキル構成: LMB, Q, E, R）
 	AddPrompt("LMB", "./Resources/UI/button/LMB.png", "./Resources/UI/text/LMB.png");
-	AddPrompt("RMB", "./Resources/UI/button/RMB.png", "./Resources/UI/text/RMB.png");
 	AddPrompt("Q", "./Resources/UI/button/Q.png", "./Resources/UI/text/Q.png");
 	AddPrompt("E", "./Resources/UI/button/E.png", "./Resources/UI/text/E.png");
 	AddPrompt("R", "./Resources/UI/button/R.png", "./Resources/UI/text/R.png");
@@ -70,11 +69,10 @@ void ControlsGuide::Update()
 			float maxTimer = 1.0f;
 			bool unlocked = false;
 
-			if (prompt.actionName_ == "LMB") { timer = skill.lmbTimer_; maxTimer = SkillComponent::kLmbCooldown; unlocked = skill.isLmbUnlocked_; }
-			else if (prompt.actionName_ == "RMB") { timer = skill.rmbTimer_; maxTimer = SkillComponent::kRmbCooldown; unlocked = skill.isRmbUnlocked_; }
-			else if (prompt.actionName_ == "Q") { timer = skill.decoyTimer_; maxTimer = SkillComponent::kDecoyCooldown; unlocked = skill.isDecoyUnlocked_; }
-			else if (prompt.actionName_ == "E") { timer = skill.impactTimer_; maxTimer = SkillComponent::kImpactCooldown; unlocked = skill.isImpactUnlocked_; }
-			else if (prompt.actionName_ == "R") { timer = skill.beamTimer_; maxTimer = SkillComponent::kBeamCooldown; unlocked = skill.isBeamUnlocked_; }
+			if (prompt.actionName_ == "LMB") { timer = skill.lmbTimer_; maxTimer = SkillComponent::kLmbBaseCooldown * skill.lmbCooldownMultiplier_; unlocked = skill.isLmbUnlocked_; }
+			else if (prompt.actionName_ == "Q") { timer = skill.baseSkillTimer_; maxTimer = SkillComponent::kBaseSkillCooldown; unlocked = (skill.route_ != SkillRoute::None); }
+			else if (prompt.actionName_ == "E") { timer = skill.specialSkillTimer_; maxTimer = SkillComponent::kSpecialSkillCooldown; unlocked = (skill.special_ != SkillSpecialChoice::None); }
+			else if (prompt.actionName_ == "R") { timer = 0.0f; maxTimer = 1.0f; unlocked = true; }
 
 			// クールタイム進捗 (0.0: 開始, 1.0: 完了)
 			float progress = 1.0f;

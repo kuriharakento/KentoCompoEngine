@@ -1,4 +1,6 @@
 #include "GamePlayScene.h"
+#include <random>
+#include <algorithm>
 
 // audio
 #include "audio/Audio.h"
@@ -55,6 +57,7 @@
 #include "engine/ecs/components/CollisionResponseComponent.h"
 #include "application/ecs/components/InducedExplosionComponent.h"
 #include "engine/ecs/components/LifetimeComponent.h"
+#include "engine/ecs/components/Object3dComponent.h"
 #include "application/ecs/components/ObstacleComponent.h"
 #include "application/ecs/components/BulletComponent.h"
 #include "application/ecs/components/PlayerComponent.h"
@@ -81,6 +84,14 @@
 #include "application/ecs/systems/AnnihilationSystem.h"
 #include "engine/ecs/system/EcsStatusSystem.h"
 #include "engine/ecs/system/WorldBoundarySystem.h"
+#include "engine/ecs/system/Object3dSystem.h"
+#include "application/ecs/systems/TurretSystem.h"
+#include "application/ecs/systems/SprinklerSystem.h"
+#include "application/ecs/components/TurretComponent.h"
+#include "application/ecs/components/DamageStackComponent.h"
+#include "application/ecs/components/SprinklerComponent.h"
+#include "application/UI/SkillSelectionUI.h"
+#include "application/effect/HomingTrailManager.h"
 
 void GamePlayScene::Initialize()
 {
@@ -131,6 +142,10 @@ void GamePlayScene::Initialize()
 	registry_->RegisterComponent<EnemyTypeComponent>(10000);   // 敵種別タグ
 	registry_->RegisterComponent<EnemyChargerComponent>(5000); // 突進型コンポーネント
 	registry_->RegisterComponent<WorldBoundaryComponent>(1);  // フィールド全体で1つ
+	registry_->RegisterComponent<TurretComponent>(10);
+	registry_->RegisterComponent<DamageStackComponent>(5000);
+	registry_->RegisterComponent<SprinklerComponent>(10);
+	registry_->RegisterComponent<Object3dComponent>(1000);
 
 	systemManager_ = std::make_unique<SystemManager>();
 
@@ -150,6 +165,7 @@ void GamePlayScene::Initialize()
 
 	auto playerActionSystem = std::make_shared<PlayerActionSystem>();
 	playerActionSystem->SetCameraManager(sceneManager_->GetCameraManager());
+	playerActionSystem->SetObject3dCommon(sceneManager_->GetObject3dCommon());
 	playerActionSystem->SetSystemManager(systemManager_.get());
 	systemManager_->AddSystem(playerActionSystem);
 
@@ -161,6 +177,8 @@ void GamePlayScene::Initialize()
 	ParticleManager::GetInstance()->LoadEffectDefinition("move_range", "./Resources/json/particle/move_range.json");
 	ParticleManager::GetInstance()->LoadEffectDefinition("R_skill", "./Resources/json/particle/R_skill.json");
 	ParticleManager::GetInstance()->LoadEffectDefinition("Q_skill", "./Resources/json/particle/Q_skill.json");
+	ParticleManager::GetInstance()->LoadEffectDefinition("level_up", "./Resources/json/particle/level_up.json");
+	ParticleManager::GetInstance()->LoadEffectDefinition("turret_lazer", "./Resources/json/particle/turret_lazer.json");
 
 	// 音声のロード
 	Audio::GetInstance()->LoadWave("game", "bgm/game.wav", SoundGroup::BGM);
@@ -185,6 +203,11 @@ void GamePlayScene::Initialize()
 	systemManager_->AddSystem(progressionSystem);
 	systemManager_->AddSystem(std::make_shared<WorldBoundarySystem>());
 
+	// タレット・スプリンクラーシステム
+	auto turretSystem = std::make_shared<TurretSystem>();
+	turretSystem->SetSystemManager(systemManager_.get());
+	systemManager_->AddSystem(turretSystem);
+
 	// 3. 行列更新・物理計算 (worldMatrix の構築)
 	// 移動後に実行することで、最新の座標をワールド行列に反映させる
 	systemManager_->AddSystem(std::make_shared<HierarchySystem>());
@@ -197,6 +220,13 @@ void GamePlayScene::Initialize()
 	systemManager_->AddSystem(std::make_shared<AnnihilationSystem>());
 	systemManager_->AddSystem(std::make_shared<LifetimeSystem>());
 	systemManager_->AddSystem(std::make_shared<EcsStatusSystem>());
+	
+	object3dSystem_ = std::make_shared<Object3dSystem>();
+	// Drawing system
+	
+	// --- トレイルマネージャー初期化 ---
+	BulletTrailManager::GetInstance().Initialize();
+	HomingTrailManager::GetInstance().Initialize();
 
 	// 6. 描画準備
 	systemManager_->AddSystem(std::make_shared<InstancedRenderSystem>());
@@ -361,6 +391,10 @@ void GamePlayScene::Initialize()
 	levelUpUI_ = std::make_unique<LevelUpUI>();
 	levelUpUI_->Initialize(sceneManager_->GetSpriteCommon());
 
+	// スキル選択UI
+	skillSelectionUI_ = std::make_unique<SkillSelectionUI>();
+	skillSelectionUI_->Initialize(sceneManager_->GetSpriteCommon());
+
 	// 制限時間表示用 NumberSprite の初期化
 	timerSprite_ = std::make_unique<NumberSprite>();
 	timerSprite_->Initialize(sprCommon, "./Resources/numbers.png", { kTimerDigitWidth, kTimerDigitHeight });
@@ -373,6 +407,7 @@ void GamePlayScene::Initialize()
 	// ProgressionSystem に通知先を設定
 	progressionSystem->SetLevelUpUI(levelUpUI_.get());
 	progressionSystem->SetPostProcessManager(sceneManager_->GetPostProcessManager());
+	progressionSystem->SetSkillSelectionUI(skillSelectionUI_.get());
 
 	// ポーズメニューの初期化
 	poseMenu_ = std::make_unique<PoseMenu>();
@@ -418,6 +453,7 @@ void GamePlayScene::Finalize()
 {
 	Audio::GetInstance()->StopWave("game");
 	BulletTrailManager::GetInstance().Clear();
+	HomingTrailManager::GetInstance().Clear();
 	if (registry_) registry_.reset();
 }
 
@@ -434,6 +470,12 @@ void GamePlayScene::Draw3D()
 		sceneManager_->GetLightManager(),
 		sceneManager_->GetShadowMapManager()
 	);
+
+	// --- 単体描画 (Object3dComponent) ---
+	if (object3dSystem_)
+	{
+		object3dSystem_->Draw(*registry_, sceneManager_->GetCameraManager()->GetActiveCamera());
+	}
 
 	// --- ECS システムの描画 (衝突判定の可視化、スポーン範囲など) ---
 	if (systemManager_)
@@ -463,6 +505,7 @@ void GamePlayScene::UpdateUI()
 	if (reticle_) reticle_->Update();
 	if (controlsGuide_) controlsGuide_->Update();
 	if (levelUpUI_) levelUpUI_->Update();
+	if (skillSelectionUI_) skillSelectionUI_->Update();
 	if (poseMenu_) poseMenu_->Update();
 
 	// 制限時間の残り秒数を更新
@@ -492,6 +535,7 @@ void GamePlayScene::DrawUI()
 	if (reticle_) reticle_->Draw();
 	if (controlsGuide_) controlsGuide_->Draw();
 	if (levelUpUI_) levelUpUI_->Draw();
+	if (skillSelectionUI_) skillSelectionUI_->Draw();
 	// 制限時間表示
 	if (timerSprite_) timerSprite_->Draw();
 	// ポーズメニューは最前面に表示
@@ -542,18 +586,42 @@ void GamePlayScene::DrawImGui()
 			{
 				auto& skill = registry_->GetComponent<SkillComponent>(playerEntity_);
 
-				auto drawSkillInfo = [](const char* name, bool unlocked, float timer) {
-					ImGui::Text("%-8s: %s (Timer: %.2f)",
-								name,
-								unlocked ? "Unlocked" : "Locked",
-								timer > 0 ? timer : 0.0f);
-					};
+				// LMB
+				ImGui::Text("LMB: %s (Timer: %.2f, DmgMul: %.2f, CDMul: %.2f)",
+					skill.isLmbUnlocked_ ? "Unlocked" : "Locked",
+					skill.lmbTimer_ > 0 ? skill.lmbTimer_ : 0.0f,
+					skill.lmbDamageMultiplier_, skill.lmbCooldownMultiplier_);
 
-				drawSkillInfo("LMB", skill.isLmbUnlocked_, skill.lmbTimer_);
-				drawSkillInfo("RMB", skill.isRmbUnlocked_, skill.rmbTimer_);
-				drawSkillInfo("Q", skill.isDecoyUnlocked_, skill.decoyTimer_);
-				drawSkillInfo("E", skill.isImpactUnlocked_, skill.impactTimer_);
-				drawSkillInfo("R", skill.isBeamUnlocked_, skill.beamTimer_);
+				// Skill 1 (Q) - Base
+				const char* routeName = "None";
+				if (skill.route_ == SkillRoute::Bomb) routeName = "Bomb";
+				else if (skill.route_ == SkillRoute::Turret) routeName = "Turret";
+				ImGui::Text("Q(Base): %s (Timer: %.2f)", routeName, skill.baseSkillTimer_ > 0 ? skill.baseSkillTimer_ : 0.0f);
+
+				// Skill 2 (E) - Special
+				const char* specialName = "None";
+				switch (skill.special_)
+				{
+				case SkillSpecialChoice::HomingMissile: specialName = "Homing Missile"; break;
+				case SkillSpecialChoice::DecoyBomb: specialName = "Decoy Bomb"; break;
+				case SkillSpecialChoice::MissileSalvo: specialName = "Turret: Salvo"; break;
+				case SkillSpecialChoice::PlasmaLaser: specialName = "Turret: Laser"; break;
+				default: break;
+				}
+				ImGui::Text("E(Special): %s (Timer: %.2f)", specialName, skill.specialSkillTimer_ > 0 ? skill.specialSkillTimer_ : 0.0f);
+				
+				ImGui::Separator();
+				ImGui::Text("LMB Stats: Pierce: %d, Count: %d, Rate: %.2f", skill.lmbPierceCount_, skill.lmbBulletCount_, skill.lmbCooldownMultiplier_);
+				ImGui::Text("Q Stats: Range: %.1f, CD: %.2f", skill.qRange_, skill.qCooldownMultiplier_);
+				ImGui::Text("Turret Stats: Max: %d, Rate: %.2f", skill.qMaxTurrets_, skill.qTurretFireRateMult_);
+				
+				if (skill.isTurretBuffActive_) ImGui::TextColored({ 1,1,0,1 }, "TURRET BUFF ACTIVE (%.1fs)", skill.turretBuffTimer_);
+
+				// Beam (R)
+				ImGui::Text("R(Beam): Charge: %.1f / %.1f %s",
+					skill.beamCharge_, SkillComponent::kBeamChargeMax,
+					skill.isBeamReady_ ? "[READY]" : "");
+				ImGui::ProgressBar(skill.beamCharge_ / SkillComponent::kBeamChargeMax, ImVec2(-1.0f, 0.0f));
 			}
 		}
 	}
@@ -644,6 +712,72 @@ void GamePlayScene::OnUpdatePlaying()
 
 	// ポーズ中はゲームの進行処理をスキップ
 	if (poseMenu_ && poseMenu_->IsPaused()) return;
+
+	// スキル選択中はゲームの進行を停止
+	if (skillSelectionUI_ && skillSelectionUI_->IsActive()) return;
+
+	// スキル選択待ちチェック
+	if (auto progressionSys = systemManager_->GetSystem<ProgressionSystem>())
+	{
+		if (progressionSys->IsPendingSkillSelection() && skillSelectionUI_ && !skillSelectionUI_->IsActive())
+		{
+			uint32_t level = progressionSys->GetPendingSelectionLevel();
+			progressionSys->ClearPendingSkillSelection(); // 早期にクリアして無限ループを防止
+
+			if (level == 2 || (level == 3 && registry_ && registry_->HasComponent<SkillComponent>(playerEntity_) && 
+				registry_->GetComponent<SkillComponent>(playerEntity_).route_ == SkillRoute::None))
+			{
+				// ルート選択の表示（LV2、またはLV3でルート未設定の場合のフォールバック）
+				skillSelectionUI_->Show(2, "Bomb Route", "Turret Route",
+					[this](int choice) {
+						if (registry_ && registry_->HasComponent<SkillComponent>(playerEntity_))
+						{
+							auto& skill = registry_->GetComponent<SkillComponent>(playerEntity_);
+							skill.route_ = (choice == 0) ? SkillRoute::Bomb : SkillRoute::Turret;
+						}
+					});
+			}
+			else if (level == 3)
+			{
+				if (registry_ && registry_->HasComponent<SkillComponent>(playerEntity_))
+				{
+					auto& skill = registry_->GetComponent<SkillComponent>(playerEntity_);
+					if (skill.route_ == SkillRoute::Bomb)
+					{
+						// ボムルートの派生 (Eスキル)
+						skillSelectionUI_->Show(3, "Homing Missile", "Decoy Bomb",
+							[this](int choice) {
+								if (registry_ && registry_->HasComponent<SkillComponent>(playerEntity_))
+								{
+									auto& sk = registry_->GetComponent<SkillComponent>(playerEntity_);
+									sk.special_ = (choice == 0) ? SkillSpecialChoice::HomingMissile : SkillSpecialChoice::DecoyBomb;
+								}
+							});
+					}
+					else if (skill.route_ == SkillRoute::Turret)
+					{
+						// タレットルートの派生 (Eスキル)
+						skillSelectionUI_->Show(3, "Missile Salvo", "Plasma Laser",
+							[this](int choice) {
+								if (registry_ && registry_->HasComponent<SkillComponent>(playerEntity_))
+								{
+									auto& sk = registry_->GetComponent<SkillComponent>(playerEntity_);
+									sk.special_ = (choice == 0) ? SkillSpecialChoice::MissileSalvo : SkillSpecialChoice::PlasmaLaser;
+								}
+							});
+					}
+				}
+			}
+			else if (level >= 4)
+			{
+				TriggerUpgradeSelection();
+			}
+		}
+	}
+
+	// スキル選択UIを表示した場合はこのフレームのシステム更新をスキップ
+	// （UI表示と同一フレームでエンティティ破棄が走るとGPUリソース競合の原因になる）
+	if (skillSelectionUI_ && skillSelectionUI_->IsActive()) return;
 
 	// すべてのECSシステムを更新
 	systemManager_->Update(*registry_);
@@ -761,5 +895,60 @@ void GamePlayScene::CommonUpdate()
 			if (boundary.active_ && !rangeEffect_->IsPlaying()) rangeEffect_->Play();
 			else if (!boundary.active_ && rangeEffect_->IsPlaying()) rangeEffect_->Stop();
 		}
+	}
+}
+
+void GamePlayScene::TriggerUpgradeSelection()
+{
+	if (!registry_ || playerEntity_ == kInvalidEntity) return;
+	auto& skill = registry_->GetComponent<SkillComponent>(playerEntity_);
+
+	struct UpgradeDef {
+		std::string title;
+		std::string desc;
+		std::function<void()> onSelect;
+	};
+
+	std::vector<UpgradeDef> pool;
+
+	// 通常弾強化
+	pool.push_back({ "LMB: Piercing", "Bullets pierce through enemies (+1).", [&skill](){ skill.lmbPierceCount_++; } });
+	pool.push_back({ "LMB: Rapid Fire", "Increase fire rate of your primary weapon.", [&skill](){ skill.lmbCooldownMultiplier_ *= 0.85f; } });
+	pool.push_back({ "LMB: Multi-Shot", "Fire an additional bullet per shot.", [&skill](){ skill.lmbBulletCount_++; } });
+
+	// Qスキル強化
+	if (skill.route_ == SkillRoute::Bomb) {
+		pool.push_back({ "Shockwave: Range", "Increase the radius of your shockwaves.", [&skill](){ skill.qRange_ *= 1.25f; } });
+		pool.push_back({ "Shockwave: Fast CD", "Decrease shockwave cooldown.", [&skill](){ skill.qCooldownMultiplier_ *= 0.8f; } });
+	}
+
+	// Eスキル強化
+	if (skill.special_ == SkillSpecialChoice::HomingMissile)
+		pool.push_back({ "Missile: Capacity", "Fire more missiles at once.", [&skill](){ skill.eMissileCount_ += 2; } });
+	if (skill.special_ == SkillSpecialChoice::DecoyBomb)
+		pool.push_back({ "Decoy: Persistence", "Increase decoy duration.", [&skill](){ skill.eDecoyDuration_ += 5.0f; } });
+	if (skill.special_ == SkillSpecialChoice::MissileSalvo)
+		pool.push_back({ "Salvo: Power", "Increase turret missile damage.", [&skill](){ skill.eSalvoDamageMult_ *= 1.25f; } });
+	if (skill.special_ == SkillSpecialChoice::PlasmaLaser)
+		pool.push_back({ "Laser: Rapid Fire", "Increase turret laser fire rate.", [&skill](){ skill.eLaserFireRateMult_ *= 0.8f; } });
+
+	// タレット共通強化
+	if (skill.route_ == SkillRoute::Turret) {
+		pool.push_back({ "Turret: Capacity", "Deploy an additional turret.", [&skill](){ skill.qMaxTurrets_++; } });
+		pool.push_back({ "Turret: Fire Rate", "Increase turret global fire rate.", [&skill](){ skill.qTurretFireRateMult_ *= 0.85f; } });
+	}
+
+	// シャッフルして3つ選ぶ
+	std::random_device rd;
+	std::mt19937 g(rd());
+	std::shuffle(pool.begin(), pool.end(), g);
+
+	std::vector<UpgradeOption> options;
+	for (size_t i = 0; i < (std::min)(pool.size(), (size_t)3); ++i) {
+		options.push_back({ pool[i].title, pool[i].desc, pool[i].onSelect });
+	}
+
+	if (skillSelectionUI_) {
+		skillSelectionUI_->ShowUpgrades(options);
 	}
 }

@@ -15,6 +15,7 @@ namespace CollisionLayer
     static constexpr uint32_t Obstacle     = 1 << 2; // 障害物
     static constexpr uint32_t PlayerBullet = 1 << 3; // プレイヤーの弾
     static constexpr uint32_t EnemyBullet  = 1 << 4; // 敵の弾
+    static constexpr uint32_t Decoy        = 1 << 5; // デコイ
     
     // プリセットマクロなどの定義もここで行うと便利です
     static constexpr uint32_t All = 0xFFFFFFFF;

@@ -113,6 +113,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\gameObject\component\action\AssaultRifleComponent.cpp" />
     <ClCompile Include="application\gameObject\combatable\character\enemy\EnemyManager.cpp" />
     <ClCompile Include="application\effect\BulletTrailManager.cpp" />
+    <ClCompile Include="application\effect\HomingTrailManager.cpp" />
     <ClCompile Include="application\weapon\WeaponManager.cpp" />
     <ClCompile Include="engine\base\ObjectPool.cpp" />
     <ClCompile Include="engine\ecs\EcsDebugViewer.cpp" />
@@ -287,6 +288,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\ecs\systems\ProgressionSystem.cpp" />
     <ClCompile Include="application\ecs\systems\ProjectileSystem.cpp" />
     <ClCompile Include="application\ui\LevelUpUI.cpp" />
+    <ClCompile Include="application\ui\SkillSelectionUI.cpp" />
+    <ClCompile Include="application\ecs\systems\TurretSystem.cpp" />
+    <ClCompile Include="application\ecs\systems\SprinklerSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\ecs\CollisionConfig.h" />
@@ -332,6 +336,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\gameObject\component\action\AssaultRifleComponent.h" />
     <ClInclude Include="application\gameObject\combatable\character\enemy\EnemyManager.h" />
     <ClInclude Include="application\effect\BulletTrailManager.h" />
+    <ClInclude Include="application\effect\HomingTrailManager.h" />
     <ClInclude Include="engine\gameobject\component\collision\CollisionAlgorithm.h" />
     <ClInclude Include="engine\gameobject\component\collision\CollisionManager.h" />
     <ClInclude Include="engine\gameobject\component\collision\CollisionUtils.h" />
@@ -545,11 +550,18 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\ecs\systems\ProgressionSystem.h" />
     <ClInclude Include="application\ecs\systems\ProjectileSystem.h" />
     <ClInclude Include="application\ecs\components\DodgeComponent.h" />
+    <ClInclude Include="application\ecs\components\DecoyComponent.h" />
     <ClInclude Include="application\ecs\components\ImpactChargeComponent.h" />
     <ClInclude Include="application\ecs\components\PlayerProgressionComponent.h" />
     <ClInclude Include="application\ecs\components\ProjectileComponent.h" />
     <ClInclude Include="application\ecs\components\SkillComponent.h" />
     <ClInclude Include="application\ui\LevelUpUI.h" />
+    <ClInclude Include="application\ui\SkillSelectionUI.h" />
+    <ClInclude Include="application\ecs\systems\TurretSystem.h" />
+    <ClInclude Include="application\ecs\systems\SprinklerSystem.h" />
+    <ClInclude Include="application\ecs\components\TurretComponent.h" />
+    <ClInclude Include="application\ecs\components\DamageStackComponent.h" />
+    <ClInclude Include="application\ecs\components\SprinklerComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />

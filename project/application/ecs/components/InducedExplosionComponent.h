@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 namespace ecs
 {
@@ -14,9 +14,9 @@ struct InducedExplosionComponent
     static constexpr int kMaxCount = 3;
     
     // 誘爆ダメージ
-    static constexpr float kExplosionDamage = 50.0f;
+    static constexpr float kExplosionDamage = 500.0f;
     
     // 誘爆半径
-    static constexpr float kExplosionRadius = 5.0f;
+    static constexpr float kExplosionRadius = 12.0f;
 };
 }

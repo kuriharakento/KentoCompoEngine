@@ -23,5 +23,14 @@ struct ProjectileComponent
     Type type_ = Type::Lmb;
 
     // 演出用
+    enum class TrailType { Bullet, Homing, None };
+    TrailType trailType_ = TrailType::Bullet;
     uint32_t trailId_ = 0;
+
+    // 貫通性能
+    uint32_t pierceCount_ = 0;
+
+    // ホーミング用
+    EntityID targetEntity_ = kInvalidEntity;
+    bool isHoming_ = false;
 };

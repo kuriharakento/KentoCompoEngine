@@ -23,6 +23,7 @@
 #include "engine/ecs/system/SystemManager.h"
 #include "application/ecs/systems/EnemySpawnSystem.h"
 #include "engine/graphics/3d/InstancedModelRenderer.h"
+#include "engine/ecs/system/Object3dSystem.h"
 
 // effects
 #include "application/carnage/CarnageMode.h"
@@ -39,6 +40,7 @@
 #include "application/ui/ControlsGuide.h"
 #include "application/ui/PoseMenu.h"
 #include "application/ui/LevelUpUI.h"
+#include "application/ui/SkillSelectionUI.h"
 
 /**
  * @brief メインゲームプレイシーン
@@ -73,6 +75,11 @@ protected:
 	void UpdateUI();
 	void DrawUI();
 
+    /**
+     * @brief LV4以降のランダムアップグレード選択を開始する
+     */
+    void TriggerUpgradeSelection();
+
 private:
 	// --- シーン設定定数 ---
 	static constexpr float kBgmVolume = 0.2f;
@@ -92,7 +99,7 @@ private:
 	static constexpr float kExitTransitionDuration = 2.0f;
 
 	// --- 制限時間表示 ---
-	static constexpr float kGameTimeLimit = 180.0f;
+	static constexpr float kGameTimeLimit = 360.0f;
 	static constexpr float kTimerDigitWidth = 64.0f;
 	static constexpr float kTimerDigitHeight = 64.0f;
 	static constexpr float kTimerPosX = 640.0f;
@@ -119,6 +126,7 @@ private:
     std::unique_ptr<Registry> registry_;
     std::unique_ptr<SystemManager> systemManager_;
     std::shared_ptr<EnemySpawnSystem> enemySpawnSystem_;
+    std::shared_ptr<class Object3dSystem> object3dSystem_;
     std::unordered_map<std::string, std::unique_ptr<InstancedModelRenderer>> instancedRenderers_;
     EntityID playerEntity_ = kInvalidEntity;
 
@@ -138,6 +146,7 @@ private:
 	std::unique_ptr<ControlsGuide> controlsGuide_ = nullptr;
 	std::unique_ptr<PoseMenu> poseMenu_ = nullptr;
 	std::unique_ptr<LevelUpUI> levelUpUI_ = nullptr;
+	std::unique_ptr<SkillSelectionUI> skillSelectionUI_ = nullptr;
 
 	// --- イントロ演出 ---
     float introElapsed_ = 0.0f;
