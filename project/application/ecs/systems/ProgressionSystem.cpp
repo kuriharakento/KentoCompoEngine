@@ -89,6 +89,9 @@ void ProgressionSystem::ApplyLevelUpRewards(EntityID entity, uint32_t newLevel, 
         }
         else if (newLevel >= 4)
         {
+            // LV4以降: Rスキル解放
+            skill.isBeamUnlocked_ = true;
+
             // LV4以降: 3枚の候補からランダムに、アップグレードを選択
             pendingSkillSelection_ = true;
             pendingSelectionLevel_ = newLevel;

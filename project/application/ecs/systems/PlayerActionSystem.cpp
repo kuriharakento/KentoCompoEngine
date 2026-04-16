@@ -16,6 +16,7 @@
 #include "engine/manager/graphics/LineManager.h"
 #include "math/VectorColorCodes.h"
 #include "engine/effects/particle/ParticleManager.h"
+#include "engine/effects/particle/module/spawn/InitialModules.h"
 
 // app components
 #include "application/ecs/components/PlayerProgressionComponent.h"
@@ -549,7 +550,19 @@ void PlayerActionSystem::FireBombWave(EntityID entity, Registry& registry)
 	registry.AddComponent<CollisionResponseComponent>(wave, {});
 
 	// パーティクル
-	ParticleManager::GetInstance()->Play("E_skill", trans.localPosition_);
+	ParticleEffect* effect = ParticleManager::GetInstance()->Play("E_skill", trans.localPosition_);
+	if (effect)
+	{
+		if (auto* e1 = effect->GetEmitter("e1"))
+		{
+			if (auto* scaleModule = e1->GetModule<InitialScaleModule>())
+			{
+				// XZ平面のスケールを範囲(qRange_)に合わせる
+				Vector3 s = { range, 1.0f, range };
+				scaleModule->SetScaleRange(s, s);
+			}
+		}
+	}
 }
 
 void PlayerActionSystem::FireHomingMissile(EntityID entity, Registry& registry)
@@ -786,6 +799,9 @@ void PlayerActionSystem::SpawnTurret(EntityID entity, Registry& registry)
 void PlayerActionSystem::UpdateR(EntityID entity, Registry& registry, float)
 {
 	auto& skill = registry.GetComponent<SkillComponent>(entity);
+
+	// 解放されていない場合は使用不可
+	if (!skill.isBeamUnlocked_) return;
 
 	// チャージが満タンでない場合は使用不可
 	if (!skill.isBeamReady_) return;

@@ -72,7 +72,15 @@ void ControlsGuide::Update()
 			if (prompt.actionName_ == "LMB") { timer = skill.lmbTimer_; maxTimer = SkillComponent::kLmbBaseCooldown * skill.lmbCooldownMultiplier_; unlocked = skill.isLmbUnlocked_; }
 			else if (prompt.actionName_ == "Q") { timer = skill.baseSkillTimer_; maxTimer = SkillComponent::kBaseSkillCooldown; unlocked = (skill.route_ != SkillRoute::None); }
 			else if (prompt.actionName_ == "E") { timer = skill.specialSkillTimer_; maxTimer = SkillComponent::kSpecialSkillCooldown; unlocked = (skill.special_ != SkillSpecialChoice::None); }
-			else if (prompt.actionName_ == "R") { timer = 0.0f; maxTimer = 1.0f; unlocked = true; }
+			else if (prompt.actionName_ == "R")
+			{
+				timer = SkillComponent::kBeamChargeMax - skill.beamCharge_;
+				maxTimer = SkillComponent::kBeamChargeMax;
+				unlocked = skill.isBeamUnlocked_;
+
+				// 特殊処理: チャージ満タンなら timer は 0 になり、progress は 1.0 になる。
+				// チャージが 0 なら timer は maxTimer になり、progress は 0.0 になる。
+			}
 
 			// クールタイム進捗 (0.0: 開始, 1.0: 完了)
 			float progress = 1.0f;

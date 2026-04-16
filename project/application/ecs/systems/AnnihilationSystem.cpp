@@ -55,11 +55,14 @@ void AnnihilationSystem::Update(Registry& registry)
                 for (uint32_t j = 0; j < skillView->GetSize(); ++j)
                 {
                     auto& skill = skillView->GetDataFromDenseIndex(j);
-                    skill.beamCharge_ += SkillComponent::kChargePerKill;
-                    if (skill.beamCharge_ >= SkillComponent::kBeamChargeMax)
+                    if (skill.isBeamUnlocked_)
                     {
-                        skill.beamCharge_ = SkillComponent::kBeamChargeMax;
-                        skill.isBeamReady_ = true;
+                        skill.beamCharge_ += SkillComponent::kChargePerKill;
+                        if (skill.beamCharge_ >= SkillComponent::kBeamChargeMax)
+                        {
+                            skill.beamCharge_ = SkillComponent::kBeamChargeMax;
+                            skill.isBeamReady_ = true;
+                        }
                     }
                 }
             }

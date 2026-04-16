@@ -82,6 +82,7 @@ struct SkillComponent
 	static constexpr float kTurretBuffDuration = 3.0f; // 3秒間の強化（バースト性能重視）
 
 	// === R: ビーム（敵撃破チャージ制） ===
+	bool isBeamUnlocked_ = false;
 	float beamCharge_ = 0.0f;
 	bool isBeamReady_ = false;
 	static constexpr float kBeamChargeMax = 30.0f;

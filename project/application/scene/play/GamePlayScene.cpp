@@ -933,29 +933,29 @@ void GamePlayScene::TriggerUpgradeSelection()
 
 	// 通常弾強化
 	pool.push_back({ "LMB: Piercing", "Bullets pierce through enemies (+1).", [&skill](){ skill.lmbPierceCount_++; } });
-	pool.push_back({ "LMB: Rapid Fire", "Increase fire rate of your primary weapon.", [&skill](){ skill.lmbCooldownMultiplier_ *= 0.85f; } });
+	pool.push_back({ "LMB: Rapid Fire", "Increase fire rate of your primary weapon.", [&skill](){ skill.lmbCooldownMultiplier_ *= 0.50f; } });
 	pool.push_back({ "LMB: Multi-Shot", "Fire an additional bullet per shot.", [&skill](){ skill.lmbBulletCount_++; } });
 
 	// Qスキル強化
 	if (skill.route_ == SkillRoute::Bomb) {
-		pool.push_back({ "Shockwave: Range", "Increase the radius of your shockwaves.", [&skill](){ skill.qRange_ *= 1.25f; } });
-		pool.push_back({ "Shockwave: Fast CD", "Decrease shockwave cooldown.", [&skill](){ skill.qCooldownMultiplier_ *= 0.8f; } });
+		pool.push_back({ "Shockwave: Range", "Increase the radius of your shockwaves.", [&skill](){ skill.qRange_ *= 2.2f; } });
+		pool.push_back({ "Shockwave: Fast CD", "Decrease shockwave cooldown.", [&skill](){ skill.qCooldownMultiplier_ *= 0.45f; } });
 	}
 
 	// Eスキル強化
 	if (skill.special_ == SkillSpecialChoice::HomingMissile)
 		pool.push_back({ "Missile: Capacity", "Fire more missiles at once.", [&skill](){ skill.eMissileCount_ += 2; } });
 	if (skill.special_ == SkillSpecialChoice::DecoyBomb)
-		pool.push_back({ "Decoy: Persistence", "Increase decoy duration.", [&skill](){ skill.eDecoyDuration_ += 5.0f; } });
+		pool.push_back({ "Decoy: Persistence", "Increase decoy duration.", [&skill](){ skill.eDecoyDuration_ += 20.0f; } });
 	if (skill.special_ == SkillSpecialChoice::MissileSalvo)
-		pool.push_back({ "Salvo: Power", "Increase turret missile damage.", [&skill](){ skill.eSalvoDamageMult_ *= 1.25f; } });
+		pool.push_back({ "Salvo: Power", "Increase turret missile damage.", [&skill](){ skill.eSalvoDamageMult_ *= 3.0f; } });
 	if (skill.special_ == SkillSpecialChoice::PlasmaLaser)
-		pool.push_back({ "Laser: Rapid Fire", "Increase turret laser fire rate.", [&skill](){ skill.eLaserFireRateMult_ *= 0.8f; } });
+		pool.push_back({ "Laser: Rapid Fire", "Increase turret laser fire rate.", [&skill](){ skill.eLaserFireRateMult_ *= 0.35f; } });
 
 	// タレット共通強化
 	if (skill.route_ == SkillRoute::Turret) {
 		pool.push_back({ "Turret: Capacity", "Deploy an additional turret.", [&skill](){ skill.qMaxTurrets_++; } });
-		pool.push_back({ "Turret: Fire Rate", "Increase turret global fire rate.", [&skill](){ skill.qTurretFireRateMult_ *= 0.85f; } });
+		pool.push_back({ "Turret: Fire Rate", "Increase turret global fire rate.", [&skill](){ skill.qTurretFireRateMult_ *= 0.50f; } });
 	}
 
 	// シャッフルして3つ選ぶ
