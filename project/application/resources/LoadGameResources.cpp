@@ -62,4 +62,5 @@ void MyGame::LoadModels()
 	ModelManager::GetInstance()->LoadModel("plane", ".gltf");
 	ModelManager::GetInstance()->LoadModel("weak_enemy", ".gltf");
 	ModelManager::GetInstance()->LoadModel("tank_enemy", ".gltf");
+	ModelManager::GetInstance()->LoadModel("turret", ".gltf");
 }

@@ -92,6 +92,9 @@
 #include "application/ecs/components/SprinklerComponent.h"
 #include "application/UI/SkillSelectionUI.h"
 #include "application/effect/HomingTrailManager.h"
+#include "application/ecs/components/DecoyComponent.h"
+#include "application/ecs/systems/DecoySystem.h"
+
 
 void GamePlayScene::Initialize()
 {
@@ -145,6 +148,7 @@ void GamePlayScene::Initialize()
 	registry_->RegisterComponent<TurretComponent>(10);
 	registry_->RegisterComponent<DamageStackComponent>(5000);
 	registry_->RegisterComponent<SprinklerComponent>(10);
+	registry_->RegisterComponent<DecoyComponent>(10);
 	registry_->RegisterComponent<Object3dComponent>(1000);
 
 	systemManager_ = std::make_unique<SystemManager>();
@@ -179,6 +183,7 @@ void GamePlayScene::Initialize()
 	ParticleManager::GetInstance()->LoadEffectDefinition("Q_skill", "./Resources/json/particle/Q_skill.json");
 	ParticleManager::GetInstance()->LoadEffectDefinition("level_up", "./Resources/json/particle/level_up.json");
 	ParticleManager::GetInstance()->LoadEffectDefinition("turret_lazer", "./Resources/json/particle/turret_lazer.json");
+	ParticleManager::GetInstance()->LoadEffectDefinition("Decoy_skill", "./Resources/json/particle/Decoy_skill.json");
 
 	// 音声のロード
 	Audio::GetInstance()->LoadWave("game", "bgm/game.wav", SoundGroup::BGM);
@@ -218,6 +223,7 @@ void GamePlayScene::Initialize()
 
 	// 5. 状態更新・ライフサイクル
 	systemManager_->AddSystem(std::make_shared<AnnihilationSystem>());
+	systemManager_->AddSystem(std::make_shared<DecoySystem>()); // デコイ消滅時のエフェクト停止
 	systemManager_->AddSystem(std::make_shared<LifetimeSystem>());
 	systemManager_->AddSystem(std::make_shared<EcsStatusSystem>());
 	
@@ -236,6 +242,7 @@ void GamePlayScene::Initialize()
 	ModelManager::GetInstance()->LoadModel("weak_enemy", ".gltf");
 	ModelManager::GetInstance()->LoadModel("tank_enemy", ".gltf");
 	ModelManager::GetInstance()->LoadModel("player");
+	ModelManager::GetInstance()->LoadModel("turret", ".gltf");
 
 	Object3dCommon* obj3dCommon = sceneManager_->GetObject3dCommon();
 
@@ -276,6 +283,19 @@ void GamePlayScene::Initialize()
 			tankEnemyModel
 		);
 		instancedRenderers_["tank_enemy"] = std::move(renderer);
+	}
+
+	// タレット用レンダラー
+	Model* turretModel = ModelManager::GetInstance()->FindModel("turret");
+	if (turretModel)
+	{
+		auto renderer = std::make_unique<InstancedModelRenderer>(100); // 最大100体あれば十分
+		renderer->Initialize(
+			obj3dCommon->GetDXCommon(),
+			obj3dCommon->GetSrvManager(),
+			turretModel
+		);
+		instancedRenderers_["turret"] = std::move(renderer);
 	}
 
 	// プレイヤー用レンダラー

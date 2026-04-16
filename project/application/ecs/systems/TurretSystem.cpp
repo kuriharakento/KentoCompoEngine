@@ -45,13 +45,11 @@ void TurretSystem::Update(Registry& registry)
 
 		// タイマー更新
 		turret.fireTimer_ -= dt;
-		if (turret.fireTimer_ > 0.0f) continue;
 
 		// オーナーのスキル派生タイプとバフ状態を取得
 		SkillSpecialChoice specialType = SkillSpecialChoice::None;
 		bool isBuffActive = false;
 		float qRateMult = 1.0f;
-		float eLaserRateMult = 1.0f;
 		float eSalvoDmgMult = 1.0f;
 
 		if (turret.owner_ != kInvalidEntity && registry.HasComponent<SkillComponent>(turret.owner_))
@@ -60,7 +58,6 @@ void TurretSystem::Update(Registry& registry)
 			specialType = skill.special_;
 			isBuffActive = skill.isTurretBuffActive_;
 			qRateMult = skill.qTurretFireRateMult_;
-			eLaserRateMult = skill.eLaserFireRateMult_;
 			eSalvoDmgMult = skill.eSalvoDamageMult_;
 		}
 
@@ -82,12 +79,12 @@ void TurretSystem::Update(Registry& registry)
 			if (turret.laserEffect_)
 			{
 				turret.laserEffect_->Stop();
-				turret.laserEffect_->SetAutoRemove(true); // あとはマネージャーの自動削除に任せる
+				turret.laserEffect_->SetAutoRemove(true);
 				turret.laserEffect_ = nullptr;
 			}
 		}
 
-		// 最も近い敵を検索
+		// 常に最も近い敵を検索して向きを調整する
 		EntityID closestEnemy = kInvalidEntity;
 		float closestDistSq = turret.range_ * turret.range_;
 
@@ -111,68 +108,53 @@ void TurretSystem::Update(Registry& registry)
 			}
 		}
 
+		// ターゲットがいればその方向に向かって回転（補間）
+		if (closestEnemy != kInvalidEntity)
+		{
+			Vector3 enemyPos = registry.GetComponent<TransformComponent>(closestEnemy).localPosition_;
+			Vector3 startPos = turretTrans.localPosition_;
+			Vector3 direction = (enemyPos - startPos).Normalize();
+
+			float targetYaw = std::atan2(direction.x, direction.z);
+			turretTrans.localRotation_.y = MathUtils::LerpAngle(turretTrans.localRotation_.y, targetYaw, 0.2f);
+			turretTrans.isDirty_ = true;
+		}
+
+		// 射撃クールタイムチェック
+		if (turret.fireTimer_ > 0.0f) continue;
 		if (closestEnemy == kInvalidEntity) continue;
 
-		// 射撃タイマーリセット（アップグレードとバフによるレート変更）
-		float currentInterval = turret.fireInterval_ * qRateMult;
-		if (isBuffActive && specialType == SkillSpecialChoice::PlasmaLaser)
-		{
-			currentInterval *= eLaserRateMult; // レーザー時はさらに短縮
-		}
-		turret.fireTimer_ = currentInterval;
+		// 射撃タイマーリセット
+		turret.fireTimer_ = turret.fireInterval_ * qRateMult;
 
 		// 弾（プロジェクタイル）の生成
 		EntityID proj = registry.CreateEntity();
 
-		Vector3 startPos = turretTrans.localPosition_;
-		// 少し浮かせた位置から発射
-		startPos.y += 0.5f;
+		Vector3 spawnStartPos = turretTrans.localPosition_;
+		spawnStartPos.y += 0.5f;
 
-		// ターゲットへの方向を計算
-		Vector3 enemyPos = registry.GetComponent<TransformComponent>(closestEnemy).localPosition_;
-		enemyPos.y += 0.5f;
-		Vector3 direction = (enemyPos - startPos).Normalize();
+		Vector3 enemyTargetPos = registry.GetComponent<TransformComponent>(closestEnemy).localPosition_;
+		enemyTargetPos.y += 0.5f;
+		Vector3 shotDir = (enemyTargetPos - spawnStartPos).Normalize();
 
-		// Transform
-		// プラズマレーザーの場合は細長くスケールを調整
-		Vector3 projectileScale = { 1.0f, 1.0f, 1.0f };
-		if (isBuffActive && specialType == SkillSpecialChoice::PlasmaLaser)
-		{
-			projectileScale = { 0.2f, 0.2f, 20.0f }; // さらに長いビーム状に
-		}
+		registry.AddComponent<TransformComponent>(proj, { spawnStartPos, turretTrans.localRotation_, { 1.0f, 1.0f, 1.0f } });
 
-		registry.AddComponent<TransformComponent>(proj, { startPos, turretTrans.localRotation_, projectileScale });
-
-		// ProjectileComponent
 		ProjectileComponent pc;
 		pc.type_ = ProjectileComponent::Type::Lmb; 
 		pc.speed_ = 80.0f; 
-		pc.velocity_ = direction * pc.speed_;
+		pc.velocity_ = shotDir * pc.speed_;
 		pc.lifetime_ = 1.5f;
 
-		// モード分岐
 		if (isBuffActive && specialType == SkillSpecialChoice::MissileSalvo)
 		{
-			pc.speed_ = 40.0f; // 追尾を見やすくするため
-			pc.velocity_ = direction * pc.speed_;
+			pc.speed_ = 40.0f;
+			pc.velocity_ = shotDir * pc.speed_;
 			pc.damage_ = turret.damage_ * eSalvoDmgMult;
 			pc.isHoming_ = true;
 			pc.targetEntity_ = closestEnemy;
 			pc.trailType_ = ProjectileComponent::TrailType::Homing;
 			pc.trailId_ = HomingTrailManager::GetInstance().RegisterBulletManual();
-			HomingTrailManager::GetInstance().UpdateBulletManual(pc.trailId_, startPos);
-		}
-		else if (isBuffActive && specialType == SkillSpecialChoice::PlasmaLaser)
-		{
-			pc.type_ = ProjectileComponent::Type::Beam; // 各フレームで線を引くためのフラグ
-			pc.damage_ = turret.damage_ * 0.05f; // レーザーは手数が多いので大幅に低下
-			pc.isHoming_ = false;
-			pc.pierceCount_ = 99; // 無限貫通
-			pc.speed_ = 120.0f;   // レーザーらしく速く
-			pc.velocity_ = direction * pc.speed_;
-			pc.trailType_ = ProjectileComponent::TrailType::Bullet;
-			pc.trailId_ = BulletTrailManager::GetInstance().RegisterBulletManual();
-			BulletTrailManager::GetInstance().UpdateBulletManual(pc.trailId_, startPos);
+			HomingTrailManager::GetInstance().UpdateBulletManual(pc.trailId_, spawnStartPos);
 		}
 		else
 		{
@@ -180,12 +162,11 @@ void TurretSystem::Update(Registry& registry)
 			pc.isHoming_ = false;
 			pc.trailType_ = ProjectileComponent::TrailType::Bullet;
 			pc.trailId_ = BulletTrailManager::GetInstance().RegisterBulletManual();
-			BulletTrailManager::GetInstance().UpdateBulletManual(pc.trailId_, startPos);
+			BulletTrailManager::GetInstance().UpdateBulletManual(pc.trailId_, spawnStartPos);
 		}
 
 		registry.AddComponent<ProjectileComponent>(proj, pc);
 
-		// コライダー設定
 		ecs::ColliderComponent col;
 		col.type_ = ColliderType::Sphere;
 		col.sphere_.radius = 0.5f;
@@ -194,26 +175,17 @@ void TurretSystem::Update(Registry& registry)
 		col.mask = CollisionLayer::Enemy | CollisionLayer::Obstacle;
 
 		float shotDamage = pc.damage_;
-
-		// ヒット時処理
 		col.onCollisionEnter = [this, &registry, proj, shotDamage](const ecs::CollisionPartnerInfo& other) {
 			if (!registry.IsAlive(other.entity)) return;
 			if (!registry.HasComponent<ecs::TagComponent>(other.entity)) return;
 			if (registry.GetComponent<ecs::TagComponent>(other.entity).type != ecs::TagComponent::Type::Enemy) return;
 
-			EntityID victim = other.entity;
-
-			// ダメージ適用
-			if (registry.HasComponent<ecs::StatusComponent>(victim))
-			{
-				auto& status = registry.GetComponent<ecs::StatusComponent>(victim);
+			if (registry.HasComponent<ecs::StatusComponent>(other.entity)) {
+				auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
 				status.hp_.SetBase(status.hp_.GetBase() - shotDamage);
 			}
-
-			// ヒットエフェクト
-			Vector3 hitPos = registry.GetComponent<TransformComponent>(victim).localPosition_;
+			Vector3 hitPos = registry.GetComponent<TransformComponent>(other.entity).localPosition_;
 			ParticleManager::GetInstance()->Play("hit_effect_ver2", hitPos);
-
 			registry.DestroyEntityDeferred(proj);
 		};
 

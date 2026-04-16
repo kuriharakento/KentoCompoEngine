@@ -42,14 +42,14 @@
                 },
                 {
                     "max": {
-                        "x": 0.05000000074505806,
-                        "y": 0.05000000074505806,
-                        "z": 1.0
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 4.0
                     },
                     "min": {
-                        "x": 0.05000000074505806,
-                        "y": 0.05000000074505806,
-                        "z": 1.0
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 4.0
                     },
                     "type": "InitialScale"
                 },
@@ -136,7 +136,7 @@
             "minMoveDistance": 0.05000000074505806,
             "modules": [
                 {
-                    "count": 20,
+                    "count": 50,
                     "delay": 0.0,
                     "interval": 0.0,
                     "loops": 1,
@@ -150,9 +150,9 @@
                 {
                     "arcAngle": 360.0,
                     "boxSize": {
-                        "x": 5.0,
-                        "y": 5.0,
-                        "z": 5.0
+                        "x": 7.0,
+                        "y": 7.0,
+                        "z": 7.0
                     },
                     "coneHeight": 2.0,
                     "emitFromSurface": false,
@@ -174,11 +174,39 @@
                     "type": "SpawnShape"
                 },
                 {
-                    "easingType": 4,
+                    "max": {
+                        "x": 2.0,
+                        "y": 2.0,
+                        "z": 2.0
+                    },
+                    "min": {
+                        "x": -2.0,
+                        "y": -2.0,
+                        "z": -2.0
+                    },
+                    "type": "InitialVelocity"
+                },
+                {
+                    "maxAngle": 360.0,
+                    "maxAngle_v3": {
+                        "x": 360.0,
+                        "y": 360.0,
+                        "z": 360.0
+                    },
+                    "minAngle": 0.0,
+                    "minAngle_v3": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "type": "InitialRotation"
+                },
+                {
+                    "easingType": 2,
                     "end": {
-                        "x": 4.0,
-                        "y": 4.0,
-                        "z": 4.0
+                        "x": 2.0,
+                        "y": 2.0,
+                        "z": 2.0
                     },
                     "start": {
                         "x": 0.0,
@@ -196,10 +224,10 @@
                         "r": 0.5049020051956177
                     },
                     "start": {
-                        "a": 0.7843137383460999,
-                        "b": 0.10731451958417892,
-                        "g": 0.3945385813713074,
-                        "r": 0.9950980544090271
+                        "a": 0.43529412150382996,
+                        "b": 0.10588235408067703,
+                        "g": 0.3960784375667572,
+                        "r": 0.9960784316062927
                     },
                     "type": "ColorFade",
                     "useInitialColor": false
@@ -212,7 +240,7 @@
                 "z": 0.0
             },
             "renderer": {
-                "billboard": true,
+                "billboard": false,
                 "blendMode": 0,
                 "primitiveOptions": {
                     "cubeFaceVisible": [
@@ -238,9 +266,9 @@
                     "turns": 2.0,
                     "withCaps": true
                 },
-                "primitiveType": 0,
+                "primitiveType": 9,
                 "scale": 1.649999976158142,
-                "texture": "resources/circle2.png",
+                "texture": "resources/white1x1.png",
                 "tintColor": {
                     "a": 1.0,
                     "b": 1.0,

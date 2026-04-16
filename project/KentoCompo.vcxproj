@@ -291,6 +291,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\ui\SkillSelectionUI.cpp" />
     <ClCompile Include="application\ecs\systems\TurretSystem.cpp" />
     <ClCompile Include="application\ecs\systems\SprinklerSystem.cpp" />
+    <ClCompile Include="application\ecs\systems\DecoySystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\ecs\CollisionConfig.h" />
@@ -558,6 +559,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\ui\LevelUpUI.h" />
     <ClInclude Include="application\ui\SkillSelectionUI.h" />
     <ClInclude Include="application\ecs\systems\TurretSystem.h" />
+    <ClInclude Include="application\ecs\systems\DecoySystem.h" />
     <ClInclude Include="application\ecs\systems\SprinklerSystem.h" />
     <ClInclude Include="application\ecs\components\TurretComponent.h" />
     <ClInclude Include="application\ecs\components\DamageStackComponent.h" />

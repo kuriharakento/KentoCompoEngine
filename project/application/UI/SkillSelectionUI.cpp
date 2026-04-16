@@ -4,6 +4,8 @@
 #include "input/Input.h"
 #include "base/WinApp.h"
 #include "math/MathUtils.h"
+#include "engine/time/TimeManager.h"
+
 
 void SkillSelectionUI::Initialize(SpriteCommon* spriteCommon)
 {
@@ -28,6 +30,11 @@ void SkillSelectionUI::Update()
 {
 	if (!isActive_) return;
 
+	float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
+	if (inputLockoutTimer_ > 0.0f) {
+		inputLockoutTimer_ -= dt;
+	}
+
 	auto* input = Input::GetInstance();
 
 	for (size_t i = 0; i < cards_.size(); ++i)
@@ -48,17 +55,21 @@ void SkillSelectionUI::Update()
 		}
 
 		// 入力判定 (1, 2, 3キー または クリック)
-		bool keyTriggered = false;
-		if (i == 0 && input->TriggerKey(DIK_1)) keyTriggered = true;
-		if (i == 1 && input->TriggerKey(DIK_2)) keyTriggered = true;
-		if (i == 2 && input->TriggerKey(DIK_3)) keyTriggered = true;
-
-		if (keyTriggered || (card.bg && card.bg->IsClicked()))
+		// 表示直後は誤操作防止のため入力を受け付けない
+		if (inputLockoutTimer_ <= 0.0f)
 		{
-			auto cb = card.onSelect;
-			HideAll();
-			if (cb) cb();
-			break;
+			bool keyTriggered = false;
+			if (i == 0 && input->TriggerKey(DIK_1)) keyTriggered = true;
+			if (i == 1 && input->TriggerKey(DIK_2)) keyTriggered = true;
+			if (i == 2 && input->TriggerKey(DIK_3)) keyTriggered = true;
+
+			if (keyTriggered || (card.bg && card.bg->IsClicked()))
+			{
+				auto cb = card.onSelect;
+				HideAll();
+				if (cb) cb();
+				break;
+			}
 		}
 	}
 }
@@ -157,6 +168,9 @@ void SkillSelectionUI::ShowUpgrades(const std::vector<UpgradeOption>& options)
 
 	if (overlay_) overlay_->SetVisible(true);
 	if (mainTitleFont_) mainTitleFont_->SetVisible(true);
+
+	// 表示直後の誤操作防止タイマーをセット
+	inputLockoutTimer_ = kInputLockoutTime;
 }
 
 void SkillSelectionUI::HideAll()

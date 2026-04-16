@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <FxCompile Include="Resources\shaders\Object3d.PS.hlsl" />
@@ -183,7 +183,18 @@
     <ClCompile Include="application\ecs\systems\ProgressionSystem.cpp" />
     <ClCompile Include="application\ecs\systems\ProjectileSystem.cpp" />
     <ClCompile Include="engine\ecs\system\WorldBoundarySystem.cpp" />
-    <ClCompile Include="application\ui\LevelUpUI.cpp" />
+    <ClCompile Include="application\ui\LevelUpUI.cpp">
+      <Filter>application\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="application\ecs\systems\DecoySystem.cpp">
+      <Filter>application\ecs\systems</Filter>
+    </ClCompile>
+    <ClCompile Include="application\ecs\systems\TurretSystem.cpp">
+      <Filter>application\ecs\systems</Filter>
+    </ClCompile>
+    <ClCompile Include="application\ecs\systems\SprinklerSystem.cpp">
+      <Filter>application\ecs\systems</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\ecs\components\EnemyStateComponent.h" />
@@ -430,8 +441,18 @@
     <ClInclude Include="application\ecs\systems\AnnihilationSystem.h" />
     <ClInclude Include="application\ecs\systems\EnemySpawnSystem.h" />
     <ClInclude Include="application\ecs\systems\PlayerActionSystem.h" />
-    <ClInclude Include="application\ecs\systems\ProgressionSystem.h" />
-    <ClInclude Include="application\ecs\systems\ProjectileSystem.h" />
+    <ClInclude Include="application\ecs\systems\ProjectileSystem.h">
+      <Filter>application\ecs\systems</Filter>
+    </ClInclude>
+    <ClInclude Include="application\ecs\systems\DecoySystem.h">
+      <Filter>application\ecs\systems</Filter>
+    </ClInclude>
+    <ClInclude Include="application\ecs\systems\TurretSystem.h">
+      <Filter>application\ecs\systems</Filter>
+    </ClInclude>
+    <ClInclude Include="application\ecs\systems\SprinklerSystem.h">
+      <Filter>application\ecs\systems</Filter>
+    </ClInclude>
     <ClInclude Include="application\ecs\components\DodgeComponent.h" />
     <ClInclude Include="application\ecs\components\ImpactChargeComponent.h" />
     <ClInclude Include="application\ecs\components\PlayerProgressionComponent.h" />

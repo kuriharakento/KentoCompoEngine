@@ -16,7 +16,7 @@
             "minMoveDistance": 0.05000000074505806,
             "modules": [
                 {
-                    "rate": 510.5,
+                    "rate": 100.0,
                     "type": "SpawnRate"
                 },
                 {

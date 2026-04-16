@@ -677,6 +677,19 @@ void PlayerActionSystem::SpawnDecoy(EntityID entity, Registry& registry)
 	if (skill.activeDecoyEntities_.size() >= 1)
 	{
 		EntityID oldest = skill.activeDecoyEntities_[0];
+		
+		// エフェクトを止める
+		if (registry.HasComponent<DecoyComponent>(oldest))
+		{
+			auto& oldDc = registry.GetComponent<DecoyComponent>(oldest);
+			if (oldDc.effect_)
+			{
+				oldDc.effect_->Stop();
+				oldDc.effect_->SetAutoRemove(true);
+				oldDc.effect_ = nullptr;
+			}
+		}
+
 		registry.DestroyEntityDeferred(oldest);
 		skill.activeDecoyEntities_.erase(skill.activeDecoyEntities_.begin());
 	}
@@ -689,6 +702,14 @@ void PlayerActionSystem::SpawnDecoy(EntityID entity, Registry& registry)
 
 	DecoyComponent dc;
 	dc.owner_ = entity;
+
+	// エフェクトの再生
+	dc.effect_ = ParticleManager::GetInstance()->Play("Decoy_skill", spawnPos);
+	if (dc.effect_)
+	{
+		dc.effect_->SetAutoRemove(false); // システムで管理するため
+	}
+
 	registry.AddComponent<DecoyComponent>(decoy, dc);
 	
 	// タグ付け（敵が狙うため）
@@ -717,7 +738,7 @@ void PlayerActionSystem::SpawnTurret(EntityID entity, Registry& registry)
 	auto& trans = registry.GetComponent<TransformComponent>(entity);
 
 	Vector3 spawnPos = trans.localPosition_;
-	spawnPos.y = 0.5f;
+	spawnPos.y = 1.0f;
 
 	// 無効なタレットをリストから削除（クリーンアップ）
 	skill.activeTurretEntities_.erase(
@@ -751,7 +772,7 @@ void PlayerActionSystem::SpawnTurret(EntityID entity, Registry& registry)
 
 	// タレット用描画
 	InstancedRenderComponent render;
-	render.modelName_ = "enemy"; 
+	render.modelName_ = "turret"; 
 	render.useInstancing_ = true;
 	registry.AddComponent<InstancedRenderComponent>(turret, render);
 

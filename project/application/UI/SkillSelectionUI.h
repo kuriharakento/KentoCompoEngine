@@ -53,6 +53,8 @@ private:
 
 	SpriteCommon* spriteCommon_ = nullptr;
 	bool isActive_ = false;
+	float inputLockoutTimer_ = 0.0f;
+	static constexpr float kInputLockoutTime = 0.5f;
 
 	// 選択肢の情報
     struct CardInstance {
