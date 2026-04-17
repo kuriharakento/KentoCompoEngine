@@ -17,6 +17,8 @@ struct UpgradeOption
     std::string title;
     std::string description;
     std::function<void()> onSelect;
+    std::string texturePath; // 追加: 専用アーカイブテクスチャのパス
+    std::string titleTexturePath; // 追加: タイトル画像のパス
     uint32_t color = 0xFFFFFFFF; // RGBA
 };
 
@@ -38,7 +40,7 @@ public:
 	 * @brief 通常のスキルルート選択 (LV2/3用)
 	 */
 	void Show(uint32_t level, const std::string& optionA, const std::string& optionB,
-		std::function<void(int)> onSelect);
+		std::function<void(int)> onSelect, const std::string& texA = "", const std::string& texB = "");
 
 	/**
 	 * @brief 多彩なアップグレード選択 (LV4+用)
@@ -59,8 +61,8 @@ private:
 	// 選択肢の情報
     struct CardInstance {
         std::unique_ptr<GameUI> bg;
-        std::unique_ptr<FontSprite> titleFont;
-        std::unique_ptr<FontSprite> descFont;
+        std::unique_ptr<GameUI> icon; // 追加: スキルアイコン
+        std::unique_ptr<GameUI> titleIcon; // 追加: タイトル画像
         std::string title;
         std::string desc;
         float scale = 1.0f;

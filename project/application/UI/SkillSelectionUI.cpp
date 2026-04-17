@@ -49,9 +49,23 @@ void SkillSelectionUI::Update()
 		if (card.bg)
 		{
 			card.bg->SetSize({ kCardWidth * card.scale, kCardHeight * card.scale });
-			// 明度変更
-			float brightness = (card.bg->IsHovered()) ? 1.0f : 0.85f;
-			card.bg->SetColor({ 0.2f * brightness, 0.3f * brightness, 0.5f * brightness, 0.95f });
+			// 旧UIの背景色付けを削除（透明にする）
+			card.bg->SetColor({ 1.0f, 1.0f, 1.0f, 0.0f });
+		}
+
+		if (card.icon)
+		{
+			// アイコンもカードの拡大に合わせる
+			card.icon->Update();
+			// アイコンサイズを 300x400 に固定
+			card.icon->SetSize({ 300.0f * card.scale, 400.0f * card.scale });
+		}
+
+		if (card.titleIcon)
+		{
+			card.titleIcon->Update();
+			// タイトル画像のサイズは適宜調整（ここでは横幅 240px 程度を想定）
+			card.titleIcon->SetSize({ 240.0f * card.scale, 60.0f * card.scale });
 		}
 
 		// 入力判定 (1, 2, 3キー または クリック)
@@ -95,32 +109,31 @@ void SkillSelectionUI::Draw()
 		
 		Vector2 pos = card.bg->GetScreenPosition();
 
-		// タイトル
-		if (card.titleFont)
+		// アイコンがあれば描画
+		if (card.icon)
 		{
-			card.titleFont->SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
-			float titleX = pos.x - kCardWidth * 0.35f;
-			float titleY = pos.y - kCardHeight * 0.3f;
-			card.titleFont->DrawText(card.title, { titleX, titleY }, kCardTitleScale);
+			// カードの中央より少し上に配置
+			card.icon->SetScreenPosition({ pos.x, pos.y - 40.0f });
+			card.icon->Draw();
 		}
 
-		// 説明文
-		if (card.descFont)
+		// タイトル画像
+		if (card.titleIcon)
 		{
-			card.descFont->SetColor({ 0.8f, 0.9f, 1.0f, 1.0f });
-			float descX = pos.x - kCardWidth * 0.42f;
-			float descY = pos.y - kCardHeight * 0.1f;
-			card.descFont->DrawText(card.desc, { descX, descY }, kCardDescScale);
+			// 完全に真ん中に配置
+			float titleY = pos.y;
+			card.titleIcon->SetScreenPosition({ pos.x, titleY });
+			card.titleIcon->Draw();
 		}
 	}
 }
 
 void SkillSelectionUI::Show(uint32_t level, const std::string& optionA, const std::string& optionB,
-	std::function<void(int)> onSelect)
+	std::function<void(int)> onSelect, const std::string& texA, const std::string& texB)
 {
     std::vector<UpgradeOption> options;
-    options.push_back({ optionA, "Unlock this skill route.", [onSelect](){ onSelect(0); } });
-    options.push_back({ optionB, "Unlock this skill route.", [onSelect](){ onSelect(1); } });
+    options.push_back({ optionA, "", [onSelect](){ onSelect(0); }, texA });
+    options.push_back({ optionB, "", [onSelect](){ onSelect(1); }, texB });
     
     ShowUpgrades(options);
     
@@ -155,13 +168,23 @@ void SkillSelectionUI::ShowUpgrades(const std::vector<UpgradeOption>& options)
 		card.bg->SetVisible(true);
 		card.bg->SetInteractable(true);
 
-		card.titleFont = std::make_unique<FontSprite>();
-		card.titleFont->Initialize(spriteCommon_, "nico");
-		card.titleFont->SetVisible(true);
+		// アイコンの設定
+		if (!options[i].texturePath.empty())
+		{
+			card.icon = std::make_unique<GameUI>();
+			card.icon->Initialize(spriteCommon_, options[i].texturePath);
+			card.icon->SetAnchorPoint({ 0.5f, 0.5f });
+			card.icon->SetVisible(true);
+		}
 
-		card.descFont = std::make_unique<FontSprite>();
-		card.descFont->Initialize(spriteCommon_, "nico");
-		card.descFont->SetVisible(true);
+		// タイトル画像の設定
+		if (!options[i].titleTexturePath.empty())
+		{
+			card.titleIcon = std::make_unique<GameUI>();
+			card.titleIcon->Initialize(spriteCommon_, options[i].titleTexturePath);
+			card.titleIcon->SetAnchorPoint({ 0.5f, 0.5f });
+			card.titleIcon->SetVisible(true);
+		}
 
 		cards_.push_back(std::move(card));
 	}

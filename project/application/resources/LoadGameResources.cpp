@@ -49,6 +49,31 @@ void MyGame::LoadTextures()
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/E.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/R.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/level_up.png");
+
+	// Skill Tree
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/skill_01_bomb.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/skill_01_01_missile.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/skill_01_02_decoy.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/skill_02_turret.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/skill_02_01_missile.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/skill_02_02_laser.png");
+	
+	// Skill Upgrades - Icons
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/icon/decoy.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/icon/default.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/icon/laser.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/icon/missile.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/icon/turret.png");
+
+	// Skill Upgrades - Text Graphics
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/text/bullet_count.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/text/cooltime.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/text/count.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/text/damage.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/text/duration.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/text/pierce.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/text/range.png");
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/text/rate.png");
 }
 
 void MyGame::LoadModels()

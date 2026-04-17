@@ -16,7 +16,7 @@
             "minMoveDistance": 0.05000000074505806,
             "modules": [
                 {
-                    "count": 300,
+                    "count": 50,
                     "delay": 0.0,
                     "interval": 0.0,
                     "loops": 1,

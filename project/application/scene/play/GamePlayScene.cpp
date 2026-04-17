@@ -552,12 +552,19 @@ void GamePlayScene::UpdateUI()
 
 void GamePlayScene::DrawUI()
 {
+	bool isSkillSelecting = (skillSelectionUI_ && skillSelectionUI_->IsActive());
+
 	if (reticle_) reticle_->Draw();
-	if (controlsGuide_) controlsGuide_->Draw();
+	
+	// スキル選択中は操作ガイドとタイマーを隠す
+	if (!isSkillSelecting) {
+		if (controlsGuide_) controlsGuide_->Draw();
+		if (timerSprite_) timerSprite_->Draw();
+	}
+
 	if (levelUpUI_) levelUpUI_->Draw();
 	if (skillSelectionUI_) skillSelectionUI_->Draw();
-	// 制限時間表示
-	if (timerSprite_) timerSprite_->Draw();
+	
 	// ポーズメニューは最前面に表示
 	if (poseMenu_) poseMenu_->Draw();
 }
@@ -755,7 +762,9 @@ void GamePlayScene::OnUpdatePlaying()
 							auto& skill = registry_->GetComponent<SkillComponent>(playerEntity_);
 							skill.route_ = (choice == 0) ? SkillRoute::Bomb : SkillRoute::Turret;
 						}
-					});
+					},
+					"./Resources/UI/text/skill_tree/skill_01_bomb.png",
+					"./Resources/UI/text/skill_tree/skill_02_turret.png");
 			}
 			else if (level == 3)
 			{
@@ -772,7 +781,9 @@ void GamePlayScene::OnUpdatePlaying()
 									auto& sk = registry_->GetComponent<SkillComponent>(playerEntity_);
 									sk.special_ = (choice == 0) ? SkillSpecialChoice::HomingMissile : SkillSpecialChoice::DecoyBomb;
 								}
-							});
+							},
+							"./Resources/UI/text/skill_tree/skill_01_01_missile.png",
+							"./Resources/UI/text/skill_tree/skill_01_02_decoy.png");
 					}
 					else if (skill.route_ == SkillRoute::Turret)
 					{
@@ -784,7 +795,9 @@ void GamePlayScene::OnUpdatePlaying()
 									auto& sk = registry_->GetComponent<SkillComponent>(playerEntity_);
 									sk.special_ = (choice == 0) ? SkillSpecialChoice::MissileSalvo : SkillSpecialChoice::PlasmaLaser;
 								}
-							});
+							},
+							"./Resources/UI/text/skill_tree/skill_02_01_missile.png",
+							"./Resources/UI/text/skill_tree/skill_02_02_laser.png");
 					}
 				}
 			}
@@ -927,35 +940,53 @@ void GamePlayScene::TriggerUpgradeSelection()
 		std::string title;
 		std::string desc;
 		std::function<void()> onSelect;
+		std::string iconPath;
+		std::string titlePath;
 	};
 
 	std::vector<UpgradeDef> pool;
 
+	// パス定数
+	const std::string kIconBase = "./Resources/UI/text/skill_tree/upgrade/icon/";
+	const std::string kTextBase = "./Resources/UI/text/skill_tree/upgrade/text/";
+	const std::string kTreeBase = "./Resources/UI/text/skill_tree/";
+
 	// 通常弾強化
-	pool.push_back({ "LMB: Piercing", "Bullets pierce through enemies (+1).", [&skill](){ skill.lmbPierceCount_++; } });
-	pool.push_back({ "LMB: Rapid Fire", "Increase fire rate of your primary weapon.", [&skill](){ skill.lmbCooldownMultiplier_ *= 0.50f; } });
-	pool.push_back({ "LMB: Multi-Shot", "Fire an additional bullet per shot.", [&skill](){ skill.lmbBulletCount_++; } });
+	pool.push_back({ "LMB: Piercing", "Bullets pierce through enemies (+1).", [&skill](){ skill.lmbPierceCount_++; }, 
+		kIconBase + "default.png", kTextBase + "pierce.png" });
+	pool.push_back({ "LMB: Rapid Fire", "Increase fire rate of your primary weapon.", [&skill](){ skill.lmbCooldownMultiplier_ *= 0.50f; }, 
+		kIconBase + "default.png", kTextBase + "rate.png" });
+	pool.push_back({ "LMB: Multi-Shot", "Fire an additional bullet per shot.", [&skill](){ skill.lmbBulletCount_++; }, 
+		kIconBase + "default.png", kTextBase + "bullet_count.png" });
 
 	// Qスキル強化
 	if (skill.route_ == SkillRoute::Bomb) {
-		pool.push_back({ "Shockwave: Range", "Increase the radius of your shockwaves.", [&skill](){ skill.qRange_ *= 2.2f; } });
-		pool.push_back({ "Shockwave: Fast CD", "Decrease shockwave cooldown.", [&skill](){ skill.qCooldownMultiplier_ *= 0.45f; } });
+		pool.push_back({ "Shockwave: Range", "Increase the radius of your shockwaves.", [&skill](){ skill.qRange_ *= 2.2f; }, 
+			kTreeBase + "skill_01_bomb.png", kTextBase + "range.png" });
+		pool.push_back({ "Shockwave: Fast CD", "Decrease shockwave cooldown.", [&skill](){ skill.qCooldownMultiplier_ *= 0.45f; }, 
+			kTreeBase + "skill_01_bomb.png", kTextBase + "cooltime.png" });
 	}
 
 	// Eスキル強化
 	if (skill.special_ == SkillSpecialChoice::HomingMissile)
-		pool.push_back({ "Missile: Capacity", "Fire more missiles at once.", [&skill](){ skill.eMissileCount_ += 2; } });
+		pool.push_back({ "Missile: Capacity", "Fire more missiles at once.", [&skill](){ skill.eMissileCount_ += 2; }, 
+			kIconBase + "missile.png", kTextBase + "count.png" });
 	if (skill.special_ == SkillSpecialChoice::DecoyBomb)
-		pool.push_back({ "Decoy: Persistence", "Increase decoy duration.", [&skill](){ skill.eDecoyDuration_ += 20.0f; } });
+		pool.push_back({ "Decoy: Persistence", "Increase decoy duration.", [&skill](){ skill.eDecoyDuration_ += 20.0f; }, 
+			kIconBase + "decoy.png", kTextBase + "duration.png" });
 	if (skill.special_ == SkillSpecialChoice::MissileSalvo)
-		pool.push_back({ "Salvo: Power", "Increase turret missile damage.", [&skill](){ skill.eSalvoDamageMult_ *= 3.0f; } });
+		pool.push_back({ "Salvo: Power", "Increase turret missile damage.", [&skill](){ skill.eSalvoDamageMult_ *= 3.0f; }, 
+			kIconBase + "missile.png", kTextBase + "damage.png" });
 	if (skill.special_ == SkillSpecialChoice::PlasmaLaser)
-		pool.push_back({ "Laser: Rapid Fire", "Increase turret laser fire rate.", [&skill](){ skill.eLaserFireRateMult_ *= 0.35f; } });
+		pool.push_back({ "Laser: Rapid Fire", "Increase turret laser fire rate.", [&skill](){ skill.eLaserFireRateMult_ *= 0.35f; }, 
+			kIconBase + "laser.png", kTextBase + "rate.png" });
 
 	// タレット共通強化
 	if (skill.route_ == SkillRoute::Turret) {
-		pool.push_back({ "Turret: Capacity", "Deploy an additional turret.", [&skill](){ skill.qMaxTurrets_++; } });
-		pool.push_back({ "Turret: Fire Rate", "Increase turret global fire rate.", [&skill](){ skill.qTurretFireRateMult_ *= 0.50f; } });
+		pool.push_back({ "Turret: Capacity", "Deploy an additional turret.", [&skill](){ skill.qMaxTurrets_++; }, 
+			kIconBase + "turret.png", kTextBase + "count.png" });
+		pool.push_back({ "Turret: Fire Rate", "Increase turret global fire rate.", [&skill](){ skill.qTurretFireRateMult_ *= 0.50f; }, 
+			kIconBase + "turret.png", kTextBase + "rate.png" });
 	}
 
 	// シャッフルして3つ選ぶ
@@ -965,7 +996,7 @@ void GamePlayScene::TriggerUpgradeSelection()
 
 	std::vector<UpgradeOption> options;
 	for (size_t i = 0; i < (std::min)(pool.size(), (size_t)3); ++i) {
-		options.push_back({ pool[i].title, pool[i].desc, pool[i].onSelect });
+		options.push_back({ pool[i].title, pool[i].desc, pool[i].onSelect, pool[i].iconPath, pool[i].titlePath });
 	}
 
 	if (skillSelectionUI_) {
