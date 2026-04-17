@@ -41,13 +41,9 @@ void SceneManager::Update()
 	{
 		ChangeScene(SceneNames::GamePlay);
 	}
-	if (ImGui::Button("GameOver"))
+	if (ImGui::Button("Result"))
 	{
-		ChangeScene(SceneNames::GameOver);
-	}
-	if (ImGui::Button("GameClear"))
-	{
-		ChangeScene(SceneNames::GameClear);
+		ChangeScene(SceneNames::Result);
 	}
 	// Debug用シーン
 	if(ImGui::Button("StageEdit"))

@@ -106,6 +106,6 @@ void Cursor::SetTexture(const std::string& texturePath)
 
 void Cursor::ShowMouseCursor(bool show)
 {
-	// Windows APIでマウスカーソルの表示/非表示を切り替え
-	::ShowCursor(show ? TRUE : FALSE);
+	// Inputクラスを通じてマウスカーソルの表示/非表示を切り替え
+	Input::GetInstance()->SetMouseVisible(show);
 }

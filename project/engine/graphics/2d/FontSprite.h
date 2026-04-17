@@ -7,6 +7,16 @@
 #include "Sprite.h"
 
 /**
+ * @brief フォント整列方向
+ */
+enum class FontAlignment
+{
+	Left,
+	Center,
+	Right,
+};
+
+/**
  * @brief 文字情報構造体
  * @details フォントアトラスJSON出力と対応
  */
@@ -121,6 +131,12 @@ public:
      */
     void SetVisible(bool isVisible) { isVisible_ = isVisible; }
 
+	/**
+	 * @brief 整列方向を設定
+	 * @param alignment 整列方向
+	 */
+	void SetAlignment(FontAlignment alignment) { alignment_ = alignment; }
+
     /*---------------[ ゲッター ]---------------*/
 
     /**
@@ -170,6 +186,12 @@ public:
      * @return セルサイズ
      */
     float GetCellSize() const { return cellSize_; }
+
+	/**
+	 * @brief 文字列表示時の総幅を計算して返す
+	 * @return 総幅（ピクセル）
+	 */
+	float GetTextWidth() const;
 
 private:
     /**
@@ -236,4 +258,7 @@ private:
 
     // 表示フラグ
     bool isVisible_ = true;
+
+	// 整列方向
+	FontAlignment alignment_ = FontAlignment::Left;
 };

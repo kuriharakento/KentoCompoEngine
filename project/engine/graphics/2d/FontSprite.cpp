@@ -217,8 +217,23 @@ void FontSprite::Draw()
     // 非表示なら描画しない
     if (!isVisible_) return;
 
+	// アライメントに基づいた位置オフセットを計算
+	Vector2 drawPos = position_;
+	if (alignment_ != FontAlignment::Left)
+	{
+		float totalWidth = GetTextWidth();
+		if (alignment_ == FontAlignment::Center)
+		{
+			drawPos.x -= totalWidth / 2.0f;
+		}
+		else if (alignment_ == FontAlignment::Right)
+		{
+			drawPos.x -= totalWidth;
+		}
+	}
+
     // 内部実装を呼び出し
-    DrawTextInternal(text_, position_, scale_, spacing_);
+    DrawTextInternal(text_, drawPos, scale_, spacing_);
 }
 
 void FontSprite::DrawChar(char character, const Vector2& position, float scale)
@@ -298,3 +313,12 @@ void FontSprite::DrawTextInternal(const std::string& text, const Vector2& positi
         currentPos.x += charWidth;
     }
 }
+
+float FontSprite::GetTextWidth() const
+{
+	if (text_.empty()) return 0.0f;
+
+	float charWidth = cellSize_ * scale_ + spacing_;
+	// 1文字目から最後の文字までの中心間距離を返す
+	return static_cast<float>(text_.size() - 1) * charWidth;
+}

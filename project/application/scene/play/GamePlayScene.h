@@ -108,6 +108,15 @@ private:
 	static constexpr float kTimerScale = 0.8f;
 	// 残り時間が少ないときの警告閾値（秒）
 	static constexpr float kTimerWarningThreshold = 30.0f;
+	
+	// --- スコア表示 ---
+	static constexpr float kScorePosX = 150.0f;
+	static constexpr float kScoreLabelPosY = 300.0f; // ラベル位置
+	static constexpr float kScoreNumberPosY = 340.0f; // 数値位置
+	static constexpr float kScoreScale = 0.5f;
+	static constexpr float kScoreNumberScale = 0.4f;
+	static constexpr float kScoreLabelSpacing = -20.0f;
+	static constexpr float kScoreNumberSpacing = 0.0f;
 
     // --- ゲームプレイ ---
     std::unique_ptr<Cursor> reticle_;
@@ -133,14 +142,14 @@ private:
     // --- 演出 ---
     SceneTransitionEffect transitionEffect_;
     CinematicLetterbox cinematicLetterbox_;
-    float gameOverEffectDuration_ = 3.0f;
-	float gameOverEffectElapsed_ = 0.0f;
-    bool gameClear_ = false;
-	bool gameOver_ = false;
     float gameTime_ = 0.0f;
 
 	// 制限時間の数値表示
 	std::unique_ptr<NumberSprite> timerSprite_;
+	// スコアラベル表示
+	std::unique_ptr<FontSprite> scoreLabelFontSprite_;
+	// スコアの数値表示
+	std::unique_ptr<NumberSprite> scoreNumberSprite_;
 
 	// --- UI ---
 	std::unique_ptr<ControlsGuide> controlsGuide_ = nullptr;

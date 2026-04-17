@@ -25,6 +25,8 @@
 #include "graphics/2d/SpriteCommon.h"
 
 // app
+#include "application/game/ScoreManager.h"
+#include "engine/scene/factory/SceneNames.h"
 #include "engine/gameobject/component/collision/CollisionManager.h"
 // components
 #include "application/combo/ComboManager.h"
@@ -424,6 +426,24 @@ void GamePlayScene::Initialize()
 	timerSprite_->SetAlignment(NumberAlignment::Center);
 	timerSprite_->SetMinDigits(3); // 最低3桁表示（例: 060）
 
+	// スコアラベルの初期化
+	scoreLabelFontSprite_ = std::make_unique<FontSprite>();
+	scoreLabelFontSprite_->Initialize(sprCommon, "nico");
+	scoreLabelFontSprite_->SetText("SCORE");
+	scoreLabelFontSprite_->SetAlignment(FontAlignment::Center);
+	scoreLabelFontSprite_->SetSpacing(kScoreLabelSpacing);
+	scoreLabelFontSprite_->SetPosition({ kScorePosX, kScoreLabelPosY });
+	scoreLabelFontSprite_->SetScale(kScoreScale);
+
+	// スコア表示用 NumberSprite の初期化
+	scoreNumberSprite_ = std::make_unique<NumberSprite>();
+	scoreNumberSprite_->Initialize(sprCommon, "./Resources/numbers.png", { kTimerDigitWidth, kTimerDigitHeight });
+	scoreNumberSprite_->SetPosition({ kScorePosX, kScoreNumberPosY });
+	scoreNumberSprite_->SetSpacing(kScoreNumberSpacing);
+	scoreNumberSprite_->SetScale(kScoreNumberScale);
+	scoreNumberSprite_->SetAlignment(NumberAlignment::Center);
+	scoreNumberSprite_->SetMinDigits(1); 
+
 	// ProgressionSystem に通知先を設定
 	progressionSystem->SetLevelUpUI(levelUpUI_.get());
 	progressionSystem->SetPostProcessManager(sceneManager_->GetPostProcessManager());
@@ -464,6 +484,9 @@ void GamePlayScene::Initialize()
 		sW,
 		sH
 	);
+
+	// スコア管理のリセット
+	ScoreManager::Reset();
 
 	// 初期ステートをセットして起動
 	StartState(SceneState::Enter);
@@ -548,6 +571,27 @@ void GamePlayScene::UpdateUI()
 
 		timerSprite_->Update();
 	}
+
+	// スコアの表示更新
+	if (scoreLabelFontSprite_)
+	{
+		scoreLabelFontSprite_->Update();
+	}
+	if (scoreNumberSprite_)
+	{
+		scoreNumberSprite_->SetNumber(static_cast<int>(ScoreManager::GetScore()));
+		scoreNumberSprite_->Update();
+	}
+
+	// UI状態に応じてレティクルの表示/非表示を切り替え
+	// (Cursorクラス内でマウスカーソルの表示状態も連動して切り替わる)
+	bool isUIActive = (skillSelectionUI_ && skillSelectionUI_->IsActive()) ||
+					 (levelUpUI_ && levelUpUI_->IsActive()) ||
+					 (poseMenu_ && poseMenu_->IsPaused());
+	if (reticle_)
+	{
+		reticle_->SetVisible(!isUIActive);
+	}
 }
 
 void GamePlayScene::DrawUI()
@@ -560,6 +604,8 @@ void GamePlayScene::DrawUI()
 	if (!isSkillSelecting) {
 		if (controlsGuide_) controlsGuide_->Draw();
 		if (timerSprite_) timerSprite_->Draw();
+		if (scoreLabelFontSprite_) scoreLabelFontSprite_->Draw();
+		if (scoreNumberSprite_) scoreNumberSprite_->Draw();
 	}
 
 	if (levelUpUI_) levelUpUI_->Draw();
@@ -827,7 +873,7 @@ void GamePlayScene::OnUpdatePlaying()
 		auto& status = registry_->GetComponent<ecs::StatusComponent>(playerEntity_);
 		if (status.hp_.GetValue() <= 0.0f)
 		{
-			gameOver_ = true;
+			// 最終スコア取得 (PlayerProgressionComponentから同期することも可能だが、ScoreManagerが最新)
 			ChangeState(SceneState::End);
 		}
 	}
@@ -836,7 +882,6 @@ void GamePlayScene::OnUpdatePlaying()
 	gameTime_ += TimeManager::GetInstance().GetGameContext().deltaTime;
 	if (gameTime_ >= kGameTimeLimit)
 	{
-		gameClear_ = true;
 		ChangeState(SceneState::End);
 	}
 }
@@ -855,16 +900,8 @@ void GamePlayScene::OnUpdateEnd()
 {
 	if (transitionEffect_.GetState() == TransitionState::Done)
 	{
-		if(gameOver_)
-		{
-			// ゲームオーバー画面へ
-			sceneManager_->ChangeScene(SceneNames::GameOver);
-		}
-		else if (gameClear_)
-		{
-			// ゲームクリア画面へ
-			sceneManager_->ChangeScene(SceneNames::GameClear);
-		}
+		// 常にリザルト画面へ
+		sceneManager_->ChangeScene(SceneNames::Result);
 	}
 }
 
@@ -899,7 +936,6 @@ void GamePlayScene::CommonUpdate()
 
 	// カメラの更新
 	if (isDebugCameraActive_) debugCamera_->Update();
-	else if (gameClear_) orbitCamera_->Update();
 	else topDownCamera_->Update();
 
 	// 背景オブジェクトの更新

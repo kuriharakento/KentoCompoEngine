@@ -7,6 +7,7 @@
 #include "application/ecs/components/PlayerProgressionComponent.h"
 #include "application/ecs/components/SkillComponent.h"
 #include "engine/ecs/components/TagComponent.h"
+#include "application/game/ScoreManager.h"
 #include "math/MathUtils.h"
 #include "engine/effects/particle/ParticleManager.h"
 #include "audio/Audio.h"
@@ -36,6 +37,9 @@ void AnnihilationSystem::Update(Registry& registry)
                     impact.stackCount_ = 0;
                 }
             }
+
+            // スコア加算
+            ScoreManager::AddScore(100);
 
             // プレイヤーにスコア・EXP加算
             auto progView = registry.View<PlayerProgressionComponent>();
