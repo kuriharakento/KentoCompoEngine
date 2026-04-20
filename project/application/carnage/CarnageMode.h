@@ -3,7 +3,8 @@
 
 #include "time/Timer.h"
 
-class Player;
+#include "engine/ecs/Registry.h"
+#include "engine/ecs/Entity.h"
 
 /**
  * @brief カーネージモード（特殊能力強化システム）
@@ -33,12 +34,10 @@ class CarnageMode
 public:
     /**
      * @brief コンストラクタ
-     * 
-     * カーネージモードシステムを初期化します。
-     * 
-     * @param player 対象となるプレイヤーへのポインタ（非所有）
+     * @param registry Registryへのポインタ
+     * @param playerEntity プレイヤーのEntityID
      */
-    CarnageMode(Player* player);
+    CarnageMode(Registry* registry, EntityID playerEntity);
 
     /**
      * @brief 毎フレームの更新処理
@@ -116,10 +115,11 @@ private: // メンバ関数
      */
     void ImGui();
 
-private: // メンバ変数
-    // 対象プレイヤーへのポインタ（非所有）
-    Player* player_;
-
+    // ECS Registry
+    Registry* registry_ = nullptr;
+    // ターゲットEntityID
+    EntityID playerEntity_ = kInvalidEntity;
+    
     // カーネージモード持続時間管理タイマー
     std::unique_ptr<Timer> timer_;
 

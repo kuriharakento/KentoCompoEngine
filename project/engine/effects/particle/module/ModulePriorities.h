@@ -105,4 +105,14 @@ namespace ParticleModulePriority
 	
 	/** @brief ツイスト */
 	constexpr int32_t kTwist = -18;
+	
+	//===== Natural Behavior Modules =====//
+	/** @brief 速度方向へのアライメント */
+	constexpr int32_t kFaceVelocity = 55;
+	
+	/** @brief ジッター（揺らぎ） */
+	constexpr int32_t kJitter = 75;
+	
+	/** @brief 寿命に応じた外力 */
+	constexpr int32_t kForceOverLifetime = -30;
 }

@@ -3,6 +3,7 @@
 #include <future>
 #include <chrono>
 #include "manager/graphics/ModelManager.h"
+#include "manager/graphics/TextureManager.h"
 #include "base/Logger.h"
 #include "effects/particle/ParticleManager.h"
 #include "ImGui/imgui_internal.h"
@@ -34,6 +35,10 @@ void MyGame::Initialize()
 
 	// モデルの読み込み
 	LoadModels();
+
+	// GPUの完了待ちをしてから中間リソースを解放
+	dxCommon_->ExecuteAndWait();
+	TextureManager::GetInstance()->ClearIntermediateResources();
 
 	// ゲームの初期化処理
 	sceneManager_->Initialize(context);

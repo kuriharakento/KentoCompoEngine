@@ -5,14 +5,21 @@
 #include "BarrierBlock.h"
 #include "engine/gameobject/component/collision/OBBColliderComponent.h"
 #include "manager/editor/JsonEditorManager.h"
+#include "externals/imgui/imgui.h"
 
-void ObstacleManager::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager)
+// ECS Components
+#include "engine/ecs/components/TagComponent.h"
+#include "engine/ecs/components/ColliderComponent.h"
+#include "application/ecs/CollisionConfig.h"
+#include "engine/ecs/components/CollisionResponseComponent.h"
+#include "engine/math/AABB.h"
+
+
+void ObstacleManager::Initialize(Registry* registry, Object3dCommon* object3dCommon, LightManager* lightManager)
 {
-	// ポインタをメンバ変数に記録
+	registry_ = registry;
 	object3dCommon_ = object3dCommon;
 	lightManager_ = lightManager;
-
-	// リストの初期化
 	obstacles_.clear();
 }
 
@@ -91,12 +98,12 @@ void ObstacleManager::DrawShadow()
 		{
 			if (culling_)
 			{
-				// シャドウマップ描画でもカリングを行うかは要検討だが、
+				// シャドウマップ描画でもカリングを行うか？要検討だが、
 				// パフォーマンス向上のため同様の距離チェックを入れておく
 				// (カメラからの距離が遠すぎる影は描画しない)
 				// ※ 本来はライト方向からの視点でカリングすべきだが、簡易的にカメラ距離を使用
 				/*
-				// 厳密にはシャドウカリングはライト視点が必要だが、
+				// 厳密にはシャドウカリングはライト視点が適切だが、
 				// 簡易実装として通常のDrawと同じ距離制限をかける場合：
 				auto cameraPos = object3dCommon_->GetDefaultCamera()->GetTranslate();
 				float distance = (obstacle->GetPosition() - cameraPos).Length();
@@ -113,8 +120,13 @@ void ObstacleManager::DrawShadow()
 
 void ObstacleManager::Clear()
 {
-	// 障害物のリストをクリア
 	obstacles_.clear();
+
+	// ECS側も全エンティティを破棄・再初期化
+	if (registry_)
+	{
+		registry_->Initialize(registry_->GetMaxEntityCount());
+	}
 }
 
 void ObstacleManager::CreateObstacles()
@@ -189,6 +201,9 @@ void ObstacleManager::CreateObstacle(const GameObjectInfo& info)
 	obstacle->SetScale(info.transform.scale);
 	obstacle->SetName(info.name);
 	obstacles_.push_back(std::move(obstacle));
+
+	// ECS側にトランスフォーム属性を登録
+	RegisterToRegistry(info, ObstacleComponent::Type::Obstacle, true);
 }
 
 void ObstacleManager::CreateBarrierBlock(const GameObjectInfo& info)
@@ -201,6 +216,9 @@ void ObstacleManager::CreateBarrierBlock(const GameObjectInfo& info)
 	obstacle->SetScale(info.transform.scale);
 	obstacle->SetName(info.name);
 	obstacles_.push_back(std::move(obstacle));
+
+	// ECS側に登録
+	RegisterToRegistry(info, ObstacleComponent::Type::BarrierBlock, true);
 }
 
 void ObstacleManager::SyncNewObstacleData()
@@ -232,9 +250,8 @@ void ObstacleManager::SyncNewObstacleData()
 
 void ObstacleManager::CreateFloor(const GameObjectInfo& info)
 {
-	// コライダーなしの床オブジェクト（GameObjectを直接使う）
+	// コライダーなしの床オブジェクト
 	auto floor = std::make_unique<Obstacle>(gameObjectTag::item::Floor);
-	// Obstacle::Initializeではなく、GameObject::Initializeを呼ぶことでコライダーを追加しない
 	floor->GameObject::Initialize(object3dCommon_, lightManager_);
 	floor->SetModel(info.fileName);
 	floor->SetPosition(info.transform.translate);
@@ -242,5 +259,57 @@ void ObstacleManager::CreateFloor(const GameObjectInfo& info)
 	floor->SetScale(info.transform.scale);
 	floor->SetName(info.name);
 	obstacles_.push_back(std::move(floor));
+	// ECS側に登録（床はコライダーなし）
+	RegisterToRegistry(info, ObstacleComponent::Type::Floor, false);
 }
 
+void ObstacleManager::RegisterToRegistry(const GameObjectInfo& info, ObstacleComponent::Type type, bool hasCollider)
+{
+	if (!registry_) return;
+
+	EntityID entity = registry_->CreateEntity();
+	if (entity == kInvalidEntity) return;
+
+	// Tag
+	ecs::TagComponent obstacleTag;
+	obstacleTag.type = ecs::TagComponent::Type::Obstacle;
+	registry_->AddComponent<ecs::TagComponent>(entity, obstacleTag);
+
+	// Transform
+	TransformComponent transform;
+	transform.localPosition_ = {
+		info.transform.translate.x,
+		info.transform.translate.y,
+		info.transform.translate.z
+	};
+	transform.localRotation_ = info.transform.rotate;
+	transform.localScale_ = info.transform.scale;
+	registry_->AddComponent<TransformComponent>(entity, transform);
+
+	// 描画設定
+	InstancedRenderComponent render;
+	render.modelName_ = info.fileName.empty() ? "wall" : info.fileName;
+	render.useInstancing_ = true; // 障害物もインスタンシング対象にする（性能向上のため）
+	registry_->AddComponent<InstancedRenderComponent>(entity, render);
+
+	// 障害物属性
+	ObstacleComponent obstacle;
+	obstacle.type = type;
+	obstacle.hasCollider = hasCollider;
+	registry_->AddComponent<ObstacleComponent>(entity, obstacle);
+
+	// 当たり判定 (OBB)
+	if (hasCollider)
+	{
+		ecs::ColliderComponent col;
+		col.type_ = ColliderType::OBB;
+		col.previousPosition_ = transform.localPosition_;
+		
+		// フィルタリング設定
+		col.layer = CollisionLayer::Obstacle;
+		col.mask  = CollisionLayer::All;
+
+		registry_->AddComponent<ecs::ColliderComponent>(entity, col);
+		registry_->AddComponent<CollisionResponseComponent>(entity, {});
+	}
+}

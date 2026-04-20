@@ -1,5 +1,6 @@
 #include "CollisionManager.h"
 #include <algorithm>
+#include <unordered_set>
 
 #include "math/AABB.h"
 #include "engine/gameobject/component/collision/AABBColliderComponent.h"
@@ -11,6 +12,7 @@
 #include "base/Logger.h"
 #include "imgui/imgui.h"
 #include "math/MathUtils.h"
+#include "engine/gameobject/component/collision/CollisionAlgorithm.h"
 
 std::unique_ptr<CollisionManager> CollisionManager::instance_ = nullptr;
 
@@ -71,33 +73,14 @@ void CollisionManager::CheckCollisions()
 			}
 			else
 			{
-				ImGui::Text("Collider %zu: nullptr", i);
+				ImGui::Text("Collider %zu: [Invalid Owner]", i);
 			}
-			ImGui::Separator();
 		}
 	}
 
-	ImGui::SeparatorText("Current Collisions");
-
-	ImGui::Text("Registered Colliders: %zu", colliders_.size());
-	for (size_t i = 0; i < colliders_.size(); ++i)
-	{
-		ICollisionComponent* collider = colliders_[i];
-		std::string label = std::to_string(i) + ": ";
-		if (collider && collider->GetOwner())
-		{
-			label += collider->GetOwner()->GetTag();
-			label += " (" + GetColliderTypeString(collider->GetColliderType()) + ")";
-			label += ",  substep: " + std::to_string(collider->UseSubstep());
-		}
-		else
-		{
-			label += "nullptr";
-		}
-		ImGui::Text("%s", label.c_str());
-	}
-
-	
+	ImGui::SeparatorText("Statistics");
+	ImGui::Text("Total Calliders: %zu", colliders_.size());
+	ImGui::Text("Active Collisions: %zu", currentCollisions_.size());
 
 	ImGui::End();
 #endif
@@ -105,7 +88,7 @@ void CollisionManager::CheckCollisions()
 	// 新しい衝突ペアを格納するセット
 	std::unordered_set<CollisionPair, CollisionPairHash> newCollisions;
 
-	// 全コライダーの組み合わせで判定
+	// 全てのペアに対して判定を行う
 	for (size_t i = 0; i < colliders_.size(); ++i)
 	{
 		for (size_t j = i + 1; j < colliders_.size(); ++j)
@@ -113,217 +96,85 @@ void CollisionManager::CheckCollisions()
 			ICollisionComponent* a = colliders_[i];
 			ICollisionComponent* b = colliders_[j];
 
+			// 両方のオブジェクトがアクティブな場合のみ判定
+			if (!a->GetOwner()->IsActive() || !b->GetOwner()->IsActive())
+			{
+				continue;
+			}
+
 			bool isHit = false;
 
-			ColliderType typeA = a->GetColliderType();
-			ColliderType typeB = b->GetColliderType();
-
-			// 3Dモードの判定
-			if (dimension_ == CollisionDimension::Mode3D)
+			// 型に応じて判定関数を呼び分け
+			if (a->GetColliderType() == ColliderType::AABB && b->GetColliderType() == ColliderType::AABB)
 			{
-				// AABB同士の衝突判定
-				if (typeA == ColliderType::AABB && typeB == ColliderType::AABB)
-				{
-					// サブステップ判定の使用チェック（高速移動体のすり抜け防止）
-					if (a->UseSubstep() || b->UseSubstep())
-						isHit = collisionAlgorithm::CheckAABBvsAABBSubstep3D(static_cast<AABBColliderComponent*>(a), static_cast<AABBColliderComponent*>(b));
-					else
-						isHit = collisionAlgorithm::CheckAABBvsAABB3D(static_cast<AABBColliderComponent*>(a), static_cast<AABBColliderComponent*>(b));
-				}
-				// OBB同士の衝突判定
-				else if (typeA == ColliderType::OBB && typeB == ColliderType::OBB)
-				{
-					if (a->UseSubstep() || b->UseSubstep())
-						isHit = collisionAlgorithm::CheckOBBvsOBBSubstep3D(static_cast<OBBColliderComponent*>(a), static_cast<OBBColliderComponent*>(b));
-					else
-						isHit = collisionAlgorithm::CheckOBBvsOBB3D(static_cast<OBBColliderComponent*>(a), static_cast<OBBColliderComponent*>(b));
-				}
-				// AABBとOBBの衝突判定
-				else if (typeA == ColliderType::AABB && typeB == ColliderType::OBB)
-				{
-					if (a->UseSubstep() || b->UseSubstep())
-						isHit = collisionAlgorithm::CheckAABBvsOBBSubstep3D(static_cast<AABBColliderComponent*>(a), static_cast<OBBColliderComponent*>(b));
-					else
-						isHit = collisionAlgorithm::CheckAABBvsOBB3D(static_cast<AABBColliderComponent*>(a), static_cast<OBBColliderComponent*>(b));
-				}
-				else if (typeA == ColliderType::OBB && typeB == ColliderType::AABB)
-				{
-					if (a->UseSubstep() || b->UseSubstep())
-						isHit = collisionAlgorithm::CheckAABBvsOBBSubstep3D(static_cast<AABBColliderComponent*>(b), static_cast<OBBColliderComponent*>(a));
-					else
-						isHit = collisionAlgorithm::CheckAABBvsOBB3D(static_cast<AABBColliderComponent*>(b), static_cast<OBBColliderComponent*>(a));
-				}
-				// Sphere同士の衝突判定
-				else if (typeA == ColliderType::Sphere && typeB == ColliderType::Sphere)
-				{
-					if (a->UseSubstep() || b->UseSubstep())
-						isHit = collisionAlgorithm::CheckSpherevsSphereSubstep3D(static_cast<SphereColliderComponent*>(a), static_cast<SphereColliderComponent*>(b));
-					else
-						isHit = collisionAlgorithm::CheckSpherevsSphere3D(static_cast<SphereColliderComponent*>(a), static_cast<SphereColliderComponent*>(b));
-				}
-				// SphereとAABBの衝突判定
-				else if (typeA == ColliderType::Sphere && typeB == ColliderType::AABB)
-				{
-					if (a->UseSubstep() || b->UseSubstep())
-						isHit = collisionAlgorithm::CheckSpherevsAABBSubstep3D(static_cast<SphereColliderComponent*>(a), static_cast<AABBColliderComponent*>(b));
-					else
-						isHit = collisionAlgorithm::CheckSpherevsAABB3D(static_cast<SphereColliderComponent*>(a), static_cast<AABBColliderComponent*>(b));
-				}
-				else if (typeA == ColliderType::AABB && typeB == ColliderType::Sphere)
-				{
-					if (a->UseSubstep() || b->UseSubstep())
-						isHit = collisionAlgorithm::CheckSpherevsAABBSubstep3D(static_cast<SphereColliderComponent*>(b), static_cast<AABBColliderComponent*>(a));
-					else
-						isHit = collisionAlgorithm::CheckSpherevsAABB3D(static_cast<SphereColliderComponent*>(b), static_cast<AABBColliderComponent*>(a));
-				}
-				// SphereとOBBの衝突判定
-				else if (typeA == ColliderType::Sphere && typeB == ColliderType::OBB)
-				{
-					if (a->UseSubstep() || b->UseSubstep())
-						isHit = collisionAlgorithm::CheckSpherevsOBBSubstep3D(static_cast<SphereColliderComponent*>(a), static_cast<OBBColliderComponent*>(b));
-					else
-						isHit = collisionAlgorithm::CheckSpherevsOBB3D(static_cast<SphereColliderComponent*>(a), static_cast<OBBColliderComponent*>(b));
-				}
-				else if (typeA == ColliderType::OBB && typeB == ColliderType::Sphere)
-				{
-					if (a->UseSubstep() || b->UseSubstep())
-						isHit = collisionAlgorithm::CheckSpherevsOBBSubstep3D(static_cast<SphereColliderComponent*>(b), static_cast<OBBColliderComponent*>(a));
-					else
-						isHit = collisionAlgorithm::CheckSpherevsOBB3D(static_cast<SphereColliderComponent*>(b), static_cast<OBBColliderComponent*>(a));
-				}
-				// RayとAABBの衝突判定
-				else if (typeA == ColliderType::Ray && typeB == ColliderType::AABB)
-				{
-					isHit = collisionAlgorithm::CheckRayvsAABB3D(static_cast<RayColliderComponent*>(a), static_cast<AABBColliderComponent*>(b));
-				}
-				else if (typeA == ColliderType::AABB && typeB == ColliderType::Ray)
-				{
-					isHit = collisionAlgorithm::CheckRayvsAABB3D(static_cast<RayColliderComponent*>(b), static_cast<AABBColliderComponent*>(a));
-				}
-				// RayとOBBの衝突判定
-				else if (typeA == ColliderType::Ray && typeB == ColliderType::OBB)
-				{
-					isHit = collisionAlgorithm::CheckRayvsOBB3D(static_cast<RayColliderComponent*>(a), static_cast<OBBColliderComponent*>(b));
-				}
-				else if (typeA == ColliderType::OBB && typeB == ColliderType::Ray)
-				{
-					isHit = collisionAlgorithm::CheckRayvsOBB3D(static_cast<RayColliderComponent*>(b), static_cast<OBBColliderComponent*>(a));
-				}
-				// RayとSphereの衝突判定
-				else if (typeA == ColliderType::Ray && typeB == ColliderType::Sphere)
-				{
-					isHit = collisionAlgorithm::CheckRayvsSphere3D(static_cast<RayColliderComponent*>(a), static_cast<SphereColliderComponent*>(b));
-				}
-				else if (typeA == ColliderType::Sphere && typeB == ColliderType::Ray)
-				{
-					isHit = collisionAlgorithm::CheckRayvsSphere3D(static_cast<RayColliderComponent*>(b), static_cast<SphereColliderComponent*>(a));
-				}
+				isHit = collisionAlgorithm::CheckAABBvsAABBSubstep3D(static_cast<AABBColliderComponent*>(a), static_cast<AABBColliderComponent*>(b));
 			}
-			// 2Dモードの判定
-			else if (dimension_ == CollisionDimension::Mode2D)
+			else if (a->GetColliderType() == ColliderType::OBB && b->GetColliderType() == ColliderType::OBB)
 			{
-				
-				// AABB同士の衝突判定
-				if (typeA == ColliderType::AABB && typeB == ColliderType::AABB)
-				{
-					if (a->UseSubstep() || b->UseSubstep())
-						isHit = collisionAlgorithm::CheckAABBvsAABBSubstep2D(static_cast<AABBColliderComponent*>(a), static_cast<AABBColliderComponent*>(b), collisionPlane_);
-					else
-						isHit = collisionAlgorithm::CheckAABBvsAABB2D(static_cast<AABBColliderComponent*>(a), static_cast<AABBColliderComponent*>(b), collisionPlane_);
-				}
-				// OBB同士の衝突判定
-				else if (typeA == ColliderType::OBB && typeB == ColliderType::OBB)
-				{
-					if (a->UseSubstep() || b->UseSubstep())
-						isHit = collisionAlgorithm::CheckOBBvsOBBSubstep2D(static_cast<OBBColliderComponent*>(a), static_cast<OBBColliderComponent*>(b), collisionPlane_);
-					else
-						isHit = collisionAlgorithm::CheckOBBvsOBB2D(static_cast<OBBColliderComponent*>(a), static_cast<OBBColliderComponent*>(b), collisionPlane_);
-				}
-				// AABBとOBBの衝突判定
-				else if (typeA == ColliderType::AABB && typeB == ColliderType::OBB)
-				{
-					if (a->UseSubstep() || b->UseSubstep())
-						isHit = collisionAlgorithm::CheckAABBvsOBBSubstep2D(static_cast<AABBColliderComponent*>(a), static_cast<OBBColliderComponent*>(b), collisionPlane_);
-					else
-						isHit = collisionAlgorithm::CheckAABBvsOBB2D(static_cast<AABBColliderComponent*>(a), static_cast<OBBColliderComponent*>(b), collisionPlane_);
-				}
-				else if (typeA == ColliderType::OBB && typeB == ColliderType::AABB)
-				{
-					if (a->UseSubstep() || b->UseSubstep())
-						isHit = collisionAlgorithm::CheckAABBvsOBBSubstep2D(static_cast<AABBColliderComponent*>(b), static_cast<OBBColliderComponent*>(a), collisionPlane_);
-					else
-						isHit = collisionAlgorithm::CheckAABBvsOBB2D(static_cast<AABBColliderComponent*>(b), static_cast<OBBColliderComponent*>(a), collisionPlane_);
-				}
-				// Circle同士の衝突判定
-				else if (typeA == ColliderType::Sphere && typeB == ColliderType::Sphere)
-				{
-					if (a->UseSubstep() || b->UseSubstep())
-						isHit = collisionAlgorithm::CheckCirclevsCircleSubstep2D(static_cast<SphereColliderComponent*>(a), static_cast<SphereColliderComponent*>(b), collisionPlane_);
-					else
-						isHit = collisionAlgorithm::CheckCirclevsCircle2D(static_cast<SphereColliderComponent*>(a), static_cast<SphereColliderComponent*>(b), collisionPlane_);
-				}
-				// CircleとAABBの衝突判定
-				else if (typeA == ColliderType::Sphere && typeB == ColliderType::AABB)
-				{
-					if (a->UseSubstep() || b->UseSubstep())
-						isHit = collisionAlgorithm::CheckCirclevsAABBSubstep2D(static_cast<SphereColliderComponent*>(a), static_cast<AABBColliderComponent*>(b), collisionPlane_);
-					else
-						isHit = collisionAlgorithm::CheckCirclevsAABB2D(static_cast<SphereColliderComponent*>(a), static_cast<AABBColliderComponent*>(b), collisionPlane_);
-				}
-				else if (typeA == ColliderType::AABB && typeB == ColliderType::Sphere)
-				{
-					if (a->UseSubstep() || b->UseSubstep())
-						isHit = collisionAlgorithm::CheckCirclevsAABBSubstep2D(static_cast<SphereColliderComponent*>(b), static_cast<AABBColliderComponent*>(a), collisionPlane_);
-					else
-						isHit = collisionAlgorithm::CheckCirclevsAABB2D(static_cast<SphereColliderComponent*>(b), static_cast<AABBColliderComponent*>(a), collisionPlane_);
-				}
-				// CircleとOBBの衝突判定
-				else if (typeA == ColliderType::Sphere && typeB == ColliderType::OBB)
-				{
-					if (a->UseSubstep() || b->UseSubstep())
-						isHit = collisionAlgorithm::CheckCirclevsOBBSubstep2D(static_cast<SphereColliderComponent*>(a), static_cast<OBBColliderComponent*>(b), collisionPlane_);
-					else
-						isHit = collisionAlgorithm::CheckCirclevsOBB2D(static_cast<SphereColliderComponent*>(a), static_cast<OBBColliderComponent*>(b), collisionPlane_);
-				}
-				else if (typeA == ColliderType::OBB && typeB == ColliderType::Sphere)
-				{
-					if (a->UseSubstep() || b->UseSubstep())
-						isHit = collisionAlgorithm::CheckCirclevsOBBSubstep2D(static_cast<SphereColliderComponent*>(b), static_cast<OBBColliderComponent*>(a), collisionPlane_);
-					else
-						isHit = collisionAlgorithm::CheckCirclevsOBB2D(static_cast<SphereColliderComponent*>(b), static_cast<OBBColliderComponent*>(a), collisionPlane_);
-				}
+				isHit = collisionAlgorithm::CheckOBBvsOBBSubstep3D(static_cast<OBBColliderComponent*>(a), static_cast<OBBColliderComponent*>(b));
+			}
+			else if (a->GetColliderType() == ColliderType::Sphere && b->GetColliderType() == ColliderType::Sphere)
+			{
+				isHit = collisionAlgorithm::CheckSpherevsSphereSubstep3D(static_cast<SphereColliderComponent*>(a), static_cast<SphereColliderComponent*>(b));
+			}
+			else if (a->GetColliderType() == ColliderType::Sphere && b->GetColliderType() == ColliderType::AABB)
+			{
+				isHit = collisionAlgorithm::CheckSpherevsAABBSubstep3D(static_cast<SphereColliderComponent*>(a), static_cast<AABBColliderComponent*>(b));
+			}
+			else if (a->GetColliderType() == ColliderType::AABB && b->GetColliderType() == ColliderType::Sphere)
+			{
+				isHit = collisionAlgorithm::CheckSpherevsAABBSubstep3D(static_cast<SphereColliderComponent*>(b), static_cast<AABBColliderComponent*>(a));
+			}
+			else if (a->GetColliderType() == ColliderType::Sphere && b->GetColliderType() == ColliderType::OBB)
+			{
+				isHit = collisionAlgorithm::CheckSpherevsOBBSubstep3D(static_cast<SphereColliderComponent*>(a), static_cast<OBBColliderComponent*>(b));
+			}
+			else if (a->GetColliderType() == ColliderType::OBB && b->GetColliderType() == ColliderType::Sphere)
+			{
+				isHit = collisionAlgorithm::CheckSpherevsOBBSubstep3D(static_cast<SphereColliderComponent*>(b), static_cast<OBBColliderComponent*>(a));
+			}
+			else if (a->GetColliderType() == ColliderType::AABB && b->GetColliderType() == ColliderType::OBB)
+			{
+				isHit = collisionAlgorithm::CheckAABBvsOBBSubstep3D(static_cast<AABBColliderComponent*>(a), static_cast<OBBColliderComponent*>(b));
+			}
+			else if (a->GetColliderType() == ColliderType::OBB && b->GetColliderType() == ColliderType::AABB)
+			{
+				isHit = collisionAlgorithm::CheckAABBvsOBBSubstep3D(static_cast<AABBColliderComponent*>(b), static_cast<OBBColliderComponent*>(a));
 			}
 
-			// 衝突している場合
 			if (isHit)
 			{
-				CollisionPair pair{ a, b };
-				newCollisions.insert(pair);
-				
-				// 衝突した瞬間の処理
-				if (!currentCollisions_.contains(pair))
-				{
-					a->CallOnEnter(b->GetOwner());
-					b->CallOnEnter(a->GetOwner());
-				}
-				else
-				{
-					// 衝突している間の処理
-					a->CallOnStay(b->GetOwner());
-					b->CallOnStay(a->GetOwner());
-				}
+				newCollisions.insert({ a, b });
 			}
 		}
 	}
 
-	// 離れた衝突を処理
-	for (const auto& pair : currentCollisions_)
+	// 衝突状態の変化を検出し、コールバックを呼び出す
+	for (auto& pair : newCollisions)
 	{
-		if (!newCollisions.contains(pair))
+		if (currentCollisions_.find(pair) == currentCollisions_.end())
 		{
-			// 衝突が離れた時の処理
+			// 新規衝突 (OnEnter)
+			pair.a->CallOnEnter(pair.b->GetOwner());
+			pair.b->CallOnEnter(pair.a->GetOwner());
+			LogCollision("Enter", pair.a, pair.b);
+		}
+		else
+		{
+			// 継続衝突 (OnStay)
+			pair.a->CallOnStay(pair.b->GetOwner());
+			pair.b->CallOnStay(pair.a->GetOwner());
+		}
+	}
+
+	for (auto& pair : currentCollisions_)
+	{
+		if (newCollisions.find(pair) == newCollisions.end())
+		{
+			// 衝突終了 (OnExit)
 			pair.a->CallOnExit(pair.b->GetOwner());
 			pair.b->CallOnExit(pair.a->GetOwner());
+			LogCollision("Exit", pair.a, pair.b);
 		}
 	}
 
@@ -334,7 +185,8 @@ void CollisionManager::UpdatePreviousPositions()
 {
 	for (auto& collider : colliders_)
 	{
-		collider->SetPreviousPosition(collider->GetOwner()->GetPosition());
+		// トンネリング(CCD)判定を正しく行うため、ワールド座標で保持する
+		collider->SetPreviousPosition(MathUtils::GetTranslateFromMatrix(collider->GetOwner()->GetWorldMatrix()));
 	}
 }
 

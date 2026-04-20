@@ -209,6 +209,39 @@ void DirectXCommon::PostDraw()
 
 }
 
+void DirectXCommon::ExecuteAndWait()
+{
+	HRESULT hr;
+
+	// コマンドリストをクローズ
+	hr = commandList_->Close();
+	assert(SUCCEEDED(hr));
+
+	// コマンドリストの実行
+	ID3D12CommandList* commandLists[] = { commandList_.Get() };
+	commandQueue_->ExecuteCommandLists(1, commandLists);
+
+	// フェンス値を更新してシグナルを送る
+	fenceValue_++;
+	commandQueue_->Signal(fence_.Get(), fenceValue_);
+
+	// GPUの完了待ち
+	if (fence_->GetCompletedValue() < fenceValue_)
+	{
+		HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		fence_->SetEventOnCompletion(fenceValue_, fenceEvent);
+		WaitForSingleObject(fenceEvent, INFINITE);
+		CloseHandle(fenceEvent);
+	}
+
+	// 次フレーム用のリセット
+	hr = commandAllocator_->Reset();
+	assert(SUCCEEDED(hr));
+
+	hr = commandList_->Reset(commandAllocator_.Get(), nullptr);
+	assert(SUCCEEDED(hr));
+}
+
 void DirectXCommon::InitializeDevice()
 {
 	HRESULT hr;
@@ -673,13 +706,13 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileSharder(const std::wstrin
 	///3.警告・エラーが出ていないか確認する
 	///===================================================================
 
-	//警告・エラーが出てたらログに出して止める
+	// 警告・エラーが出てたらログに出して止める
 	IDxcBlobUtf8* shaderError = nullptr;
 	shaderResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&shaderError), nullptr);
 	if (shaderError != nullptr && shaderError->GetStringLength() != 0)
 	{
 		Logger::Log(shaderError->GetStringPointer());
-		//警告・エラーダメ絶対
+		// 警告・エラーダメ絶対
 		assert(SUCCEEDED(false));
 	}
 

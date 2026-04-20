@@ -18,5 +18,5 @@ struct OBB
 	/**
 	 * @brief デフォルトコンストラクタ
 	 */
-	OBB() : center(), rotate(), size() {}
+	OBB() : center(), rotate(MakeIdentity4x4()), size() {}
 };

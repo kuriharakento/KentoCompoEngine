@@ -114,7 +114,8 @@ void TextureManager::LoadTexture(const std::string& filePath)
 
 	textureData.metadata = mipImages.GetMetadata();
 	textureData.resource = dxCommon_->CreateTextureResource(textureData.metadata);
-	textureData.intermediate = UploadTextureData(textureData.resource, mipImages);
+	// 中間リソースをリストに追加して保持（後でまとめて解放）
+	intermediateResources_.push_back(UploadTextureData(textureData.resource, mipImages));
 
 	/*--------------[ ディスクリプタハンドルの計算 ]-----------------*/
 
@@ -147,6 +148,12 @@ void TextureManager::LoadTexture(const std::string& filePath)
 
 	filePathToIndex_[normalizedPath] = textureData.srvIndex;
 	indexToFilePath_[textureData.srvIndex] = normalizedPath;
+}
+
+void TextureManager::ClearIntermediateResources()
+{
+	// 中間リソースを一括解放
+	intermediateResources_.clear();
 }
 
 uint32_t TextureManager::GetTextureIndexByFilePath(const std::string& filePath)

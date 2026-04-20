@@ -25,6 +25,11 @@
 #include "graphics/2d/NumberSprite.h"
 #include <graphics/2d/FontSprite.h>
 
+#include "engine/ecs/Registry.h"
+#include "engine/graphics/3d/InstancedModelRenderer.h"
+#include "engine/ecs/system/HierarchySystem.h"
+#include <unordered_map>
+
 /**
  * @brief タイトルシーン
  * 
@@ -147,9 +152,9 @@ private:
 	static constexpr float kLogoHeight = 200.0f;
 
 	// フォントスプライト
-	static constexpr float kFontPositionX = 150.0f;
+	static constexpr float kFontPositionX = 200.0f;
 	static constexpr float kFontPositionY = 600.0f;
-	static constexpr float kFontScale = 0.8f;
+	static constexpr float kFontScale = 0.5f;
 
 	// トランジション
 	static constexpr int kTransitionGridX = 32;
@@ -180,12 +185,26 @@ private:
 	std::unique_ptr<Sprite> titleLogo_;
 	// スカイドーム（背景天球）
 	std::unique_ptr<Object3d> skydome_;
-	// 装飾用キューブ
+
+	// --- ECS 管理 ---
+	std::unique_ptr<Registry> registry_;
+	std::unordered_map<std::string, std::unique_ptr<InstancedModelRenderer>> instancedRenderers_;
+	std::shared_ptr<HierarchySystem> hierarchySystem_; // 行列計算用
+	EntityID playerEntity_ = kInvalidEntity;
+
+	// 演出フラグとタイマー
+	bool isTriggered_ = false;       // Spaceが押されたか
+	float explosionTimer_ = 0.0f;    // 爆発シークエンス用
+	float cameraOrbitAngle_ = 0.0f;  // カメラ周回角度
+	float cameraDistance_ = 12.0f;   // カメラ距離
+	Vector3 cameraTarget_ = { 0, 0, 0 }; // カメラ注視点
+	Vector3 cameraShakeOffset_ = { 0, 0, 0 };
+
+	// 装飾用キューブ (旧演出・残しておくが非表示)
 	OBB cube_{};
-	// キューブのY軸回転角度
 	float cubeRotateY = 0.0f;
-	// キューブの波動アニメーション用タイマー
 	float cubeWaveTime = 0.0f;
+
 	// シーン遷移エフェクト（フェードイン/アウト）
 	SceneTransitionEffect transitionEffect_;
 	// フォントスプライトを試してみる

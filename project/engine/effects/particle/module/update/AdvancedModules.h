@@ -9,6 +9,7 @@
 #include "effects/particle/module/IModule.h"
 #include "effects/particle/module/ModulePriorities.h"
 #include "effects/particle/ParticleEmitter.h"
+#include "effects/particle/ParticleEasing.h"
 #include "math/Vector3.h"
 #include "math/Vector4.h"
 #include <cmath>
@@ -21,8 +22,8 @@
 class RotationOverLifetimeModule : public IModule
 {
 public:
-	RotationOverLifetimeModule(float rotationSpeed = 180.0f)
-		: rotationSpeed_(rotationSpeed) {}
+	RotationOverLifetimeModule(float startSpeed = 180.0f, float endSpeed = 180.0f)
+		: startSpeed_(startSpeed), endSpeed_(endSpeed) {}
 
 	void Execute(ParticleContext& context) override
 	{
@@ -30,8 +31,11 @@ public:
 		{
 			if (particle.IsAlive())
 			{
+				float t = particle.NormalizedAge();
+				float speed = ApplyEasing<float>(easingType_, startSpeed_, endSpeed_, t);
+				
 				// Z軸まわりの回転（ラジアン）
-				float angleRad = rotationSpeed_ * context.deltaTime * (std::numbers::pi_v<float> / 180.0f);
+				float angleRad = speed * context.deltaTime * (std::numbers::pi_v<float> / 180.0f);
 				
 				// オイラー角（Z軸）に加算
 				particle.rotation.z += angleRad;
@@ -43,11 +47,18 @@ public:
 	const char* GetName() const override { return "RotationOverLifetime"; }
 	int32_t GetPriority() const override { return ParticleModulePriority::kRotationOverLifetime; }
 
-	void SetRotationSpeed(float speed) { rotationSpeed_ = speed; }
-	float GetRotationSpeed() const { return rotationSpeed_; }
+	void SetRotationSpeed(float speed) { startSpeed_ = speed; endSpeed_ = speed; }
+	void SetRotationSpeedRange(float start, float end) { startSpeed_ = start; endSpeed_ = end; }
+	float GetStartSpeed() const { return startSpeed_; }
+	float GetEndSpeed() const { return endSpeed_; }
+
+	void SetEasingType(EasingType type) { easingType_ = type; }
+	EasingType GetEasingType() const { return easingType_; }
 
 private:
-	float rotationSpeed_ = 180.0f; // degrees per second
+	float startSpeed_ = 180.0f; // degrees per second
+	float endSpeed_ = 180.0f;   // degrees per second
+	EasingType easingType_ = EasingType::Linear;
 };
 
 /**

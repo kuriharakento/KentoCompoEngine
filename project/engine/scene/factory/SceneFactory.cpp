@@ -3,9 +3,9 @@
 #include <unordered_map>
 
 #include "application/scene/debug/ParticleTestScene.h"
+#include "application/scene/EcsDebugScene.h"
 #include "application/scene/debug/StageEditScene.h"
-#include "application/scene/play/GameClearScene.h"
-#include "application/scene/play/GameOverScene.h"
+#include "application/scene/play/ResultScene.h"
 #include "application/scene/play/GamePlayScene.h"
 #include "application/scene/play/TitleScene.h"
 #include "base/Logger.h"
@@ -26,10 +26,10 @@ std::unique_ptr<BaseScene> CreateSceneImpl()
 const std::unordered_map<std::string, SceneCreator> kSceneTable = {
 	{"TITLE",        CreateSceneImpl<TitleScene>},
 	{"GAMEPLAY",     CreateSceneImpl<GamePlayScene>},
-	{"GAMEOVER",     CreateSceneImpl<GameOverScene>},
-	{"GAMECLEAR",    CreateSceneImpl<GameClearScene>},
+	{"RESULT",       CreateSceneImpl<ResultScene>},
 	{"STAGEEDIT",    CreateSceneImpl<StageEditScene>},
 	{"PARTICLETEST", CreateSceneImpl<ParticleTestScene>},
+	{"ECS_DEBUG", CreateSceneImpl<EcsDebugScene>},
 };
 }
 

@@ -78,6 +78,13 @@ public:
 	 */
 	void CreateSamplerHeap();
 
+	/**
+	 * @brief コマンドの実行と完了待ち
+	 * @details 現在のコマンドリストをクローズして実行し、GPUの完了を待機する。
+	 *          完了後は次フレーム用のリセットまで行う。
+	 */
+	void ExecuteAndWait();
+
 public:
 	/**
 	 * @brief デバイスを取得

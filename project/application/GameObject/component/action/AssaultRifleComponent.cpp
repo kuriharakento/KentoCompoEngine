@@ -3,7 +3,7 @@
 // app
 #include <engine/gameobject/base/GameObject.h>
 #include "application/gameObject/combatable/character/player/Player.h"
-#include "application/gameObject/combatable/character/enemy/base/EnemyBase.h"
+
 #include "application/effect/BulletTrailManager.h"
 #include "application/GameObject/component/action/StatusComponent.h"
 // system
@@ -108,18 +108,6 @@ void AssaultRifleComponent::Update(GameObject* owner)
 			}
 		}
 	}
-	// 敵の場合の処理
-	else if (auto enemy = dynamic_cast<EnemyBase*>(owner))
-	{
-		// 敵のポインタを保持（Fire()メソッドで使用）
-		enemy_ = enemy;
-
-		// 弾がなくなったら自動リロード
-		if (currentAmmo_ <= 0 && !isReloading_)
-		{
-			StartReload();
-		}
-	}
 
 	// すべての弾を更新
 	for (const auto& bullet : bullets_)
@@ -142,27 +130,6 @@ void AssaultRifleComponent::Draw3D(CameraManager* camera)
 	// 弾のモデル描画は行わない（トレイルエフェクトで表現）
 }
 
-// 敵クラスから呼び出す発射メソッド
-void AssaultRifleComponent::Fire()
-{
-	// enemyがNullなら処理しない
-	if (enemy_ == nullptr) { return; }
-
-	// 自身とプレイヤーの位置を取得
-	Vector3 myPos = enemy_->GetPosition();
-	Vector3 playerPos = enemy_->GetTarget()->GetPosition();
-	float distance = (playerPos - myPos).Length();
-
-	// 発射可能距離内かつ発射条件を満たす場合
-	if (distance < kMaxFireDistance && fireCooldownTimer_ <= 0.0f && currentAmmo_ > 0 && !isReloading_)
-	{
-		FireBullet(enemy_, playerPos);
-		fireCooldownTimer_ = fireCooldown_;
-		currentAmmo_--;
-		// 弾がなくなったらリロード開始
-		if (currentAmmo_ <= 0) StartReload();
-	}
-}
 
 // プレイヤー用の弾発射処理
 void AssaultRifleComponent::FireBullet(GameObject* owner)
@@ -256,59 +223,6 @@ void AssaultRifleComponent::FireBullet(GameObject* owner)
 	Audio::GetInstance()->PlayWave("fire_se", false);
 }
 
-// 敵用の弾発射処理（ターゲット指定）
-void AssaultRifleComponent::FireBullet(GameObject* owner, const Vector3& targetPosition)
-{
-	// 弾の作成
-	auto bullet = std::make_unique<Bullet>(gameObjectTag::weapon::EnemyBullet);
-
-	// 発射元の位置を取得
-	Vector3 startPos = owner->GetPosition();
-
-	// 発射方向を計算（水平方向のみ）
-	Vector3 direction = Vector3::Normalize(targetPosition - startPos);
-	direction.y = 0.0f;
-
-	// 水平方向の角度を計算
-	float rotationY = atan2f(direction.x, direction.z);
-
-	// 弾の初期化（モデルは使わない）
-	bullet->Initialize(object3dCommon_, lightManager_, startPos);
-	bullet->SetRotation({ 0.0f, rotationY, 0.0f });
-	bullet->SetScale(Vector3(kBulletScale, kBulletScale, 1.0f));
-
-	// トレイルを登録
-	uint32_t trailId = BulletTrailManager::GetInstance().RegisterBullet(bullet->GetTransform());
-	bullet->SetTrailId(trailId);
-
-	// BulletComponentを追加
-	auto bulletComp = std::make_unique<BulletComponent>();
-	bulletComp->Initialize(direction, speed_, lifetime_);
-	bullet->AddComponent("Bullet", std::move(bulletComp));
-
-	// 衝突判定コンポーネントを追加
-	auto colliderComp = std::make_unique<OBBColliderComponent>(bullet.get());
-
-	// 衝突したときの処理を設定
-	colliderComp->SetOnEnter([ptr = bullet.get()](GameObject* other) {
-		// プレイヤーに当たった場合、弾を消す
-		if (other->GetTag() == gameObjectTag::character::Player)
-		{
-			ptr->SetAlive(false);
-		}
-		// 障害物に当たった場合、弾を消す
-		if (other->GetTag() == gameObjectTag::item::Obstacle)
-		{
-			ptr->SetAlive(false);
-		}
-							 });
-
-	// 当たり判定を登録
-	bullet->AddComponent("OBBCollider", std::move(colliderComp));
-
-	// 弾を管理リストに追加
-	bullets_.push_back(std::move(bullet));
-}
 
 // リロード開始
 void AssaultRifleComponent::StartReload()

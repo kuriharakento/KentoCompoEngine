@@ -14,10 +14,13 @@ void StageEditScene::Initialize()
 
 	stageManager_ = std::make_unique<StageManager>();
 	stageManager_->Initialize(
+		nullptr, // registry
+		nullptr, // systemManager
 		sceneManager_->GetObject3dCommon(),
 		sceneManager_->GetSpriteCommon(),
 		sceneManager_->GetLightManager(),
-		sceneManager_->GetCameraManager()
+		sceneManager_->GetCameraManager(),
+		sceneManager_->GetShadowMapManager()
 	);
 	stageManager_->LoadStage("field");
 

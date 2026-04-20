@@ -41,13 +41,9 @@ void SceneManager::Update()
 	{
 		ChangeScene(SceneNames::GamePlay);
 	}
-	if (ImGui::Button("GameOver"))
+	if (ImGui::Button("Result"))
 	{
-		ChangeScene(SceneNames::GameOver);
-	}
-	if (ImGui::Button("GameClear"))
-	{
-		ChangeScene(SceneNames::GameClear);
+		ChangeScene(SceneNames::Result);
 	}
 	// Debug用シーン
 	if(ImGui::Button("StageEdit"))
@@ -57,6 +53,10 @@ void SceneManager::Update()
 	if (ImGui::Button("ParticleTest"))
 	{
 		ChangeScene(SceneNames::ParticleTest);
+	}
+	if (ImGui::Button("EcsDebug"))
+	{
+		ChangeScene(SceneNames::EcsDebug);
 	}
 	// --- シーンのステートを直接変更するデバッグ UI ---
 	if (currentScene_)

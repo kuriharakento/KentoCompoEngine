@@ -76,7 +76,7 @@ private:
 	void UpdateVertexData();      // 頂点データの更新
 
 private:
-	static constexpr uint32_t kMaxLineCount = 30000;   // 最大ライン数
+	static constexpr uint32_t kMaxLineCount = 100000;   // 最大ライン数
 	static constexpr uint32_t kMaxVertexCount = kMaxLineCount * 2; // 最大頂点数（1ライン = 2頂点）
     LineCommon* lineCommon_ = nullptr;                 // 共通リソース
     Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_; // 頂点バッファ

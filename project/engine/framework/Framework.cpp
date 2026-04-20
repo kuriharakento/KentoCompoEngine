@@ -15,8 +15,11 @@
 #include "effects/particle/ParticleManager.h"
 #include "manager/graphics/ModelManager.h"
 #include "manager/graphics/LineManager.h"
+#include "manager/graphics/SkinnedModelManager.h"
 #include "time/TimeManager.h"
 #include "time/TimerManager.h"
+#include "manager/graphics/InstancedModelPipelineManager.h"
+#include "manager/graphics/SkinningPipelineManager.h"
 
 #ifdef USE_IMGUI
 #include "ImGui/imgui_internal.h"
@@ -69,8 +72,17 @@ void Framework::Initialize()
 	// 3Dモデルマネージャーの初期化
 	ModelManager::GetInstance()->Initialize(dxCommon_.get());
 
+	// スキニングモデルマネージャーの初期化
+	SkinnedModelManager::GetInstance()->Initialize(dxCommon_.get());
+
 	// パーティクルマネージャーの初期化
 	ParticleManager::GetInstance()->Initialize(dxCommon_.get(), srvManager_.get());
+
+	// インスタンス描画パイプラインマネージャーの初期化
+	InstancedModelPipelineManager::GetInstance()->Initialize(dxCommon_.get());
+
+	// スキニングパイプラインマネージャーの初期化
+	SkinningPipelineManager::GetInstance()->Initialize(dxCommon_.get());
 
 	/*----- 入力・オーディオ・時間管理の初期化 -----*/
 
@@ -205,7 +217,10 @@ void Framework::Finalize()
 	spriteCommon_.reset();
 	objectCommon_.reset();
 	ModelManager::GetInstance()->Finalize();
+	SkinnedModelManager::GetInstance()->Finalize();
 	ParticleManager::GetInstance()->Finalize();
+	InstancedModelPipelineManager::GetInstance()->Finalize();
+	SkinningPipelineManager::GetInstance()->Finalize();
 	Input::GetInstance()->Finalize();
 	Audio::GetInstance()->Finalize();
 	lightManager_.reset();

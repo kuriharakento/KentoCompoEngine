@@ -100,9 +100,10 @@ void Object3d::Draw()
 	commandList->SetGraphicsRootConstantBufferView(4, cameraResource_->GetGPUVirtualAddress());
 
 	// ライトマネージャーがあればライトの描画を行う
-	if (lightManager_)
+	LightManager* activeLightManager = lightManager_ ? lightManager_ : object3dCommon_->GetDefaultLightManager();
+	if (activeLightManager)
 	{
-		lightManager_->Draw();
+		activeLightManager->Draw();
 
 		// シャドウ行列CBVは常にバインドする（シェーダーが必ずアクセスするため）
 		// シャドウマップSRVが設定されている場合のみSRVもバインド
@@ -112,7 +113,9 @@ void Object3d::Draw()
 			srvManager_->SetGraphicsRootDescriptorTable(9, shadowMapSrvIndex_);
 		}
 		// シャドウ行列CBV（ルートパラメータ10）は常にバインド
-		commandList->SetGraphicsRootConstantBufferView(10, lightManager_->GetShadowMatrixGPUAddress());
+		commandList->SetGraphicsRootConstantBufferView(10, activeLightManager->GetShadowMatrixGPUAddress());
+		// カスケードシャドウデータ（ルートパラメータ11）もバインド
+		commandList->SetGraphicsRootConstantBufferView(11, activeLightManager->GetCascadeShadowDataGPUAddress());
 	}
 
 	// 3Dモデルが割り当てられていれば描画する

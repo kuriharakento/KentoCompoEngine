@@ -16,6 +16,7 @@
 #include "effects/particle/module/update/BehaviorModules.h"
 #include "effects/particle/module/spawn/SubEmitterModule.h"
 #include "effects/particle/module/update/MotionEffectModules.h"
+#include "effects/particle/module/update/NaturalBehaviorModules.h"
 #include "base/DirectXCommon.h"
 #include "manager/system/SrvManager.h"
 #include "manager/scene/CameraManager.h"
@@ -1129,6 +1130,21 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 {
 	if (!module) return;
 
+	auto DrawEasingCombo = [](const char* label, EasingType* type) {
+		const char* easingNames[] = {
+			"Linear", "EaseInSine", "EaseOutSine", "EaseInOutSine",
+			"EaseInQuad", "EaseOutQuad", "EaseInOutQuad",
+			"EaseInCubic", "EaseOutCubic", "EaseInOutCubic",
+			"EaseInQuart", "EaseOutQuart", "EaseInOutQuart"
+		};
+		int current = static_cast<int>(*type);
+		if (ImGui::Combo(label, &current, easingNames, IM_ARRAYSIZE(easingNames))) {
+			*type = static_cast<EasingType>(current);
+			return true;
+		}
+		return false;
+	};
+
 	ImGui::Text("Module: %s", module->GetName());
 	ImGui::Separator();
 
@@ -1194,13 +1210,17 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 	}
 	else if (auto* m = dynamic_cast<GravityModule*>(module))
 	{
-		Vector3 g = m->GetGravity();
-		if (ImGui::DragFloat3("Gravity", &g.x, 0.1f)) { m->SetGravity(g); }
+		Vector3 minG = m->GetMinGravity();
+		Vector3 maxG = m->GetMaxGravity();
+		if (ImGui::DragFloat3("Min Gravity", &minG.x, 0.1f)) { m->SetGravityRange(minG, maxG); }
+		if (ImGui::DragFloat3("Max Gravity", &maxG.x, 0.1f)) { m->SetGravityRange(minG, maxG); }
 	}
 	else if (auto* m = dynamic_cast<DragModule*>(module))
 	{
-		float drag = m->GetDrag();
-		if (ImGui::DragFloat("Drag", &drag, 0.01f, 0.0f, 10.0f)) { m->SetDrag(drag); }
+		float minD = m->GetMinDrag();
+		float maxD = m->GetMaxDrag();
+		if (ImGui::DragFloat("Min Drag", &minD, 0.01f, 0.0f, 10.0f)) { m->SetDragRange(minD, maxD); }
+		if (ImGui::DragFloat("Max Drag", &maxD, 0.01f, 0.0f, 10.0f)) { m->SetDragRange(minD, maxD); }
 	}
 	else if (auto* m = dynamic_cast<ColorFadeModule*>(module))
 	{
@@ -1218,6 +1238,9 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 		}
 		Vector4 end = m->GetEndColor();
 		if (ImGui::ColorEdit4("End Color", &end.x)) { m->SetEndColor(end); }
+
+		EasingType easing = m->GetEasingType();
+		if (DrawEasingCombo("Easing Type", &easing)) { m->SetEasingType(easing); }
 	}
 	else if (auto* m = dynamic_cast<ScaleOverLifetimeModule*>(module))
 	{
@@ -1225,6 +1248,9 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 		Vector3 end = m->GetEndScale();
 		if (ImGui::DragFloat3("Start Scale", &start.x, 0.01f)) { m->SetStartScale(start); }
 		if (ImGui::DragFloat3("End Scale", &end.x, 0.01f)) { m->SetEndScale(end); }
+
+		EasingType easing = m->GetEasingType();
+		if (DrawEasingCombo("Easing Type", &easing)) { m->SetEasingType(easing); }
 	}
 	else if (auto* m = dynamic_cast<TextureSheetModule*>(module))
 	{
@@ -1314,6 +1340,10 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 		Vector3 lineEnd = m->GetLineEnd();
 		if (ImGui::DragFloat3("Line Start", &lineStart.x, 0.1f)) { m->SetLine(lineStart, lineEnd); }
 		if (ImGui::DragFloat3("Line End", &lineEnd.x, 0.1f)) { m->SetLine(lineStart, lineEnd); }
+
+		float arcAngle = m->GetArcAngle();
+		if (ImGui::DragFloat("Arc Angle", &arcAngle, 1.0f, 0.0f, 360.0f)) { m->SetArcAngle(arcAngle); }
+		ImGui::SetItemTooltip("Specify spawn arc angle for Circle and Cone (0-360)");
 	}
 	else if (auto* m = dynamic_cast<InitialRotationModule*>(module))
 	{
@@ -1324,8 +1354,41 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 	}
 	else if (auto* m = dynamic_cast<RotationOverLifetimeModule*>(module))
 	{
-		float speed = m->GetRotationSpeed();
-		if (ImGui::DragFloat("Rotation Speed (deg/s)", &speed, 1.0f, -1000.0f, 1000.0f)) { m->SetRotationSpeed(speed); }
+		float startSpeed = m->GetStartSpeed();
+		float endSpeed = m->GetEndSpeed();
+		if (ImGui::DragFloat("Start Speed (deg/s)", &startSpeed, 1.0f, -1000.0f, 1000.0f)) { m->SetRotationSpeedRange(startSpeed, endSpeed); }
+		if (ImGui::DragFloat("End Speed (deg/s)", &endSpeed, 1.0f, -1000.0f, 1000.0f)) { m->SetRotationSpeedRange(startSpeed, endSpeed); }
+
+		EasingType easing = m->GetEasingType();
+		if (DrawEasingCombo("Easing Type", &easing)) { m->SetEasingType(easing); }
+	}
+	else if (auto* m = dynamic_cast<FaceVelocityModule*>(module))
+	{
+		ImGui::Text("Aligns particle rotation to its velocity direction.");
+		bool use2D = m->IsUse2DAlignment();
+		if (ImGui::Checkbox("Use 2D Alignment", &use2D))
+		{
+			m->SetUse2DAlignment(use2D);
+		}
+		ImGui::SetItemTooltip("ON: 2D Rolling (for Sprites), OFF: 3D Pitch/Yaw (for Meshes)");
+	}
+	else if (auto* m = dynamic_cast<JitterModule*>(module))
+	{
+		Vector3 amount = m->GetAmount();
+		if (ImGui::DragFloat3("Amount", &amount.x, 0.01f, 0.0f, 10.0f)) { m->SetAmount(amount); }
+	}
+	else if (auto* m = dynamic_cast<ForceOverLifetimeModule*>(module))
+	{
+		Vector3 dir = m->GetDirection();
+		if (ImGui::DragFloat3("Direction", &dir.x, 0.1f)) { m->SetDirection(dir); }
+
+		float startS = m->GetStartStrength();
+		float endS = m->GetEndStrength();
+		if (ImGui::DragFloat("Start Strength", &startS, 0.1f)) { m->SetStrengths(startS, endS); }
+		if (ImGui::DragFloat("End Strength", &endS, 0.1f)) { m->SetStrengths(startS, endS); }
+
+		EasingType easing = m->GetEasingType();
+		if (DrawEasingCombo("Easing Type", &easing)) { m->SetEasingType(easing); }
 	}
 	else if (auto* m = dynamic_cast<OrbitModule*>(module))
 	{
@@ -2253,7 +2316,10 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Rotation By Speed",
 				"Sine Wave",
 				"Spiral",
-				"Twist"
+				"Twist",
+				"Face Velocity",
+				"Jitter",
+				"Force Over Lifetime"
 			};
 			const char* updateDescriptions[] = {
 				"Apply gravity (downward Y-axis)",
@@ -2283,7 +2349,10 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Rotate based on movement speed",
 				"Oscillate position with sine wave",
 				"Move in spiral pattern",
-				"Twist position around an axis"
+				"Twist position around an axis",
+				"Align particle rotation to its velocity direction",
+				"Add random position jitter each frame",
+				"Apply a directional force that changes over lifetime"
 			};
 			
 			ImGui::Combo("Update Module", &selectedModule, updateModules, IM_ARRAYSIZE(updateModules));
@@ -2326,6 +2395,9 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				case 25: emitter->AddModule(std::make_unique<SineWaveModule>()); break;
 				case 26: emitter->AddModule(std::make_unique<SpiralModule>()); break;
 				case 27: emitter->AddModule(std::make_unique<TwistModule>()); break;
+				case 28: emitter->AddModule(std::make_unique<FaceVelocityModule>()); break;
+				case 29: emitter->AddModule(std::make_unique<JitterModule>()); break;
+				case 30: emitter->AddModule(std::make_unique<ForceOverLifetimeModule>()); break;
 				}
 				showAddModuleDialog_ = false;
 			}

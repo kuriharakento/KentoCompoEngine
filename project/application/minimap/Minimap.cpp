@@ -1,4 +1,5 @@
 #include "Minimap.h"
+#include "engine/ecs/components/TransformComponent.h"
 
 void Minimap::Initialize(SpriteCommon* spriteCommon, StageManager* stageManager)
 {
@@ -44,19 +45,21 @@ void Minimap::Update()
 
 	frame_->Update();
 
-	float playerYaw = stageManager_->GetPlayer()->GetRotation().y;
+	float playerYaw = stageManager_->GetPlayerRotation().y;
 	playerIcon_->SetPosition(frame_->GetPosition());
 	playerIcon_->SetRotation(playerYaw);
 	playerIcon_->Update();
 
-	// 敵アイコンの動的管理
+	// ECSからTransformComponentを取得して位置を同期
 	auto enemyManager = stageManager_->GetEnemyManager();
-	const auto& enemies = enemyManager->GetEnemies();
+	auto registry = enemyManager ? enemyManager->GetRegistry() : nullptr;
 
-	// 敵の数に合わせてアイコンを動的に追加/削除
-	if (enemyIcons_.size() < enemies.size())
+	uint32_t activeEnemyCount = registry ? registry->GetActiveEntityCount() : 0;
+
+	// 敵の数に合わせてアイコンを同動的に追加/削除
+	if (enemyIcons_.size() < activeEnemyCount)
 	{
-		for (size_t i = enemyIcons_.size(); i < enemies.size(); ++i)
+		for (size_t i = enemyIcons_.size(); i < activeEnemyCount; ++i)
 		{
 			auto icon = std::make_unique<Sprite>();
 			icon->Initialize(spriteCommon_, "./Resources/red.png");
@@ -65,22 +68,34 @@ void Minimap::Update()
 			enemyIcons_.push_back(std::move(icon));
 		}
 	}
-	else if (enemyIcons_.size() > enemies.size())
+	else if (enemyIcons_.size() > activeEnemyCount)
 	{
-		enemyIcons_.resize(enemies.size());
+		enemyIcons_.resize(activeEnemyCount);
 	}
 
-	for (size_t i = 0; i < enemies.size(); ++i)
+	if (registry && activeEnemyCount > 0)
 	{
-		Vector3 enemyPos = enemies[i]->GetPosition();
-		float enemyYaw = enemies[i]->GetRotation().y;
-		Vector2 miniMapPos = WorldToMinimap(enemyPos);
-		enemyIcons_[i]->SetPosition(miniMapPos);
-		enemyIcons_[i]->SetRotation(enemyYaw);
-		enemyIcons_[i]->Update();
+		size_t i = 0;
+		auto view = registry->View<TransformComponent>();
+		for (const auto& transform : *view)
+		{
+			// UIの上限または登録されているアイコン数まで描画
+			if (i >= enemyIcons_.size()) break;
+
+			// ECSのTransformから位置情報を取得
+			Vector3 enemyPos = { transform.localPosition_.x, transform.localPosition_.y, transform.localPosition_.z };
+			float enemyYaw = 0.0f; 
+
+			Vector2 miniMapPos = WorldToMinimap(enemyPos);
+			enemyIcons_[i]->SetPosition(miniMapPos);
+			enemyIcons_[i]->SetRotation(enemyYaw);
+			enemyIcons_[i]->Update();
+
+			++i;
+		}
 	}
 
-	// エリアアイコンの動的管理
+	// エリアアイコンの動的管?E
 	auto areaManager = stageManager_->GetStage()->GetAreaManager();
 	const auto& areas = areaManager->GetAreas();
 	
@@ -133,15 +148,15 @@ void Minimap::Draw()
 
 Vector2 Minimap::WorldToMinimap(const Vector3& worldPos) const
 {
-	Vector3 playerPos = stageManager_->GetPlayer()->GetPosition();
+	Vector3 playerPos = stageManager_->GetPlayerPosition();
 
 	Vector2 frameCenter = frame_->GetPosition();
 	Vector2 frameSize = frame_->GetSize();
 	float halfWidth = mapWidth_ * 0.5f;
 	float halfHeight = mapHeight_ * 0.5f;
 
-	// プレイヤーからの相対座標を計算し、ミニマップスケールに変換
-	// X軸はそのまま、Z軸は反転（上が北になるように）
+	// プレイヤーからの相対座標を計算し、ミニ?EチE?Eスケールに変換
+	// X軸はそ?Eまま、Z軸は反転?E?上が北になるよぁE???E?E
 	float nx = ((worldPos.x - playerPos.x) / halfWidth) * (frameSize.x * 0.5f);
 	float ny = -((worldPos.z - playerPos.z) / halfHeight) * (frameSize.y * 0.5f);
 
@@ -151,7 +166,7 @@ Vector2 Minimap::WorldToMinimap(const Vector3& worldPos) const
 	frameSize.x /= 2.0f;
 	frameSize.y /= 2.0f;
 
-	// ミニマップの円形範囲外の場合は円周上にクランプ
+	// ミニマップ?E?E??篁E??外?E場合?E?E??上にクランチE
 	float iconHalfSize = 5.0f;
 	float radius = (frameSize.x < frameSize.y ? frameSize.x : frameSize.y) * 0.5f - iconHalfSize;
 

@@ -19,7 +19,8 @@ OBBColliderComponent::OBBColliderComponent(GameObject* owner) : ICollisionCompon
 	obb_.rotate = MakeRotateMatrix(owner->GetRotation());
 	obb_.size = owner->GetScale();
 
-	previousPosition_ = obb_.center;
+	// 前フレームの位置を記録しておく（サブステップ判定をワールド空間で行うため、ワールド座標で記録）
+	previousPosition_ = MathUtils::GetTranslateFromMatrix(owner_->GetWorldMatrix());
 }
 
 OBBColliderComponent::~OBBColliderComponent()

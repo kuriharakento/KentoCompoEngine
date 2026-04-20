@@ -58,8 +58,7 @@ private:
 
 	// プレイヤー用の弾発射処理
 	void FireBullet(GameObject* owner);
-	// 敵用の弾発射処理（ターゲット指定）
-	void FireBullet(GameObject* owner, const Vector3& targetPosition);
+
 	// リロード開始
 	void StartReload();
 	// リロード処理

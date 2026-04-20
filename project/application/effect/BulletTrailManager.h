@@ -49,12 +49,24 @@ public:
 	uint32_t RegisterBullet(Transform* bulletTransform);
 
 	/**
-	 * @brief 弾を登録解除
+	 * @brief 弾を登録（手動更新版）
 	 * 
-	 * MultiSourceRibbonModuleからソースを解除。
-	 * 既存のパーティクルは自然に消滅。
+	 * Transformポインタを使わず、システムから座標を直接送る場合に代わりに使用。
 	 * 
-	 * @param trailId 登録時に返されたID
+	 * @return トレイルID（更新・解除時に必要）
+	 */
+	uint32_t RegisterBulletManual();
+
+	/**
+	 * @brief トレイルの座標を手動更新
+	 * @param trailId 登録時のID
+	 * @param position 新しい座標
+	 */
+	void UpdateBulletManual(uint32_t trailId, const Vector3& position);
+
+	/**
+	 * @brief 弾の登録を解除
+	 * @param trailId 登録時のID
 	 */
 	void UnregisterBullet(uint32_t trailId);
 

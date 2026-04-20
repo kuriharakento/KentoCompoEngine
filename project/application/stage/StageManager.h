@@ -12,8 +12,13 @@
 #include "application/gameObject/combatable/character/enemy/EnemyManager.h"
 #include "application/gameObject/combatable/character/player/Player.h"
 #include "application/gameObject/obstacle/ObstacleManager.h"
-
+#include "engine/ecs/Registry.h"
+#include "engine/ecs/Entity.h"
+#include "engine/ecs/system/SystemManager.h"
+#include <unordered_map>
 class PostProcessManager;
+class ShadowMapManager;
+class InstancedModelRenderer;
 
 /**
  * @brief ステージ全体とゲームオブジェクトを統合管理するマネージャークラス
@@ -72,12 +77,11 @@ public:
 	 * 各マネージャー（敵、障害物）の初期化と、
 	 * JSON編集システムへのデータ登録を行います。
 	 * 
-	 * @param object3dCommon 3Dオブジェクト共通データへのポインタ
-	 * @param lightManager ライトマネージャーへのポインタ
 	 * @param camera カメラマネージャーへのポインタ
+	 * @param shadowMapManager シャドウマップマネージャーへのポインタ
 	 * @param postProcessManager ポストプロセスマネージャーへのポインタ（グレースケール用）
 	 */
-	void Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, CameraManager* camera, PostProcessManager* postProcessManager = nullptr);
+	void Initialize(Registry* registry, SystemManager* systemManager, Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, LightManager* lightManager, CameraManager* camera, ShadowMapManager* shadowMapManager, PostProcessManager* postProcessManager = nullptr);
 
 	/**
 	 * @brief ステージマネージャーの更新処理
@@ -166,10 +170,40 @@ public:
 	bool IsStageCleared() const { return stage_ ? stage_->IsCleared() : false; }
 
 	/**
-	 * @brief プレイヤーオブジェクトを取得
-	 * @return プレイヤーへのポインタ（未生成の場合はnullptr）
+	 * @brief プレイヤーのエンティティIDを取得
+	 * @return エンティティID（kInvalidEntityなら未生成）
 	 */
-	Player* GetPlayer() const { return player_.get(); }
+	EntityID GetPlayerEntity() const { return playerEntity_; }
+
+	/**
+	 * @brief プレイヤーの位置座標へのポインタを取得（カメラ注視用）
+	 * @return 位置ポインタ
+	 */
+	const Vector3* GetPlayerPositionPtr() const { return &lastPlayerPos_; }
+
+	/**
+	 * @brief プレイヤーの位置を取得
+	 * @return 位置
+	 */
+	Vector3 GetPlayerPosition() const { return lastPlayerPos_; }
+
+	/**
+	 * @brief プレイヤーの回転を取得
+	 * @return 回転
+	 */
+	Vector3 GetPlayerRotation() const { return lastPlayerRot_; }
+
+	/**
+	 * @brief プレイヤーが生存しているかを取得
+	 * @return true: 生存, false: 死亡
+	 */
+	bool IsPlayerAlive() const;
+
+	/**
+	 * @brief プレイヤーオブジェクトを取得 (移行用：ECS化後は廃止予定)
+	 * @return プレイヤーへのポインタ（常にnullptr）
+	 */
+	Player* GetPlayer() const { return nullptr; }
 
 	/**
 	 * @brief 敵マネージャーを取得
@@ -194,14 +228,23 @@ private:
 	LightManager* lightManager_;      ///< ライトマネージャーへのポインタ
 	CameraManager* cameraManager_;    ///< カメラマネージャーへのポインタ
 	SpriteCommon* spriteCommon_;    ///< 2Dスプライトの共通データへのポインタ
+	ShadowMapManager* shadowMapManager_; ///< シャドウマップマネージャーへのポインタ
 	PostProcessManager* postProcessManager_; ///< ポストプロセスマネージャーへのポインタ
 
 	std::shared_ptr<StageData> stageData_;      ///< ステージデータ（固定オブジェクト配置）
 	std::shared_ptr<ObstacleData> obstacleData_; ///< 障害物データ
 
-	// -------- ゲームオブジェクト -------- //
+	// -------- ECS -------- //
+	Registry* registry_ = nullptr;
+	SystemManager* systemManager_ = nullptr;
+	EntityID playerEntity_ = kInvalidEntity;
 
-	std::unique_ptr<Player> player_;               ///< プレイヤー（1体のみ）
+	Vector3 lastPlayerPos_ = { 0, 0, 0 }; ///< 外部参照用の安定した位置
+	Vector3 lastPlayerRot_ = { 0, 0, 0 }; ///< 外部参照用の安定した回転
+
+	// -------- ゲームオブジェクト -------- //
+	std::unordered_map<std::string, std::unique_ptr<InstancedModelRenderer>> ecsRenderers_;
+
 	std::unique_ptr<EnemyManager> enemyManager_;   ///< 敵マネージャー
 	std::unique_ptr<ObstacleManager> obstacleManager_; ///< 障害物マネージャー
 	std::unique_ptr<Stage> stage_;                 ///< ステージ（エリア・ウェーブ管理）

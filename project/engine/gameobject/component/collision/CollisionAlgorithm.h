@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AABBColliderComponent.h"
 #include "OBBColliderComponent.h"
 #include "SphereColliderComponent.h"
@@ -30,9 +30,74 @@ enum class CollisionPlane
  * 
  * @note サブステップ判定は高速移動体のすり抜けを防ぎます
  */
+namespace ecs { struct ColliderComponent; }
+using ColliderComponent = ecs::ColliderComponent;
+
 namespace collisionAlgorithm
 {
-	// --- 3D用判定 ---
+	// --- LOD (判定精度) の定義 ---
+	enum class CollisionLOD
+	{
+		Sphere,		// 最速: 境界球のみで判定 (LOD1)
+		Precise,	// 通常: 指定形状での精密判定 (LOD2)
+		CCD			// 高精度: サブステップ (トンネリング防止) 判定 (LOD3)
+	};
+
+	// --- 判定用コンテキスト ---
+	struct CollisionCheckContext
+	{
+		CollisionLOD lod = CollisionLOD::Precise;
+		bool needsMTV = false;
+	};
+
+	// --- 高速関数テーブル用シグネチャ ---
+	// 戻り値: 衝突したか
+	// 引数: A, B, mtv(必要なら算出)
+	using CollisionFunc = bool(*)(const ecs::ColliderComponent& a, const ecs::ColliderComponent& b, Vector3* outMtv);
+
+	// --- 関数テーブルの宣言 ---
+	// ColliderType (AABB=0, Sphere=1, OBB=2, Ray=3)
+	extern const CollisionFunc kCollisionFuncTable[4][4];
+	extern const CollisionFunc kCCDFuncTable[4][4];
+
+	// --- 基本的な数学的衝突判定 (コンポーネント非依存) ---
+
+	bool CheckAABBvsAABB(const AABB& a, const AABB& b);
+	bool CheckOBBvsOBB(const OBB& a, const OBB& b);
+	bool CheckAABBvsOBB(const AABB& a, const OBB& b);
+	bool CheckSpherevsSphere(const Sphere& a, const Sphere& b);
+	bool CheckSpherevsAABB(const Sphere& a, const AABB& b);
+	bool CheckSpherevsOBB(const Sphere& a, const OBB& b);
+	bool CheckRayvsAABB(const Ray& ray, const AABB& aabb, float* outT = nullptr);
+	bool CheckRayvsOBB(const Ray& ray, const OBB& obb, float* outT = nullptr);
+	bool CheckRayvsSphere(const Ray& ray, const Sphere& sphere, float* outT = nullptr);
+	
+	// --- MTV (最小変位ベクトル) 付き衝突判定 ---
+	
+	bool CheckAABBvsAABBMTV(const AABB& a, const AABB& b, Vector3& mtv);
+	bool CheckOBBvsOBBMTV(const OBB& a, const OBB& b, Vector3& mtv);
+	bool CheckSpherevsSphereMTV(const Sphere& a, const Sphere& b, Vector3& mtv);
+	bool CheckSpherevsAABBMTV(const Sphere& a, const AABB& b, Vector3& mtv);
+	bool CheckSpherevsOBBMTV(const Sphere& a, const OBB& b, Vector3& mtv);
+	bool CheckAABBvsOBBMTV(const AABB& a, const OBB& b, Vector3& mtv);
+
+	// --- サブステップ判定 (数学版) ---
+	
+	bool CheckAABBvsAABBSubstep(const AABB& a, const Vector3& prevA, const AABB& b, const Vector3& prevB);
+	bool CheckOBBvsOBBSubstep(const OBB& a, const Vector3& prevA, const OBB& b, const Vector3& prevB);
+	bool CheckAABBvsOBBSubstep(const AABB& a, const Vector3& prevA, const OBB& b, const Vector3& prevB);
+	bool CheckSpherevsSphereSubstep(const Sphere& a, const Vector3& prevA, const Sphere& b, const Vector3& prevB);
+	bool CheckSpherevsAABBSubstep(const Sphere& a, const Vector3& prevA, const AABB& b, const Vector3& prevB);
+	bool CheckSpherevsOBBSubstep(const Sphere& a, const Vector3& prevA, const OBB& b, const Vector3& prevB);
+
+	// --- サブステップ判定 (MTV付き) ---
+	bool CheckAABBvsAABBSubstepMTV(const AABB& a, const Vector3& prevA, const AABB& b, const Vector3& prevB, Vector3& mtv);
+	bool CheckOBBvsOBBSubstepMTV(const OBB& a, const Vector3& prevA, const OBB& b, const Vector3& prevB, Vector3& mtv);
+	bool CheckSpherevsOBBSubstepMTV(const Sphere& a, const Vector3& prevA, const OBB& b, const Vector3& prevB, Vector3& mtv);
+	bool CheckSpherevsAABBSubstepMTV(const Sphere& a, const Vector3& prevA, const AABB& b, const Vector3& prevB, Vector3& mtv);
+	bool CheckAABBvsOBBSubstepMTV(const AABB& a, const Vector3& prevA, const OBB& b, const Vector3& prevB, Vector3& mtv);
+
+	// --- 3D用判定 (既存のコンポーネント版) ---
 	
 	/**
 	 * @brief AABB同士の3D衝突判定

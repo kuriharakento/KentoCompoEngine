@@ -9,9 +9,9 @@
 #include "manager/scene/CameraManager.h"
 
 // 球描画のセグメント数（緯度方向）
-constexpr int kSphereSegments = 12;
+constexpr int kSphereSegments = 8;
 // 球描画のリング数（経度方向）
-constexpr int kSphereRings = 12;
+constexpr int kSphereRings = 8;
 // キューブの頂点数
 constexpr int kCubeVertices = 8;
 // キューブの辺数

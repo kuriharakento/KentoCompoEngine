@@ -9,6 +9,7 @@
 #include "effects/particle/module/IModule.h"
 #include "effects/particle/module/ModulePriorities.h"
 #include "effects/particle/ParticleEmitter.h"
+#include "effects/particle/ParticleEasing.h"
 #include "math/Vector3.h"
 #include "math/MathUtils.h"
 #include <cmath>
@@ -88,8 +89,8 @@ public:
 
 				case SpawnShapeType::Circle:
 				{
-					// XZ平面上の円
-					float angle = MathUtils::RandomFloat(0, 2.0f * std::numbers::pi_v<float>);
+					// XZ平面上の円（円弧対応）
+					float angle = MathUtils::RandomFloat(0, arcAngle_ * (std::numbers::pi_v<float> / 180.0f));
 					float r;
 					if (spawnLocation_ == SpawnLocation::Surface || spawnLocation_ == SpawnLocation::Edge)
 					{
@@ -170,8 +171,9 @@ public:
 
 				case SpawnShapeType::Cone:
 				{
-					// コーン形状
-					float angle = MathUtils::RandomFloat(0, 2.0f * std::numbers::pi_v<float>);
+					// コーン形状（円弧対応）
+					float arcAngleRad = arcAngle_ * (std::numbers::pi_v<float> / 180.0f);
+					float angle = DeterministicRandom(particle.id, 0) * arcAngleRad;
 					float t = MathUtils::RandomFloat(0, 1.0f);
 					float height = t * coneHeight_;
 					float radiusAtHeight = outerRadius_ * (1.0f - t);
@@ -245,6 +247,9 @@ public:
 	void SetSpawnLocation(SpawnLocation loc) { spawnLocation_ = loc; }
 	SpawnLocation GetSpawnLocation() const { return spawnLocation_; }
 
+	void SetArcAngle(float angle) { arcAngle_ = angle; }
+	float GetArcAngle() const { return arcAngle_; }
+
 private:
 	SpawnShapeType shapeType_ = SpawnShapeType::Point;
 	SpawnLocation spawnLocation_ = SpawnLocation::Volume;
@@ -252,6 +257,7 @@ private:
 	float outerRadius_ = 1.0f;
 	Vector3 boxSize_ = { 1, 1, 1 };
 	float coneHeight_ = 2.0f;
+	float arcAngle_ = 360.0f;
 	Vector3 lineStart_ = {};
 	Vector3 lineEnd_ = { 0, 1, 0 };
 	bool emitFromSurface_ = false;

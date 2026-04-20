@@ -98,6 +98,18 @@ namespace MathUtils
 	}
 
 	/**
+	 * @brief Vector4の線形補間（Lerp）関数
+	 * @param start 開始ベクトル
+	 * @param end 終了ベクトル
+	 * @param t 補間係数（0.0〜1.0）
+	 * @return 補間されたベクトル
+	 */
+	static Vector4 Lerp(const Vector4& start, const Vector4& end, float t)
+	{
+		return start + (end - start) * t;
+	}
+
+	/**
 	 * @brief 座標変換（ベクトルに行列を適用）
 	 * @param vector 変換するベクトル
 	 * @param matrix 変換行列

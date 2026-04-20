@@ -14,6 +14,7 @@
 #include "effects/particle/module/update/RibbonModules.h"
 #include "effects/particle/module/update/TextureSheetModule.h"
 #include "effects/particle/module/update/MotionEffectModules.h"
+#include "effects/particle/module/update/NaturalBehaviorModules.h"
 #include "time/Timer.h"
 #include <fstream>
 
@@ -217,6 +218,7 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 				m->SetEmitFromSurface(moduleData.value("emitFromSurface", false));
 				m->SetInitialSpeed(moduleData.value("initialSpeed", 0.0f));
 				m->SetSpawnLocation(static_cast<SpawnLocation>(moduleData.value("spawnLocation", 0)));
+				m->SetArcAngle(moduleData.value("arcAngle", 360.0f));
 				emitter->AddModule(std::move(m));
 			}
 			else if (type == "InitialLifetime")
@@ -290,19 +292,40 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 			}
 			else if (type == "Gravity")
 			{
-				Vector3 g = { 0, -9.8f, 0 };
-				if (moduleData.contains("gravity"))
+				auto m = std::make_unique<GravityModule>();
+				Vector3 minG = { 0, -9.8f, 0 }, maxG = { 0, -9.8f, 0 };
+				if (moduleData.contains("min"))
 				{
-					g.x = moduleData["gravity"].value("x", 0.0f);
-					g.y = moduleData["gravity"].value("y", -9.8f);
-					g.z = moduleData["gravity"].value("z", 0.0f);
+					minG.x = moduleData["min"].value("x", 0.0f);
+					minG.y = moduleData["min"].value("y", -9.8f);
+					minG.z = moduleData["min"].value("z", 0.0f);
 				}
-				emitter->AddModule(std::make_unique<GravityModule>(g));
+				else if (moduleData.contains("gravity"))
+				{ // 互換性
+					minG.x = moduleData["gravity"].value("x", 0.0f);
+					minG.y = moduleData["gravity"].value("y", -9.8f);
+					minG.z = moduleData["gravity"].value("z", 0.0f);
+				}
+				
+				if (moduleData.contains("max"))
+				{
+					maxG.x = moduleData["max"].value("x", minG.x);
+					maxG.y = moduleData["max"].value("y", minG.y);
+					maxG.z = moduleData["max"].value("z", minG.z);
+				}
+				else
+				{
+					maxG = minG;
+				}
+				m->SetGravityRange(minG, maxG);
+				emitter->AddModule(std::move(m));
 			}
 			else if (type == "Drag")
 			{
 				auto m = std::make_unique<DragModule>();
-				m->SetDrag(moduleData.value("drag", 0.1f));
+				float minD = moduleData.value("min", moduleData.value("drag", 0.1f));
+				float maxD = moduleData.value("max", minD);
+				m->SetDragRange(minD, maxD);
 				emitter->AddModule(std::move(m));
 			}
 			else if (type == "ColorFade")
@@ -327,6 +350,7 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 					ec.w = moduleData["end"].value("a", 0.0f);
 					m->SetEndColor(ec);
 				}
+				m->SetEasingType(static_cast<EasingType>(moduleData.value("easingType", 0)));
 				emitter->AddModule(std::move(m));
 			}
 			else if (type == "ScaleOverLifetime")
@@ -348,6 +372,7 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 					es.z = moduleData["end"].value("z", 0.0f);
 					m->SetEndScale(es);
 				}
+				m->SetEasingType(static_cast<EasingType>(moduleData.value("easingType", 0)));
 				emitter->AddModule(std::move(m));
 			}
 			// Phase 3: New modules
@@ -488,7 +513,44 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 			else if (type == "RotationOverLifetime")
 			{
 				auto m = std::make_unique<RotationOverLifetimeModule>();
-				m->SetRotationSpeed(moduleData.value("rotationSpeed", 180.0f));
+				float startSpeed = moduleData.value("startSpeed", moduleData.value("rotationSpeed", 180.0f));
+				float endSpeed = moduleData.value("endSpeed", startSpeed);
+				m->SetRotationSpeedRange(startSpeed, endSpeed);
+				m->SetEasingType(static_cast<EasingType>(moduleData.value("easingType", 0)));
+				emitter->AddModule(std::move(m));
+			}
+			else if (type == "FaceVelocity")
+			{
+				auto m = std::make_unique<FaceVelocityModule>();
+				m->SetUse2DAlignment(moduleData.value("use2DAlignment", false));
+				emitter->AddModule(std::move(m));
+			}
+			else if (type == "Jitter")
+			{
+				auto m = std::make_unique<JitterModule>();
+				if (moduleData.contains("amount"))
+				{
+					Vector3 a;
+					a.x = moduleData["amount"].value("x", 0.1f);
+					a.y = moduleData["amount"].value("y", 0.1f);
+					a.z = moduleData["amount"].value("z", 0.1f);
+					m->SetAmount(a);
+				}
+				emitter->AddModule(std::move(m));
+			}
+			else if (type == "ForceOverLifetime")
+			{
+				auto m = std::make_unique<ForceOverLifetimeModule>();
+				if (moduleData.contains("direction"))
+				{
+					Vector3 d;
+					d.x = moduleData["direction"].value("x", 0.0f);
+					d.y = moduleData["direction"].value("y", 1.0f);
+					d.z = moduleData["direction"].value("z", 0.0f);
+					m->SetDirection(d);
+				}
+				m->SetStrengths(moduleData.value("startStrength", 1.0f), moduleData.value("endStrength", 0.0f));
+				m->SetEasingType(static_cast<EasingType>(moduleData.value("easingType", 0)));
 				emitter->AddModule(std::move(m));
 			}
 			else if (type == "Orbit")
@@ -890,6 +952,7 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 			moduleData["emitFromSurface"] = m->GetEmitFromSurface();
 			moduleData["initialSpeed"] = m->GetInitialSpeed();
 			moduleData["spawnLocation"] = static_cast<int>(m->GetSpawnLocation());
+			moduleData["arcAngle"] = m->GetArcAngle();
 		}
 		else if (auto* m = dynamic_cast<const InitialLifetimeModule*>(module))
 		{
@@ -923,12 +986,15 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 		}
 		else if (auto* m = dynamic_cast<const GravityModule*>(module))
 		{
-			Vector3 g = m->GetGravity();
-			moduleData["gravity"] = {{"x", g.x}, {"y", g.y}, {"z", g.z}};
+			Vector3 minG = m->GetMinGravity();
+			Vector3 maxG = m->GetMaxGravity();
+			moduleData["min"] = {{"x", minG.x}, {"y", minG.y}, {"z", minG.z}};
+			moduleData["max"] = {{"x", maxG.x}, {"y", maxG.y}, {"z", maxG.z}};
 		}
 		else if (auto* m = dynamic_cast<const DragModule*>(module))
 		{
-			moduleData["drag"] = m->GetDrag();
+			moduleData["min"] = m->GetMinDrag();
+			moduleData["max"] = m->GetMaxDrag();
 		}
 		else if (auto* m = dynamic_cast<const ColorFadeModule*>(module))
 		{
@@ -937,6 +1003,7 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 			Vector4 end = m->GetEndColor();
 			moduleData["start"] = {{"r", start.x}, {"g", start.y}, {"b", start.z}, {"a", start.w}};
 			moduleData["end"] = {{"r", end.x}, {"g", end.y}, {"b", end.z}, {"a", end.w}};
+			moduleData["easingType"] = static_cast<int>(m->GetEasingType());
 		}
 		else if (auto* m = dynamic_cast<const ScaleOverLifetimeModule*>(module))
 		{
@@ -944,6 +1011,7 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 			Vector3 end = m->GetEndScale();
 			moduleData["start"] = {{"x", start.x}, {"y", start.y}, {"z", start.z}};
 			moduleData["end"] = {{"x", end.x}, {"y", end.y}, {"z", end.z}};
+			moduleData["easingType"] = static_cast<int>(m->GetEasingType());
 		}
 		// Phase 3: New modules
 		else if (auto* m = dynamic_cast<const AccelerationModule*>(module))
@@ -1012,7 +1080,30 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 		// AdvancedModules
 		else if (auto* m = dynamic_cast<const RotationOverLifetimeModule*>(module))
 		{
-			moduleData["rotationSpeed"] = m->GetRotationSpeed();
+			moduleData["startSpeed"] = m->GetStartSpeed();
+			moduleData["endSpeed"] = m->GetEndSpeed();
+			moduleData["easingType"] = static_cast<int>(m->GetEasingType());
+		}
+		else if (auto* m = dynamic_cast<const FaceVelocityModule*>(module))
+		{
+			// パラメータなし
+		}
+		else if (auto* m = dynamic_cast<const JitterModule*>(module))
+		{
+			Vector3 a = m->GetAmount();
+			moduleData["amount"] = {{"x", a.x}, {"y", a.y}, {"z", a.z}};
+		}
+		else if (auto* m = dynamic_cast<const ForceOverLifetimeModule*>(module))
+		{
+			Vector3 d = m->GetDirection();
+			moduleData["direction"] = {{"x", d.x}, {"y", d.y}, {"z", d.z}};
+			moduleData["startStrength"] = m->GetStartStrength();
+			moduleData["endStrength"] = m->GetEndStrength();
+			moduleData["easingType"] = static_cast<int>(m->GetEasingType());
+		}
+		else if (auto* m = dynamic_cast<const FaceVelocityModule*>(module))
+		{
+			moduleData["use2DAlignment"] = m->IsUse2DAlignment();
 		}
 		else if (auto* m = dynamic_cast<const OrbitModule*>(module))
 		{

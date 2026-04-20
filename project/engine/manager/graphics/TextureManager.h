@@ -45,6 +45,12 @@ public:
 	 */
 	void LoadTexture(const std::string& filePath);
 
+	/**
+	 * @brief 中間リソースを解放する
+	 * @details GPUへの転送完了を待機した後に呼び出すこと
+	 */
+	void ClearIntermediateResources();
+
 public: // アクセッサ
 	/**
 	 * @brief ファイルパスからテクスチャインデックスを取得
@@ -126,7 +132,6 @@ private: // 構造体
 	{
 		DirectX::TexMetadata metadata;                        // テクスチャのメタデータ
 		Microsoft::WRL::ComPtr<ID3D12Resource> resource;      // テクスチャリソース
-		Microsoft::WRL::ComPtr<ID3D12Resource> intermediate;  // 中間バッファ
 		uint32_t srvIndex;                                    // SRVインデックス
 		D3D12_CPU_DESCRIPTOR_HANDLE srvHandleCPU;            // CPU側ディスクリプタハンドル
 		D3D12_GPU_DESCRIPTOR_HANDLE srvHandleGPU;            // GPU側ディスクリプタハンドル
@@ -138,6 +143,9 @@ private: // 構造体
 	std::unordered_map<std::string, uint32_t> filePathToIndex_;
 	// インデックスからファイルパスを取得するマップ
 	std::unordered_map<uint32_t, std::string> indexToFilePath_;
+
+	// ロード中の中間リソース（GPU転送完了後に ClearIntermediateResources で解放する）
+	std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> intermediateResources_;
 
 private: // メンバ関数
 	

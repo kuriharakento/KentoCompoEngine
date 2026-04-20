@@ -3,6 +3,7 @@
 #include "base/Camera.h"
 
 class SrvManager;
+class LightManager;
 
 /**
  * @brief 3Dオブジェクト共通部クラス
@@ -49,6 +50,18 @@ public: // アクセッサ
 	 */
 	SrvManager* GetSrvManager() const { return srvManager_; }
 
+	/**
+	 * @brief デフォルトライトマネージャの設定
+	 * @param lightManager ライトマネージャへのポインタ
+	 */
+	void SetDefaultLightManager(LightManager* lightManager) { defaultLightManager_ = lightManager; }
+
+	/**
+	 * @brief デフォルトライトマネージャの取得
+	 * @return デフォルトライトマネージャへのポインタ
+	 */
+	LightManager* GetDefaultLightManager() const { return defaultLightManager_; }
+
 private: // メンバ関数
 	/**
 	 * @brief ルートシグネチャの生成
@@ -71,6 +84,9 @@ private: // メンバ変数
 
 	// SRVマネージャーへのポインタ
 	SrvManager* srvManager_ = nullptr;
+
+	// デフォルトライトマネージャ
+	LightManager* defaultLightManager_ = nullptr;
 
 	// ルートシグネチャ
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_ = nullptr;
