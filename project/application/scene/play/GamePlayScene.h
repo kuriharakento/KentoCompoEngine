@@ -43,7 +43,7 @@
 #include "application/ui/SkillSelectionUI.h"
 
 /**
- * @brief メインゲームプレイシーン
+ * @brief メインゲームプレイシーン。
  */
 class GamePlayScene : public BaseScene
 {
@@ -51,7 +51,7 @@ public:
     void Initialize() override;
     void Finalize() override;
     void Draw3D() override;
-	void DrawShadow() override;
+    void DrawShadow() override;
     void Draw2D() override;
     void DrawImGui() override;
 
@@ -59,8 +59,8 @@ protected:
     void OnEnterEnter() override;
     void OnUpdateEnter() override;
     void OnExitEnter() override;
-	void OnEnterIntro() override;
-	void OnUpdateIntro() override;
+    void OnEnterIntro() override;
+    void OnUpdateIntro() override;
     void OnEnterPlaying() override;
     void OnUpdatePlaying() override;
     void OnExitPlaying() override;
@@ -70,53 +70,53 @@ protected:
     void OnEnterExit() override;
     void OnUpdateExit() override;
     void OnExitExit() override;
-	void CommonUpdate() override;
+    void CommonUpdate() override;
 
-	void UpdateUI();
-	void DrawUI();
+    void UpdateUI();
+    void DrawUI();
 
     /**
-     * @brief LV4以降のランダムアップグレード選択を開始する
+     * @brief アップグレード選択を開始する。
      */
     void TriggerUpgradeSelection();
 
 private:
-	// --- シーン設定定数 ---
-	static constexpr float kBgmVolume = 0.2f;
-	static constexpr float KSeVolume = 0.3f;
-	static constexpr Vector3 kLightDirection = { -0.4f, -1.0f, 1.0f };
-	static constexpr float kLightIntensity = 0.8f;
-	static constexpr float kSkydomeLightIntensity = 0.5f;
-	static constexpr float kSkydomeScale = 0.5f;
-	static constexpr float kSplineCameraSpeed = 0.001f;
-	static constexpr float kTopDownCameraPitch = 0.7f;
-	static constexpr float kTopDownCameraYaw = 1.0f;
-	static constexpr float kTopDownCameraHeight = 43.0f;
-	static constexpr float kControlsGuideScale = 0.3f;
-	static constexpr int kTransitionGridX = 22;
-	static constexpr int kTransitionGridY = 16;
-	static constexpr float kEnterTransitionDuration = 1.5f;
-	static constexpr float kExitTransitionDuration = 2.0f;
+    // --- 設定定数 ---
+    static constexpr float kBgmVolume = 0.2f;
+    static constexpr float kSeVolume = 0.3f;
+    static constexpr Vector3 kLightDirection = { -0.4f, -1.0f, 1.0f };
+    static constexpr float kLightIntensity = 0.8f;
+    static constexpr float kSkydomeLightIntensity = 0.5f;
+    static constexpr float kSkydomeScale = 0.5f;
+    static constexpr float kSplineCameraSpeed = 0.001f;
+    static constexpr float kTopDownCameraPitch = 0.7f;
+    static constexpr float kTopDownCameraYaw = 1.0f;
+    static constexpr float kTopDownCameraHeight = 43.0f;
+    static constexpr float kControlsGuideScale = 0.3f;
+    static constexpr int kTransitionGridX = 22;
+    static constexpr int kTransitionGridY = 16;
+    static constexpr float kEnterTransitionDuration = 1.5f;
+    static constexpr float kExitTransitionDuration = 2.0f;
 
-	// --- 制限時間表示 ---
-	static constexpr float kGameTimeLimit = 360.0f;
-	static constexpr float kTimerDigitWidth = 64.0f;
-	static constexpr float kTimerDigitHeight = 64.0f;
-	static constexpr float kTimerPosX = 640.0f;
-	static constexpr float kTimerPosY = 50.0f;
-	static constexpr float kTimerSpacing = -5.0f;
-	static constexpr float kTimerScale = 0.8f;
-	// 残り時間が少ないときの警告閾値（秒）
-	static constexpr float kTimerWarningThreshold = 30.0f;
-	
-	// --- スコア表示 ---
-	static constexpr float kScorePosX = 150.0f;
-	static constexpr float kScoreLabelPosY = 300.0f; // ラベル位置
-	static constexpr float kScoreNumberPosY = 340.0f; // 数値位置
-	static constexpr float kScoreScale = 0.5f;
-	static constexpr float kScoreNumberScale = 0.4f;
-	static constexpr float kScoreLabelSpacing = -20.0f;
-	static constexpr float kScoreNumberSpacing = 0.0f;
+    // --- 制限時間表示 ---
+    static constexpr float kGameTimeLimit = 360.0f;
+    static constexpr float kTimerDigitWidth = 64.0f;
+    static constexpr float kTimerDigitHeight = 64.0f;
+    static constexpr float kTimerPosX = 640.0f;
+    static constexpr float kTimerPosY = 50.0f;
+    static constexpr float kTimerSpacing = -5.0f;
+    static constexpr float kTimerScale = 0.8f;
+    // 警告閾値（秒）
+    static constexpr float kTimerWarningThreshold = 30.0f;
+    
+    // --- スコア表示 ---
+    static constexpr float kScorePosX = 150.0f;
+    static constexpr float kScoreLabelPosY = 300.0f;
+    static constexpr float kScoreNumberPosY = 340.0f;
+    static constexpr float kScoreScale = 0.5f;
+    static constexpr float kScoreNumberScale = 0.4f;
+    static constexpr float kScoreLabelSpacing = -20.0f;
+    static constexpr float kScoreNumberSpacing = 0.0f;
 
     // --- ゲームプレイ ---
     std::unique_ptr<Cursor> reticle_;
@@ -134,8 +134,9 @@ private:
     // --- ECS Integration ---
     std::unique_ptr<Registry> registry_;
     std::unique_ptr<SystemManager> systemManager_;
-    std::shared_ptr<EnemySpawnSystem> enemySpawnSystem_;
-    std::shared_ptr<class Object3dSystem> object3dSystem_;
+    // システム本体は systemManager_ が所有。ここでは非所有参照を保持。
+    EnemySpawnSystem* enemySpawnSystem_ = nullptr;
+    class Object3dSystem* object3dSystem_ = nullptr;
     std::unordered_map<std::string, std::unique_ptr<InstancedModelRenderer>> instancedRenderers_;
     EntityID playerEntity_ = kInvalidEntity;
 
@@ -144,25 +145,25 @@ private:
     CinematicLetterbox cinematicLetterbox_;
     float gameTime_ = 0.0f;
 
-	// 制限時間の数値表示
-	std::unique_ptr<NumberSprite> timerSprite_;
-	// スコアラベル表示
-	std::unique_ptr<FontSprite> scoreLabelFontSprite_;
-	// スコアの数値表示
-	std::unique_ptr<NumberSprite> scoreNumberSprite_;
+    // 制限時間の数値表示
+    std::unique_ptr<NumberSprite> timerSprite_;
+    // スコアラベル表示
+    std::unique_ptr<FontSprite> scoreLabelFontSprite_;
+    // スコアの数値表示
+    std::unique_ptr<NumberSprite> scoreNumberSprite_;
 
-	// --- UI ---
-	std::unique_ptr<ControlsGuide> controlsGuide_ = nullptr;
-	std::unique_ptr<PoseMenu> poseMenu_ = nullptr;
-	std::unique_ptr<LevelUpUI> levelUpUI_ = nullptr;
-	std::unique_ptr<SkillSelectionUI> skillSelectionUI_ = nullptr;
+    // --- UI ---
+    std::unique_ptr<ControlsGuide> controlsGuide_ = nullptr;
+    std::unique_ptr<PoseMenu> poseMenu_ = nullptr;
+    std::unique_ptr<LevelUpUI> levelUpUI_ = nullptr;
+    std::unique_ptr<SkillSelectionUI> skillSelectionUI_ = nullptr;
 
-	// --- イントロ演出 ---
+    // --- イントロ演出 ---
     float introElapsed_ = 0.0f;
-	float introDuration_ = 2.0f;
+    float introDuration_ = 2.0f;
     Vector3 cameraInitialPosition_ = { -52.0f, 41.0f, 88.0f };
-	Vector3 cameraInitialRotation_ = { 0.375f, 1.61f, 0.0f };
+    Vector3 cameraInitialRotation_ = { 0.375f, 1.61f, 0.0f };
 
-	// 制限範囲の可視化エフェクト
-	ParticleEffect* rangeEffect_ = nullptr;
-};
+    // 制限範囲の可視化エフェクト。ParticleManager が所有
+    ParticleEffect* rangeEffect_ = nullptr;
+};

@@ -153,83 +153,86 @@ void GamePlayScene::Initialize()
 	registry_->RegisterComponent<DecoyComponent>(10);
 	registry_->RegisterComponent<Object3dComponent>(1000);
 
-	systemManager_ = std::make_unique<SystemManager>();
+    systemManager_ = std::make_unique<SystemManager>();
 
-	// 1. 生成・スポーン系
-	enemySpawnSystem_ = std::make_shared<EnemySpawnSystem>();
-	enemySpawnSystem_->Initialize(
-		sceneManager_->GetObject3dCommon(),
-		sceneManager_->GetLightManager(),
-		sceneManager_->GetCameraManager()
-	);
-	systemManager_->AddSystem(enemySpawnSystem_);
+    // 1. 生成・スポーン系
+    auto enemySpawnSystem = std::make_unique<EnemySpawnSystem>();
+    enemySpawnSystem_ = enemySpawnSystem.get();
+    enemySpawnSystem_->Initialize(
+        sceneManager_->GetObject3dCommon(),
+        sceneManager_->GetLightManager(),
+        sceneManager_->GetCameraManager()
+    );
+    systemManager_->AddSystem(std::move(enemySpawnSystem));
 
-	// 2. 移動・アクション系 (localPosition の更新)
-	auto playerSystem = std::make_shared<PlayerSystem>();
-	playerSystem->SetCameraManager(sceneManager_->GetCameraManager());
-	systemManager_->AddSystem(playerSystem);
+    // 2. 移動・アクション系 (localPosition の更新)
+    auto playerSystem = std::make_unique<PlayerSystem>();
+    playerSystem->SetCameraManager(sceneManager_->GetCameraManager());
+    systemManager_->AddSystem(std::move(playerSystem));
 
-	auto playerActionSystem = std::make_shared<PlayerActionSystem>();
-	playerActionSystem->SetCameraManager(sceneManager_->GetCameraManager());
-	playerActionSystem->SetObject3dCommon(sceneManager_->GetObject3dCommon());
-	playerActionSystem->SetSystemManager(systemManager_.get());
-	systemManager_->AddSystem(playerActionSystem);
+    auto playerActionSystem = std::make_unique<PlayerActionSystem>();
+    playerActionSystem->SetCameraManager(sceneManager_->GetCameraManager());
+    playerActionSystem->SetObject3dCommon(sceneManager_->GetObject3dCommon());
+    playerActionSystem->SetSystemManager(systemManager_.get());
+    systemManager_->AddSystem(std::move(playerActionSystem));
 
-	// パーティクル定義のロード
-	ParticleManager::GetInstance()->LoadEffectDefinition("enemy_death", "./Resources/json/particle/enemy_death.json");
-	ParticleManager::GetInstance()->LoadEffectDefinition("E_skill", "./Resources/json/particle/E_skill.json");
-	ParticleManager::GetInstance()->LoadEffectDefinition("E_explosion", "./Resources/json/particle/E_explosion.json");
-	ParticleManager::GetInstance()->LoadEffectDefinition("hit_effect_ver2", "./Resources/json/particle/hit_effect_ver2.json");
-	ParticleManager::GetInstance()->LoadEffectDefinition("move_range", "./Resources/json/particle/move_range.json");
-	ParticleManager::GetInstance()->LoadEffectDefinition("R_skill", "./Resources/json/particle/R_skill.json");
-	ParticleManager::GetInstance()->LoadEffectDefinition("Q_skill", "./Resources/json/particle/Q_skill.json");
-	ParticleManager::GetInstance()->LoadEffectDefinition("level_up", "./Resources/json/particle/level_up.json");
-	ParticleManager::GetInstance()->LoadEffectDefinition("turret_lazer", "./Resources/json/particle/turret_lazer.json");
-	ParticleManager::GetInstance()->LoadEffectDefinition("Decoy_skill", "./Resources/json/particle/Decoy_skill.json");
+    // パーティクル定義のロード
+    ParticleManager::GetInstance()->LoadEffectDefinition("enemy_death", "./Resources/json/particle/enemy_death.json");
+    ParticleManager::GetInstance()->LoadEffectDefinition("E_skill", "./Resources/json/particle/E_skill.json");
+    ParticleManager::GetInstance()->LoadEffectDefinition("E_explosion", "./Resources/json/particle/E_explosion.json");
+    ParticleManager::GetInstance()->LoadEffectDefinition("hit_effect_ver2", "./Resources/json/particle/hit_effect_ver2.json");
+    ParticleManager::GetInstance()->LoadEffectDefinition("move_range", "./Resources/json/particle/move_range.json");
+    ParticleManager::GetInstance()->LoadEffectDefinition("R_skill", "./Resources/json/particle/R_skill.json");
+    ParticleManager::GetInstance()->LoadEffectDefinition("Q_skill", "./Resources/json/particle/Q_skill.json");
+    ParticleManager::GetInstance()->LoadEffectDefinition("level_up", "./Resources/json/particle/level_up.json");
+    ParticleManager::GetInstance()->LoadEffectDefinition("turret_lazer", "./Resources/json/particle/turret_lazer.json");
+    ParticleManager::GetInstance()->LoadEffectDefinition("Decoy_skill", "./Resources/json/particle/Decoy_skill.json");
 
-	// 音声のロード
-	Audio::GetInstance()->LoadWave("game", "bgm/game.wav", SoundGroup::BGM);
-	Audio::GetInstance()->PlayWave("game", true);
-	Audio::GetInstance()->LoadWave("enemy_kill", "se/enemy_kill.wav", SoundGroup::SE);
-	Audio::GetInstance()->LoadWave("fire", "se/fire.wav", SoundGroup::SE);
-	Audio::GetInstance()->LoadWave("R", "se/R.wav", SoundGroup::SE);
-	Audio::GetInstance()->LoadWave("skill_lock", "se/skill_lock.wav", SoundGroup::SE);
-	Audio::GetInstance()->LoadWave("explosion", "se/explosion.wav", SoundGroup::SE);
+    // 音声のロード
+    Audio::GetInstance()->LoadWave("game", "bgm/game.wav", SoundGroup::BGM);
+    Audio::GetInstance()->PlayWave("game", true);
+    Audio::GetInstance()->LoadWave("enemy_kill", "se/enemy_kill.wav", SoundGroup::SE);
+    Audio::GetInstance()->LoadWave("fire", "se/fire.wav", SoundGroup::SE);
+    Audio::GetInstance()->LoadWave("R", "se/R.wav", SoundGroup::SE);
+    Audio::GetInstance()->LoadWave("skill_lock", "se/skill_lock.wav", SoundGroup::SE);
+    Audio::GetInstance()->LoadWave("explosion", "se/explosion.wav", SoundGroup::SE);
 
-	// 移動制限範囲の可視化エフェクトを開始
-	rangeEffect_ = ParticleManager::GetInstance()->Play("move_range", { 0.0f, 0.1f, 0.0f });
-	if (rangeEffect_)
-	{
-		rangeEffect_->SetAutoRemove(false);
-	}
+    // 移動制限範囲の可視化エフェクトを開始
+    rangeEffect_ = ParticleManager::GetInstance()->Play("move_range", { 0.0f, 0.1f, 0.0f });
+    if (rangeEffect_)
+    {
+        rangeEffect_->SetAutoRemove(false);
+    }
 
-	systemManager_->AddSystem(std::make_shared<EnemyBehaviorSystem>());
-	systemManager_->AddSystem(std::make_shared<MovementSystem>());
-	systemManager_->AddSystem(std::make_shared<ProjectileSystem>());
-	auto progressionSystem = std::make_shared<ProgressionSystem>();
-	systemManager_->AddSystem(progressionSystem);
-	systemManager_->AddSystem(std::make_shared<WorldBoundarySystem>());
+    systemManager_->AddSystem(std::make_unique<EnemyBehaviorSystem>());
+    systemManager_->AddSystem(std::make_unique<MovementSystem>());
+    systemManager_->AddSystem(std::make_unique<ProjectileSystem>());
+    auto progressionSystem = std::make_unique<ProgressionSystem>();
+    auto progressionSystemPtr = progressionSystem.get();
+    systemManager_->AddSystem(std::move(progressionSystem));
+    systemManager_->AddSystem(std::make_unique<WorldBoundarySystem>());
 
-	// タレット・スプリンクラーシステム
-	auto turretSystem = std::make_shared<TurretSystem>();
-	turretSystem->SetSystemManager(systemManager_.get());
-	systemManager_->AddSystem(turretSystem);
+    // タレット・スプリンクラーシステム
+    auto turretSystem = std::make_unique<TurretSystem>();
+    turretSystem->SetSystemManager(systemManager_.get());
+    systemManager_->AddSystem(std::move(turretSystem));
 
-	// 3. 行列更新・物理計算 (worldMatrix の構築)
-	// 移動後に実行することで、最新の座標をワールド行列に反映させる
-	systemManager_->AddSystem(std::make_shared<HierarchySystem>());
+    // 3. 行列更新・物理計算 (worldMatrix の構築)
+    systemManager_->AddSystem(std::make_unique<HierarchySystem>());
 
-	// 4. 衝突判定・解決
-	// 行列更新後に実行することで、正しい座標で判定を行う
-	systemManager_->AddSystem(std::make_shared<CollisionSystem>());
+    // 4. 衝突判定・解決
+    systemManager_->AddSystem(std::make_unique<CollisionSystem>());
 
-	// 5. 状態更新・ライフサイクル
-	systemManager_->AddSystem(std::make_shared<AnnihilationSystem>());
-	systemManager_->AddSystem(std::make_shared<DecoySystem>()); // デコイ消滅時のエフェクト停止
-	systemManager_->AddSystem(std::make_shared<LifetimeSystem>());
-	systemManager_->AddSystem(std::make_shared<EcsStatusSystem>());
-	
-	object3dSystem_ = std::make_shared<Object3dSystem>();
+    // 5. 状態更新・ライフサイクル
+    systemManager_->AddSystem(std::make_unique<AnnihilationSystem>());
+    systemManager_->AddSystem(std::make_unique<DecoySystem>());
+    systemManager_->AddSystem(std::make_unique<LifetimeSystem>());
+    systemManager_->AddSystem(std::make_unique<EcsStatusSystem>());
+    
+    auto object3dSystem = std::make_unique<Object3dSystem>();
+    object3dSystem_ = object3dSystem.get();
+    systemManager_->AddSystem(std::move(object3dSystem));
+
 	// Drawing system
 	
 	// --- トレイルマネージャー初期化 ---
@@ -237,7 +240,7 @@ void GamePlayScene::Initialize()
 	HomingTrailManager::GetInstance().Initialize();
 
 	// 6. 描画準備
-	systemManager_->AddSystem(std::make_shared<InstancedRenderSystem>());
+    systemManager_->AddSystem(std::make_unique<InstancedRenderSystem>());
 
 	// --- モデルとインスタンスレンダラーの準備 ---
 	ModelManager::GetInstance()->LoadModel("enemy");
@@ -444,10 +447,11 @@ void GamePlayScene::Initialize()
 	scoreNumberSprite_->SetAlignment(NumberAlignment::Center);
 	scoreNumberSprite_->SetMinDigits(1); 
 
-	// ProgressionSystem に通知先を設定
-	progressionSystem->SetLevelUpUI(levelUpUI_.get());
-	progressionSystem->SetPostProcessManager(sceneManager_->GetPostProcessManager());
-	progressionSystem->SetSkillSelectionUI(skillSelectionUI_.get());
+    // ProgressionSystem に通知先を設定
+    progressionSystemPtr->SetLevelUpUI(levelUpUI_.get());
+    progressionSystemPtr->SetPostProcessManager(sceneManager_->GetPostProcessManager());
+    progressionSystemPtr->SetSkillSelectionUI(skillSelectionUI_.get());
+
 
 	// ポーズメニューの初期化
 	poseMenu_ = std::make_unique<PoseMenu>();

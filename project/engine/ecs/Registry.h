@@ -8,14 +8,13 @@
 #include <typeindex>
 #include <memory>
 #include <cassert>
-#include <iostream>
 
 /**
- * @brief Entityと各ComponentArrayを統括するシステムコア。
+ * @brief Entityとコンポーネントを管理するコアクラス。
  * 
- * - Entityの発行とリサイクル（世代管理つき）
- * - 任意のコンポーネント配列へのアクセス提供
- * - Systemループ中での安全な破棄を実現する遅延削除（Deferred Deletion）
+ * - Entityの発行とリサイクル（世代管理）
+ * - コンポーネント配列へのアクセス
+ * - 遅延削除（Deferred Deletion）による安全な破棄
  */
 class Registry
 {
@@ -24,53 +23,48 @@ public:
     ~Registry() = default;
 
     /**
-     * @brief システムの最大Entity数を設定し、各種事前割り当て（Pre-allocation）を行う。
-     * @param maxEntities 動作させたい最大エンティティ数
+     * @brief 初期化。最大Entity数を設定しメモリを確保する。
+     * @param maxEntities 最大エンティティ数
      */
     void Initialize(uint32_t maxEntities);
 
-    // =========================================================================
-    // Entity Lifecycle API
-    // =========================================================================
+    // --- Entity Lifecycle ---
 
     /**
-     * @brief 新しいEntityを生成する。(ラッパーを返す推奨API)
-     * @return Entityラッパーオブジェクト
+     * @brief 新しいEntityを生成する（推奨API）。
+     * @return Entityラッパー
      */
     Entity Create();
 
     /**
-     * @brief 新しいEntityを生成する。(従来の生IDを返すAPI)
-     * @return プールに空きがあれば生成されたEntityID。枯渇時は kInvalidEntity。
+     * @brief 新しいEntityIDを発行する。
+     * @return 生成されたEntityID。枯渇時は kInvalidEntity。
      */
     EntityID CreateEntity();
 
     /**
-     * @brief Entityが有効（現在生きているか）を判定する。
-     * @param entity 対象のEntityID
-     * @return 生きていれば true。
+     * @brief Entityが生存しているか。
+     * @param entity EntityID
      */
     bool IsAlive(EntityID entity) const;
 
     /**
-     * @brief エンティティの破棄をフレーム終端まで予約する。
-     * @param entity 破棄したいEntityID
+     * @brief Entityの破棄を予約する（フレーム末尾で実行）。
+     * @param entity 破棄対象のEntityID
      */
     void DestroyEntityDeferred(EntityID entity);
 
     /**
-     * @brief 予約されたEntityと関連Componentを一括削除する。
+     * @brief 予約された破棄を実行する。
      */
     void FlushGarbageCollection();
 
-    // =========================================================================
-    // Component API
-    // =========================================================================
+    // --- Component API ---
 
     /**
-     * @brief 対象のComponentのマネージャー（ComponentArray）を作成・登録する。
+     * @brief コンポーネント配列を登録する。
      * @tparam T コンポーネント型
-     * @param maxComponents このコンポーネントを同時に持つことができる最大数
+     * @param maxComponents 同時所持可能な最大数
      */
     template <typename T>
     void RegisterComponent(uint32_t maxComponents)
@@ -78,78 +72,78 @@ public:
         std::type_index typeName = std::type_index(typeid(T));
         assert(componentArrays_.find(typeName) == componentArrays_.end() && "Component already registered.");
 
-        componentArrays_.insert({ typeName, std::make_shared<ComponentArray<T>>(maxEntities_, maxComponents) });
+        componentArrays_.insert({ typeName, std::make_unique<ComponentArray<T>>(maxEntities_, maxComponents) });
     }
 
     /**
      * @brief Entityにコンポーネントを追加する。
-     * @tparam T 追加するコンポーネントの型
-     * @param entity 対象のエンティティ
-     * @param component 初期データ
-     * @param policy キャパシティオーバー時の処理
+     * @tparam T コンポーネント型
+     * @param entity 対象Entity
+     * @param component データ
+     * @param policy 枯渇時のポリシー
      * @return 成功したか
      */
     template <typename T>
     bool AddComponent(EntityID entity, T component, PoolExhaustionPolicy policy = PoolExhaustionPolicy::AssertAndCrash)
     {
         assert(IsAlive(entity) && "Cannot add component to a dead entity.");
-        auto array = GetComponentArray<T>();
+        auto array = GetComponentArrayInternal<T>();
         assert(array && "Component not registered.");
         return array->Insert(entity, std::move(component), policy);
     }
 
     /**
-     * @brief Entityが持つコンポーネントを削除する（即時）。
-     * @param entity 対象のエンティティ
+     * @brief Entityからコンポーネントを削除する（即時）。
+     * @tparam T コンポーネント型
+     * @param entity 対象Entity
      */
     template <typename T>
     void RemoveComponent(EntityID entity)
     {
         if (IsAlive(entity))
         {
-            auto array = GetComponentArray<T>();
+            auto array = GetComponentArrayInternal<T>();
             assert(array && "Component not registered.");
             array->Remove(entity);
         }
     }
 
     /**
-     * @brief Entityから特定のコンポーネントの参照を取得する。
-     * @param entity 対象のエンティティ
+     * @brief コンポーネントの参照を取得する。
+     * @tparam T コンポーネント型
+     * @param entity 対象Entity
      * @return コンポーネントへの参照
      */
     template <typename T>
     T& GetComponent(EntityID entity)
     {
         assert(IsAlive(entity) && "Cannot get component from a dead entity.");
-        auto array = GetComponentArray<T>();
+        auto array = GetComponentArrayInternal<T>();
         assert(array && "Component not registered.");
         return array->GetData(entity);
     }
 
     /**
-     * @brief Entityが特定のコンポーネントを持っているか判定する。
-     * @param entity 対象のエンティティ
-     * @return 持っていれば true
+     * @brief コンポーネントを持っているか。
+     * @tparam T コンポーネント型
+     * @param entity 対象Entity
      */
     template <typename T>
-    bool HasComponent(EntityID entity)
+    bool HasComponent(EntityID entity) const
     {
         if (!IsAlive(entity))
         {
             return false;
         }
-        auto array = GetComponentArray<T>();
+        auto array = GetComponentArrayInternal<T>();
         if (!array) return false;
         return array->HasComponent(entity);
     }
 
-    // =========================================================================
-    // System Integration API (High-Performance)
-    // =========================================================================
+    // --- System Integration ---
 
     /**
-     * @brief ComponentArray を直接取得する。
+     * @brief コンポーネント配列を直接取得する。
      * @tparam T コンポーネント型
      * @return ComponentArrayへの参照
      */
@@ -158,12 +152,11 @@ public:
     {
         std::type_index typeName = std::type_index(typeid(T));
         assert(componentArrays_.find(typeName) != componentArrays_.end() && "Component not registered.");
-        return *std::static_pointer_cast<ComponentArray<T>>(componentArrays_[typeName]);
+        return *static_cast<ComponentArray<T>*>(componentArrays_[typeName].get());
     }
 
     /**
-     * @brief 指定したコンポーネント型が登録されているか判定する。
-     * @return 登録済みなら true
+     * @brief コンポーネント型が登録済みか。
      */
     template <typename T>
     bool HasComponentArray() const
@@ -172,46 +165,36 @@ public:
     }
 
     /**
-     * @brief 指定したコンポーネント配列全体を走査するためのビューを取得する。
+     * @brief コンポーネント配列を走査するためのポインタを取得する。
      * @tparam T コンポーネント型
-     * @return ComponentArrayを格納したshared_ptr
+     * @return ComponentArrayへのポインタ（非所有）
      */
     template <typename T>
-    std::shared_ptr<ComponentArray<T>> View()
+    ComponentArray<T>* View()
     {
         std::type_index typeName = std::type_index(typeid(T));
-        if (componentArrays_.find(typeName) == componentArrays_.end()) {
-            FILE* f;
-            fopen_s(&f, "missing_component_log.txt", "w");
-            if (f) {
-                fprintf(f, "Missing component: %s\n", typeName.name());
-                fclose(f);
-            }
-        }
         assert(componentArrays_.find(typeName) != componentArrays_.end() && "Component not registered.");
-        return std::static_pointer_cast<ComponentArray<T>>(componentArrays_[typeName]);
+        return static_cast<ComponentArray<T>*>(componentArrays_[typeName].get());
     }
 
-    // =========================================================================
-    // Debug & Metrics API
-    // =========================================================================
+    // --- Debug & Metrics ---
 
     /**
-     * @brief 生きているEntity数を取得
+     * @brief 生存中のEntity数を取得。
      */
     uint32_t GetActiveEntityCount() const { return activeEntityCount_; }
 
     /**
-     * @brief 最大Entityキャパシティを取得
+     * @brief 最大Entityキャパシティを取得。
      */
     uint32_t GetMaxEntityCount() const { return maxEntities_; }
 
 private:
     /**
-     * @brief 内部的なComponentArray取得
+     * @brief 内部的なコンポーネント配列取得。
      */
     template <typename T>
-    std::shared_ptr<ComponentArray<T>> GetComponentArray()
+    ComponentArray<T>* GetComponentArrayInternal() const
     {
         std::type_index typeName = std::type_index(typeid(T));
         auto it = componentArrays_.find(typeName);
@@ -219,30 +202,28 @@ private:
         {
             return nullptr;
         }
-        return std::static_pointer_cast<ComponentArray<T>>(it->second);
+        return static_cast<ComponentArray<T>*>(it->second.get());
     }
 
 private:
     // 最大Entity数
     uint32_t maxEntities_ = 0;
-    // 現在の生存Entity数
+    // 生存中のEntity数
     uint32_t activeEntityCount_ = 0;
 
-    // 世代管理用（index -> generation）
+    // 世代管理用 (index -> generation)
     std::vector<uint32_t> generations_;
     // リサイクル可能なIndexキュー
     std::queue<uint32_t> availableIndices_;
 
-    // 各コンポーネント型と、それを管理するComponentArray群へのポインタ
-    std::unordered_map<std::type_index, std::shared_ptr<IComponentArray>> componentArrays_;
+    // コンポーネント配列の保持 (所有権あり)
+    std::unordered_map<std::type_index, std::unique_ptr<IComponentArray>> componentArrays_;
 
-    // フレーム末尾の破棄実行（Flush）を待つ予約キュー
+    // 破棄予約キュー
     std::vector<EntityID> destroyQueue_;
 };
 
-// =========================================================================
-// Entityラッパーの実装（テンプレート）
-// =========================================================================
+// --- Entity Inline Implementations ---
 
 template<typename T>
 inline Entity& Entity::Add(T component)
@@ -269,14 +250,16 @@ inline bool Entity::Has() const
 template<typename T>
 inline void Entity::Remove()
 {
-    if (IsValid()) {
+    if (IsValid())
+    {
         registry_->RemoveComponent<T>(id_);
     }
 }
 
 inline void Entity::Destroy()
 {
-    if (IsValid()) {
+    if (IsValid())
+    {
         registry_->DestroyEntityDeferred(id_);
     }
 }
@@ -285,3 +268,4 @@ inline bool Entity::IsValid() const
 {
     return registry_ != nullptr && registry_->IsAlive(id_);
 }
+

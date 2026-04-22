@@ -1,27 +1,22 @@
 #pragma once
 
 /**
- * @brief 敵の固有状態（ステータスやステートマシン）を保持するコンポーネント。
+ * @brief 敵の固有状態を保持する。
  */
 struct EnemyStateComponent
 {
     /**
-     * @brief 敵のAIステート定義
+     * @brief AIステート定義。
      */
     enum class State
     {
-        Idle,   // 待機
-        Move,   // 移動
-        Attack, // 攻撃
-        Dead    // 死亡
+        Idle,
+        Move,
+        Attack,
+        Dead
     };
 
-    // 現在のヒットポイント
     int hp_ = 100;
-
-    // 現在進行中のAIステート
     State currentState_ = State::Idle;
-    
-    // ステート開始からの経過時間
     float stateTimer_ = 0.0f;
 };

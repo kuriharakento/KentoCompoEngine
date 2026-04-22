@@ -5,13 +5,12 @@ void Registry::Initialize(uint32_t maxEntities)
     maxEntities_ = maxEntities;
     generations_.resize(maxEntities, 0);
 
-    // [BNS-Optimization] 物理メモリのページを強制的に確定させる（Pre-touch）
-    // これを行わないと、初回スポーン時に OS が物理メモリを割り当てる際のスパイク（カクつき）が発生する
+    // 物理メモリのページを強制的に確定させる
     std::fill(generations_.begin(), generations_.end(), 0);
 
-    // 空きIndexキューを初期化（最初は0から昇順）
+    // 空きIndexキューを初期化
     std::queue<uint32_t> emptyQueue;
-    std::swap(availableIndices_, emptyQueue); // clear
+    std::swap(availableIndices_, emptyQueue);
     for (uint32_t i = 0; i < maxEntities; ++i)
     {
         availableIndices_.push(i);
@@ -27,15 +26,14 @@ EntityID Registry::CreateEntity()
 {
     if (availableIndices_.empty())
     {
-        // 動的拡張は行わないポリシー
-        std::cerr << "[Registry] Error: Maximum entity count reached (" << maxEntities_ << ")!\n";
+        // 最大数に達した場合はエラー
         return kInvalidEntity;
     }
 
     uint32_t index = availableIndices_.front();
     availableIndices_.pop();
 
-    // 割り当てのたびに世代が上がる（1は使わない初期値0との区別のため初回で1になる）
+    // 割り当てのたびに世代を上げる（初期値0と区別するため初回で1にする）
     generations_[index]++;
 
     activeEntityCount_++;
@@ -55,7 +53,7 @@ bool Registry::IsAlive(EntityID entity) const
         return false;
     }
 
-    // 要求されたEntityIDの世代と、現在そのIndexが持っている世代が一致するか
+    // 世代が一致するかで生存判定
     return generations_[index] == GetEntityGeneration(entity);
 }
 
@@ -71,7 +69,6 @@ void Registry::FlushGarbageCollection()
 {
     for (EntityID entity : destroyQueue_)
     {
-        // 既にキュー内で重複して呼ばれたりした場合の安全策
         if (!IsAlive(entity))
         {
             continue;
@@ -79,17 +76,16 @@ void Registry::FlushGarbageCollection()
 
         uint32_t index = GetEntityIndex(entity);
 
-        // 1. 各ComponentArrayからこのEntityの持つデータを物理削除（Swap & Pop）
+        // 各コンポーネント配列からデータを削除
         for (auto& pair : componentArrays_)
         {
             pair.second->EntityDestroyed(entity);
         }
 
-        // 2. 世代を進めて破棄済み（Invalid）状態にする
-        // 次にリサイクルされた時に世代が異なるため、古いポインタを弾けるようになる
+        // 世代を進めて無効化する
         generations_[index]++;
 
-        // 3. スロットを空きキューに返却
+        // インデックスを再利用キューへ
         availableIndices_.push(index);
 
         activeEntityCount_--;
@@ -97,3 +93,4 @@ void Registry::FlushGarbageCollection()
 
     destroyQueue_.clear();
 }
+

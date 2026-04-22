@@ -2,18 +2,15 @@
 
 #include <cstdint>
 
-// Deleted kento_compo and ecs namespaces
-
 /**
  * @brief Entityを一意に識別するID。
  *
  * 内部設計:
- * - uint32_t (32bit) を使用。
- * - 下位 20bit : インデックス (0 〜 1,048,575) ※最大100万個のエンティティ
- * - 上位 12bit : ジェネレーション (世代。インデックスが再利用された回数)
+ * - 32bit整数を使用。
+ * - 下位 20bit : インデックス (最大約100万個)
+ * - 上位 12bit : ジェネレーション (再利用回数)
  * 
- * 世代(Generation)を含めることで、古いEntityポインタやIDを保持し続けてしまった場合（ABA問題）に、
- * 現在のRegistry側の世代と比較して「すでに破棄された古いEntityへの不正アクセス」をO(1)で弾くことができる。
+ * 世代管理により、古いIDでの不正アクセスをO(1)で検知できる。
  */
 using EntityID = uint32_t;
 
@@ -25,7 +22,8 @@ constexpr EntityID kInvalidEntity = 0xFFFFFFFF;
 /**
  * @brief EntityID のビットマスク定義
  */
-namespace entity_mask {
+namespace entity_mask
+{
     constexpr uint32_t kIndexBits = 20;
     constexpr uint32_t kIndexMask = (1 << kIndexBits) - 1; // 0x000FFFFF
 
@@ -34,8 +32,8 @@ namespace entity_mask {
 }
 
 /**
- * @brief EntityIDからインデックス部分（下位20bit）を抽出する。
- * @param id 対象のEntityID
+ * @brief IDからインデックス部分を抽出する。
+ * @param id EntityID
  * @return インデックス値
  */
 inline uint32_t GetEntityIndex(EntityID id)
@@ -44,8 +42,8 @@ inline uint32_t GetEntityIndex(EntityID id)
 }
 
 /**
- * @brief EntityIDからジェネレーション部分（上位12bit）を抽出する。
- * @param id 対象のEntityID
+ * @brief IDから世代部分を抽出する。
+ * @param id EntityID
  * @return 世代値
  */
 inline uint32_t GetEntityGeneration(EntityID id)
@@ -54,9 +52,9 @@ inline uint32_t GetEntityGeneration(EntityID id)
 }
 
 /**
- * @brief インデックスと世代からEntityIDを合成する。
- * @param index 20bitインデックス
- * @param generation 12bit世代
+ * @brief インデックスと世代からIDを合成する。
+ * @param index インデックス
+ * @param generation 世代
  * @return 合成されたEntityID
  */
 inline EntityID MakeEntityID(uint32_t index, uint32_t generation)
@@ -67,10 +65,9 @@ inline EntityID MakeEntityID(uint32_t index, uint32_t generation)
 class Registry;
 
 /**
- * @brief オブジェクト指向的にECSを操作するためのEntityラッパークラス
+ * @brief Entity操作用の軽量ラッパー。
  * 
- * 内部的には EntityID(伝票番号) と Registry(倉庫) へのポインタを持つだけであり、
- * メソッド呼び出しをRegistryへの委譲に変換する軽量なラッパー。
+ * IDとRegistryへの参照を持ち、メソッド呼び出しをRegistryへ委譲する。
  */
 class Entity
 {
@@ -79,43 +76,47 @@ public:
     Entity(EntityID id, Registry* registry) : id_(id), registry_(registry) {}
 
     /**
-     * @brief コンポーネントを追加する
-     * @return 自身への参照（メソッドチェーン可能）
+     * @brief コンポーネントを追加する。
+     * @tparam T コンポーネント型
+     * @return 自身への参照
      */
     template<typename T>
     Entity& Add(T component);
 
     /**
-     * @brief コンポーネントを取得する
+     * @brief コンポーネントを取得する。
+     * @tparam T コンポーネント型
      * @return コンポーネントへの参照
      */
     template<typename T>
     T& Get();
 
     /**
-     * @brief コンポーネントを所持しているか判定
+     * @brief コンポーネントを所持しているか。
+     * @tparam T コンポーネント型
      */
     template<typename T>
     bool Has() const;
 
     /**
-     * @brief コンポーネントを削除する
+     * @brief コンポーネントを削除する。
+     * @tparam T コンポーネント型
      */
     template<typename T>
     void Remove();
 
     /**
-     * @brief このエンティティ自身を破棄（フレーム終端で削除）する
+     * @brief Entityを破棄する（フレーム末尾で実行）。
      */
     void Destroy();
 
     /**
-     * @brief 現在このエンティティが有効（生きている）か判定
+     * @brief 有効なEntityか。
      */
     bool IsValid() const;
 
     /**
-     * @brief 生のEntityIDを取得
+     * @brief 生のIDを取得する。
      */
     EntityID GetID() const { return id_; }
 
@@ -124,6 +125,9 @@ public:
     explicit operator bool() const { return IsValid(); }
 
 private:
+    // 生のID
     EntityID id_ = kInvalidEntity;
+    // 管理元。所有しない
     Registry* registry_ = nullptr;
 };
+
