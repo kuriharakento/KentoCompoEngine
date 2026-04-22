@@ -1,4 +1,4 @@
-#include "GamePlayScene.h"
+﻿#include "GamePlayScene.h"
 #include <random>
 #include <algorithm>
 
@@ -340,8 +340,8 @@ void GamePlayScene::Initialize()
 		col.sphere_.radius = 1.0f;
 
 		// フィルタリング設定
-		col.layer = CollisionLayer::Player;
-		col.mask = CollisionLayer::Enemy | CollisionLayer::Obstacle;
+		col.layer = CollisionLayer::kPlayer;
+		col.mask = CollisionLayer::kEnemy;
 
 		registry_->AddComponent<ecs::ColliderComponent>(playerEntity_, col);
 
@@ -1002,15 +1002,15 @@ void GamePlayScene::TriggerUpgradeSelection()
 	// Qスキル強化
 	if (skill.route_ == SkillRoute::Bomb) {
 		pool.push_back({ "Shockwave: Range", "Increase the radius of your shockwaves.", [&skill](){ skill.qRange_ *= 2.2f; }, 
-			kTreeBase + "skill_01_bomb.png", kTextBase + "range.png" });
+			kIconBase + "bomb.png", kTextBase + "range.png" });
 		pool.push_back({ "Shockwave: Fast CD", "Decrease shockwave cooldown.", [&skill](){ skill.qCooldownMultiplier_ *= 0.45f; }, 
-			kTreeBase + "skill_01_bomb.png", kTextBase + "cooltime.png" });
+			kIconBase + "bomb.png", kTextBase + "cooltime.png" });
 	}
 
 	// Eスキル強化
 	if (skill.special_ == SkillSpecialChoice::HomingMissile)
 		pool.push_back({ "Missile: Capacity", "Fire more missiles at once.", [&skill](){ skill.eMissileCount_ += 2; }, 
-			kIconBase + "missile.png", kTextBase + "count.png" });
+			kTreeBase + "skill_01_01_missile.png", kTextBase + "count.png" });
 	if (skill.special_ == SkillSpecialChoice::DecoyBomb)
 		pool.push_back({ "Decoy: Persistence", "Increase decoy duration.", [&skill](){ skill.eDecoyDuration_ += 20.0f; }, 
 			kIconBase + "decoy.png", kTextBase + "duration.png" });
