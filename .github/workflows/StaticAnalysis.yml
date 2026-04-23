@@ -1,0 +1,36 @@
+name: StaticAnalysis
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:  # PRが作成・更新された時に実行
+    branches:
+      - master
+      - develop
+
+env:
+  # C++のソースコードが入っているディレクトリを指定
+  PROJECT_DIR: project/
+
+jobs:
+  cppcheck:
+    runs-on: windows-2022
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install cppcheck
+      run: choco install cppcheck -y
+
+    - name: Run cppcheck
+      run: cppcheck --enable=warning,performance,portability --error-exitcode=1 ${{ env.PROJECT_DIR }}
+
+    - name: Discord Notification
+      if: always()
+      uses: sarisia/actions-status-discord@v1
+      with:
+        webhook: ${{ secrets.DISCORD_WEBHOOK_ANALYSIS }}
+        status: ${{ job.status }}
+        title: "GitHub Actions: KentoCompo Static Analysis"
