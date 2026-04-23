@@ -6,9 +6,7 @@ on:
       - master
 
 env:
-  # リポジトリのルートディレクトリを起点としたソリューションファイルのパス
   SOLUTION_FILE_PATH: project/KentoCompo.sln
-  # Visual Studioの構成(Debug/Release)
   CONFIGURATION: Release
 
 jobs:
@@ -26,3 +24,11 @@ jobs:
     - name: Build
       run: |
         msbuild ${{ env.SOLUTION_FILE_PATH }} /p:Platform=x64 /p:Configuration=${{ env.CONFIGURATION }}
+
+    - name: Discord Notification
+      if: always()
+      uses: sarisia/actions-status-discord@v1
+      with:
+        webhook: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
+        status: ${{ job.status }}
+        title: "GitHub Actions: ReleaseBuild"

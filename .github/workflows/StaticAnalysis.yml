@@ -1,0 +1,76 @@
+name: StaticAnalysis
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches:
+      - master
+      - develop
+
+env:
+  PROJECT_DIR: project/
+
+jobs:
+  analyze:
+    runs-on: windows-2022
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    # 1. 環境構築 (cppcheck と llvm)
+    - name: Install Tools
+      run: |
+        choco install cppcheck -y
+        choco install llvm -y
+
+    # 2. 静的解析 (バグ・パフォーマンス・メモリリークの検知)
+    - name: Run cppcheck
+      run: cppcheck --enable=warning,performance,portability --error-exitcode=1 ${{ env.PROJECT_DIR }}
+
+    # 3. スタイル監視 (.clang-format ファイルを自動参照)
+    - name: Run clang-format
+      shell: pwsh
+      run: |
+        $files = Get-ChildItem -Path ${{ env.PROJECT_DIR }} -Include *.cpp,*.h -Recurse
+        $failed = $false
+        foreach ($f in $files) {
+            # ファイル内の .clang-format 設定に従ってチェック
+            clang-format --dry-run -Werror $f.FullName
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "::error file=$($f.FullName)::Workspace Rule違反: スタイル(Allman, タブ等)が崩れています。Visual Studioで整形し直してください。"
+                $failed = $true
+            }
+        }
+        if ($failed) { exit 1 }
+
+    # 4. 独自ルール監視
+    - name: Run Custom Rule Checker
+      shell: pwsh
+      run: |
+        $files = Get-ChildItem -Path ${{ env.PROJECT_DIR }} -Include *.cpp,*.h -Recurse
+        $errors = 0
+        foreach ($f in $files) {
+            # ルール: 生の new を禁止 (unique_ptr優先)
+            if (Select-String -Path $f.FullName -Pattern "\bnew\s+[A-Za-z]" -Quiet) {
+                Write-Host "::error file=$($f.FullName)::Workspace Rule違反: 生の 'new' を検知。std::make_unique 等のスマートポインタを使用してください。"
+                $errors++
+            }
+            # ルール: /// コメントを禁止 (Doxygen /** ... */ 優先)
+            if (Select-String -Path $f.FullName -Pattern "^\s*///" -Quiet) {
+                Write-Host "::error file=$($f.FullName)::Workspace Rule違反: '///' を検知。規約に従い '/** ... */' を使用してください。"
+                $errors++
+            }
+        }
+        if ($errors -gt 0) { exit 1 }
+
+    # 5. Discord通知
+    - name: Discord Notification
+      if: always()
+      uses: sarisia/actions-status-discord@v1
+      with:
+        webhook: ${{ secrets.DISCORD_WEBHOOK_ANALYSIS }}
+        status: ${{ job.status }}
+        title: "GitHub Actions: KentoCompo Static Analysis"
