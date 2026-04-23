@@ -8,28 +8,28 @@
 class ScoreManager
 {
 public:
-	/**
-	 * @brief スコアをリセットする
-	 */
-	static void Reset();
+    /**
+     * @brief スコアをリセットする
+     */
+    static void Reset();
 
-	/**
-	 * @brief スコアを加算する
-	 * @param amount 加算量
-	 */
-	static void AddScore(uint64_t amount);
+    /**
+     * @brief スコアを加算する
+     * @param amount 加算量
+     */
+    static void AddScore(uint64_t amount);
 
-	/**
-	 * @brief 現在のスコアを取得する
-	 * @return 現在のスコア
-	 */
-	static uint64_t GetScore();
-
-private:
-	// コンストラクタを隠蔽
-	ScoreManager() = delete;
+    /**
+     * @brief 現在のスコアを取得する
+     * @return 現在のスコア
+     */
+    static uint64_t GetScore();
 
 private:
-	// 現在の合計スコア
-	static uint64_t score_;
+    // コンストラクタを隠蔽
+    ScoreManager() = delete;
+
+private:
+    // 現在の合計スコア
+    static uint64_t score_;
 };

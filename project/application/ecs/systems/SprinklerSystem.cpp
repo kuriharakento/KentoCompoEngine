@@ -11,63 +11,87 @@
 
 void SprinklerSystem::Update(Registry& registry)
 {
-	auto view = registry.View<SprinklerComponent>();
-	if (!view) return;
+    auto view = registry.View<SprinklerComponent>();
+    if (!view)
+    {
+        return;
+    }
 
-	float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
+    float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
 
-	for (uint32_t i = 0; i < view->GetSize(); ++i)
-	{
-		EntityID sprinklerEntity = view->GetEntityFromDenseIndex(i);
-		auto& sprinkler = view->GetDataFromDenseIndex(i);
+    for (uint32_t i = 0; i < view->GetSize(); ++i)
+    {
+        EntityID sprinklerEntity = view->GetEntityFromDenseIndex(i);
+        auto& sprinkler = view->GetDataFromDenseIndex(i);
 
-		if (!registry.HasComponent<TransformComponent>(sprinklerEntity)) continue;
-		auto& sprinklerTrans = registry.GetComponent<TransformComponent>(sprinklerEntity);
+        if (!registry.HasComponent<TransformComponent>(sprinklerEntity))
+        {
+            continue;
+        }
+        auto& sprinklerTrans = registry.GetComponent<TransformComponent>(sprinklerEntity);
 
-		// チェックタイマー更新
-		sprinkler.checkTimer_ -= dt;
-		if (sprinkler.checkTimer_ > 0.0f) continue;
-		sprinkler.checkTimer_ = sprinkler.checkInterval_;
+        sprinkler.checkTimer_ -= dt;
+        if (sprinkler.checkTimer_ > 0.0f)
+        {
+            continue;
+        }
+        sprinkler.checkTimer_ = sprinkler.checkInterval_;
 
-		float rangeSq = sprinkler.range_ * sprinkler.range_;
+        float rangeSq = sprinkler.range_ * sprinkler.range_;
 
-		// 範囲内の敵を走査し、ボムスタック持ちを起爆
-		auto tagView = registry.View<ecs::TagComponent>();
-		if (!tagView) continue;
+        auto tagView = registry.View<ecs::TagComponent>();
+        if (!tagView)
+        {
+            continue;
+        }
 
-		for (uint32_t j = 0; j < tagView->GetSize(); ++j)
-		{
-			if (tagView->GetDataFromDenseIndex(j).type != ecs::TagComponent::Type::Enemy) continue;
+        for (uint32_t j = 0; j < tagView->GetSize(); ++j)
+        {
+            if (tagView->GetDataFromDenseIndex(j).type != ecs::TagComponent::Type::Enemy)
+            {
+                continue;
+            }
 
-			EntityID enemy = tagView->GetEntityFromDenseIndex(j);
-			if (!registry.HasComponent<TransformComponent>(enemy)) continue;
-			if (!registry.HasComponent<ecs::InducedExplosionComponent>(enemy)) continue;
+            EntityID enemy = tagView->GetEntityFromDenseIndex(j);
+            if (!registry.HasComponent<TransformComponent>(enemy))
+            {
+                continue;
+            }
+            if (!registry.HasComponent<ecs::InducedExplosionComponent>(enemy))
+            {
+                continue;
+            }
 
-			auto& enemyTrans = registry.GetComponent<TransformComponent>(enemy);
-			float distSq = (enemyTrans.localPosition_ - sprinklerTrans.localPosition_).LengthSquared();
-			if (distSq > rangeSq) continue;
+            auto& enemyTrans = registry.GetComponent<TransformComponent>(enemy);
+            float distSq = (enemyTrans.localPosition_ - sprinklerTrans.localPosition_).LengthSquared();
+            if (distSq > rangeSq)
+            {
+                continue;
+            }
 
-			auto& stack = registry.GetComponent<ecs::InducedExplosionComponent>(enemy);
-			if (stack.count_ <= 0) continue;
+            auto& stack = registry.GetComponent<ecs::InducedExplosionComponent>(enemy);
+            if (stack.count_ <= 0)
+            {
+                continue;
+            }
 
-			// 起爆: 爆発エンティティを生成
-			Vector3 expPos = enemyTrans.localPosition_;
+            Vector3 expPos = enemyTrans.localPosition_;
 
-			// 爆発ダメージ
-			if (registry.HasComponent<ecs::StatusComponent>(enemy))
-			{
-				auto& status = registry.GetComponent<ecs::StatusComponent>(enemy);
-				static constexpr float kSprinklerDetonateDamage = 300.0f;
-				status.hp_.SetBase(status.hp_.GetBase() - kSprinklerDetonateDamage);
-				if (status.hp_.GetBase() <= 0.0f) status.isAlive_ = false;
-			}
+            if (registry.HasComponent<ecs::StatusComponent>(enemy))
+            {
+                auto& status = registry.GetComponent<ecs::StatusComponent>(enemy);
+                static constexpr float kSprinklerDetonateDamage = 300.0f;
+                status.hp_.SetBase(status.hp_.GetBase() - kSprinklerDetonateDamage);
+                if (status.hp_.GetBase() <= 0.0f)
+                {
+                    status.isAlive_ = false;
+                }
+            }
 
-			// 演出
-			ParticleManager::GetInstance()->Play("E_explosion", expPos);
-			Audio::GetInstance()->PlayWave("explosion", false);
+            ParticleManager::GetInstance()->Play("E_explosion", expPos);
+            Audio::GetInstance()->PlayWave("explosion", false);
 
-			// スタックをリセット
-			registry.RemoveComponent<ecs::InducedExplosionComponent>(enemy);
-		}
-	}
+            registry.RemoveComponent<ecs::InducedExplosionComponent>(enemy);
+        }
+    }
 }

@@ -121,7 +121,7 @@ private:
     // コンボ猶予タイマー（秒）
     float comboTimer_ = 0.0f;
     // コンボ数表示用スプライト
-	NumberSprite comboNumberSprite_;
+    NumberSprite comboNumberSprite_;
 
 private: // シングルトン
     ComboManager() = default;

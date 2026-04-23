@@ -385,8 +385,8 @@ void EnemyManager::AddCollisionComponents(EntityID entity)
 	col.previousPosition_ = transform.localPosition_;
 
 	// フィルタリング
-	col.layer = CollisionLayer::Enemy;
-	col.mask = CollisionLayer::Player | CollisionLayer::Obstacle | CollisionLayer::PlayerBullet;
+	col.layer = CollisionLayer::kEnemy;
+	col.mask = CollisionLayer::kPlayer | CollisionLayer::kObstacle | CollisionLayer::kPlayerBullet;
 
 	// 衝突応答
 	col.onCollisionEnter = [reg = registry_, entity](const ecs::CollisionPartnerInfo& other) {
@@ -394,11 +394,11 @@ void EnemyManager::AddCollisionComponents(EntityID entity)
 			auto& otherCol = reg->GetComponent<ecs::ColliderComponent>(other.entity);
 			
 			// プレイヤーの弾に当たった時の処理（ダメージは弾側でも処理されるが、一応ここでもHPを減らすか、空にする）
-			if (otherCol.layer & CollisionLayer::PlayerBullet) {
+			if (otherCol.layer & CollisionLayer::kPlayerBullet) {
 				// ここでは何もしない。PlayerActionSystem または他の弾丸処理でHPを減らす。
 			}
 			// プレイヤーに当たったらダメージを与え、自分（敵）もダメージを受ける
-			else if (otherCol.layer & CollisionLayer::Player) {
+			else if (otherCol.layer & CollisionLayer::kPlayer) {
 				if (reg->HasComponent<ecs::StatusComponent>(other.entity)) {
 					auto& status = reg->GetComponent<ecs::StatusComponent>(other.entity);
 					float currentHp = status.hp_.GetBase();

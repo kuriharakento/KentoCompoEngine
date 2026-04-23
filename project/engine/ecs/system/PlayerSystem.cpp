@@ -43,7 +43,7 @@ void PlayerSystem::Update(Registry& registry)
         if (pRef.isDodging_)
         {
             pRef.dodgeTimer_ -= deltaTime;
-            float progress = 1.0f - ((std::max)(0.0f, pRef.dodgeTimer_) / pRef.dodgeDuration_);
+            float progress = 1.0f - ((std::max)(0.0f, pRef.dodgeTimer_) / PlayerComponent::kDefaultDodgeDuration);
             
             // イージングを伴う座標補間
             tRef.localPosition_ = MathUtils::Lerp(pRef.dodgeStartPosition_, pRef.dodgeTargetPosition_, progress);
@@ -52,7 +52,7 @@ void PlayerSystem::Update(Registry& registry)
             if (pRef.dodgeTimer_ <= 0.0f)
             {
                 pRef.isDodging_ = false;
-                pRef.dodgeCooldownTimer_ = pRef.dodgeCooldown_;
+                pRef.dodgeCooldownTimer_ = PlayerComponent::kDefaultDodgeCooldown;
             }
             continue; // 回避中は他の移動入力を受け付けない
         }
@@ -88,10 +88,10 @@ void PlayerSystem::Update(Registry& registry)
             }
 
             pRef.isDodging_ = true;
-            pRef.dodgeTimer_ = pRef.dodgeDuration_;
+            pRef.dodgeTimer_ = PlayerComponent::kDefaultDodgeDuration;
             pRef.dodgeStartPosition_ = tRef.localPosition_;
-            pRef.dodgeTargetPosition_ = pRef.dodgeStartPosition_ + pRef.dodgeDirection_ * pRef.dodgeDistance_;
-            pRef.invincibleTimer_ = pRef.dodgeInvincibleTime_;
+            pRef.dodgeTargetPosition_ = pRef.dodgeStartPosition_ + pRef.dodgeDirection_ * PlayerComponent::kDefaultDodgeDistance;
+            pRef.invincibleTimer_ = PlayerComponent::kDefaultDodgeInvincibleTime;
             pRef.isInvincible_ = true;
             if (registry.HasComponent<ecs::ColliderComponent>(entity))
             {

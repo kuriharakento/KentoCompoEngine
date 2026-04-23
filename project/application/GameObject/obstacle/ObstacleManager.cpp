@@ -306,8 +306,8 @@ void ObstacleManager::RegisterToRegistry(const GameObjectInfo& info, ObstacleCom
 		col.previousPosition_ = transform.localPosition_;
 		
 		// フィルタリング設定
-		col.layer = CollisionLayer::Obstacle;
-		col.mask  = CollisionLayer::All;
+		col.layer = CollisionLayer::kObstacle;
+		col.mask  = CollisionLayer::kAll;
 
 		registry_->AddComponent<ecs::ColliderComponent>(entity, col);
 		registry_->AddComponent<CollisionResponseComponent>(entity, {});

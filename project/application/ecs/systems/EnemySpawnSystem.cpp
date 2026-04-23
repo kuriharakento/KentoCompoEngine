@@ -1,7 +1,7 @@
 #include "EnemySpawnSystem.h"
 #include "engine/ecs/Registry.h"
 #include "engine/ecs/components/TransformComponent.h"
-#include "engine/ecs/components/TagComponent.h" // ecs::TagComponent
+#include "engine/ecs/components/TagComponent.h"
 #include "engine/ecs/components/EnemyAIComponent.h"
 #include "application/ecs/components/StatusComponent.h"
 #include "application/ecs/components/ImpactChargeComponent.h"
@@ -16,13 +16,9 @@
 #include "math/MathUtils.h"
 #include "math/VectorColorCodes.h"
 #include "engine/manager/graphics/LineManager.h"
-#include "engine/ecs/components/TagComponent.h"
-
-// 必要なマネージャーのヘッダーを明示
 #include "engine/manager/scene/CameraManager.h"
 #include "engine/graphics/3d/Object3dCommon.h"
 #include "engine/manager/scene/LightManager.h"
-
 #include <random>
 
 void EnemySpawnSystem::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, CameraManager* cameraManager)
@@ -35,11 +31,14 @@ void EnemySpawnSystem::Initialize(Object3dCommon* object3dCommon, LightManager* 
 void EnemySpawnSystem::Update(Registry& registry)
 {
     float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
-    if (dt <= 0.0f) dt = 0.0166f;
+    if (dt <= 0.0f)
+    {
+        dt = 0.0166f;
+    }
 
     elapsedTime_ += dt;
 
-    // --- プレイヤーレベルの取得 ---
+    // プレイヤーレベル取得
     uint32_t playerLevel = 1;
     auto progView = registry.View<PlayerProgressionComponent>();
     if (progView && progView->GetSize() > 0)
@@ -47,7 +46,7 @@ void EnemySpawnSystem::Update(Registry& registry)
         playerLevel = progView->GetDataFromDenseIndex(0).level_;
     }
 
-    // --- 現在の敵生存数のカウント ---
+    // 敵の生存数カウント
     uint32_t currentEnemyCount = 0;
     auto tagView = registry.View<ecs::TagComponent>();
     if (tagView)
@@ -63,7 +62,7 @@ void EnemySpawnSystem::Update(Registry& registry)
 
     uint32_t currentMaxEnemies = GetMaxEnemies(playerLevel);
 
-    // --- 1. 通常スポーン (1.0sおきに常時) ---
+    // 通常スポーン
     tickTimer_ += dt;
     if (tickTimer_ >= 1.0f)
     {
@@ -72,13 +71,16 @@ void EnemySpawnSystem::Update(Registry& registry)
         uint32_t tickAmount = (playerLevel >= 5) ? 4 : playerLevel;
         for (uint32_t i = 0; i < tickAmount; ++i)
         {
-            if (currentEnemyCount >= currentMaxEnemies) break;
+            if (currentEnemyCount >= currentMaxEnemies)
+            {
+                break;
+            }
             SpawnEnemy(registry);
             currentEnemyCount++;
         }
     }
 
-    // --- 2. バースト増援 (10sおきにLv.4以上) ---
+    // バースト増援
     if (playerLevel >= 4)
     {
         burstTimer_ += dt;
@@ -86,10 +88,13 @@ void EnemySpawnSystem::Update(Registry& registry)
         {
             burstTimer_ = 0.0f;
 
-            uint32_t burstSize = (playerLevel >= 5) ? 15 : 15;
+            uint32_t burstSize = 15;
             for (uint32_t i = 0; i < burstSize; ++i)
             {
-                if (currentEnemyCount >= currentMaxEnemies) break;
+                if (currentEnemyCount >= currentMaxEnemies)
+                {
+                    break;
+                }
                 SpawnEnemy(registry);
                 currentEnemyCount++;
             }
@@ -108,7 +113,7 @@ uint32_t EnemySpawnSystem::GetMaxEnemies(uint32_t level)
 
 void EnemySpawnSystem::SpawnEnemy(Registry& registry)
 {
-    // プレイヤーの位置を取得 (ecs::TagComponent::Type::Player で探す)
+    // プレイヤー位置取得
     Vector3 playerPos = { 0, 0, 0 };
     auto tagView = registry.View<ecs::TagComponent>();
     if (tagView)
@@ -127,7 +132,7 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
         }
     }
 
-    // ランダムな位置を算出 (円環状)
+    // 円環状のランダム位置
     static std::random_device rd;
     static std::mt19937 gen(rd());
     std::uniform_real_distribution<float> angleDist(0, 2.0f * 3.14159f);
@@ -138,62 +143,51 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
     Vector3 spawnOffset = { std::cos(angle) * radius, 0, std::sin(angle) * radius };
     Vector3 spawnPos = playerPos + spawnOffset;
 
-    // スケール設定（さらに巨大化）
     Vector3 meleeScale = { 2.5f, 2.5f, 2.5f };
     Vector3 chargerScale = { 4.5f, 4.5f, 4.5f };
-
-    // 暫定的に近接型のスケールで高さを調整（後で種別ごとに上書き）
     spawnPos.y = meleeScale.y * 0.5f;
 
-    // Entity作成
     EntityID enemy = registry.CreateEntity();
     
     ecs::TagComponent tag;
     tag.type = ecs::TagComponent::Type::Enemy;
     registry.AddComponent<ecs::TagComponent>(enemy, tag);
-
     registry.AddComponent<TransformComponent>(enemy, { spawnPos, {0,0,0}, meleeScale });
     
-    // Status
     ecs::StatusComponent status;
-    status.hp_.SetBase(100.0f); // 時間とともに硬くなる
+    status.hp_.SetBase(100.0f);
     status.moveSpeed_.SetBase(3.5f + static_cast<float>(rand() % 100) / 100.0f * 1.0f);
     registry.AddComponent<ecs::StatusComponent>(enemy, std::move(status));
 
-    // AI
     EnemyAIComponent ai;
     ai.targetEntity_ = kInvalidEntity; 
     registry.AddComponent<EnemyAIComponent>(enemy, std::move(ai));
 
-    // Impact Charge (誘爆用)
     registry.AddComponent<ImpactChargeComponent>(enemy, {});
 
-    // Collider
     ecs::ColliderComponent col;
     col.type_ = ColliderType::Sphere;
     col.sphere_.radius = 0.5f;
     col.previousPosition_ = spawnPos;
-    
-    // フィルタリング設定
-    col.layer = CollisionLayer::Enemy;
-    col.mask = CollisionLayer::Player | CollisionLayer::PlayerBullet;
+    col.layer = CollisionLayer::kEnemy;
+    col.mask = CollisionLayer::kPlayer | CollisionLayer::kPlayerBullet;
 
-    // 衝突応答
-    col.onCollisionEnter = [&registry, enemy](const ecs::CollisionPartnerInfo& other) {
-        if (registry.HasComponent<ecs::ColliderComponent>(other.entity)) {
+    col.onCollisionEnter = [&registry, enemy](const ecs::CollisionPartnerInfo& other)
+    {
+        if (registry.HasComponent<ecs::ColliderComponent>(other.entity))
+        {
             auto& otherCol = registry.GetComponent<ecs::ColliderComponent>(other.entity);
             
-            // プレイヤーの弾に当たった際、以前はここで即時破棄していたが
-            // 現在は PlayerActionSystem 側でダメージ計算をするため何もしない
-            if (otherCol.layer & CollisionLayer::PlayerBullet) {
-                // Nothing to do here. Damage is handled in PlayerActionSystem or similar.
+            if (otherCol.layer & CollisionLayer::kPlayerBullet)
+            {
+                // PlayerActionSystem 側で処理
             }
-            // プレイヤーに当たったら、ダメージを与えて自分（敵）を消す
-            else if (otherCol.layer & CollisionLayer::Player) {
-                if (registry.HasComponent<ecs::StatusComponent>(other.entity)) {
+            else if (otherCol.layer & CollisionLayer::kPlayer)
+            {
+                if (registry.HasComponent<ecs::StatusComponent>(other.entity))
+                {
                     auto& status = registry.GetComponent<ecs::StatusComponent>(other.entity);
-                    float currentHp = status.hp_.GetBase();
-                    status.hp_.SetBase(currentHp - 1.0f); // 暫定1ダメージ
+                    status.hp_.SetBase(status.hp_.GetBase() - 1.0f);
                 }
                 registry.DestroyEntityDeferred(enemy);
             }
@@ -202,24 +196,20 @@ void EnemySpawnSystem::SpawnEnemy(Registry& registry)
     registry.AddComponent<ecs::ColliderComponent>(enemy, col);
     registry.AddComponent<CollisionResponseComponent>(enemy, {});
 
-    // [New] 敵の種別（30%の確率で突進型になるようにする）
     EnemyTypeComponent typeComp;
     InstancedRenderComponent render;
 
     if ((rand() % 100) < 30)
     {
         typeComp.type = EnemyType::Charger;
-        
-        // 突進型専用のコンポーネントを追加
         EnemyChargerComponent chargerComp;
         registry.AddComponent<EnemyChargerComponent>(enemy, chargerComp);
 
-        // スケールとコライダー半径の調整
         if (registry.HasComponent<TransformComponent>(enemy))
         {
             auto& trans = registry.GetComponent<TransformComponent>(enemy);
             trans.localScale_ = chargerScale;
-            trans.localPosition_.y = chargerScale.y * 0.5f; // 高さを再調整
+            trans.localPosition_.y = chargerScale.y * 0.5f;
             trans.isDirty_ = true;
         }
 
@@ -244,14 +234,17 @@ void EnemySpawnSystem::Draw(Registry& registry, Camera* camera, LightManager* li
 {
     (void)camera; (void)lightManager; (void)shadowMapManager;
 #ifdef _DEBUG
-    // プレイヤーの位置を取得
     Vector3 playerPos = { 0, 0, 0 };
     auto tagView = registry.View<ecs::TagComponent>();
-    if (tagView) {
-        for (uint32_t i = 0; i < tagView->GetSize(); ++i) {
-            if (tagView->GetDataFromDenseIndex(i).type == ecs::TagComponent::Type::Player) {
+    if (tagView)
+    {
+        for (uint32_t i = 0; i < tagView->GetSize(); ++i)
+        {
+            if (tagView->GetDataFromDenseIndex(i).type == ecs::TagComponent::Type::Player)
+            {
                 EntityID player = tagView->GetEntityFromDenseIndex(i);
-                if (registry.HasComponent<TransformComponent>(player)) {
+                if (registry.HasComponent<TransformComponent>(player))
+                {
                     playerPos = registry.GetComponent<TransformComponent>(player).localPosition_;
                 }
                 break;
@@ -260,14 +253,17 @@ void EnemySpawnSystem::Draw(Registry& registry, Camera* camera, LightManager* li
     }
 
     auto* lm = LineManager::GetInstance();
-    if (!lm) return;
+    if (!lm)
+    {
+        return;
+    }
 
-    // 地面より少し上に描画
     float h = 0.05f;
     const uint32_t kSegments = 32;
     
-    // 内径 (Aqua)
-    for (uint32_t i = 0; i < kSegments; ++i) {
+    // 内径
+    for (uint32_t i = 0; i < kSegments; ++i)
+    {
         float a1 = (float)i / kSegments * 2.0f * 3.14159f;
         float a2 = (float)(i + 1) / kSegments * 2.0f * 3.14159f;
         Vector3 p1 = playerPos + Vector3(cos(a1) * innerRadius_, h, sin(a1) * innerRadius_);
@@ -275,8 +271,9 @@ void EnemySpawnSystem::Draw(Registry& registry, Camera* camera, LightManager* li
         lm->DrawLine(p1, p2, VectorColorCodes::Cyan);
     }
 
-    // 外径 (Lime)
-    for (uint32_t i = 0; i < kSegments; ++i) {
+    // 外径
+    for (uint32_t i = 0; i < kSegments; ++i)
+    {
         float a1 = (float)i / kSegments * 2.0f * 3.14159f;
         float a2 = (float)(i + 1) / kSegments * 2.0f * 3.14159f;
         Vector3 p1 = playerPos + Vector3(cos(a1) * outerRadius_, h, sin(a1) * outerRadius_);

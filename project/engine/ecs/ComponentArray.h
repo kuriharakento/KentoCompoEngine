@@ -7,9 +7,7 @@
 #include <algorithm>
 
 /**
- * @brief ComponentArray共通のインターフェース。
- *
- * Registryが型を意識せずに破棄（Entity削除時）を呼べるようにする。
+ * @brief ComponentArrayの共通インターフェース。
  */
 class IComponentArray
 {
@@ -19,63 +17,60 @@ public:
 };
 
 /**
- * @brief プール枯渇時の生成ポリシー
+ * @brief プール枯渇時の挙動。
  */
 enum class PoolExhaustionPolicy
 {
-    // 新規追加をキャンセルして無視する（絶対に消えて欲しくないボス等）
+    // 追加をキャンセルする
     CancelSpawn,
-    // 最も古い要素を破棄（上書き）して追加する（弾やパーティクル等）
+    // 最も古い要素を上書きする
     OverwriteOldest,
-    // 開発中の設計バグ検出用。Assertで落とす
+    // アサートで停止する
     AssertAndCrash
 };
 
 /**
- * @brief 特定のコンポーネントTを隙間なく連続メモリ上に保持するSparse Set実装。
+ * @brief 特定のコンポーネントを連続メモリ上に保持する。
  *
- * [BNS-Standard] 高性能SoAデータストア。
- * - O(1) でのコンポーネントアクセス、追加、削除 (Swap & Pop) を実現する。
- * - キャッシュ局所性を最大化するため、denseArray_ にデータが物理的に詰まっている。
- * - 動적拡張（再確保）によるイテレータ無効化を防ぐため、初期化時に最大要素数を確保する。
+ * Sparse Set実装による SoA データストア。
+ * - O(1) でのアクセス、追加、削除。
+ * - メモリ連続性を維持しキャッシュ局所性を高める。
  *
- * @tparam T 格納するコンポーネントの型。POD（Plain Old Data）推奨。
+ * @tparam T コンポーネント型
  */
 template <typename T>
 class ComponentArray : public IComponentArray
 {
 public:
     /**
-     * @brief 最大容量を指定して初期化する。これ以降 vector の拡張は発生させない。
-     * @param maxEntities エンティティの最大想定数（Indexの最大値）
-     * @param maxComponents このコンポーネントを同時に持つことができる最大数
+     * @brief 初期化。最大容量を確保する。
+     * @param maxEntities エンティティ最大数
+     * @param maxComponents コンポーネント最大保持数
      */
     ComponentArray(uint32_t maxEntities, uint32_t maxComponents)
         : maxComponents_(maxComponents)
         , validCount_(0)
     {
-        // [BNS-Optimization] 索引配列は全確保し、物理ページを確定（Pre-touch）させる
         sparseArray_.resize(maxEntities);
         std::fill(sparseArray_.begin(), sparseArray_.end(), kInvalidEntity);
 
-        // [BNS-Optimization] データ配列は予約のみを行い、デフォルトコンストラクタの無駄な呼び出しを避ける
         denseArray_.reserve(maxComponents);
         entityArray_.reserve(maxComponents);
     }
 
     /**
-     * @brief コンポーネントを追加する。枯渇時はポリシーに従う。
-     * @param entity 対象のエンティティID
-     * @param component 追加するデータ
-     * @param policy キャパシティを超えた場合の振る舞い
-     * @return 実際に追加（または上書き）されたか
+     * @brief コンポーネントを追加する。
+     * @param entity 対象Entity
+     * @param component データ
+     * @param policy 枯渇時のポリシー
+     * @return 追加（または上書き）されたか
      */
     bool Insert(EntityID entity, T component, PoolExhaustionPolicy policy = PoolExhaustionPolicy::AssertAndCrash)
     {
         uint32_t index = GetEntityIndex(entity);
         assert(index < sparseArray_.size() && "Entity index out of range.");
 
-        // すでに持っている場合は上書き
+        // 登録済みなら上書き
         if (sparseArray_[index] != kInvalidEntity)
         {
             uint32_t denseIndex = sparseArray_[index];
@@ -83,16 +78,15 @@ public:
             return true;
         }
 
-        // キャパシティオーバーの場合のフェイルセーフ
+        // キャパシティオーバー時の処理
         if (validCount_ >= maxComponents_)
         {
             switch (policy)
             {
             case PoolExhaustionPolicy::CancelSpawn:
-                return false; // 追加せず諦める
+                return false;
 
             case PoolExhaustionPolicy::OverwriteOldest:
-                // 最も古いもの（通常はDenseの先頭=インデックス0）を犠牲にして新しいものを追加する
                 Remove(entityArray_[0]);
                 break;
 
@@ -103,10 +97,8 @@ public:
             }
         }
 
-        // --- 追加処理 ---
+        // 追加処理
         uint32_t newDenseIndex = validCount_;
-
-        // reserve しているので push_back で再確保は発生しない
         denseArray_.push_back(std::move(component));
         entityArray_.push_back(entity);
         sparseArray_[index] = newDenseIndex;
@@ -116,8 +108,8 @@ public:
     }
 
     /**
-     * @brief コンポーネントを削除する。Swap & Pop で O(1) とメモリ連続性を両立。
-     * @param entity 対象のエンティティID
+     * @brief コンポーネントを削除する。
+     * @param entity 対象Entity
      */
     void Remove(EntityID entity)
     {
@@ -127,29 +119,25 @@ public:
         uint32_t removedDenseIndex = sparseArray_[index];
         if (removedDenseIndex == kInvalidEntity)
         {
-            return; // 持っていないなら何もしない
+            return;
         }
 
-        // Sparse Set削除（Swap & Pop）の魔法
+        // Swap & Pop で削除
         uint32_t lastDenseIndex = validCount_ - 1;
 
         if (removedDenseIndex != lastDenseIndex)
         {
-            // 末尾の要素を、削除対象の場所にコピー（移動）して上書きする
+            // 末尾を削除位置へ移動
             denseArray_[removedDenseIndex] = std::move(denseArray_[lastDenseIndex]);
-
-            // 逆引き配列も同様に末尾のものを上書き
             EntityID lastEntity = entityArray_[lastDenseIndex];
             entityArray_[removedDenseIndex] = lastEntity;
 
-            // 移動してきた末尾要素の持ち主（Entity）の索引（Sparse）を更新
+            // 索引を更新
             uint32_t lastEntityIndex = GetEntityIndex(lastEntity);
             sparseArray_[lastEntityIndex] = removedDenseIndex;
         }
 
-        // 削除対象の索引を無効化し、サイズを減らす
         sparseArray_[index] = kInvalidEntity;
-
         denseArray_.pop_back();
         entityArray_.pop_back();
 
@@ -157,9 +145,9 @@ public:
     }
 
     /**
-     * @brief データへの参照を取得する。
-     * @param entity 対象のエンティティID
-     * @return コンポーネントの参照
+     * @brief データを取得する。
+     * @param entity 対象Entity
+     * @return データの参照
      */
     T& GetData(EntityID entity)
     {
@@ -172,9 +160,8 @@ public:
     }
 
     /**
-     * @brief エンティティがこのコンポーネントを持っているか判定する。
-     * @param entity 対象のエンティティID
-     * @return 持っていれば true
+     * @brief コンポーネントを保持しているか。
+     * @param entity 対象Entity
      */
     bool HasComponent(EntityID entity) const
     {
@@ -187,7 +174,8 @@ public:
     }
 
     /**
-     * @brief IComponentArray の実装。Entityの破棄依頼が来た際に自動でコンポーネントも消す。
+     * @brief Entity破棄時のコールバック。
+     * @param entity 破棄されたEntity
      */
     void EntityDestroyed(EntityID entity) override
     {
@@ -197,27 +185,18 @@ public:
         }
     }
 
-    // --- Data locality アクセス用 ---
+    // --- Direct Access ---
 
     /**
-     * @brief 現在格納されている個数を取得
+     * @brief 現在の有効データ数を取得。
      */
     uint32_t GetSize() const { return validCount_; }
 
-    /**
-     * @brief イテレータ開始
-     */
     auto begin() { return denseArray_.begin(); }
-
-    /**
-     * @brief イテレータ終了
-     */
     auto end() { return denseArray_.begin() + validCount_; }
 
     /**
-     * @brief 特定の密度インデックスからEntityを取得
-     * @param denseIndex 密度配列上のインデックス
-     * @return 対応するEntityID
+     * @brief 密度インデックスからEntityIDを取得。
      */
     EntityID GetEntityFromDenseIndex(uint32_t denseIndex) const
     {
@@ -226,9 +205,7 @@ public:
     }
 
     /**
-     * @brief 密度インデックスからデータを直接取得（SoA高速走査用）
-     * @param denseIndex 密度配列上のインデックス
-     * @return コンポーネントの参照
+     * @brief 密度インデックスからデータを直接取得。
      */
     T& GetDataFromDenseIndex(uint32_t denseIndex)
     {
@@ -243,15 +220,16 @@ public:
     }
 
 private:
-    // 密配列：実際のデータが隙間なく詰まっている
+    // データ本体
     std::vector<T> denseArray_;
-    // 逆引き：denseArrayの各インデックスの持ち主
+    // 逆引き配列
     std::vector<EntityID> entityArray_;
-    // 疎配列：EntityのIndexをキーとするルックアップテーブル
+    // 索引配列 (EntityIndex -> DenseIndex)
     std::vector<uint32_t> sparseArray_;
 
-    // このプールの最大容量（リアロケーション防止用）
+    // 最大容量
     uint32_t maxComponents_;
-    // 現在有効なデータ数
+    // 有効データ数
     uint32_t validCount_;
 };
+

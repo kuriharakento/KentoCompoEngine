@@ -150,7 +150,7 @@ public:
      * @brief 状態を設定
      * @param state 設定する状態
      */
-	void SetState(TransitionState state);
+    void SetState(TransitionState state);
     
     /**
      * @brief イージングタイプを設定

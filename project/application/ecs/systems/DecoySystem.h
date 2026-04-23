@@ -2,10 +2,10 @@
 #include "engine/ecs/system/ISystem.h"
 
 /**
- * @brief デコイのロジックや演出（エフェクト）を管理するシステム。
+ * @brief デコイのロジックを管理する。
  */
 class DecoySystem : public ISystem
 {
 public:
-	void Update(Registry& registry) override;
+    void Update(Registry& registry) override;
 };

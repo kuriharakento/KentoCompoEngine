@@ -298,8 +298,8 @@ void StageManager::CreateInfosFromStageData()
 				col.previousPosition_ = objInfo.transform.translate;
 
 				// フィルタリング設定
-				col.layer = CollisionLayer::Player;
-				col.mask = CollisionLayer::Enemy | CollisionLayer::Obstacle | CollisionLayer::EnemyBullet;
+				col.layer = CollisionLayer::kPlayer;
+				col.mask = CollisionLayer::kEnemy | CollisionLayer::kObstacle | CollisionLayer::kEnemyBullet;
 
 				registry_->AddComponent<ecs::ColliderComponent>(playerEntity_, col);
 

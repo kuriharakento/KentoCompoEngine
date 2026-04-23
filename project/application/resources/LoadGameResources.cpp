@@ -59,6 +59,7 @@ void MyGame::LoadTextures()
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/skill_02_02_laser.png");
 	
 	// Skill Upgrades - Icons
+	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/icon/bomb.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/icon/decoy.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/icon/default.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/icon/laser.png");
