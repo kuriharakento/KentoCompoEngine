@@ -58,15 +58,13 @@ void MyGame::LoadTextures()
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/skill_02_01_missile.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/skill_02_02_laser.png");
 	
-	// Skill Upgrades - Icons
+	// Skill Upgrades
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/icon/bomb.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/icon/decoy.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/icon/default.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/icon/laser.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/icon/missile.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/icon/turret.png");
-
-	// Skill Upgrades - Text Graphics
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/text/bullet_count.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/text/cooltime.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/skill_tree/upgrade/text/count.png");
