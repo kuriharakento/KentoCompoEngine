@@ -166,4 +166,4 @@ private:
 
     // 制限範囲の可視化エフェクト。ParticleManager が所有
     ParticleEffect* rangeEffect_ = nullptr;
-};
+};
