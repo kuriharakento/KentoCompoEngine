@@ -87,4 +87,3 @@ void MyGame::LoadModels()
 	ModelManager::GetInstance()->LoadModel("tank_enemy", ".gltf");
 	ModelManager::GetInstance()->LoadModel("turret", ".gltf");
 }
-
