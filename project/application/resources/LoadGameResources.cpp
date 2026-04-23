@@ -42,7 +42,6 @@ void MyGame::LoadTextures()
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/button/Q.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/button/E.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/button/R.png");
-
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/LMB.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/RMB.png");
 	TextureManager::GetInstance()->LoadTexture("./Resources/UI/text/Q.png");
