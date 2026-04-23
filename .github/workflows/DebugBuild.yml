@@ -29,6 +29,6 @@ jobs:
       if: always()
       uses: sarisia/actions-status-discord@v1
       with:
-        webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        webhook: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
         status: ${{ job.status }}
         title: "GitHub Actions: DebugBuild"
