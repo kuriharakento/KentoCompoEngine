@@ -1,4 +1,4 @@
-﻿#include "CinematicLetterbox.h"
+#include "CinematicLetterbox.h"
 #include "time/TimeManager.h"
 #include "imgui/imgui.h"
 #include <algorithm>
@@ -52,7 +52,7 @@ void CinematicLetterbox::Hide(float duration)
 
 void CinematicLetterbox::Update()
 {
-	// ImGui表示
+    // ImGui表示
     ShowImGui();
 
     float deltaTime = TimeManager::GetInstance().GetUIContext().deltaTime;
@@ -137,8 +137,8 @@ void CinematicLetterbox::UpdateBarPositions()
     bottomBar_->SetPosition({ 0.0f, bottomY });
 
     // スプライトの変換行列を更新
-	topBar_->Update();
-	bottomBar_->Update();
+    topBar_->Update();
+    bottomBar_->Update();
 }
 
 float CinematicLetterbox::ApplyEasing(float t) const
