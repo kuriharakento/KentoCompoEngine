@@ -35,6 +35,11 @@ void DeferredRenderer::Initialize(DirectXCommon* dxCommon, SrvManager* srvManage
 	Logger::Log("DeferredRenderer initialized\n");
 }
 
+void DeferredRenderer::Resize(uint32_t width, uint32_t height)
+{
+	gBuffer_->Resize(width, height);
+}
+
 void DeferredRenderer::CreateCameraBuffer()
 {
 	cameraBuffer_ = dxCommon_->CreateBufferResource(sizeof(CameraDataForGPU));

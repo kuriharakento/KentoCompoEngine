@@ -33,6 +33,7 @@ public:
 	~DeferredRenderer() = default;
 
 	void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, uint32_t width, uint32_t height);
+	void Resize(uint32_t width, uint32_t height);
 	void BeginGeometryPass();
 	void EndGeometryPass();
 	void ExecuteLightPass(

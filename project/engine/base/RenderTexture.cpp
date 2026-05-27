@@ -62,7 +62,10 @@ void RenderTexture::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, 
     dxCommon_->GetDevice()->CreateRenderTargetView(texture_.Get(), nullptr, rtvHandle_);
 
     // SRVの確保と生成
-    srvIndex_ = srvManager_->Allocate();
+    if (srvIndex_ == 0)
+    {
+        srvIndex_ = srvManager_->Allocate();
+    }
     srvManager_->CreateSRVforTexture2D(srvIndex_, texture_.Get(), format, kMipLevels);
 
     currentState_ = D3D12_RESOURCE_STATE_RENDER_TARGET;
@@ -169,3 +172,54 @@ D3D12_CPU_DESCRIPTOR_HANDLE RenderTexture::GetCPUHandle() const
 {
 	return srvManager_->GetCPUDescriptorHandle(srvIndex_);
 }
+
+void RenderTexture::Resize(uint32_t width, uint32_t height)
+{
+	width_ = width;
+	height_ = height;
+
+	// テクスチャリソースを解放する
+	texture_.Reset();
+
+	// リソースの設定
+	D3D12_RESOURCE_DESC desc{};
+	desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	desc.Width = width_;
+	desc.Height = height_;
+	desc.DepthOrArraySize = 1;
+	desc.MipLevels = kMipLevels;
+	desc.Format = format_;
+	desc.SampleDesc.Count = 1;
+	desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+	// ヒープの設定
+	D3D12_HEAP_PROPERTIES heapProps{};
+	heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
+
+	// クリア値の設定
+	D3D12_CLEAR_VALUE clear{};
+	clear.Format = format_;
+	clear.Color[0] = clearColor_.x;
+	clear.Color[1] = clearColor_.y;
+	clear.Color[2] = clearColor_.z;
+	clear.Color[3] = clearColor_.w;
+
+	// リソースの生成
+	HRESULT hr = dxCommon_->GetDevice()->CreateCommittedResource(
+		&heapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&desc,
+		D3D12_RESOURCE_STATE_RENDER_TARGET,
+		&clear,
+		IID_PPV_ARGS(&texture_));
+	assert(SUCCEEDED(hr));
+
+	// RTVの再生成
+	dxCommon_->GetDevice()->CreateRenderTargetView(texture_.Get(), nullptr, rtvHandle_);
+
+	// SRVの再生成
+	srvManager_->CreateSRVforTexture2D(srvIndex_, texture_.Get(), format_, kMipLevels);
+
+	currentState_ = D3D12_RESOURCE_STATE_RENDER_TARGET;
+}
+

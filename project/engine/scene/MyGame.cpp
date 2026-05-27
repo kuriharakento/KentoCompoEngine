@@ -53,8 +53,8 @@ void MyGame::Initialize()
 	sceneRenderTexture_->Initialize(
 		dxCommon_.get(),
 		srvManager_.get(),
-		WinApp::kClientWidth,
-		WinApp::kClientHeight,
+		winApp_->GetClientWidth(),
+		winApp_->GetClientHeight(),
 		DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
 		clearColor
 	);
@@ -86,6 +86,14 @@ void MyGame::Update()
 
 	// パーティクルマネージャーの更新
 	ParticleManager::GetInstance()->Update(cameraManager_.get());
+}
+
+void MyGame::OnResize(uint32_t width, uint32_t height)
+{
+	if (sceneRenderTexture_)
+	{
+		sceneRenderTexture_->Resize(width, height);
+	}
 }
 
 ///=============================================================================

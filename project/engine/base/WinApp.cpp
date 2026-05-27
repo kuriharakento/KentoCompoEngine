@@ -15,8 +15,33 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 	{
 		return true;
 	}
+
+	WinApp* winApp = reinterpret_cast<WinApp*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+
 	switch (msg)
 	{
+	case WM_CREATE:
+		{
+			LPCREATESTRUCT createStruct = reinterpret_cast<LPCREATESTRUCT>(lparam);
+			winApp = reinterpret_cast<WinApp*>(createStruct->lpCreateParams);
+			SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(winApp));
+		}
+		return 0;
+
+	case WM_SIZE:
+		if (winApp && wparam != SIZE_MINIMIZED)
+		{
+			uint32_t width = LOWORD(lparam);
+			uint32_t height = HIWORD(lparam);
+			winApp->width_ = width;
+			winApp->height_ = height;
+			if (winApp->resizeCallback_)
+			{
+				winApp->resizeCallback_(width, height);
+			}
+		}
+		return 0;
+
 	case WM_DESTROY:
 		// ウィンドウ破棄時に終了メッセージを送信
 		PostQuitMessage(0);
@@ -24,11 +49,13 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 	}
 
 	return DefWindowProc(hwnd, msg, wparam, lparam);
-
 }
 
 void WinApp::Initialize()
 {
+	// DPI Awareness の設定 (Per-Monitor DPI Aware V2)
+	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+
 	// COMの初期化
 	HRESULT hr = CoInitializeEx(0, COINIT_MULTITHREADED);
 
@@ -52,7 +79,7 @@ void WinApp::Initialize()
 	RegisterClass(&wc_);
 
 	// ウィンドウサイズを表す構造体にクライアント領域を入れる
-	RECT wrc = { 0,0,kClientWidth,kClientHeight };
+	RECT wrc = { 0,0,static_cast<LONG>(width_),static_cast<LONG>(height_) };
 
 	// クライアント領域をもとに実際のサイズにwrcを変更
 	AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
@@ -69,7 +96,7 @@ void WinApp::Initialize()
 		nullptr,
 		nullptr,
 		wc_.hInstance,
-		nullptr
+		this
 	);
 
 	// ウィンドウを表示
@@ -103,3 +130,16 @@ bool WinApp::ProcessMessage()
 
 	return false;
 }
+
+void WinApp::Resize(uint32_t width, uint32_t height)
+{
+	width_ = width;
+	height_ = height;
+
+	RECT rect = { 0, 0, static_cast<LONG>(width_), static_cast<LONG>(height_) };
+	AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
+
+	SetWindowPos(hwnd_, nullptr, 0, 0, rect.right - rect.left, rect.bottom - rect.top,
+		SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+}
+

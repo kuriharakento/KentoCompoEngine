@@ -26,6 +26,13 @@ public:
     void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, uint32_t width, uint32_t height, DXGI_FORMAT format, const Vector4& clearColor);
 
     /**
+     * @brief レンダーテクスチャをリサイズする。
+     * @param width 新しい幅
+     * @param height 新しい高さ
+     */
+    void Resize(uint32_t width, uint32_t height);
+
+    /**
      * @brief レンダリング開始
      */
     void BeginRender();

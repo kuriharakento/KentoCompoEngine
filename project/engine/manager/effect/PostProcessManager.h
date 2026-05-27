@@ -82,6 +82,13 @@ public:
      */
     void SetBloomRenderTargets(RenderTexture* brightPassRT, RenderTexture* blurRT0, RenderTexture* blurRT1);
 
+    /**
+     * @brief ポストプロセスをリサイズする。
+     * @param width 新しい幅
+     * @param height 新しい高さ
+     */
+    void Resize(uint32_t width, uint32_t height);
+
     std::unique_ptr<GrayscaleEffect> grayscaleEffect_; // グレースケールエフェクト
     std::unique_ptr<VignetteEffect> vignetteEffect_;   // ビネットエフェクト
     std::unique_ptr<NoiseEffect> noiseEffect_;         // ノイズエフェクト

@@ -273,7 +273,7 @@ void PostProcessManager::RenderBlurPass(RenderTexture* inputTexture, RenderTextu
 	cmdList->SetGraphicsRootDescriptorTable(1, dxCommon_->GetSamplerDescriptorHandle());
 
 	// ブラー方向を設定（水平または垂直）
-	blurParams_.texelSize = { 1.0f / WinApp::kClientWidth, 1.0f / WinApp::kClientHeight };
+	blurParams_.texelSize = { 1.0f / viewport_.Width, 1.0f / viewport_.Height };
 	blurParams_.blurDirection = horizontal ? Vector2{ 1.0f, 0.0f } : Vector2{ 0.0f, 1.0f };
 
 	// 定数バッファを更新してGPUに転送
@@ -355,6 +355,16 @@ void PostProcessManager::SetBloomRenderTargets(RenderTexture* brightPassRT, Rend
 	blurRT_[0] = blurRT0;
 	blurRT_[1] = blurRT1;
 }
+
+void PostProcessManager::Resize(uint32_t width, uint32_t height)
+{
+	// ビューポートとシザー矩形の設定を更新する
+	viewport_.Width = static_cast<float>(width);
+	viewport_.Height = static_cast<float>(height);
+	scissorRect_.right = static_cast<LONG>(width);
+	scissorRect_.bottom = static_cast<LONG>(height);
+}
+
 
 void PostProcessManager::Draw(RenderTexture* inputTexture, RenderTexture* outputRT)
 {
