@@ -11,7 +11,7 @@ PostProcessManager::PostProcessManager() {}
 
 PostProcessManager::~PostProcessManager() {}
 
-void PostProcessManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, const std::wstring& vsPath, const std::wstring& psPath)
+void PostProcessManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, const std::wstring& vsPath, const std::wstring& psPath, uint32_t width, uint32_t height)
 {
 	// 引数をメンバ変数に記録
 	dxCommon_ = dxCommon;
@@ -31,12 +31,15 @@ void PostProcessManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvMana
 	crtEffect_ = std::make_unique<CRTEffect>();
 	bloomEffect_ = std::make_unique<BloomEffect>();
 
+	// ブルームの初期テクセルサイズを設定
+	bloomEffect_->SetInvScreenSize({ 1.0f / width, 1.0f / height });
+
 	// 前フレームパラメータを初期化
 	preParams_ = {};
 
 	// ビューポートの設定
-	viewport_.Width = WinApp::kClientWidth;
-	viewport_.Height = WinApp::kClientHeight;
+	viewport_.Width = static_cast<float>(width);
+	viewport_.Height = static_cast<float>(height);
 	viewport_.TopLeftX = 0;
 	viewport_.TopLeftY = 0;
 	viewport_.MinDepth = 0.0f;
@@ -44,9 +47,9 @@ void PostProcessManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvMana
 
 	// シザー矩形の設定
 	scissorRect_.left = 0;
-	scissorRect_.right = WinApp::kClientWidth;
+	scissorRect_.right = static_cast<LONG>(width);
 	scissorRect_.top = 0;
-	scissorRect_.bottom = WinApp::kClientHeight;
+	scissorRect_.bottom = static_cast<LONG>(height);
 }
 
 void PostProcessManager::SetupPipeline(const std::wstring& vsPath, const std::wstring& psPath)
@@ -363,6 +366,12 @@ void PostProcessManager::Resize(uint32_t width, uint32_t height)
 	viewport_.Height = static_cast<float>(height);
 	scissorRect_.right = static_cast<LONG>(width);
 	scissorRect_.bottom = static_cast<LONG>(height);
+
+	// ブルームの逆テクセルサイズを更新する
+	if (bloomEffect_)
+	{
+		bloomEffect_->SetInvScreenSize({ 1.0f / width, 1.0f / height });
+	}
 }
 
 

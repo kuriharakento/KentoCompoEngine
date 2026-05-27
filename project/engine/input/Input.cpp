@@ -432,12 +432,24 @@ float Input::GetMouseDeltaY() const
 
 float Input::GetMouseX() const
 {
-	return static_cast<float>(mousePos_.x);
+	float realX = static_cast<float>(mousePos_.x);
+	if (hasCorrection_ && mouseSize_.x > 0.0f)
+	{
+		float relativeX = realX - mouseOffset_.x;
+		return relativeX * (static_cast<float>(WinApp::kClientWidth) / mouseSize_.x);
+	}
+	return realX * (static_cast<float>(WinApp::kClientWidth) / static_cast<float>(winApp_->GetClientWidth()));
 }
 
 float Input::GetMouseY() const
 {
-	return static_cast<float>(mousePos_.y);
+	float realY = static_cast<float>(mousePos_.y);
+	if (hasCorrection_ && mouseSize_.y > 0.0f)
+	{
+		float relativeY = realY - mouseOffset_.y;
+		return relativeY * (static_cast<float>(WinApp::kClientHeight) / mouseSize_.y);
+	}
+	return realY * (static_cast<float>(WinApp::kClientHeight) / static_cast<float>(winApp_->GetClientHeight()));
 }
 
 Vector2 Input::GetMousePosition() const

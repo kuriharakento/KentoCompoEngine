@@ -41,7 +41,7 @@ public:
      * @param vsPath 頂点シェーダーのパス
      * @param psPath ピクセルシェーダーのパス
      */
-    void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, const std::wstring& vsPath, const std::wstring& psPath);
+    void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, const std::wstring& vsPath, const std::wstring& psPath, uint32_t width, uint32_t height);
 
     /**
      * @brief 描画処理

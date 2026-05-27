@@ -239,6 +239,26 @@ public:
      */
     void SetMouseVisible(bool visible) { isMouseVisible_ = visible; }
 
+    /**
+     * @brief マウスの補正を設定する（ImGuiなどのSceneウィンドウ用）
+     * @param offset 描画領域の左上座標
+     * @param size 描画領域のサイズ
+     */
+    void SetMouseCorrection(const Vector2& offset, const Vector2& size)
+    {
+        mouseOffset_ = offset;
+        mouseSize_ = size;
+        hasCorrection_ = true;
+    }
+
+    /**
+     * @brief マウスの補正を解除する
+     */
+    void ResetMouseCorrection()
+    {
+        hasCorrection_ = false;
+    }
+
 private:
     Input();
 
@@ -298,4 +318,9 @@ private:
     bool isPlaying_;                                   // 再生中フラグ
     std::vector<std::pair<Action, DWORD>> recordedInputs_; // 記録された入力
     size_t playIndex_;                                 // 再生インデックス
+
+    // マウス補正用
+    Vector2 mouseOffset_ = { 0.0f, 0.0f };
+    Vector2 mouseSize_ = { 0.0f, 0.0f };
+    bool hasCorrection_ = false;
 };

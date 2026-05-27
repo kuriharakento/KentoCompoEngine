@@ -172,7 +172,14 @@ void Framework::Initialize()
 
 	// ポストプロセスマネージャーの初期化
 	postProcessManager_ = std::make_unique<PostProcessManager>();
-	postProcessManager_->Initialize(dxCommon_.get(), srvManager_.get(), L"Resources/shaders/PostEffect.VS.hlsl", L"Resources/shaders/PostEffect.PS.hlsl");
+	postProcessManager_->Initialize(
+		dxCommon_.get(),
+		srvManager_.get(),
+		L"Resources/shaders/PostEffect.VS.hlsl",
+		L"Resources/shaders/PostEffect.PS.hlsl",
+		winApp_->GetClientWidth(),
+		winApp_->GetClientHeight()
+	);
 	postProcessManager_->SetBloomRenderTargets(
 		brightPassRT_.get(),
 		blurRT_[0].get(),
@@ -270,20 +277,11 @@ void Framework::Finalize()
 
 void Framework::Update()
 {
-	// 画面サイズ変更のキー入力チェック
-	if (Input::GetInstance()->TriggerKey(DIK_F11))
-	{
-		// 1280x720 と 1920x1080 を交互に切り替える
-		if (winApp_->GetClientWidth() == 1280 && winApp_->GetClientHeight() == 720)
-		{
-			winApp_->Resize(1920, 1080);
-		}
-		else
-		{
-			winApp_->Resize(1280, 720);
-		}
-	}
-	else if (Input::GetInstance()->TriggerKey(DIK_F10))
+	// マウス補正を毎フレームリセット
+	Input::GetInstance()->ResetMouseCorrection();
+
+	// 画面サイズ変更のキー入力チェック（F12でフルスクリーントグル）
+	if (Input::GetInstance()->TriggerKey(DIK_F12))
 	{
 		dxCommon_->SetFullscreen(!dxCommon_->IsFullscreen());
 	}

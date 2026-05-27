@@ -278,26 +278,56 @@ void DirectXCommon::Resize(uint32_t width, uint32_t height)
 
 void DirectXCommon::SetFullscreen(bool fullscreen)
 {
-	if (swapChain_)
+	if (!swapChain_ || !winApp_) return;
+
+	HWND hwnd = winApp_->GetHwnd();
+
+	if (fullscreen && !isFullscreen_)
 	{
-		// フルスクリーン状態を設定する
-		HRESULT hr = swapChain_->SetFullscreenState(fullscreen ? TRUE : FALSE, nullptr);
-		assert(SUCCEEDED(hr));
+		// 1. フルスクリーン化（ボーダーレス）
+		// 現在のスタイルと配置情報を保存
+		savedWindowStyle_ = GetWindowLong(hwnd, GWL_STYLE);
+		GetWindowPlacement(hwnd, &savedWindowPlacement_);
+
+		// モニターの情報を取得
+		HMONITOR hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
+		MONITORINFO mi = { sizeof(mi) };
+		if (GetMonitorInfo(hMonitor, &mi))
+		{
+			// スタイルをポップアップ（枠・タイトルバーなし）に変更
+			SetWindowLong(hwnd, GWL_STYLE, savedWindowStyle_ & ~WS_OVERLAPPEDWINDOW);
+
+			// 画面全体に配置
+			SetWindowPos(hwnd, HWND_TOP,
+				mi.rcMonitor.left, mi.rcMonitor.top,
+				mi.rcMonitor.right - mi.rcMonitor.left,
+				mi.rcMonitor.bottom - mi.rcMonitor.top,
+				SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+		}
+
+		isFullscreen_ = true;
+	}
+	else if (!fullscreen && isFullscreen_)
+	{
+		// 2. フルスクリーン解除
+		// 元のスタイルに戻す
+		SetWindowLong(hwnd, GWL_STYLE, savedWindowStyle_);
+
+		// 元の配置情報（最大化状態や通常サイズ）を復元
+		SetWindowPlacement(hwnd, &savedWindowPlacement_);
+
+		// フレーム変更を通知してウィンドウを再描画
+		SetWindowPos(hwnd, nullptr, 0, 0, 0, 0,
+			SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+			SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+
+		isFullscreen_ = false;
 	}
 }
 
 bool DirectXCommon::IsFullscreen() const
 {
-	if (swapChain_)
-	{
-		BOOL fullscreen = FALSE;
-		HRESULT hr = swapChain_->GetFullscreenState(&fullscreen, nullptr);
-		if (SUCCEEDED(hr))
-		{
-			return fullscreen == TRUE;
-		}
-	}
-	return false;
+	return isFullscreen_;
 }
 
 

@@ -326,6 +326,10 @@ private:
 	Microsoft::WRL::ComPtr<IDxcIncludeHandler> includeHandler_ = nullptr;
 	// リソースバリア
 	D3D12_RESOURCE_BARRIER barrier_{};
+	// フルスクリーン切り替え時の状態保存用
+	DWORD savedWindowStyle_ = 0;
+	WINDOWPLACEMENT savedWindowPlacement_ = { sizeof(WINDOWPLACEMENT) };
+	bool isFullscreen_ = false;
 	// FPS固定用の基準時間
 	std::chrono::steady_clock::time_point reference_;
 	// レンダーテクスチャのクリア値

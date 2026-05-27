@@ -8,6 +8,7 @@
 #include "effects/particle/ParticleManager.h"
 #include "ImGui/imgui_internal.h"
 #include "manager/graphics/LineManager.h"
+#include "input/Input.h"
 
 ///=============================================================================
 ///						初期化・終了処理
@@ -279,6 +280,20 @@ void MyGame::Draw()
 	ImGui::Begin("Scene");
 	ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 	ImGui::Image((ImTextureID)sceneRenderTexture_->GetGPUHandle().ptr, viewportSize);
+
+	// シーンウィンドウの描画領域に合わせてマウス入力を補正する
+	ImVec2 vMin = ImGui::GetWindowContentRegionMin();
+	vMin.x += ImGui::GetWindowPos().x;
+	vMin.y += ImGui::GetWindowPos().y;
+
+	ImGuiViewport* mainViewport = ImGui::GetMainViewport();
+	if (mainViewport)
+	{
+		Vector2 offset = { vMin.x - mainViewport->Pos.x, vMin.y - mainViewport->Pos.y };
+		Vector2 size = { viewportSize.x, viewportSize.y };
+		Input::GetInstance()->SetMouseCorrection(offset, size);
+	}
+
 	ImGui::End();
 
 	// その他のウィンドウ（プレースホルダー）

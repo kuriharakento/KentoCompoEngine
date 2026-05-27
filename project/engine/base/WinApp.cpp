@@ -99,8 +99,8 @@ void WinApp::Initialize()
 		this
 	);
 
-	// ウィンドウを表示
-	ShowWindow(hwnd_, SW_SHOW);
+	// ウィンドウを最大化表示（ボーダー付きフルスクリーン）
+	ShowWindow(hwnd_, SW_SHOWMAXIMIZED);
 
 }
 
