@@ -183,18 +183,12 @@
     <ClCompile Include="application\ecs\systems\ProgressionSystem.cpp" />
     <ClCompile Include="application\ecs\systems\ProjectileSystem.cpp" />
     <ClCompile Include="engine\ecs\system\WorldBoundarySystem.cpp" />
-    <ClCompile Include="application\ui\LevelUpUI.cpp">
-      <Filter>application\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="application\ecs\systems\DecoySystem.cpp">
-      <Filter>application\ecs\systems</Filter>
-    </ClCompile>
-    <ClCompile Include="application\ecs\systems\TurretSystem.cpp">
-      <Filter>application\ecs\systems</Filter>
-    </ClCompile>
-    <ClCompile Include="application\ecs\systems\SprinklerSystem.cpp">
-      <Filter>application\ecs\systems</Filter>
-    </ClCompile>
+    <ClCompile Include="application\effect\HomingTrailManager.cpp" />
+    <ClCompile Include="application\ui\LevelUpUI.cpp" />
+    <ClCompile Include="application\ui\SkillSelectionUI.cpp" />
+    <ClCompile Include="application\ecs\systems\TurretSystem.cpp" />
+    <ClCompile Include="application\ecs\systems\SprinklerSystem.cpp" />
+    <ClCompile Include="application\ecs\systems\DecoySystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\ecs\components\EnemyStateComponent.h" />
@@ -441,18 +435,6 @@
     <ClInclude Include="application\ecs\systems\AnnihilationSystem.h" />
     <ClInclude Include="application\ecs\systems\EnemySpawnSystem.h" />
     <ClInclude Include="application\ecs\systems\PlayerActionSystem.h" />
-    <ClInclude Include="application\ecs\systems\ProjectileSystem.h">
-      <Filter>application\ecs\systems</Filter>
-    </ClInclude>
-    <ClInclude Include="application\ecs\systems\DecoySystem.h">
-      <Filter>application\ecs\systems</Filter>
-    </ClInclude>
-    <ClInclude Include="application\ecs\systems\TurretSystem.h">
-      <Filter>application\ecs\systems</Filter>
-    </ClInclude>
-    <ClInclude Include="application\ecs\systems\SprinklerSystem.h">
-      <Filter>application\ecs\systems</Filter>
-    </ClInclude>
     <ClInclude Include="application\ecs\components\DodgeComponent.h" />
     <ClInclude Include="application\ecs\components\ImpactChargeComponent.h" />
     <ClInclude Include="application\ecs\components\PlayerProgressionComponent.h" />
@@ -465,6 +447,17 @@
     <ClInclude Include="engine\ecs\components\WorldBoundaryComponent.h" />
     <ClInclude Include="application\ui\LevelUpUI.h" />
     <ClInclude Include="application\ecs\components\EnemyChargerComponent.h" />
+    <ClInclude Include="application\effect\HomingTrailManager.h" />
+    <ClInclude Include="application\ecs\systems\ProgressionSystem.h" />
+    <ClInclude Include="application\ecs\systems\ProjectileSystem.h" />
+    <ClInclude Include="application\ecs\components\DecoyComponent.h" />
+    <ClInclude Include="application\ui\SkillSelectionUI.h" />
+    <ClInclude Include="application\ecs\systems\TurretSystem.h" />
+    <ClInclude Include="application\ecs\systems\DecoySystem.h" />
+    <ClInclude Include="application\ecs\systems\SprinklerSystem.h" />
+    <ClInclude Include="application\ecs\components\TurretComponent.h" />
+    <ClInclude Include="application\ecs\components\DamageStackComponent.h" />
+    <ClInclude Include="application\ecs\components\SprinklerComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\shaders\Line.hlsli" />
