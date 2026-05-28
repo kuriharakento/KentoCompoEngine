@@ -128,9 +128,9 @@ private:
     static constexpr float kHpThresholdHigh = 0.5f;
     static constexpr float kHpThresholdLow = 0.25f;
 
-    // スクリーンサイズ
-    static inline const float kScreenWidth = static_cast<float>(WinApp::kClientWidth);
-    static inline const float kScreenHeight = static_cast<float>(WinApp::kClientHeight);
+    // スクリーンサイズ（1280x720の仮想スクリーン解像度に固定）
+    static inline const float kScreenWidth = 1280.0f;
+    static inline const float kScreenHeight = 720.0f;
 
     /**
      * @brief UI要素の初期化
