@@ -282,17 +282,15 @@ void MyGame::Draw()
 	ImGui::Image((ImTextureID)sceneRenderTexture_->GetGPUHandle().ptr, viewportSize);
 
 	// シーンウィンドウの描画領域に合わせてマウス入力を補正する
-	ImVec2 vMin = ImGui::GetWindowContentRegionMin();
-	vMin.x += ImGui::GetWindowPos().x;
-	vMin.y += ImGui::GetWindowPos().y;
+	ImVec2 imagePos = ImGui::GetItemRectMin();
+	ImVec2 imageSize = ImGui::GetItemRectSize();
 
-	ImGuiViewport* mainViewport = ImGui::GetMainViewport();
-	if (mainViewport)
-	{
-		Vector2 offset = { vMin.x - mainViewport->Pos.x, vMin.y - mainViewport->Pos.y };
-		Vector2 size = { viewportSize.x, viewportSize.y };
-		Input::GetInstance()->SetMouseCorrection(offset, size);
-	}
+	POINT clientOrigin = { 0, 0 };
+	ClientToScreen(winApp_->GetHwnd(), &clientOrigin);
+
+	Vector2 offset = { imagePos.x - clientOrigin.x, imagePos.y - clientOrigin.y };
+	Vector2 size = { imageSize.x, imageSize.y };
+	Input::GetInstance()->SetMouseCorrection(offset, size);
 
 	ImGui::End();
 

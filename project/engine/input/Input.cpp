@@ -111,6 +111,12 @@ void Input::Finalize()
 }
 
 void Input::Update() {
+    // 描画パス（前フレーム）で設定された補正値を適用し、バッファをクリア
+    hasCorrection_ = hasNextCorrection_;
+    mouseOffset_ = nextMouseOffset_;
+    mouseSize_ = nextMouseSize_;
+    hasNextCorrection_ = false;
+
     HRESULT result;
 
     // ウィンドウがアクティブかどうかを確認

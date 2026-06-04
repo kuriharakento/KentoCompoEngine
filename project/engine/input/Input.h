@@ -246,9 +246,9 @@ public:
      */
     void SetMouseCorrection(const Vector2& offset, const Vector2& size)
     {
-        mouseOffset_ = offset;
-        mouseSize_ = size;
-        hasCorrection_ = true;
+        nextMouseOffset_ = offset;
+        nextMouseSize_ = size;
+        hasNextCorrection_ = true;
     }
 
     /**
@@ -257,6 +257,7 @@ public:
     void ResetMouseCorrection()
     {
         hasCorrection_ = false;
+        hasNextCorrection_ = false;
     }
 
 private:
@@ -323,4 +324,9 @@ private:
     Vector2 mouseOffset_ = { 0.0f, 0.0f };
     Vector2 mouseSize_ = { 0.0f, 0.0f };
     bool hasCorrection_ = false;
+
+    // 次フレーム適用バッファ
+    Vector2 nextMouseOffset_ = { 0.0f, 0.0f };
+    Vector2 nextMouseSize_ = { 0.0f, 0.0f };
+    bool hasNextCorrection_ = false;
 };

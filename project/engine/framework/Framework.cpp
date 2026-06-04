@@ -277,9 +277,6 @@ void Framework::Finalize()
 
 void Framework::Update()
 {
-	// マウス補正を毎フレームリセット
-	Input::GetInstance()->ResetMouseCorrection();
-
 	// 画面サイズ変更のキー入力チェック（F12でフルスクリーントグル）
 	if (Input::GetInstance()->TriggerKey(DIK_F12))
 	{
