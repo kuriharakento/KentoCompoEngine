@@ -10,11 +10,10 @@
 class StatusComponent : public IActionComponent
 {
 public:
-	/**
-	 * @brief フレームごとの更新処理
-	 * @param owner このコンポーネントを所有するゲームオブジェクト
-	 */
+	StatusComponent();
+	~StatusComponent() override;
 	void Update(GameObject* owner) override;
+	void DrawImGui();
 
 	// 現在のHP
 	StatusValue hp{ kDefaultHp };
@@ -42,4 +41,7 @@ private:
     static constexpr float kDefaultFireRateMultiplier = 1.0f;
 	// 死亡判定のHP閾値
 	static constexpr float kDeathThreshold = 0.0f;
+
+	// キャッシュ用オーナー（デバッグUI描画用）
+	GameObject* lastOwner_ = nullptr;
 };

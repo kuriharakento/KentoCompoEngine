@@ -22,6 +22,9 @@
 #include "manager/graphics/LineManager.h"
 #include <effects/particle/ParticleManager.h>
 #include "effects/particle/ParticleEffect.h"
+#ifdef USE_IMGUI
+#include "manager/editor/DebugUIManager.h"
+#endif
 
 void TitleScene::Initialize()
 {
@@ -138,6 +141,10 @@ void TitleScene::Initialize()
     hierarchySystem_->Update(*registry_);
 
     StartState(SceneState::Playing);
+
+#ifdef USE_IMGUI
+    DebugUIManager::GetInstance()->RegisterDebugUI(this, "Title Scene", [this]() { this->DrawImGui(); }, DebugUIArea::Hierarchy);
+#endif
 }
 
 void TitleScene::Finalize()
@@ -145,6 +152,12 @@ void TitleScene::Finalize()
     ClearObjects();
     sceneManager_->GetPostProcessManager()->crtEffect_->SetEnabled(false);
     Audio::GetInstance()->StopWave("title");
+
+#ifdef USE_IMGUI
+    if (DebugUIManager::HasInstance()) {
+        DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+    }
+#endif
 }
 
 void TitleScene::OnEnterPlaying()
@@ -153,7 +166,6 @@ void TitleScene::OnEnterPlaying()
 
 void TitleScene::OnUpdatePlaying()
 {
-    DrawImGui();
     float dt = 0.0166f;
 
     fontSprite_->Update();
@@ -320,7 +332,7 @@ void TitleScene::Draw2D()
 void TitleScene::DrawImGui()
 {
 #ifdef USE_IMGUI
-    ImGui::Begin("Title Scene");
-    ImGui::End();
+    // タイトルシーンに関する追加デバッグ情報があればここに記述
+    ImGui::Text("Title Scene Active");
 #endif
 }

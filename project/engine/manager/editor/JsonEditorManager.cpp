@@ -1,5 +1,5 @@
 #include "JsonEditorManager.h"
-
+#include "DebugUIManager.h"
 #include "imgui/imgui.h"
 
 // シングルトンインスタンスの実体
@@ -19,10 +19,54 @@ void JsonEditorManager::Initialize()
 {
 	// エディタリストを初期化
 	editors_.clear();
+
+#ifdef USE_IMGUI
+	// JSONエディタをデバッグUIに登録
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "JSON Editor", [this]() {
+		// タブバーを開始
+		if (ImGui::BeginTabBar("EditableTabs"))
+		{
+			// 登録されたすべてのエディタをタブとして表示
+			for (const auto& [name, editable] : editors_)
+			{
+				// NULLチェック
+				if (!editable) { continue; }
+
+				// タブアイテムを作成
+				if (ImGui::BeginTabItem(name.c_str()))
+				{
+					// タブがアクティブな間は選択状態にしておく
+					selectedItem_ = name;
+
+					// IDを設定して他のエディタと区別する
+					ImGui::PushID(editable.get());
+
+					// オプションを表示
+					editable->DrawOptions();
+
+					// そのオブジェクトの ImGui UI を表示
+					editable->DrawImGui();
+
+					// IDをポップ
+					ImGui::PopID();
+
+					ImGui::EndTabItem();
+				}
+			}
+			ImGui::EndTabBar();
+		}
+	}, DebugUIArea::Console);
+#endif
 }
 
 void JsonEditorManager::Finalize()
 {
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance())
+	{
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
 	// エディタリストをクリア
 	editors_.clear();
 	// シングルトンインスタンスを解放
@@ -36,47 +80,9 @@ void JsonEditorManager::Register(const std::string& name, std::shared_ptr<JsonEd
 	// 最後に登録したものを選択状態にする
 	selectedItem_ = name;
 }
-
 void JsonEditorManager::RenderEditUI()
 {
-#ifdef USE_IMGUI
-	// JSONエディタウィンドウを開始
-    ImGui::Begin("JSON Editor");
-
-	// タブバーを開始
-    if (ImGui::BeginTabBar("EditableTabs"))
-    {
-		// 登録されたすべてのエディタをタブとして表示
-        for (const auto& [name, editable] : editors_)
-        {
-            // NULLチェック
-            if (!editable) { continue; }
-
-			// タブアイテムを作成
-            if (ImGui::BeginTabItem(name.c_str()))
-            {
-                // タブがアクティブな間は選択状態にしておく
-                selectedItem_ = name;
-
-				// IDを設定して他のエディタと区別する
-                ImGui::PushID(editable.get());
-
-				// オプションを表示
-				editable->DrawOptions();
-
-                // そのオブジェクトの ImGui UI を表示
-                editable->DrawImGui();
-
-				// IDをポップ
-                ImGui::PopID();
-
-                ImGui::EndTabItem();
-            }
-        }
-        ImGui::EndTabBar();
-    }
-    ImGui::End();
-#endif
+	// DrawAreaで描画するため、何もしない
 }
 
 void JsonEditorManager::SaveAll()

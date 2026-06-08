@@ -2,6 +2,9 @@
 #include "input/Input.h"
 #include "time/TimeManager.h"
 #include "externals/imgui/imgui.h"
+#ifdef USE_IMGUI
+#include "manager/editor/DebugUIManager.h"
+#endif
 #include "math/Easing.h"
 #include "math/MathUtils.h"
 #include <audio/Audio.h>
@@ -123,6 +126,19 @@ void PoseMenu::Initialize(SpriteCommon* spriteCommon)
 
 	// 初期レイアウト適用
 	UpdateLayout();
+
+#ifdef USE_IMGUI
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Pose Menu", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+#endif
+}
+
+PoseMenu::~PoseMenu()
+{
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance()) {
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
 }
 
 void PoseMenu::Update()
@@ -221,8 +237,6 @@ void PoseMenu::Draw()
 void PoseMenu::DrawImGui()
 {
 #ifdef USE_IMGUI
-	ImGui::Begin("Pose Menu");
-
 	ImGui::Text("Paused: %s", isPaused_ ? "Yes" : "No");
 	ImGui::Separator();
 
@@ -269,8 +283,6 @@ void PoseMenu::DrawImGui()
 	{
 		UpdateLayout();
 	}
-
-	ImGui::End();
 #endif
 }
 

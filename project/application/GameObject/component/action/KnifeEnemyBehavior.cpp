@@ -12,6 +12,9 @@
 #include "application/GameObject/Combatable/character/enemy/base/Node/SelectorNode.h"
 #include "application/GameObject/Combatable/character/enemy/base/Node/SequenceNode.h"
 #include "imgui/imgui.h"
+#ifdef USE_IMGUI
+#include "manager/editor/DebugUIManager.h"
+#endif
 #include "math/Easing.h"
 
 // コンストラクタ：各種オブジェクトの初期化とビヘイビアツリーの構築
@@ -31,11 +34,49 @@ KnifeEnemyBehavior::KnifeEnemyBehavior(GameObject* target, GameObject* rightArm,
 
 	// ビヘイビアツリーを構築
 	BuildBehaviorTree();
+
+#ifdef USE_IMGUI
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "KnifeBehavior", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+#endif
+}
+
+KnifeEnemyBehavior::~KnifeEnemyBehavior()
+{
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance()) {
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
 }
 
 // フレームごとの更新処理
+void KnifeEnemyBehavior::DrawImGui()
+{
+#ifdef USE_IMGUI
+	if (!lastOwner_)
+	{
+		ImGui::Text("KnifeBehavior: No active owner cache.");
+		return;
+	}
+	ImGui::Text("Attacking: %s", isAttacking_ ? "true" : "false");
+	ImGui::Text("Attack Progress: %.2f", attackProgress_);
+	ImGui::Text("Attack Cooldown: %.2f", attackCooldown_);
+	ImGui::Text("Target Visible: %s", IsTargetVisible(lastOwner_) ? "true" : "false");
+	ImGui::Text("In Attack Range: %s", IsInAttackRange(lastOwner_) ? "true" : "false");
+
+	// ビヘイビアツリーの表示
+	if (ImGui::TreeNode("BehaviorTree"))
+	{
+		if (behaviorTree_)
+			nodeUtils::DrawBTNodeImGui(behaviorTree_->GetRoot());
+		ImGui::TreePop();
+	}
+#endif
+}
+
 void KnifeEnemyBehavior::Update(GameObject* owner)
 {
+	lastOwner_ = owner;
 	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
 
 	// 攻撃クールダウンを減少
@@ -59,27 +100,6 @@ void KnifeEnemyBehavior::Update(GameObject* owner)
 	{
 		UpdateAttackMotion(owner, deltaTime);
 	}
-
-	// ImGuiでデバッグ情報を表示
-#ifdef USE_IMGUI
-	ImGui::Begin("KnifeBehavior");
-	{
-		ImGui::Text("Attacking: %s", isAttacking_ ? "true" : "false");
-		ImGui::Text("Attack Progress: %.2f", attackProgress_);
-		ImGui::Text("Attack Cooldown: %.2f", attackCooldown_);
-		ImGui::Text("Target Visible: %s", IsTargetVisible(owner) ? "true" : "false");
-		ImGui::Text("In Attack Range: %s", IsInAttackRange(owner) ? "true" : "false");
-
-		// ビヘイビアツリーの表示
-		if (ImGui::TreeNode("BehaviorTree"))
-		{
-			if (behaviorTree_)
-				nodeUtils::DrawBTNodeImGui(behaviorTree_->GetRoot());
-			ImGui::TreePop();
-		}
-	}
-	ImGui::End();
-#endif
 
 	// Blackboardへ状態情報をセット
 	auto& bb = behaviorTree_->GetBlackboard();

@@ -11,6 +11,7 @@
 #include "engine/gameobject/base/GameObject.h"
 #include "base/Logger.h"
 #include "imgui/imgui.h"
+#include "manager/editor/DebugUIManager.h"
 #include "math/MathUtils.h"
 #include "engine/gameobject/component/collision/CollisionAlgorithm.h"
 
@@ -24,11 +25,35 @@ CollisionManager* CollisionManager::GetInstance()
 	}
 	return instance_.get();
 }
+void CollisionManager::Initialize()
+{
+	colliders_.clear();
+#ifdef USE_IMGUI
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "CollisionManager Colliders", [this]() { this->DrawImGui(); }, DebugUIArea::Console);
+#endif
+}
+
 void CollisionManager::Finalize()
 {
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance())
+	{
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
 	colliders_.clear();
 	currentCollisions_.clear();
 	instance_.reset();
+}
+
+CollisionManager::~CollisionManager()
+{
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance())
+	{
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
 }
 
 void CollisionManager::Register(ICollisionComponent* collider)
@@ -56,34 +81,6 @@ void CollisionManager::Unregister(ICollisionComponent* collider)
 
 void CollisionManager::CheckCollisions()
 {
-#ifdef USE_IMGUI
-	ImGui::Begin("CollisionManager Colliders");
-
-	ImGui::SeparatorText("Colliders");
-	if (ImGui::CollapsingHeader("List"))
-	{
-		for (size_t i = 0; i < colliders_.size(); ++i)
-		{
-			ICollisionComponent* collider = colliders_[i];
-			if (collider && collider->GetOwner())
-			{
-				ImGui::Text("Collider %zu: %s", i, collider->GetOwner()->GetTag().c_str());
-				ImGui::Text("Position: (%.2f, %.2f, %.2f)", collider->GetOwner()->GetPosition().x, collider->GetOwner()->GetPosition().y, collider->GetOwner()->GetPosition().z);
-				ImGui::Text("Previous Position: (%.2f, %.2f, %.2f)", collider->GetPreviousPosition().x, collider->GetPreviousPosition().y, collider->GetPreviousPosition().z);
-			}
-			else
-			{
-				ImGui::Text("Collider %zu: [Invalid Owner]", i);
-			}
-		}
-	}
-
-	ImGui::SeparatorText("Statistics");
-	ImGui::Text("Total Calliders: %zu", colliders_.size());
-	ImGui::Text("Active Collisions: %zu", currentCollisions_.size());
-
-	ImGui::End();
-#endif
 
 	// 新しい衝突ペアを格納するセット
 	std::unordered_set<CollisionPair, CollisionPairHash> newCollisions;
@@ -219,3 +216,31 @@ void CollisionManager::LogCollision(const std::string& phase, const ICollisionCo
 				+ " | " + tagA + ": " + typeAString + ", " + tagB + ": " + typeBString + "\n");
 #endif
 }
+
+#ifdef USE_IMGUI
+void CollisionManager::DrawImGui()
+{
+	ImGui::SeparatorText("Colliders");
+	if (ImGui::CollapsingHeader("List"))
+	{
+		for (size_t i = 0; i < colliders_.size(); ++i)
+		{
+			ICollisionComponent* collider = colliders_[i];
+			if (collider && collider->GetOwner())
+			{
+				ImGui::Text("Collider %zu: %s", i, collider->GetOwner()->GetTag().c_str());
+				ImGui::Text("Position: (%.2f, %.2f, %.2f)", collider->GetOwner()->GetPosition().x, collider->GetOwner()->GetPosition().y, collider->GetOwner()->GetPosition().z);
+				ImGui::Text("Previous Position: (%.2f, %.2f, %.2f)", collider->GetPreviousPosition().x, collider->GetPreviousPosition().y, collider->GetPreviousPosition().z);
+			}
+			else
+			{
+				ImGui::Text("Collider %zu: [Invalid Owner]", i);
+			}
+		}
+	}
+
+	ImGui::SeparatorText("Statistics");
+	ImGui::Text("Total Calliders: %zu", colliders_.size());
+	ImGui::Text("Active Collisions: %zu", currentCollisions_.size());
+}
+#endif

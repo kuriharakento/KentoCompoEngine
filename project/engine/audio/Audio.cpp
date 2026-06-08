@@ -1,4 +1,4 @@
-#include "Audio.h"
+﻿#include "Audio.h"
 
 #include <cstring>
 #include <cassert>
@@ -6,6 +6,7 @@
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
+#include "manager/editor/DebugUIManager.h"
 #endif
 
 namespace
@@ -115,6 +116,10 @@ void Audio::Initialize()
 	reverbAmount_ = kDefaultReverbAmount;
 #ifdef USE_IMGUI
 	debugData_.reverbAmount = kDefaultReverbAmount;
+
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Audio Debug", [this]() {
+		this->DrawDebugWindow();
+	}, DebugUIArea::Console);
 #endif
 
 	InitializeEffect();
@@ -123,6 +128,12 @@ void Audio::Initialize()
 
 void Audio::Finalize()
 {
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance())
+	{
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
 	fadeList_.clear();
 	fadeOutStopMap_.clear();
 
@@ -216,10 +227,6 @@ void Audio::Update()
 		}
 		++it;
 	}
-
-#ifdef USE_IMGUI
-	DrawDebugWindow();
-#endif
 }
 
 SoundData Audio::LoadWave(const char* filename)
@@ -913,19 +920,6 @@ float Audio::ClampPitch(float pitch) const
 
 void Audio::DrawDebugWindow()
 {
-	if (!debugData_.windowVisible)
-	{
-		return;
-	}
-
-	ImGui::SetNextWindowSize(ImVec2(500, 600), ImGuiCond_FirstUseEver);
-
-	if (!ImGui::Begin("Audio Debug", &debugData_.windowVisible))
-	{
-		ImGui::End();
-		return;
-	}
-
 	// マスター設定
 	if (ImGui::CollapsingHeader("Master", ImGuiTreeNodeFlags_DefaultOpen))
 	{
@@ -1115,8 +1109,6 @@ void Audio::DrawDebugWindow()
 			}
 		}
 	}
-
-	ImGui::End();
 }
 
 #endif

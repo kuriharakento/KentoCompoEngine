@@ -45,6 +45,8 @@ public:
 	 */
 	void DrawDebug();
 
+	void DrawImGui();
+
 	/**
 	 * @brief エディタの表示状態を設定
 	 * @param visible 表示する場合true

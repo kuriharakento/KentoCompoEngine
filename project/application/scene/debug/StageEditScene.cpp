@@ -7,6 +7,9 @@
 // scene
 #include "scene/manager/SceneManager.h"
 #include "externals/imgui/imgui.h"
+#ifdef USE_IMGUI
+#include "manager/editor/DebugUIManager.h"
+#endif
 
 void StageEditScene::Initialize()
 {
@@ -29,20 +32,28 @@ void StageEditScene::Initialize()
 		sceneManager_->GetCameraManager()->GetActiveCamera()
 	);
 	debugCamera_->Start();
+
+#ifdef USE_IMGUI
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "StageEditScene", [this]() { this->DrawImGui(); }, DebugUIArea::Hierarchy);
+#endif
 }
 
 void StageEditScene::Finalize()
 {
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance()) {
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
 }
 
 // ==================================================
 // 状態フック
 // ==================================================
 
-void StageEditScene::OnUpdatePlaying()
+void StageEditScene::DrawImGui()
 {
 #ifdef USE_IMGUI
-	ImGui::Begin("StageEditScene");
 	static std::string stageName = "field";
 	static char stageNameBuffer[128] = "field";
 	
@@ -55,9 +66,11 @@ void StageEditScene::OnUpdatePlaying()
 	{
 		stageManager_->LoadStage(stageName);
 	}
-	ImGui::End();
 #endif
+}
 
+void StageEditScene::OnUpdatePlaying()
+{
 	if (debugCamera_) debugCamera_->Update();
 
 	if (stageManager_) stageManager_->Update();

@@ -1,4 +1,4 @@
-﻿#include "GamePlayScene.h"
+#include "GamePlayScene.h"
 #include <random>
 #include <algorithm>
 
@@ -9,6 +9,7 @@
 #include "application/ui/LevelUpUI.h"
 // editor
 #include "externals/imgui/imgui.h"
+#include "manager/editor/DebugUIManager.h"
 // input
 #include "input/Input.h"
 // math
@@ -492,6 +493,128 @@ void GamePlayScene::Initialize()
 	// スコア管理のリセット
 	ScoreManager::Reset();
 
+#ifdef USE_IMGUI
+	// デバッグUIの登録
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Player Stats & ECS Hub", [this]() {
+		if (registry_)
+		{
+			ImGui::Text("Active Entities: %d", registry_->GetActiveEntityCount());
+			ImGui::Separator();
+		}
+
+		// 1. プレイヤーステータス
+		if (registry_ && playerEntity_ != kInvalidEntity)
+		{
+			if (ImGui::CollapsingHeader("Player Stats", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				// HP (StatusComponent)
+				if (registry_->HasComponent<ecs::StatusComponent>(playerEntity_))
+				{
+					auto& status = registry_->GetComponent<ecs::StatusComponent>(playerEntity_);
+					float hp = status.hp_.GetValue();
+					float maxHp = status.maxHp_.GetValue();
+					ImGui::Text("HP: %.1f / %.1f", hp, maxHp);
+					ImGui::ProgressBar(hp / maxHp, ImVec2(-1.0f, 0.0f));
+				}
+
+				// レベル・経験値 (PlayerProgressionComponent)
+				if (registry_->HasComponent<PlayerProgressionComponent>(playerEntity_))
+				{
+					auto& prog = registry_->GetComponent<PlayerProgressionComponent>(playerEntity_);
+					ImGui::Text("Level: %d", prog.level_);
+					ImGui::Text("Exp: %.1f / %.1f", prog.currentExp_, prog.nextLevelExp_);
+					ImGui::ProgressBar(prog.currentExp_ / prog.nextLevelExp_, ImVec2(-1.0f, 0.0f));
+				}
+			}
+
+			// 2. スキル情報
+			if (registry_->HasComponent<SkillComponent>(playerEntity_))
+			{
+				if (ImGui::CollapsingHeader("Skills", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					auto& skill = registry_->GetComponent<SkillComponent>(playerEntity_);
+
+					// LMB
+					ImGui::Text("LMB: %s (Timer: %.2f, DmgMul: %.2f, CDMul: %.2f)",
+						skill.isLmbUnlocked_ ? "Unlocked" : "Locked",
+						skill.lmbTimer_ > 0 ? skill.lmbTimer_ : 0.0f,
+						skill.lmbDamageMultiplier_, skill.lmbCooldownMultiplier_);
+
+					// Skill 1 (Q) - Base
+					const char* routeName = "None";
+					if (skill.route_ == SkillRoute::Bomb) routeName = "Bomb";
+					else if (skill.route_ == SkillRoute::Turret) routeName = "Turret";
+					ImGui::Text("Q(Base): %s (Timer: %.2f)", routeName, skill.baseSkillTimer_ > 0 ? skill.baseSkillTimer_ : 0.0f);
+
+					// Skill 2 (E) - Special
+					const char* specialName = "None";
+					switch (skill.special_)
+					{
+					case SkillSpecialChoice::HomingMissile: specialName = "Homing Missile"; break;
+					case SkillSpecialChoice::DecoyBomb: specialName = "Decoy Bomb"; break;
+					case SkillSpecialChoice::MissileSalvo: specialName = "Turret: Salvo"; break;
+					case SkillSpecialChoice::PlasmaLaser: specialName = "Turret: Laser"; break;
+					default: break;
+					}
+					ImGui::Text("E(Special): %s (Timer: %.2f)", specialName, skill.specialSkillTimer_ > 0 ? skill.specialSkillTimer_ : 0.0f);
+
+					ImGui::Separator();
+					ImGui::Text("LMB Stats: Pierce: %d, Count: %d, Rate: %.2f", skill.lmbPierceCount_, skill.lmbBulletCount_, skill.lmbCooldownMultiplier_);
+					ImGui::Text("Q Stats: Range: %.1f, CD: %.2f", skill.qRange_, skill.qCooldownMultiplier_);
+					ImGui::Text("Turret Stats: Max: %d, Rate: %.2f", skill.qMaxTurrets_, skill.qTurretFireRateMult_);
+
+					if (skill.isTurretBuffActive_) ImGui::TextColored({ 1,1,0,1 }, "TURRET BUFF ACTIVE (%.1fs)", skill.turretBuffTimer_);
+
+					// Beam (R)
+					ImGui::Text("R(Beam): Charge: %.1f / %.1f %s",
+						skill.beamCharge_, SkillComponent::kBeamChargeMax,
+						skill.isBeamReady_ ? "[READY]" : "");
+					ImGui::ProgressBar(skill.beamCharge_ / SkillComponent::kBeamChargeMax, ImVec2(-1.0f, 0.0f));
+				}
+			}
+		}
+
+		// 3. フィールド制限設定
+		if (registry_ && playerEntity_ != kInvalidEntity)
+		{
+			if (registry_->HasComponent<WorldBoundaryComponent>(playerEntity_))
+			{
+				if (ImGui::CollapsingHeader("World Boundary", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					auto& boundary = registry_->GetComponent<WorldBoundaryComponent>(playerEntity_);
+					ImGui::SliderFloat("Boundary Radius", &boundary.radius_, 0.0f, 1000.0f);
+					ImGui::Checkbox("Boundary Active", &boundary.active_);
+				}
+			}
+		}
+
+		// 4. スポーン設定
+		if (enemySpawnSystem_)
+		{
+			if (ImGui::CollapsingHeader("Spawn Settings", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				float inner = enemySpawnSystem_->GetInnerRadius();
+				float outer = enemySpawnSystem_->GetOuterRadius();
+
+				if (ImGui::SliderFloat("Inner Radius", &inner, 0.0f, 50.0f))
+				{
+					enemySpawnSystem_->SetInnerRadius(inner);
+				}
+				if (ImGui::SliderFloat("Outer Radius", &outer, inner, 100.0f))
+				{
+					enemySpawnSystem_->SetOuterRadius(outer);
+				}
+			}
+		}
+
+		// ポーズメニューのImGui
+		if (poseMenu_)
+		{
+			poseMenu_->DrawImGui();
+		}
+	});
+#endif
+
 	// 初期ステートをセットして起動
 	StartState(SceneState::Enter);
 }
@@ -621,129 +744,6 @@ void GamePlayScene::DrawUI()
 
 void GamePlayScene::DrawImGui()
 {
-#ifdef USE_IMGUI
-	// --- ECS Central Hub ---
-	ImGui::Begin("ECS Debug Hub");
-
-	if (registry_)
-	{
-		ImGui::Text("Active Entities: %d", registry_->GetActiveEntityCount());
-		ImGui::Separator();
-	}
-
-	// 1. プレイヤーステータス
-	if (registry_ && playerEntity_ != kInvalidEntity)
-	{
-		if (ImGui::CollapsingHeader("Player Stats", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			// HP (StatusComponent)
-			if (registry_->HasComponent<ecs::StatusComponent>(playerEntity_))
-			{
-				auto& status = registry_->GetComponent<ecs::StatusComponent>(playerEntity_);
-				float hp = status.hp_.GetValue();
-				float maxHp = status.maxHp_.GetValue();
-				ImGui::Text("HP: %.1f / %.1f", hp, maxHp);
-				ImGui::ProgressBar(hp / maxHp, ImVec2(-1.0f, 0.0f));
-			}
-
-			// レベル・経験値 (PlayerProgressionComponent)
-			if (registry_->HasComponent<PlayerProgressionComponent>(playerEntity_))
-			{
-				auto& prog = registry_->GetComponent<PlayerProgressionComponent>(playerEntity_);
-				ImGui::Text("Level: %d", prog.level_);
-				ImGui::Text("Exp: %.1f / %.1f", prog.currentExp_, prog.nextLevelExp_);
-				ImGui::ProgressBar(prog.currentExp_ / prog.nextLevelExp_, ImVec2(-1.0f, 0.0f));
-			}
-		}
-
-		// 2. スキル情報
-		if (registry_->HasComponent<SkillComponent>(playerEntity_))
-		{
-			if (ImGui::CollapsingHeader("Skills", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				auto& skill = registry_->GetComponent<SkillComponent>(playerEntity_);
-
-				// LMB
-				ImGui::Text("LMB: %s (Timer: %.2f, DmgMul: %.2f, CDMul: %.2f)",
-					skill.isLmbUnlocked_ ? "Unlocked" : "Locked",
-					skill.lmbTimer_ > 0 ? skill.lmbTimer_ : 0.0f,
-					skill.lmbDamageMultiplier_, skill.lmbCooldownMultiplier_);
-
-				// Skill 1 (Q) - Base
-				const char* routeName = "None";
-				if (skill.route_ == SkillRoute::Bomb) routeName = "Bomb";
-				else if (skill.route_ == SkillRoute::Turret) routeName = "Turret";
-				ImGui::Text("Q(Base): %s (Timer: %.2f)", routeName, skill.baseSkillTimer_ > 0 ? skill.baseSkillTimer_ : 0.0f);
-
-				// Skill 2 (E) - Special
-				const char* specialName = "None";
-				switch (skill.special_)
-				{
-				case SkillSpecialChoice::HomingMissile: specialName = "Homing Missile"; break;
-				case SkillSpecialChoice::DecoyBomb: specialName = "Decoy Bomb"; break;
-				case SkillSpecialChoice::MissileSalvo: specialName = "Turret: Salvo"; break;
-				case SkillSpecialChoice::PlasmaLaser: specialName = "Turret: Laser"; break;
-				default: break;
-				}
-				ImGui::Text("E(Special): %s (Timer: %.2f)", specialName, skill.specialSkillTimer_ > 0 ? skill.specialSkillTimer_ : 0.0f);
-				
-				ImGui::Separator();
-				ImGui::Text("LMB Stats: Pierce: %d, Count: %d, Rate: %.2f", skill.lmbPierceCount_, skill.lmbBulletCount_, skill.lmbCooldownMultiplier_);
-				ImGui::Text("Q Stats: Range: %.1f, CD: %.2f", skill.qRange_, skill.qCooldownMultiplier_);
-				ImGui::Text("Turret Stats: Max: %d, Rate: %.2f", skill.qMaxTurrets_, skill.qTurretFireRateMult_);
-				
-				if (skill.isTurretBuffActive_) ImGui::TextColored({ 1,1,0,1 }, "TURRET BUFF ACTIVE (%.1fs)", skill.turretBuffTimer_);
-
-				// Beam (R)
-				ImGui::Text("R(Beam): Charge: %.1f / %.1f %s",
-					skill.beamCharge_, SkillComponent::kBeamChargeMax,
-					skill.isBeamReady_ ? "[READY]" : "");
-				ImGui::ProgressBar(skill.beamCharge_ / SkillComponent::kBeamChargeMax, ImVec2(-1.0f, 0.0f));
-			}
-		}
-	}
-
-	// 3. フィールド制限設定
-	if (registry_ && playerEntity_ != kInvalidEntity)
-	{
-		if (registry_->HasComponent<WorldBoundaryComponent>(playerEntity_))
-		{
-			if (ImGui::CollapsingHeader("World Boundary", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				auto& boundary = registry_->GetComponent<WorldBoundaryComponent>(playerEntity_);
-				ImGui::SliderFloat("Boundary Radius", &boundary.radius_, 0.0f, 1000.0f);
-				ImGui::Checkbox("Boundary Active", &boundary.active_);
-			}
-		}
-	}
-
-	// 4. スポーン設定
-	if (enemySpawnSystem_)
-	{
-		if (ImGui::CollapsingHeader("Spawn Settings", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			float inner = enemySpawnSystem_->GetInnerRadius();
-			float outer = enemySpawnSystem_->GetOuterRadius();
-
-			if (ImGui::SliderFloat("Inner Radius", &inner, 0.0f, 50.0f))
-			{
-				enemySpawnSystem_->SetInnerRadius(inner);
-			}
-			if (ImGui::SliderFloat("Outer Radius", &outer, inner, 100.0f))
-			{
-				enemySpawnSystem_->SetOuterRadius(outer);
-			}
-		}
-	}
-
-	ImGui::End();
-
-	// ポーズメニューのImGui
-	if (poseMenu_)
-	{
-		poseMenu_->DrawImGui();
-	}
-#endif
 }
 
 void GamePlayScene::OnEnterEnter()

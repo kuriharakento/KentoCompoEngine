@@ -22,7 +22,7 @@ public:
 
     void Reset();
 
-    void DrawDebugUI();
+    void DrawImGui();
 
 	Blackboard& GetBlackboard() { return blackboard; }
 

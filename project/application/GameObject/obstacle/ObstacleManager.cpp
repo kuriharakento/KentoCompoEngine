@@ -6,6 +6,9 @@
 #include "engine/gameobject/component/collision/OBBColliderComponent.h"
 #include "manager/editor/JsonEditorManager.h"
 #include "externals/imgui/imgui.h"
+#ifdef USE_IMGUI
+#include "manager/editor/DebugUIManager.h"
+#endif
 
 // ECS Components
 #include "engine/ecs/components/TagComponent.h"
@@ -21,13 +24,24 @@ void ObstacleManager::Initialize(Registry* registry, Object3dCommon* object3dCom
 	object3dCommon_ = object3dCommon;
 	lightManager_ = lightManager;
 	obstacles_.clear();
+
+#ifdef USE_IMGUI
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Obstacle Manager", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+#endif
 }
 
-void ObstacleManager::Update()
+ObstacleManager::~ObstacleManager()
 {
 #ifdef USE_IMGUI
-	ImGui::Begin("Obstacle Manager");
+	if (DebugUIManager::HasInstance()) {
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
+}
 
+void ObstacleManager::DrawImGui()
+{
+#ifdef USE_IMGUI
 	ImGui::Text("Obstacle Count: %zu", obstacles_.size());
 	for (size_t i = 0; i < obstacles_.size(); ++i)
 	{
@@ -48,10 +62,11 @@ void ObstacleManager::Update()
 			ImGui::Text("Scale: (%.2f, %.2f, %.2f)", scale.x, scale.y, scale.z);
 		}
 	}
-
-	ImGui::End();
 #endif
+}
 
+void ObstacleManager::Update()
+{
 	// 新しい障害物データの同期
 	SyncNewObstacleData();
 

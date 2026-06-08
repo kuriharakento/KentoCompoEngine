@@ -5,6 +5,7 @@
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
+#include "manager/editor/DebugUIManager.h"
 #endif
 
 void Slide::Initialize(SpriteCommon* spriteCommon) {
@@ -20,6 +21,18 @@ void Slide::Initialize(SpriteCommon* spriteCommon) {
 		sprites_[i].sprite->SetPosition(Vector2(kScreenWidth_, kScreenHeight_));
 		sprites_[i].sprite->SetColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 	}
+
+#ifdef USE_IMGUI
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Slide", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+#endif
+}
+
+Slide::~Slide() {
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance()) {
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
 }
 
 void Slide::Update() {
@@ -86,106 +99,6 @@ void Slide::Update() {
 	for (auto& sprite : sprites_) {
 		sprite.sprite->Update();
 	}
-
-	/*----------------[ ImGui ]------------------*/
-#ifdef USE_IMGUI
-	// イージング関数の選択肢
-	const char* easingOptions[] = {
-		"EaseInSine",
-		"EaseOutSine",
-		"EaseInOutSine",
-		"EaseInQuint",
-		"EaseOutQuint",
-		"EaseInOutQuint",
-		"EaseInCirc",
-		"EaseOutCirc",
-		"EaseInOutCirc",
-		"EaseInElastic",
-		"EaseOutElastic",
-		"EaseInOutElastic",
-		"EaseInExpo",
-		"EaseOutQuad",
-		"EaseInOutQuart",
-		"EaseInBack",
-		"EaseOutBack",
-		"EaseInOutBack",
-		"EaseInBounce",
-		"EaseOutBounce",
-		"EaseInOutBounce"
-	};
-
-	static int currentEasingIndex = 0;
-
-	ImGui::Begin("Slide");
-	ImGui::DragFloat("EasingTime", &easingTime_,0.01f);
-	#pragma region SelectEasingFunction
-	// イージング関数の選択
-	if (ImGui::Combo("Easing Function", &currentEasingIndex, easingOptions, IM_ARRAYSIZE(easingOptions))) {
-		switch (currentEasingIndex) {
-		case 0: pEasingFunc_ = EaseInSine<float>; break;
-		case 1: pEasingFunc_ = EaseOutSine<float>; break;
-		case 2: pEasingFunc_ = EaseInOutSine<float>; break;
-		case 3: pEasingFunc_ = EaseInQuint<float>; break;
-		case 4: pEasingFunc_ = EaseOutQuint<float>; break;
-		case 5: pEasingFunc_ = EaseInOutQuint<float>; break;
-		case 6: pEasingFunc_ = EaseInCirc<float>; break;
-		case 7: pEasingFunc_ = EaseOutCirc<float>; break;
-		case 8: pEasingFunc_ = EaseInOutCirc<float>; break;
-		case 9: pEasingFunc_ = EaseInElastic<float>; break;
-		case 10: pEasingFunc_ = EaseOutElastic<float>; break;
-		case 11: pEasingFunc_ = EaseInOutElastic<float>; break;
-		case 12: pEasingFunc_ = EaseInExpo<float>; break;
-		case 13: pEasingFunc_ = EaseOutQuad<float>; break;
-		case 14: pEasingFunc_ = EaseInOutQuart<float>; break;
-		case 15: pEasingFunc_ = EaseInBack<float>; break;
-		case 16: pEasingFunc_ = EaseOutBack<float>; break;
-		case 17: pEasingFunc_ = EaseInOutBack<float>; break;
-		case 18: pEasingFunc_ = EaseInBounce<float>; break;
-		case 19: pEasingFunc_ = EaseOutBounce<float>; break;
-		case 20: pEasingFunc_ = EaseInOutBounce<float>; break;
-		}
-	}
-
-	#pragma region SlideButton
-	if (ImGui::Button("SlideInBothSides")) {
-		Start(Slide::Status::SlideInFromBothSides,easingTime_);
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("SlideOutBothSides"))
-	{
-		Start(Slide::Status::SlideOutFromBothSides, easingTime_);
-	}
-
-	if (ImGui::Button("SlideInFromLeft")) {
-		Start(Slide::Status::SlideInFromLeft, easingTime_);
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("SlideOutToLeft"))
-	{
-		Start(Slide::Status::SlideOutFromLeft, easingTime_);
-	}
-
-	if (ImGui::Button("SlideInFromFourCorners")) {
-		Start(Slide::Status::SlideInFromFourCorners, easingTime_);
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("SlideOutFromFourCorners"))
-	{
-		Start(Slide::Status::SlideOutFromFourCorners, easingTime_);
-	}
-	#pragma endregion
-
-	ImGui::Text("Status: %d", static_cast<int>(status_));
-	ImGui::Text("Duration: %f", duration_);
-	ImGui::Text("Counter: %f", counter_);
-	ImGui::Text("Finish: %s", isFinish_ ? "true" : "false");
-	for (std::size_t i = 0; i < sprites_.size(); i++) {
-		ImGui::Text("Sprite[%d]: %s", i, sprites_[i].isMove ? "true" : "false");
-		ImGui::Text("Sprite[%d] Position: (%f, %f)", i, sprites_[i].sprite->GetPosition().x, sprites_[i].sprite->GetPosition().y);
-		ImGui::Text("Sprite[%d] Size: (%f, %f)", i, sprites_[i].sprite->GetSize().x, sprites_[i].sprite->GetSize().y);
-	}
-	ImGui::End();
-#endif // DEBUG
 }
 
 void Slide::Draw() {
@@ -365,3 +278,101 @@ void Slide::SlideOutFromFourCorners(float progress) {
 	    EasingByAmout(kSlideOutFourCornersStartPos_.right, kSlideFourCornersDistance_.x, pEasingFunc_, progress),
 	    EasingByAmout(kSlideOutFourCornersStartPos_.bottom, kSlideFourCornersDistance_.y, pEasingFunc_, progress)));
 }
+
+#ifdef USE_IMGUI
+void Slide::DrawImGui() {
+	// イージング関数の選択肢
+	const char* easingOptions[] = {
+		"EaseInSine",
+		"EaseOutSine",
+		"EaseInOutSine",
+		"EaseInQuint",
+		"EaseOutQuint",
+		"EaseInOutQuint",
+		"EaseInCirc",
+		"EaseOutCirc",
+		"EaseInOutCirc",
+		"EaseInElastic",
+		"EaseOutElastic",
+		"EaseInOutElastic",
+		"EaseInExpo",
+		"EaseOutQuad",
+		"EaseInOutQuart",
+		"EaseInBack",
+		"EaseOutBack",
+		"EaseInOutBack",
+		"EaseInBounce",
+		"EaseOutBounce",
+		"EaseInOutBounce"
+	};
+
+	static int currentEasingIndex = 0;
+
+	ImGui::DragFloat("EasingTime", &easingTime_,0.01f);
+	#pragma region SelectEasingFunction
+	// イージング関数の選択
+	if (ImGui::Combo("Easing Function", &currentEasingIndex, easingOptions, IM_ARRAYSIZE(easingOptions))) {
+		switch (currentEasingIndex) {
+		case 0: pEasingFunc_ = EaseInSine<float>; break;
+		case 1: pEasingFunc_ = EaseOutSine<float>; break;
+		case 2: pEasingFunc_ = EaseInOutSine<float>; break;
+		case 3: pEasingFunc_ = EaseInQuint<float>; break;
+		case 4: pEasingFunc_ = EaseOutQuint<float>; break;
+		case 5: pEasingFunc_ = EaseInOutQuint<float>; break;
+		case 6: pEasingFunc_ = EaseInCirc<float>; break;
+		case 7: pEasingFunc_ = EaseOutCirc<float>; break;
+		case 8: pEasingFunc_ = EaseInOutCirc<float>; break;
+		case 9: pEasingFunc_ = EaseInElastic<float>; break;
+		case 10: pEasingFunc_ = EaseOutElastic<float>; break;
+		case 11: pEasingFunc_ = EaseInOutElastic<float>; break;
+		case 12: pEasingFunc_ = EaseInExpo<float>; break;
+		case 13: pEasingFunc_ = EaseOutQuad<float>; break;
+		case 14: pEasingFunc_ = EaseInOutQuart<float>; break;
+		case 15: pEasingFunc_ = EaseInBack<float>; break;
+		case 16: pEasingFunc_ = EaseOutBack<float>; break;
+		case 17: pEasingFunc_ = EaseInOutBack<float>; break;
+		case 18: pEasingFunc_ = EaseInBounce<float>; break;
+		case 19: pEasingFunc_ = EaseOutBounce<float>; break;
+		case 20: pEasingFunc_ = EaseInOutBounce<float>; break;
+		}
+	}
+
+	#pragma region SelectEasingFunction2
+	if (ImGui::Button("SlideInBothSides")) {
+		Start(Slide::Status::SlideInFromBothSides,easingTime_);
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("SlideOutBothSides"))
+	{
+		Start(Slide::Status::SlideOutFromBothSides, easingTime_);
+	}
+
+	if (ImGui::Button("SlideInFromLeft")) {
+		Start(Slide::Status::SlideInFromLeft, easingTime_);
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("SlideOutToLeft"))
+	{
+		Start(Slide::Status::SlideOutFromLeft, easingTime_);
+	}
+
+	if (ImGui::Button("SlideInFromFourCorners")) {
+		Start(Slide::Status::SlideInFromFourCorners, easingTime_);
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("SlideOutFromFourCorners"))
+	{
+		Start(Slide::Status::SlideOutFromFourCorners, easingTime_);
+	}
+
+	ImGui::Text("Status: %d", static_cast<int>(status_));
+	ImGui::Text("Duration: %f", duration_);
+	ImGui::Text("Counter: %f", counter_);
+	ImGui::Text("Finish: %s", isFinish_ ? "true" : "false");
+	for (std::size_t i = 0; i < sprites_.size(); i++) {
+		ImGui::Text("Sprite[%d]: %s", i, sprites_[i].isMove ? "true" : "false");
+		ImGui::Text("Sprite[%d] Position: (%f, %f)", i, sprites_[i].sprite->GetPosition().x, sprites_[i].sprite->GetPosition().y);
+		ImGui::Text("Sprite[%d] Size: (%f, %f)", i, sprites_[i].sprite->GetSize().x, sprites_[i].sprite->GetSize().y);
+	}
+}
+#endif

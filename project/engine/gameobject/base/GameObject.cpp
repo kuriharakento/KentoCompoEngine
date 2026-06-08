@@ -6,11 +6,18 @@
 #include "base/Logger.h"
 #ifdef USE_IMGUI
 #include "imgui/imgui.h"
+#include "manager/editor/DebugUIManager.h"
 #endif
 
 
 GameObject::~GameObject()
 {
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance())
+	{
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
 	actionComponents_.clear();
 	collisionComponents_.clear();
 	components_.clear();

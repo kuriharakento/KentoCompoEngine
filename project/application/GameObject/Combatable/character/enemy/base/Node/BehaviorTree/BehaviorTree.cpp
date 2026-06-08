@@ -68,20 +68,16 @@ static void DrawNodeRecursive(const BTNode* node)
     }
 }
 
-void BehaviorTree::DrawDebugUI()
+void BehaviorTree::DrawImGui()
 {
 #ifdef USE_IMGUI
-    if (ImGui::Begin("Enemy BT Debug"))
+    if (root)
     {
-        if (root)
-        {
-            DrawNodeRecursive(root.get());
-        }
-        else
-        {
-            ImGui::Text("BehaviorTree has no root node.");
-        }
+        DrawNodeRecursive(root.get());
     }
-    ImGui::End();
+    else
+    {
+        ImGui::Text("BehaviorTree has no root node.");
+    }
 #endif
 }
