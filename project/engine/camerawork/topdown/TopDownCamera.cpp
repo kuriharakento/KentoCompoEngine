@@ -1,7 +1,8 @@
 #include "TopDownCamera.h"
 
 #include "base/Camera.h"
-#include "imgui/imgui_internal.h"
+#include "imgui/imgui.h"
+#include "manager/editor/DebugUIManager.h"
 #include "math/MathUtils.h"
 
 // カメラ補間速度（イージング係数）
@@ -10,25 +11,24 @@ constexpr float kCameraLerpSpeed = 0.1f;
 void TopDownCamera::Initialize(Camera* camera)
 {
     camera_ = camera;
+
+#ifdef USE_IMGUI
+    DebugUIManager::GetInstance()->RegisterDebugUI(this, "TopDownCamera Settings", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+#endif
+}
+
+TopDownCamera::~TopDownCamera()
+{
+#ifdef USE_IMGUI
+    if (DebugUIManager::HasInstance())
+    {
+        DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+    }
+#endif
 }
 
 void TopDownCamera::Update()
 {
-#ifdef USE_IMGUI
-    // ImGuiデバッグUI
-	ImGui::Begin("TopDownCamera Settings");
-	Vector3 cameraPos = camera_->GetTranslate();
-	ImGui::DragFloat3("Camera Position", &cameraPos.x, 0.1f);
-	camera_->SetTranslate(cameraPos);
-	Vector3 cameraRotate = camera_->GetRotate();
-	ImGui::DragFloat3("Camera Rotate", &cameraRotate.x, 0.1f);
-	camera_->SetRotate(cameraRotate);
-	ImGui::DragFloat("Camera Height", &height_, 0.1f);
-	ImGui::DragFloat("Camera Pitch", &pitch_, 0.1f);
-	ImGui::DragFloat("Camera Yaw", &yaw_, 0.1f);
-	ImGui::DragFloat3("Camera Offset", &offset_.x, 0.1f);
-	ImGui::End();
-#endif
 
     if (!camera_ || !target_ || !isActive_) return;
 
@@ -71,3 +71,19 @@ void TopDownCamera::SetActive(bool active)
 {
     isActive_ = active;
 }
+
+#ifdef USE_IMGUI
+void TopDownCamera::DrawImGui()
+{
+	Vector3 cameraPos = camera_->GetTranslate();
+	ImGui::DragFloat3("Camera Position", &cameraPos.x, 0.1f);
+	camera_->SetTranslate(cameraPos);
+	Vector3 cameraRotate = camera_->GetRotate();
+	ImGui::DragFloat3("Camera Rotate", &cameraRotate.x, 0.1f);
+	camera_->SetRotate(cameraRotate);
+	ImGui::DragFloat("Camera Height", &height_, 0.1f);
+	ImGui::DragFloat("Camera Pitch", &pitch_, 0.1f);
+	ImGui::DragFloat("Camera Yaw", &yaw_, 0.1f);
+	ImGui::DragFloat3("Camera Offset", &offset_.x, 0.1f);
+}
+#endif

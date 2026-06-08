@@ -8,6 +8,7 @@
 
 #ifdef USE_IMGUI
 #include "imgui/imgui.h"
+#include "manager/editor/DebugUIManager.h"
 #endif
 
 // 60FPS想定のフレームデルタタイム
@@ -21,6 +22,20 @@ void DebugCamera::Initialize(Camera* camera)
 {
     camera_ = camera;
     isActive_ = false;
+
+#ifdef USE_IMGUI
+    DebugUIManager::GetInstance()->RegisterDebugUI(this, "Debug Camera", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+#endif
+}
+
+DebugCamera::~DebugCamera()
+{
+#ifdef USE_IMGUI
+    if (DebugUIManager::HasInstance())
+    {
+        DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+    }
+#endif
 }
 
 void DebugCamera::Start(const Vector3& initialPosition, const Vector3& initialRotation)
@@ -43,22 +58,6 @@ void DebugCamera::Update()
     // 各種更新処理を実行
     UpdateMouseLook();
     UpdateMovement();
-
-    // デバッグUI描画
-    if (showDebugUI_)
-    {
-        DrawDebugUI();
-    }
-
-	#ifdef _DEBUG
-    // Tabキーでデバッグ画面の表示切り替え
-    bool currentTabPressed = Input::GetInstance()->TriggerKey(DIK_TAB);
-    if (currentTabPressed && !prevTabPressed_)
-    {
-        showDebugUI_ = !showDebugUI_;
-    }
-    prevTabPressed_ = currentTabPressed;
-#endif
 }
 
 void DebugCamera::UpdateMovement()
@@ -191,10 +190,9 @@ Vector3 DebugCamera::GetUpVector() const
 }
 
 
-void DebugCamera::DrawDebugUI()
+void DebugCamera::DrawImGui()
 {
 #ifdef USE_IMGUI
-    ImGui::Begin("Debug Camera", &showDebugUI_);
 
     // 現在の位置・回転情報
     Vector3 pos = camera_->GetTranslate();
@@ -228,7 +226,5 @@ void DebugCamera::DrawDebugUI()
     {
         Reset();
     }
-
-    ImGui::End();
 #endif
 }

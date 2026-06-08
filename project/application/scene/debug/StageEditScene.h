@@ -35,6 +35,8 @@ public:
 	 * 各種リソースの解放を行います。
 	 */
 	void Finalize() override;
+
+	void DrawImGui();
 	
 	/**
 	 * @brief 2D描画処理

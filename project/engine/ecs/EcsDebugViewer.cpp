@@ -8,14 +8,9 @@ void EcsDebugViewer::Initialize()
     m_showWindow = true;
 }
 
-void EcsDebugViewer::DrawWindow(const Registry& registry)
+void EcsDebugViewer::DrawImGui(const Registry& registry)
 {
-    if (!m_showWindow)
-        return;
-
-    // ImGuiウィンドウの開始
-    ImGui::Begin("ECS Debug Viewer", &m_showWindow);
-
+#ifdef USE_IMGUI
     if (ImGui::CollapsingHeader("Registry Status", ImGuiTreeNodeFlags_DefaultOpen))
     {
         uint32_t active = registry.GetActiveEntityCount();
@@ -29,6 +24,5 @@ void EcsDebugViewer::DrawWindow(const Registry& registry)
         sprintf_s(buf, "%d/%d", active, maxEnt);
         ImGui::ProgressBar(fraction, ImVec2(0.f, 0.f), buf);
     }
-
-    ImGui::End();
+#endif
 }

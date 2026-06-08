@@ -18,6 +18,9 @@
 #include "engine/ecs/system/InstancedRenderSystem.h"
 #include "engine/graphics/3d/InstancedModelRenderer.h"
 #include "manager/graphics/ModelManager.h"
+#ifdef USE_IMGUI
+#include "manager/editor/DebugUIManager.h"
+#endif
 
 StageManager::StageManager()
 {
@@ -25,6 +28,11 @@ StageManager::StageManager()
 
 StageManager::~StageManager()
 {
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance()) {
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
 	// 各ゲームオブジェクトを明示的に解放
 	stageData_.reset();
 	enemyManager_.reset();
@@ -80,12 +88,14 @@ void StageManager::Initialize(Registry* registry, SystemManager* systemManager, 
 			ecsRenderers_[name] = std::move(renderer);
 		}
 	}
+
+#ifdef USE_IMGUI
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Stage Manager", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+#endif
 }
 
 void StageManager::Update()
 {
-	// デバッグUIの更新
-	DrawImGui();
 
 	// プレイヤーデータの同期（カメラ用など）
 	if (playerEntity_ == kInvalidEntity) return; // Changed return true to return; as Update is void.
@@ -196,8 +206,6 @@ void StageManager::Draw2D()
 void StageManager::DrawImGui()
 {
 #ifdef USE_IMGUI
-	ImGui::Begin("Stage Manager");
-
 	// 敵を全クリアするボタン（デバッグ用）
 	if(ImGui::Button("Clear Enemies"))
 	{
@@ -217,9 +225,6 @@ void StageManager::DrawImGui()
 	}
 
 	// プレイヤー情報の表示 (現在は GamePlayScene::DrawImGui で一括表示)
-	
-	ImGui::End();
-	
 #endif
 }
 

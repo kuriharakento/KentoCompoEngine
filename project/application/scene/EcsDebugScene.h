@@ -27,6 +27,8 @@ public:
      */
     void Finalize() override;
 
+    void DrawImGui();
+
     /**
      * @brief 更新処理。
      */

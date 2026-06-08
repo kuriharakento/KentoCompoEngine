@@ -25,7 +25,7 @@ public:
      * @brief インスペクターウィンドウを描画する。
      * @param registry 監視対象のRegistry
      */
-    void Draw(Registry& registry);
+    void DrawImGui(Registry& registry);
 
 private:
     /**

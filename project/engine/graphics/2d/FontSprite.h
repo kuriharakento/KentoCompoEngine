@@ -40,7 +40,11 @@ class FontSprite
 {
 public:
     FontSprite() = default;
-    ~FontSprite() = default;
+    ~FontSprite();
+
+#ifdef USE_IMGUI
+    void DrawImGui();
+#endif
 
     /**
      * @brief 初期化

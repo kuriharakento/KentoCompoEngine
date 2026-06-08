@@ -10,6 +10,7 @@
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
+#include "manager/editor/DebugUIManager.h"
 #endif
 
 ParticleManager* ParticleManager::GetInstance()
@@ -25,10 +26,20 @@ void ParticleManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager
 
 	pipelineManager_ = std::make_unique<ParticlePipelineManager>();
 	pipelineManager_->Initialize(dxCommon_);
+
+#ifdef USE_IMGUI
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Particle Manager", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+#endif
 }
 
 void ParticleManager::Finalize()
 {
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance())
+	{
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
 	effects_.clear();
 	emitters_.clear();
 	effectDefinitions_.clear();
@@ -58,9 +69,6 @@ void ParticleManager::Update(CameraManager* camera)
 
 	// 終了したエフェクトを削除
 	RemoveFinishedEffects();
-
-	// ImGuiを表示
-	DrawImGui();
 }
 
 void ParticleManager::Draw()
@@ -86,8 +94,6 @@ void ParticleManager::Draw()
 void ParticleManager::DrawImGui()
 {
 #ifdef USE_IMGUI
-
-	ImGui::Begin("Particle Manager");
 
 	// 統計情報
 	uint32_t totalParticles = 0;
@@ -201,7 +207,6 @@ void ParticleManager::DrawImGui()
 		}
 	}
 
-	ImGui::End();
 #endif
 }
 

@@ -24,6 +24,7 @@ public:
      * @param stageManager ステージ管理クラスへのポインタ（敵・エリア情報の取得に使用）
      */
     void Initialize(SpriteCommon* spriteCommon, StageManager* stageManager);
+    ~Minimap();
     
     /**
      * @brief 毎フレームの更新処理
@@ -31,6 +32,7 @@ public:
      * プレイヤー、敵、エリアの位置を取得し、ミニマップ上のアイコン位置を更新します。
      */
     void Update();
+    void DrawImGui();
     
     /**
      * @brief ミニマップの描画

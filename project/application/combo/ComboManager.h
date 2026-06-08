@@ -24,6 +24,11 @@
 class ComboManager
 {
 public:
+    ~ComboManager();
+
+#ifdef USE_IMGUI
+    void DrawImGui();
+#endif
     /**
      * @brief シングルトンインスタンスの取得
      * 
@@ -106,12 +111,7 @@ public:
     static constexpr float kComboTimeout = 10.0f;
 
 private:
-    /**
-     * @brief ImGuiデバッグ表示
-     * 
-     * コンボ数とタイマーをImGuiウィンドウに表示します。
-     */
-    void DrawImGUi();
+
 
 private:
     // 最大コンボ数（統計用）

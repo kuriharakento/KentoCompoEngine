@@ -31,6 +31,7 @@
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
+#include "manager/editor/DebugUIManager.h"
 #endif
 
 namespace
@@ -57,6 +58,11 @@ namespace
 ParticleEditor::ParticleEditor() = default;
 ParticleEditor::~ParticleEditor()
 {
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance()) {
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
 	// 現在編集中のエフェクトをマネージャーから削除
 	if (currentEffect_)
 	{
@@ -71,29 +77,15 @@ void ParticleEditor::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)
 	
 	// 初期エフェクトを作成
 	NewEffect();
+
+#ifdef USE_IMGUI
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Particle Editor", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+#endif
 }
 
-void ParticleEditor::Update(CameraManager* camera)
+void ParticleEditor::DrawImGui()
 {
 #ifdef USE_IMGUI
-	// 非表示時は処理をスキップ
-	if (!isVisible_) return;
-
-	// ループプレビュー：一定間隔で全エミッターを再スタート
-	if (previewLooping_ && currentEffect_)
-	{
-		previewElapsed_ += TimeManager::GetInstance().GetGameContext().deltaTime;
-		if (previewElapsed_ >= previewRepeatInterval_)
-		{
-			previewElapsed_ = 0.0f;
-			currentEffect_->Play();
-		}
-	}
-
-	// ウィンドウサイズを初回のみ設定
-	ImGui::SetNextWindowSize(ImVec2(kDefaultWindowWidth, kDefaultWindowHeight), ImGuiCond_FirstUseEver);
-	ImGui::Begin("Particle Editor", &isVisible_, ImGuiWindowFlags_MenuBar);
-
 	// メニューバー描画
 	DrawMenuBar();
 
@@ -109,8 +101,6 @@ void ParticleEditor::Update(CameraManager* camera)
 		DrawRendererPanel();
 	}
 
-	ImGui::End();
-
 	// エミッター追加ダイアログ
 	if (showAddEmitterDialog_)
 	{
@@ -122,9 +112,22 @@ void ParticleEditor::Update(CameraManager* camera)
 	{
 		AddModuleDialog(currentEffect_->GetEmitter(static_cast<size_t>(selectedEmitterIndex_)));
 	}
-#else
-	(void)camera;
 #endif
+}
+
+void ParticleEditor::Update(CameraManager* camera)
+{
+	(void)camera;
+	// ループプレビュー：一定間隔で全エミッターを再スタート
+	if (previewLooping_ && currentEffect_)
+	{
+		previewElapsed_ += TimeManager::GetInstance().GetGameContext().deltaTime;
+		if (previewElapsed_ >= previewRepeatInterval_)
+		{
+			previewElapsed_ = 0.0f;
+			currentEffect_->Play();
+		}
+	}
 }
 
 void ParticleEditor::DrawDebug()
@@ -421,64 +424,48 @@ void ParticleEditor::SaveEffect(const std::string& path)
 #ifdef USE_IMGUI
 void ParticleEditor::DrawMenuBar()
 {
-	if (ImGui::BeginMenuBar())
+	if (ImGui::CollapsingHeader("Menu / Operations", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		if (ImGui::BeginMenu("File"))
+		if (ImGui::Button("New Effect")) { NewEffect(); }
+		ImGui::SameLine();
+		if (ImGui::Button("Save")) { SaveEffect(effectPath_); }
+		ImGui::SameLine();
+		if (ImGui::Button("Save As...")) { effectPath_.clear(); SaveEffect(""); }
+
+		if (ImGui::Button("Load..."))
 		{
-			if (ImGui::MenuItem("New")) { NewEffect(); }
-			
-			// Load サブメニュー
-			if (ImGui::BeginMenu("Load..."))
+			ImGui::OpenPopup("LoadEffectPopup");
+		}
+		if (ImGui::BeginPopup("LoadEffectPopup"))
+		{
+			std::filesystem::path dir("Resources/Json/particle");
+			if (std::filesystem::exists(dir))
 			{
-				std::filesystem::path dir("Resources/Json/particle");
-				if (std::filesystem::exists(dir))
+				for (const auto& entry : std::filesystem::directory_iterator(dir))
 				{
-					for (const auto& entry : std::filesystem::directory_iterator(dir))
+					if (entry.path().extension() == ".json")
 					{
-						if (entry.path().extension() == ".json")
+						std::string filename = entry.path().filename().string();
+						if (ImGui::Selectable(filename.c_str()))
 						{
-							std::string filename = entry.path().filename().string();
-							if (ImGui::MenuItem(filename.c_str()))
-							{
-								LoadEffect(entry.path().string());
-							}
+							LoadEffect(entry.path().string());
 						}
 					}
 				}
-				else
-				{
-					ImGui::TextDisabled("(No particle files found)");
-				}
-				ImGui::EndMenu();
 			}
-			
-			ImGui::Separator();
-			if (ImGui::MenuItem("Save")) { SaveEffect(effectPath_); }
-			if (ImGui::MenuItem("Save As...")) 
-			{ 
-				// パスを空にして保存（デフォルトパスが使用される）
-				effectPath_.clear();
-				SaveEffect(""); 
+			else
+			{
+				ImGui::TextDisabled("(No particle files found)");
 			}
-			ImGui::Separator();
-			if (ImGui::MenuItem("Close")) { isVisible_ = false; }
-			ImGui::EndMenu();
+			ImGui::EndPopup();
 		}
 
-		if (ImGui::BeginMenu("Edit"))
-		{
-			if (ImGui::MenuItem("Add Emitter")) { showAddEmitterDialog_ = true; }
-			ImGui::EndMenu();
-		}
-
-		if (ImGui::BeginMenu("View"))
-		{
-			ImGui::MenuItem("Show Debug Lines", nullptr, &showDebug_);
-			if (ImGui::MenuItem("Reset View")) { if (currentEffect_) { currentEffect_->Reset(); currentEffect_->Play(); } }
-			ImGui::EndMenu();
-		}
-
-		ImGui::EndMenuBar();
+		ImGui::SameLine();
+		if (ImGui::Button("Add Emitter")) { showAddEmitterDialog_ = true; }
+		ImGui::SameLine();
+		if (ImGui::Button("Reset View")) { if (currentEffect_) { currentEffect_->Reset(); currentEffect_->Play(); } }
+		
+		ImGui::Checkbox("Show Debug Lines", &showDebug_);
 	}
 }
 

@@ -17,6 +17,9 @@
 
 #include "time/TimeManager.h"
 #include "externals/imgui/imgui.h"
+#ifdef USE_IMGUI
+#include "manager/editor/DebugUIManager.h"
+#endif
 
 EcsDebugScene::EcsDebugScene()
 {
@@ -69,19 +72,24 @@ void EcsDebugScene::Initialize()
 
     // 動作開始
     StartState(SceneState::Playing);
+
+#ifdef USE_IMGUI
+    DebugUIManager::GetInstance()->RegisterDebugUI(this, "ECS Sandbox Control", [this]() { this->DrawImGui(); }, DebugUIArea::Hierarchy);
+#endif
 }
 
 void EcsDebugScene::Finalize()
 {
+#ifdef USE_IMGUI
+    if (DebugUIManager::HasInstance()) {
+        DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+    }
+#endif
 }
 
-void EcsDebugScene::CommonUpdate()
+void EcsDebugScene::DrawImGui()
 {
-    float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
-
-    // --- デバッグUI ---
-    ImGui::Begin("ECS Sandbox Control");
-    
+#ifdef USE_IMGUI
     if (debugCamera_)
     {
         bool isActive = debugCamera_->IsActive();
@@ -159,10 +167,16 @@ void EcsDebugScene::CommonUpdate()
         }
     }
 
-    ImGui::End();
+    if (inspector_ && registry_)
+    {
+        inspector_->DrawImGui(*registry_);
+    }
+#endif
+}
 
-    // ECS状態表示
-    inspector_->Draw(*registry_);
+void EcsDebugScene::CommonUpdate()
+{
+    float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
 
     // カメラ更新
     if (debugCamera_)

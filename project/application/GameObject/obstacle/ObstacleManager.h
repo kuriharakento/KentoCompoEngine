@@ -19,9 +19,11 @@ class ObstacleManager
 public:
 	// 初期化
 	void Initialize(Registry* registry, Object3dCommon* object3dCommon, LightManager* lightManager);
+	~ObstacleManager();
 	// 更新
 	// ロジック更新
 	void Update();
+	void DrawImGui();
 	// 行列更新
 	void UpdateTransforms(CameraManager* camera);
 	// 描画

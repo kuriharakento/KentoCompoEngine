@@ -1,10 +1,19 @@
 #include "CinematicLetterbox.h"
 #include "time/TimeManager.h"
 #include "imgui/imgui.h"
+#include "manager/editor/DebugUIManager.h"
 #include <algorithm>
 
 CinematicLetterbox::CinematicLetterbox() {}
-CinematicLetterbox::~CinematicLetterbox() {}
+CinematicLetterbox::~CinematicLetterbox()
+{
+#ifdef USE_IMGUI
+    if (DebugUIManager::HasInstance())
+    {
+        DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+    }
+#endif
+}
 
 void CinematicLetterbox::Initialize(SpriteCommon* spriteCommon, const std::string& texturePath, float screenWidth, float screenHeight)
 {
@@ -26,6 +35,10 @@ void CinematicLetterbox::Initialize(SpriteCommon* spriteCommon, const std::strin
     bottomBar_->SetAnchorPoint({ 0.0f, 0.0f }); // 上端を基準にすることで、画面下部から上がってくる動きを実現
     bottomBar_->SetColor(color_);
     bottomBar_->SetPosition({ 0.0f, screenHeight_ });
+
+#ifdef USE_IMGUI
+    DebugUIManager::GetInstance()->RegisterDebugUI(this, "Cinematic Letterbox", [this]() { this->ShowImGui(); }, DebugUIArea::Inspector);
+#endif
 }
 
 void CinematicLetterbox::Show(float duration)
@@ -52,9 +65,6 @@ void CinematicLetterbox::Hide(float duration)
 
 void CinematicLetterbox::Update()
 {
-    // ImGui表示
-    ShowImGui();
-
     float deltaTime = TimeManager::GetInstance().GetUIContext().deltaTime;
 
     // 表示アニメーション処理
@@ -202,88 +212,84 @@ float CinematicLetterbox::ApplyEasing(float t) const
 void CinematicLetterbox::ShowImGui()
 {
 #ifdef USE_IMGUI
-    if (ImGui::Begin("Cinematic Letterbox"))
+    // 状態表示
+    const char* stateNames[] = { "Hidden", "Showing", "Visible", "Hiding" };
+    ImGui::Text("State: %s", stateNames[static_cast<int>(state_)]);
+    ImGui::Text("Progress: %.2f", progress_);
+    ImGui::Text("Elapsed: %.2f / %.2f", elapsed_, duration_);
+
+    // 位置デバッグ
+    if (topBar_)
     {
-        // 状態表示
-        const char* stateNames[] = { "Hidden", "Showing", "Visible", "Hiding" };
-        ImGui::Text("State: %s", stateNames[static_cast<int>(state_)]);
-        ImGui::Text("Progress: %.2f", progress_);
-        ImGui::Text("Elapsed: %.2f / %.2f", elapsed_, duration_);
+        Vector2 topPos = topBar_->GetPosition();
+        Vector2 topSize = topBar_->GetSize();
+        ImGui::Text("Top Bar Y: %.2f (Size: %.2f)", topPos.y, topSize.y);
+    }
+    if (bottomBar_)
+    {
+        Vector2 bottomPos = bottomBar_->GetPosition();
+        Vector2 bottomSize = bottomBar_->GetSize();
+        ImGui::Text("Bottom Bar Y: %.2f (Size: %.2f)", bottomPos.y, bottomSize.y);
+    }
 
-        // 位置デバッグ
-        if (topBar_)
-        {
-            Vector2 topPos = topBar_->GetPosition();
-            Vector2 topSize = topBar_->GetSize();
-            ImGui::Text("Top Bar Y: %.2f (Size: %.2f)", topPos.y, topSize.y);
-        }
-        if (bottomBar_)
-        {
-            Vector2 bottomPos = bottomBar_->GetPosition();
-            Vector2 bottomSize = bottomBar_->GetSize();
-            ImGui::Text("Bottom Bar Y: %.2f (Size: %.2f)", bottomPos.y, bottomSize.y);
-        }
+    // パラメータ調整
+    ImGui::Separator();
+    if (ImGui::DragFloat("Letterbox Height", &letterboxHeight_, 1.0f, 50.0f, 300.0f))
+    {
+        SetLetterboxHeight(letterboxHeight_);
+    }
+    if (ImGui::DragFloat("Overshoot Margin", &overshootMargin_, 1.0f, 50.0f, 300.0f))
+    {
+        UpdateBarSizes();
+    }
+    ImGui::DragFloat("Duration", &duration_, 0.1f, 0.1f, 5.0f);
 
-        // パラメータ調整
-        ImGui::Separator();
-        if (ImGui::DragFloat("Letterbox Height", &letterboxHeight_, 1.0f, 50.0f, 300.0f))
-        {
-            SetLetterboxHeight(letterboxHeight_);
-        }
-        if (ImGui::DragFloat("Overshoot Margin", &overshootMargin_, 1.0f, 50.0f, 300.0f))
-        {
-            UpdateBarSizes();
-        }
-        ImGui::DragFloat("Duration", &duration_, 0.1f, 0.1f, 5.0f);
+    // イージングタイプ選択
+    const char* easeNames[] = {
+        "Linear", "InSine", "OutSine", "InOutSine",
+        "InQuint", "OutQuint", "InOutQuint",
+        "InCirc", "OutCirc", "InOutCirc",
+        "InElastic", "OutElastic", "InOutElastic",
+        "InExpo", "OutExpo", "InOutExpo",
+        "OutQuad", "InOutQuart",
+        "InBack", "OutBack", "InOutBack",
+        "OutBounce", "InBounce", "InOutBounce"
+    };
+    int currentEase = static_cast<int>(easeType_);
+    if (ImGui::Combo("Ease Type", &currentEase, easeNames, IM_ARRAYSIZE(easeNames)))
+    {
+        easeType_ = static_cast<LetterboxEase>(currentEase);
+    }
 
-        // イージングタイプ選択
-        const char* easeNames[] = {
-            "Linear", "InSine", "OutSine", "InOutSine",
-            "InQuint", "OutQuint", "InOutQuint",
-            "InCirc", "OutCirc", "InOutCirc",
-            "InElastic", "OutElastic", "InOutElastic",
-            "InExpo", "OutExpo", "InOutExpo",
-            "OutQuad", "InOutQuart",
-            "InBack", "OutBack", "InOutBack",
-            "OutBounce", "InBounce", "InOutBounce"
-        };
-        int currentEase = static_cast<int>(easeType_);
-        if (ImGui::Combo("Ease Type", &currentEase, easeNames, IM_ARRAYSIZE(easeNames)))
-        {
-            easeType_ = static_cast<LetterboxEase>(currentEase);
-        }
+    // 色設定
+    float color[4] = { color_.x, color_.y, color_.z, color_.w };
+    if (ImGui::ColorEdit4("Color", color))
+    {
+        SetColor({ color[0], color[1], color[2], color[3] });
+    }
 
-        // 色設定
-        float color[4] = { color_.x, color_.y, color_.z, color_.w };
-        if (ImGui::ColorEdit4("Color", color))
-        {
-            SetColor({ color[0], color[1], color[2], color[3] });
-        }
-
-        // コントロールボタン
-        ImGui::Separator();
-        if (ImGui::Button("Show"))
+    // コントロールボタン
+    ImGui::Separator();
+    if (ImGui::Button("Show"))
+    {
+        Show(duration_);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Hide"))
+    {
+        Hide(duration_);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Toggle"))
+    {
+        if (state_ == LetterboxState::Hidden || state_ == LetterboxState::Hiding)
         {
             Show(duration_);
         }
-        ImGui::SameLine();
-        if (ImGui::Button("Hide"))
+        else
         {
             Hide(duration_);
         }
-        ImGui::SameLine();
-        if (ImGui::Button("Toggle"))
-        {
-            if (state_ == LetterboxState::Hidden || state_ == LetterboxState::Hiding)
-            {
-                Show(duration_);
-            }
-            else
-            {
-                Hide(duration_);
-            }
-        }
     }
-    ImGui::End();
 #endif
 }

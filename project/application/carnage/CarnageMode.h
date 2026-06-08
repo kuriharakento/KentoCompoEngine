@@ -38,6 +38,11 @@ public:
      * @param playerEntity プレイヤーのEntityID
      */
     CarnageMode(Registry* registry, EntityID playerEntity);
+    virtual ~CarnageMode();
+
+#ifdef USE_IMGUI
+    void DrawImGui();
+#endif
 
     /**
      * @brief 毎フレームの更新処理
@@ -108,13 +113,6 @@ private: // メンバ関数
      */
     void HideUI();
     
-    /**
-     * @brief ImGuiデバッグ表示
-     * 
-     * カーネージモードの状態をImGuiウィンドウに表示します。
-     */
-    void ImGui();
-
     // ECS Registry
     Registry* registry_ = nullptr;
     // ターゲットEntityID

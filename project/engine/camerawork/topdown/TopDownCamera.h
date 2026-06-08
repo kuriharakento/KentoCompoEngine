@@ -23,6 +23,11 @@ public:
      * @param camera 操作対象のカメラポインタ
      */
     void Initialize(Camera* camera)override;
+    virtual ~TopDownCamera();
+
+#ifdef USE_IMGUI
+    void DrawImGui();
+#endif
 
     /**
      * @brief 毎フレームの更新処理

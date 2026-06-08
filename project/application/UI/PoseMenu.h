@@ -17,7 +17,7 @@ class PoseMenu
 {
 public:
 	PoseMenu() = default;
-	~PoseMenu() = default;
+	~PoseMenu();
 
 	/**
 	 * @brief 初期化

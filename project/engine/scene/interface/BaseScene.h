@@ -3,6 +3,10 @@
 #include <vector>
 #include "graphics/3d/Object3d.h"
 
+#ifdef USE_IMGUI
+#include "manager/editor/DebugUIManager.h"
+#endif
+
  /// シーンの状態（ライフサイクル）
 enum class SceneState
 {
@@ -25,7 +29,15 @@ class BaseScene
 {
 public:
     BaseScene() = default;
-    virtual ~BaseScene() = default;
+    virtual ~BaseScene()
+	{
+#ifdef USE_IMGUI
+		if (DebugUIManager::HasInstance())
+		{
+			DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		}
+#endif
+	}
 
 	//============================================
 	// 純粋仮想関数（必ずオーバーライドする）
@@ -91,9 +103,6 @@ public:
      */
     void Update()
     {
-        // ImGuiの表示
-        DrawImGui();
-
 		// 共通更新処理
 		CommonUpdate();
 

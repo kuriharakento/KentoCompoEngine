@@ -114,6 +114,8 @@
     <ClCompile Include="externals\imgui\imgui_tables.cpp" />
     <ClCompile Include="externals\imgui\imgui_widgets.cpp" />
     <ClCompile Include="engine\manager\editor\ImGuiManager.cpp" />
+    <ClCompile Include="engine\manager\editor\DebugUIManager.cpp" />
+    <ClCompile Include="engine\manager\editor\ConsoleLog.cpp" />
     <ClCompile Include="engine\framework\Framework.cpp" />
     <ClCompile Include="application\scene\play\GamePlayScene.cpp" />
     <ClCompile Include="engine\manager\scene\LightManager.cpp" />
@@ -355,6 +357,8 @@
     <ClInclude Include="externals\imgui\imstb_truetype.h" />
     <ClInclude Include="engine\manager\system\SrvManager.h" />
     <ClInclude Include="engine\manager\editor\ImGuiManager.h" />
+    <ClInclude Include="engine\manager\editor\DebugUIManager.h" />
+    <ClInclude Include="engine\manager\editor\ConsoleLog.h" />
     <ClInclude Include="engine\scene\MyGame.h" />
     <ClInclude Include="engine\framework\Framework.h" />
     <ClInclude Include="engine\manager\effect\ParticlePipelineManager.h" />

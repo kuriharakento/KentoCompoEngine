@@ -26,7 +26,7 @@ public:
      * @brief ImGuiのウィンドウを描画して、渡されたRegistryの内部数値を表示する。
      * @param registry 監視したい対象のRegistryオブジェクト
      */
-    void DrawWindow(const Registry& registry);
+    void DrawImGui(const Registry& registry);
 
 private:
     // ウィンドウを表示するかどうかのフラグ
