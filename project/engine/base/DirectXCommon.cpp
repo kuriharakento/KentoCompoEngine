@@ -242,6 +242,95 @@ void DirectXCommon::ExecuteAndWait()
 	assert(SUCCEEDED(hr));
 }
 
+void DirectXCommon::Resize(uint32_t width, uint32_t height)
+{
+	// GPUのコマンド完了を待機する
+	ExecuteAndWait();
+
+	// スワップチェーンリソースをリセットする
+	for (auto& resource : swapChainResources_)
+	{
+		resource.Reset();
+	}
+	depthBuffer_.Reset();
+
+	// スワップチェーンのサイズを変更する
+	HRESULT hr = swapChain_->ResizeBuffers(
+		kSwapChainBufferCount,
+		width,
+		height,
+		DXGI_FORMAT_R8G8B8A8_UNORM,
+		0
+	);
+	assert(SUCCEEDED(hr));
+
+	// レンダーターゲットビューを再生成する
+	CreateRenderTargetView();
+
+	// 深度バッファを再生成する
+	CreateDepthBuffer();
+	CreateDepthStencilView();
+
+	// ビューポートとシザー矩形を再設定する
+	InitializeViewPort();
+	InitializeScissorRect();
+}
+
+void DirectXCommon::SetFullscreen(bool fullscreen)
+{
+	if (!swapChain_ || !winApp_) return;
+
+	HWND hwnd = winApp_->GetHwnd();
+
+	if (fullscreen && !isFullscreen_)
+	{
+		// 1. フルスクリーン化（ボーダーレス）
+		// 現在のスタイルと配置情報を保存
+		savedWindowStyle_ = GetWindowLong(hwnd, GWL_STYLE);
+		GetWindowPlacement(hwnd, &savedWindowPlacement_);
+
+		// モニターの情報を取得
+		HMONITOR hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
+		MONITORINFO mi = { sizeof(mi) };
+		if (GetMonitorInfo(hMonitor, &mi))
+		{
+			// スタイルをポップアップ（枠・タイトルバーなし）に変更
+			SetWindowLong(hwnd, GWL_STYLE, savedWindowStyle_ & ~WS_OVERLAPPEDWINDOW);
+
+			// 画面全体に配置
+			SetWindowPos(hwnd, HWND_TOP,
+				mi.rcMonitor.left, mi.rcMonitor.top,
+				mi.rcMonitor.right - mi.rcMonitor.left,
+				mi.rcMonitor.bottom - mi.rcMonitor.top,
+				SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+		}
+
+		isFullscreen_ = true;
+	}
+	else if (!fullscreen && isFullscreen_)
+	{
+		// 2. フルスクリーン解除
+		// 元のスタイルに戻す
+		SetWindowLong(hwnd, GWL_STYLE, savedWindowStyle_);
+
+		// 元の配置情報（最大化状態や通常サイズ）を復元
+		SetWindowPlacement(hwnd, &savedWindowPlacement_);
+
+		// フレーム変更を通知してウィンドウを再描画
+		SetWindowPos(hwnd, nullptr, 0, 0, 0, 0,
+			SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+			SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+
+		isFullscreen_ = false;
+	}
+}
+
+bool DirectXCommon::IsFullscreen() const
+{
+	return isFullscreen_;
+}
+
+
 void DirectXCommon::InitializeDevice()
 {
 	HRESULT hr;
@@ -383,8 +472,8 @@ void DirectXCommon::CreateSwapChain()
 	/*--------------[ スワップチェインの設定 ]-----------------*/
 
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
-	swapChainDesc.Width = WinApp::kClientWidth;
-	swapChainDesc.Height = WinApp::kClientHeight;
+	swapChainDesc.Width = winApp_->GetClientWidth();
+	swapChainDesc.Height = winApp_->GetClientHeight();
 	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -405,8 +494,8 @@ void DirectXCommon::CreateDepthBuffer()
 	/*--------------[ 深度バッファリソースの設定 ]-----------------*/
 
 	D3D12_RESOURCE_DESC resourceDesc{};
-	resourceDesc.Width = WinApp::kClientWidth;											//Textureの幅
-	resourceDesc.Height = WinApp::kClientHeight;										//Textureの高さ
+	resourceDesc.Width = winApp_->GetClientWidth();											//Textureの幅
+	resourceDesc.Height = winApp_->GetClientHeight();										//Textureの高さ
 	resourceDesc.MipLevels = 1;											//mipmapの数
 	resourceDesc.DepthOrArraySize = 1;									//奥行き or 配列Textureの配列数
 	resourceDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;				//DepthStencilとして利用可能なフォーマット
@@ -527,8 +616,8 @@ void DirectXCommon::InitializeViewPort()
 {
 	/*--------------[ ビューポート矩形の設定 ]-----------------*/
 
-	viewport_.Width = WinApp::kClientWidth;
-	viewport_.Height = WinApp::kClientHeight;
+	viewport_.Width = static_cast<float>(winApp_->GetClientWidth());
+	viewport_.Height = static_cast<float>(winApp_->GetClientHeight());
 	viewport_.TopLeftX = 0;
 	viewport_.TopLeftY = 0;
 	viewport_.MinDepth = 0.0f;
@@ -539,9 +628,9 @@ void DirectXCommon::InitializeScissorRect()
 {
 	/*--------------[ シザリング矩形の設定 ]-----------------*/
 	scissorRect_.left = 0;
-	scissorRect_.right = WinApp::kClientWidth;
+	scissorRect_.right = winApp_->GetClientWidth();
 	scissorRect_.top = 0;
-	scissorRect_.bottom = WinApp::kClientHeight;
+	scissorRect_.bottom = winApp_->GetClientHeight();
 }
 
 void DirectXCommon::InitializeDXCCompiler()

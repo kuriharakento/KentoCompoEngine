@@ -85,6 +85,24 @@ public:
 	 */
 	void ExecuteAndWait();
 
+	/**
+	 * @brief ウィンドウサイズ変更に伴うリサイズ処理を行う。
+	 * @param width 新しい幅
+	 * @param height 新しい高さ
+	 */
+	void Resize(uint32_t width, uint32_t height);
+
+	/**
+	 * @brief フルスクリーン状態を設定する。
+	 * @param fullscreen フルスクリーンならtrue、ウィンドウモードならfalse
+	 */
+	void SetFullscreen(bool fullscreen);
+
+	/**
+	 * @brief フルスクリーン状態かどうかを取得する。
+	 */
+	bool IsFullscreen() const;
+
 public:
 	/**
 	 * @brief デバイスを取得
@@ -308,6 +326,10 @@ private:
 	Microsoft::WRL::ComPtr<IDxcIncludeHandler> includeHandler_ = nullptr;
 	// リソースバリア
 	D3D12_RESOURCE_BARRIER barrier_{};
+	// フルスクリーン切り替え時の状態保存用
+	DWORD savedWindowStyle_ = 0;
+	WINDOWPLACEMENT savedWindowPlacement_ = { sizeof(WINDOWPLACEMENT) };
+	bool isFullscreen_ = false;
 	// FPS固定用の基準時間
 	std::chrono::steady_clock::time_point reference_;
 	// レンダーテクスチャのクリア値

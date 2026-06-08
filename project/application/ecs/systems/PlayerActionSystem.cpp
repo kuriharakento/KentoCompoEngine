@@ -234,7 +234,8 @@ void PlayerActionSystem::UpdateMovement(EntityID entity, Registry& registry, flo
         float mouseX = input->GetMouseX();
         float mouseY = input->GetMouseY();
 
-        Matrix4x4 matViewport = MakeViewportMatrix(0, 0, WinApp::kClientWidth, WinApp::kClientHeight, 0, 1);
+        // 1280x720の仮想スクリーン解像度に固定
+        Matrix4x4 matViewport = MakeViewportMatrix(0, 0, 1280.0f, 720.0f, 0.0f, 1.0f);
         Matrix4x4 matVPV = (camera->GetViewMatrix() * camera->GetProjectionMatrix()) * matViewport;
         Matrix4x4 matInverseVPV = Inverse(matVPV);
 

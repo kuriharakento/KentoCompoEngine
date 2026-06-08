@@ -138,8 +138,8 @@ void Framework::Initialize()
 	renderTexture_->Initialize(
 		dxCommon_.get(),
 		srvManager_.get(),
-		WinApp::kClientWidth,
-		WinApp::kClientHeight,
+		winApp_->GetClientWidth(),
+		winApp_->GetClientHeight(),
 		DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
 		clearColor
 	);
@@ -150,8 +150,8 @@ void Framework::Initialize()
 	brightPassRT_->Initialize(
 		dxCommon_.get(),
 		srvManager_.get(),
-		WinApp::kClientWidth,
-		WinApp::kClientHeight,
+		winApp_->GetClientWidth(),
+		winApp_->GetClientHeight(),
 		DXGI_FORMAT_R16G16B16A16_FLOAT,
 		clearColor
 	);
@@ -163,8 +163,8 @@ void Framework::Initialize()
 		blurRT_[i]->Initialize(
 			dxCommon_.get(),
 			srvManager_.get(),
-			WinApp::kClientWidth,
-			WinApp::kClientHeight,
+			winApp_->GetClientWidth(),
+			winApp_->GetClientHeight(),
 			DXGI_FORMAT_R16G16B16A16_FLOAT,
 			clearColor
 		);
@@ -172,7 +172,14 @@ void Framework::Initialize()
 
 	// ポストプロセスマネージャーの初期化
 	postProcessManager_ = std::make_unique<PostProcessManager>();
-	postProcessManager_->Initialize(dxCommon_.get(), srvManager_.get(), L"Resources/shaders/PostEffect.VS.hlsl", L"Resources/shaders/PostEffect.PS.hlsl");
+	postProcessManager_->Initialize(
+		dxCommon_.get(),
+		srvManager_.get(),
+		L"Resources/shaders/PostEffect.VS.hlsl",
+		L"Resources/shaders/PostEffect.PS.hlsl",
+		winApp_->GetClientWidth(),
+		winApp_->GetClientHeight()
+	);
 	postProcessManager_->SetBloomRenderTargets(
 		brightPassRT_.get(),
 		blurRT_[0].get(),
@@ -196,10 +203,36 @@ void Framework::Initialize()
 
 	// ディファードレンダラーの初期化
 	deferredRenderer_ = std::make_unique<DeferredRenderer>();
-	deferredRenderer_->Initialize(dxCommon_.get(), srvManager_.get(), WinApp::kClientWidth, WinApp::kClientHeight);
+	deferredRenderer_->Initialize(dxCommon_.get(), srvManager_.get(), winApp_->GetClientWidth(), winApp_->GetClientHeight());
 
 	// Skyboxの初期化
 	skybox_ = std::make_unique<Skybox>();
+
+	// ウィンドウのリサイズコールバックを登録する
+	winApp_->SetResizeCallback([this](uint32_t width, uint32_t height) {
+		// GPUのコマンド完了を待機する
+		dxCommon_->ExecuteAndWait();
+
+		// DirectXCommon をリサイズする
+		dxCommon_->Resize(width, height);
+
+		// 各種レンダーターゲットをリサイズする
+		renderTexture_->Resize(width, height);
+		brightPassRT_->Resize(width, height);
+		for (int i = 0; i < kBlurRenderTargetCount; i++)
+		{
+			blurRT_[i]->Resize(width, height);
+		}
+
+		// ポストプロセスマネージャーをリサイズする
+		postProcessManager_->Resize(width, height);
+
+		// ディファードレンダラーをリサイズする
+		deferredRenderer_->Resize(width, height);
+
+		// 派生クラス用のリサイズ通知
+		OnResize(width, height);
+	});
 }
 
 
@@ -244,6 +277,12 @@ void Framework::Finalize()
 
 void Framework::Update()
 {
+	// 画面サイズ変更のキー入力チェック（F12でフルスクリーントグル）
+	if (Input::GetInstance()->TriggerKey(DIK_F12))
+	{
+		dxCommon_->SetFullscreen(!dxCommon_->IsFullscreen());
+	}
+
 	// ウィンドウメッセージ処理
 	if (winApp_->ProcessMessage())
 	{
@@ -363,3 +402,4 @@ void Framework::ShowPerformanceInfo()
 	ImGui::End();
 #endif
 }
+

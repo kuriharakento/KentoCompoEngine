@@ -508,8 +508,8 @@ void MoveComponent::ProcessLookAtMouse(GameObject* owner)
     float mouseX = Input::GetInstance()->GetMouseX();
     float mouseY = Input::GetInstance()->GetMouseY();
 
-    // ビューポート行列を作成
-    Matrix4x4 matViewport = MakeViewportMatrix(0, 0, WinApp::kClientWidth, WinApp::kClientHeight, 0, 1);
+    // ビューポート行列を作成（1280x720の仮想スクリーン解像度に固定）
+    Matrix4x4 matViewport = MakeViewportMatrix(0, 0, 1280.0f, 720.0f, 0.0f, 1.0f);
 
     // ビュー行列とプロジェクション行列を合成
     Matrix4x4 matVPV = (camera_->GetViewMatrix() * camera_->GetProjectionMatrix()) * matViewport;

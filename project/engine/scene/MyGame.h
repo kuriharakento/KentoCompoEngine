@@ -15,6 +15,10 @@ public:
 
 	//描画
 	void Draw()override;
+
+protected:
+	//ウィンドウサイズ変更時のコールバック
+	void OnResize(uint32_t width, uint32_t height) override;
 private:
 	// =========================
 	//  エンジン設定定数

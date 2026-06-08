@@ -8,6 +8,7 @@
 #include "effects/particle/ParticleManager.h"
 #include "ImGui/imgui_internal.h"
 #include "manager/graphics/LineManager.h"
+#include "input/Input.h"
 
 ///=============================================================================
 ///						初期化・終了処理
@@ -53,8 +54,8 @@ void MyGame::Initialize()
 	sceneRenderTexture_->Initialize(
 		dxCommon_.get(),
 		srvManager_.get(),
-		WinApp::kClientWidth,
-		WinApp::kClientHeight,
+		winApp_->GetClientWidth(),
+		winApp_->GetClientHeight(),
 		DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
 		clearColor
 	);
@@ -86,6 +87,14 @@ void MyGame::Update()
 
 	// パーティクルマネージャーの更新
 	ParticleManager::GetInstance()->Update(cameraManager_.get());
+}
+
+void MyGame::OnResize(uint32_t width, uint32_t height)
+{
+	if (sceneRenderTexture_)
+	{
+		sceneRenderTexture_->Resize(width, height);
+	}
 }
 
 ///=============================================================================
@@ -271,6 +280,18 @@ void MyGame::Draw()
 	ImGui::Begin("Scene");
 	ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 	ImGui::Image((ImTextureID)sceneRenderTexture_->GetGPUHandle().ptr, viewportSize);
+
+	// シーンウィンドウの描画領域に合わせてマウス入力を補正する
+	ImVec2 imagePos = ImGui::GetItemRectMin();
+	ImVec2 imageSize = ImGui::GetItemRectSize();
+
+	POINT clientOrigin = { 0, 0 };
+	ClientToScreen(winApp_->GetHwnd(), &clientOrigin);
+
+	Vector2 offset = { imagePos.x - clientOrigin.x, imagePos.y - clientOrigin.y };
+	Vector2 size = { imageSize.x, imageSize.y };
+	Input::GetInstance()->SetMouseCorrection(offset, size);
+
 	ImGui::End();
 
 	// その他のウィンドウ（プレースホルダー）

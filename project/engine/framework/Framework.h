@@ -91,6 +91,14 @@ public: // メンバ関数
 	 */
 	void Run();
 
+protected:
+	/**
+	 * @brief ウィンドウサイズ変更時のコールバック
+	 * @param width 新しい幅
+	 * @param height 新しい高さ
+	 */
+	virtual void OnResize(uint32_t width, uint32_t height) {}
+
 protected: // メンバ変数
 	// 終了リクエストフラグ
 	bool endRequest_ = false;

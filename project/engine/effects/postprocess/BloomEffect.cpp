@@ -9,7 +9,7 @@ BloomEffect::BloomEffect()
     params_.threshold = kDefaultBloomThreshold;
     params_.radius = kDefaultBloomRadius;
     params_.enabled = kEffectEnabled;
-	params_.invScreenSize = { 1.0f / WinApp::kClientWidth, 1.0f / WinApp::kClientHeight };
+	params_.invScreenSize = { 1.0f / 1280.0f, 1.0f / 720.0f };
 	params_.thresholdKnee = kDefaultThresholdKnee;
 	params_.bloomMix = kDefaultBloomMix;
 	enabled_ = true;

@@ -42,6 +42,13 @@ public:
 	void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, uint32_t width, uint32_t height);
 
 	/**
+	 * @brief G-Bufferをリサイズする。
+	 * @param width 新しい幅
+	 * @param height 新しい高さ
+	 */
+	void Resize(uint32_t width, uint32_t height);
+
+	/**
 	 * @brief G-Bufferパスの開始
 	 * @details レンダーターゲットと深度バッファを設定
 	 */

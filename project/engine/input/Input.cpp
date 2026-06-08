@@ -111,6 +111,12 @@ void Input::Finalize()
 }
 
 void Input::Update() {
+    // 描画パス（前フレーム）で設定された補正値を適用し、バッファをクリア
+    hasCorrection_ = hasNextCorrection_;
+    mouseOffset_ = nextMouseOffset_;
+    mouseSize_ = nextMouseSize_;
+    hasNextCorrection_ = false;
+
     HRESULT result;
 
     // ウィンドウがアクティブかどうかを確認
@@ -432,15 +438,27 @@ float Input::GetMouseDeltaY() const
 
 float Input::GetMouseX() const
 {
-	return static_cast<float>(mousePos_.x);
+	float realX = static_cast<float>(mousePos_.x);
+	if (hasCorrection_ && mouseSize_.x > 0.0f)
+	{
+		float relativeX = realX - mouseOffset_.x;
+		return relativeX * (1280.0f / mouseSize_.x);
+	}
+	return realX * (1280.0f / static_cast<float>(winApp_->GetClientWidth()));
 }
 
 float Input::GetMouseY() const
 {
-	return static_cast<float>(mousePos_.y);
+	float realY = static_cast<float>(mousePos_.y);
+	if (hasCorrection_ && mouseSize_.y > 0.0f)
+	{
+		float relativeY = realY - mouseOffset_.y;
+		return relativeY * (720.0f / mouseSize_.y);
+	}
+	return realY * (720.0f / static_cast<float>(winApp_->GetClientHeight()));
 }
 
 Vector2 Input::GetMousePosition() const
 {
-    return Vector2{ static_cast<float>(mousePos_.x), static_cast<float>(mousePos_.y) };
+	return Vector2{ GetMouseX(), GetMouseY() };
 }
