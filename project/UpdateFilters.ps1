@@ -1,7 +1,7 @@
 # UpdateFilters.ps1
-# 物理フォルダ構成に基づいて vcxproj および vcxproj.filters を自動同期するPowerShellスクリプト
+# Automatically synchronize vcxproj and vcxproj.filters based on physical directory structure
 
-$ErrorActionPreference = "SilentlyContinue"
+# $ErrorActionPreference = "Continue"
 
 $PSScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Definition
 if (-not $PSScriptRoot) {
@@ -13,10 +13,10 @@ Write-Host "Project Root: $PSScriptRoot" -ForegroundColor Cyan
 $VcxprojPath = Join-Path $PSScriptRoot "KentoCompo.vcxproj"
 $FiltersPath = Join-Path $PSScriptRoot "KentoCompo.vcxproj.filters"
 
-# 対象フォルダ
+# Target directories to scan
 $TargetDirs = @("engine", "application")
 
-# 対象拡張子とMSBuildタグのマッピング
+# Mapping of file extensions to MSBuild build tags
 $ExtMap = @{
     ".cpp" = "ClCompile"
     ".h"   = "ClInclude"
@@ -27,7 +27,7 @@ $ExtMap = @{
 
 Write-Host "Scanning physical files..." -ForegroundColor Cyan
 
-# 物理ファイルをスキャン
+# Scan physical files in target directories
 $PhysicalFiles = @{}
 foreach ($dir in $TargetDirs) {
     $dirPath = Join-Path $PSScriptRoot $dir
@@ -36,7 +36,7 @@ foreach ($dir in $TargetDirs) {
         foreach ($file in $files) {
             $ext = $file.Extension.ToLower()
             if ($ExtMap.ContainsKey($ext)) {
-                # 確実な相対パス生成
+                # Generate relative path
                 $relPath = $file.FullName.Replace($PSScriptRoot + "\", "")
                 $relPath = $relPath -replace '/', '\'
                 $PhysicalFiles[$relPath] = $ExtMap[$ext]
@@ -51,13 +51,13 @@ if ($PhysicalFiles.Count -eq 0) {
     exit
 }
 
-# --- 1. vcxprojの更新 ---
+# --- 1. Update vcxproj ---
 if (Test-Path $VcxprojPath) {
     Write-Host "Updating KentoCompo.vcxproj..." -ForegroundColor Cyan
     $xml = New-Object System.Xml.XmlDocument
     $xml.Load($VcxprojPath)
 
-    # 既存のすべての登録ファイル情報を収集 (Include -> Tag, Metadata)
+    # Collect existing registered file info (Include -> Tag, Metadata)
     $ExistingFiles = @{}
     $ItemGroups = $xml.SelectNodes("//*[local-name()='ItemGroup']")
     foreach ($group in $ItemGroups) {
@@ -66,7 +66,7 @@ if (Test-Path $VcxprojPath) {
             foreach ($node in $nodes) {
                 $inc = $node.GetAttribute("Include")
                 if ($inc) {
-                    # 子要素（ExcludedFromBuildなど）をディクショナリに格納
+                    # Store child nodes (like ExcludedFromBuild metadata)
                     $meta = @{}
                     foreach ($child in $node.ChildNodes) {
                         $meta[$child.Name] = $child.InnerText
@@ -77,10 +77,10 @@ if (Test-Path $VcxprojPath) {
         }
     }
 
-    # マージ処理
+    # Merging logic
     $MergedFiles = @{}
     
-    # 1. スキャン対象外の既存登録ファイルを維持 (externals\ や main.cpp など)
+    # Keep existing registrations that are outside target directories (e.g. externals\, main.cpp)
     foreach ($inc in $ExistingFiles.Keys) {
         $isInTarget = $false
         foreach ($target in $TargetDirs) {
@@ -94,7 +94,7 @@ if (Test-Path $VcxprojPath) {
         }
     }
 
-    # 2. スキャンで発見した最新のファイルを登録
+    # Add newly scanned physical files
     foreach ($inc in $PhysicalFiles.Keys) {
         $meta = @{}
         if ($ExistingFiles.ContainsKey($inc)) {
@@ -103,7 +103,7 @@ if (Test-Path $VcxprojPath) {
         $MergedFiles[$inc] = @{ Tag = $PhysicalFiles[$inc]; Meta = $meta }
     }
 
-    # 既存のファイル登録ItemGroupを削除
+    # Remove existing ItemGroups containing files
     $groupsToRemove = @()
     foreach ($group in $ItemGroups) {
         $hasFile = $false
@@ -123,7 +123,7 @@ if (Test-Path $VcxprojPath) {
         }
     }
 
-    # 新しいItemGroupを追加
+    # Recreate clean ItemGroups
     $SortedKeys = $MergedFiles.Keys | Sort-Object
     $CompileGroup = $xml.CreateElement("ItemGroup", "http://schemas.microsoft.com/developer/msbuild/2003")
     $HeaderGroup = $xml.CreateElement("ItemGroup", "http://schemas.microsoft.com/developer/msbuild/2003")
@@ -153,7 +153,7 @@ if (Test-Path $VcxprojPath) {
         }
     }
 
-    # インポートの前に挿入するため、最後のImportの前に挿入する
+    # Insert before the last Import targets element
     $lastImport = $xml.SelectSingleNode("//*[local-name()='Import'][contains(@Project, 'targets')]")
     if ($lastImport -and $lastImport.ParentNode) {
         $lastImport.ParentNode.InsertBefore($CompileGroup, $lastImport) | Out-Null
@@ -167,20 +167,20 @@ if (Test-Path $VcxprojPath) {
         $xml.DocumentElement.AppendChild($OtherGroup) | Out-Null
     }
 
-    # 保存
+    # Save vcxproj
     $xml.Save($VcxprojPath)
     Write-Host "KentoCompo.vcxproj updated successfully!" -ForegroundColor Green
 } else {
     Write-Error "Error: KentoCompo.vcxproj not found at $VcxprojPath"
 }
 
-# --- 2. vcxproj.filtersの更新 ---
+# --- 2. Update vcxproj.filters ---
 if (Test-Path $FiltersPath) {
     Write-Host "Updating KentoCompo.vcxproj.filters..." -ForegroundColor Cyan
     $xml = New-Object System.Xml.XmlDocument
     $xml.Load($FiltersPath)
 
-    # 既存のUUIDマップを収集
+    # Collect existing UUID map
     $UuidMap = @{}
     $ExistingFilters = $xml.SelectNodes("//*[local-name()='Filter']")
     foreach ($f in $ExistingFilters) {
@@ -191,7 +191,7 @@ if (Test-Path $FiltersPath) {
         }
     }
 
-    # 既存のすべてのItemGroupをクリアして再構築
+    # Remove existing filter elements for reconstruction
     $ItemGroups = $xml.SelectNodes("//*[local-name()='ItemGroup']")
     $groupsToRemove = @()
     foreach ($group in $ItemGroups) {
@@ -203,8 +203,7 @@ if (Test-Path $FiltersPath) {
         }
     }
 
-    # 2.1 フィルター定義のItemGroupを作成
-    # 登録されている全ファイルパスからフィルター階層を抽出
+    # 2.1 Recreate filter paths ItemGroup
     $FilterPaths = @()
     foreach ($key in $MergedFiles.Keys) {
         $dirname = Split-Path $key
@@ -229,7 +228,7 @@ if (Test-Path $FiltersPath) {
         if ($UuidMap.ContainsKey($fp)) {
             $uiNode.InnerText = $UuidMap[$fp]
         } else {
-            # 新しいUUIDを生成
+            # Generate new UUID
             $uiNode.InnerText = [guid]::NewGuid().ToString("B").ToUpper()
         }
         $fNode.AppendChild($uiNode) | Out-Null
@@ -237,7 +236,7 @@ if (Test-Path $FiltersPath) {
     }
     $xml.DocumentElement.AppendChild($FilterGroup) | Out-Null
 
-    # 2.2 ファイルアイテムのItemGroupを作成
+    # 2.2 Recreate file item filters
     $CompileGroup = $xml.CreateElement("ItemGroup", "http://schemas.microsoft.com/developer/msbuild/2003")
     $HeaderGroup = $xml.CreateElement("ItemGroup", "http://schemas.microsoft.com/developer/msbuild/2003")
     $ShaderGroup = $xml.CreateElement("ItemGroup", "http://schemas.microsoft.com/developer/msbuild/2003")
@@ -269,7 +268,7 @@ if (Test-Path $FiltersPath) {
     $xml.DocumentElement.AppendChild($ShaderGroup) | Out-Null
     $xml.DocumentElement.AppendChild($OtherGroup) | Out-Null
 
-    # 保存
+    # Save filters file
     $xml.Save($FiltersPath)
     Write-Host "KentoCompo.vcxproj.filters updated successfully!" -ForegroundColor Green
 } else {
