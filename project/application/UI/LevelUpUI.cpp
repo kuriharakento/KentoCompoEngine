@@ -12,7 +12,7 @@ void LevelUpUI::Initialize(SpriteCommon* spriteCommon)
     SetAnchorPoint({ 0.5f, 0.5f });
     
     // 画面中央。25%ほどの高さに配置（少し上に移動）
-    SetScreenPosition({ static_cast<float>(WinApp::kClientWidth) * 0.5f, static_cast<float>(WinApp::kClientHeight) * 0.25f });
+    SetScreenPosition({ 1280.0f * 0.5f, 720.0f * 0.25f });
     
     // 幅広のバナー状にする
     SetSize({ 600.0f, 120.0f });

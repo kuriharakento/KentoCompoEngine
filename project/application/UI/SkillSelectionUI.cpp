@@ -16,7 +16,7 @@ void SkillSelectionUI::Initialize(SpriteCommon* spriteCommon)
 	overlay_->Initialize(spriteCommon, "./Resources/black.png");
 	overlay_->SetAnchorPoint({ 0.0f, 0.0f });
 	overlay_->SetScreenPosition({ 0.0f, 0.0f });
-	overlay_->SetSize({ static_cast<float>(WinApp::kClientWidth), static_cast<float>(WinApp::kClientHeight) });
+	overlay_->SetSize({ 1280.0f, 720.0f });
 	overlay_->SetColor({ 0.0f, 0.0f, 0.0f, 0.7f });
 	overlay_->SetVisible(false);
 	overlay_->SetInteractable(false);
@@ -94,7 +94,7 @@ void SkillSelectionUI::Draw()
 
 	if (overlay_) overlay_->Draw();
 
-	float centerX = static_cast<float>(WinApp::kClientWidth) * 0.5f;
+	float centerX = 1280.0f * 0.5f;
 
 	// タイトル
 	if (mainTitleFont_)
@@ -148,7 +148,7 @@ void SkillSelectionUI::ShowUpgrades(const std::vector<UpgradeOption>& options)
 	isActive_ = true;
 	cards_.clear();
 
-	float centerX = static_cast<float>(WinApp::kClientWidth) * 0.5f;
+	float centerX = 1280.0f * 0.5f;
 	size_t count = options.size();
 	float totalWidth = (kCardWidth * count) + (kCardGap * (count - 1));
 	float startX = centerX - totalWidth * 0.5f + kCardWidth * 0.5f;
