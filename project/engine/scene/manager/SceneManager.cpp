@@ -127,11 +127,6 @@ void SceneManager::ReserveNextScene()
 		// シーン切り替え時にパーティクルをすべてクリア
 		ParticleManager::GetInstance()->Clear();
 
-		// シーン切り替え時にデバッグUI登録を一括解除
-#ifdef USE_IMGUI
-		DebugUIManager::GetInstance()->Clear();
-#endif
-
 		//シーンを切り替え
 		currentScene_ = std::move(nextScene_);
 		currentSceneName_ = nextSceneName_;
