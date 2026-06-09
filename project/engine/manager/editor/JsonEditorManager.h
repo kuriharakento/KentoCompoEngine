@@ -54,6 +54,10 @@ private:
 	// 現在選択されているアイテムの名前
 	std::string selectedItem_;
 
+	// 汎用JSON編集用のメンバ
+	std::string rawJsonFileName_ = "new_data.json";
+	std::string rawJsonContentStr_;
+
 private: // シングルトンインスタンス
 	static std::unique_ptr<JsonEditorManager> instance_;
 	JsonEditorManager() = default;       // コンストラクタ

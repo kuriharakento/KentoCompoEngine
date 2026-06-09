@@ -1,6 +1,9 @@
 #include "JsonEditorManager.h"
 #include "DebugUIManager.h"
 #include "imgui/imgui.h"
+#include <filesystem>
+#include <fstream>
+#include <sstream>
 
 // シングルトンインスタンスの実体
 std::unique_ptr<JsonEditorManager> JsonEditorManager::instance_ = nullptr;
@@ -21,33 +24,139 @@ void JsonEditorManager::Initialize()
 	editors_.clear();
 
 #ifdef USE_IMGUI
-	// JSONエディタをデバッグUIに登録
+	// JSONエディタをデバッグUIに登録（再起動時に消えないように Project エリアに登録する）
 	DebugUIManager::GetInstance()->RegisterDebugUI(this, "JSON Editor", [this]() {
 		// タブバーを開始
 		if (ImGui::BeginTabBar("EditableTabs"))
 		{
-			// 登録されたすべてのエディタをタブとして表示
+			// 1. 汎用JSON編集タブ（常に表示され、任意のファイル名を指定・選択してロード・編集・保存できる）
+			if (ImGui::BeginTabItem("Raw JSON Editor"))
+			{
+				ImGui::Spacing();
+				ImGui::SeparatorText("Raw JSON File Loader / Editor");
+
+				// ターゲットファイル名
+				char rawFileBuf[256];
+				strncpy_s(rawFileBuf, rawJsonFileName_.c_str(), sizeof(rawFileBuf));
+				rawFileBuf[sizeof(rawFileBuf) - 1] = '\0';
+				ImGui::PushItemWidth(250.0f);
+				if (ImGui::InputText("JSON File Name", rawFileBuf, sizeof(rawFileBuf)))
+				{
+					rawJsonFileName_ = rawFileBuf;
+				}
+				ImGui::PopItemWidth();
+
+				// Resources/json/ のファイル一覧を取得
+				std::vector<std::string> jsonFiles;
+				std::string dirPath = "Resources/json/";
+				try
+				{
+					if (std::filesystem::exists(dirPath))
+					{
+						for (const auto& entry : std::filesystem::directory_iterator(dirPath))
+						{
+							if (entry.is_regular_file() && entry.path().extension() == ".json")
+							{
+								jsonFiles.push_back(entry.path().filename().string());
+							}
+						}
+					}
+				}
+				catch (...) {}
+
+				// ドロップダウン表示
+				if (!jsonFiles.empty())
+				{
+					ImGui::SameLine();
+					ImGui::PushItemWidth(200.0f);
+					if (ImGui::BeginCombo("##RawFileSelectCombo", rawJsonFileName_.c_str()))
+					{
+						for (const auto& file : jsonFiles)
+						{
+							bool isSelected = (rawJsonFileName_ == file);
+							if (ImGui::Selectable(file.c_str(), isSelected))
+							{
+								rawJsonFileName_ = file;
+								// 選択されたファイルを自動ロード
+								std::ifstream ifs(dirPath + rawJsonFileName_);
+								if (ifs)
+								{
+									std::stringstream ss;
+									ss << ifs.rdbuf();
+									rawJsonContentStr_ = ss.str();
+								}
+							}
+						}
+						ImGui::EndCombo();
+					}
+					ImGui::PopItemWidth();
+				}
+
+				ImGui::Spacing();
+
+				// 読込・保存ボタン
+				if (ImGui::Button("Load Raw JSON"))
+				{
+					std::ifstream ifs(dirPath + rawJsonFileName_);
+					if (ifs)
+					{
+						std::stringstream ss;
+						ss << ifs.rdbuf();
+						rawJsonContentStr_ = ss.str();
+					}
+					else
+					{
+						Logger::Log("[JSON Error] Failed to open raw JSON file: " + dirPath + rawJsonFileName_ + "\n");
+						rawJsonContentStr_ = "{}";
+					}
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Save Raw JSON"))
+				{
+					std::ofstream ofs(dirPath + rawJsonFileName_);
+					if (ofs)
+					{
+						ofs << rawJsonContentStr_;
+					}
+					else
+					{
+						Logger::Log("[JSON Error] Failed to save raw JSON file: " + dirPath + rawJsonFileName_ + "\n");
+					}
+				}
+
+				ImGui::Spacing();
+				ImGui::Text("File Contents (Raw Text Edit):");
+
+				// 編集バッファの準備
+				static std::vector<char> textBuf;
+				textBuf.assign(rawJsonContentStr_.begin(), rawJsonContentStr_.end());
+				textBuf.push_back('\0');
+				// バッファを余分に確保
+				if (textBuf.size() < 65536)
+				{
+					textBuf.resize(65536, '\0');
+				}
+
+				if (ImGui::InputTextMultiline("##RawTextEditorArea", textBuf.data(), textBuf.size(), ImVec2(-FLT_MIN, 300.0f), ImGuiInputTextFlags_AllowTabInput))
+				{
+					rawJsonContentStr_ = textBuf.data();
+				}
+
+				ImGui::EndTabItem();
+			}
+
+			// 2. 登録されたすべての C++ オブジェクトエディタをタブとして表示
 			for (const auto& [name, editable] : editors_)
 			{
-				// NULLチェック
 				if (!editable) { continue; }
 
-				// タブアイテムを作成
 				if (ImGui::BeginTabItem(name.c_str()))
 				{
-					// タブがアクティブな間は選択状態にしておく
 					selectedItem_ = name;
 
-					// IDを設定して他のエディタと区別する
 					ImGui::PushID(editable.get());
-
-					// オプションを表示
 					editable->DrawOptions();
-
-					// そのオブジェクトの ImGui UI を表示
 					editable->DrawImGui();
-
-					// IDをポップ
 					ImGui::PopID();
 
 					ImGui::EndTabItem();
@@ -55,7 +164,7 @@ void JsonEditorManager::Initialize()
 			}
 			ImGui::EndTabBar();
 		}
-	}, DebugUIArea::Console);
+	}, DebugUIArea::Project);
 #endif
 }
 
