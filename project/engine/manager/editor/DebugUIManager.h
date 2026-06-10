@@ -138,10 +138,24 @@ public:
 	bool IsShowProject() const { return showProject_; }
 	void SetShowProject(bool show) { showProject_ = show; }
 
+#ifdef USE_IMGUI
+	struct SavedUIState
+	{
+		DebugUIArea area;
+		bool visible;
+	};
+#endif
+
 private:
 	// 登録されたコールバック情報を保持するマップ（owner -> UIリスト）
 #ifdef USE_IMGUI
 	std::unordered_map<void*, std::vector<DebugUI>> debugUIs_;
+
+	void SaveLayout();
+	void ClearLoadedStates();
+	SavedUIState& GetOrAddLoadedState(const std::string& name);
+	void WriteAllSettings(struct ImGuiTextBuffer* buf);
+	void ApplyLoadedStatesToActiveUIs();
 #endif
 
 	// レイアウトパネルの開閉フラグ

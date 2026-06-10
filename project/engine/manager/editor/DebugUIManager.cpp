@@ -3,6 +3,12 @@
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
 #include "externals/imgui/imgui_internal.h"
+#include "externals/nlohmann/json.hpp"
+#include <fstream>
+#endif
+
+#ifdef USE_IMGUI
+static std::unordered_map<std::string, DebugUIManager::SavedUIState> s_savedStates;
 #endif
 
 std::unique_ptr<DebugUIManager> DebugUIManager::instance_ = nullptr;
@@ -25,6 +31,48 @@ void DebugUIManager::Initialize()
 {
 #ifdef USE_IMGUI
 	debugUIs_.clear();
+
+	// 旧ファイルの削除（互換性のクリーンアップ）
+	std::remove("debug_ui_layout.json");
+
+	// ImGuiのカスタム設定ハンドラーの登録
+	ImGuiContext* ctx = ImGui::GetCurrentContext();
+	if (ctx != nullptr)
+	{
+		ImGuiSettingsHandler ini_handler;
+		ini_handler.TypeName = "DebugUI";
+		ini_handler.TypeHash = ImHashStr("DebugUI");
+
+		ini_handler.ClearAllFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler) {
+			DebugUIManager::GetInstance()->ClearLoadedStates();
+		};
+		ini_handler.ReadOpenFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler, const char* name) -> void* {
+			return (void*)&(DebugUIManager::GetInstance()->GetOrAddLoadedState(name));
+		};
+		ini_handler.ReadLineFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler, void* entry, const char* line) {
+			auto* state = static_cast<DebugUIManager::SavedUIState*>(entry);
+			int val = 0;
+			if (sscanf_s(line, "area=%d", &val) == 1)
+			{
+				state->area = static_cast<DebugUIArea>(val);
+			}
+			else if (sscanf_s(line, "visible=%d", &val) == 1)
+			{
+				state->visible = (val != 0);
+			}
+		};
+		ini_handler.ApplyAllFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler) {
+			DebugUIManager::GetInstance()->ApplyLoadedStatesToActiveUIs();
+		};
+		ini_handler.WriteAllFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler, ImGuiTextBuffer* buf) {
+			DebugUIManager::GetInstance()->WriteAllSettings(buf);
+		};
+
+		if (ImGui::FindSettingsHandler("DebugUI") == nullptr)
+		{
+			ImGui::AddSettingsHandler(&ini_handler);
+		}
+	}
 #endif
 	resetLayoutRequested_ = false;
 
@@ -57,13 +105,23 @@ void DebugUIManager::RegisterDebugUI([[maybe_unused]] void* owner, [[maybe_unuse
 		if (ui.name == name)
 		{
 			ui.drawFunc = drawFunc;
-			ui.area     = area;
+			// エリア変更等は実行時変更が優先されるため上書きしない
 			return;
 		}
 	}
 
-	// 新規登録（visible はデフォルト true）
-	list.push_back({ name, drawFunc, area, true });
+	// 新規登録（ロード済みの状態があれば適用、なければデフォルト値）
+	DebugUIArea finalArea = area;
+	bool finalVisible = true;
+
+	auto it = s_savedStates.find(name);
+	if (it != s_savedStates.end())
+	{
+		finalArea = it->second.area;
+		finalVisible = it->second.visible;
+	}
+
+	list.push_back({ name, drawFunc, finalArea, finalVisible });
 #endif
 }
 
@@ -123,10 +181,11 @@ void DebugUIManager::DrawArea([[maybe_unused]] DebugUIArea area)
 			// タイトル（太字や特別な装飾はなくシンプルに表示）
 			ImGui::Text(ui.name.c_str());
 
-			// 「Move to:」コンボボックスをヘッダー右端に配置
+			// 「Move to:」と「閉じる」ボタンをヘッダー右端に配置
 			float combo_width = 85.0f;
 			float text_width = ImGui::CalcTextSize("Move:").x;
-			float space_needed = combo_width + text_width + 4.0f;
+			float close_btn_width = 20.0f;
+			float space_needed = combo_width + text_width + close_btn_width + 12.0f;
 			float right_align_x = card_width - 16.0f - space_needed;
 			if (right_align_x > 100.0f)
 			{
@@ -146,7 +205,21 @@ void DebugUIManager::DrawArea([[maybe_unused]] DebugUIArea area)
 			if (ImGui::Combo(comboId.c_str(), &currentArea, areaNames, IM_ARRAYSIZE(areaNames)))
 			{
 				ui.area = static_cast<DebugUIArea>(currentArea);
+				SaveLayout();
 			}
+
+			// 閉じる [X] ボタンを描画
+			ImGui::SameLine(0.0f, 8.0f);
+			std::string closeButtonId = "x##Close_" + ui.name;
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 0.2f, 0.2f, 0.6f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1.0f, 0.1f, 0.1f, 0.9f));
+			if (ImGui::Button(closeButtonId.c_str(), ImVec2(close_btn_width, 20.0f)))
+			{
+				ui.visible = false;
+				SaveLayout();
+			}
+			ImGui::PopStyleColor(3);
 
 			ImGui::Spacing();
 			ImGui::Separator();
@@ -256,10 +329,55 @@ void DebugUIManager::DrawToolsMenu()
 					{
 						if (ui.name == cat.names[ni])
 						{
-							ImGui::MenuItem(ui.name.c_str(), nullptr, &ui.visible);
+							if (ImGui::MenuItem(ui.name.c_str(), nullptr, &ui.visible))
+							{
+								SaveLayout();
+							}
 							break;
 						}
 					}
+				}
+			}
+			ImGui::EndMenu();
+		}
+	}
+
+	// カテゴリ未分類の登録済み UI を集めて表示
+	std::vector<DebugUI*> otherUIs;
+	for (auto& [owner, list] : debugUIs_)
+	{
+		for (auto& ui : list)
+		{
+			bool classified = false;
+			for (const auto& cat : categories)
+			{
+				for (int ni = 0; cat.names[ni] != nullptr; ++ni)
+				{
+					if (ui.name == cat.names[ni])
+					{
+						classified = true;
+						break;
+					}
+				}
+				if (classified) { break; }
+			}
+
+			if (!classified)
+			{
+				otherUIs.push_back(&ui);
+			}
+		}
+	}
+
+	if (!otherUIs.empty())
+	{
+		if (ImGui::BeginMenu("Others"))
+		{
+			for (auto* uiPtr : otherUIs)
+			{
+				if (ImGui::MenuItem(uiPtr->name.c_str(), nullptr, &uiPtr->visible))
+				{
+					SaveLayout();
 				}
 			}
 			ImGui::EndMenu();
@@ -285,6 +403,7 @@ void DebugUIManager::DrawToolsMenu()
 						if (ImGui::MenuItem(areaNames[i], nullptr, &selected))
 						{
 							ui.area = static_cast<DebugUIArea>(i);
+							SaveLayout();
 						}
 					}
 					ImGui::EndMenu();
@@ -326,6 +445,7 @@ void DebugUIManager::SetDebugUIArea([[maybe_unused]] void* owner, [[maybe_unused
 		{
 			ui.area = area;
 		}
+		SaveLayout();
 	}
 #endif
 }
@@ -345,7 +465,100 @@ void DebugUIManager::SetDebugUIArea([[maybe_unused]] const std::string& name, [[
 			if (ui.name == name)
 			{
 				ui.area = area;
+				SaveLayout();
 				return;
+			}
+		}
+	}
+#endif
+}
+
+void DebugUIManager::SaveLayout()
+{
+#ifdef USE_IMGUI
+	// 現在の登録UIの最新状態でs_savedStatesを更新
+	for (const auto& [owner, list] : debugUIs_)
+	{
+		for (const auto& ui : list)
+		{
+			s_savedStates[ui.name] = { ui.area, ui.visible };
+		}
+	}
+
+	ImGui::MarkIniSettingsDirty();
+	if (ImGui::GetIO().IniFilename != nullptr)
+	{
+		ImGui::SaveIniSettingsToDisk(ImGui::GetIO().IniFilename);
+	}
+#endif
+}
+
+void DebugUIManager::ClearLoadedStates()
+{
+#ifdef USE_IMGUI
+	s_savedStates.clear();
+#endif
+}
+
+DebugUIManager::SavedUIState& DebugUIManager::GetOrAddLoadedState(const std::string& name)
+{
+#ifdef USE_IMGUI
+	auto it = s_savedStates.find(name);
+	if (it != s_savedStates.end())
+	{
+		return it->second;
+	}
+
+	// 新規登録時のデフォルト設定
+	SavedUIState state;
+	state.area = DebugUIArea::Inspector;
+	state.visible = true;
+	s_savedStates[name] = state;
+	return s_savedStates[name];
+#else
+	static SavedUIState dummy;
+	return dummy;
+#endif
+}
+
+void DebugUIManager::WriteAllSettings(ImGuiTextBuffer* buf)
+{
+#ifdef USE_IMGUI
+	// シングルトンが生きていれば最新状態をマージ
+	if (HasInstance())
+	{
+		auto* mgr = GetInstance();
+		for (const auto& [owner, list] : mgr->debugUIs_)
+		{
+			for (const auto& ui : list)
+			{
+				s_savedStates[ui.name] = { ui.area, ui.visible };
+			}
+		}
+	}
+
+	for (const auto& [name, state] : s_savedStates)
+	{
+		buf->appendf("[DebugUI][%s]\n", name.c_str());
+		buf->appendf("area=%d\n", static_cast<int>(state.area));
+		buf->appendf("visible=%d\n", state.visible ? 1 : 0);
+		buf->appendf("\n");
+	}
+#endif
+}
+
+void DebugUIManager::ApplyLoadedStatesToActiveUIs()
+{
+#ifdef USE_IMGUI
+	for (auto& [owner, list] : debugUIs_)
+	{
+		for (auto& ui : list)
+		{
+			auto it = s_savedStates.find(ui.name);
+			if (it != s_savedStates.end())
+			{
+				ui.area = it->second.area;
+				ui.visible = it->second.visible;
 			}
 		}
 	}
