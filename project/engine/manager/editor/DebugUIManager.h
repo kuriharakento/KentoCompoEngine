@@ -144,6 +144,24 @@ public:
 	bool IsShowProject() const { return showProject_; }
 	void SetShowProject(bool show) { showProject_ = show; }
 
+	/**
+	 * @brief UIスケール値を取得する
+	 * @return スケール値
+	 */
+	float GetUIScale() const;
+
+	/**
+	 * @brief UIスケール値を設定し、適用する
+	 * @param scale スケール値
+	 */
+	void SetUIScale(float scale);
+
+	/**
+	 * @brief UIスケール値を実際にImGuiへ適用する
+	 * @param scale スケール値
+	 */
+	void ApplyUIScale(float scale);
+
 #ifdef USE_IMGUI
 	struct SavedUIState
 	{
@@ -163,6 +181,9 @@ private:
 	void WriteAllSettings(struct ImGuiTextBuffer* buf);
 	void ApplyLoadedStatesToActiveUIs();
 #endif
+
+	// UIスケール
+	float uiScale_ = 1.0f;
 
 	// レイアウトパネルの開閉フラグ
 	bool showHierarchy_ = true;

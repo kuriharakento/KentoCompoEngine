@@ -269,6 +269,7 @@ void MyGame::Draw()
 
 	// メインメニューバー
 	DebugUIManager* debugUIManager = DebugUIManager::GetInstance();
+
 	if (ImGui::BeginMainMenuBar())
 	{
 		if (ImGui::BeginMenu("Window"))
@@ -284,6 +285,24 @@ void MyGame::Draw()
 
 			bool showProject = debugUIManager->IsShowProject();
 			if (ImGui::MenuItem("Project", nullptr, &showProject)) debugUIManager->SetShowProject(showProject);
+
+			ImGui::Separator();
+			if (ImGui::BeginMenu("UI Scale"))
+			{
+				float currentScale = debugUIManager->GetUIScale();
+				float scales[] = { 0.50f, 0.75f, 1.00f, 1.25f, 1.50f, 1.75f, 2.00f };
+				for (float s : scales)
+				{
+					char label[32];
+					sprintf_s(label, "%d%%", static_cast<int>(s * 100.0f));
+					bool selected = (currentScale == s);
+					if (ImGui::MenuItem(label, nullptr, &selected))
+					{
+						debugUIManager->SetUIScale(s);
+					}
+				}
+				ImGui::EndMenu();
+			}
 
 			ImGui::Separator();
 			if (ImGui::MenuItem("Reset Layout"))

@@ -9,6 +9,7 @@
 
 #ifdef USE_IMGUI
 static std::unordered_map<std::string, DebugUIManager::SavedUIState> s_savedStates;
+static float s_prevScale = 1.0f;
 #endif
 
 std::unique_ptr<DebugUIManager> DebugUIManager::instance_ = nullptr;
@@ -47,9 +48,22 @@ void DebugUIManager::Initialize()
 			DebugUIManager::GetInstance()->ClearLoadedStates();
 		};
 		ini_handler.ReadOpenFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler, const char* name) -> void* {
+			if (strcmp(name, "GlobalSettings") == 0)
+			{
+				return (void*)DebugUIManager::GetInstance();
+			}
 			return (void*)&(DebugUIManager::GetInstance()->GetOrAddLoadedState(name));
 		};
 		ini_handler.ReadLineFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler, void* entry, const char* line) {
+			if (entry == DebugUIManager::GetInstance())
+			{
+				float fval = 1.0f;
+				if (sscanf_s(line, "ui_scale=%f", &fval) == 1)
+				{
+					DebugUIManager::GetInstance()->SetUIScale(fval);
+				}
+				return;
+			}
 			auto* state = static_cast<DebugUIManager::SavedUIState*>(entry);
 			int val = 0;
 			if (sscanf_s(line, "area=%d", &val) == 1)
@@ -75,6 +89,9 @@ void DebugUIManager::Initialize()
 	}
 #endif
 	resetLayoutRequested_ = false;
+
+	uiScale_ = 1.0f;
+	s_prevScale = 1.0f;
 
 	showHierarchy_ = true;
 	showInspector_ = true;
@@ -163,108 +180,114 @@ void DebugUIManager::DrawArea([[maybe_unused]] DebugUIArea area)
 
 			ImGui::PushID(ui.name.c_str());
 
-			float card_x = ImGui::GetCursorScreenPos().x;
-			float card_width = ImGui::GetContentRegionAvail().x;
-
-			ImDrawList* draw_list = ImGui::GetWindowDrawList();
-			draw_list->ChannelsSplit(2);
-			draw_list->ChannelsSetCurrent(1); // 前面（コンテンツ）
-
-			ImGui::BeginGroup();
-			
-			// カード上部の内部パディング
-			ImGui::Dummy(ImVec2(0.0f, 6.0f));
-
-			// 左右の内部パディング（インデント）
-			ImGui::Indent(8.0f);
-
-			// タイトル（太字や特別な装飾はなくシンプルに表示）
-			ImGui::Text(ui.name.c_str());
-
-			// 「Move to:」と「閉じる」ボタンをヘッダー右端に配置
-			float combo_width = 85.0f;
-			float text_width = ImGui::CalcTextSize("Move:").x;
-			float close_btn_width = 20.0f;
-			float space_needed = combo_width + text_width + close_btn_width + 12.0f;
-			float right_align_x = card_width - 16.0f - space_needed;
-			if (right_align_x > 100.0f)
-			{
-				ImGui::SameLine(right_align_x + 8.0f); // インデント分調整して右寄せ
-			}
-			else
-			{
-				ImGui::SameLine();
-			}
-
-			ImGui::TextDisabled("Move:");
-			ImGui::SameLine(0.0f, 4.0f);
-			ImGui::SetNextItemWidth(combo_width);
-			int currentArea = static_cast<int>(ui.area);
-			const char* areaNames[] = { "Hierarchy", "Inspector", "Console", "Scene", "Project" };
-			std::string comboId = "##MoveArea_" + ui.name;
-			if (ImGui::Combo(comboId.c_str(), &currentArea, areaNames, IM_ARRAYSIZE(areaNames)))
-			{
-				ui.area = static_cast<DebugUIArea>(currentArea);
-				SaveLayout();
-			}
-
-			// 閉じる [X] ボタンを描画
-			ImGui::SameLine(0.0f, 8.0f);
-			std::string closeButtonId = "x##Close_" + ui.name;
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 0.2f, 0.2f, 0.6f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1.0f, 0.1f, 0.1f, 0.9f));
-			if (ImGui::Button(closeButtonId.c_str(), ImVec2(close_btn_width, 20.0f)))
-			{
-				ui.visible = false;
-				SaveLayout();
-			}
-			ImGui::PopStyleColor(3);
-
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-
-			// カスタム描画関数の実行
-			if (ui.drawFunc)
-			{
-				ui.drawFunc();
-			}
-
-			// カード下部の内部パディング
-			ImGui::Dummy(ImVec2(0.0f, 6.0f));
-
-			ImGui::Unindent(8.0f);
-			ImGui::EndGroup();
-
-			// グループの描画領域を取得
-			ImVec2 p_min = ImGui::GetItemRectMin();
-			ImVec2 p_max = ImGui::GetItemRectMax();
-
-			// 左右の幅をカードのコンテンツ領域幅に合わせる
-			p_min.x = card_x;
-			p_max.x = card_x + card_width;
-
-			// 背面（背景と枠線）を描画
-			draw_list->ChannelsSetCurrent(0);
-
+			// カードごとの背景色を計算
 			ImVec4 window_bg = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
-			// ウィンドウの背景色より少し明るい色にして視覚的に分離する
 			ImVec4 card_bg = window_bg;
 			card_bg.x += 0.05f;
 			card_bg.y += 0.05f;
 			card_bg.z += 0.05f;
-			if (card_bg.x > 1.0f) card_bg.x = 1.0f;
-			if (card_bg.y > 1.0f) card_bg.y = 1.0f;
-			if (card_bg.z > 1.0f) card_bg.z = 1.0f;
+			if (card_bg.x > 1.0f)
+			{
+				card_bg.x = 1.0f;
+			}
+			if (card_bg.y > 1.0f)
+			{
+				card_bg.y = 1.0f;
+			}
+			if (card_bg.z > 1.0f)
+			{
+				card_bg.z = 1.0f;
+			}
 
-			ImU32 card_bg_u32 = ImGui::ColorConvertFloat4ToU32(card_bg);
-			ImU32 border_col = ImGui::GetColorU32(ImGuiCol_Border);
+			ImGui::PushStyleColor(ImGuiCol_ChildBg, card_bg);
+			ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 4.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
-			draw_list->AddRectFilled(p_min, p_max, card_bg_u32, 4.0f);
-			draw_list->AddRect(p_min, p_max, border_col, 4.0f);
+			// デフォルトサイズを指定（リサイズされていれば imgui.ini の設定が優先される）
+			ImVec2 child_size = ImVec2(0.0f, 180.0f);
+			ImGuiChildFlags child_flags = ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeY;
 
-			draw_list->ChannelsMerge();
+			if (ImGui::BeginChild(ui.name.c_str(), child_size, child_flags, 0))
+			{
+				// ヘッダー専用の非常にコンパクトなスタイルを適用
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 1.0f));
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 2.0f));
+
+				// カード上部とテキストの間のわずかな隙間
+				ImGui::Dummy(ImVec2(0.0f, 2.0f));
+
+				// 左右のパディング（左端から8px）
+				ImGui::Indent(8.0f);
+
+				// テキストのベースラインを揃える
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text(ui.name.c_str());
+
+				// 右寄せの Move と 閉じるボタン（左右の幅は余裕を持たせる）
+				float avail_width = ImGui::GetContentRegionAvail().x;
+				float combo_width = 90.0f; // 余裕を持たせた幅
+				float text_width = ImGui::CalcTextSize("Move:").x;
+				float close_btn_width = 20.0f; // 余裕を持たせた幅
+				float space_needed = combo_width + text_width + close_btn_width + 16.0f; // コントロール間の間隔も広めに
+				float right_align_x = avail_width - space_needed - 8.0f; // 右端からも 8px 空ける
+				if (right_align_x > 40.0f)
+				{
+					ImGui::SameLine(ImGui::GetCursorPosX() + right_align_x);
+				}
+				else
+				{
+					ImGui::SameLine();
+				}
+
+				ImGui::TextDisabled("Move:");
+				ImGui::SameLine(0.0f, 6.0f); // 余裕を持たせる
+				ImGui::SetNextItemWidth(combo_width);
+				int currentArea = static_cast<int>(ui.area);
+				const char* areaNames[] = { "Hierarchy", "Inspector", "Console", "Scene", "Project" };
+				std::string comboId = "##MoveArea_" + ui.name;
+
+				if (ImGui::Combo(comboId.c_str(), &currentArea, areaNames, IM_ARRAYSIZE(areaNames)))
+				{
+					ui.area = static_cast<DebugUIArea>(currentArea);
+					SaveLayout();
+				}
+
+				// 閉じる [X] ボタンを描画（左右の間隔を広げる）
+				ImGui::SameLine(0.0f, 10.0f);
+				std::string closeButtonId = "x##Close_" + ui.name;
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 0.2f, 0.2f, 0.6f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1.0f, 0.1f, 0.1f, 0.9f));
+				if (ImGui::Button(closeButtonId.c_str(), ImVec2(close_btn_width, 18.0f)))
+				{
+					ui.visible = false;
+					SaveLayout();
+				}
+				ImGui::PopStyleColor(3);
+
+				// セパレーターを描画（余白を詰めつつ引く）
+				ImGui::Dummy(ImVec2(0.0f, 2.0f));
+				ImGui::Separator();
+				ImGui::Dummy(ImVec2(0.0f, 4.0f));
+
+				// ヘッダー専用のスタイルを復元（これにより drawFunc の中身は通常サイズで描画される）
+				ImGui::PopStyleVar(2);
+
+				// カスタム描画関数の実行
+				if (ui.drawFunc)
+				{
+					ui.drawFunc();
+				}
+
+				// カード下部のパディング
+				ImGui::Dummy(ImVec2(0.0f, 4.0f));
+
+				ImGui::Unindent(8.0f);
+			}
+			ImGui::EndChild();
+
+			ImGui::PopStyleVar(2); // WindowPadding, ChildRounding
+			ImGui::PopStyleColor();
 
 			// カード同士の間のスペース
 			ImGui::Dummy(ImVec2(0.0f, 8.0f));
@@ -537,6 +560,18 @@ void DebugUIManager::WriteAllSettings(ImGuiTextBuffer* buf)
 		}
 	}
 
+	// グローバル設定の書き出し
+	buf->appendf("[DebugUI][GlobalSettings]\n");
+	if (HasInstance())
+	{
+		buf->appendf("ui_scale=%.2f\n", GetInstance()->GetUIScale());
+	}
+	else
+	{
+		buf->appendf("ui_scale=%.2f\n", 1.0f);
+	}
+	buf->appendf("\n");
+
 	for (const auto& [name, state] : s_savedStates)
 	{
 		buf->appendf("[DebugUI][%s]\n", name.c_str());
@@ -562,5 +597,47 @@ void DebugUIManager::ApplyLoadedStatesToActiveUIs()
 			}
 		}
 	}
+#endif
+}
+
+float DebugUIManager::GetUIScale() const
+{
+	return uiScale_;
+}
+
+void DebugUIManager::SetUIScale(float scale)
+{
+#ifdef USE_IMGUI
+	if (scale < 0.5f)
+	{
+		scale = 0.5f;
+	}
+	if (scale > 3.0f)
+	{
+		scale = 3.0f;
+	}
+
+	if (uiScale_ != scale)
+	{
+		uiScale_ = scale;
+		ApplyUIScale(uiScale_);
+		SaveLayout();
+	}
+#else
+	uiScale_ = scale;
+#endif
+}
+
+void DebugUIManager::ApplyUIScale(float scale)
+{
+#ifdef USE_IMGUI
+	ImGuiIO& io = ImGui::GetIO();
+	io.FontGlobalScale = scale;
+
+	float ratio = scale / s_prevScale;
+	ImGui::GetStyle().ScaleAllSizes(ratio);
+	s_prevScale = scale;
+#else
+	(void)scale;
 #endif
 }
