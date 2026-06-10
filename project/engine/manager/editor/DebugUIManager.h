@@ -7,15 +7,21 @@
 
 #ifdef USE_IMGUI
 /**
- * @brief デバッグUIの表示エリアを表す列挙型
+ * @brief デバッグUIの表示エリア
+ * @details 各エリアの使い分けの目安：
+ * - Hierarchy: オブジェクトの階層構造、構成リスト、選択・切り替え用（例: SceneManager, ECSエンティティ）
+ * - Inspector: 詳細パラメータの調整、コンポーネント変数などのリアルタイム変更用（例: 各種スライダー, マネージャー設定）
+ * - Console: テキスト出力、大量のログやリアルタイムの衝突情報などの表示用（例: ConsoleLog, コライダーリスト）
+ * - Scene: ゲーム画面へのオーバーレイ表示用（例: ミニマップ, HUDのテスト表示）
+ * - Project: リソース管理、画面の横幅を広く使いたい横広エディタ用（例: JSON Editorテーブル, アセットブラウザ）
  */
 enum class DebugUIArea
 {
-	Hierarchy, // 左側（Hierarchyなどと同じエリア）
-	Inspector, // 右側（Inspectorなどと同じエリア）
-	Console,   // 下部（Consoleなどと同じエリア）
-	Scene,     // 中央（Sceneなどと同じメインエリア）
-	Project    // 下部（Projectなどと同じエリア）
+	Hierarchy, // 左側（構成・選択）
+	Inspector, // 右側（パラメータ詳細・調整）
+	Console,   // 下部（テキストログ・出力情報）
+	Scene,     // 中央（メイン画面重ね合わせ）
+	Project    // 下部（横広エディタ・アセット管理）
 };
 
 /**
@@ -72,7 +78,7 @@ public:
 	 * @param owner 登録するオブジェクトのポインタ（登録キー）
 	 * @param name デバッグウィンドウ名（識別子）
 	 * @param drawFunc 描画コールバック。通常は [this]() { this->DrawImGui(); } の形式
-	 * @param area 初期表示エリア（未指定時は Inspector）
+	 * @param area 初期表示エリア（用途に応じて選択。詳細は DebugUIArea の解説を参照）
 	 */
 	void RegisterDebugUI(void* owner, const std::string& name, std::function<void()> drawFunc, DebugUIArea area = DebugUIArea::Inspector);
 
