@@ -33,10 +33,10 @@ void DebugUIManager::Initialize()
 #ifdef USE_IMGUI
 	debugUIs_.clear();
 
-	// 旧ファイルの削除（互換性のクリーンアップ）
+	// 旧レイアウトファイルのクリーンアップ
 	std::remove("debug_ui_layout.json");
 
-	// ImGuiのカスタム設定ハンドラーの登録
+	// 設定ハンドラ登録
 	ImGuiContext* ctx = ImGui::GetCurrentContext();
 	if (ctx != nullptr)
 	{
@@ -115,19 +115,18 @@ void DebugUIManager::RegisterDebugUI([[maybe_unused]] void* owner, [[maybe_unuse
 		return;
 	}
 
-	// 同じ owner で同名が既に登録されていたら上書き
+	// 同名UIがあれば上書き
 	auto& list = debugUIs_[owner];
 	for (auto& ui : list)
 	{
 		if (ui.name == name)
 		{
 			ui.drawFunc = drawFunc;
-			// エリア変更等は実行時変更が優先されるため上書きしない
 			return;
 		}
 	}
 
-	// 新規登録（ロード済みの状態があれば適用、なければデフォルト値）
+	// 新規登録（ロード済みの状態を優先）
 	DebugUIArea finalArea = area;
 	bool finalVisible = true;
 
@@ -209,21 +208,17 @@ void DebugUIManager::DrawArea([[maybe_unused]] DebugUIArea area)
 
 			if (ImGui::BeginChild(ui.name.c_str(), child_size, child_flags, 0))
 			{
-				// ヘッダー専用の非常にコンパクトなスタイルを適用
+				// ヘッダー用のスタイル適用
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 1.0f));
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 2.0f));
 
-				// カード上部とテキストの間のわずかな隙間
 				ImGui::Dummy(ImVec2(0.0f, 2.0f));
-
-				// 左右のパディング（左端から8px）
 				ImGui::Indent(8.0f);
 
-				// テキストのベースラインを揃える
 				ImGui::AlignTextToFramePadding();
 				ImGui::Text(ui.name.c_str());
 
-				// 右寄せの Move と 閉じるボタン（左右の幅は余裕を持たせる）
+				// 右寄せコントロール
 				float avail_width = ImGui::GetContentRegionAvail().x;
 				float combo_width = 90.0f; // 余裕を持たせた幅
 				float text_width = ImGui::CalcTextSize("Move:").x;
@@ -252,7 +247,6 @@ void DebugUIManager::DrawArea([[maybe_unused]] DebugUIArea area)
 					SaveLayout();
 				}
 
-				// 閉じる [X] ボタンを描画（左右の間隔を広げる）
 				ImGui::SameLine(0.0f, 10.0f);
 				std::string closeButtonId = "x##Close_" + ui.name;
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
@@ -265,23 +259,19 @@ void DebugUIManager::DrawArea([[maybe_unused]] DebugUIArea area)
 				}
 				ImGui::PopStyleColor(3);
 
-				// セパレーターを描画（余白を詰めつつ引く）
 				ImGui::Dummy(ImVec2(0.0f, 2.0f));
 				ImGui::Separator();
 				ImGui::Dummy(ImVec2(0.0f, 4.0f));
 
-				// ヘッダー専用のスタイルを復元（これにより drawFunc の中身は通常サイズで描画される）
+				// スタイル復元（drawFunc内を通常サイズで描画するため）
 				ImGui::PopStyleVar(2);
 
-				// カスタム描画関数の実行
 				if (ui.drawFunc)
 				{
 					ui.drawFunc();
 				}
 
-				// カード下部のパディング
 				ImGui::Dummy(ImVec2(0.0f, 4.0f));
-
 				ImGui::Unindent(8.0f);
 			}
 			ImGui::EndChild();
@@ -301,11 +291,11 @@ void DebugUIManager::DrawArea([[maybe_unused]] DebugUIArea area)
 void DebugUIManager::DrawToolsMenu()
 {
 #ifdef USE_IMGUI
-	// カテゴリ名と、そのカテゴリに属する UI 名の対応表
+	// カテゴリ定義
 	struct Category
 	{
 		const char* label;
-		const char* names[8]; // 各カテゴリに含まれる UI 名（nullptr 終端）
+		const char* names[8];
 	};
 
 	static const Category categories[] =
@@ -321,7 +311,7 @@ void DebugUIManager::DrawToolsMenu()
 
 	for (const auto& cat : categories)
 	{
-		// このカテゴリに属する登録済み UI が 1 つでもあるか確認
+		// カテゴリ内の登録有無チェック
 		bool hasItem = false;
 		for (const auto& [owner, list] : debugUIs_)
 		{
@@ -365,7 +355,7 @@ void DebugUIManager::DrawToolsMenu()
 		}
 	}
 
-	// カテゴリ未分類の登録済み UI を集めて表示
+	// 未分類UIの収集
 	std::vector<DebugUI*> otherUIs;
 	for (auto& [owner, list] : debugUIs_)
 	{
@@ -409,7 +399,7 @@ void DebugUIManager::DrawToolsMenu()
 
 	ImGui::Separator();
 
-	// UIごとの表示エリア変更用サブメニュー
+	// エリア変更用サブメニュー
 	if (ImGui::BeginMenu("UI Area Settings"))
 	{
 		for (auto& [owner, list] : debugUIs_)
@@ -499,7 +489,7 @@ void DebugUIManager::SetDebugUIArea([[maybe_unused]] const std::string& name, [[
 void DebugUIManager::SaveLayout()
 {
 #ifdef USE_IMGUI
-	// 現在の登録UIの最新状態でs_savedStatesを更新
+	// s_savedStatesの更新
 	for (const auto& [owner, list] : debugUIs_)
 	{
 		for (const auto& ui : list)
@@ -532,7 +522,7 @@ DebugUIManager::SavedUIState& DebugUIManager::GetOrAddLoadedState(const std::str
 		return it->second;
 	}
 
-	// 新規登録時のデフォルト設定
+	// デフォルト値
 	SavedUIState state;
 	state.area = DebugUIArea::Inspector;
 	state.visible = true;
@@ -547,7 +537,7 @@ DebugUIManager::SavedUIState& DebugUIManager::GetOrAddLoadedState(const std::str
 void DebugUIManager::WriteAllSettings(ImGuiTextBuffer* buf)
 {
 #ifdef USE_IMGUI
-	// シングルトンが生きていれば最新状態をマージ
+	// インスタンスが存在すればマージ
 	if (HasInstance())
 	{
 		auto* mgr = GetInstance();
@@ -560,7 +550,7 @@ void DebugUIManager::WriteAllSettings(ImGuiTextBuffer* buf)
 		}
 	}
 
-	// グローバル設定の書き出し
+	// グローバル設定書き出し
 	buf->appendf("[DebugUI][GlobalSettings]\n");
 	if (HasInstance())
 	{
