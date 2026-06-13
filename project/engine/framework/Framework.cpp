@@ -4,8 +4,6 @@
 #include "base/Logger.h"
 #include "input/Input.h"
 
-#include <Psapi.h>
-
 // system
 #include "graphics/2d/SpriteCommon.h"
 #include "graphics/3d/Object3dCommon.h"
@@ -20,6 +18,8 @@
 #include "time/TimerManager.h"
 #include "manager/graphics/InstancedModelPipelineManager.h"
 #include "manager/graphics/SkinningPipelineManager.h"
+#include "manager/editor/DebugUIManager.h"
+#include "manager/editor/ConsoleLog.h"
 
 #ifdef USE_IMGUI
 #include "ImGui/imgui_internal.h"
@@ -55,6 +55,11 @@ void Framework::Initialize()
 	// 4. ImGuiの初期化
 	imguiManager_ = std::make_unique<ImGuiManager>();
 	imguiManager_->Initialize(winApp_.get(), dxCommon_.get(), srvManager_.get());
+
+	// DebugUIManager と ConsoleLog の初期化
+	DebugUIManager::GetInstance()->Initialize();
+	ConsoleLog::GetInstance()->Initialize();
+
 
 	/*----- テクスチャ・グラフィックスの初期化 -----*/
 
@@ -138,8 +143,8 @@ void Framework::Initialize()
 	renderTexture_->Initialize(
 		dxCommon_.get(),
 		srvManager_.get(),
-		WinApp::kClientWidth,
-		WinApp::kClientHeight,
+		winApp_->GetClientWidth(),
+		winApp_->GetClientHeight(),
 		DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
 		clearColor
 	);
@@ -150,8 +155,8 @@ void Framework::Initialize()
 	brightPassRT_->Initialize(
 		dxCommon_.get(),
 		srvManager_.get(),
-		WinApp::kClientWidth,
-		WinApp::kClientHeight,
+		winApp_->GetClientWidth(),
+		winApp_->GetClientHeight(),
 		DXGI_FORMAT_R16G16B16A16_FLOAT,
 		clearColor
 	);
@@ -163,8 +168,8 @@ void Framework::Initialize()
 		blurRT_[i]->Initialize(
 			dxCommon_.get(),
 			srvManager_.get(),
-			WinApp::kClientWidth,
-			WinApp::kClientHeight,
+			winApp_->GetClientWidth(),
+			winApp_->GetClientHeight(),
 			DXGI_FORMAT_R16G16B16A16_FLOAT,
 			clearColor
 		);
@@ -172,7 +177,14 @@ void Framework::Initialize()
 
 	// ポストプロセスマネージャーの初期化
 	postProcessManager_ = std::make_unique<PostProcessManager>();
-	postProcessManager_->Initialize(dxCommon_.get(), srvManager_.get(), L"Resources/shaders/PostEffect.VS.hlsl", L"Resources/shaders/PostEffect.PS.hlsl");
+	postProcessManager_->Initialize(
+		dxCommon_.get(),
+		srvManager_.get(),
+		L"Resources/shaders/PostEffect.VS.hlsl",
+		L"Resources/shaders/PostEffect.PS.hlsl",
+		winApp_->GetClientWidth(),
+		winApp_->GetClientHeight()
+	);
 	postProcessManager_->SetBloomRenderTargets(
 		brightPassRT_.get(),
 		blurRT_[0].get(),
@@ -196,10 +208,36 @@ void Framework::Initialize()
 
 	// ディファードレンダラーの初期化
 	deferredRenderer_ = std::make_unique<DeferredRenderer>();
-	deferredRenderer_->Initialize(dxCommon_.get(), srvManager_.get(), WinApp::kClientWidth, WinApp::kClientHeight);
+	deferredRenderer_->Initialize(dxCommon_.get(), srvManager_.get(), winApp_->GetClientWidth(), winApp_->GetClientHeight());
 
 	// Skyboxの初期化
 	skybox_ = std::make_unique<Skybox>();
+
+	// ウィンドウのリサイズコールバックを登録する
+	winApp_->SetResizeCallback([this](uint32_t width, uint32_t height) {
+		// GPUのコマンド完了を待機する
+		dxCommon_->ExecuteAndWait();
+
+		// DirectXCommon をリサイズする
+		dxCommon_->Resize(width, height);
+
+		// 各種レンダーターゲットをリサイズする
+		renderTexture_->Resize(width, height);
+		brightPassRT_->Resize(width, height);
+		for (int i = 0; i < kBlurRenderTargetCount; i++)
+		{
+			blurRT_[i]->Resize(width, height);
+		}
+
+		// ポストプロセスマネージャーをリサイズする
+		postProcessManager_->Resize(width, height);
+
+		// ディファードレンダラーをリサイズする
+		deferredRenderer_->Resize(width, height);
+
+		// 派生クラス用のリサイズ通知
+		OnResize(width, height);
+	});
 }
 
 
@@ -210,6 +248,9 @@ void Framework::Finalize()
 	sceneManager_.reset();
 	winApp_->Finalize();
 	winApp_.reset();
+	DebugUIManager::GetInstance()->Finalize();
+	ConsoleLog::GetInstance()->Finalize();
+
 	imguiManager_->Finalize();
 	imguiManager_.reset();
 	TextureManager::GetInstance()->Finalize();
@@ -244,6 +285,12 @@ void Framework::Finalize()
 
 void Framework::Update()
 {
+	// 画面サイズ変更のキー入力チェック（F12でフルスクリーントグル）
+	if (Input::GetInstance()->TriggerKey(DIK_F12))
+	{
+		dxCommon_->SetFullscreen(!dxCommon_->IsFullscreen());
+	}
+
 	// ウィンドウメッセージ処理
 	if (winApp_->ProcessMessage())
 	{
@@ -345,21 +392,6 @@ void Framework::Run()
 
 void Framework::ShowPerformanceInfo()
 {
-#ifdef USE_IMGUI
-	// ウィンドウ位置を左上に固定
-	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-	// ウィンドウサイズを固定
-	ImGui::SetNextWindowSize(ImVec2(200, 65), ImGuiCond_Always);
-	ImGui::Begin("Performance", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-
-	// FPS表示
-	ImGui::Text("FPS : %.2f", ImGui::GetIO().Framerate);
-
-	// メモリ使用量表示
-	PROCESS_MEMORY_COUNTERS memInfo;
-	GetProcessMemoryInfo(GetCurrentProcess(), &memInfo, sizeof(memInfo));
-	ImGui::Text("Memory Usage : %.2f MB", memInfo.WorkingSetSize / (1024.0f * 1024.0f));
-
-	ImGui::End();
-#endif
+	// 何もしない（Hierarchy内の DrawArea で描画されるため）
 }
+

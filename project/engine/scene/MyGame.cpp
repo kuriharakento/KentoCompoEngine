@@ -2,12 +2,18 @@
 
 #include <future>
 #include <chrono>
+#include <filesystem>
+#include <windows.h>
+#include <Psapi.h>
 #include "manager/graphics/ModelManager.h"
 #include "manager/graphics/TextureManager.h"
 #include "base/Logger.h"
 #include "effects/particle/ParticleManager.h"
-#include "ImGui/imgui_internal.h"
+#include "externals/imgui/imgui_internal.h"
+#include "manager/editor/DebugUIManager.h"
+#include "manager/editor/ConsoleLog.h"
 #include "manager/graphics/LineManager.h"
+#include "input/Input.h"
 
 ///=============================================================================
 ///						初期化・終了処理
@@ -53,8 +59,8 @@ void MyGame::Initialize()
 	sceneRenderTexture_->Initialize(
 		dxCommon_.get(),
 		srvManager_.get(),
-		WinApp::kClientWidth,
-		WinApp::kClientHeight,
+		winApp_->GetClientWidth(),
+		winApp_->GetClientHeight(),
 		DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
 		clearColor
 	);
@@ -86,6 +92,14 @@ void MyGame::Update()
 
 	// パーティクルマネージャーの更新
 	ParticleManager::GetInstance()->Update(cameraManager_.get());
+}
+
+void MyGame::OnResize(uint32_t width, uint32_t height)
+{
+	if (sceneRenderTexture_)
+	{
+		sceneRenderTexture_->Resize(width, height);
+	}
 }
 
 ///=============================================================================
@@ -253,42 +267,191 @@ void MyGame::Draw()
 	// バックバッファのクリア
 	dxCommon_->PreDraw();
 
+	// メインメニューバー
+	DebugUIManager* debugUIManager = DebugUIManager::GetInstance();
+
+	if (ImGui::BeginMainMenuBar())
+	{
+		if (ImGui::BeginMenu("Window"))
+		{
+			bool showHierarchy = debugUIManager->IsShowHierarchy();
+			if (ImGui::MenuItem("Hierarchy", nullptr, &showHierarchy)) debugUIManager->SetShowHierarchy(showHierarchy);
+
+			bool showInspector = debugUIManager->IsShowInspector();
+			if (ImGui::MenuItem("Inspector", nullptr, &showInspector)) debugUIManager->SetShowInspector(showInspector);
+
+			bool showConsole = debugUIManager->IsShowConsole();
+			if (ImGui::MenuItem("Console", nullptr, &showConsole)) debugUIManager->SetShowConsole(showConsole);
+
+			bool showProject = debugUIManager->IsShowProject();
+			if (ImGui::MenuItem("Project", nullptr, &showProject)) debugUIManager->SetShowProject(showProject);
+
+			ImGui::Separator();
+			if (ImGui::BeginMenu("UI Scale"))
+			{
+				float currentScale = debugUIManager->GetUIScale();
+				float scales[] = { 0.50f, 0.75f, 1.00f, 1.25f, 1.50f, 1.75f, 2.00f };
+				for (float s : scales)
+				{
+					char label[32];
+					sprintf_s(label, "%d%%", static_cast<int>(s * 100.0f));
+					bool selected = (currentScale == s);
+					if (ImGui::MenuItem(label, nullptr, &selected))
+					{
+						debugUIManager->SetUIScale(s);
+					}
+				}
+				ImGui::EndMenu();
+			}
+
+			ImGui::Separator();
+			if (ImGui::MenuItem("Reset Layout"))
+			{
+				debugUIManager->RequestLayoutReset();
+			}
+
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Tools"))
+		{
+			debugUIManager->DrawToolsMenu();
+			ImGui::EndMenu();
+		}
+
+		// メニューバー中央にエンジン名を表示
+		float menuBarWidth = ImGui::GetWindowWidth();
+		float textWidth = ImGui::CalcTextSize("KentoCompoEngine").x;
+		ImGui::SameLine((menuBarWidth - textWidth) * 0.5f);
+		ImGui::TextUnformatted("KentoCompoEngine");
+
+		// 右端にPerformance（FPSとメモリ使用率）を表示
+		float fps = ImGui::GetIO().Framerate;
+		PROCESS_MEMORY_COUNTERS memInfo;
+		GetProcessMemoryInfo(GetCurrentProcess(), &memInfo, sizeof(memInfo));
+		float memUsage = memInfo.WorkingSetSize / (1024.0f * 1024.0f);
+
+		char perfBuf[64];
+		sprintf_s(perfBuf, "FPS: %.2f | Mem: %.2f MB", fps, memUsage);
+		float perfTextWidth = ImGui::CalcTextSize(perfBuf).x;
+		ImGui::SameLine(menuBarWidth - perfTextWidth - 20.0f);
+		ImGui::TextUnformatted(perfBuf);
+
+		ImGui::EndMainMenuBar();
+	}
+
 	// ImGui ドッキングスペースの作成
 	ImGuiViewport* viewport = ImGui::GetMainViewport();
-	ImGui::SetNextWindowPos(viewport->Pos);
-	ImGui::SetNextWindowSize(viewport->Size);
-	ImGui::SetNextWindowViewport(viewport->ID);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, kImGuiWindowRounding);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, kImGuiWindowBorderSize);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(kImGuiWindowRounding, kImGuiWindowRounding));
-	ImGui::Begin("DockSpace", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground);
-	ImGui::PopStyleVar(3);
-	ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-	ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
-	ImGui::End();
+	ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(0, viewport, ImGuiDockNodeFlags_None);
+
+	// 初回起動時またはレイアウトリセット要求時に初期ドッキングレイアウトを自動構築
+	static bool firstFrame = true;
+	if (firstFrame)
+	{
+		firstFrame = false;
+		// imgui.ini が存在しない場合のみ初期レイアウトを構築する
+		if (!std::filesystem::exists("imgui.ini"))
+		{
+			debugUIManager->RequestLayoutReset();
+		}
+	}
+
+	if (debugUIManager->IsLayoutResetRequested())
+	{
+		debugUIManager->ClearLayoutResetRequest();
+
+		ImGui::DockBuilderRemoveNode(dockspace_id); // 既存レイアウト削除
+		ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace); // 空ノード追加
+		ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
+
+		ImGuiID dock_main_id = dockspace_id;
+		ImGuiID dock_id_left = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.20f, nullptr, &dock_main_id);
+		ImGuiID dock_id_right = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.25f, nullptr, &dock_main_id);
+		ImGuiID dock_id_bottom = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.25f, nullptr, &dock_main_id);
+
+		// ウィンドウのドッキング
+		ImGui::DockBuilderDockWindow("Hierarchy", dock_id_left);
+		ImGui::DockBuilderDockWindow("Performance", dock_id_left);
+
+		ImGui::DockBuilderDockWindow("Scene", dock_main_id);
+
+		ImGui::DockBuilderDockWindow("Inspector", dock_id_right);
+		ImGui::DockBuilderDockWindow("SceneManager", dock_id_right);
+		ImGui::DockBuilderDockWindow("Time Manager", dock_id_right);
+		ImGui::DockBuilderDockWindow("TimerManager", dock_id_right);
+
+		ImGui::DockBuilderDockWindow("Project", dock_id_bottom);
+		ImGui::DockBuilderDockWindow("Console", dock_id_bottom);
+		ImGui::DockBuilderDockWindow("Audio Debug", dock_id_bottom);
+		ImGui::DockBuilderDockWindow("JSON Editor", dock_id_bottom);
+
+		ImGui::DockBuilderFinish(dockspace_id);
+	}
 
 	// シーンウィンドウ
 	ImGui::Begin("Scene");
 	ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 	ImGui::Image((ImTextureID)sceneRenderTexture_->GetGPUHandle().ptr, viewportSize);
+
+	// シーンウィンドウの描画領域に合わせてマウス入力を補正する
+	ImVec2 imagePos = ImGui::GetItemRectMin();
+	ImVec2 imageSize = ImGui::GetItemRectSize();
+
+	POINT clientOrigin = { 0, 0 };
+	ClientToScreen(winApp_->GetHwnd(), &clientOrigin);
+
+	Vector2 offset = { imagePos.x - clientOrigin.x, imagePos.y - clientOrigin.y };
+	Vector2 size = { imageSize.x, imageSize.y };
+	Input::GetInstance()->SetMouseCorrection(offset, size);
+
+	// 登録されたSceneエリアのデバッグUIを描画する
+	debugUIManager->DrawArea(DebugUIArea::Scene);
+
 	ImGui::End();
 
-	// その他のウィンドウ（プレースホルダー）
-	ImGui::Begin("Hierarchy");
-	ImGui::Text("Hierarchy Placeholder");
-	ImGui::End();
+	// 各種標準デバッグウィンドウの描画
+	if (debugUIManager->IsShowHierarchy())
+	{
+		bool open = debugUIManager->IsShowHierarchy();
+		if (ImGui::Begin("Hierarchy", &open))
+		{
+			debugUIManager->DrawArea(DebugUIArea::Hierarchy);
+		}
+		ImGui::End();
+		debugUIManager->SetShowHierarchy(open);
+	}
 
-	ImGui::Begin("Inspector");
-	ImGui::Text("Inspector Placeholder");
-	ImGui::End();
+	if (debugUIManager->IsShowInspector())
+	{
+		bool open = debugUIManager->IsShowInspector();
+		if (ImGui::Begin("Inspector", &open))
+		{
+			debugUIManager->DrawArea(DebugUIArea::Inspector);
+		}
+		ImGui::End();
+		debugUIManager->SetShowInspector(open);
+	}
 
-	ImGui::Begin("Project");
-	ImGui::Text("Project Placeholder");
-	ImGui::End();
+	if (debugUIManager->IsShowProject())
+	{
+		bool open = debugUIManager->IsShowProject();
+		if (ImGui::Begin("Project", &open))
+		{
+			debugUIManager->DrawArea(DebugUIArea::Project);
+		}
+		ImGui::End();
+		debugUIManager->SetShowProject(open);
+	}
 
-	ImGui::Begin("Console");
-	ImGui::Text("Console Placeholder");
-	ImGui::End();
+	if (debugUIManager->IsShowConsole())
+	{
+		bool open = debugUIManager->IsShowConsole();
+		ConsoleLog::GetInstance()->Draw(&open);
+		debugUIManager->SetShowConsole(open);
+	}
+
+
+
 #else
 	// バックバッファのクリア
 	dxCommon_->PreDraw();

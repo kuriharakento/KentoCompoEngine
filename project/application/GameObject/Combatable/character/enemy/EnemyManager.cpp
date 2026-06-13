@@ -4,6 +4,9 @@
 #include <audio/Audio.h>
 #include "effects/particle/ParticleManager.h"
 #include "externals/imgui/imgui.h"
+#ifdef USE_IMGUI
+#include "manager/editor/DebugUIManager.h"
+#endif
 #include "time/TimeManager.h"
 
 // ECS Components
@@ -185,13 +188,24 @@ void EnemyManager::Initialize(Registry* registry, SystemManager* systemManager, 
 	target_ = target;
 
 	emitRange_ = { { -10.0f, 1.0f, -10.0f }, { 10.0f, 1.0f, 10.0f } };
+
+#ifdef USE_IMGUI
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Enemy Manager", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+#endif
 }
 
-void EnemyManager::Update()
+EnemyManager::~EnemyManager()
 {
-	// ImGui Debug controls
 #ifdef USE_IMGUI
-	ImGui::Begin("Enemy Manager");
+	if (DebugUIManager::HasInstance()) {
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
+}
+
+void EnemyManager::DrawImGui()
+{
+#ifdef USE_IMGUI
 	ImGui::Text("Active Entities: %d", registry_ ? registry_->GetActiveEntityCount() : 0);
 	ImGui::Text("Enemy Bullets: %zu", enemyBullets_.size());
 	
@@ -204,8 +218,32 @@ void EnemyManager::Update()
 	if (ImGui::Button("Add Assault Enemy (100)")) AddAssaultEnemy(100);
 
 	if (ImGui::Button("Clear All Enemies")) Clear();
-	ImGui::End();
+
+	ImGui::Separator();
+	ImGui::Text("Behavior Trees:");
+	if (registry_ && registry_->HasComponentArray<EnemyAIComponent>()) {
+		auto view = registry_->View<EnemyAIComponent>();
+		if (view) {
+			for (uint32_t i = 0; i < view->GetSize(); ++i) {
+				auto& ai = view->GetDataFromDenseIndex(i);
+				EntityID entity = view->GetEntityFromDenseIndex(i);
+				std::string label = "Enemy [Entity: " + std::to_string(entity) + "]";
+				if (ImGui::TreeNode(label.c_str())) {
+					if (ai.behaviorTree_) {
+						ai.behaviorTree_->DrawImGui();
+					} else {
+						ImGui::Text("No BehaviorTree");
+					}
+					ImGui::TreePop();
+				}
+			}
+		}
+	}
 #endif
+}
+
+void EnemyManager::Update()
+{
 
 	// Update bullets (Managed by GameObject)
 	for (auto& bullet : enemyBullets_) {

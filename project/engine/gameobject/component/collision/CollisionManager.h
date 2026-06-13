@@ -53,7 +53,7 @@ public:
 	 * 
 	 * 登録されているコライダーをクリアします。
 	 */
-	void Initialize() { colliders_.clear(); }
+	void Initialize();
 	
 	/**
 	 * @brief マネージャーを終了
@@ -129,7 +129,11 @@ private:
 	CollisionManager& operator=(const CollisionManager&) = delete;
 
 public:
-	~CollisionManager() = default;
+	~CollisionManager();
+
+#ifdef USE_IMGUI
+	void DrawImGui();
+#endif
 
 private:
 	// 衝突判定関数（3D）

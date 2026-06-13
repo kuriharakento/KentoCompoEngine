@@ -24,6 +24,8 @@ public:
      * @param knife ナイフのゲームオブジェクト
      */
     KnifeEnemyBehavior(GameObject* target, GameObject* rightArm, GameObject* leftArm, GameObject* knife);
+    ~KnifeEnemyBehavior() override;
+    void DrawImGui();
 
     /**
      * @brief フレームごとの更新処理
@@ -177,4 +179,7 @@ private:
 
     // ビヘイビアツリー
     std::unique_ptr<BehaviorTree> behaviorTree_;
+
+    // キャッシュ用オーナー（デバッグUI描画用）
+    GameObject* lastOwner_ = nullptr;
 };

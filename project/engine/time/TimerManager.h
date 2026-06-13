@@ -80,6 +80,11 @@ public:
      */
     bool HasTimer(const std::string& name) const;
 
+#ifdef USE_IMGUI
+    /** @brief DebugUIManager 経由で描画されるデバッグ情報 */
+    void DrawImGui();
+#endif
+
 private:
     // シングルトンパターンのためコピー・ムーブを禁止
     TimerManager(const TimerManager&) = delete;

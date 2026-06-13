@@ -1,5 +1,9 @@
 #include "Minimap.h"
 #include "engine/ecs/components/TransformComponent.h"
+#ifdef USE_IMGUI
+#include "externals/imgui/imgui.h"
+#include "manager/editor/DebugUIManager.h"
+#endif
 
 void Minimap::Initialize(SpriteCommon* spriteCommon, StageManager* stageManager)
 {
@@ -21,13 +25,24 @@ void Minimap::Initialize(SpriteCommon* spriteCommon, StageManager* stageManager)
     playerIcon_->SetSize({ 18.0f, 18.0f });
     playerIcon_->SetAnchorPoint({ 0.5f, 0.5f });
     playerIcon_->SetColor(VectorColorCodes::Cyan);
+
+#ifdef USE_IMGUI
+    DebugUIManager::GetInstance()->RegisterDebugUI(this, "Minimap", [this]() { this->DrawImGui(); }, DebugUIArea::Scene);
+#endif
 }
 
-void Minimap::Update()
+Minimap::~Minimap()
 {
 #ifdef USE_IMGUI
-    ImGui::Begin("Minimap");
+    if (DebugUIManager::HasInstance()) {
+        DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+    }
+#endif
+}
 
+void Minimap::DrawImGui()
+{
+#ifdef USE_IMGUI
     static Vector2 framePos = frame_->GetPosition();
     if (ImGui::DragFloat2("Frame Position", &framePos.x, 1.0f, 0.0f, 1920.0f))
     {
@@ -38,11 +53,11 @@ void Minimap::Update()
     {
         frame_->SetSize(frameSize);
     }
-
-    ImGui::End();
-
 #endif
+}
 
+void Minimap::Update()
+{
     frame_->Update();
 
     float playerYaw = stageManager_->GetPlayerRotation().y;

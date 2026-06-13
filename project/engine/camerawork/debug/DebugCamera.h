@@ -20,6 +20,7 @@ class DebugCamera : public CameraWorkBase
 {
 public:
     DebugCamera() = default;
+    virtual ~DebugCamera();
 
     /**
      * @brief カメラワークの初期化
@@ -108,7 +109,7 @@ private:
     /**
      * @brief ImGuiデバッグUIの描画
      */
-    void DrawDebugUI();
+    void DrawImGui();
 
     /**
      * @brief カメラの前方ベクトルを取得

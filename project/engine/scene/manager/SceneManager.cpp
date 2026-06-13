@@ -4,6 +4,7 @@
 
 #include "externals/imgui/imgui.h"
 #include "effects/particle/ParticleManager.h"
+#include "manager/editor/DebugUIManager.h"
 
 SceneManager::~SceneManager()
 {
@@ -24,58 +25,56 @@ void SceneManager::Initialize(const SceneContext& context)
 	currentScene_->SetSceneManager(this);
 	currentScene_->Initialize();
 	currentSceneName_ = startSceneName;
+
+#ifdef USE_IMGUI
+	// シーンマネージャーをデバッグUIに登録
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "SceneManager", [this]() {
+		ImGui::Text("CurrentScene: %s", currentSceneName_.c_str());
+		if (ImGui::Button("Title"))
+		{
+			ChangeScene(SceneNames::Title);
+		}
+		if (ImGui::Button("GamePlay"))
+		{
+			ChangeScene(SceneNames::GamePlay);
+		}
+		if (ImGui::Button("Result"))
+		{
+			ChangeScene(SceneNames::Result);
+		}
+		// Debug用シーン
+		if (ImGui::Button("StageEdit"))
+		{
+			ChangeScene(SceneNames::StageEdit);
+		}
+		if (ImGui::Button("ParticleTest"))
+		{
+			ChangeScene(SceneNames::ParticleTest);
+		}
+		if (ImGui::Button("EcsDebug"))
+		{
+			ChangeScene(SceneNames::EcsDebug);
+		}
+		// --- シーンのステートを直接変更するデバッグ UI ---
+		if (currentScene_)
+		{
+			ImGui::SeparatorText("Scene State");
+			const char* stateNames[] = { "None", "Enter", "Intro", "Playing", "Paused", "Cutscene", "End", "Exit" };
+			int current = static_cast<int>(currentScene_->GetCurrentState());
+			static int selectedState = current;
+			// UI と内部状態を常に同期しておく
+			if (selectedState != current) selectedState = current;
+			if (ImGui::Combo("State", &selectedState, stateNames, IM_ARRAYSIZE(stateNames)))
+			{
+				currentScene_->DebugSetState(static_cast<SceneState>(selectedState));
+			}
+		}
+	}, DebugUIArea::Inspector);
+#endif
 }
 
 void SceneManager::Update()
 {
-#pragma region ImGui
-
-#ifdef USE_IMGUI
-	ImGui::Begin("SceneManager");
-	ImGui::Text("CurrentScene: %s", currentSceneName_.c_str());
-	if (ImGui::Button("Title"))
-	{
-		ChangeScene(SceneNames::Title);
-	}
-	if (ImGui::Button("GamePlay"))
-	{
-		ChangeScene(SceneNames::GamePlay);
-	}
-	if (ImGui::Button("Result"))
-	{
-		ChangeScene(SceneNames::Result);
-	}
-	// Debug用シーン
-	if(ImGui::Button("StageEdit"))
-	{
-		ChangeScene(SceneNames::StageEdit);
-	}
-	if (ImGui::Button("ParticleTest"))
-	{
-		ChangeScene(SceneNames::ParticleTest);
-	}
-	if (ImGui::Button("EcsDebug"))
-	{
-		ChangeScene(SceneNames::EcsDebug);
-	}
-	// --- シーンのステートを直接変更するデバッグ UI ---
-	if (currentScene_)
-	{
-		ImGui::SeparatorText("Scene State");
-		const char* stateNames[] = { "None", "Enter", "Intro", "Playing", "Paused", "Cutscene", "End", "Exit" };
-		int current = static_cast<int>(currentScene_->GetCurrentState());
-		static int selectedState = current;
-		// UI と内部状態を常に同期しておく
-		if (selectedState != current) selectedState = current;
-		if (ImGui::Combo("State", &selectedState, stateNames, IM_ARRAYSIZE(stateNames)))
-		{
-			currentScene_->DebugSetState(static_cast<SceneState>(selectedState));
-		}
-	}
-	ImGui::End();
-#endif
-
-#pragma endregion
 
 	//次のシーンが予約されているか
 	ReserveNextScene();

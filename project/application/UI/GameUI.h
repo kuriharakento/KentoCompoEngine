@@ -265,9 +265,9 @@ private:
 	// マウスボタンのインデックス（0: 左ボタン）
 	static constexpr int kMouseButtonLeft = 0;
 
-	// スクリーン幅
-	static inline const float kScreenWidth = static_cast<float>(WinApp::kClientWidth);
+	// スクリーン幅（1280x720の仮想スクリーン解像度に固定）
+	static inline const float kScreenWidth = 1280.0f;
 
-	// スクリーン高さ
-	static inline const float kScreenHeight = static_cast<float>(WinApp::kClientHeight);
+	// スクリーン高さ（1280x720の仮想スクリーン解像度に固定）
+	static inline const float kScreenHeight = 720.0f;
 };

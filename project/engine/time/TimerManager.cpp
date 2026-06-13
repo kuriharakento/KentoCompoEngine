@@ -2,6 +2,7 @@
 
 #include "TimeManager.h"
 #include "imgui/imgui.h"
+#include "manager/editor/DebugUIManager.h"
 
 TimerManager& TimerManager::GetInstance()
 {
@@ -14,10 +15,20 @@ TimerManager::TimerManager()
 {
     // タイマーマップを初期化
     Clear();
+
+#ifdef USE_IMGUI
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Timer Manager", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+#endif
 }
 
 TimerManager::~TimerManager()
 {
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance())
+	{
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
     // 全タイマーを解放
     Clear();
 }
@@ -57,27 +68,9 @@ Timer* TimerManager::GetTimer(const std::string& name)
     return nullptr;
 }
 
+
 void TimerManager::Update()
 {
-#ifdef USE_IMGUI
-    // ImGuiによるデバッグUI表示
-    if (ImGui::Begin("TimerManager"))
-    {
-        ImGui::SeparatorText("List");
-        // 全タイマーの情報を表示
-        for (const auto& timer : timers_)
-        {
-            const Timer* t = timer.second.get();
-            ImGui::Text("Name: %s", t->GetName().c_str());
-            ImGui::Text(" Remaining: %.2f", t->GetRemainingTime());
-            ImGui::Text(" Running: %s", t->IsRunning() ? "true" : "false");
-            ImGui::Text(" Finished: %s", t->IsFinished() ? "true" : "false");
-            ImGui::Separator();
-        }
-    }
-    ImGui::End();
-#endif
-
     // 全タイマーを更新
     for (auto it = timers_.begin(); it != timers_.end(); )
     {
@@ -126,3 +119,25 @@ bool TimerManager::HasTimer(const std::string& name) const
     // 指定名のタイマーが存在するかを確認
     return timers_.find(name) != timers_.end();
 }
+
+#ifdef USE_IMGUI
+void TimerManager::DrawImGui()
+{
+	ImGui::SeparatorText("Active Timers");
+	if (timers_.empty())
+	{
+		ImGui::TextDisabled("No active timers.");
+		return;
+	}
+
+	for (const auto& timer : timers_)
+	{
+		const Timer* t = timer.second.get();
+		ImGui::Text("Name:      %s", t->GetName().c_str());
+		ImGui::Text("Remaining: %.2f s", t->GetRemainingTime());
+		ImGui::Text("Running:   %s", t->IsRunning()  ? "true" : "false");
+		ImGui::Text("Finished:  %s", t->IsFinished() ? "true" : "false");
+		ImGui::Separator();
+	}
+}
+#endif

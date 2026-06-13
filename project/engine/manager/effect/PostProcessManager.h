@@ -41,7 +41,7 @@ public:
      * @param vsPath 頂点シェーダーのパス
      * @param psPath ピクセルシェーダーのパス
      */
-    void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, const std::wstring& vsPath, const std::wstring& psPath);
+    void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, const std::wstring& vsPath, const std::wstring& psPath, uint32_t width, uint32_t height);
 
     /**
      * @brief 描画処理
@@ -81,6 +81,13 @@ public:
      * @param blurRT1 ブラー用レンダーターゲット1
      */
     void SetBloomRenderTargets(RenderTexture* brightPassRT, RenderTexture* blurRT0, RenderTexture* blurRT1);
+
+    /**
+     * @brief ポストプロセスをリサイズする。
+     * @param width 新しい幅
+     * @param height 新しい高さ
+     */
+    void Resize(uint32_t width, uint32_t height);
 
     std::unique_ptr<GrayscaleEffect> grayscaleEffect_; // グレースケールエフェクト
     std::unique_ptr<VignetteEffect> vignetteEffect_;   // ビネットエフェクト

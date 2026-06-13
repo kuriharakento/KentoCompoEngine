@@ -1,5 +1,4 @@
-#include "base/Logger.h"
-
+#include "manager/editor/ConsoleLog.h"
 #include <Windows.h>
 
 namespace Logger
@@ -18,9 +17,15 @@ namespace Logger
         return utf16;
     }
 
-    void Log(const std::string& message)
+    void Log(const std::string& message, LogLevel level)
     {
         // UTF-16に変換してデバッグ出力
         OutputDebugStringW(Utf8ToUtf16(message).c_str());
+
+        // ConsoleLogが有効であればログを追加
+        if (ConsoleLog::HasInstance())
+        {
+            ConsoleLog::GetInstance()->AddLog(message, level);
+        }
     }
 }

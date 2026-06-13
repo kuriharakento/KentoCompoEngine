@@ -3,6 +3,7 @@
 #include "application/ecs/components/PlayerComponent.h"
 #include "imgui/imgui.h"
 #include "time/TimeManager.h"
+#include "manager/editor/DebugUIManager.h"
 
 CarnageMode::CarnageMode(Registry* registry, EntityID playerEntity)
     : registry_(registry), playerEntity_(playerEntity)
@@ -12,6 +13,20 @@ CarnageMode::CarnageMode(Registry* registry, EntityID playerEntity)
         RemoveBuffs();
         HideUI();
     });
+
+#ifdef USE_IMGUI
+    DebugUIManager::GetInstance()->RegisterDebugUI(this, "CarnageMode", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+#endif
+}
+
+CarnageMode::~CarnageMode()
+{
+#ifdef USE_IMGUI
+    if (DebugUIManager::HasInstance())
+    {
+        DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+    }
+#endif
 }
 
 void CarnageMode::TryStart()
@@ -28,8 +43,6 @@ void CarnageMode::TryStart()
 
 void CarnageMode::Update()
 {
-    ImGui();
-    
     timer_->Update(TimeManager::GetInstance().GetGameContext().realDeltaTime);
 
     TryStart();
@@ -87,10 +100,9 @@ void CarnageMode::RemoveBuffs()
 void CarnageMode::ShowUI() {}
 void CarnageMode::HideUI() {}
 
-void CarnageMode::ImGui()
-{
 #ifdef USE_IMGUI
-    ImGui::Begin("CarnageMode");
+void CarnageMode::DrawImGui()
+{
     ImGui::Text("Is Active: %s", IsActive() ? "Active" : "No Active");
     ImGui::Text("Time Left: %.2f", GetTimeLeft());
     ImGui::SliderFloat("Attack Up Rate", &attackUpRate_, 0.0f, 2.0f, "%.2f");
@@ -98,6 +110,5 @@ void CarnageMode::ImGui()
     {
         ExtendTimer();
     }
-    ImGui::End();
-#endif
 }
+#endif

@@ -17,7 +17,7 @@ class PoseMenu
 {
 public:
 	PoseMenu() = default;
-	~PoseMenu() = default;
+	~PoseMenu();
 
 	/**
 	 * @brief 初期化
@@ -156,6 +156,6 @@ private:
 	bool isExitHovered_ = false;
 
 	// スクリーンサイズ
-	static inline const float kScreenWidth = static_cast<float>(WinApp::kClientWidth);
-	static inline const float kScreenHeight = static_cast<float>(WinApp::kClientHeight);
+	static inline const float kScreenWidth = 1280.0f;
+	static inline const float kScreenHeight = 720.0f;
 };

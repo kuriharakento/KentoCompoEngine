@@ -3,9 +3,18 @@
 #include <cmath>
 #include "imgui/imgui.h"
 #include "time/TimeManager.h"
+#include "manager/editor/DebugUIManager.h"
 
 SceneTransitionEffect::SceneTransitionEffect() {}
-SceneTransitionEffect::~SceneTransitionEffect() {}
+SceneTransitionEffect::~SceneTransitionEffect()
+{
+#ifdef USE_IMGUI
+    if (DebugUIManager::HasInstance())
+    {
+        DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+    }
+#endif
+}
 
 void SceneTransitionEffect::Initialize(SpriteCommon* spriteCommon, const std::string& texturePath, int gridX, int gridY, float screenWidth, float screenHeight)
 {
@@ -37,6 +46,10 @@ void SceneTransitionEffect::Initialize(SpriteCommon* spriteCommon, const std::st
             gridSprites_[y][x]->SetColor(color);
         }
     }
+
+#ifdef USE_IMGUI
+    DebugUIManager::GetInstance()->RegisterDebugUI(this, "Scene Transition", [this]() { this->ShowImGui(); }, DebugUIArea::Inspector);
+#endif
 }
 
 void SceneTransitionEffect::Start(float duration, const Vector4& startColor, const Vector4& endColor)
@@ -63,8 +76,6 @@ void SceneTransitionEffect::Start(float duration, const Vector4& startColor, con
 
 void SceneTransitionEffect::Update()
 {
-    ShowImGui();
-
     float deltaTime = TimeManager::GetInstance().GetUIContext().deltaTime;
 
     // シーンロード等でフレームレートが極端に落ちた時に、一気に遷移が完了してしまうのを防止するため、最大値を設定
@@ -215,58 +226,54 @@ float SceneTransitionEffect::CalcGridProgress(int x, int y) const
 void SceneTransitionEffect::ShowImGui()
 {
 #ifdef USE_IMGUI
-    if (ImGui::Begin("SceneTransitionEffect"))
+    ImGui::Text("State: %s", state_ == TransitionState::Idle ? "Idle" : state_ == TransitionState::Playing ? "Playing" : "Done");
+    ImGui::SliderFloat("Duration(s)", &duration_, 0.1f, 5.0f);
+    static int easeIdx = static_cast<int>(easeType_);
+    const char* easeNames[] = {
+       "Linear", "InSine", "OutSine", "InOutSine", "InQuint", "OutQuint", "InOutQuint", "InCirc", "OutCirc",
+       "InOutCirc", "InElastic", "OutElastic", "InOutElastic", "InExpo", "OutExpo", "InOutExpo", "OutQuad",
+       "InOutQuart", "InBack", "OutBack", "InOutBack", "OutBounce", "InBounce", "InOutBounce"
+    };
+    if (ImGui::Combo("Ease Function", &easeIdx, easeNames, IM_ARRAYSIZE(easeNames)))
     {
-        ImGui::Text("State: %s", state_ == TransitionState::Idle ? "Idle" : state_ == TransitionState::Playing ? "Playing" : "Done");
-        ImGui::SliderFloat("Duration(s)", &duration_, 0.1f, 5.0f);
-        static int easeIdx = static_cast<int>(easeType_);
-        const char* easeNames[] = {
-           "Linear", "InSine", "OutSine", "InOutSine", "InQuint", "OutQuint", "InOutQuint", "InCirc", "OutCirc",
-           "InOutCirc", "InElastic", "OutElastic", "InOutElastic", "InExpo", "OutExpo", "InOutExpo", "OutQuad",
-           "InOutQuart", "InBack", "OutBack", "InOutBack", "OutBounce", "InBounce", "InOutBounce"
-        };
-        if (ImGui::Combo("Ease Function", &easeIdx, easeNames, IM_ARRAYSIZE(easeNames)))
-        {
-            easeType_ = static_cast<SceneTransitionEase>(easeIdx);
-        }
-
-        static int modeIdx = static_cast<int>(mode_);
-        const char* modeNames[] = {
-            "LeftTop -> RightBottom",
-            "RightBottom -> LeftTop",
-            "RightTop -> LeftBottom",
-            "LeftBottom -> RightTop",
-            "Top -> Bottom",
-            "Bottom -> Top",
-            "Center -> Edges",
-            "Edges -> Center"
-        };
-        if (ImGui::Combo("Transition Mode", &modeIdx, modeNames, IM_ARRAYSIZE(modeNames)))
-        {
-            mode_ = static_cast<TransitionMode>(modeIdx);
-        }
-
-        static int fadeIdx = static_cast<int>(fadeType_);
-        const char* fadeNames[] = { "FadeOut", "FadeIn" };
-        if (ImGui::Combo("Fade Type", &fadeIdx, fadeNames, IM_ARRAYSIZE(fadeNames)))
-        {
-            fadeType_ = static_cast<FadeType>(fadeIdx);
-        }
-
-        static float startCol[4]{ startColor_.x, startColor_.y, startColor_.z, startColor_.w };
-        static float endCol[4]{ endColor_.x, endColor_.y, endColor_.z, endColor_.w };
-        ImGui::ColorEdit4("Start Color", startCol);
-        ImGui::ColorEdit4("End Color", endCol);
-        if (ImGui::Button("Start Transition"))
-        {
-            Start(duration_, Vector4(startCol[0], startCol[1], startCol[2], 1.0f), Vector4(endCol[0], endCol[1], endCol[2], 1.0f));
-        }
-        if (state_ == TransitionState::Playing)
-        {
-            ImGui::ProgressBar(transitionRate_, ImVec2(0.0f, 0.0f));
-            ImGui::Text("Rate: %.3f", transitionRate_);
-        }
+        easeType_ = static_cast<SceneTransitionEase>(easeIdx);
     }
-    ImGui::End();
+
+    static int modeIdx = static_cast<int>(mode_);
+    const char* modeNames[] = {
+        "LeftTop -> RightBottom",
+        "RightBottom -> LeftTop",
+        "RightTop -> LeftBottom",
+        "LeftBottom -> RightTop",
+        "Top -> Bottom",
+        "Bottom -> Top",
+        "Center -> Edges",
+        "Edges -> Center"
+    };
+    if (ImGui::Combo("Transition Mode", &modeIdx, modeNames, IM_ARRAYSIZE(modeNames)))
+    {
+        mode_ = static_cast<TransitionMode>(modeIdx);
+    }
+
+    static int fadeIdx = static_cast<int>(fadeType_);
+    const char* fadeNames[] = { "FadeOut", "FadeIn" };
+    if (ImGui::Combo("Fade Type", &fadeIdx, fadeNames, IM_ARRAYSIZE(fadeNames)))
+    {
+        fadeType_ = static_cast<FadeType>(fadeIdx);
+    }
+
+    static float startCol[4]{ startColor_.x, startColor_.y, startColor_.z, startColor_.w };
+    static float endCol[4]{ endColor_.x, endColor_.y, endColor_.z, endColor_.w };
+    ImGui::ColorEdit4("Start Color", startCol);
+    ImGui::ColorEdit4("End Color", endCol);
+    if (ImGui::Button("Start Transition"))
+    {
+        Start(duration_, Vector4(startCol[0], startCol[1], startCol[2], 1.0f), Vector4(endCol[0], endCol[1], endCol[2], 1.0f));
+    }
+    if (state_ == TransitionState::Playing)
+    {
+        ImGui::ProgressBar(transitionRate_, ImVec2(0.0f, 0.0f));
+        ImGui::Text("Rate: %.3f", transitionRate_);
+    }
 #endif
 }

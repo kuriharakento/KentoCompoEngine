@@ -22,7 +22,9 @@ class EnemyManager
 public:
 	// ECS Integration: Initialize時に外部（GamePlayScene）で構築されたRegistryを受け取る
 	void Initialize(Registry* registry, SystemManager* systemManager, Object3dCommon* object3dCommon, SpriteCommon* spriteCommon, CameraManager* camera, LightManager* lightManager, ShadowMapManager* shadowMapManager, GameObject* target);
+	~EnemyManager();
 	void Update();
+	void DrawImGui();
 	void DrawStandard3D(CameraManager* camera);
 
 	// ECSのエンティティ生成専用ファクトリメソッド群

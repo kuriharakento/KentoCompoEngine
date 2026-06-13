@@ -6,11 +6,26 @@
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
+#include "manager/editor/DebugUIManager.h"
 #endif
 
 void CameraManager::Initialize(DirectXCommon* dxCommon)
 {
 	dxCommon_ = dxCommon;
+
+#ifdef USE_IMGUI
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Camera Manager", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+#endif
+}
+
+CameraManager::~CameraManager()
+{
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance())
+	{
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
 }
 
 void CameraManager::AddCamera(const std::string& name) {
@@ -58,9 +73,17 @@ void CameraManager::Update() {
         return;
     }
 
+    // アクティブカメラを更新
+    activeCamera_->Update();
+}
+
 #ifdef USE_IMGUI
-    /*--------------[ ImGuiでのデバッグ表示 ]-----------------*/
-	ImGui::Begin("CameraManager");
+void CameraManager::DrawImGui() {
+    // アクティブカメラが設定されていない場合は何もしない
+    if(!activeCamera_)
+    {
+        return;
+    }
 
 	// アクティブカメラの名前を表示
 	ImGui::Text("Active Camera: %s", activeCameraName_.c_str());
@@ -98,11 +121,5 @@ void CameraManager::Update() {
 			SetActiveCamera(camera.first);
 		}
 	}
-
-    ImGui::End();
-#endif
-
-    // アクティブカメラを更新
-    activeCamera_->Update();
-    
 }
+#endif

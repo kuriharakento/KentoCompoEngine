@@ -5,6 +5,7 @@
 #include "externals/nlohmann/json.hpp"
 #ifdef USE_IMGUI
 #include "ImGui/imgui.h"
+#include "manager/editor/DebugUIManager.h"
 #endif // USE_IMGUI
 
 using json = nlohmann::json;
@@ -32,6 +33,21 @@ void FontSprite::Initialize(SpriteCommon* spriteCommon, const std::string& fontN
 
     // JSONからフォントメトリクスを読み込む
     LoadFontMetrics(jsonPath);
+
+#ifdef USE_IMGUI
+    std::string windowName = "Font Sprite: " + fontName;
+    DebugUIManager::GetInstance()->RegisterDebugUI(this, windowName, [this]() { this->DrawImGui(); }, DebugUIArea::Console);
+#endif
+}
+
+FontSprite::~FontSprite()
+{
+#ifdef USE_IMGUI
+    if (DebugUIManager::HasInstance())
+    {
+        DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+    }
+#endif
 }
 
 void FontSprite::LoadFontMetrics(const std::string& jsonPath)
@@ -147,57 +163,6 @@ void FontSprite::SetText(const std::string& text)
 
 void FontSprite::Update()
 {
-#ifdef USE_IMGUI
-    // ImGui で FontSprite のプロパティを操作できるようにする
-    // ウィンドウ名に atlas パスの末尾を含めて複数フォントが開けても衝突しないようにする
-    std::string windowName = "FontSprite: ";
-    windowName += atlasTexturePath_.empty() ? "default" : atlasTexturePath_;
-    ImGui::Begin(windowName.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-
-	ImGui::PushID(this); // FontSprite インスタンスごとにIDを分ける
-
-    // Text 入力（簡易実装：内部バッファを用いる）
-    static char textBuf[512] = "";
-    static bool textBufInitialized = false;
-    if (!textBufInitialized || text_ != textBuf)
-    {
-        strncpy_s(textBuf, text_.c_str(), sizeof(textBuf));
-        textBuf[sizeof(textBuf) - 1] = '\0';
-        textBufInitialized = true;
-    }
-    if (ImGui::InputText("Text", textBuf, sizeof(textBuf)))
-    {
-        text_ = std::string(textBuf);
-        // ImGui 経由で文字列が変わったらスプライトを Ensure する
-        EnsureSpritesForText(text_);
-    }
-
-    // 位置 / スケール / スペーシング / 回転
-    ImGui::DragFloat2("Position", &position_.x, 1.0f);
-    ImGui::DragFloat("Scale", &scale_, 0.01f, 0.01f, 10.0f);
-    ImGui::DragFloat("Spacing", &spacing_, 0.1f, -200.0f, 200.0f);
-    ImGui::DragFloat("Rotation(rad)", &rotation_, 0.01f, -3.14159f, 3.14159f);
-
-    // 色（RGBA）
-    ImGui::ColorEdit4("Color", &color_.x);
-
-    // 表示フラグ
-    ImGui::Checkbox("Visible", &isVisible_);
-
-    // アトラスパス表示（読み取り専用）
-    ImGui::TextWrapped("Atlas: %s", atlasTexturePath_.c_str());
-
-    // キャッシュクリア（スプライト再生成用）
-    if (ImGui::Button("Clear cached character sprites"))
-    {
-        indexSprites_.clear();
-    }
-	ImGui::PopID();
-
-    ImGui::End();
-#endif // USE_IMGUI
-
-
     // 表示する文字列に含まれる文字のスプライトのみ更新
     for (size_t i = 0; i < text_.size() && i < indexSprites_.size(); ++i)
     {
@@ -321,4 +286,49 @@ float FontSprite::GetTextWidth() const
 	float charWidth = cellSize_ * scale_ + spacing_;
 	// 1文字目から最後の文字までの中心間距離を返す
 	return static_cast<float>(text_.size() - 1) * charWidth;
-}
+}
+
+#ifdef USE_IMGUI
+void FontSprite::DrawImGui()
+{
+	ImGui::PushID(this); // FontSprite インスタンスごとにIDを分ける
+
+    // Text 入力（簡易実装：内部バッファを用いる）
+    static char textBuf[512] = "";
+    static bool textBufInitialized = false;
+    if (!textBufInitialized || text_ != textBuf)
+    {
+        strncpy_s(textBuf, text_.c_str(), sizeof(textBuf));
+        textBuf[sizeof(textBuf) - 1] = '\0';
+        textBufInitialized = true;
+    }
+    if (ImGui::InputText("Text", textBuf, sizeof(textBuf)))
+    {
+        text_ = std::string(textBuf);
+        // ImGui 経由で文字列が変わったらスプライトを Ensure する
+        EnsureSpritesForText(text_);
+    }
+
+    // 位置 / スケール / スペーシング / 回転
+    ImGui::DragFloat2("Position", &position_.x, 1.0f);
+    ImGui::DragFloat("Scale", &scale_, 0.01f, 0.01f, 10.0f);
+    ImGui::DragFloat("Spacing", &spacing_, 0.1f, -200.0f, 200.0f);
+    ImGui::DragFloat("Rotation(rad)", &rotation_, 0.01f, -3.14159f, 3.14159f);
+
+    // 色（RGBA）
+    ImGui::ColorEdit4("Color", &color_.x);
+
+    // 表示フラグ
+    ImGui::Checkbox("Visible", &isVisible_);
+
+    // アトラスパス表示（読み取り専用）
+    ImGui::TextWrapped("Atlas: %s", atlasTexturePath_.c_str());
+
+    // キャッシュクリア（スプライト再生成用）
+    if (ImGui::Button("Clear cached character sprites"))
+    {
+        indexSprites_.clear();
+    }
+	ImGui::PopID();
+}
+#endif

@@ -14,6 +14,11 @@ class DirectXCommon;
 class CameraManager {
 public:
 	/**
+	 * @brief デストラクタ
+	 */
+	~CameraManager();
+
+	/**
 	 * @brief 初期化
 	 * @param dxCommon DirectXCommonへのポインタ（カメラのGPUバッファ初期化用）
 	 */
@@ -52,9 +57,16 @@ public:
 
     /**
      * @brief 更新処理
-     * @details アクティブカメラの更新とImGuiによるデバッグ表示を行う
+     * @details アクティブカメラの更新
      */
     void Update();
+
+#ifdef USE_IMGUI
+	/**
+	 * @brief ImGuiの描画処理
+	 */
+	void DrawImGui();
+#endif
 
 private:
     // カメラの名前とunique_ptrで管理されたカメラインスタンスのマップ

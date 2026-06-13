@@ -15,6 +15,7 @@
 #include "time/TimeManager.h"
 // debug
 #include "manager/graphics/LineManager.h"
+#include "manager/editor/DebugUIManager.h"
 
 LightManager::LightManager()
 {
@@ -25,6 +26,12 @@ LightManager::LightManager()
 
 LightManager::~LightManager()
 {
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance())
+	{
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
 	// 定数バッファのアンマップ
 	if (lightCountResource_)
 	{
@@ -53,13 +60,14 @@ void LightManager::Initialize(DirectXCommon* dxCommon)
 
 	// デフォルトのイージング関数を設定
 	pEasingFunc_ = EaseInSine<float>;
+
+#ifdef USE_IMGUI
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Light Manager", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+#endif
 }
 
 void LightManager::Update()
 {
-	// ImGuiの表示
-	ImGuiUpdate();
-
 	// フレーム間の経過時間を取得
 	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
 
@@ -388,12 +396,9 @@ void LightManager::CreateConstantBuffer()
 	}
 }
 
-void LightManager::ImGuiUpdate()
+void LightManager::DrawImGui()
 {
 #ifdef USE_IMGUI
-	/*--------------[ ImGuiウィンドウの開始 ]-----------------*/
-	ImGui::Begin("LightManager");
-
 	if (ImGui::BeginTabBar("LightTabs"))
 	{
 		/*--------------[ ライトオプションタブ ]-----------------*/
@@ -575,10 +580,7 @@ void LightManager::ImGuiUpdate()
 
 		ImGui::EndTabBar();
 	}
-
-	ImGui::End();
 #endif
-
 }
 
 #pragma region Accessor

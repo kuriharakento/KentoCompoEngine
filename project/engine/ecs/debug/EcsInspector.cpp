@@ -1,4 +1,4 @@
-﻿#include "EcsInspector.h"
+#include "EcsInspector.h"
 #include "imgui/imgui.h"
 #include "../../../engine/ecs/components/TransformComponent.h"
 #include "../../../engine/ecs/components/InstancedRenderComponent.h"
@@ -11,16 +11,10 @@ void EcsInspector::Initialize()
     selectedEntity_ = 0xFFFFFFFF;
 }
 
-void EcsInspector::Draw(Registry& registry)
+void EcsInspector::DrawImGui(Registry& registry)
 {
-    if (!showWindow_)
-    {
-        return;
-    }
-
-    ImGui::Begin("ECS Inspector (BNS Edition)", &showWindow_);
-
-    // 1. レジストリ全体?E統計情報
+#ifdef USE_IMGUI
+    // 1. レジストリ全体の統計情報
     if (ImGui::CollapsingHeader("Registry Statistics", ImGuiTreeNodeFlags_DefaultOpen))
     {
         uint32_t active = registry.GetActiveEntityCount();
@@ -32,15 +26,15 @@ void EcsInspector::Draw(Registry& registry)
 
     ImGui::Separator();
 
-    // 2. エンチE??チE??リストと詳細表示の2ペイン
+    // 2. エンティティリストと詳細表示の2ペイン
     ImGui::Columns(2, "InspectorColumns");
 
-    // 左ペイン: Entity リスチE
+    // 左ペイン: Entity リスト
     DrawEntityList(registry);
 
     ImGui::NextColumn();
 
-    // 右ペイン: Component エチE??タ
+    // 右ペイン: Component エディタ
     if (selectedEntity_ != 0xFFFFFFFF && registry.IsAlive(selectedEntity_))
     {
         DrawComponentEditor(registry, selectedEntity_);
@@ -51,7 +45,7 @@ void EcsInspector::Draw(Registry& registry)
     }
 
     ImGui::Columns(1);
-    ImGui::End();
+#endif
 }
 
 void EcsInspector::DrawEntityList(Registry& registry)

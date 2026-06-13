@@ -9,6 +9,12 @@
 class Slide
 {
 	public:
+	Slide() = default;
+	~Slide();
+
+#ifdef USE_IMGUI
+	void DrawImGui();
+#endif
 	/// \brief スライドの状態
 	enum class Status
 	{

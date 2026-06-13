@@ -92,7 +92,10 @@ void GBuffer::CreateRenderTargets()
 		device->CreateRenderTargetView(renderTargets_[i].Get(), &rtvDesc, rtvHandles_[i]);
 
 		// SRVの作成
-		srvIndices_[i] = srvManager_->Allocate();
+		if (srvIndices_[i] == 0)
+		{
+			srvIndices_[i] = srvManager_->Allocate();
+		}
 		srvManager_->CreateSRVforTexture2D(srvIndices_[i], renderTargets_[i].Get(), formats[i], 1);
 	}
 }
@@ -149,7 +152,10 @@ void GBuffer::CreateDepthBuffer()
 	device->CreateDepthStencilView(depthBuffer_.Get(), &dsvDesc, dsvHandle_);
 
 	// 深度バッファのSRV作成
-	depthSrvIndex_ = srvManager_->Allocate();
+	if (depthSrvIndex_ == 0)
+	{
+		depthSrvIndex_ = srvManager_->Allocate();
+	}
 	srvManager_->CreateSRVforTexture2D(depthSrvIndex_, depthBuffer_.Get(), DXGI_FORMAT_R24_UNORM_X8_TYPELESS, 1);
 }
 
@@ -286,3 +292,23 @@ uint32_t GBuffer::GetSRVIndex(uint32_t index) const
 	}
 	return srvIndices_[index];
 }
+
+void GBuffer::Resize(uint32_t width, uint32_t height)
+{
+	width_ = width;
+	height_ = height;
+
+	// 既存リソースを解放する
+	for (auto& rt : renderTargets_)
+	{
+		rt.Reset();
+	}
+	depthBuffer_.Reset();
+	rtvDescriptorHeap_.Reset();
+	dsvDescriptorHeap_.Reset();
+
+	// 再生成する
+	CreateRenderTargets();
+	CreateDepthBuffer();
+}
+
