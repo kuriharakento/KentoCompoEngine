@@ -12,6 +12,7 @@
 #include "math/VectorColorCodes.h"
 #include "application/GameObject/component/action/PlayerUIComponent.h"
 #include "time/TimerManager.h"
+#include "manager/editor/JsonEditor.h"
 #include <sstream>
 
 // 定数定義
@@ -135,6 +136,14 @@ void Player::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteComm
 	AddComponent("OBBColliderComponent", std::make_unique<GameObjectComponent::OBBColliderComponent>(this));
 	// UIコンポーネント
 	AddComponent("PlayerUIComponent", std::make_unique<GameObjectComponent::PlayerUIComponent>(spriteCommon));
+
+	// ステータスコンポーネントのJSON管理・エディター登録
+	if (auto status = GetComponent<GameObjectComponent::StatusComponent>())
+	{
+		status->SetFileName("PlayerStatus.json");
+		status->LoadJson("Resources/json/PlayerStatus.json");
+		JsonEditor::GetInstance()->Register("PlayerStatus", status.get());
+	}
 }
 
 void Player::CollisionSettings(GameObjectComponent::ICollisionComponent* collider)

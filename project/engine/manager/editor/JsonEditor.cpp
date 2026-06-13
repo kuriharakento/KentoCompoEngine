@@ -1,4 +1,4 @@
-#include "JsonEditorManager.h"
+#include "JsonEditor.h"
 #include "DebugUIManager.h"
 #include "imgui/imgui.h"
 #include <filesystem>
@@ -6,22 +6,23 @@
 #include <sstream>
 
 // シングルトンインスタンスの実体
-std::unique_ptr<JsonEditorManager> JsonEditorManager::instance_ = nullptr;
+std::unique_ptr<JsonEditor> JsonEditor::instance_ = nullptr;
 
-JsonEditorManager* JsonEditorManager::GetInstance()
+JsonEditor* JsonEditor::GetInstance()
 {
 	// インスタンスが存在しない場合は生成
 	if (instance_ == nullptr)
 	{
-		instance_.reset(new JsonEditorManager());
+		instance_.reset(new JsonEditor());
 	}
 	return instance_.get();
 }
 
-void JsonEditorManager::Initialize()
+void JsonEditor::Initialize()
 {
 	// エディタリストを初期化
 	editors_.clear();
+	sharedEditors_.clear();
 
 #ifdef USE_IMGUI
 	// JSONエディタをデバッグUIに登録（再起動時に消えないように Project エリアに登録する）
@@ -154,7 +155,7 @@ void JsonEditorManager::Initialize()
 				{
 					selectedItem_ = name;
 
-					ImGui::PushID(editable.get());
+					ImGui::PushID(editable);
 					editable->DrawOptions();
 					editable->DrawImGui();
 					ImGui::PopID();
@@ -168,7 +169,7 @@ void JsonEditorManager::Initialize()
 #endif
 }
 
-void JsonEditorManager::Finalize()
+void JsonEditor::Finalize()
 {
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
@@ -178,23 +179,69 @@ void JsonEditorManager::Finalize()
 #endif
 	// エディタリストをクリア
 	editors_.clear();
+	sharedEditors_.clear();
 	// シングルトンインスタンスを解放
 	instance_.reset();
 }
 
-void JsonEditorManager::Register(const std::string& name, std::shared_ptr<JsonEditableBase> editor)
+void JsonEditor::Register(const std::string& name, JsonEditableBase* editor)
 {
-	// エディタをマップに登録
-	editors_[name] = editor;
-	// 最後に登録したものを選択状態にする
-	selectedItem_ = name;
-}
-void JsonEditorManager::RenderEditUI()
-{
-	// DrawAreaで描画するため、何もしない
+	if (editor)
+	{
+		editors_[name] = editor;
+		selectedItem_ = name;
+	}
 }
 
-void JsonEditorManager::SaveAll()
+void JsonEditor::Register(const std::string& name, std::shared_ptr<JsonEditableBase> editor)
 {
-	// 将来的にすべてのエディタの保存処理を実装
+	if (editor)
+	{
+		sharedEditors_[name] = editor;
+		editors_[name] = editor.get();
+		selectedItem_ = name;
+	}
+}
+
+void JsonEditor::Unregister(JsonEditableBase* editor)
+{
+	if (!editor) return;
+
+	// editors_ から削除
+	for (auto it = editors_.begin(); it != editors_.end();)
+	{
+		if (it->second == editor)
+		{
+			if (selectedItem_ == it->first)
+			{
+				selectedItem_ = "";
+			}
+			it = editors_.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
+
+	// sharedEditors_ からも削除
+	for (auto it = sharedEditors_.begin(); it != sharedEditors_.end();)
+	{
+		if (it->second.get() == editor)
+		{
+			it = sharedEditors_.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
+}
+
+void JsonEditor::RenderEditUI()
+{
+}
+
+void JsonEditor::SaveAll()
+{
 }

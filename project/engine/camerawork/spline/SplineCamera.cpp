@@ -7,7 +7,7 @@
 // graphics
 #include "manager/graphics/LineManager.h"
 // editor
-#include "manager/editor/JsonEditorManager.h"
+#include "manager/editor/JsonEditor.h"
 
 // スプライン補間の微小値（次位置計算用）
 constexpr float kSplineSegmentDelta = 0.01f;
@@ -18,7 +18,7 @@ void SplineCamera::Initialize(Camera* camera)
 {
 	camera_ = camera;
     splineData_ = std::make_shared<SplineData>();
-	JsonEditorManager::GetInstance()->Register("spline", splineData_);
+	JsonEditor::GetInstance()->Register("spline", splineData_);
 }
 
 void SplineCamera::Update()

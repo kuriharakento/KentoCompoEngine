@@ -753,7 +753,7 @@
     <ClCompile Include="engine\manager\editor\ImGuiManager.cpp">
       <Filter>engine\manager\editor</Filter>
     </ClCompile>
-    <ClCompile Include="engine\manager\editor\JsonEditorManager.cpp">
+    <ClCompile Include="engine\manager\editor\JsonEditor.cpp">
       <Filter>engine\manager\editor</Filter>
     </ClCompile>
     <ClCompile Include="engine\manager\effect\ParticlePipelineManager.cpp">
@@ -1060,6 +1060,9 @@
       <Filter>application\scene</Filter>
     </ClInclude>
     <ClInclude Include="application\scene\play\GamePlayScene.h">
+      <Filter>application\scene\play</Filter>
+    </ClInclude>
+    <ClInclude Include="application\scene\play\PlayerStatusEditor.h">
       <Filter>application\scene\play</Filter>
     </ClInclude>
     <ClInclude Include="application\scene\play\ResultScene.h">
@@ -1530,7 +1533,7 @@
     <ClInclude Include="engine\manager\editor\ImGuiManager.h">
       <Filter>engine\manager\editor</Filter>
     </ClInclude>
-    <ClInclude Include="engine\manager\editor\JsonEditorManager.h">
+    <ClInclude Include="engine\manager\editor\JsonEditor.h">
       <Filter>engine\manager\editor</Filter>
     </ClInclude>
     <ClInclude Include="engine\manager\effect\ParticlePipelineManager.h">

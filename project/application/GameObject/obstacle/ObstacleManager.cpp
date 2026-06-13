@@ -5,7 +5,6 @@
 #include "BarrierBlock.h"
 #include "engine/gameobject/component/collision/OBBColliderComponent.h"
 #include "engine/gameobject/component/collision/CollisionAlgorithm.h"
-#include "manager/editor/JsonEditorManager.h"
 #include "externals/imgui/imgui.h"
 #ifdef USE_IMGUI
 #include "manager/editor/DebugUIManager.h"

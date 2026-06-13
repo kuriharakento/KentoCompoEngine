@@ -7,10 +7,19 @@
 #endif
 #include "time/TimeManager.h"
 
+#include "manager/editor/JsonEditor.h"
+
 namespace GameObjectComponent
 {
 	StatusComponent::StatusComponent()
 	{
+		REGISTER_MEMBER(hp);
+		REGISTER_MEMBER(maxHp);
+		REGISTER_MEMBER(attackPower);
+		REGISTER_MEMBER(moveSpeed);
+		REGISTER_MEMBER(fireRateMultiplier);
+		REGISTER_MEMBER(isAlive);
+
 	#ifdef USE_IMGUI
 		DebugUIManager::GetInstance()->RegisterDebugUI(this, "Status Component", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
 	#endif
@@ -18,6 +27,7 @@ namespace GameObjectComponent
 
 	StatusComponent::~StatusComponent()
 	{
+		JsonEditor::GetInstance()->Unregister(this);
 	#ifdef USE_IMGUI
 		if (DebugUIManager::HasInstance()) {
 			DebugUIManager::GetInstance()->UnregisterDebugUI(this);
@@ -28,16 +38,13 @@ namespace GameObjectComponent
 	void StatusComponent::DrawImGui()
 	{
 	#ifdef USE_IMGUI
-		if (!lastOwner_)
+		if (lastOwner_)
 		{
-			ImGui::Text("StatusComponent: No active owner cache.");
-			return;
+			std::string headerTitle = "Status: " + lastOwner_->GetTag();
+			ImGui::SeparatorText(headerTitle.c_str());
 		}
-		std::string headerTitle = "Status: " + lastOwner_->GetTag();
-		ImGui::SeparatorText(headerTitle.c_str());
-		ImGui::Text("HP: %.2f / %.2f", hp.GetValue(), maxHp.GetValue());
-		ImGui::Text("Attack Power: %.2f", attackPower.GetValue());
-		ImGui::Text("Move Speed: %.2f", moveSpeed.GetValue());
+		// 自動編集UIの描画
+		JsonEditableBase::DrawImGui();
 	#endif
 	}
 

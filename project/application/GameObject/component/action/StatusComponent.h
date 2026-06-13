@@ -1,6 +1,7 @@
 #pragma once
 #include "application/gameObject/combatable/base/StatusSystem.h"
 #include "engine/gameobject/component/base/IActionComponent.h"
+#include "jsonEditor/JsonEditableBase.h"
 
 /**
  * @brief ゲームオブジェクトのステータスを管理するコンポーネント
@@ -9,7 +10,7 @@
  */
 namespace GameObjectComponent
 {
-	class StatusComponent : public IActionComponent
+	class StatusComponent : public IActionComponent, public JsonEditableBase
 	{
 	public:
 		StatusComponent();

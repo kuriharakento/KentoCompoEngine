@@ -364,6 +364,15 @@ void GamePlayScene::Initialize()
 		registry_->AddComponent<WorldBoundaryComponent>(playerEntity_, { 100.0f, true });
 	}
 
+	// --- プレイヤーのステータスJSON編集の初期化 ---
+	if (playerEntity_ != kInvalidEntity)
+	{
+		playerStatusEditor_ = std::make_unique<PlayerStatusEditor>(registry_.get(), playerEntity_);
+		playerStatusEditor_->LoadJson("PlayerStatus.json"); // Resources/json/ は内部で補完される
+		playerStatusEditor_->ApplyToECS();
+		JsonEditor::GetInstance()->Register("PlayerStatus", playerStatusEditor_.get());
+	}
+
 	// --- 敵管理の初期化 ---
 	enemyManager_ = std::make_unique<EnemyManager>();
 
@@ -982,6 +991,10 @@ void GamePlayScene::CommonUpdate()
 	transitionEffect_.Update();
 	cinematicLetterbox_.Update();
 	UpdateUI();
+	if (playerStatusEditor_)
+	{
+		playerStatusEditor_->Sync();
+	}
 
 	// カメラの更新
 	if (isDebugCameraActive_) debugCamera_->Update();

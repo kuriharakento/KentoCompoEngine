@@ -8,7 +8,7 @@
 #include "graphics/2d/SpriteCommon.h"
 #include "graphics/3d/Object3dCommon.h"
 // manager
-#include "manager/editor/JsonEditorManager.h"
+#include "manager/editor/JsonEditor.h"
 #include "manager/graphics/TextureManager.h"
 #include "effects/particle/ParticleManager.h"
 #include "manager/graphics/ModelManager.h"
@@ -194,7 +194,7 @@ void Framework::Initialize()
 	/*----- その他の初期化 -----*/
 
 	// JSONエディターの初期化
-	JsonEditorManager::GetInstance()->Initialize();
+	JsonEditor::GetInstance()->Initialize();
 
 	// シャドウマップマネージャーの初期化
 	shadowMapManager_ = std::make_unique<ShadowMapManager>();
@@ -280,7 +280,7 @@ void Framework::Finalize()
 	shadowMapPipeline_.reset();
 	shadowMapManager_.reset();
 
-	JsonEditorManager::GetInstance()->Finalize();
+	JsonEditor::GetInstance()->Finalize();
 }
 
 void Framework::Update()
@@ -322,7 +322,7 @@ void Framework::Update()
 	skybox_->Update(cameraManager_->GetActiveCamera());
 
 	// JSONエディターの更新
-	JsonEditorManager::GetInstance()->RenderEditUI();
+	JsonEditor::GetInstance()->RenderEditUI();
 }
 
 void Framework::Draw3DSetting()
