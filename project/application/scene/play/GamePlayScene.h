@@ -52,6 +52,7 @@ public:
     void Finalize() override;
     void Draw3D() override;
     void DrawShadow() override;
+    void DrawGBuffer() override;
     void Draw2D() override;
     void DrawImGui() override;
 

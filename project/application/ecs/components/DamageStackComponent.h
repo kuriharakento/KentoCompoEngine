@@ -1,13 +1,16 @@
 #pragma once
 #include <cstdint>
 
-/**
- * @brief 敵に付与されるダメージボーナススタック。
- */
-struct DamageStackComponent
+namespace ecs
 {
-    int count_ = 0;
+    /**
+     * @brief 敵に付与されるダメージボーナススタック。
+     */
+    struct DamageStackComponent
+    {
+        int count_ = 0;
 
-    static constexpr float kDamagePerStack = 5.0f;
-    static constexpr int kMaxStacks = 10;
-};
+        static constexpr float kDamagePerStack = 5.0f;
+        static constexpr int kMaxStacks = 10;
+    };
+}

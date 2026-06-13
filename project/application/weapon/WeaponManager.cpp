@@ -1,6 +1,8 @@
 #include "WeaponManager.h"
 #include "input/Input.h"
 
+using namespace GameObjectComponent;
+
 WeaponManager::WeaponManager(GameObject* owner)
     : owner_(owner)
 {

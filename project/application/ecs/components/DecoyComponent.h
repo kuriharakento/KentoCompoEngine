@@ -3,14 +3,17 @@
 
 class ParticleEffect;
 
-/**
- * @brief デコイを管理する。
- */
-struct DecoyComponent
+namespace ecs
 {
-    // 生成元のプレイヤー。所有しない
-    EntityID owner_ = kInvalidEntity;
+    /**
+     * @brief デコイを管理する。
+     */
+    struct DecoyComponent
+    {
+        // 生成元のプレイヤー。所有しない
+        EntityID owner_ = kInvalidEntity;
 
-    // 再生中のエフェクト。消滅時に停止させるため
-    ParticleEffect* effect_ = nullptr;
-};
+        // 再生中のエフェクト。消滅時に停止させるため
+        ParticleEffect* effect_ = nullptr;
+    };
+}

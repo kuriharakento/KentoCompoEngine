@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 #include "ISystem.h"
@@ -15,4 +15,6 @@ public:
      * @param camera 使用するカメラ
      */
     void Draw(Registry& registry, Camera* camera);
+    void DrawGBuffer(Registry& registry, Camera* camera);
+    void DrawShadow(Registry& registry, Camera* camera);
 };

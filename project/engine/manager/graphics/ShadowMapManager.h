@@ -156,6 +156,18 @@ public: // ゲッター
      */
     bool HasPointLightShadowMap(const std::string& name) const;
 
+    /**
+     * @brief 現在のシャドウ行列のGPUアドレスを設定
+     * @param address GPUバーチャルアドレス
+     */
+    void SetCurrentShadowMatrixAddress(D3D12_GPU_VIRTUAL_ADDRESS address) { currentShadowMatrixAddress_ = address; }
+
+    /**
+     * @brief 現在のシャドウ行列のGPUアドレスを取得
+     * @return GPUバーチャルアドレス
+     */
+    D3D12_GPU_VIRTUAL_ADDRESS GetCurrentShadowMatrixAddress() const { return currentShadowMatrixAddress_; }
+
 private:
     /**
      * @brief 深度バッファリソースの作成
@@ -221,6 +233,9 @@ private:
 
     // 現在描画中のカスケードインデックス
     uint32_t currentCascadeIndex_ = 0;
+
+    // 現在バインドされているシャドウ行列のGPUアドレス
+    D3D12_GPU_VIRTUAL_ADDRESS currentShadowMatrixAddress_ = 0;
 
     // 最大DSV数
     static constexpr uint32_t kMaxDSVCount = 64;

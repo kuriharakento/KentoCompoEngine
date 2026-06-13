@@ -1,5 +1,8 @@
 ﻿#include "HierarchySystem.h"
 
+using namespace ecs;
+
+
 void HierarchySystem::Update(Registry& registry)
 {
     // [BNS-Optimization] View を取得する際、E??公開だった?E列に直接アクセス
@@ -120,3 +123,4 @@ void HierarchySystem::UpdateChildrenRecursive(Registry& registry, EntityID paren
         }
     }
 }
+

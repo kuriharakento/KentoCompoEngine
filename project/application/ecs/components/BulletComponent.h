@@ -2,20 +2,23 @@
 #include <cstdint>
 #include "engine/ecs/Entity.h"
 
-/**
- * @brief 弾丸の属性を管理する。
- */
-struct BulletComponent
+namespace ecs
 {
-    // 弾丸の種別
-    enum class Type
+    /**
+     * @brief 弾丸の属性を管理する。
+     */
+    struct BulletComponent
     {
-        Player,
-        Enemy
-    };
+        // 弾丸の種別
+        enum class Type
+        {
+            Player,
+            Enemy
+        };
 
-    float damage_ = 10.0f;
-    bool isAlive_ = true;
-    EntityID owner_ = kInvalidEntity;
-    Type type_ = Type::Player;
-};
+        float damage_ = 10.0f;
+        bool isAlive_ = true;
+        EntityID owner_ = kInvalidEntity;
+        Type type_ = Type::Player;
+    };
+}

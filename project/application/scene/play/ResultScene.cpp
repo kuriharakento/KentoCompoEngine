@@ -148,7 +148,10 @@ void ResultScene::Draw3D()
 	BaseScene::Draw3D();
 }
 
-void ResultScene::DrawShadow() {}
+void ResultScene::DrawShadow()
+{
+	BaseScene::DrawShadow();
+}
 void ResultScene::DrawGBuffer() {}
 
 void ResultScene::Draw2D()

@@ -1,4 +1,5 @@
 #include "GamePlayScene.h"
+#include "engine/gameobject/manager/GameObjectManager.h"
 #include <random>
 #include <algorithm>
 
@@ -98,9 +99,12 @@
 #include "application/ecs/components/DecoyComponent.h"
 #include "application/ecs/systems/DecoySystem.h"
 
+using namespace ecs;
+using namespace GameObjectComponent;
 
 void GamePlayScene::Initialize()
 {
+	GameObjectManager::GetInstance()->Initialize();
 	// --- エンジン・基盤の初期化 ---
 	DirectionalLight mainLight;
 	mainLight.direction = kLightDirection;
@@ -621,6 +625,7 @@ void GamePlayScene::Initialize()
 
 void GamePlayScene::Finalize()
 {
+	GameObjectManager::GetInstance()->Finalize();
 	Audio::GetInstance()->StopWave("game");
 	BulletTrailManager::GetInstance().Clear();
 	HomingTrailManager::GetInstance().Clear();
@@ -629,6 +634,7 @@ void GamePlayScene::Finalize()
 
 void GamePlayScene::Draw3D()
 {
+	GameObjectManager::GetInstance()->Draw3D(sceneManager_->GetCameraManager());
 	skydome_->Draw();
 	ground_->Draw();
 
@@ -661,10 +667,46 @@ void GamePlayScene::Draw3D()
 
 void GamePlayScene::DrawShadow()
 {
+	// 1. GameObjectManager
+	GameObjectManager::GetInstance()->DrawShadow();
+
+	// 2. ECS (Object3dSystem)
+	if (object3dSystem_)
+	{
+		object3dSystem_->DrawShadow(*registry_, sceneManager_->GetCameraManager()->GetActiveCamera());
+	}
+
+	// 3. ECS (InstancedRenderSystem)
+	InstancedRenderSystem::DrawShadowGrouped(
+		*registry_,
+		instancedRenderers_,
+		sceneManager_->GetCameraManager()->GetActiveCamera(),
+		sceneManager_->GetShadowMapManager()
+	);
+}
+
+void GamePlayScene::DrawGBuffer()
+{
+	// 1. GameObjectManager
+	GameObjectManager::GetInstance()->DrawGBuffer();
+
+	// 2. ECS (Object3dSystem)
+	if (object3dSystem_)
+	{
+		object3dSystem_->DrawGBuffer(*registry_, sceneManager_->GetCameraManager()->GetActiveCamera());
+	}
+
+	// 3. ECS (InstancedRenderSystem)
+	InstancedRenderSystem::DrawGBufferGrouped(
+		*registry_,
+		instancedRenderers_,
+		sceneManager_->GetCameraManager()->GetActiveCamera()
+	);
 }
 
 void GamePlayScene::Draw2D()
 {
+	GameObjectManager::GetInstance()->Draw2D();
 	DrawUI();
 	transitionEffect_.Draw();
 	cinematicLetterbox_.Draw();
@@ -861,6 +903,9 @@ void GamePlayScene::OnUpdatePlaying()
 	// スキル選択UIを表示した場合はこのフレームのシステム更新をスキップ
 	// （UI表示と同一フレームでエンティティ破棄が走るとGPUリソース競合の原因になる）
 	if (skillSelectionUI_ && skillSelectionUI_->IsActive()) return;
+
+	// GameObjectManager の更新
+	GameObjectManager::GetInstance()->Update();
 
 	// すべてのECSシステムを更新
 	systemManager_->Update(*registry_);

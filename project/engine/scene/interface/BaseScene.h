@@ -7,6 +7,8 @@
 #include "manager/editor/DebugUIManager.h"
 #endif
 
+#include <d3d12.h>
+
  /// シーンの状態（ライフサイクル）
 enum class SceneState
 {

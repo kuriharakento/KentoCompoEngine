@@ -10,6 +10,6 @@ public:
 	void Update() override;
 	void Draw(CameraManager* camera) override;
 	void DrawShadow() override;
-	void CollisionSettings(ICollisionComponent* collider) override;
+	void CollisionSettings(GameObjectComponent::ICollisionComponent* collider) override;
 };
 

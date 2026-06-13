@@ -4,6 +4,9 @@
 #include "engine/ecs/components/WorldBoundaryComponent.h"
 #include <cmath>
 
+using namespace ecs;
+
+
 void WorldBoundarySystem::Update(Registry& registry)
 {
     auto view = registry.View<WorldBoundaryComponent>();
@@ -37,3 +40,4 @@ void WorldBoundarySystem::Update(Registry& registry)
         }
     }
 }
+

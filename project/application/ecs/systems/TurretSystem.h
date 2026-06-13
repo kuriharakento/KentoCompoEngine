@@ -18,7 +18,7 @@ private:
     /**
      * @brief レーザービームの更新。
      */
-    void UpdateLaserBeam(EntityID turretEntity, TurretComponent& turret, Registry& registry, float dt);
+    void UpdateLaserBeam(EntityID turretEntity, ecs::TurretComponent& turret, Registry& registry, float dt);
 
     SystemManager* systemManager_ = nullptr;
 };

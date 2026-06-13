@@ -20,6 +20,8 @@ void InstancedModelPipelineManager::Finalize()
 {
 	rootSignature_.Reset();
 	pipelineState_.Reset();
+	pipelineStateGBuffer_.Reset();
+	pipelineStateShadow_.Reset();
 }
 
 void InstancedModelPipelineManager::CreatePipeline()
@@ -68,7 +70,7 @@ void InstancedModelPipelineManager::CreatePipeline()
 
 	CD3DX12_ROOT_PARAMETER rootParameters[16] = {};
 
-	rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+	rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_ALL);
 	rootParameters[1].InitAsShaderResourceView(0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 	rootParameters[2].InitAsDescriptorTable(1, &descriptorRange[0], D3D12_SHADER_VISIBILITY_PIXEL);
 	rootParameters[3].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -144,5 +146,67 @@ void InstancedModelPipelineManager::CreatePipeline()
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
 	hr = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState_));
+	assert(SUCCEEDED(hr));
+
+	//----- GBuffer用パイプラインステートの生成 -----//
+	auto vsGBufferBlob = dxCommon_->CompileSharder(L"Resources/shaders/InstancedGBufferPass.VS.hlsl", L"vs_6_0");
+	auto psGBufferBlob = dxCommon_->CompileSharder(L"Resources/shaders/GBufferPass.PS.hlsl", L"ps_6_0");
+	assert(vsGBufferBlob && "Failed to compile VS for Instanced GBuffer");
+	assert(psGBufferBlob && "Failed to compile PS for GBuffer");
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC gbufferPsoDesc = psoDesc;
+	gbufferPsoDesc.VS = { vsGBufferBlob->GetBufferPointer(), vsGBufferBlob->GetBufferSize() };
+	gbufferPsoDesc.PS = { psGBufferBlob->GetBufferPointer(), psGBufferBlob->GetBufferSize() };
+
+	gbufferPsoDesc.NumRenderTargets = 4;
+	gbufferPsoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;   // Albedo
+	gbufferPsoDesc.RTVFormats[1] = DXGI_FORMAT_R10G10B10A2_UNORM; // Normal
+	gbufferPsoDesc.RTVFormats[2] = DXGI_FORMAT_R8G8B8A8_UNORM;   // Material
+	gbufferPsoDesc.RTVFormats[3] = DXGI_FORMAT_R8G8B8A8_UNORM;   // Emissive
+	gbufferPsoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+
+	for (int i = 0; i < 4; ++i)
+	{
+		gbufferPsoDesc.BlendState.RenderTarget[i].BlendEnable = FALSE;
+		gbufferPsoDesc.BlendState.RenderTarget[i].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+	}
+
+	hr = device->CreateGraphicsPipelineState(&gbufferPsoDesc, IID_PPV_ARGS(&pipelineStateGBuffer_));
+	assert(SUCCEEDED(hr));
+
+	//----- Shadow用パイプラインステートの生成 -----//
+	auto vsShadowBlob = dxCommon_->CompileSharder(L"Resources/shaders/InstancedShadowMap.VS.hlsl", L"vs_6_0");
+	auto psShadowBlob = dxCommon_->CompileSharder(L"Resources/shaders/ShadowMap.PS.hlsl", L"ps_6_0");
+	assert(vsShadowBlob && "Failed to compile VS for Instanced Shadow Map");
+	assert(psShadowBlob && "Failed to compile PS for Shadow Map");
+
+	D3D12_INPUT_ELEMENT_DESC shadowInputElementDescs[] = {
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+	};
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC shadowPsoDesc = {};
+	shadowPsoDesc.pRootSignature = rootSignature_.Get();
+	shadowPsoDesc.InputLayout = { shadowInputElementDescs, _countof(shadowInputElementDescs) };
+	shadowPsoDesc.VS = { vsShadowBlob->GetBufferPointer(), vsShadowBlob->GetBufferSize() };
+	shadowPsoDesc.PS = { psShadowBlob->GetBufferPointer(), psShadowBlob->GetBufferSize() };
+
+	shadowPsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	shadowPsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+
+	shadowPsoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	shadowPsoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+
+	shadowPsoDesc.BlendState.AlphaToCoverageEnable = FALSE;
+	shadowPsoDesc.BlendState.IndependentBlendEnable = FALSE;
+	shadowPsoDesc.BlendState.RenderTarget[0].BlendEnable = FALSE;
+	shadowPsoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = 0;
+
+	shadowPsoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+	shadowPsoDesc.NumRenderTargets = 0;
+	shadowPsoDesc.SampleMask = UINT_MAX;
+	shadowPsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	shadowPsoDesc.SampleDesc.Count = 1;
+
+	hr = device->CreateGraphicsPipelineState(&shadowPsoDesc, IID_PPV_ARGS(&pipelineStateShadow_));
 	assert(SUCCEEDED(hr));
 }

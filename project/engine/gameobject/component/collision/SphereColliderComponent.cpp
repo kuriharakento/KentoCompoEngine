@@ -3,40 +3,44 @@
 #include "manager/graphics/LineManager.h"
 #include "math/VectorColorCodes.h"
 
-SphereColliderComponent::SphereColliderComponent(GameObject* owner)
-    : ICollisionComponent(owner), sphere_()
+namespace GameObjectComponent
 {
-}
-
-const Sphere& SphereColliderComponent::GetSphere() const
-{
-    return sphere_;
-}
-
-void SphereColliderComponent::SetSphere(const Sphere& s)
-{
-    sphere_ = s;
-}
-
-void SphereColliderComponent::Update(GameObject* owner)
-{
-	if (owner)
+	SphereColliderComponent::SphereColliderComponent(::GameObject* owner)
+		: ICollisionComponent(owner), sphere_()
 	{
-		// GameObjectの位置に合わせて球の中心を更新
-		sphere_.center = owner->GetPosition();
 	}
 
-#ifdef _DEBUG
-	// デバッグモードで球を可視化
-	LineManager::GetInstance()->DrawSphere(
-		sphere_.center, 
-		sphere_.radius,
-		VectorColorCodes::Yellow
-	);
-#endif
+	const ::Sphere& SphereColliderComponent::GetSphere() const
+	{
+		return sphere_;
+	}
+
+	void SphereColliderComponent::SetSphere(const ::Sphere& s)
+	{
+		sphere_ = s;
+	}
+
+	void SphereColliderComponent::Update(::GameObject* owner)
+	{
+		if (owner)
+		{
+			// GameObjectの位置に合わせて球の中心を更新
+			sphere_.center = owner->GetPosition();
+		}
+
+	#ifdef _DEBUG
+		// デバッグモードで球を可視化
+		LineManager::GetInstance()->DrawSphere(
+			sphere_.center, 
+			sphere_.radius,
+			VectorColorCodes::Yellow
+		);
+	#endif
+	}
+
+	ColliderType SphereColliderComponent::GetColliderType() const
+	{
+		return ColliderType::Sphere;
+	}
 }
 
-ColliderType SphereColliderComponent::GetColliderType() const
-{
-    return ColliderType::Sphere;
-}

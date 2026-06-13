@@ -78,13 +78,13 @@ void Player::TakeDamage(float damage)
 	}
 }
 
-WeaponManagerComponent* Player::GetWeaponManager() const
+GameObjectComponent::WeaponManagerComponent* Player::GetWeaponManager() const
 {
-	auto component = GetComponent<WeaponManagerComponent>();
+	auto component = GetComponent<GameObjectComponent::WeaponManagerComponent>();
 	return component.get();
 }
 
-IWeaponComponent* Player::GetCurrentWeapon() const
+GameObjectComponent::IWeaponComponent* Player::GetCurrentWeapon() const
 {
 	auto* weaponManager = GetWeaponManager();
 	if (weaponManager)
@@ -115,35 +115,35 @@ void Player::Initialize(Object3dCommon* object3dCommon, SpriteCommon* spriteComm
 	transform_.translate = { 0.0f, 1.0f, 0.0f };
 	
 	// 移動コンポーネントを追加
-	AddComponent("MoveComponent", std::make_unique<MoveComponent>(enemyManager, camera, postProcessManager));
+	AddComponent("MoveComponent", std::make_unique<GameObjectComponent::MoveComponent>(enemyManager, camera, postProcessManager));
 	// アニメーションインデックスを設定（0番が歩きと仮定）
-	if (auto moveComp = GetComponent<MoveComponent>())
+	if (auto moveComp = GetComponent<GameObjectComponent::MoveComponent>())
 	{
 		moveComp->SetWalkAnimationIndex(0);
 	}
 	// 重力演算コンポーネントを追加
-	AddComponent("GravityPhysicsComponent", std::make_unique<GravityPhysicsComponent>());
+	AddComponent("GravityPhysicsComponent", std::make_unique<GameObjectComponent::GravityPhysicsComponent>());
 
 	// 武器管理コンポーネントを作成
-	auto weaponManager = std::make_unique<WeaponManagerComponent>(object3dCommon, lightManager);
+	auto weaponManager = std::make_unique<GameObjectComponent::WeaponManagerComponent>(object3dCommon, lightManager);
 	// 武器を追加（WeaponManagerComponentが所有）
-	weaponManager->AddWeapon(std::make_unique<AssaultRifleComponent>(object3dCommon, lightManager));
-	weaponManager->AddWeapon(std::make_unique<ShotgunComponent>(object3dCommon, lightManager));
+	weaponManager->AddWeapon(std::make_unique<GameObjectComponent::AssaultRifleComponent>(object3dCommon, lightManager));
+	weaponManager->AddWeapon(std::make_unique<GameObjectComponent::ShotgunComponent>(object3dCommon, lightManager));
 	AddComponent("WeaponManager", std::move(weaponManager));
 
 	// 衝突判定コンポーネント
-	AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(this));
+	AddComponent("OBBColliderComponent", std::make_unique<GameObjectComponent::OBBColliderComponent>(this));
 	// UIコンポーネント
-	AddComponent("PlayerUIComponent", std::make_unique<PlayerUIComponent>(spriteCommon));
+	AddComponent("PlayerUIComponent", std::make_unique<GameObjectComponent::PlayerUIComponent>(spriteCommon));
 }
 
-void Player::CollisionSettings(ICollisionComponent* collider)
+void Player::CollisionSettings(GameObjectComponent::ICollisionComponent* collider)
 {
 	// スイープ判定を仕様
 	collider->SetUseSubstep(true);
 
 	// 衝突時の処理を設定
-	collider->SetOnEnter([this](GameObject* other) {
+	collider->SetOnEnter([this](::GameObject* other) {
 		// 衝突した瞬間の処理
 		if (other->GetTag() == gameObjectTag::weapon::EnemyBullet)
 		{
@@ -154,11 +154,11 @@ void Player::CollisionSettings(ICollisionComponent* collider)
 			}
 		}
 						 });
-	collider->SetOnStay([this](GameObject* other) {
+	collider->SetOnStay([this](::GameObject* other) {
 		// 衝突中の処理
 		
 						});
-	collider->SetOnExit([this](GameObject* other) {
+	collider->SetOnExit([this](::GameObject* other) {
 		// 衝突が離れた時の処理
 
 						});

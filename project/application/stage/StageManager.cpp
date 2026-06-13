@@ -22,6 +22,8 @@
 #include "manager/editor/DebugUIManager.h"
 #endif
 
+using namespace ecs;
+
 StageManager::StageManager()
 {
 }

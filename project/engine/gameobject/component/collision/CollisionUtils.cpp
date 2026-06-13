@@ -5,6 +5,7 @@
 
 namespace collisionUtils
 {
+	using GameObjectComponent::OBBColliderComponent;
 	void ResolvePenetration(GameObject* self, GameObject* other)
 	{
 		auto selfColl = self->GetComponent<OBBColliderComponent>();

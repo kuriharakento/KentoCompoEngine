@@ -1,4 +1,5 @@
 #include "PlayerSystem.h"
+
 #include "engine/ecs/Registry.h"
 #include "input/Input.h"
 #include "engine/ecs/components/MovementComponent.h"
@@ -14,6 +15,8 @@
 #include "base/WinApp.h"
 #include "engine/time/TimeManager.h"
 #include <algorithm>
+
+using namespace ecs;
 
 void PlayerSystem::Update(Registry& registry)
 {

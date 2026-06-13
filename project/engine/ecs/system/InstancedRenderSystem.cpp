@@ -4,6 +4,9 @@
 #include "graphics/3d/InstancedModelRenderer.h"
 #include "base/Camera.h"
 #include "manager/scene/LightManager.h"
+#include "engine/manager/graphics/ShadowMapManager.h"
+
+using namespace ecs;
 
 // 静的メンバの定義
 std::vector<Matrix4x4> InstancedRenderSystem::s_instanceMatrices;
@@ -100,5 +103,108 @@ void InstancedRenderSystem::DrawGrouped(
 
         it->second->UpdateBuffer(matrices.data(), static_cast<uint32_t>(matrices.size()), camera);
         it->second->DrawInstanced(camera, lightManager, shadowMapManager);
+    }
+}
+
+void InstancedRenderSystem::DrawGBufferGrouped(
+    Registry& registry,
+    const std::unordered_map<std::string, std::unique_ptr<InstancedModelRenderer>>& renderers,
+    Camera* camera)
+{
+    auto& renders = registry.GetArray<InstancedRenderComponent>();
+    uint32_t componentCount = renders.GetSize();
+    if (componentCount == 0)
+    {
+        return;
+    }
+
+    for (auto& [name, vec] : s_groupedMatrices)
+    {
+        vec.clear();
+    }
+
+    auto& transforms = registry.GetArray<TransformComponent>();
+
+    for (uint32_t i = 0; i < componentCount; ++i)
+    {
+        EntityID entity = renders.GetEntityFromDenseIndex(i);
+        const InstancedRenderComponent& render = renders.GetDataFromDenseIndex(i);
+
+        if (!render.isVisible_ || !render.useInstancing_)
+        {
+            continue;
+        }
+
+        if (transforms.HasComponent(entity))
+        {
+            const TransformComponent& transform = transforms.GetData(entity);
+            s_groupedMatrices[render.modelName_].push_back(transform.worldMatrix_);
+        }
+    }
+
+    for (auto& [modelName, matrices] : s_groupedMatrices)
+    {
+        if (matrices.empty()) continue;
+
+        auto it = renderers.find(modelName);
+        if (it == renderers.end() || it->second == nullptr)
+        {
+            continue;
+        }
+
+        it->second->UpdateBuffer(matrices.data(), static_cast<uint32_t>(matrices.size()), camera);
+        it->second->DrawInstancedGBuffer(camera);
+    }
+}
+
+void InstancedRenderSystem::DrawShadowGrouped(
+    Registry& registry,
+    const std::unordered_map<std::string, std::unique_ptr<InstancedModelRenderer>>& renderers,
+    Camera* camera,
+    ShadowMapManager* shadowMapManager)
+{
+    auto& renders = registry.GetArray<InstancedRenderComponent>();
+    uint32_t componentCount = renders.GetSize();
+    if (componentCount == 0)
+    {
+        return;
+    }
+
+    for (auto& [name, vec] : s_groupedMatrices)
+    {
+        vec.clear();
+    }
+
+    auto& transforms = registry.GetArray<TransformComponent>();
+
+    for (uint32_t i = 0; i < componentCount; ++i)
+    {
+        EntityID entity = renders.GetEntityFromDenseIndex(i);
+        const InstancedRenderComponent& render = renders.GetDataFromDenseIndex(i);
+
+        if (!render.isVisible_ || !render.useInstancing_)
+        {
+            continue;
+        }
+
+        if (transforms.HasComponent(entity))
+        {
+            const TransformComponent& transform = transforms.GetData(entity);
+            s_groupedMatrices[render.modelName_].push_back(transform.worldMatrix_);
+        }
+    }
+
+    for (auto& [modelName, matrices] : s_groupedMatrices)
+    {
+        if (matrices.empty()) continue;
+
+        auto it = renderers.find(modelName);
+        if (it == renderers.end() || it->second == nullptr)
+        {
+            continue;
+        }
+
+        it->second->UpdateBuffer(matrices.data(), static_cast<uint32_t>(matrices.size()), camera);
+        it->second->DrawInstancedShadow(camera, shadowMapManager);
     }
 }

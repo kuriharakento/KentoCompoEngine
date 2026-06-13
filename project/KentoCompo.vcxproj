@@ -243,6 +243,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\gameobject\component\collision\OBBColliderComponent.cpp" />
     <ClCompile Include="engine\gameobject\component\collision\RayColliderComponent.cpp" />
     <ClCompile Include="engine\gameobject\component\collision\SphereColliderComponent.cpp" />
+    <ClCompile Include="engine\gameobject\manager\GameObjectManager.cpp" />
     <ClCompile Include="engine\graphics\2d\FontSprite.cpp" />
     <ClCompile Include="engine\graphics\2d\NumberSprite.cpp" />
     <ClCompile Include="engine\graphics\2d\Sprite.cpp" />
@@ -498,6 +499,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\gameobject\component\collision\OBBColliderComponent.h" />
     <ClInclude Include="engine\gameobject\component\collision\RayColliderComponent.h" />
     <ClInclude Include="engine\gameobject\component\collision\SphereColliderComponent.h" />
+    <ClInclude Include="engine\gameobject\manager\GameObjectManager.h" />
     <ClInclude Include="engine\graphics\2d\FontSprite.h" />
     <ClInclude Include="engine\graphics\2d\NumberSprite.h" />
     <ClInclude Include="engine\graphics\2d\Sprite.h" />

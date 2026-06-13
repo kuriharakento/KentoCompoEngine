@@ -1,4 +1,5 @@
 #include "GameObject.h"
+#include "engine/gameobject/manager/GameObjectManager.h"
 
 #include "engine/graphics/3d/Object3dCommon.h"
 #include "time/TimeManager.h"
@@ -12,6 +13,7 @@
 
 GameObject::~GameObject()
 {
+	GameObjectManager::GetInstance()->Unregister(this);
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
@@ -205,6 +207,23 @@ void GameObject::DrawShadow()
 	}
 }
 
+void GameObject::DrawGBuffer()
+{
+	if (!renderable3d_) { return; }
+
+	// renderable3dを通してG-Bufferへの描画を行う
+	renderable3d_->DrawGBuffer();
+
+	// 子オブジェクトのGBuffer描画
+	for (auto& [name, child] : children_)
+	{
+		if (child)
+		{
+			child->DrawGBuffer();
+		}
+	}
+}
+
 void GameObject::UpdateTransform(CameraManager* camera)
 {
 	ApplyTransformToObject3D(camera);
@@ -252,7 +271,7 @@ void GameObject::UpdateWorldMatrix()
 	}
 }
 
-void GameObject::AddComponent(const std::string& name, std::unique_ptr<IGameObjectComponent> comp)
+void GameObject::AddComponent(const std::string& name, std::unique_ptr<GameObjectComponent::IGameObjectComponent> comp)
 {
 	// nullポインタチェック
 	if (!comp)
@@ -268,7 +287,7 @@ void GameObject::AddComponent(const std::string& name, std::unique_ptr<IGameObje
 		return;
 	}
 
-	auto sharedComp = std::shared_ptr<IGameObjectComponent>(std::move(comp));
+	auto sharedComp = std::shared_ptr<GameObjectComponent::IGameObjectComponent>(std::move(comp));
 
 	// Update実行中は保留リストに追加
 	if (isUpdating_)
@@ -393,7 +412,7 @@ void GameObject::ShowImGuiHierarchy()
 #endif
 }
 
-void GameObject::AddComponentImmediate(const std::string& name, std::shared_ptr<IGameObjectComponent> comp)
+void GameObject::AddComponentImmediate(const std::string& name, std::shared_ptr<GameObjectComponent::IGameObjectComponent> comp)
 {
 	if (!comp) return;
 
@@ -407,11 +426,11 @@ void GameObject::AddComponentImmediate(const std::string& name, std::shared_ptr<
 	components_[name] = comp;
 
 	// 型ごとにカテゴリ配列へ登録（高速アクセス用）
-	if (auto action = std::dynamic_pointer_cast<IActionComponent>(comp))
+	if (auto action = std::dynamic_pointer_cast<GameObjectComponent::IActionComponent>(comp))
 	{
 		actionComponents_.push_back(action);
 	}
-	if (auto collision = std::dynamic_pointer_cast<ICollisionComponent>(comp))
+	if (auto collision = std::dynamic_pointer_cast<GameObjectComponent::ICollisionComponent>(comp))
 	{
 		collisionComponents_.push_back(collision);
 	}
@@ -435,12 +454,12 @@ void GameObject::RemoveComponentImmediate(const std::string& name)
 	components_.erase(it);
 }
 
-void GameObject::RemoveFromCategoryLists(const std::shared_ptr<IGameObjectComponent>& comp)
+void GameObject::RemoveFromCategoryLists(const std::shared_ptr<GameObjectComponent::IGameObjectComponent>& comp)
 {
 	if (!comp) return;
 
 	// アクションコンポーネント配列から削除
-	if (auto action = std::dynamic_pointer_cast<IActionComponent>(comp))
+	if (auto action = std::dynamic_pointer_cast<GameObjectComponent::IActionComponent>(comp))
 	{
 		actionComponents_.erase(
 			std::remove(actionComponents_.begin(), actionComponents_.end(), action),
@@ -449,7 +468,7 @@ void GameObject::RemoveFromCategoryLists(const std::shared_ptr<IGameObjectCompon
 	}
 
 	// コリジョンコンポーネント配列から削除
-	if (auto collision = std::dynamic_pointer_cast<ICollisionComponent>(comp))
+	if (auto collision = std::dynamic_pointer_cast<GameObjectComponent::ICollisionComponent>(comp))
 	{
 		collisionComponents_.erase(
 			std::remove(collisionComponents_.begin(), collisionComponents_.end(), collision),

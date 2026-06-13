@@ -19,43 +19,46 @@
  * 
  * @note 2Dモードでは円（Circle）として扱われます
  */
-class SphereColliderComponent : public ICollisionComponent
+namespace GameObjectComponent
 {
-public:
-	/**
-	 * @brief コンストラクタ
-	 * @param owner このコンポーネントを所有するGameObject
-	 */
-	SphereColliderComponent(GameObject* owner);
+	class SphereColliderComponent : public ICollisionComponent
+	{
+	public:
+		/**
+		 * @brief コンストラクタ
+		 * @param owner このコンポーネントを所有するGameObject
+		 */
+		SphereColliderComponent(::GameObject* owner);
 
-	/**
-	 * @brief 球データを取得
-	 * @return 現在の球データ
-	 */
-	const Sphere& GetSphere() const;
-	
-	/**
-	 * @brief 球データを設定
-	 * @param s 設定する球データ
-	 */
-	void SetSphere(const Sphere& s);
+		/**
+		 * @brief 球データを取得
+		 * @return 現在の球データ
+		 */
+		const ::Sphere& GetSphere() const;
+		
+		/**
+		 * @brief 球データを設定
+		 * @param s 設定する球データ
+		 */
+		void SetSphere(const ::Sphere& s);
 
-	/**
-	 * @brief 毎フレームの更新処理
-	 * 
-	 * GameObjectの位置に合わせて球の中心位置を更新します。
-	 * 
-	 * @param owner このコンポーネントを所有するGameObject
-	 */
-	void Update(GameObject* owner) override;
+		/**
+		 * @brief 毎フレームの更新処理
+		 * 
+		 * GameObjectの位置に合わせて球の中心位置を更新します。
+		 * 
+		 * @param owner このコンポーネントを所有するGameObject
+		 */
+		void Update(::GameObject* owner) override;
 
-	/**
-	 * @brief コライダーの種類を取得
-	 * @return ColliderType::Sphere
-	 */
-	ColliderType GetColliderType() const override;
+		/**
+		 * @brief コライダーの種類を取得
+		 * @return ColliderType::Sphere
+		 */
+		ColliderType GetColliderType() const override;
 
-private:
-	// 球データ（中心位置と半径）
-	Sphere sphere_;
-};
+	private:
+		// 球データ（中心位置と半径）
+		::Sphere sphere_;
+	};
+}

@@ -50,7 +50,7 @@ private:
 	void SyncNewObstacleData();
 
 	// EntityをRegistryに登録し、ECSコンポーネントを付与する
-	void RegisterToRegistry(const GameObjectInfo& info, ObstacleComponent::Type type, bool hasCollider);
+	void RegisterToRegistry(const GameObjectInfo& info, ecs::ObstacleComponent::Type type, bool hasCollider);
 
 private:
 	Object3dCommon* object3dCommon_ = nullptr;

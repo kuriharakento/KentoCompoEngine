@@ -21,6 +21,8 @@
 #include "manager/editor/DebugUIManager.h"
 #endif
 
+using namespace ecs;
+
 EcsDebugScene::EcsDebugScene()
 {
 }

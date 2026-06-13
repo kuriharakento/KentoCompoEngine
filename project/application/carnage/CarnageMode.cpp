@@ -80,9 +80,9 @@ float CarnageMode::GetTimeLeft() const
 void CarnageMode::ApplyBuffs()
 {
     if (!registry_ || playerEntity_ == kInvalidEntity) return;
-    if (!registry_->HasComponent<PlayerComponent>(playerEntity_)) return;
+    if (!registry_->HasComponent<ecs::PlayerComponent>(playerEntity_)) return;
 
-    auto& p = registry_->GetComponent<PlayerComponent>(playerEntity_);
+    auto& p = registry_->GetComponent<ecs::PlayerComponent>(playerEntity_);
     p.attackMultiplier_ = 1.0f + attackUpRate_;
     p.moveSpeedMultiplier_ = 1.0f + speedUpRate_;
 }
@@ -90,9 +90,9 @@ void CarnageMode::ApplyBuffs()
 void CarnageMode::RemoveBuffs()
 {
     if (!registry_ || playerEntity_ == kInvalidEntity) return;
-    if (!registry_->HasComponent<PlayerComponent>(playerEntity_)) return;
+    if (!registry_->HasComponent<ecs::PlayerComponent>(playerEntity_)) return;
 
-    auto& p = registry_->GetComponent<PlayerComponent>(playerEntity_);
+    auto& p = registry_->GetComponent<ecs::PlayerComponent>(playerEntity_);
     p.attackMultiplier_ = 1.0f;
     p.moveSpeedMultiplier_ = 1.0f;
 }

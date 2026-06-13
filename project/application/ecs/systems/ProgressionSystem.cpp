@@ -10,6 +10,9 @@
 #include "engine/math/Easing.h"
 #include "application/UI/LevelUpUI.h"
 
+using namespace ecs;
+
+
 void ProgressionSystem::Update(Registry& registry)
 {
     auto view = registry.View<PlayerProgressionComponent>();
@@ -130,3 +133,4 @@ void ProgressionSystem::PlayLevelUpEffects(EntityID entity, Registry& registry)
         levelUpUI_->Trigger();
     }
 }
+

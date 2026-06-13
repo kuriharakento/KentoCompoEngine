@@ -2,6 +2,8 @@
 #include <memory>
 #include <string>
 #include <algorithm>
+#include <unordered_map>
+#include <vector>
 
 // graphics
 #include "graphics/3d/IRenderable3d.h"
@@ -12,6 +14,13 @@
 // component
 #include "engine/gameobject/component/base/IActionComponent.h"
 #include "engine/gameobject/component/base/ICollisionComponent.h"
+
+namespace GameObjectComponent
+{
+	class IGameObjectComponent;
+	class IActionComponent;
+	class ICollisionComponent;
+}
 
 /**
  * @brief ゲーム内の全てのオブジェクトの基底クラス
@@ -75,6 +84,7 @@ public:
 	 * @brief シャドウマップへの描画処理
 	 */
 	virtual void DrawShadow();
+	virtual void DrawGBuffer();
 
 	/**
 	 * @brief 子オブジェクトのリストを取得
@@ -97,7 +107,7 @@ public:
 	 * @param name コンポーネント名（一意識別子）
 	 * @param comp 追加するコンポーネント
 	 */
-	void AddComponent(const std::string& name, std::unique_ptr<IGameObjectComponent> comp);
+	void AddComponent(const std::string& name, std::unique_ptr<GameObjectComponent::IGameObjectComponent> comp);
 
 	/**
 	 * @brief コンポーネントの削除
@@ -307,7 +317,7 @@ private:
 	 * @param name コンポーネント名
 	 * @param comp 追加するコンポーネント
 	 */
-	void AddComponentImmediate(const std::string& name, std::shared_ptr<IGameObjectComponent> comp);
+	void AddComponentImmediate(const std::string& name, std::shared_ptr<GameObjectComponent::IGameObjectComponent> comp);
 
 	/**
 	 * @brief コンポーネントの即座削除
@@ -319,7 +329,7 @@ private:
 	 * @brief カテゴリリストからコンポーネントを削除
 	 * @param comp 削除するコンポーネント
 	 */
-	void RemoveFromCategoryLists(const std::shared_ptr<IGameObjectComponent>& comp);
+	void RemoveFromCategoryLists(const std::shared_ptr<GameObjectComponent::IGameObjectComponent>& comp);
 
 	/**
 	 * @brief 保留中の変更処理
@@ -329,15 +339,15 @@ private:
 private:
 	// === コンポーネントシステム ===
 	// 全コンポーネントのマップ
-	std::unordered_map<std::string, std::shared_ptr<IGameObjectComponent>> components_;
+	std::unordered_map<std::string, std::shared_ptr<GameObjectComponent::IGameObjectComponent>> components_;
 	// アクションコンポーネントのリスト（高速アクセス用）
-	std::vector<std::shared_ptr<IActionComponent>> actionComponents_;
+	std::vector<std::shared_ptr<GameObjectComponent::IActionComponent>> actionComponents_;
 	// コリジョンコンポーネントのリスト（高速アクセス用）
-	std::vector<std::shared_ptr<ICollisionComponent>> collisionComponents_;
+	std::vector<std::shared_ptr<GameObjectComponent::ICollisionComponent>> collisionComponents_;
 
 	// === 保留処理システム ===
 	// 追加保留中のコンポーネントリスト
-	std::vector<std::pair<std::string, std::shared_ptr<IGameObjectComponent>>> pendingAdds_;
+	std::vector<std::pair<std::string, std::shared_ptr<GameObjectComponent::IGameObjectComponent>>> pendingAdds_;
 	// 削除保留中のコンポーネント名リスト
 	std::vector<std::string> pendingRemoves_;
 	// 更新処理中フラグ
