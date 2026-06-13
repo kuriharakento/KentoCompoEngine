@@ -477,12 +477,10 @@ public: // ゲッター
 	float GetSpotLightCosFalloffStart(const std::string& name) const;
 
 private:
-#ifdef USE_IMGUI
 	/**
 	 * @brief デバッグUIを描画する
 	 */
 	void DrawImGui();
-#endif
 
 	/**
 	 * @brief ディレクショナルライト用定数バッファの作成

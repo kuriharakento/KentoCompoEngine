@@ -1,26 +1,19 @@
 #include "DebugUIManager.h"
 
-#ifdef USE_IMGUI
-#include "externals/imgui/imgui.h"
-#include "externals/imgui/imgui_internal.h"
-#include "externals/nlohmann/json.hpp"
-#include <fstream>
-#endif
-
-#ifdef USE_IMGUI
-static std::unordered_map<std::string, DebugUIManager::SavedUIState> s_savedStates;
-static float s_prevScale = 1.0f;
-#endif
-
+// instance_ の実体は、非ImGui環境でのリンクエラーを防ぐために常に定義する
 std::unique_ptr<DebugUIManager> DebugUIManager::instance_ = nullptr;
 
 DebugUIManager* DebugUIManager::GetInstance()
 {
+#ifdef USE_IMGUI
 	if (instance_ == nullptr)
 	{
 		instance_.reset(new DebugUIManager());
 	}
 	return instance_.get();
+#else
+	return nullptr;
+#endif
 }
 
 bool DebugUIManager::HasInstance()
@@ -28,9 +21,19 @@ bool DebugUIManager::HasInstance()
 	return instance_ != nullptr;
 }
 
+// ------ ここから下は ImGui 有効時（Debugビルド等）のみコンパイル ------
+#ifdef USE_IMGUI
+
+#include "externals/imgui/imgui.h"
+#include "externals/imgui/imgui_internal.h"
+#include "externals/nlohmann/json.hpp"
+#include <fstream>
+
+static std::unordered_map<std::string, DebugUIManager::SavedUIState> s_savedStates;
+static float s_prevScale = 1.0f;
+
 void DebugUIManager::Initialize()
 {
-#ifdef USE_IMGUI
 	debugUIs_.clear();
 
 	// 旧レイアウトファイルのクリーンアップ
@@ -44,17 +47,20 @@ void DebugUIManager::Initialize()
 		ini_handler.TypeName = "DebugUI";
 		ini_handler.TypeHash = ImHashStr("DebugUI");
 
-		ini_handler.ClearAllFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler) {
+		ini_handler.ClearAllFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler)
+		{
 			DebugUIManager::GetInstance()->ClearLoadedStates();
 		};
-		ini_handler.ReadOpenFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler, const char* name) -> void* {
+		ini_handler.ReadOpenFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler, const char* name) -> void*
+		{
 			if (strcmp(name, "GlobalSettings") == 0)
 			{
 				return (void*)DebugUIManager::GetInstance();
 			}
 			return (void*)&(DebugUIManager::GetInstance()->GetOrAddLoadedState(name));
 		};
-		ini_handler.ReadLineFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler, void* entry, const char* line) {
+		ini_handler.ReadLineFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler, void* entry, const char* line)
+		{
 			if (entry == DebugUIManager::GetInstance())
 			{
 				float fval = 1.0f;
@@ -75,10 +81,12 @@ void DebugUIManager::Initialize()
 				state->visible = (val != 0);
 			}
 		};
-		ini_handler.ApplyAllFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler) {
+		ini_handler.ApplyAllFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler)
+		{
 			DebugUIManager::GetInstance()->ApplyLoadedStatesToActiveUIs();
 		};
-		ini_handler.WriteAllFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler, ImGuiTextBuffer* buf) {
+		ini_handler.WriteAllFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler, ImGuiTextBuffer* buf)
+		{
 			DebugUIManager::GetInstance()->WriteAllSettings(buf);
 		};
 
@@ -87,7 +95,6 @@ void DebugUIManager::Initialize()
 			ImGui::AddSettingsHandler(&ini_handler);
 		}
 	}
-#endif
 	resetLayoutRequested_ = false;
 
 	uiScale_ = 1.0f;
@@ -95,21 +102,18 @@ void DebugUIManager::Initialize()
 
 	showHierarchy_ = true;
 	showInspector_ = true;
-	showConsole_   = true;
-	showProject_   = true;
+	showConsole_ = true;
+	showProject_ = true;
 }
 
 void DebugUIManager::Finalize()
 {
-#ifdef USE_IMGUI
 	debugUIs_.clear();
-#endif
 	instance_.reset();
 }
 
 void DebugUIManager::RegisterDebugUI([[maybe_unused]] void* owner, [[maybe_unused]] const std::string& name, [[maybe_unused]] std::function<void()> drawFunc, [[maybe_unused]] DebugUIArea area)
 {
-#ifdef USE_IMGUI
 	if (owner == nullptr || name.empty() || !drawFunc)
 	{
 		return;
@@ -137,36 +141,31 @@ void DebugUIManager::RegisterDebugUI([[maybe_unused]] void* owner, [[maybe_unuse
 		finalVisible = it->second.visible;
 	}
 
-	list.push_back({ name, drawFunc, finalArea, finalVisible });
-#endif
+	list.push_back({name, drawFunc, finalArea, finalVisible});
 }
 
 void DebugUIManager::UnregisterDebugUI([[maybe_unused]] void* owner)
 {
-#ifdef USE_IMGUI
 	if (owner == nullptr)
 	{
 		return;
 	}
 
 	debugUIs_.erase(owner);
-#endif
 }
 
 void DebugUIManager::Clear()
 {
-#ifdef USE_IMGUI
 	debugUIs_.clear();
-#endif
 }
 
 void DebugUIManager::Draw()
 {
 	// 何もしない（主要ウィンドウ内の DrawArea で個別に描画されるため）
 }
+
 void DebugUIManager::DrawArea([[maybe_unused]] DebugUIArea area)
 {
-#ifdef USE_IMGUI
 	for (auto& [owner, list] : debugUIs_)
 	{
 		for (auto& ui : list)
@@ -223,9 +222,9 @@ void DebugUIManager::DrawArea([[maybe_unused]] DebugUIArea area)
 				float avail_width = ImGui::GetContentRegionAvail().x;
 				float combo_width = 90.0f; // 余裕を持たせた幅
 				float text_width = ImGui::CalcTextSize("Move:").x;
-				float close_btn_width = 20.0f; // 余裕を持たせた幅
+				float close_btn_width = 20.0f;											 // 余裕を持たせた幅
 				float space_needed = combo_width + text_width + close_btn_width + 16.0f; // コントロール間の間隔も広めに
-				float right_align_x = avail_width - space_needed; // すでに WindowPadding があるため -8.0f は不要
+				float right_align_x = avail_width - space_needed;						 // すでに WindowPadding があるため -8.0f は不要
 				if (right_align_x > 40.0f)
 				{
 					ImGui::SameLine(ImGui::GetCursorPosX() + right_align_x);
@@ -239,7 +238,7 @@ void DebugUIManager::DrawArea([[maybe_unused]] DebugUIArea area)
 				ImGui::SameLine(0.0f, 6.0f); // 余裕を持たせる
 				ImGui::SetNextItemWidth(combo_width);
 				int currentArea = static_cast<int>(ui.area);
-				const char* areaNames[] = { "Hierarchy", "Inspector", "Console", "Scene", "Project" };
+				const char* areaNames[] = {"Hierarchy", "Inspector", "Console", "Scene", "Project"};
 				std::string comboId = "##MoveArea_" + ui.name;
 
 				if (ImGui::Combo(comboId.c_str(), &currentArea, areaNames, IM_ARRAYSIZE(areaNames)))
@@ -284,12 +283,10 @@ void DebugUIManager::DrawArea([[maybe_unused]] DebugUIArea area)
 			ImGui::PopID();
 		}
 	}
-#endif
 }
 
 void DebugUIManager::DrawToolsMenu()
 {
-#ifdef USE_IMGUI
 	// カテゴリ定義
 	struct Category
 	{
@@ -298,15 +295,15 @@ void DebugUIManager::DrawToolsMenu()
 	};
 
 	static const Category categories[] =
-	{
-		{ "Engine",       { "Performance", "Scene Manager", nullptr } },
-		{ "Time",         { "Time Manager", "Timer Manager", nullptr } },
-		{ "Rendering",    { "Light Manager", "Camera Manager", "Particle Manager", nullptr } },
-		{ "Audio",        { "Audio Debug", nullptr } },
-		{ "Editor Tools", { "JSON Editor", "Font Sprite", nullptr } },
-		{ "Effects",      { "Scene Transition", nullptr } },
-		{ "Scenes",       { "Title Scene", nullptr } },
-	};
+		{
+			{"Engine", {"Performance", "Scene Manager", nullptr}},
+			{"Time", {"Time Manager", "Timer Manager", nullptr}},
+			{"Rendering", {"Light Manager", "Camera Manager", "Particle Manager", nullptr}},
+			{"Audio", {"Audio Debug", nullptr}},
+			{"Editor Tools", {"JSON Editor", "Font Sprite", nullptr}},
+			{"Effects", {"Scene Transition", nullptr}},
+			{"Scenes", {"Title Scene", nullptr}},
+		};
 
 	for (const auto& cat : categories)
 	{
@@ -324,12 +321,21 @@ void DebugUIManager::DrawToolsMenu()
 						break;
 					}
 				}
-				if (hasItem) { break; }
+				if (hasItem)
+				{
+					break;
+				}
 			}
-			if (hasItem) { break; }
+			if (hasItem)
+			{
+				break;
+			}
 		}
 
-		if (!hasItem) { continue; }
+		if (!hasItem)
+		{
+			continue;
+		}
 
 		if (ImGui::BeginMenu(cat.label))
 		{
@@ -371,7 +377,10 @@ void DebugUIManager::DrawToolsMenu()
 						break;
 					}
 				}
-				if (classified) { break; }
+				if (classified)
+				{
+					break;
+				}
 			}
 
 			if (!classified)
@@ -408,7 +417,7 @@ void DebugUIManager::DrawToolsMenu()
 				if (ImGui::BeginMenu(ui.name.c_str()))
 				{
 					int currentArea = static_cast<int>(ui.area);
-					const char* areaNames[] = { "Hierarchy", "Inspector", "Console", "Scene", "Project" };
+					const char* areaNames[] = {"Hierarchy", "Inspector", "Console", "Scene", "Project"};
 					for (int i = 0; i < 5; ++i)
 					{
 						bool selected = (currentArea == i);
@@ -424,7 +433,6 @@ void DebugUIManager::DrawToolsMenu()
 		}
 		ImGui::EndMenu();
 	}
-#endif
 }
 
 void DebugUIManager::RequestLayoutReset()
@@ -444,7 +452,6 @@ void DebugUIManager::ClearLayoutResetRequest()
 
 void DebugUIManager::SetDebugUIArea([[maybe_unused]] void* owner, [[maybe_unused]] DebugUIArea area)
 {
-#ifdef USE_IMGUI
 	if (owner == nullptr)
 	{
 		return;
@@ -459,12 +466,10 @@ void DebugUIManager::SetDebugUIArea([[maybe_unused]] void* owner, [[maybe_unused
 		}
 		SaveLayout();
 	}
-#endif
 }
 
 void DebugUIManager::SetDebugUIArea([[maybe_unused]] const std::string& name, [[maybe_unused]] DebugUIArea area)
 {
-#ifdef USE_IMGUI
 	if (name.empty())
 	{
 		return;
@@ -482,18 +487,16 @@ void DebugUIManager::SetDebugUIArea([[maybe_unused]] const std::string& name, [[
 			}
 		}
 	}
-#endif
 }
 
 void DebugUIManager::SaveLayout()
 {
-#ifdef USE_IMGUI
 	// s_savedStatesの更新
 	for (const auto& [owner, list] : debugUIs_)
 	{
 		for (const auto& ui : list)
 		{
-			s_savedStates[ui.name] = { ui.area, ui.visible };
+			s_savedStates[ui.name] = {ui.area, ui.visible};
 		}
 	}
 
@@ -502,19 +505,15 @@ void DebugUIManager::SaveLayout()
 	{
 		ImGui::SaveIniSettingsToDisk(ImGui::GetIO().IniFilename);
 	}
-#endif
 }
 
 void DebugUIManager::ClearLoadedStates()
 {
-#ifdef USE_IMGUI
 	s_savedStates.clear();
-#endif
 }
 
 DebugUIManager::SavedUIState& DebugUIManager::GetOrAddLoadedState(const std::string& name)
 {
-#ifdef USE_IMGUI
 	auto it = s_savedStates.find(name);
 	if (it != s_savedStates.end())
 	{
@@ -527,15 +526,10 @@ DebugUIManager::SavedUIState& DebugUIManager::GetOrAddLoadedState(const std::str
 	state.visible = true;
 	s_savedStates[name] = state;
 	return s_savedStates[name];
-#else
-	static SavedUIState dummy;
-	return dummy;
-#endif
 }
 
 void DebugUIManager::WriteAllSettings(ImGuiTextBuffer* buf)
 {
-#ifdef USE_IMGUI
 	// インスタンスが存在すればマージ
 	if (HasInstance())
 	{
@@ -544,7 +538,7 @@ void DebugUIManager::WriteAllSettings(ImGuiTextBuffer* buf)
 		{
 			for (const auto& ui : list)
 			{
-				s_savedStates[ui.name] = { ui.area, ui.visible };
+				s_savedStates[ui.name] = {ui.area, ui.visible};
 			}
 		}
 	}
@@ -568,12 +562,10 @@ void DebugUIManager::WriteAllSettings(ImGuiTextBuffer* buf)
 		buf->appendf("visible=%d\n", state.visible ? 1 : 0);
 		buf->appendf("\n");
 	}
-#endif
 }
 
 void DebugUIManager::ApplyLoadedStatesToActiveUIs()
 {
-#ifdef USE_IMGUI
 	for (auto& [owner, list] : debugUIs_)
 	{
 		for (auto& ui : list)
@@ -586,7 +578,6 @@ void DebugUIManager::ApplyLoadedStatesToActiveUIs()
 			}
 		}
 	}
-#endif
 }
 
 float DebugUIManager::GetUIScale() const
@@ -596,7 +587,6 @@ float DebugUIManager::GetUIScale() const
 
 void DebugUIManager::SetUIScale(float scale)
 {
-#ifdef USE_IMGUI
 	if (scale < 0.5f)
 	{
 		scale = 0.5f;
@@ -612,21 +602,16 @@ void DebugUIManager::SetUIScale(float scale)
 		ApplyUIScale(uiScale_);
 		SaveLayout();
 	}
-#else
-	uiScale_ = scale;
-#endif
 }
 
 void DebugUIManager::ApplyUIScale(float scale)
 {
-#ifdef USE_IMGUI
 	ImGuiIO& io = ImGui::GetIO();
 	io.FontGlobalScale = scale;
 
 	float ratio = scale / s_prevScale;
 	ImGui::GetStyle().ScaleAllSizes(ratio);
 	s_prevScale = scale;
-#else
-	(void)scale;
-#endif
 }
+
+#endif // USE_IMGUI

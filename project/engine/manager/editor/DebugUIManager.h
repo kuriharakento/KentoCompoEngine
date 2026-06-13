@@ -1,11 +1,10 @@
 #pragma once
 #include <functional>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <memory>
 
-#ifdef USE_IMGUI
 /**
  * @brief デバッグUIの表示エリア
  * @details 各エリアの使い分け：
@@ -15,6 +14,7 @@
  * - Scene: ゲーム画面へのオーバーレイ用
  * - Project: 横広エディタ・アセット管理用
  */
+#ifdef USE_IMGUI
 enum class DebugUIArea
 {
 	Hierarchy,
@@ -47,6 +47,7 @@ public:
 	static DebugUIManager* GetInstance();
 	static bool HasInstance();
 
+#ifdef USE_IMGUI
 	void Initialize();
 	void Finalize();
 
@@ -93,33 +94,55 @@ public:
 	void SetUIScale(float scale);
 	void ApplyUIScale(float scale);
 
-#ifdef USE_IMGUI
 	struct SavedUIState
 	{
 		DebugUIArea area;
 		bool visible;
 	};
+
+#else
+	// --- 非ImGui環境用の空実装（元のドキュメントや引数名を残して可読性を維持） ---
+	void Initialize() {}
+	void Finalize() {}
+
+	/**
+	 * @brief デバッグUIを登録する（非ImGui時は何もしない）
+	 */
+	void RegisterDebugUI(void* owner, const std::string& name, std::function<void()> drawFunc, DebugUIArea area = DebugUIArea::Inspector) {}
+	void UnregisterDebugUI(void* owner) {}
+	void Clear() {}
+	void Draw() {}
+
+	void RequestLayoutReset() {}
+	bool IsLayoutResetRequested() const { return false; }
+	void ClearLayoutResetRequest() {}
+
+	void DrawArea(DebugUIArea area) {}
+
+	/**
+	 * @brief Toolsメニュー用のサブメニューを描画する（非ImGui時は何もしない）
+	 */
+	void DrawToolsMenu() {}
+
+	void SetDebugUIArea(void* owner, DebugUIArea area) {}
+	void SetDebugUIArea(const std::string& name, DebugUIArea area) {}
+
+	bool IsShowHierarchy() const { return false; }
+	void SetShowHierarchy(bool show) {}
+
+	bool IsShowInspector() const { return false; }
+	void SetShowInspector(bool show) {}
+
+	bool IsShowConsole() const { return false; }
+	void SetShowConsole(bool show) {}
+
+	bool IsShowProject() const { return false; }
+	void SetShowProject(bool show) {}
+
+	float GetUIScale() const { return 1.0f; }
+	void SetUIScale(float scale) {}
+	void ApplyUIScale(float scale) {}
 #endif
-
-private:
-#ifdef USE_IMGUI
-	std::unordered_map<void*, std::vector<DebugUI>> debugUIs_;
-
-	void SaveLayout();
-	void ClearLoadedStates();
-	SavedUIState& GetOrAddLoadedState(const std::string& name);
-	void WriteAllSettings(struct ImGuiTextBuffer* buf);
-	void ApplyLoadedStatesToActiveUIs();
-#endif
-
-	float uiScale_ = 1.0f;
-
-	bool showHierarchy_ = true;
-	bool showInspector_ = true;
-	bool showConsole_   = true;
-	bool showProject_   = true;
-
-	bool resetLayoutRequested_ = false;
 
 public:
 	~DebugUIManager() = default;
@@ -130,4 +153,23 @@ private:
 	DebugUIManager() = default;
 	DebugUIManager(const DebugUIManager&) = delete;
 	DebugUIManager& operator=(const DebugUIManager&) = delete;
+
+#ifdef USE_IMGUI
+	std::unordered_map<void*, std::vector<DebugUI>> debugUIs_;
+
+	void SaveLayout();
+	void ClearLoadedStates();
+	SavedUIState& GetOrAddLoadedState(const std::string& name);
+	void WriteAllSettings(struct ImGuiTextBuffer* buf);
+	void ApplyLoadedStatesToActiveUIs();
+
+	float uiScale_ = 1.0f;
+
+	bool showHierarchy_ = true;
+	bool showInspector_ = true;
+	bool showConsole_ = true;
+	bool showProject_ = true;
+
+	bool resetLayoutRequested_ = false;
+#endif
 };
