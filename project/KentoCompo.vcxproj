@@ -162,8 +162,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\minimap\Minimap.cpp" />
     <ClCompile Include="application\resources\LoadGameResources.cpp" />
     <ClCompile Include="application\scene\debug\ParticleTestScene.cpp" />
-    <ClCompile Include="application\scene\debug\StageEditScene.cpp" />
-    <ClCompile Include="application\scene\EcsDebugScene.cpp" />
+    <ClCompile Include="application\scene\debug\TestScene.cpp" />
     <ClCompile Include="application\scene\play\GamePlayScene.cpp" />
     <ClCompile Include="application\scene\play\ResultScene.cpp" />
     <ClCompile Include="application\scene\play\TitleScene.cpp" />
@@ -374,8 +373,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\GameObject\obstacle\ObstacleManager.h" />
     <ClInclude Include="application\minimap\Minimap.h" />
     <ClInclude Include="application\scene\debug\ParticleTestScene.h" />
-    <ClInclude Include="application\scene\debug\StageEditScene.h" />
-    <ClInclude Include="application\scene\EcsDebugScene.h" />
+    <ClInclude Include="application\scene\debug\TestScene.h" />
     <ClInclude Include="application\scene\play\GamePlayScene.h" />
     <ClInclude Include="application\scene\play\PlayerStatusEditor.h" />
     <ClInclude Include="application\scene\play\ResultScene.h" />

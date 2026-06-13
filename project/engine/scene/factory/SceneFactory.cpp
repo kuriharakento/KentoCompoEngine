@@ -3,20 +3,19 @@
 #include <unordered_map>
 
 #include "application/scene/debug/ParticleTestScene.h"
-#include "application/scene/EcsDebugScene.h"
-#include "application/scene/debug/StageEditScene.h"
-#include "application/scene/play/ResultScene.h"
+#include "application/scene/debug/TestScene.h"
 #include "application/scene/play/GamePlayScene.h"
+#include "application/scene/play/ResultScene.h"
 #include "application/scene/play/TitleScene.h"
 #include "base/Logger.h"
 
 namespace
 {
 // シーン生成関数の型
-using SceneCreator = std::unique_ptr<BaseScene>(*)();
+using SceneCreator = std::unique_ptr<BaseScene> (*)();
 
 // テンプレートで生成関数を作る
-template<typename T>
+template <typename T>
 std::unique_ptr<BaseScene> CreateSceneImpl()
 {
 	return std::make_unique<T>();
@@ -24,14 +23,12 @@ std::unique_ptr<BaseScene> CreateSceneImpl()
 
 // シーン名 → 生成関数のテーブル（新シーン追加時はここに1行追加）
 const std::unordered_map<std::string, SceneCreator> kSceneTable = {
-	{"TITLE",        CreateSceneImpl<TitleScene>},
-	{"GAMEPLAY",     CreateSceneImpl<GamePlayScene>},
-	{"RESULT",       CreateSceneImpl<ResultScene>},
-	{"STAGEEDIT",    CreateSceneImpl<StageEditScene>},
+	{"TITLE", CreateSceneImpl<TitleScene>},
+	{"GAMEPLAY", CreateSceneImpl<GamePlayScene>},
+	{"RESULT", CreateSceneImpl<ResultScene>},
 	{"PARTICLETEST", CreateSceneImpl<ParticleTestScene>},
-	{"ECS_DEBUG", CreateSceneImpl<EcsDebugScene>},
-};
-}
+	{"TEST", CreateSceneImpl<TestScene>}};
+} // namespace
 
 std::unique_ptr<BaseScene> SceneFactory::CreateScene(const std::string& sceneName)
 {

@@ -43,17 +43,13 @@ void SceneManager::Initialize(const SceneContext& context)
 			ChangeScene(SceneNames::Result);
 		}
 		// Debug用シーン
-		if (ImGui::Button("StageEdit"))
-		{
-			ChangeScene(SceneNames::StageEdit);
-		}
 		if (ImGui::Button("ParticleTest"))
 		{
 			ChangeScene(SceneNames::ParticleTest);
 		}
-		if (ImGui::Button("EcsDebug"))
+		if (ImGui::Button("Test"))
 		{
-			ChangeScene(SceneNames::EcsDebug);
+			ChangeScene(SceneNames::Test);
 		}
 		// --- シーンのステートを直接変更するデバッグ UI ---
 		if (currentScene_)

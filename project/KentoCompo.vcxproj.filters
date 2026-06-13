@@ -429,12 +429,6 @@
     <ClCompile Include="application\scene\debug\ParticleTestScene.cpp">
       <Filter>application\scene\debug</Filter>
     </ClCompile>
-    <ClCompile Include="application\scene\debug\StageEditScene.cpp">
-      <Filter>application\scene\debug</Filter>
-    </ClCompile>
-    <ClCompile Include="application\scene\EcsDebugScene.cpp">
-      <Filter>application\scene</Filter>
-    </ClCompile>
     <ClCompile Include="application\scene\play\GamePlayScene.cpp">
       <Filter>application\scene\play</Filter>
     </ClCompile>
@@ -835,6 +829,7 @@
       <Filter>externals\imgui</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="application\scene\debug\TestScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\animation\Slide.h">
@@ -1052,12 +1047,6 @@
     </ClInclude>
     <ClInclude Include="application\scene\debug\ParticleTestScene.h">
       <Filter>application\scene\debug</Filter>
-    </ClInclude>
-    <ClInclude Include="application\scene\debug\StageEditScene.h">
-      <Filter>application\scene\debug</Filter>
-    </ClInclude>
-    <ClInclude Include="application\scene\EcsDebugScene.h">
-      <Filter>application\scene</Filter>
     </ClInclude>
     <ClInclude Include="application\scene\play\GamePlayScene.h">
       <Filter>application\scene\play</Filter>
@@ -1665,6 +1654,7 @@
     <ClInclude Include="externals\imgui\imstb_truetype.h">
       <Filter>externals\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="application\scene\debug\TestScene.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\shaders\Object3d.PS.hlsl">

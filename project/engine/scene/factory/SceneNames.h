@@ -8,7 +8,6 @@ namespace SceneNames
 	inline constexpr const char* Result = "RESULT";
 
 	// デバッグ用シーン
-	inline constexpr const char* StageEdit = "STAGEEDIT";
+	inline constexpr const char* Test = "TEST";
 	inline constexpr const char* ParticleTest = "PARTICLETEST";
-	inline constexpr const char* EcsDebug = "ECS_DEBUG";
 }
