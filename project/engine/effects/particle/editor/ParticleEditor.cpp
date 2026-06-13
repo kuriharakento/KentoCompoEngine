@@ -431,6 +431,7 @@ void ParticleEditor::DrawMenuBar()
 		if (ImGui::Button("Save")) { SaveEffect(effectPath_); }
 		ImGui::SameLine();
 		if (ImGui::Button("Save As...")) { effectPath_.clear(); SaveEffect(""); }
+		ImGui::SameLine();
 
 		if (ImGui::Button("Load..."))
 		{
@@ -2177,6 +2178,7 @@ void ParticleEditor::AddEmitterDialog()
 
 	if (ImGui::BeginPopupModal("Add Emitter", &showAddEmitterDialog_, ImGuiWindowFlags_AlwaysAutoResize))
 	{
+		ImGui::SetNextItemWidth(200.0f);
 		ImGui::InputText("Emitter Name", emitterNameBuffer_, sizeof(emitterNameBuffer_));
 
 		if (ImGui::Button("Create"))
@@ -2247,6 +2249,7 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Assign RibbonId for multi-trail (Niagara-style partition)"
 			};
 			
+			ImGui::SetNextItemWidth(200.0f);
 			ImGui::Combo("Spawn Module", &selectedModule, spawnModules, IM_ARRAYSIZE(spawnModules));
 			
 			// 説明表示
@@ -2342,6 +2345,7 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Apply a directional force that changes over lifetime"
 			};
 			
+			ImGui::SetNextItemWidth(200.0f);
 			ImGui::Combo("Update Module", &selectedModule, updateModules, IM_ARRAYSIZE(updateModules));
 			
 			// 説明表示

@@ -200,20 +200,21 @@ void DebugUIManager::DrawArea([[maybe_unused]] DebugUIArea area)
 
 			ImGui::PushStyleColor(ImGuiCol_ChildBg, card_bg);
 			ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 4.0f);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
 
-			// デフォルトサイズを指定（リサイズされていれば imgui.ini の設定が優先される）
 			ImVec2 child_size = ImVec2(0.0f, 180.0f);
 			ImGuiChildFlags child_flags = ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeY;
 
-			if (ImGui::BeginChild(ui.name.c_str(), child_size, child_flags, 0))
+			bool child_opened = ImGui::BeginChild(ui.name.c_str(), child_size, child_flags, 0);
+			ImGui::PopStyleVar(2); // WindowPadding と ChildRounding を即座に復元してポップアップ等への影響を防ぐ
+
+			if (child_opened)
 			{
 				// ヘッダー用のスタイル適用
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 1.0f));
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 2.0f));
 
 				ImGui::Dummy(ImVec2(0.0f, 2.0f));
-				ImGui::Indent(8.0f);
 
 				ImGui::AlignTextToFramePadding();
 				ImGui::Text(ui.name.c_str());
@@ -224,7 +225,7 @@ void DebugUIManager::DrawArea([[maybe_unused]] DebugUIArea area)
 				float text_width = ImGui::CalcTextSize("Move:").x;
 				float close_btn_width = 20.0f; // 余裕を持たせた幅
 				float space_needed = combo_width + text_width + close_btn_width + 16.0f; // コントロール間の間隔も広めに
-				float right_align_x = avail_width - space_needed - 8.0f; // 右端からも 8px 空ける
+				float right_align_x = avail_width - space_needed; // すでに WindowPadding があるため -8.0f は不要
 				if (right_align_x > 40.0f)
 				{
 					ImGui::SameLine(ImGui::GetCursorPosX() + right_align_x);
@@ -272,11 +273,9 @@ void DebugUIManager::DrawArea([[maybe_unused]] DebugUIArea area)
 				}
 
 				ImGui::Dummy(ImVec2(0.0f, 4.0f));
-				ImGui::Unindent(8.0f);
 			}
 			ImGui::EndChild();
 
-			ImGui::PopStyleVar(2); // WindowPadding, ChildRounding
 			ImGui::PopStyleColor();
 
 			// カード同士の間のスペース
