@@ -4,6 +4,9 @@
 #include "engine/ecs/components/TransformComponent.h"
 #include "engine/ecs/components/MovementComponent.h"
 
+using namespace ecs;
+
+
 void MovementSystem::Update(Registry& registry)
 {
     float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
@@ -66,3 +69,4 @@ void MovementSystem::Update(Registry& registry)
         transform.isDirty_ = true;
     }
 }
+

@@ -3,6 +3,9 @@
 #include "application/ecs/components/StatusComponent.h"
 #include "engine/time/TimeManager.h"
 
+using namespace ecs;
+
+
 void EcsStatusSystem::Update(Registry& registry)
 {
     float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
@@ -27,3 +30,4 @@ void EcsStatusSystem::Update(Registry& registry)
         }
     }
 }
+

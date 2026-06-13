@@ -128,6 +128,7 @@ void MyGame::Draw()
 		D3D12_GPU_VIRTUAL_ADDRESS cascadeMatrixAddr = lightManager_->GetCascadeLightViewProjectionGPUAddress(cascade);
 		if (cascadeMatrixAddr != 0) {
 			dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, cascadeMatrixAddr);
+			shadowMapManager_->SetCurrentShadowMatrixAddress(cascadeMatrixAddr);
 		}
 
 		sceneManager_->DrawShadow();
@@ -149,6 +150,7 @@ void MyGame::Draw()
 		D3D12_GPU_VIRTUAL_ADDRESS spotMatrixAddr = lightManager_->GetSpotLightShadowMatrixGPUAddress(name);
 		if (spotMatrixAddr != 0) {
 			dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, spotMatrixAddr);
+			shadowMapManager_->SetCurrentShadowMatrixAddress(spotMatrixAddr);
 		}
 
 		sceneManager_->DrawShadow();
@@ -173,6 +175,7 @@ void MyGame::Draw()
 			D3D12_GPU_VIRTUAL_ADDRESS pointMatrixAddr = lightManager_->GetPointLightShadowMatrixGPUAddress(name, face);
 			if (pointMatrixAddr != 0) {
 				dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, pointMatrixAddr);
+				shadowMapManager_->SetCurrentShadowMatrixAddress(pointMatrixAddr);
 			}
 
 			sceneManager_->DrawShadow();

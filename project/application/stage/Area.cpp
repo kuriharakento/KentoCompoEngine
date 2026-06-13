@@ -4,6 +4,8 @@
 #include "engine/gameobject/component/collision/OBBColliderComponent.h"
 #include "base/Logger.h"
 
+using namespace GameObjectComponent;
+
 Area::Area(Object3dCommon* objCommon, LightManager* lightManager, EnemyManager* enemyManager,
            const std::vector<Wave>& waves) : waveManager_(enemyManager, waves)
 {

@@ -9,26 +9,29 @@
  * 
  * @note 描画機能を持つコンポーネントはDraw()をオーバーライドします
  */
-class IActionComponent : public virtual IGameObjectComponent
+namespace GameObjectComponent
 {
-public:
-	virtual ~IActionComponent() = default;
-	
-	/**
-	 * @brief 3D描画処理
-	 * 
-	 * コンポーネントの3D描画処理を実装します。
-	 * 必要に応じてオーバーライドしてください。
-	 * 
-	 * @param camera 描画に使用するカメラマネージャー
-	 */
-	virtual void Draw3D(CameraManager* camera) {}
+	class IActionComponent : public virtual IGameObjectComponent
+	{
+	public:
+		virtual ~IActionComponent() = default;
+		
+		/**
+		 * @brief 3D描画処理
+		 * 
+		 * コンポーネントの3D描画処理を実装します。
+		 * 必要に応じてオーバーライドしてください。
+		 * 
+		 * @param camera 描画に使用するカメラマネージャー
+		 */
+		virtual void Draw3D(::CameraManager* camera) {}
 
-	/**
-	 * @brief 2D描画処理
-	 * 
-	 * コンポーネントの2D描画処理を実装します。
-	 * 必要に応じてオーバーライドしてください。
-	 */
-	virtual void Draw2D() {}
-};
+		/**
+		 * @brief 2D描画処理
+		 * 
+		 * コンポーネントの2D描画処理を実装します。
+		 * 必要に応じてオーバーライドしてください。
+		 */
+		virtual void Draw2D() {}
+	};
+}

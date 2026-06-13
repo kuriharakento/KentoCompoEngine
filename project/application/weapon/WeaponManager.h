@@ -4,6 +4,8 @@
 #include <string>
 #include "application/gameObject/component/action/IWeaponComponent.h"
 
+using GameObjectComponent::IWeaponComponent;
+
 class GameObject;
 class CameraManager;
 

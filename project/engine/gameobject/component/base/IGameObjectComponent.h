@@ -14,18 +14,21 @@ class GameObject;
  * ├── IActionComponent (移動、射撃、アニメーションなど)
  * └── ICollisionComponent (衝突判定)
  */
-class IGameObjectComponent
+namespace GameObjectComponent
 {
-public:
-	virtual ~IGameObjectComponent() = default;
-	
-	/**
-	 * @brief 毎フレームの更新処理
-	 * 
-	 * コンポーネントの機能を更新します。
-	 * GameObjectのUpdate()から呼び出されます。
-	 * 
-	 * @param owner このコンポーネントを所有するGameObject
-	 */
-	virtual void Update(GameObject* owner) = 0;
-};
+	class IGameObjectComponent
+	{
+	public:
+		virtual ~IGameObjectComponent() = default;
+		
+		/**
+		 * @brief 毎フレームの更新処理
+		 * 
+		 * コンポーネントの機能を更新します。
+		 * GameObjectのUpdate()から呼び出されます。
+		 * 
+		 * @param owner このコンポーネントを所有するGameObject
+		 */
+		virtual void Update(::GameObject* owner) = 0;
+	};
+}

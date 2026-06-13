@@ -23,7 +23,7 @@ public:
     explicit CombatableObject(const std::string& tag = gameObjectTag::common::CombatableObject)
         : GameObject(tag)
     {
-		AddComponent("StatusComponent", std::make_unique<StatusComponent>());
+		AddComponent("StatusComponent", std::make_unique<GameObjectComponent::StatusComponent>());
     }
 
     /**
@@ -32,7 +32,7 @@ public:
      */
 	virtual void TakeDamage(float damage)
 	{
-		auto status = GetComponent<StatusComponent>();
+		auto status = GetComponent<GameObjectComponent::StatusComponent>();
 		if (status && status->isAlive)
 		{
 			float newHp = status->hp.GetValue() - damage;
@@ -55,7 +55,7 @@ public:
      */
     float GetHp() const
     {
-        auto status = GetComponent<StatusComponent>();
+        auto status = GetComponent<GameObjectComponent::StatusComponent>();
         return status ? status->hp.GetValue() : 0.0f;
     }
     
@@ -65,7 +65,7 @@ public:
      */
     void SetHp(float v)
     {
-        auto status = GetComponent<StatusComponent>();
+        auto status = GetComponent<GameObjectComponent::StatusComponent>();
         if (status)
         {
             status->hp.SetBase(v);
@@ -78,7 +78,7 @@ public:
      */
     float GetAttackPower() const
     {
-        auto status = GetComponent<StatusComponent>();
+        auto status = GetComponent<GameObjectComponent::StatusComponent>();
         return status ? status->attackPower.GetValue() : 0.0f;
     }
     
@@ -88,7 +88,7 @@ public:
      */
     void SetAttackPower(float v)
     {
-        auto status = GetComponent<StatusComponent>();
+        auto status = GetComponent<GameObjectComponent::StatusComponent>();
         if (status)
         {
             status->attackPower.SetBase(v);
@@ -101,7 +101,7 @@ public:
      */
     bool IsAlive() const
     {
-        auto status = GetComponent<StatusComponent>();
+        auto status = GetComponent<GameObjectComponent::StatusComponent>();
         return status ? status->isAlive : false;
     }
     
@@ -111,7 +111,7 @@ public:
      */
     void SetAlive(bool alive)
     {
-        auto status = GetComponent<StatusComponent>();
+        auto status = GetComponent<GameObjectComponent::StatusComponent>();
         if (status)
         {
             status->isAlive = alive;

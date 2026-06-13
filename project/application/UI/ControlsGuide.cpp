@@ -6,6 +6,8 @@
 #include "manager/graphics/TextureManager.h"
 #include <algorithm>
 
+using namespace ecs;
+
 void ControlsGuide::Initialize(SpriteCommon* spriteCommon, Registry* registry, EntityID playerEntity)
 {
 	spriteCommon_ = spriteCommon;

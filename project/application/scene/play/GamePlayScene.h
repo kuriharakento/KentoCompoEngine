@@ -11,6 +11,7 @@
 #include "application/GameObject/Combatable/character/player/Player.h"
 #include "application/gameObject/obstacle/ObstacleManager.h"
 #include "application/stage/StageManager.h"
+#include "PlayerStatusEditor.h"
 
 // camerawork
 #include "camerawork/debug/DebugCamera.h"
@@ -52,6 +53,7 @@ public:
     void Finalize() override;
     void Draw3D() override;
     void DrawShadow() override;
+    void DrawGBuffer() override;
     void Draw2D() override;
     void DrawImGui() override;
 
@@ -139,6 +141,7 @@ private:
     class Object3dSystem* object3dSystem_ = nullptr;
     std::unordered_map<std::string, std::unique_ptr<InstancedModelRenderer>> instancedRenderers_;
     EntityID playerEntity_ = kInvalidEntity;
+    std::unique_ptr<PlayerStatusEditor> playerStatusEditor_;
 
     // --- 演出 ---
     SceneTransitionEffect transitionEffect_;

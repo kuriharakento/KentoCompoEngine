@@ -17,7 +17,10 @@
 #include "math/VectorColorCodes.h"
 #include "engine/manager/graphics/LineManager.h"
 #include "math/MathUtils.h"
+
 #include "application/ecs/CollisionConfig.h" // 新しいレイヤー定義
+
+using namespace ecs;
 
 thread_local CollisionSystem::ThreadLocalContext tlContext;
 

@@ -42,6 +42,9 @@
 #include "engine/effects/particle/ParticleEffect.h"
 #include "audio/Audio.h"
 
+using namespace ecs;
+
+
 void PlayerActionSystem::Update(Registry& registry)
 {
     auto tagView = registry.View<ecs::TagComponent>();
@@ -990,3 +993,4 @@ void PlayerActionSystem::SpawnExplosion(EntityID sourceEntity, Registry& registr
     LineManager::GetInstance()->DrawSphere(expPos, ecs::InducedExplosionComponent::kExplosionRadius, VectorColorCodes::Red);
 #endif
 }
+

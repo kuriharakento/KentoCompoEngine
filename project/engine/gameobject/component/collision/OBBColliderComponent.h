@@ -18,49 +18,53 @@
  * 
  * @note 2D/3Dモード両方に対応しています
  */
-class OBBColliderComponent : public ICollisionComponent
+namespace GameObjectComponent
 {
-public:
-	/**
-	 * @brief コンストラクタ
-	 * @param owner このコンポーネントを所有するGameObject
-	 */
-	OBBColliderComponent(GameObject* owner);
-	
-	/**
-	 * @brief デストラクタ
-	 */
-	~OBBColliderComponent() override;
+	class OBBColliderComponent : public ICollisionComponent
+	{
+	public:
+		/**
+		 * @brief コンストラクタ
+		 * @param owner このコンポーネントを所有するGameObject
+		 */
+		OBBColliderComponent(::GameObject* owner);
+		
+		/**
+		 * @brief デストラクタ
+		 */
+		~OBBColliderComponent() override;
 
-	/**
-	 * @brief 毎フレームの更新処理
-	 * 
-	 * GameObjectの位置と回転に合わせてOBBを更新します。
-	 * 
-	 * @param owner このコンポーネントを所有するGameObject
-	 */
-	void Update(GameObject* owner) override;
-	
-	/**
-	 * @brief コライダーの種類を取得
-	 * @return ColliderType::OBB
-	 */
-	ColliderType GetColliderType() const override { return ColliderType::OBB; }
-	
-	/**
-	 * @brief OBBデータを設定
-	 * @param obb 設定するOBBデータ
-	 */
-	void SetOBB(const OBB& obb) { obb_ = obb; }
-	
-	/**
-	 * @brief OBBデータを取得
-	 * @return 現在のOBBデータ
-	 */
-	const OBB& GetOBB() const { return obb_; }
+		/**
+		 * @brief 毎フレームの更新処理
+		 * 
+		 * GameObjectの位置と回転に合わせてOBBを更新します。
+		 * 
+		 * @param owner このコンポーネントを所有するGameObject
+		 */
+		void Update(::GameObject* owner) override;
+		
+		/**
+		 * @brief コライダーの種類を取得
+		 * @return ColliderType::OBB
+		 */
+		ColliderType GetColliderType() const override { return ColliderType::OBB; }
+		
+		/**
+		 * @brief OBBデータを設定
+		 * @param obb 設定するOBBデータ
+		 */
+		void SetOBB(const ::OBB& obb) { obb_ = obb; }
+		
+		/**
+		 * @brief OBBデータを取得
+		 * @return 現在のOBBデータ
+		 */
+		const ::OBB& GetOBB() const { return obb_; }
 
-private:
-	// OBBデータ（中心位置、サイズ、回転行列）
-	OBB obb_;
-};
+	private:
+		// OBBデータ（中心位置、サイズ、回転行列）
+		::OBB obb_;
+	};
+}
+
 

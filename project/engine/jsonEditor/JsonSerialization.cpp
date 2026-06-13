@@ -101,3 +101,18 @@ void from_json(nlohmann::json const& j, Vector4& v)
         v.w = j[3].get<float>();
     }
 }
+
+#include "application/GameObject/Combatable/base/StatusSystem.h"
+
+void to_json(nlohmann::json& j, const StatusValue& v)
+{
+    j = v.GetBase();
+}
+
+void from_json(nlohmann::json const& j, StatusValue& v)
+{
+    if (j.is_number())
+    {
+        v.SetBase(j.get<float>());
+    }
+}

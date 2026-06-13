@@ -1,22 +1,25 @@
 #pragma once
 
-/**
- * @brief 敵の固有状態を保持する。
- */
-struct EnemyStateComponent
+namespace ecs
 {
     /**
-     * @brief AIステート定義。
+     * @brief 敵の固有状態を保持する。
      */
-    enum class State
+    struct EnemyStateComponent
     {
-        Idle,
-        Move,
-        Attack,
-        Dead
-    };
+        /**
+         * @brief AIステート定義。
+         */
+        enum class State
+        {
+            Idle,
+            Move,
+            Attack,
+            Dead
+        };
 
-    int hp_ = 100;
-    State currentState_ = State::Idle;
-    float stateTimer_ = 0.0f;
-};
+        int hp_ = 100;
+        State currentState_ = State::Idle;
+        float stateTimer_ = 0.0f;
+    };
+}

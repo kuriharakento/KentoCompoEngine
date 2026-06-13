@@ -9,6 +9,9 @@
 #include "application/ecs/components/InducedExplosionComponent.h"
 #include "audio/Audio.h"
 
+using namespace ecs;
+
+
 void SprinklerSystem::Update(Registry& registry)
 {
     auto view = registry.View<SprinklerComponent>();
@@ -95,3 +98,4 @@ void SprinklerSystem::Update(Registry& registry)
         }
     }
 }
+

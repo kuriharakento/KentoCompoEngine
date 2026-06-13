@@ -17,9 +17,9 @@ void Character::Update()
 	GameObject::Update();
 }
 
-void Character::AddComponent(const std::string& name, std::unique_ptr<IGameObjectComponent> comp)
+void Character::AddComponent(const std::string& name, std::unique_ptr<GameObjectComponent::IGameObjectComponent> comp)
 {
-	if (auto collider = dynamic_cast<ICollisionComponent*>(comp.get()))
+	if (auto collider = dynamic_cast<GameObjectComponent::ICollisionComponent*>(comp.get()))
 	{
 		// 衝突判定コンポーネントの場合は、衝突時の処理を設定
 		CollisionSettings(collider);

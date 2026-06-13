@@ -27,6 +27,9 @@
 #include "engine/effects/particle/module/spawn/InitialModules.h"
 #include "engine/effects/particle/module/spawn/SpawnShapeModules.h"
 
+using namespace ecs;
+
+
 void TurretSystem::Update(Registry& registry)
 {
     auto view = registry.View<TurretComponent>();
@@ -363,3 +366,4 @@ void TurretSystem::UpdateLaserBeam(EntityID turretEntity, TurretComponent& turre
         }
     }
 }
+

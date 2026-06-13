@@ -13,6 +13,9 @@
 #include <algorithm>
 #include <cmath>
 
+using namespace ecs;
+
+
 void EnemyBehaviorSystem::Update(Registry& registry)
 {
     float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
@@ -217,3 +220,4 @@ void EnemyBehaviorSystem::UpdateChargerBehavior(EntityID entity, Registry& regis
         }
     }
 }
+

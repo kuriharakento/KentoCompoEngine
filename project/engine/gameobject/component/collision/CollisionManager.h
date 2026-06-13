@@ -1,11 +1,21 @@
 #pragma once
 #include <unordered_set>
 #include <memory>
+#include <vector>
+#include <string>
 
 #include "AABBColliderComponent.h"
 #include "CollisionAlgorithm.h"
 #include "OBBColliderComponent.h"
 #include "engine/gameobject/component/base/ICollisionComponent.h"
+
+namespace GameObjectComponent
+{
+	class ICollisionComponent;
+	class AABBColliderComponent;
+	class OBBColliderComponent;
+	class SphereColliderComponent;
+}
 
 /**
  * @brief 衝突判定の次元モードを表す列挙型
@@ -21,21 +31,6 @@ enum class CollisionDimension
  * 
  * 登録された全てのコライダー間の衝突判定を一括で行います。
  * 2D/3Dの切り替えや、各種コライダー組み合わせの判定を自動で振り分けます。
- * 
- * 主な機能:
- * - コライダーの自動登録・削除
- * - 毎フレームの衝突判定実行
- * - 2D/3D判定の切り替え
- * - サブステップ判定の管理
- * - 衝突状態の追跡（Enter, Stay, Exit）
- * 
- * サポートする衝突判定:
- * - AABB vs AABB
- * - OBB vs OBB
- * - AABB vs OBB
- * - Sphere vs Sphere
- * - Sphere vs AABB
- * - Sphere vs OBB
  * 
  * @note シングルトンパターンで実装されています
  */
@@ -69,7 +64,7 @@ public:
 	 * 
 	 * @param collider 登録するコライダー
 	 */
-	void Register(ICollisionComponent* collider);
+	void Register(GameObjectComponent::ICollisionComponent* collider);
 	
 	/**
 	 * @brief コライダーを登録解除
@@ -78,7 +73,7 @@ public:
 	 * 
 	 * @param collider 登録解除するコライダー
 	 */
-	void Unregister(ICollisionComponent* collider);
+	void Unregister(GameObjectComponent::ICollisionComponent* collider);
 	
 	/**
 	 * @brief 全コライダー間の衝突判定を実行
@@ -118,7 +113,7 @@ public:
 	 * @brief 登録されている全てのコライダーを取得（読み取り専用）
 	 * @return コライダーのリスト
 	 */
-	const std::vector<ICollisionComponent*>& GetColliders() const { return colliders_; }
+	const std::vector<GameObjectComponent::ICollisionComponent*>& GetColliders() const { return colliders_; }
 
 private:
 	// シングルトンインスタンス
@@ -137,28 +132,28 @@ public:
 
 private:
 	// 衝突判定関数（3D）
-	bool CheckCollision(const AABBColliderComponent* a, const AABBColliderComponent* b);
-	bool CheckCollision(const OBBColliderComponent* a, const OBBColliderComponent* b);
-	bool CheckCollision(const AABBColliderComponent* a, const OBBColliderComponent* b);
+	bool CheckCollision(const GameObjectComponent::AABBColliderComponent* a, const GameObjectComponent::AABBColliderComponent* b);
+	bool CheckCollision(const GameObjectComponent::OBBColliderComponent* a, const GameObjectComponent::OBBColliderComponent* b);
+	bool CheckCollision(const GameObjectComponent::AABBColliderComponent* a, const GameObjectComponent::OBBColliderComponent* b);
 
 	// 衝突判定関数（サブステップ）
-	bool CheckSubstepCollision(const AABBColliderComponent* a, const AABBColliderComponent* b);
-	bool CheckSubstepCollision(const OBBColliderComponent* a, const OBBColliderComponent* b);
-	bool CheckSubstepCollision(const AABBColliderComponent* a, const OBBColliderComponent* b);
+	bool CheckSubstepCollision(const GameObjectComponent::AABBColliderComponent* a, const GameObjectComponent::AABBColliderComponent* b);
+	bool CheckSubstepCollision(const GameObjectComponent::OBBColliderComponent* a, const GameObjectComponent::OBBColliderComponent* b);
+	bool CheckSubstepCollision(const GameObjectComponent::AABBColliderComponent* a, const GameObjectComponent::OBBColliderComponent* b);
 
 	// コライダータイプから文字列を取得
 	std::string GetColliderTypeString(ColliderType type) const;
 	
 	// 衝突をログに出力
-	void LogCollision(const std::string& phase, const ICollisionComponent* a, const ICollisionComponent* b);
+	void LogCollision(const std::string& phase, const GameObjectComponent::ICollisionComponent* a, const GameObjectComponent::ICollisionComponent* b);
 
 	/**
 	 * @brief 衝突ペアを識別するための構造体
 	 */
 	struct CollisionPair
 	{
-		const ICollisionComponent* a;
-		const ICollisionComponent* b;
+		const GameObjectComponent::ICollisionComponent* a;
+		const GameObjectComponent::ICollisionComponent* b;
 
 		bool operator==(const CollisionPair& other) const
 		{
@@ -178,7 +173,7 @@ private:
 	};
 
 	// 登録されているコライダーのリスト
-	std::vector<ICollisionComponent*> colliders_;
+	std::vector<GameObjectComponent::ICollisionComponent*> colliders_;
 
 	// 現在接触しているペア（状態追跡用）
 	std::unordered_set<CollisionPair, CollisionPairHash> currentCollisions_;
@@ -189,4 +184,3 @@ private:
 	// 2Dモード時の衝突判定面
 	CollisionPlane collisionPlane_ = CollisionPlane::XY;
 };
-

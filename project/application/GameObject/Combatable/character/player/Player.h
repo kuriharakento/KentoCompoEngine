@@ -1,11 +1,14 @@
 #pragma once
 #include "application/gameObject/combatable/character/base/Character.h"
 #include "engine/gameobject/component/base/ICollisionComponent.h"
-#include "engine/graphics/2d/SpriteCommon.h"
+#include "graphics/2d/SpriteCommon.h"
 
 class EnemyManager;
-class WeaponManagerComponent;
-class IWeaponComponent;
+namespace GameObjectComponent
+{
+	class WeaponManagerComponent;
+	class IWeaponComponent;
+}
 class PostProcessManager;
 
 class Player : public Character
@@ -20,14 +23,14 @@ public:
 	 * @brief 武器管理コンポーネントを取得
 	 * @return 武器管理コンポーネントへのポインタ
 	 */
-	WeaponManagerComponent* GetWeaponManager() const;
+	GameObjectComponent::WeaponManagerComponent* GetWeaponManager() const;
 
 	/**
 	 * @brief 現在装備中の武器を取得
 	 * @return 現在の武器コンポーネント（なければnullptr）
 	 */
-	IWeaponComponent* GetCurrentWeapon() const;
+	GameObjectComponent::IWeaponComponent* GetCurrentWeapon() const;
 
 private:
-	void CollisionSettings(ICollisionComponent* collider) override;
+	void CollisionSettings(GameObjectComponent::ICollisionComponent* collider) override;
 };

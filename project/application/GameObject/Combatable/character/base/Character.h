@@ -10,7 +10,7 @@ public:
 	virtual ~Character() = default;
 	explicit Character(const std::string& tag = gameObjectTag::common::Character): CombatableObject(tag){}
 	virtual void Update() override;
-	void AddComponent(const std::string& name, std::unique_ptr<IGameObjectComponent> comp);
+	void AddComponent(const std::string& name, std::unique_ptr<GameObjectComponent::IGameObjectComponent> comp);
 
 	// トランスフォーム
 	const Vector3& GetPosition() const { return transform_.translate; }
@@ -41,6 +41,6 @@ protected:
 
 private:
 	//　当たり判定コンポーネントを追加した際の処理
-	virtual void CollisionSettings(ICollisionComponent* collider) {};
+	virtual void CollisionSettings(GameObjectComponent::ICollisionComponent* collider) {};
 
 };

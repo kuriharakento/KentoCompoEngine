@@ -8,6 +8,7 @@
 #include "math/MathUtils.h"
 #include "math/MatrixFunc.h"
 #include "manager/graphics/InstancedModelPipelineManager.h"
+#include "engine/manager/graphics/ShadowMapManager.h"
 #include <d3dcompiler.h>
 #include <cassert>
 
@@ -138,6 +139,74 @@ void InstancedModelRenderer::DrawInstanced(Camera* camera, LightManager* lightMa
         commandList->SetGraphicsRootConstantBufferView(0, mesh.materialBuffer->GetGPUVirtualAddress());
         commandList->SetGraphicsRootDescriptorTable(2, srvManager_->GetGPUDescriptorHandle(mesh.textureIndex));
 
+        D3D12_VERTEX_BUFFER_VIEW vbv = mesh.vertexBufferView;
+        commandList->IASetVertexBuffers(0, 1, &vbv);
+        commandList->IASetIndexBuffer(&mesh.indexBufferView);
+
+        commandList->DrawIndexedInstanced(mesh.indexCount, currentInstanceCount_, 0, 0, 0);
+    }
+}
+
+void InstancedModelRenderer::DrawInstancedGBuffer(Camera* camera)
+{
+    if (currentInstanceCount_ == 0 || !model_)
+    {
+        return;
+    }
+
+    auto* commandList = dxCommon_->GetCommandList();
+    auto* pipelineManager = InstancedModelPipelineManager::GetInstance();
+
+    // 1. パイプライン設定
+    commandList->SetGraphicsRootSignature(pipelineManager->GetRootSignature());
+    commandList->SetPipelineState(pipelineManager->GetPipelineStateGBuffer());
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    // 2. 共通定数バインド
+    commandList->SetGraphicsRootShaderResourceView(1, instancedResource_->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(4, camera->GetConstantBufferAddress());
+
+    // 3. メッシュごとの描画
+    for (const auto& mesh : model_->GetMeshResources())
+    {
+        commandList->SetGraphicsRootConstantBufferView(0, mesh.materialBuffer->GetGPUVirtualAddress());
+        commandList->SetGraphicsRootDescriptorTable(2, srvManager_->GetGPUDescriptorHandle(mesh.textureIndex));
+
+        D3D12_VERTEX_BUFFER_VIEW vbv = mesh.vertexBufferView;
+        commandList->IASetVertexBuffers(0, 1, &vbv);
+        commandList->IASetIndexBuffer(&mesh.indexBufferView);
+
+        commandList->DrawIndexedInstanced(mesh.indexCount, currentInstanceCount_, 0, 0, 0);
+    }
+}
+
+void InstancedModelRenderer::DrawInstancedShadow(Camera* camera, ShadowMapManager* shadowMapManager)
+{
+    if (currentInstanceCount_ == 0 || !model_)
+    {
+        return;
+    }
+
+    auto* commandList = dxCommon_->GetCommandList();
+    auto* pipelineManager = InstancedModelPipelineManager::GetInstance();
+
+    // 1. パイプライン設定
+    commandList->SetGraphicsRootSignature(pipelineManager->GetRootSignature());
+    commandList->SetPipelineState(pipelineManager->GetPipelineStateShadow());
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    // 2. 共通定数バインド
+    D3D12_GPU_VIRTUAL_ADDRESS shadowMatrixAddr = shadowMapManager ? shadowMapManager->GetCurrentShadowMatrixAddress() : 0;
+    if (shadowMatrixAddr != 0)
+    {
+        commandList->SetGraphicsRootConstantBufferView(0, shadowMatrixAddr);
+    }
+    commandList->SetGraphicsRootShaderResourceView(1, instancedResource_->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(4, camera->GetConstantBufferAddress());
+
+    // 3. メッシュごとの描画 (影用なのでマテリアルやテクスチャは不要)
+    for (const auto& mesh : model_->GetMeshResources())
+    {
         D3D12_VERTEX_BUFFER_VIEW vbv = mesh.vertexBufferView;
         commandList->IASetVertexBuffers(0, 1, &vbv);
         commandList->IASetIndexBuffer(&mesh.indexBufferView);
