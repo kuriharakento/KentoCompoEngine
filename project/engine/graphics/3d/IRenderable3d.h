@@ -8,6 +8,14 @@ class Camera;
 class LightManager;
 
 /**
+ * @brief レンダリングタイプ
+ */
+enum class RenderingType {
+	Deferred, // ディファードレンダリング（G-Bufferパス）
+	Forward,  // フォワードレンダリング（Forwardパス）
+};
+
+/**
  * @brief 3D描画オブジェクトの共通インターフェース
  * @details Object3dとSkinnedObject3dの共通操作を定義する。
  *          GameObjectはこのインターフェース経由で描画オブジェクトを操作する。
@@ -145,4 +153,18 @@ public:
 	 * @brief ライティングの有効/無効の取得
 	 */
 	virtual bool IsEnableLighting() const = 0;
+
+	// ======================================
+	// レンダリングタイプ操作
+	// ======================================
+
+	/**
+	 * @brief レンダリングタイプの取得
+	 */
+	virtual RenderingType GetRenderingType() const = 0;
+
+	/**
+	 * @brief レンダリングタイプの設定
+	 */
+	virtual void SetRenderingType(RenderingType type) = 0;
 };

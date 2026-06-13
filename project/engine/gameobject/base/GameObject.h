@@ -82,9 +82,10 @@ public:
 
 	/**
 	 * @brief シャドウマップへの描画処理
+	 * @param camera 使用するカメラ（省略時はデフォルトカメラを使用）
 	 */
-	virtual void DrawShadow();
-	virtual void DrawGBuffer();
+	virtual void DrawShadow(Camera* camera = nullptr);
+	virtual void DrawGBuffer(CameraManager* camera = nullptr);
 
 	/**
 	 * @brief 子オブジェクトのリストを取得

@@ -5,6 +5,7 @@
 
 class GameObject;
 class CameraManager;
+class Camera;
 
 /**
  * @brief GameObjectを一括管理するマネージャークラス（シングルトン）
@@ -61,13 +62,15 @@ public:
 
 	/**
 	 * @brief シャドウマップ描画
+	 * @param camera 使用するカメラ
 	 */
-	void DrawShadow();
+	void DrawShadow(Camera* camera = nullptr);
 
 	/**
 	 * @brief G-Buffer描画
+	 * @param camera カメラ管理クラス
 	 */
-	void DrawGBuffer();
+	void DrawGBuffer(CameraManager* camera = nullptr);
 
 	/**
 	 * @brief 名前でGameObjectを検索

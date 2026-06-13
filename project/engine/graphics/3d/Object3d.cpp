@@ -7,6 +7,7 @@
 // graphics
 #include "manager/scene/LightManager.h"
 #include "manager/system/SrvManager.h"
+#include "engine/manager/graphics/ShadowMapManager.h"
 
 // デフォルトのディレクショナルライト強度
 constexpr float kDefaultLightIntensity = 0.5f;
@@ -116,6 +117,17 @@ void Object3d::Draw()
 		commandList->SetGraphicsRootConstantBufferView(10, activeLightManager->GetShadowMatrixGPUAddress());
 		// カスケードシャドウデータ（ルートパラメータ11）もバインド
 		commandList->SetGraphicsRootConstantBufferView(11, activeLightManager->GetCascadeShadowDataGPUAddress());
+
+		// カスケードシャドウマップのバインド（ルートパラメータ12-15）
+		if (shadowMapManager_ && srvManager_ && shadowMapManager_->HasCascadeShadowMaps())
+		{
+			const auto& cascade = shadowMapManager_->GetCascadeShadowMap();
+			for (int i = 0; i < 4; ++i)
+			{
+				commandList->SetGraphicsRootDescriptorTable(12 + i, srvManager_->GetGPUDescriptorHandle(cascade.srvIndices[i]));
+			}
+		}
+
 	}
 
 	// 3Dモデルが割り当てられていれば描画する

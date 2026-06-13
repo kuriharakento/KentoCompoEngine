@@ -198,6 +198,16 @@ public: // アクセッサ
 	bool IsEnableLighting() const override;
 
 	/**
+	 * @brief レンダリングタイプの取得
+	 */
+	RenderingType GetRenderingType() const override { return renderingType_; }
+
+	/**
+	 * @brief レンダリングタイプの設定
+	 */
+	void SetRenderingType(RenderingType type) override { renderingType_ = type; }
+
+	/**
 	 * @brief 反射強度の設定
 	 */
 	void SetShininess(float shininess);
@@ -270,4 +280,7 @@ private:
 
 	// ライトマネージャー
 	LightManager* lightManager_ = nullptr;
+
+	// レンダリングタイプ
+	RenderingType renderingType_ = RenderingType::Deferred;
 };

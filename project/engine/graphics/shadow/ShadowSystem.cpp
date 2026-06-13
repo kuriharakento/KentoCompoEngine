@@ -151,6 +151,12 @@ void ShadowSystem::ApplyShadowToObject(Object3d* object)
 			lightManager_->GetShadowMatrixGPUAddress()
 		);
 	}
+
+	// カスケードシャドウマップを適用
+	if (shadowMapManager_.HasCascadeShadowMaps())
+	{
+		object->SetShadowMapManager(&shadowMapManager_);
+	}
 }
 
 void ShadowSystem::Finalize()

@@ -148,6 +148,11 @@ void LightManager::Update()
 	lightCountData_->pointLightCount = lightCount_.pointLightCount;
 	lightCountData_->spotLightCount = lightCount_.spotLightCount;
 
+	// ディレクショナルライトのデータを更新（ImGuiからのリアルタイム編集を反映）
+	if (directionalLightData_) {
+		*directionalLightData_ = directionalLight_;
+	}
+
 }
 
 void LightManager::Draw()
@@ -466,6 +471,19 @@ void LightManager::DrawImGui()
 			{
 				Clear();
 			}
+			ImGui::EndTabItem();
+		}
+
+		/*--------------[ ディレクショナルライトタブ ]-----------------*/
+		if (ImGui::BeginTabItem("Directional Light"))
+		{
+			ImGui::SeparatorText("Directional Light Options");
+			ImGui::ColorEdit4("Color", &directionalLight_.color.x);
+			ImGui::DragFloat3("Direction", &directionalLight_.direction.x, 0.05f, -1.0f, 1.0f);
+			if (ImGui::IsItemDeactivatedAfterEdit()) {
+				directionalLight_.direction = Vector3::Normalize(directionalLight_.direction);
+			}
+			ImGui::DragFloat("Intensity", &directionalLight_.intensity, 0.05f, 0.0f, 10.0f);
 			ImGui::EndTabItem();
 		}
 

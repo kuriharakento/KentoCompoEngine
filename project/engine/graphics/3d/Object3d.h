@@ -15,16 +15,9 @@
 
 class LightManager;
 class SrvManager;
+class ShadowMapManager;
 // スプライト共通部分のポインタ
 class Object3dCommon;
-
-/**
- * @brief レンダリングタイプ
- */
-enum class RenderingType {
-	Deferred, // ディファードレンダリング（G-Bufferパス）
-	Forward,  // フォワードレンダリング（Forwardパス）
-};
 
 /**
  * @brief 3Dオブジェクトクラス
@@ -295,6 +288,12 @@ public: /*========[ セッター ]========*/
 	void SetShadowMap(SrvManager* srvManager, uint32_t shadowMapSrvIndex, D3D12_GPU_VIRTUAL_ADDRESS shadowMatrixGPUAddress);
 
 	/**
+	 * @brief シャドウマップマネージャーの設定
+	 * @param shadowMapManager シャドウマップマネージャーへのポインタ
+	 */
+	void SetShadowMapManager(ShadowMapManager* shadowMapManager) { shadowMapManager_ = shadowMapManager; }
+
+	/**
 	 * @brief シャドウの無効化
 	 * @details シャドウマップを使用しない設定にする
 	 */
@@ -304,13 +303,13 @@ public: /*========[ セッター ]========*/
 	 * @brief レンダリングタイプの設定
 	 * @param type レンダリングタイプ
 	 */
-	void SetRenderingType(RenderingType type) { renderingType_ = type; }
+	void SetRenderingType(RenderingType type) override { renderingType_ = type; }
 
 	/**
 	 * @brief レンダリングタイプの取得
 	 * @return レンダリングタイプ
 	 */
-	RenderingType GetRenderingType() const { return renderingType_; }
+	RenderingType GetRenderingType() const override { return renderingType_; }
 
 	/**
 	 * @brief シャドウを落とすかどうかの設定
@@ -385,6 +384,8 @@ private: /*========[ メンバ変数 ]========*/
 	uint32_t shadowMapSrvIndex_ = 0;
 	D3D12_GPU_VIRTUAL_ADDRESS shadowMatrixGPUAddress_ = 0;
 	bool shadowEnabled_ = false;
+	// 影用シャドウマップマネージャー。所有しない（ShadowSystemが所有、破棄されない前提）
+	ShadowMapManager* shadowMapManager_ = nullptr;
 
 	// 影を落とすかどうか（RegisterObjectシステム用）
 	bool castShadow_ = true;

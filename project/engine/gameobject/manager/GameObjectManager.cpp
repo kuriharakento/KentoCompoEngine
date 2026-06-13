@@ -64,6 +64,14 @@ void GameObjectManager::Draw3D(CameraManager* camera)
 	{
 		if (obj->IsActive())
 		{
+			// Renderable3dが存在し、かつRenderingTypeがDeferredの場合は、DrawGBufferで描画されるためDraw3Dでは描画しない
+			if (auto* renderable = obj->GetRenderable3d())
+			{
+				if (renderable->GetRenderingType() == RenderingType::Deferred)
+				{
+					continue;
+				}
+			}
 			obj->Draw3D(camera);
 		}
 	}
@@ -80,24 +88,37 @@ void GameObjectManager::Draw2D()
 	}
 }
 
-void GameObjectManager::DrawShadow()
+void GameObjectManager::DrawShadow(Camera* camera)
 {
 	for (auto* obj : gameObjects_)
 	{
 		if (obj->IsActive())
 		{
-			obj->DrawShadow();
+			obj->DrawShadow(camera);
 		}
 	}
 }
 
-void GameObjectManager::DrawGBuffer()
+void GameObjectManager::DrawGBuffer(CameraManager* camera)
 {
 	for (auto* obj : gameObjects_)
 	{
 		if (obj->IsActive())
 		{
-			obj->DrawGBuffer();
+			// Renderable3dが存在し、かつRenderingTypeがDeferredのもののみ描画する
+			if (auto* renderable = obj->GetRenderable3d())
+			{
+				if (renderable->GetRenderingType() != RenderingType::Deferred)
+				{
+					continue;
+				}
+			}
+			else
+			{
+				// Renderable3dを持たないオブジェクトはGBufferパスでは何もしない
+				continue;
+			}
+			obj->DrawGBuffer(camera);
 		}
 	}
 }

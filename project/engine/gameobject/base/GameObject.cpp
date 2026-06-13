@@ -2,6 +2,7 @@
 #include "engine/gameobject/manager/GameObjectManager.h"
 
 #include "engine/graphics/3d/Object3dCommon.h"
+#include "manager/scene/LightManager.h"
 #include "time/TimeManager.h"
 // system
 #include "base/Logger.h"
@@ -190,26 +191,59 @@ void GameObject::Draw2D()
 	}
 }
 
-void GameObject::DrawShadow()
+void GameObject::DrawShadow(Camera* camera)
 {
 	if (!renderable3d_) { return; }
 
-	// renderable3dを通してシャドウマップへの描画（深度のみ）を行う
-	renderable3d_->DrawShadowOnly();
+	bool castShadow = true;
+	if (auto* obj3d = GetObject3d())
+	{
+		castShadow = obj3d->GetCastShadow();
+	}
+
+	// 影を落とす設定の場合のみ描画を行う
+	if (castShadow)
+	{
+		// シャドウパスはDraw3D前に実行されるため、ワールド行列を先に確定させる
+		// （ECSのObject3dSystem::DrawShadowと同様の処理）
+		renderable3d_->SetTranslate(transform_.translate);
+		renderable3d_->SetRotate(transform_.rotate);
+		renderable3d_->SetScale(transform_.scale);
+
+		if (parent_ && parent_->GetRenderable3d())
+		{
+			Matrix4x4 localMatrix = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
+			Matrix4x4 worldMatrix = localMatrix * parent_->GetRenderable3d()->GetWorldMatrix();
+			renderable3d_->UpdateMatrixWithWorld(worldMatrix, camera);
+		}
+		else
+		{
+			renderable3d_->Update(0.0f, camera);
+		}
+
+		// renderable3dを通してシャドウマップへの深度書き込みを行う
+		renderable3d_->DrawShadowOnly();
+	}
 
 	// 子オブジェクトのシャドウ描画
 	for (auto& [name, child] : children_)
 	{
 		if (child)
 		{
-			child->DrawShadow();
+			child->DrawShadow(camera);
 		}
 	}
 }
 
-void GameObject::DrawGBuffer()
+void GameObject::DrawGBuffer(CameraManager* camera)
 {
 	if (!renderable3d_) { return; }
+
+	// Transform情報をObject3Dに適用（親子関係を考慮）
+	if (camera)
+	{
+		ApplyTransformToObject3D(camera);
+	}
 
 	// renderable3dを通してG-Bufferへの描画を行う
 	renderable3d_->DrawGBuffer();
@@ -219,7 +253,7 @@ void GameObject::DrawGBuffer()
 	{
 		if (child)
 		{
-			child->DrawGBuffer();
+			child->DrawGBuffer(camera);
 		}
 	}
 }

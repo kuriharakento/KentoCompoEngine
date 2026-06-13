@@ -16,8 +16,9 @@ void BarrierBlock::Draw(CameraManager* camera)
 	UpdateTransform(camera);
 }
 
-void BarrierBlock::DrawShadow()
+void BarrierBlock::DrawShadow(Camera* camera)
 {
+	(void)camera;
 	// 影も描画しない
 }
 

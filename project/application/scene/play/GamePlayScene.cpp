@@ -677,7 +677,7 @@ void GamePlayScene::Draw3D()
 void GamePlayScene::DrawShadow()
 {
 	// 1. GameObjectManager
-	GameObjectManager::GetInstance()->DrawShadow();
+	GameObjectManager::GetInstance()->DrawShadow(sceneManager_->GetCameraManager()->GetActiveCamera());
 
 	// 2. ECS (Object3dSystem)
 	if (object3dSystem_)
@@ -697,7 +697,7 @@ void GamePlayScene::DrawShadow()
 void GamePlayScene::DrawGBuffer()
 {
 	// 1. GameObjectManager
-	GameObjectManager::GetInstance()->DrawGBuffer();
+	GameObjectManager::GetInstance()->DrawGBuffer(sceneManager_->GetCameraManager());
 
 	// 2. ECS (Object3dSystem)
 	if (object3dSystem_)

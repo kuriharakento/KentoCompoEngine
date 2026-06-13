@@ -46,6 +46,10 @@ void TestScene::Initialize()
 	groundObject_->SetPosition({ 0.0f, 0.0f, 0.0f });
 	groundObject_->SetRotation({ -std::numbers::pi_v<float> / 2.0f, 0.0f, 0.0f });
 	groundObject_->SetScale({ 50.0f, 50.0f, 50.0f });
+	if (auto* obj3d = groundObject_->GetObject3d())
+	{
+		obj3d->SetCastShadow(false);
+	}
 	GameObjectManager::GetInstance()->Register(groundObject_.get());
 
 	StartState(SceneState::Playing);
@@ -86,11 +90,11 @@ void TestScene::Draw2D()
 void TestScene::DrawShadow()
 {
 	// ゲームオブジェクトのシャドウ描画
-	GameObjectManager::GetInstance()->DrawShadow();
+	GameObjectManager::GetInstance()->DrawShadow(sceneManager_->GetCameraManager()->GetActiveCamera());
 }
 
 void TestScene::DrawGBuffer()
 {
 	// ゲームオブジェクトのGBuffer描画
-	GameObjectManager::GetInstance()->DrawGBuffer();
+	GameObjectManager::GetInstance()->DrawGBuffer(sceneManager_->GetCameraManager());
 }

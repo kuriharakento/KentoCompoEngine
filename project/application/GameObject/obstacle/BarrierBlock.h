@@ -9,7 +9,7 @@ public:
 	void Initialize(Object3dCommon* object3dCommon, LightManager* lightManager) override;
 	void Update() override;
 	void Draw(CameraManager* camera) override;
-	void DrawShadow() override;
+	void DrawShadow(Camera* camera = nullptr) override;
 	void CollisionSettings(GameObjectComponent::ICollisionComponent* collider) override;
 };
 
