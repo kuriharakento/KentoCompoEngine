@@ -1,0 +1,8 @@
+{
+  "hp": 100.0,
+  "maxHp": 100.0,
+  "attackPower": 10.0,
+  "moveSpeed": 9.0,
+  "fireRateMultiplier": 1.0,
+  "isAlive": true
+}

@@ -5,6 +5,9 @@
 #include "engine/effects/particle/ParticleEffect.h"
 #include "engine/time/TimeManager.h"
 
+using namespace ecs;
+
+
 void DecoySystem::Update(Registry& registry)
 {
     auto view = registry.View<DecoyComponent>();
@@ -37,3 +40,4 @@ void DecoySystem::Update(Registry& registry)
         }
     }
 }
+

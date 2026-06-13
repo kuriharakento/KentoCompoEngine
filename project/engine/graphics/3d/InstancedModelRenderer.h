@@ -44,6 +44,8 @@ public:
      * @param shadowMapManager シャドウマップマネージャー
      */
     void DrawInstanced(Camera* camera, LightManager* lightManager, class ShadowMapManager* shadowMapManager);
+    void DrawInstancedGBuffer(Camera* camera);
+    void DrawInstancedShadow(Camera* camera, class ShadowMapManager* shadowMapManager);
 
 private:
 

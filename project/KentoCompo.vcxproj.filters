@@ -199,6 +199,9 @@
     <Filter Include="engine\gameobject\component\collision">
       <UniqueIdentifier>{C31B4BAB-5FCF-43BF-98B9-915F1CE6551E}</UniqueIdentifier>
     </Filter>
+    <Filter Include="engine\gameobject\manager">
+      <UniqueIdentifier>{0FD08F2F-28B2-4F20-B9BF-F03BECC036F3}</UniqueIdentifier>
+    </Filter>
     <Filter Include="engine\graphics">
       <UniqueIdentifier>{DDE4D268-4D1A-449A-BF41-8DCB2AAF4961}</UniqueIdentifier>
     </Filter>
@@ -663,6 +666,9 @@
     <ClCompile Include="engine\gameobject\component\collision\SphereColliderComponent.cpp">
       <Filter>engine\gameobject\component\collision</Filter>
     </ClCompile>
+    <ClCompile Include="engine\gameobject\manager\GameObjectManager.cpp">
+      <Filter>engine\gameobject\manager</Filter>
+    </ClCompile>
     <ClCompile Include="engine\graphics\2d\FontSprite.cpp">
       <Filter>engine\graphics\2d</Filter>
     </ClCompile>
@@ -747,7 +753,7 @@
     <ClCompile Include="engine\manager\editor\ImGuiManager.cpp">
       <Filter>engine\manager\editor</Filter>
     </ClCompile>
-    <ClCompile Include="engine\manager\editor\JsonEditorManager.cpp">
+    <ClCompile Include="engine\manager\editor\JsonEditor.cpp">
       <Filter>engine\manager\editor</Filter>
     </ClCompile>
     <ClCompile Include="engine\manager\effect\ParticlePipelineManager.cpp">
@@ -1054,6 +1060,9 @@
       <Filter>application\scene</Filter>
     </ClInclude>
     <ClInclude Include="application\scene\play\GamePlayScene.h">
+      <Filter>application\scene\play</Filter>
+    </ClInclude>
+    <ClInclude Include="application\scene\play\PlayerStatusEditor.h">
       <Filter>application\scene\play</Filter>
     </ClInclude>
     <ClInclude Include="application\scene\play\ResultScene.h">
@@ -1416,6 +1425,9 @@
     <ClInclude Include="engine\gameobject\component\collision\SphereColliderComponent.h">
       <Filter>engine\gameobject\component\collision</Filter>
     </ClInclude>
+    <ClInclude Include="engine\gameobject\manager\GameObjectManager.h">
+      <Filter>engine\gameobject\manager</Filter>
+    </ClInclude>
     <ClInclude Include="engine\graphics\2d\FontSprite.h">
       <Filter>engine\graphics\2d</Filter>
     </ClInclude>
@@ -1521,7 +1533,7 @@
     <ClInclude Include="engine\manager\editor\ImGuiManager.h">
       <Filter>engine\manager\editor</Filter>
     </ClInclude>
-    <ClInclude Include="engine\manager\editor\JsonEditorManager.h">
+    <ClInclude Include="engine\manager\editor\JsonEditor.h">
       <Filter>engine\manager\editor</Filter>
     </ClInclude>
     <ClInclude Include="engine\manager\effect\ParticlePipelineManager.h">

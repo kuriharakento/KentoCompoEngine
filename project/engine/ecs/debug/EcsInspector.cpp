@@ -5,6 +5,8 @@
 #include "../../../application/ecs/components/EnemyStateComponent.h"
 #include "../../../engine/ecs/components/LifetimeComponent.h"
 
+using namespace ecs;
+
 void EcsInspector::Initialize()
 {
     showWindow_ = true;

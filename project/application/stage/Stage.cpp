@@ -1,7 +1,7 @@
 #include "Stage.h"
 
 #include "graphics/3d/Object3dCommon.h"
-#include "manager/editor/JsonEditorManager.h"
+#include "manager/editor/JsonEditor.h"
 #include "engine/manager/graphics/LineManager.h"
 #include "engine/math/VectorColorCodes.h"
 
@@ -12,7 +12,7 @@ Stage::Stage(Object3dCommon* object3dCommon, LightManager* lightManager, EnemyMa
 	areaWaveData_->LoadJson(filePath);
 
 	// デバッグエディターに登録（実行時編集を可能にする）
-	JsonEditorManager::GetInstance()->Register("areaWaveData", areaWaveData_);
+	JsonEditor::GetInstance()->Register("areaWaveData", areaWaveData_);
 
 	// JSONデータをもとにAreaオブジェクトを生成
 	std::vector<std::shared_ptr<Area>> areas;

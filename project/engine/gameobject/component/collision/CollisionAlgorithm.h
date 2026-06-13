@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AABBColliderComponent.h"
 #include "OBBColliderComponent.h"
 #include "SphereColliderComponent.h"
@@ -35,6 +35,10 @@ using ColliderComponent = ecs::ColliderComponent;
 
 namespace collisionAlgorithm
 {
+	using GameObjectComponent::AABBColliderComponent;
+	using GameObjectComponent::OBBColliderComponent;
+	using GameObjectComponent::SphereColliderComponent;
+	using GameObjectComponent::RayColliderComponent;
 	// --- LOD (判定精度) の定義 ---
 	enum class CollisionLOD
 	{

@@ -243,6 +243,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\gameobject\component\collision\OBBColliderComponent.cpp" />
     <ClCompile Include="engine\gameobject\component\collision\RayColliderComponent.cpp" />
     <ClCompile Include="engine\gameobject\component\collision\SphereColliderComponent.cpp" />
+    <ClCompile Include="engine\gameobject\manager\GameObjectManager.cpp" />
     <ClCompile Include="engine\graphics\2d\FontSprite.cpp" />
     <ClCompile Include="engine\graphics\2d\NumberSprite.cpp" />
     <ClCompile Include="engine\graphics\2d\Sprite.cpp" />
@@ -271,7 +272,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\manager\editor\ConsoleLog.cpp" />
     <ClCompile Include="engine\manager\editor\DebugUIManager.cpp" />
     <ClCompile Include="engine\manager\editor\ImGuiManager.cpp" />
-    <ClCompile Include="engine\manager\editor\JsonEditorManager.cpp" />
+    <ClCompile Include="engine\manager\editor\JsonEditor.cpp" />
     <ClCompile Include="engine\manager\effect\ParticlePipelineManager.cpp" />
     <ClCompile Include="engine\manager\effect\PostProcessManager.cpp" />
     <ClCompile Include="engine\manager\graphics\InstancedModelPipelineManager.cpp" />
@@ -376,6 +377,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\scene\debug\StageEditScene.h" />
     <ClInclude Include="application\scene\EcsDebugScene.h" />
     <ClInclude Include="application\scene\play\GamePlayScene.h" />
+    <ClInclude Include="application\scene\play\PlayerStatusEditor.h" />
     <ClInclude Include="application\scene\play\ResultScene.h" />
     <ClInclude Include="application\scene\play\TitleScene.h" />
     <ClInclude Include="application\stage\Area.h" />
@@ -498,6 +500,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\gameobject\component\collision\OBBColliderComponent.h" />
     <ClInclude Include="engine\gameobject\component\collision\RayColliderComponent.h" />
     <ClInclude Include="engine\gameobject\component\collision\SphereColliderComponent.h" />
+    <ClInclude Include="engine\gameobject\manager\GameObjectManager.h" />
     <ClInclude Include="engine\graphics\2d\FontSprite.h" />
     <ClInclude Include="engine\graphics\2d\NumberSprite.h" />
     <ClInclude Include="engine\graphics\2d\Sprite.h" />
@@ -533,7 +536,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\manager\editor\ConsoleLog.h" />
     <ClInclude Include="engine\manager\editor\DebugUIManager.h" />
     <ClInclude Include="engine\manager\editor\ImGuiManager.h" />
-    <ClInclude Include="engine\manager\editor\JsonEditorManager.h" />
+    <ClInclude Include="engine\manager\editor\JsonEditor.h" />
     <ClInclude Include="engine\manager\effect\ParticlePipelineManager.h" />
     <ClInclude Include="engine\manager\effect\PostProcessManager.h" />
     <ClInclude Include="engine\manager\graphics\InstancedModelPipelineManager.h" />

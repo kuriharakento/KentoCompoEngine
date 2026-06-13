@@ -44,3 +44,7 @@ void to_json(nlohmann::json& j, Vector4 const& v);
  * @brief JSONからVector4にデシリアライズ
  */
 void from_json(nlohmann::json const& j, Vector4& v);
+
+class StatusValue;
+void to_json(nlohmann::json& j, const StatusValue& v);
+void from_json(nlohmann::json const& j, StatusValue& v);

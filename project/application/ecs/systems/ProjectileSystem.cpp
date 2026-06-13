@@ -8,6 +8,9 @@
 #include "application/effect/BulletTrailManager.h"
 #include "application/effect/HomingTrailManager.h"
 
+using namespace ecs;
+
+
 void ProjectileSystem::Update(Registry& registry)
 {
     float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
@@ -81,3 +84,4 @@ void ProjectileSystem::Update(Registry& registry)
         }
     }
 }
+

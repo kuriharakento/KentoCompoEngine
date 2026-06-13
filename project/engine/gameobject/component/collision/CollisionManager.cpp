@@ -15,6 +15,8 @@
 #include "math/MathUtils.h"
 #include "engine/gameobject/component/collision/CollisionAlgorithm.h"
 
+using namespace GameObjectComponent;
+
 std::unique_ptr<CollisionManager> CollisionManager::instance_ = nullptr;
 
 CollisionManager* CollisionManager::GetInstance()

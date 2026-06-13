@@ -5,6 +5,8 @@
 #include "manager/editor/DebugUIManager.h"
 #endif
 
+using namespace ecs;
+
 void Minimap::Initialize(SpriteCommon* spriteCommon, StageManager* stageManager)
 {
     spriteCommon_ = spriteCommon;

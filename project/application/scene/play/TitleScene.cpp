@@ -26,6 +26,8 @@
 #include "manager/editor/DebugUIManager.h"
 #endif
 
+using namespace ecs;
+
 void TitleScene::Initialize()
 {
     Audio::GetInstance()->LoadWave("title", "bgm/title.wav", SoundGroup::BGM);

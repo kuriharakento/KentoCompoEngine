@@ -21,6 +21,9 @@
 #include "engine/manager/scene/LightManager.h"
 #include <random>
 
+using namespace ecs;
+
+
 void EnemySpawnSystem::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, CameraManager* cameraManager)
 {
     object3dCommon_ = object3dCommon;
@@ -282,3 +285,4 @@ void EnemySpawnSystem::Draw(Registry& registry, Camera* camera, LightManager* li
     }
 #endif
 }
+

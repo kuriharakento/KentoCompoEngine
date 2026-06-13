@@ -5,8 +5,14 @@
 #include "engine/gameobject/base/GameObject.h"
 #include "engine/ecs/components/ColliderComponent.h"
 
+using namespace GameObjectComponent;
+
 namespace collisionAlgorithm
 {
+	using GameObjectComponent::AABBColliderComponent;
+	using GameObjectComponent::OBBColliderComponent;
+	using GameObjectComponent::SphereColliderComponent;
+	using GameObjectComponent::RayColliderComponent;
 	// --- シグネチャ統一用ラッパー関数群 ---
 	// 全て「BをAから遠ざける方向のMTV」を返すよう統一する
 

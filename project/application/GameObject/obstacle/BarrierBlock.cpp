@@ -21,7 +21,7 @@ void BarrierBlock::DrawShadow()
 	// 影も描画しない
 }
 
-void BarrierBlock::CollisionSettings(ICollisionComponent* collider)
+void BarrierBlock::CollisionSettings(GameObjectComponent::ICollisionComponent* collider)
 {
 	Obstacle::CollisionSettings(collider);
 }

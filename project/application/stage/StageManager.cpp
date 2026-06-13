@@ -14,13 +14,15 @@
 #include "application/ecs/components/PlayerComponent.h"
 #include "application/ecs/components/StatusComponent.h"
 #include "engine/ecs/components/CollisionResponseComponent.h"
-#include "manager/editor/JsonEditorManager.h"
+#include "manager/editor/JsonEditor.h"
 #include "engine/ecs/system/InstancedRenderSystem.h"
 #include "engine/graphics/3d/InstancedModelRenderer.h"
 #include "manager/graphics/ModelManager.h"
 #ifdef USE_IMGUI
 #include "manager/editor/DebugUIManager.h"
 #endif
+
+using namespace ecs;
 
 StageManager::StageManager()
 {
@@ -60,8 +62,8 @@ void StageManager::Initialize(Registry* registry, SystemManager* systemManager, 
 	obstacleData_ = std::make_shared<ObstacleData>();
 
 	// デバッグエディターに登録（実行時編集を可能にする）
-	JsonEditorManager::GetInstance()->Register("stageData", stageData_);
-	JsonEditorManager::GetInstance()->Register("obstacleData", obstacleData_);
+	JsonEditor::GetInstance()->Register("stageData", stageData_);
+	JsonEditor::GetInstance()->Register("obstacleData", obstacleData_);
 
 	// --- 各マネージャーの初期化 --- //
 

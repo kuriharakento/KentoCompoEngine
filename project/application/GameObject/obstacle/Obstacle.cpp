@@ -10,7 +10,7 @@ void Obstacle::Initialize(Object3dCommon* object3dCommon, LightManager* lightMan
 	GameObject::Initialize(object3dCommon, lightManager);
 
 	// OBBコライダーを追加
-	AddComponent("OBBColliderComponent", std::make_unique<OBBColliderComponent>(this));
+	AddComponent("OBBColliderComponent", std::make_unique<GameObjectComponent::OBBColliderComponent>(this));
 }
 
 void Obstacle::Update()
@@ -23,33 +23,33 @@ void Obstacle::Draw(CameraManager* camera)
 	GameObject::Draw3D(camera);
 }
 
-void Obstacle::AddComponent(const std::string& name, std::unique_ptr<IGameObjectComponent> comp)
+void Obstacle::AddComponent(const std::string& name, std::unique_ptr<GameObjectComponent::IGameObjectComponent> comp)
 {
-	if (auto collider = dynamic_cast<ICollisionComponent*>(comp.get()))
+	if (auto collider = dynamic_cast<GameObjectComponent::ICollisionComponent*>(comp.get()))
 	{
 		CollisionSettings(collider);
 	}
 	GameObject::AddComponent(name, std::move(comp));
 }
 
-void Obstacle::CollisionSettings(ICollisionComponent* collider)
+void Obstacle::CollisionSettings(GameObjectComponent::ICollisionComponent* collider)
 {
 	// 衝突時の処理を設定
-	collider->SetOnEnter([this](GameObject* other) {
+	collider->SetOnEnter([this](::GameObject* other) {
 		ResolvePenetration(other);
 						 });
-	collider->SetOnStay([this](GameObject* other) {
+	collider->SetOnStay([this](::GameObject* other) {
 		ResolvePenetration(other);
 						});
 }
 
-void Obstacle::ResolvePenetration(GameObject* other)
+void Obstacle::ResolvePenetration(::GameObject* other)
 {
 	auto character = dynamic_cast<Character*>(other);
 	if (!character) return;
 
-	auto obstacleColl = GetComponent<OBBColliderComponent>();
-	auto otherColl = other->GetComponent<OBBColliderComponent>();
+	auto obstacleColl = GetComponent<GameObjectComponent::OBBColliderComponent>();
+	auto otherColl = other->GetComponent<GameObjectComponent::OBBColliderComponent>();
 	if (!obstacleColl || !otherColl) return;
 
 	Vector3 mtv;

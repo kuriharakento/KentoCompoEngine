@@ -2,6 +2,7 @@
 
 
 #include "ISystem.h"
+#include <d3d12.h>
 #include "../../../engine/ecs/Registry.h"
 #include "../../../engine/graphics/3d/InstancedModelRenderer.h"
 #include "../components/TransformComponent.h"
@@ -27,6 +28,17 @@ public:
         const std::unordered_map<std::string, std::unique_ptr<InstancedModelRenderer>>& renderers,
         Camera* camera,
         LightManager* lightManager,
+        class ShadowMapManager* shadowMapManager
+    );
+    static void DrawGBufferGrouped(
+        Registry& registry,
+        const std::unordered_map<std::string, std::unique_ptr<InstancedModelRenderer>>& renderers,
+        Camera* camera
+    );
+    static void DrawShadowGrouped(
+        Registry& registry,
+        const std::unordered_map<std::string, std::unique_ptr<InstancedModelRenderer>>& renderers,
+        Camera* camera,
         class ShadowMapManager* shadowMapManager
     );
 

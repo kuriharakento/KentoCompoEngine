@@ -38,6 +38,9 @@
 #include "application/gameObject/combatable/character/enemy/base/Node/SequenceNode.h"
 #include "application/gameObject/combatable/character/enemy/base/Node/BehaviorTree/BehaviorTree.h"
 
+using namespace ecs;
+using namespace GameObjectComponent;
+
 namespace {
 	// --- AI Actions and Bullet Spawning ---
 

@@ -38,6 +38,8 @@ public:
 	 * @return ID3D12PipelineState* パイプラインステート
 	 */
 	ID3D12PipelineState* GetPipelineState() const { return pipelineState_.Get(); }
+	ID3D12PipelineState* GetPipelineStateGBuffer() const { return pipelineStateGBuffer_.Get(); }
+	ID3D12PipelineState* GetPipelineStateShadow() const { return pipelineStateShadow_.Get(); }
 
 private:
 	InstancedModelPipelineManager() = default;
@@ -55,4 +57,6 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState_;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineStateGBuffer_;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineStateShadow_;
 };

@@ -1,6 +1,9 @@
 #include "LifetimeSystem.h"
 #include "engine/time/TimeManager.h"
 
+using namespace ecs;
+
+
 void LifetimeSystem::Update(Registry& registry)
 {
     float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
@@ -23,3 +26,4 @@ void LifetimeSystem::Update(Registry& registry)
         }
     }
 }
+

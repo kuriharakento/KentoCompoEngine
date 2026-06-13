@@ -12,6 +12,9 @@
 #include "engine/effects/particle/ParticleManager.h"
 #include "audio/Audio.h"
 
+using namespace ecs;
+
+
 void AnnihilationSystem::Update(Registry& registry)
 {
     auto view = registry.View<ecs::StatusComponent>();
@@ -144,3 +147,4 @@ void AnnihilationSystem::TriggerExplosion(EntityID sourceEntity, Registry& regis
         }
     }
 }
+
