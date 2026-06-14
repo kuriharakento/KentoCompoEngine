@@ -6,8 +6,11 @@
 #include "manager/editor/DebugUIManager.h"
 #endif
 #include "time/TimeManager.h"
-
 #include "manager/editor/JsonEditor.h"
+
+// Factory
+#include "engine/gameobject/component/base/ComponentFactory.h"
+REGISTER_COMPONENT(StatusComponent)
 
 namespace GameObjectComponent
 {

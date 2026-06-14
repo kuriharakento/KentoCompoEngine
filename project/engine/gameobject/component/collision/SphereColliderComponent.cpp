@@ -3,11 +3,18 @@
 #include "manager/graphics/LineManager.h"
 #include "math/VectorColorCodes.h"
 
+// Factory
+#include "engine/gameobject/component/base/ComponentFactory.h"
+REGISTER_COMPONENT(SphereColliderComponent)
+
 namespace GameObjectComponent
 {
 	SphereColliderComponent::SphereColliderComponent(::GameObject* owner)
 		: ICollisionComponent(owner), sphere_()
 	{
+		Register("radius", &sphere_.radius);
+		Register("sizeOffset", &sizeOffset_);
+		Register("useSubstep", &useSubstep_);
 	}
 
 	const ::Sphere& SphereColliderComponent::GetSphere() const

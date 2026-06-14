@@ -1,6 +1,7 @@
 #pragma once
 #include "engine/gameobject/component/base/ICollisionComponent.h"
 #include "math/Sphere.h"
+#include "jsonEditor/JsonEditableBase.h"
 
 /**
  * @brief 球（Sphere）による衝突判定コンポーネント
@@ -17,11 +18,11 @@
  * - 大まかな衝突判定（広域フェーズ）
  * - 高速な判定が必要な場合
  * 
- * @note 2Dモードでは円（Circle）として扱われます
+ * @note 2D/3Dモードでは円（Circle）として扱われます
  */
 namespace GameObjectComponent
 {
-	class SphereColliderComponent : public ICollisionComponent
+	class SphereColliderComponent : public ICollisionComponent, public JsonEditableBase
 	{
 	public:
 		/**

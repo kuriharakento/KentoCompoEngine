@@ -5,6 +5,8 @@
 #include "manager/scene/CameraManager.h"
 #include "manager/scene/LightManager.h"
 #include "scene/manager/SceneManager.h"
+#include "manager/editor/GameObjectEditor.h"
+#include "externals/imgui/imgui.h"
 
 void TestScene::Initialize()
 {

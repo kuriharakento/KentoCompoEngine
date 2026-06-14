@@ -336,3 +336,38 @@ void JsonEditableBase::SetValue(const std::string& key, const nlohmann::json& va
         it->second(value);
     }
 }
+
+nlohmann::json JsonEditableBase::Serialize() const
+{
+	nlohmann::json json = nlohmann::json::object();
+	for (const auto& [key, getter] : getters_)
+	{
+		try
+		{
+			json[key] = getter();
+		}
+		catch (const std::exception& e)
+		{
+			Logger::Log("[JSON Error] Failed to serialize key '" + key + "': " + std::string(e.what()) + "\n");
+		}
+	}
+	return json;
+}
+
+void JsonEditableBase::Deserialize(const nlohmann::json& json)
+{
+	for (const auto& [key, setter] : setters_)
+	{
+		if (json.contains(key))
+		{
+			try
+			{
+				setter(json.at(key));
+			}
+			catch (const std::exception& e)
+			{
+				Logger::Log("[JSON Warning] Value assignment failed for key '" + key + "': " + std::string(e.what()) + "\n");
+			}
+		}
+	}
+}

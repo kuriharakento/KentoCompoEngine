@@ -11,6 +11,7 @@
 #include "JsonSerialization.h"
 #include "JsonEditorImGuiUtils.h"
 #include "base/Logger.h"
+#include "application/GameObject/Combatable/base/StatusSystem.h"
 
 /* NOTE:
  * NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE マクロを使用して、構造体、クラスのシリアライズ・デシリアライズを自動生成する場合
@@ -47,6 +48,16 @@ public:
 	 * @return 保存成功時true
 	 */
 	bool SaveJson(const std::string& path) const override;
+
+	/**
+	 * @brief メモリ上でデータをJSONにシリアライズ
+	 */
+	nlohmann::json Serialize() const;
+
+	/**
+	 * @brief メモリ上のJSONからデシリアライズ
+	 */
+	void Deserialize(const nlohmann::json& json);
 
 	/**
 	 * @brief ImGuiによる編集UIを描画
@@ -86,6 +97,12 @@ protected:
 	// NOTE: 必ず変数は登録すること!! しないとエラーが出る。
 	void Register(const std::string& name, T* value);
 
+	/**
+	 * @brief デバッグ用メンバ変数を登録する（JSON保存対象外、ImGuiでのみ編集可能）
+	 */
+	template<typename T>
+	void RegisterDebug(const std::string& name, T* value);
+
 private:
 	std::unordered_map<std::string, std::function<nlohmann::json()>> getters_;              // 値取得関数マップ
 	std::unordered_map<std::string, std::function<void(const nlohmann::json&)>> setters_;   // 値設定関数マップ
@@ -103,10 +120,142 @@ private:
 
 // メンバ変数登録の自動化マクロ
 #define REGISTER_MEMBER(var) Register(#var, &var)
+#define REGISTER_MEMBER_DEBUG(var) RegisterDebug(#var, &var)
 
 // 型チェックのためのヘルパー
 template<typename> struct is_std_vector : std::false_type {};
 template<typename U, typename A> struct is_std_vector<std::vector<U, A>> : std::true_type {};
+
+template<typename T>
+void JsonEditableBase::RegisterDebug(const std::string& name, T* value)
+{
+	// 重複登録を防止
+	if (drawers_.count(name)) return;
+
+	// 登録順序を保存
+	registrationOrder_.push_back(name);
+
+	// 複合型判定
+	bool isComp = false;
+	if constexpr (std::is_same_v<T, Transform> ||
+		std::is_same_v<T, std::vector<Transform>> ||
+		std::is_same_v<T, std::vector<Vector3>> ||
+		std::is_same_v<T, std::vector<std::string>>)
+	{
+		isComp = true;
+	}
+	isComposite_[name] = isComp;
+
+	// getters_ / setters_ には登録しない（シリアライズ非対象）
+
+	// --- ImGui 描画関数登録 ---
+	if constexpr (!std::is_same_v<T, Transform> &&
+		!std::is_same_v<T, std::vector<Transform>> &&
+		!std::is_same_v<T, std::vector<Vector3>> &&
+		!std::is_same_v<T, std::vector<std::string>>)
+	{
+		drawers_[name] = [value, name]() {
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("%s (Debug)", name.c_str());
+			ImGui::TableSetColumnIndex(1);
+			ImGui::PushItemWidth(-FLT_MIN);
+			ImGui::PushID(name.c_str());
+			if constexpr (std::is_same_v<std::decay_t<T>, float>)
+			{
+				ImGui::DragFloat("##value", value, 0.1f);
+			}
+			else if constexpr (std::is_same_v<std::decay_t<T>, ::StatusValue>)
+			{
+				float val = value->GetBase();
+				if (ImGui::DragFloat("##value", &val, 0.1f))
+				{
+					value->SetBase(val);
+				}
+			}
+			else if constexpr (std::is_same_v<T, int>)
+			{
+				ImGui::DragInt("##value", value);
+			}
+			else if constexpr (std::is_same_v<T, bool>)
+			{
+				ImGui::Checkbox("##value", value);
+			}
+			else if constexpr (std::is_same_v<T, Vector3>)
+			{
+				ImGui::DragFloat3("##value", &value->x, 0.1f);
+			}
+			else if constexpr (std::is_same_v<T, std::string>)
+			{
+				char buf[256];
+				strncpy_s(buf, value->c_str(), sizeof(buf));
+				buf[sizeof(buf) - 1] = '\0';
+				if (ImGui::InputText("##value", buf, sizeof(buf)))
+				{
+					*value = buf;
+				}
+			}
+			ImGui::PopID();
+			ImGui::PopItemWidth();
+			};
+	}
+	else
+	{
+		drawers_[name] = [value, name, this]() {
+			ImGui::PushID(name.c_str());
+			if (expandCollapseTrigger_ == 1)
+			{
+				ImGui::SetNextItemOpen(true);
+			}
+			else if (expandCollapseTrigger_ == 2)
+			{
+				ImGui::SetNextItemOpen(false);
+			}
+
+			std::string debugLabel = name + " (Debug)";
+			if (ImGui::TreeNodeEx(debugLabel.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				if constexpr (std::is_same_v<T, Transform>)
+				{
+					if (ImGui::BeginTable("TransformTable", 2, ImGuiTableFlags_SizingStretchProp))
+					{
+						ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+						ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+
+						ImGui::TableNextRow();
+						ImGui::TableSetColumnIndex(0);
+						ImGui::Text("Translate");
+						ImGui::TableSetColumnIndex(1);
+						ImGui::PushItemWidth(-FLT_MIN);
+						ImGui::DragFloat3("##Translate", &value->translate.x, 0.1f);
+						ImGui::PopItemWidth();
+
+						ImGui::TableNextRow();
+						ImGui::TableSetColumnIndex(0);
+						ImGui::Text("Rotate");
+						ImGui::TableSetColumnIndex(1);
+						ImGui::PushItemWidth(-FLT_MIN);
+						ImGui::DragFloat3("##Rotate", &value->rotate.x, 0.01f);
+						ImGui::PopItemWidth();
+
+						ImGui::TableNextRow();
+						ImGui::TableSetColumnIndex(0);
+						ImGui::Text("Scale");
+						ImGui::TableSetColumnIndex(1);
+						ImGui::PushItemWidth(-FLT_MIN);
+						ImGui::DragFloat3("##Scale", &value->scale.x, 0.1f);
+						ImGui::PopItemWidth();
+
+						ImGui::EndTable();
+					}
+				}
+				// 簡易化のため vector系は必要に応じて適宜描画
+				ImGui::TreePop();
+			}
+			ImGui::PopID();
+			};
+	}
+}
 
 template<typename T>
 void JsonEditableBase::Register(const std::string& name, T* value)
@@ -158,9 +307,17 @@ void JsonEditableBase::Register(const std::string& name, T* value)
 			ImGui::TableSetColumnIndex(1);
 			ImGui::PushItemWidth(-FLT_MIN);
 			ImGui::PushID(name.c_str());
-			if constexpr (std::is_same_v<T, float>)
+			if constexpr (std::is_same_v<std::decay_t<T>, float>)
 			{
 				ImGui::DragFloat("##value", value, 0.1f);
+			}
+			else if constexpr (std::is_same_v<std::decay_t<T>, ::StatusValue>)
+			{
+				float val = value->GetBase();
+				if (ImGui::DragFloat("##value", &val, 0.1f))
+				{
+					value->SetBase(val);
+				}
 			}
 			else if constexpr (std::is_same_v<T, int>)
 			{

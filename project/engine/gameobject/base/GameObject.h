@@ -14,6 +14,8 @@
 // component
 #include "engine/gameobject/component/base/IActionComponent.h"
 #include "engine/gameobject/component/base/ICollisionComponent.h"
+// json
+#include "jsonEditor/JsonEditableBase.h"
 
 namespace GameObjectComponent
 {
@@ -37,8 +39,23 @@ namespace GameObjectComponent
  * 
  * @note コンポーネントの追加・削除は更新中に保留され、更新終了後に処理されます
  */
-class GameObject
+class GameObject : public JsonEditableBase
 {
+public:
+	/**
+	 * @brief JSONデータの読み込み（オーバーライド）
+	 */
+	bool LoadJson(const std::string& path) override;
+
+	/**
+	 * @brief JSONデータの保存（オーバーライド）
+	 */
+	bool SaveJson(const std::string& path) const override;
+
+	/**
+	 * @brief ImGuiによる編集UIを描画（オーバーライド）
+	 */
+	void DrawImGui() override;
 public:
 	/**
 	 * @brief デストラクタ
@@ -284,6 +301,21 @@ public: // アクセッサ
 	 * @return 指定された名前の子オブジェクト（見つからない場合はnullptr）
 	 */
 	GameObject* GetChild(const std::string& name) const;
+
+	/**
+	 * @brief アタッチされている全コンポーネントを取得
+	 */
+	const std::unordered_map<std::string, std::shared_ptr<GameObjectComponent::IGameObjectComponent>>& GetComponents() const { return components_; }
+
+	/**
+	 * @brief 内部で使用している Object3dCommon を取得
+	 */
+	Object3dCommon* GetObject3dCommon() const { return object3dCommon_; }
+
+	/**
+	 * @brief 内部で使用している LightManager を取得
+	 */
+	LightManager* GetLightManager() const { return lightManager_; }
 
 protected:
 	// オブジェクトのトランスフォーム情報（位置、回転、スケール）

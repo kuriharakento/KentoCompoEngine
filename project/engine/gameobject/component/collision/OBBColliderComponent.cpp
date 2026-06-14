@@ -7,6 +7,10 @@
 // math
 #include "math/VectorColorCodes.h"
 
+// Factory
+#include "engine/gameobject/component/base/ComponentFactory.h"
+REGISTER_COMPONENT(OBBColliderComponent)
+
 namespace GameObjectComponent
 {
 	OBBColliderComponent::OBBColliderComponent(::GameObject* owner) : ICollisionComponent(owner)
@@ -23,6 +27,9 @@ namespace GameObjectComponent
 
 		// 前フレームの位置を記録しておく（サブステップ判定をワールド空間で行うため、ワールド座標で記録）
 		previousPosition_ = MathUtils::GetTranslateFromMatrix(owner_->GetWorldMatrix());
+
+		Register("sizeOffset", &sizeOffset_);
+		Register("useSubstep", &useSubstep_);
 	}
 
 	OBBColliderComponent::~OBBColliderComponent()

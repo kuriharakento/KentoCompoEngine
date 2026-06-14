@@ -11,10 +11,15 @@
 #include "manager/editor/DebugUIManager.h"
 #endif
 
+#include <fstream>
+#include <filesystem>
 
 GameObject::~GameObject()
 {
-	GameObjectManager::GetInstance()->Unregister(this);
+	if (GameObjectManager::HasInstance())
+	{
+		GameObjectManager::GetInstance()->Unregister(this);
+	}
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
@@ -35,6 +40,11 @@ GameObject::GameObject(const std::string& tag)
 	// タグの空文字列チェック
 	assert(!tag.empty() && "ERROR: GameObject::GameObject() - Tag should not be empty. Ensure that you provide a valid tag.");
 	tag_ = tag;
+
+	// エディタ・シリアライズ用メンバ登録
+	REGISTER_MEMBER(name_);
+	REGISTER_MEMBER(tag_);
+	REGISTER_MEMBER(transform_);
 }
 
 void GameObject::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, const Transform& initialTransform)
@@ -541,5 +551,126 @@ void GameObject::ProcessPendingChanges()
 			AddComponentImmediate(name, comp);
 		}
 		pendingAdds_.clear();
+	}
+}
+
+bool GameObject::SaveJson(const std::string& path) const
+{
+	std::string targetPath = path;
+	if (targetPath.empty())
+	{
+		targetPath = name_ + ".json";
+	}
+
+	std::string dirPath = "Resources/json/gameobject/";
+	std::filesystem::create_directories(dirPath);
+	std::string fullPath = dirPath + targetPath;
+
+	// 1. GameObject 自身のパラメータをシリアライズ
+	nlohmann::json json = JsonEditableBase::Serialize();
+
+	// 2. 各コンポーネントのJSONをシリアライズして追加
+	nlohmann::json compJson = nlohmann::json::object();
+	for (const auto& [compName, comp] : components_)
+	{
+		auto* editableComp = dynamic_cast<JsonEditableBase*>(comp.get());
+		if (editableComp)
+		{
+			compJson[compName] = editableComp->Serialize();
+		}
+	}
+
+	json["components"] = compJson;
+
+	// 3. ファイルに出力
+	std::ofstream ofs(fullPath);
+	if (!ofs)
+	{
+		return false;
+	}
+	ofs << json.dump(4);
+	return true;
+}
+
+bool GameObject::LoadJson(const std::string& path)
+{
+	std::string targetPath = path;
+	if (targetPath.empty())
+	{
+		targetPath = name_ + ".json";
+	}
+
+	std::string fullPath = "Resources/json/gameobject/" + targetPath;
+	if (!std::filesystem::exists(fullPath))
+	{
+		return false;
+	}
+
+	std::ifstream ifs(fullPath);
+	if (!ifs)
+	{
+		return false;
+	}
+	nlohmann::json json;
+	try
+	{
+		ifs >> json;
+		ifs.close();
+	}
+	catch (...)
+	{
+		ifs.close();
+		return false;
+	}
+
+	// 1. GameObject 自身のパラメータを復元
+	JsonEditableBase::Deserialize(json);
+
+	// 2. 各コンポーネントのパラメータを復元
+	if (json.contains("components") && json["components"].is_object())
+	{
+		auto componentsNode = json["components"];
+		for (auto it = componentsNode.begin(); it != componentsNode.end(); ++it)
+		{
+			std::string compName = it.key();
+			auto compIt = components_.find(compName);
+			if (compIt != components_.end())
+			{
+				auto* editableComp = dynamic_cast<JsonEditableBase*>(compIt->second.get());
+				if (editableComp)
+				{
+					editableComp->Deserialize(it.value());
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+void GameObject::DrawImGui()
+{
+	// 自身のプロパティ（TransformやName）を描画
+	JsonEditableBase::DrawImGui();
+
+	// 各コンポーネントのプロパティを描画
+	for (const auto& [compName, comp] : components_)
+	{
+		auto* editableComp = dynamic_cast<JsonEditableBase*>(comp.get());
+		if (editableComp)
+		{
+			ImGui::Spacing();
+			ImGui::Separator();
+			ImGui::Spacing();
+
+			// コンポーネント用のヘッダーセクション
+			std::string headerLabel = compName + " Component";
+			if (ImGui::CollapsingHeader(headerLabel.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ImGui::PushID(comp.get());
+				editableComp->DrawImGui();
+				ImGui::PopID();
+			}
+		}
 	}
 }

@@ -3,11 +3,20 @@
 #include "engine/manager/graphics/LineManager.h"
 #include "math/MathUtils.h"
 
+// Factory
+#include "engine/gameobject/component/base/ComponentFactory.h"
+REGISTER_COMPONENT(RayColliderComponent)
+
 namespace GameObjectComponent
 {
 	RayColliderComponent::RayColliderComponent(::GameObject* owner)
 		: ICollisionComponent(owner)
 	{
+		Register("offset", &offset_);
+		Register("baseDirection", &baseDirection_);
+		Register("length", &ray_.length);
+		Register("useWorldDirection", &useWorldDirection_);
+		Register("worldDirection", &worldDirection_);
 	}
 
 	void RayColliderComponent::Init()

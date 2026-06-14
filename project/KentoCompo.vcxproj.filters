@@ -429,6 +429,9 @@
     <ClCompile Include="application\scene\debug\ParticleTestScene.cpp">
       <Filter>application\scene\debug</Filter>
     </ClCompile>
+    <ClCompile Include="application\scene\debug\TestScene.cpp">
+      <Filter>application\scene\debug</Filter>
+    </ClCompile>
     <ClCompile Include="application\scene\play\GamePlayScene.cpp">
       <Filter>application\scene\play</Filter>
     </ClCompile>
@@ -744,6 +747,9 @@
     <ClCompile Include="engine\manager\editor\DebugUIManager.cpp">
       <Filter>engine\manager\editor</Filter>
     </ClCompile>
+    <ClCompile Include="engine\manager\editor\GameObjectEditor.cpp">
+      <Filter>engine\manager\editor</Filter>
+    </ClCompile>
     <ClCompile Include="engine\manager\editor\ImGuiManager.cpp">
       <Filter>engine\manager\editor</Filter>
     </ClCompile>
@@ -829,7 +835,6 @@
       <Filter>externals\imgui</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="application\scene\debug\TestScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\animation\Slide.h">
@@ -1046,6 +1051,9 @@
       <Filter>application\minimap</Filter>
     </ClInclude>
     <ClInclude Include="application\scene\debug\ParticleTestScene.h">
+      <Filter>application\scene\debug</Filter>
+    </ClInclude>
+    <ClInclude Include="application\scene\debug\TestScene.h">
       <Filter>application\scene\debug</Filter>
     </ClInclude>
     <ClInclude Include="application\scene\play\GamePlayScene.h">
@@ -1384,6 +1392,9 @@
     <ClInclude Include="engine\gameobject\base\GameObject.h">
       <Filter>engine\gameobject\base</Filter>
     </ClInclude>
+    <ClInclude Include="engine\gameobject\component\base\ComponentFactory.h">
+      <Filter>engine\gameobject\component\base</Filter>
+    </ClInclude>
     <ClInclude Include="engine\gameobject\component\base\IActionComponent.h">
       <Filter>engine\gameobject\component\base</Filter>
     </ClInclude>
@@ -1517,6 +1528,9 @@
       <Filter>engine\manager\editor</Filter>
     </ClInclude>
     <ClInclude Include="engine\manager\editor\DebugUIManager.h">
+      <Filter>engine\manager\editor</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\manager\editor\GameObjectEditor.h">
       <Filter>engine\manager\editor</Filter>
     </ClInclude>
     <ClInclude Include="engine\manager\editor\ImGuiManager.h">
@@ -1654,7 +1668,6 @@
     <ClInclude Include="externals\imgui\imstb_truetype.h">
       <Filter>externals\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="application\scene\debug\TestScene.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\shaders\Object3d.PS.hlsl">

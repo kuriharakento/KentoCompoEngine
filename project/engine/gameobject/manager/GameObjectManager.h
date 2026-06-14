@@ -6,6 +6,8 @@
 class GameObject;
 class CameraManager;
 class Camera;
+class Object3dCommon;
+class LightManager;
 
 /**
  * @brief GameObjectを一括管理するマネージャークラス（シングルトン）
@@ -21,6 +23,7 @@ public:
 	 * @return GameObjectManager* インスタンス
 	 */
 	static GameObjectManager* GetInstance();
+	static bool HasInstance();
 
 	/**
 	 * @brief 初期化
@@ -73,6 +76,14 @@ public:
 	void DrawGBuffer(CameraManager* camera = nullptr);
 
 	/**
+	 * @brief 動的なGameObjectの作成
+	 * @param name オブジェクト名
+	 * @param tag タグ
+	 * @return 生成されたオブジェクトのポインタ（マネージャーが所有）
+	 */
+	GameObject* CreateGameObject(const std::string& name = "GameObject", const std::string& tag = "GameObject");
+
+	/**
 	 * @brief 名前でGameObjectを検索
 	 * @param name 検索する名前
 	 * @return 最初に見つかったGameObject。無ければnullptr
@@ -85,6 +96,11 @@ public:
 	 * @return 見つかったGameObjectのリスト
 	 */
 	std::vector<GameObject*> FindAll(const std::string& name) const;
+
+	/**
+	 * @brief 管理中の全GameObjectを取得
+	 */
+	const std::vector<GameObject*>& GetGameObjects() const { return gameObjects_; }
 
 public:
 	~GameObjectManager() = default;
@@ -99,4 +115,11 @@ private:
 
 	// 管理しているGameObjectのリスト（非所有ポインタ）
 	std::vector<GameObject*> gameObjects_;
+
+	// 動的に作成され、マネージャーが所有するGameObjectのリスト
+	std::vector<std::unique_ptr<GameObject>> dynamicGameObjects_;
+
+	// 初期化用にキャッシュされた共有システムポインタ
+	Object3dCommon* cachedObject3dCommon_ = nullptr;
+	LightManager* cachedLightManager_ = nullptr;
 };

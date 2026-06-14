@@ -270,6 +270,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\line\LineCommon.cpp" />
     <ClCompile Include="engine\manager\editor\ConsoleLog.cpp" />
     <ClCompile Include="engine\manager\editor\DebugUIManager.cpp" />
+    <ClCompile Include="engine\manager\editor\GameObjectEditor.cpp" />
     <ClCompile Include="engine\manager\editor\ImGuiManager.cpp" />
     <ClCompile Include="engine\manager\editor\JsonEditor.cpp" />
     <ClCompile Include="engine\manager\effect\ParticlePipelineManager.cpp" />
@@ -488,6 +489,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\effects\postprocess\VignetteEffect.h" />
     <ClInclude Include="engine\framework\Framework.h" />
     <ClInclude Include="engine\gameobject\base\GameObject.h" />
+    <ClInclude Include="engine\gameobject\component\base\ComponentFactory.h" />
     <ClInclude Include="engine\gameobject\component\base\IActionComponent.h" />
     <ClInclude Include="engine\gameobject\component\base\ICollisionComponent.h" />
     <ClInclude Include="engine\gameobject\component\base\IGameObjectComponent.h" />
@@ -533,6 +535,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\line\LineCommon.h" />
     <ClInclude Include="engine\manager\editor\ConsoleLog.h" />
     <ClInclude Include="engine\manager\editor\DebugUIManager.h" />
+    <ClInclude Include="engine\manager\editor\GameObjectEditor.h" />
     <ClInclude Include="engine\manager\editor\ImGuiManager.h" />
     <ClInclude Include="engine\manager\editor\JsonEditor.h" />
     <ClInclude Include="engine\manager\effect\ParticlePipelineManager.h" />

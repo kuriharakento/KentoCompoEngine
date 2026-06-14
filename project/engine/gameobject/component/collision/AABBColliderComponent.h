@@ -3,6 +3,7 @@
 #include "engine/gameobject/component/base/ICollisionComponent.h"
 #include "math/AABB.h"
 #include "Math/Vector3.h"
+#include "jsonEditor/JsonEditableBase.h"
 
 /**
  * @brief 軸平行境界ボックス（AABB）による衝突判定コンポーネント
@@ -18,7 +19,7 @@
  */
 namespace GameObjectComponent
 {
-	class AABBColliderComponent : public ICollisionComponent
+	class AABBColliderComponent : public ICollisionComponent, public JsonEditableBase
 	{
 	public:
 		/**

@@ -9,6 +9,7 @@
 #include "graphics/3d/Object3dCommon.h"
 // manager
 #include "manager/editor/JsonEditor.h"
+#include "manager/editor/GameObjectEditor.h"
 #include "manager/graphics/TextureManager.h"
 #include "effects/particle/ParticleManager.h"
 #include "manager/graphics/ModelManager.h"
@@ -196,6 +197,9 @@ void Framework::Initialize()
 	// JSONエディターの初期化
 	JsonEditor::GetInstance()->Initialize();
 
+	// GameObjectエディターの初期化
+	GameObjectEditor::GetInstance()->Initialize();
+
 	// シャドウマップマネージャーの初期化
 	shadowMapManager_ = std::make_unique<ShadowMapManager>();
 	shadowMapManager_->Initialize(dxCommon_.get(), srvManager_.get());
@@ -280,6 +284,7 @@ void Framework::Finalize()
 	shadowMapPipeline_.reset();
 	shadowMapManager_.reset();
 
+	GameObjectEditor::GetInstance()->Finalize();
 	JsonEditor::GetInstance()->Finalize();
 }
 

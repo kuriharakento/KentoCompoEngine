@@ -7,6 +7,10 @@
 // math
 #include "math/VectorColorCodes.h"
 
+// Factory
+#include "engine/gameobject/component/base/ComponentFactory.h"
+REGISTER_COMPONENT(AABBColliderComponent)
+
 namespace GameObjectComponent
 {
 	AABBColliderComponent::AABBColliderComponent(::GameObject* owner) : ICollisionComponent(owner), aabb_(Vector3(), Vector3())
@@ -14,6 +18,9 @@ namespace GameObjectComponent
 		// GameObjectの位置とスケールからAABBを初期化
 		aabb_.min_ = owner->GetPosition() - owner->GetScale();
 		aabb_.max_ = owner->GetPosition() + owner->GetScale();
+
+		Register("sizeOffset", &sizeOffset_);
+		Register("useSubstep", &useSubstep_);
 	}
 
 	AABBColliderComponent::~AABBColliderComponent()

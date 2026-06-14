@@ -1,6 +1,7 @@
 #pragma once
 #include "engine/gameobject/component/base/ICollisionComponent.h"
 #include "engine/math/Ray.h"
+#include "jsonEditor/JsonEditableBase.h"
 
 /**
  * @brief レイによる衝突判定コンポーネント
@@ -9,7 +10,7 @@
  */
 namespace GameObjectComponent
 {
-	class RayColliderComponent : public ICollisionComponent
+	class RayColliderComponent : public ICollisionComponent, public JsonEditableBase
 	{
 	public:
 		/**

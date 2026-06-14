@@ -1,6 +1,7 @@
 #pragma once
 #include "engine/gameobject/component/base/ICollisionComponent.h"
 #include "math/OBB.h"
+#include "jsonEditor/JsonEditableBase.h"
 
 /**
  * @brief 方向付き境界ボックス（OBB）による衝突判定コンポーネント
@@ -20,7 +21,7 @@
  */
 namespace GameObjectComponent
 {
-	class OBBColliderComponent : public ICollisionComponent
+	class OBBColliderComponent : public ICollisionComponent, public JsonEditableBase
 	{
 	public:
 		/**
