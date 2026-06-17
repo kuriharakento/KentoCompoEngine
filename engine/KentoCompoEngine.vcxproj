@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\project\engine\animation\Animator.cpp" />
+    <ClCompile Include="..\project\engine\audio\Audio.cpp" />
+    <ClCompile Include="..\project\engine\base\Camera.cpp" />
+    <ClCompile Include="..\project\engine\base\D3DResourceLeakChecker.cpp" />
+    <ClCompile Include="..\project\engine\base\DirectXCommon.cpp" />
+    <ClCompile Include="..\project\engine\base\Logger.cpp" />
+    <ClCompile Include="..\project\engine\base\ObjectPool.cpp" />
+    <ClCompile Include="..\project\engine\base\PostProcessPass.cpp" />
+    <ClCompile Include="..\project\engine\base\RenderTexture.cpp" />
+    <ClCompile Include="..\project\engine\base\StringUtility.cpp" />
+    <ClCompile Include="..\project\engine\base\WinApp.cpp" />
+    <ClCompile Include="..\project\engine\camerawork\debug\DebugCamera.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\project\engine\camerawork\follow\FollowCamera.cpp" />
+    <ClCompile Include="..\project\engine\camerawork\orbit\OrbitCameraWork.cpp" />
+    <ClCompile Include="..\project\engine\camerawork\spline\Spline.cpp" />
+    <ClCompile Include="..\project\engine\camerawork\spline\SplineCamera.cpp" />
+    <ClCompile Include="..\project\engine\camerawork\spline\SplineData.cpp" />
+    <ClCompile Include="..\project\engine\camerawork\topdown\TopDownCamera.cpp" />
+    <ClCompile Include="..\project\engine\ecs\debug\EcsInspector.cpp" />
+    <ClCompile Include="..\project\engine\ecs\EcsDebugViewer.cpp" />
+    <ClCompile Include="..\project\engine\ecs\Registry.cpp" />
+    <ClCompile Include="..\project\engine\ecs\system\CollisionSystem.cpp" />
+    <ClCompile Include="..\project\engine\ecs\system\EcsStatusSystem.cpp" />
+    <ClCompile Include="..\project\engine\ecs\system\HierarchySystem.cpp" />
+    <ClCompile Include="..\project\engine\ecs\system\InstancedRenderSystem.cpp" />
+    <ClCompile Include="..\project\engine\ecs\system\LifetimeSystem.cpp" />
+    <ClCompile Include="..\project\engine\ecs\system\MovementSystem.cpp" />
+    <ClCompile Include="..\project\engine\ecs\system\Object3dSystem.cpp" />
+    <ClCompile Include="..\project\engine\ecs\system\PlayerSystem.cpp" />
+    <ClCompile Include="..\project\engine\ecs\system\SystemManager.cpp" />
+    <ClCompile Include="..\project\engine\ecs\system\WorldBoundarySystem.cpp" />
+    <ClCompile Include="..\project\engine\effects\particle\editor\ParticleEditor.cpp" />
+    <ClCompile Include="..\project\engine\effects\particle\gpu\GPUParticlePipeline.cpp" />
+    <ClCompile Include="..\project\engine\effects\particle\gpu\GPUSimulator.cpp" />
+    <ClCompile Include="..\project\engine\effects\particle\module\spawn\SubEmitterModule.cpp" />
+    <ClCompile Include="..\project\engine\effects\particle\ParticleEffect.cpp" />
+    <ClCompile Include="..\project\engine\effects\particle\ParticleEmitter.cpp" />
+    <ClCompile Include="..\project\engine\effects\particle\ParticleManager.cpp" />
+    <ClCompile Include="..\project\engine\effects\particle\primitive\PrimitiveGenerator.cpp" />
+    <ClCompile Include="..\project\engine\effects\particle\renderer\MeshRenderer.cpp" />
+    <ClCompile Include="..\project\engine\effects\particle\renderer\SpriteRenderer.cpp" />
+    <ClCompile Include="..\project\engine\effects\particle\renderer\TrailRenderer.cpp" />
+    <ClCompile Include="..\project\engine\effects\particle\serialization\ParticleEffectSerializer.cpp" />
+    <ClCompile Include="..\project\engine\effects\postprocess\base\BasePostEffect.cpp" />
+    <ClCompile Include="..\project\engine\effects\postprocess\BloomEffect.cpp" />
+    <ClCompile Include="..\project\engine\effects\postprocess\CRTEffect.cpp" />
+    <ClCompile Include="..\project\engine\effects\postprocess\GrayscaleEffect.cpp" />
+    <ClCompile Include="..\project\engine\effects\postprocess\NoiseEffect.cpp" />
+    <ClCompile Include="..\project\engine\effects\postprocess\VignetteEffect.cpp" />
+    <ClCompile Include="..\project\engine\framework\Framework.cpp" />
+    <ClCompile Include="..\project\engine\gameobject\base\GameObject.cpp" />
+    <ClCompile Include="..\project\engine\gameobject\component\base\ICollisionComponent.cpp" />
+    <ClCompile Include="..\project\engine\gameobject\component\collision\AABBColliderComponent.cpp" />
+    <ClCompile Include="..\project\engine\gameobject\component\collision\CollisionAlgorithm.cpp" />
+    <ClCompile Include="..\project\engine\gameobject\component\collision\CollisionManager.cpp" />
+    <ClCompile Include="..\project\engine\gameobject\component\collision\CollisionUtils.cpp" />
+    <ClCompile Include="..\project\engine\gameobject\component\collision\OBBColliderComponent.cpp" />
+    <ClCompile Include="..\project\engine\gameobject\component\collision\RayColliderComponent.cpp" />
+    <ClCompile Include="..\project\engine\gameobject\component\collision\SphereColliderComponent.cpp" />
+    <ClCompile Include="..\project\engine\gameobject\manager\GameObjectManager.cpp" />
+    <ClCompile Include="..\project\engine\graphics\2d\FontSprite.cpp" />
+    <ClCompile Include="..\project\engine\graphics\2d\NumberSprite.cpp" />
+    <ClCompile Include="..\project\engine\graphics\2d\Sprite.cpp" />
+    <ClCompile Include="..\project\engine\graphics\2d\SpriteCommon.cpp" />
+    <ClCompile Include="..\project\engine\graphics\3d\InstancedModelRenderer.cpp" />
+    <ClCompile Include="..\project\engine\graphics\3d\Model.cpp" />
+    <ClCompile Include="..\project\engine\graphics\3d\ModelCommon.cpp" />
+    <ClCompile Include="..\project\engine\graphics\3d\Object3d.cpp" />
+    <ClCompile Include="..\project\engine\graphics\3d\Object3dCommon.cpp" />
+    <ClCompile Include="..\project\engine\graphics\3d\SkinnedModel.cpp" />
+    <ClCompile Include="..\project\engine\graphics\3d\SkinnedObject3d.cpp" />
+    <ClCompile Include="..\project\engine\graphics\3d\SkinningCompute.cpp" />
+    <ClCompile Include="..\project\engine\graphics\3d\Skybox.cpp" />
+    <ClCompile Include="..\project\engine\graphics\deferred\DeferredRenderer.cpp" />
+    <ClCompile Include="..\project\engine\graphics\deferred\GBuffer.cpp" />
+    <ClCompile Include="..\project\engine\graphics\deferred\GBufferPipeline.cpp" />
+    <ClCompile Include="..\project\engine\graphics\deferred\LightPassPipeline.cpp" />
+    <ClCompile Include="..\project\engine\graphics\shadow\ShadowMapPipeline.cpp" />
+    <ClCompile Include="..\project\engine\graphics\shadow\ShadowSystem.cpp" />
+    <ClCompile Include="..\project\engine\input\Input.cpp" />
+    <ClCompile Include="..\project\engine\jsonEditor\JsonEditableBase.cpp" />
+    <ClCompile Include="..\project\engine\jsonEditor\JsonEditorImGuiUtils.cpp" />
+    <ClCompile Include="..\project\engine\jsonEditor\JsonSerialization.cpp" />
+    <ClCompile Include="..\project\engine\line\Line.cpp" />
+    <ClCompile Include="..\project\engine\line\LineCommon.cpp" />
+    <ClCompile Include="..\project\engine\manager\editor\ConsoleLog.cpp" />
+    <ClCompile Include="..\project\engine\manager\editor\DebugUIManager.cpp" />
+    <ClCompile Include="..\project\engine\manager\editor\GameObjectEditor.cpp" />
+    <ClCompile Include="..\project\engine\manager\editor\ImGuiManager.cpp" />
+    <ClCompile Include="..\project\engine\manager\editor\JsonEditor.cpp" />
+    <ClCompile Include="..\project\engine\manager\effect\ParticlePipelineManager.cpp" />
+    <ClCompile Include="..\project\engine\manager\effect\PostProcessManager.cpp" />
+    <ClCompile Include="..\project\engine\manager\graphics\InstancedModelPipelineManager.cpp" />
+    <ClCompile Include="..\project\engine\manager\graphics\LineManager.cpp" />
+    <ClCompile Include="..\project\engine\manager\graphics\ModelManager.cpp" />
+    <ClCompile Include="..\project\engine\manager\graphics\ShadowMapManager.cpp" />
+    <ClCompile Include="..\project\engine\manager\graphics\SkinnedModelManager.cpp" />
+    <ClCompile Include="..\project\engine\manager\graphics\SkinningPipelineManager.cpp" />
+    <ClCompile Include="..\project\engine\manager\graphics\TextureManager.cpp" />
+    <ClCompile Include="..\project\engine\manager\scene\CameraManager.cpp" />
+    <ClCompile Include="..\project\engine\manager\scene\LightManager.cpp" />
+    <ClCompile Include="..\project\engine\manager\system\SrvManager.cpp" />
+    <ClCompile Include="..\project\engine\math\MathUtils.cpp" />
+    <ClCompile Include="..\project\engine\scene\factory\SceneFactory.cpp" />
+    <ClCompile Include="..\project\engine\scene\manager\SceneManager.cpp" />
+    <ClCompile Include="..\project\engine\scene\MyGame.cpp" />
+    <ClCompile Include="..\project\engine\time\TimeManager.cpp" />
+    <ClCompile Include="..\project\engine\time\Timer.cpp" />
+    <ClCompile Include="..\project\engine\time\TimerManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\project\engine\animation\Animator.h" />
+    <ClInclude Include="..\project\engine\audio\Audio.h" />
+    <ClInclude Include="..\project\engine\base\Camera.h" />
+    <ClInclude Include="..\project\engine\base\D3DResourceLeakChecker.h" />
+    <ClInclude Include="..\project\engine\base\DirectXCommon.h" />
+    <ClInclude Include="..\project\engine\base\GraphicsTypes.h" />
+    <ClInclude Include="..\project\engine\base\Logger.h" />
+    <ClInclude Include="..\project\engine\base\ObjectPool.h" />
+    <ClInclude Include="..\project\engine\base\PostProcessPass.h" />
+    <ClInclude Include="..\project\engine\base\RenderTexture.h" />
+    <ClInclude Include="..\project\engine\base\StringUtility.h" />
+    <ClInclude Include="..\project\engine\base\WinApp.h" />
+    <ClInclude Include="..\project\engine\camerawork\base\CameraWorkBase.h" />
+    <ClInclude Include="..\project\engine\camerawork\debug\DebugCamera.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\project\engine\camerawork\follow\FollowCamera.h" />
+    <ClInclude Include="..\project\engine\camerawork\orbit\OrbitCameraWork.h" />
+    <ClInclude Include="..\project\engine\camerawork\spline\Spline.h" />
+    <ClInclude Include="..\project\engine\camerawork\spline\SplineCamera.h" />
+    <ClInclude Include="..\project\engine\camerawork\spline\SplineData.h" />
+    <ClInclude Include="..\project\engine\camerawork\topdown\TopDownCamera.h" />
+    <ClInclude Include="..\project\engine\ecs\ComponentArray.h" />
+    <ClInclude Include="..\project\engine\ecs\components\ColliderComponent.h" />
+    <ClInclude Include="..\project\engine\ecs\components\CollisionResponseComponent.h" />
+    <ClInclude Include="..\project\engine\ecs\components\EnemyAIComponent.h" />
+    <ClInclude Include="..\project\engine\ecs\components\HierarchyComponent.h" />
+    <ClInclude Include="..\project\engine\ecs\components\InstancedRenderComponent.h" />
+    <ClInclude Include="..\project\engine\ecs\components\LifetimeComponent.h" />
+    <ClInclude Include="..\project\engine\ecs\components\MovementComponent.h" />
+    <ClInclude Include="..\project\engine\ecs\components\Object3dComponent.h" />
+    <ClInclude Include="..\project\engine\ecs\components\TagComponent.h" />
+    <ClInclude Include="..\project\engine\ecs\components\TransformComponent.h" />
+    <ClInclude Include="..\project\engine\ecs\components\VelocityComponent.h" />
+    <ClInclude Include="..\project\engine\ecs\components\WorldBoundaryComponent.h" />
+    <ClInclude Include="..\project\engine\ecs\debug\EcsInspector.h" />
+    <ClInclude Include="..\project\engine\ecs\EcsDebugViewer.h" />
+    <ClInclude Include="..\project\engine\ecs\Entity.h" />
+    <ClInclude Include="..\project\engine\ecs\EntityBuilder.h" />
+    <ClInclude Include="..\project\engine\ecs\EntityView.h" />
+    <ClInclude Include="..\project\engine\ecs\Registry.h" />
+    <ClInclude Include="..\project\engine\ecs\system\CollisionSystem.h" />
+    <ClInclude Include="..\project\engine\ecs\system\EcsStatusSystem.h" />
+    <ClInclude Include="..\project\engine\ecs\system\HierarchySystem.h" />
+    <ClInclude Include="..\project\engine\ecs\system\InstancedRenderSystem.h" />
+    <ClInclude Include="..\project\engine\ecs\system\ISystem.h" />
+    <ClInclude Include="..\project\engine\ecs\system\LifetimeSystem.h" />
+    <ClInclude Include="..\project\engine\ecs\system\MovementSystem.h" />
+    <ClInclude Include="..\project\engine\ecs\system\Object3dSystem.h" />
+    <ClInclude Include="..\project\engine\ecs\system\PlayerSystem.h" />
+    <ClInclude Include="..\project\engine\ecs\system\SpatialPartition.h" />
+    <ClInclude Include="..\project\engine\ecs\system\SystemManager.h" />
+    <ClInclude Include="..\project\engine\ecs\system\WorldBoundarySystem.h" />
+    <ClInclude Include="..\project\engine\effects\particle\dynamic\DynamicInput.h" />
+    <ClInclude Include="..\project\engine\effects\particle\editor\ParticleEditor.h" />
+    <ClInclude Include="..\project\engine\effects\particle\gpu\GPUParticlePipeline.h" />
+    <ClInclude Include="..\project\engine\effects\particle\gpu\GPUSimulator.h" />
+    <ClInclude Include="..\project\engine\effects\particle\module\IModule.h" />
+    <ClInclude Include="..\project\engine\effects\particle\module\ModulePriorities.h" />
+    <ClInclude Include="..\project\engine\effects\particle\module\spawn\InitialModules.h" />
+    <ClInclude Include="..\project\engine\effects\particle\module\spawn\SpawnModules.h" />
+    <ClInclude Include="..\project\engine\effects\particle\module\spawn\SpawnShapeModules.h" />
+    <ClInclude Include="..\project\engine\effects\particle\module\spawn\SubEmitterModule.h" />
+    <ClInclude Include="..\project\engine\effects\particle\module\update\AdvancedModules.h" />
+    <ClInclude Include="..\project\engine\effects\particle\module\update\BehaviorModules.h" />
+    <ClInclude Include="..\project\engine\effects\particle\module\update\ForceFieldModules.h" />
+    <ClInclude Include="..\project\engine\effects\particle\module\update\MotionEffectModules.h" />
+    <ClInclude Include="..\project\engine\effects\particle\module\update\NaturalBehaviorModules.h" />
+    <ClInclude Include="..\project\engine\effects\particle\module\update\RibbonModules.h" />
+    <ClInclude Include="..\project\engine\effects\particle\module\update\TextureSheetModule.h" />
+    <ClInclude Include="..\project\engine\effects\particle\module\update\UpdateModules.h" />
+    <ClInclude Include="..\project\engine\effects\particle\Particle.h" />
+    <ClInclude Include="..\project\engine\effects\particle\ParticleEasing.h" />
+    <ClInclude Include="..\project\engine\effects\particle\ParticleEffect.h" />
+    <ClInclude Include="..\project\engine\effects\particle\ParticleEmitter.h" />
+    <ClInclude Include="..\project\engine\effects\particle\ParticleManager.h" />
+    <ClInclude Include="..\project\engine\effects\particle\ParticleTypes.h" />
+    <ClInclude Include="..\project\engine\effects\particle\primitive\PrimitiveGenerator.h" />
+    <ClInclude Include="..\project\engine\effects\particle\renderer\IRenderer.h" />
+    <ClInclude Include="..\project\engine\effects\particle\renderer\MeshRenderer.h" />
+    <ClInclude Include="..\project\engine\effects\particle\renderer\SpriteRenderer.h" />
+    <ClInclude Include="..\project\engine\effects\particle\renderer\TrailRenderer.h" />
+    <ClInclude Include="..\project\engine\effects\particle\serialization\ParticleEffectSerializer.h" />
+    <ClInclude Include="..\project\engine\effects\postprocess\base\BasePostEffect.h" />
+    <ClInclude Include="..\project\engine\effects\postprocess\BloomEffect.h" />
+    <ClInclude Include="..\project\engine\effects\postprocess\CRTEffect.h" />
+    <ClInclude Include="..\project\engine\effects\postprocess\GrayscaleEffect.h" />
+    <ClInclude Include="..\project\engine\effects\postprocess\IPostEffect.h" />
+    <ClInclude Include="..\project\engine\effects\postprocess\NoiseEffect.h" />
+    <ClInclude Include="..\project\engine\effects\postprocess\VignetteEffect.h" />
+    <ClInclude Include="..\project\engine\framework\Framework.h" />
+    <ClInclude Include="..\project\engine\gameobject\base\GameObject.h" />
+    <ClInclude Include="..\project\engine\gameobject\component\base\ComponentFactory.h" />
+    <ClInclude Include="..\project\engine\gameobject\component\base\IActionComponent.h" />
+    <ClInclude Include="..\project\engine\gameobject\component\base\ICollisionComponent.h" />
+    <ClInclude Include="..\project\engine\gameobject\component\base\IGameObjectComponent.h" />
+    <ClInclude Include="..\project\engine\gameobject\component\collision\AABBColliderComponent.h" />
+    <ClInclude Include="..\project\engine\gameobject\component\collision\CollisionAlgorithm.h" />
+    <ClInclude Include="..\project\engine\gameobject\component\collision\CollisionManager.h" />
+    <ClInclude Include="..\project\engine\gameobject\component\collision\CollisionUtils.h" />
+    <ClInclude Include="..\project\engine\gameobject\component\collision\OBBColliderComponent.h" />
+    <ClInclude Include="..\project\engine\gameobject\component\collision\RayColliderComponent.h" />
+    <ClInclude Include="..\project\engine\gameobject\component\collision\SphereColliderComponent.h" />
+    <ClInclude Include="..\project\engine\gameobject\manager\GameObjectManager.h" />
+    <ClInclude Include="..\project\engine\graphics\2d\FontSprite.h" />
+    <ClInclude Include="..\project\engine\graphics\2d\NumberSprite.h" />
+    <ClInclude Include="..\project\engine\graphics\2d\Sprite.h" />
+    <ClInclude Include="..\project\engine\graphics\2d\SpriteCommon.h" />
+    <ClInclude Include="..\project\engine\graphics\3d\InstancedModelRenderer.h" />
+    <ClInclude Include="..\project\engine\graphics\3d\IRenderable3d.h" />
+    <ClInclude Include="..\project\engine\graphics\3d\Model.h" />
+    <ClInclude Include="..\project\engine\graphics\3d\ModelCommon.h" />
+    <ClInclude Include="..\project\engine\graphics\3d\Object3d.h" />
+    <ClInclude Include="..\project\engine\graphics\3d\Object3dCommon.h" />
+    <ClInclude Include="..\project\engine\graphics\3d\SkinnedModel.h" />
+    <ClInclude Include="..\project\engine\graphics\3d\SkinnedObject3d.h" />
+    <ClInclude Include="..\project\engine\graphics\3d\SkinningCompute.h" />
+    <ClInclude Include="..\project\engine\graphics\3d\Skybox.h" />
+    <ClInclude Include="..\project\engine\graphics\deferred\DeferredRenderer.h" />
+    <ClInclude Include="..\project\engine\graphics\deferred\GBuffer.h" />
+    <ClInclude Include="..\project\engine\graphics\deferred\GBufferPipeline.h" />
+    <ClInclude Include="..\project\engine\graphics\deferred\LightPassPipeline.h" />
+    <ClInclude Include="..\project\engine\graphics\shadow\ShadowMap.h" />
+    <ClInclude Include="..\project\engine\graphics\shadow\ShadowMapPipeline.h" />
+    <ClInclude Include="..\project\engine\graphics\shadow\ShadowSystem.h" />
+    <ClInclude Include="..\project\engine\input\Input.h" />
+    <ClInclude Include="..\project\engine\jsonEditor\IJsonEditable.h" />
+    <ClInclude Include="..\project\engine\jsonEditor\JsonEditableBase.h" />
+    <ClInclude Include="..\project\engine\jsonEditor\JsonEditorImGuiUtils.h" />
+    <ClInclude Include="..\project\engine\jsonEditor\JsonSerialization.h" />
+    <ClInclude Include="..\project\engine\light\DirectionalLight.h" />
+    <ClInclude Include="..\project\engine\light\LightConstants.h" />
+    <ClInclude Include="..\project\engine\light\PointLight.h" />
+    <ClInclude Include="..\project\engine\light\SpotLight.h" />
+    <ClInclude Include="..\project\engine\line\Line.h" />
+    <ClInclude Include="..\project\engine\line\LineCommon.h" />
+    <ClInclude Include="..\project\engine\manager\editor\ConsoleLog.h" />
+    <ClInclude Include="..\project\engine\manager\editor\DebugUIManager.h" />
+    <ClInclude Include="..\project\engine\manager\editor\GameObjectEditor.h" />
+    <ClInclude Include="..\project\engine\manager\editor\ImGuiManager.h" />
+    <ClInclude Include="..\project\engine\manager\editor\JsonEditor.h" />
+    <ClInclude Include="..\project\engine\manager\effect\ParticlePipelineManager.h" />
+    <ClInclude Include="..\project\engine\manager\effect\PostProcessManager.h" />
+    <ClInclude Include="..\project\engine\manager\graphics\InstancedModelPipelineManager.h" />
+    <ClInclude Include="..\project\engine\manager\graphics\LineManager.h" />
+    <ClInclude Include="..\project\engine\manager\graphics\ModelManager.h" />
+    <ClInclude Include="..\project\engine\manager\graphics\ShadowMapManager.h" />
+    <ClInclude Include="..\project\engine\manager\graphics\SkinnedModelManager.h" />
+    <ClInclude Include="..\project\engine\manager\graphics\SkinningPipelineManager.h" />
+    <ClInclude Include="..\project\engine\manager\graphics\TextureManager.h" />
+    <ClInclude Include="..\project\engine\manager\scene\CameraManager.h" />
+    <ClInclude Include="..\project\engine\manager\scene\LightManager.h" />
+    <ClInclude Include="..\project\engine\manager\system\SrvManager.h" />
+    <ClInclude Include="..\project\engine\math\AABB.h" />
+    <ClInclude Include="..\project\engine\math\BlendMode.h" />
+    <ClInclude Include="..\project\engine\math\Easing.h" />
+    <ClInclude Include="..\project\engine\math\MathUtils.h" />
+    <ClInclude Include="..\project\engine\math\MatrixFunc.h" />
+    <ClInclude Include="..\project\engine\math\OBB.h" />
+    <ClInclude Include="..\project\engine\math\Quaternion.h" />
+    <ClInclude Include="..\project\engine\math\Ray.h" />
+    <ClInclude Include="..\project\engine\math\Sphere.h" />
+    <ClInclude Include="..\project\engine\math\Vector2.h" />
+    <ClInclude Include="..\project\engine\math\Vector3.h" />
+    <ClInclude Include="..\project\engine\math\Vector4.h" />
+    <ClInclude Include="..\project\engine\math\VectorColorCodes.h" />
+    <ClInclude Include="..\project\engine\scene\factory\SceneFactory.h" />
+    <ClInclude Include="..\project\engine\scene\factory\SceneNames.h" />
+    <ClInclude Include="..\project\engine\scene\interface\AbstractSceneFactory.h" />
+    <ClInclude Include="..\project\engine\scene\interface\BaseScene.h" />
+    <ClInclude Include="..\project\engine\scene\manager\SceneManager.h" />
+    <ClInclude Include="..\project\engine\scene\MyGame.h" />
+    <ClInclude Include="..\project\engine\scene\SceneContext.h" />
+    <ClInclude Include="..\project\engine\time\TimeManager.h" />
+    <ClInclude Include="..\project\engine\time\Timer.h" />
+    <ClInclude Include="..\project\engine\time\TimerManager.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>18.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{b9228932-4cba-4545-a8c2-056182133542}</ProjectGuid>
+    <RootNamespace>KentoCompoEngine</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>
+      </SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Manifest>
+      <EnableSegmentHeap>true</EnableSegmentHeap>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>
+      </SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Manifest>
+      <EnableSegmentHeap>true</EnableSegmentHeap>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)externals\;$(ProjectDir)externals\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>
+      </SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Manifest>
+      <EnableSegmentHeap>true</EnableSegmentHeap>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)externals\;$(ProjectDir)externals\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>
+      </SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Manifest>
+      <EnableSegmentHeap>true</EnableSegmentHeap>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
