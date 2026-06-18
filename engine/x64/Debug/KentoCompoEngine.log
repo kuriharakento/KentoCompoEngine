@@ -1,0 +1,451 @@
+﻿C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Microsoft\VC\v180\Microsoft.CppBuild.targets(1145,5): warning MSB8027: Animator.cpp という名前の複数のファイルでは、同じ場所に出力が生成されます。これにより、不適切なビルド結果が生じる可能性があります。関連するファイルは ..\project\engine\animation\Animator.cpp, animation\Animator.cpp です。
+  Animator.cpp
+  Audio.cpp
+  Camera.cpp
+  D3DResourceLeakChecker.cpp
+  DirectXCommon.cpp
+  Logger.cpp
+\project\engine\animation\Animator.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\animation\Animator.cpp':No such file or directory
+  (ソース ファイル '/project/engine/animation/Animator.cpp' をコンパイルしています)
+  
+\project\engine\audio\Audio.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\audio\Audio.cpp':No such file or directory
+  (ソース ファイル '/project/engine/audio/Audio.cpp' をコンパイルしています)
+  
+\project\engine\base\Camera.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\base\Camera.cpp':No such file or directory
+  (ソース ファイル '/project/engine/base/Camera.cpp' をコンパイルしています)
+  
+\project\engine\base\D3DResourceLeakChecker.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\base\D3DResourceLeakChecker.cpp':No such file or directory
+  (ソース ファイル '/project/engine/base/D3DResourceLeakChecker.cpp' をコンパイルしています)
+  
+\project\engine\base\DirectXCommon.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\base\DirectXCommon.cpp':No such file or directory
+  (ソース ファイル '/project/engine/base/DirectXCommon.cpp' をコンパイルしています)
+  
+\project\engine\base\Logger.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\base\Logger.cpp':No such file or directory
+  (ソース ファイル '/project/engine/base/Logger.cpp' をコンパイルしています)
+  
+  ObjectPool.cpp
+\project\engine\base\ObjectPool.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\base\ObjectPool.cpp':No such file or directory
+  (ソース ファイル '/project/engine/base/ObjectPool.cpp' をコンパイルしています)
+  
+  PostProcessPass.cpp
+\project\engine\base\PostProcessPass.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\base\PostProcessPass.cpp':No such file or directory
+  (ソース ファイル '/project/engine/base/PostProcessPass.cpp' をコンパイルしています)
+  
+  RenderTexture.cpp
+\project\engine\base\RenderTexture.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\base\RenderTexture.cpp':No such file or directory
+  (ソース ファイル '/project/engine/base/RenderTexture.cpp' をコンパイルしています)
+  
+  StringUtility.cpp
+\project\engine\base\StringUtility.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\base\StringUtility.cpp':No such file or directory
+  (ソース ファイル '/project/engine/base/StringUtility.cpp' をコンパイルしています)
+  
+  WinApp.cpp
+\project\engine\base\WinApp.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\base\WinApp.cpp':No such file or directory
+  (ソース ファイル '/project/engine/base/WinApp.cpp' をコンパイルしています)
+  
+  DebugCamera.cpp
+\project\engine\camerawork\debug\DebugCamera.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\camerawork\debug\DebugCamera.cpp':No such file or directory
+  (ソース ファイル '/project/engine/camerawork/debug/DebugCamera.cpp' をコンパイルしています)
+  
+  FollowCamera.cpp
+\project\engine\camerawork\follow\FollowCamera.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\camerawork\follow\FollowCamera.cpp':No such file or directory
+  (ソース ファイル '/project/engine/camerawork/follow/FollowCamera.cpp' をコンパイルしています)
+  
+  OrbitCameraWork.cpp
+\project\engine\camerawork\orbit\OrbitCameraWork.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\camerawork\orbit\OrbitCameraWork.cpp':No such file or directory
+  (ソース ファイル '/project/engine/camerawork/orbit/OrbitCameraWork.cpp' をコンパイルしています)
+  
+  Spline.cpp
+\project\engine\camerawork\spline\Spline.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\camerawork\spline\Spline.cpp':No such file or directory
+  (ソース ファイル '/project/engine/camerawork/spline/Spline.cpp' をコンパイルしています)
+  
+  SplineCamera.cpp
+\project\engine\camerawork\spline\SplineCamera.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\camerawork\spline\SplineCamera.cpp':No such file or directory
+  (ソース ファイル '/project/engine/camerawork/spline/SplineCamera.cpp' をコンパイルしています)
+  
+  SplineData.cpp
+\project\engine\camerawork\spline\SplineData.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\camerawork\spline\SplineData.cpp':No such file or directory
+  (ソース ファイル '/project/engine/camerawork/spline/SplineData.cpp' をコンパイルしています)
+  
+  TopDownCamera.cpp
+\project\engine\camerawork\topdown\TopDownCamera.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\camerawork\topdown\TopDownCamera.cpp':No such file or directory
+  (ソース ファイル '/project/engine/camerawork/topdown/TopDownCamera.cpp' をコンパイルしています)
+  
+  EcsInspector.cpp
+\project\engine\ecs\debug\EcsInspector.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\ecs\debug\EcsInspector.cpp':No such file or directory
+  (ソース ファイル '/project/engine/ecs/debug/EcsInspector.cpp' をコンパイルしています)
+  
+  EcsDebugViewer.cpp
+\project\engine\ecs\EcsDebugViewer.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\ecs\EcsDebugViewer.cpp':No such file or directory
+  (ソース ファイル '/project/engine/ecs/EcsDebugViewer.cpp' をコンパイルしています)
+  
+  コードを生成中...
+  コンパイル中...
+  Registry.cpp
+\project\engine\ecs\Registry.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\ecs\Registry.cpp':No such file or directory
+  (ソース ファイル '/project/engine/ecs/Registry.cpp' をコンパイルしています)
+  
+  CollisionSystem.cpp
+\project\engine\ecs\system\CollisionSystem.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\ecs\system\CollisionSystem.cpp':No such file or directory
+  (ソース ファイル '/project/engine/ecs/system/CollisionSystem.cpp' をコンパイルしています)
+  
+  EcsStatusSystem.cpp
+\project\engine\ecs\system\EcsStatusSystem.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\ecs\system\EcsStatusSystem.cpp':No such file or directory
+  (ソース ファイル '/project/engine/ecs/system/EcsStatusSystem.cpp' をコンパイルしています)
+  
+  HierarchySystem.cpp
+\project\engine\ecs\system\HierarchySystem.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\ecs\system\HierarchySystem.cpp':No such file or directory
+  (ソース ファイル '/project/engine/ecs/system/HierarchySystem.cpp' をコンパイルしています)
+  
+  InstancedRenderSystem.cpp
+\project\engine\ecs\system\InstancedRenderSystem.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\ecs\system\InstancedRenderSystem.cpp':No such file or directory
+  (ソース ファイル '/project/engine/ecs/system/InstancedRenderSystem.cpp' をコンパイルしています)
+  
+  LifetimeSystem.cpp
+\project\engine\ecs\system\LifetimeSystem.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\ecs\system\LifetimeSystem.cpp':No such file or directory
+  (ソース ファイル '/project/engine/ecs/system/LifetimeSystem.cpp' をコンパイルしています)
+  
+  MovementSystem.cpp
+\project\engine\ecs\system\MovementSystem.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\ecs\system\MovementSystem.cpp':No such file or directory
+  (ソース ファイル '/project/engine/ecs/system/MovementSystem.cpp' をコンパイルしています)
+  
+  Object3dSystem.cpp
+\project\engine\ecs\system\Object3dSystem.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\ecs\system\Object3dSystem.cpp':No such file or directory
+  (ソース ファイル '/project/engine/ecs/system/Object3dSystem.cpp' をコンパイルしています)
+  
+  PlayerSystem.cpp
+\project\engine\ecs\system\PlayerSystem.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\ecs\system\PlayerSystem.cpp':No such file or directory
+  (ソース ファイル '/project/engine/ecs/system/PlayerSystem.cpp' をコンパイルしています)
+  
+  SystemManager.cpp
+\project\engine\ecs\system\SystemManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\ecs\system\SystemManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/ecs/system/SystemManager.cpp' をコンパイルしています)
+  
+  WorldBoundarySystem.cpp
+\project\engine\ecs\system\WorldBoundarySystem.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\ecs\system\WorldBoundarySystem.cpp':No such file or directory
+  (ソース ファイル '/project/engine/ecs/system/WorldBoundarySystem.cpp' をコンパイルしています)
+  
+  ParticleEditor.cpp
+\project\engine\effects\particle\editor\ParticleEditor.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\effects\particle\editor\ParticleEditor.cpp':No such file or directory
+  (ソース ファイル '/project/engine/effects/particle/editor/ParticleEditor.cpp' をコンパイルしています)
+  
+  GPUParticlePipeline.cpp
+\project\engine\effects\particle\gpu\GPUParticlePipeline.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\effects\particle\gpu\GPUParticlePipeline.cpp':No such file or directory
+  (ソース ファイル '/project/engine/effects/particle/gpu/GPUParticlePipeline.cpp' をコンパイルしています)
+  
+  GPUSimulator.cpp
+\project\engine\effects\particle\gpu\GPUSimulator.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\effects\particle\gpu\GPUSimulator.cpp':No such file or directory
+  (ソース ファイル '/project/engine/effects/particle/gpu/GPUSimulator.cpp' をコンパイルしています)
+  
+  SubEmitterModule.cpp
+\project\engine\effects\particle\module\spawn\SubEmitterModule.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\effects\particle\module\spawn\SubEmitterModule.cpp':No such file or directory
+  (ソース ファイル '/project/engine/effects/particle/module/spawn/SubEmitterModule.cpp' をコンパイルしています)
+  
+  ParticleEffect.cpp
+\project\engine\effects\particle\ParticleEffect.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\effects\particle\ParticleEffect.cpp':No such file or directory
+  (ソース ファイル '/project/engine/effects/particle/ParticleEffect.cpp' をコンパイルしています)
+  
+  ParticleEmitter.cpp
+\project\engine\effects\particle\ParticleEmitter.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\effects\particle\ParticleEmitter.cpp':No such file or directory
+  (ソース ファイル '/project/engine/effects/particle/ParticleEmitter.cpp' をコンパイルしています)
+  
+  ParticleManager.cpp
+\project\engine\effects\particle\ParticleManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\effects\particle\ParticleManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/effects/particle/ParticleManager.cpp' をコンパイルしています)
+  
+  PrimitiveGenerator.cpp
+\project\engine\effects\particle\primitive\PrimitiveGenerator.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\effects\particle\primitive\PrimitiveGenerator.cpp':No such file or directory
+  (ソース ファイル '/project/engine/effects/particle/primitive/PrimitiveGenerator.cpp' をコンパイルしています)
+  
+  MeshRenderer.cpp
+\project\engine\effects\particle\renderer\MeshRenderer.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\effects\particle\renderer\MeshRenderer.cpp':No such file or directory
+  (ソース ファイル '/project/engine/effects/particle/renderer/MeshRenderer.cpp' をコンパイルしています)
+  
+  コードを生成中...
+  コンパイル中...
+  SpriteRenderer.cpp
+\project\engine\effects\particle\renderer\SpriteRenderer.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\effects\particle\renderer\SpriteRenderer.cpp':No such file or directory
+  (ソース ファイル '/project/engine/effects/particle/renderer/SpriteRenderer.cpp' をコンパイルしています)
+  
+  TrailRenderer.cpp
+\project\engine\effects\particle\renderer\TrailRenderer.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\effects\particle\renderer\TrailRenderer.cpp':No such file or directory
+  (ソース ファイル '/project/engine/effects/particle/renderer/TrailRenderer.cpp' をコンパイルしています)
+  
+  ParticleEffectSerializer.cpp
+\project\engine\effects\particle\serialization\ParticleEffectSerializer.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\effects\particle\serialization\ParticleEffectSerializer.cpp':No such file or directory
+  (ソース ファイル '/project/engine/effects/particle/serialization/ParticleEffectSerializer.cpp' をコンパイルしています)
+  
+  BasePostEffect.cpp
+\project\engine\effects\postprocess\base\BasePostEffect.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\effects\postprocess\base\BasePostEffect.cpp':No such file or directory
+  (ソース ファイル '/project/engine/effects/postprocess/base/BasePostEffect.cpp' をコンパイルしています)
+  
+  BloomEffect.cpp
+\project\engine\effects\postprocess\BloomEffect.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\effects\postprocess\BloomEffect.cpp':No such file or directory
+  (ソース ファイル '/project/engine/effects/postprocess/BloomEffect.cpp' をコンパイルしています)
+  
+  CRTEffect.cpp
+\project\engine\effects\postprocess\CRTEffect.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\effects\postprocess\CRTEffect.cpp':No such file or directory
+  (ソース ファイル '/project/engine/effects/postprocess/CRTEffect.cpp' をコンパイルしています)
+  
+  GrayscaleEffect.cpp
+\project\engine\effects\postprocess\GrayscaleEffect.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\effects\postprocess\GrayscaleEffect.cpp':No such file or directory
+  (ソース ファイル '/project/engine/effects/postprocess/GrayscaleEffect.cpp' をコンパイルしています)
+  
+  NoiseEffect.cpp
+\project\engine\effects\postprocess\NoiseEffect.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\effects\postprocess\NoiseEffect.cpp':No such file or directory
+  (ソース ファイル '/project/engine/effects/postprocess/NoiseEffect.cpp' をコンパイルしています)
+  
+  VignetteEffect.cpp
+\project\engine\effects\postprocess\VignetteEffect.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\effects\postprocess\VignetteEffect.cpp':No such file or directory
+  (ソース ファイル '/project/engine/effects/postprocess/VignetteEffect.cpp' をコンパイルしています)
+  
+  Framework.cpp
+\project\engine\framework\Framework.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\framework\Framework.cpp':No such file or directory
+  (ソース ファイル '/project/engine/framework/Framework.cpp' をコンパイルしています)
+  
+  GameObject.cpp
+\project\engine\gameobject\base\GameObject.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\gameobject\base\GameObject.cpp':No such file or directory
+  (ソース ファイル '/project/engine/gameobject/base/GameObject.cpp' をコンパイルしています)
+  
+  ICollisionComponent.cpp
+\project\engine\gameobject\component\base\ICollisionComponent.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\gameobject\component\base\ICollisionComponent.cpp':No such file or directory
+  (ソース ファイル '/project/engine/gameobject/component/base/ICollisionComponent.cpp' をコンパイルしています)
+  
+  AABBColliderComponent.cpp
+\project\engine\gameobject\component\collision\AABBColliderComponent.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\gameobject\component\collision\AABBColliderComponent.cpp':No such file or directory
+  (ソース ファイル '/project/engine/gameobject/component/collision/AABBColliderComponent.cpp' をコンパイルしています)
+  
+  CollisionAlgorithm.cpp
+\project\engine\gameobject\component\collision\CollisionAlgorithm.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\gameobject\component\collision\CollisionAlgorithm.cpp':No such file or directory
+  (ソース ファイル '/project/engine/gameobject/component/collision/CollisionAlgorithm.cpp' をコンパイルしています)
+  
+  CollisionManager.cpp
+\project\engine\gameobject\component\collision\CollisionManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\gameobject\component\collision\CollisionManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/gameobject/component/collision/CollisionManager.cpp' をコンパイルしています)
+  
+  CollisionUtils.cpp
+\project\engine\gameobject\component\collision\CollisionUtils.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\gameobject\component\collision\CollisionUtils.cpp':No such file or directory
+  (ソース ファイル '/project/engine/gameobject/component/collision/CollisionUtils.cpp' をコンパイルしています)
+  
+  OBBColliderComponent.cpp
+\project\engine\gameobject\component\collision\OBBColliderComponent.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\gameobject\component\collision\OBBColliderComponent.cpp':No such file or directory
+  (ソース ファイル '/project/engine/gameobject/component/collision/OBBColliderComponent.cpp' をコンパイルしています)
+  
+  RayColliderComponent.cpp
+\project\engine\gameobject\component\collision\RayColliderComponent.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\gameobject\component\collision\RayColliderComponent.cpp':No such file or directory
+  (ソース ファイル '/project/engine/gameobject/component/collision/RayColliderComponent.cpp' をコンパイルしています)
+  
+  SphereColliderComponent.cpp
+\project\engine\gameobject\component\collision\SphereColliderComponent.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\gameobject\component\collision\SphereColliderComponent.cpp':No such file or directory
+  (ソース ファイル '/project/engine/gameobject/component/collision/SphereColliderComponent.cpp' をコンパイルしています)
+  
+  GameObjectManager.cpp
+\project\engine\gameobject\manager\GameObjectManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\gameobject\manager\GameObjectManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/gameobject/manager/GameObjectManager.cpp' をコンパイルしています)
+  
+  コードを生成中...
+  コンパイル中...
+  FontSprite.cpp
+\project\engine\graphics\2d\FontSprite.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\2d\FontSprite.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/2d/FontSprite.cpp' をコンパイルしています)
+  
+  NumberSprite.cpp
+\project\engine\graphics\2d\NumberSprite.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\2d\NumberSprite.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/2d/NumberSprite.cpp' をコンパイルしています)
+  
+  Sprite.cpp
+\project\engine\graphics\2d\Sprite.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\2d\Sprite.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/2d/Sprite.cpp' をコンパイルしています)
+  
+  SpriteCommon.cpp
+\project\engine\graphics\2d\SpriteCommon.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\2d\SpriteCommon.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/2d/SpriteCommon.cpp' をコンパイルしています)
+  
+  InstancedModelRenderer.cpp
+\project\engine\graphics\3d\InstancedModelRenderer.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\3d\InstancedModelRenderer.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/3d/InstancedModelRenderer.cpp' をコンパイルしています)
+  
+  Model.cpp
+\project\engine\graphics\3d\Model.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\3d\Model.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/3d/Model.cpp' をコンパイルしています)
+  
+  ModelCommon.cpp
+\project\engine\graphics\3d\ModelCommon.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\3d\ModelCommon.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/3d/ModelCommon.cpp' をコンパイルしています)
+  
+  Object3d.cpp
+\project\engine\graphics\3d\Object3d.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\3d\Object3d.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/3d/Object3d.cpp' をコンパイルしています)
+  
+  Object3dCommon.cpp
+\project\engine\graphics\3d\Object3dCommon.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\3d\Object3dCommon.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/3d/Object3dCommon.cpp' をコンパイルしています)
+  
+  SkinnedModel.cpp
+\project\engine\graphics\3d\SkinnedModel.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\3d\SkinnedModel.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/3d/SkinnedModel.cpp' をコンパイルしています)
+  
+  SkinnedObject3d.cpp
+\project\engine\graphics\3d\SkinnedObject3d.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\3d\SkinnedObject3d.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/3d/SkinnedObject3d.cpp' をコンパイルしています)
+  
+  SkinningCompute.cpp
+\project\engine\graphics\3d\SkinningCompute.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\3d\SkinningCompute.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/3d/SkinningCompute.cpp' をコンパイルしています)
+  
+  Skybox.cpp
+\project\engine\graphics\3d\Skybox.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\3d\Skybox.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/3d/Skybox.cpp' をコンパイルしています)
+  
+  DeferredRenderer.cpp
+\project\engine\graphics\deferred\DeferredRenderer.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\deferred\DeferredRenderer.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/deferred/DeferredRenderer.cpp' をコンパイルしています)
+  
+  GBuffer.cpp
+\project\engine\graphics\deferred\GBuffer.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\deferred\GBuffer.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/deferred/GBuffer.cpp' をコンパイルしています)
+  
+  GBufferPipeline.cpp
+\project\engine\graphics\deferred\GBufferPipeline.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\deferred\GBufferPipeline.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/deferred/GBufferPipeline.cpp' をコンパイルしています)
+  
+  LightPassPipeline.cpp
+\project\engine\graphics\deferred\LightPassPipeline.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\deferred\LightPassPipeline.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/deferred/LightPassPipeline.cpp' をコンパイルしています)
+  
+  ShadowMapPipeline.cpp
+\project\engine\graphics\shadow\ShadowMapPipeline.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\shadow\ShadowMapPipeline.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/shadow/ShadowMapPipeline.cpp' をコンパイルしています)
+  
+  ShadowSystem.cpp
+\project\engine\graphics\shadow\ShadowSystem.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\graphics\shadow\ShadowSystem.cpp':No such file or directory
+  (ソース ファイル '/project/engine/graphics/shadow/ShadowSystem.cpp' をコンパイルしています)
+  
+  Input.cpp
+\project\engine\input\Input.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\input\Input.cpp':No such file or directory
+  (ソース ファイル '/project/engine/input/Input.cpp' をコンパイルしています)
+  
+  コードを生成中...
+  コンパイル中...
+  JsonEditableBase.cpp
+\project\engine\jsonEditor\JsonEditableBase.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\jsonEditor\JsonEditableBase.cpp':No such file or directory
+  (ソース ファイル '/project/engine/jsonEditor/JsonEditableBase.cpp' をコンパイルしています)
+  
+  JsonEditorImGuiUtils.cpp
+\project\engine\jsonEditor\JsonEditorImGuiUtils.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\jsonEditor\JsonEditorImGuiUtils.cpp':No such file or directory
+  (ソース ファイル '/project/engine/jsonEditor/JsonEditorImGuiUtils.cpp' をコンパイルしています)
+  
+  JsonSerialization.cpp
+\project\engine\jsonEditor\JsonSerialization.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\jsonEditor\JsonSerialization.cpp':No such file or directory
+  (ソース ファイル '/project/engine/jsonEditor/JsonSerialization.cpp' をコンパイルしています)
+  
+  Line.cpp
+\project\engine\line\Line.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\line\Line.cpp':No such file or directory
+  (ソース ファイル '/project/engine/line/Line.cpp' をコンパイルしています)
+  
+  LineCommon.cpp
+\project\engine\line\LineCommon.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\line\LineCommon.cpp':No such file or directory
+  (ソース ファイル '/project/engine/line/LineCommon.cpp' をコンパイルしています)
+  
+  ConsoleLog.cpp
+\project\engine\manager\editor\ConsoleLog.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\manager\editor\ConsoleLog.cpp':No such file or directory
+  (ソース ファイル '/project/engine/manager/editor/ConsoleLog.cpp' をコンパイルしています)
+  
+  DebugUIManager.cpp
+\project\engine\manager\editor\DebugUIManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\manager\editor\DebugUIManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/manager/editor/DebugUIManager.cpp' をコンパイルしています)
+  
+  GameObjectEditor.cpp
+\project\engine\manager\editor\GameObjectEditor.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\manager\editor\GameObjectEditor.cpp':No such file or directory
+  (ソース ファイル '/project/engine/manager/editor/GameObjectEditor.cpp' をコンパイルしています)
+  
+  ImGuiManager.cpp
+\project\engine\manager\editor\ImGuiManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\manager\editor\ImGuiManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/manager/editor/ImGuiManager.cpp' をコンパイルしています)
+  
+  JsonEditor.cpp
+\project\engine\manager\editor\JsonEditor.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\manager\editor\JsonEditor.cpp':No such file or directory
+  (ソース ファイル '/project/engine/manager/editor/JsonEditor.cpp' をコンパイルしています)
+  
+  ParticlePipelineManager.cpp
+\project\engine\manager\effect\ParticlePipelineManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\manager\effect\ParticlePipelineManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/manager/effect/ParticlePipelineManager.cpp' をコンパイルしています)
+  
+  PostProcessManager.cpp
+\project\engine\manager\effect\PostProcessManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\manager\effect\PostProcessManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/manager/effect/PostProcessManager.cpp' をコンパイルしています)
+  
+  InstancedModelPipelineManager.cpp
+\project\engine\manager\graphics\InstancedModelPipelineManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\manager\graphics\InstancedModelPipelineManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/manager/graphics/InstancedModelPipelineManager.cpp' をコンパイルしています)
+  
+  LineManager.cpp
+\project\engine\manager\graphics\LineManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\manager\graphics\LineManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/manager/graphics/LineManager.cpp' をコンパイルしています)
+  
+  ModelManager.cpp
+\project\engine\manager\graphics\ModelManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\manager\graphics\ModelManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/manager/graphics/ModelManager.cpp' をコンパイルしています)
+  
+  ShadowMapManager.cpp
+\project\engine\manager\graphics\ShadowMapManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\manager\graphics\ShadowMapManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/manager/graphics/ShadowMapManager.cpp' をコンパイルしています)
+  
+  SkinnedModelManager.cpp
+\project\engine\manager\graphics\SkinnedModelManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\manager\graphics\SkinnedModelManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/manager/graphics/SkinnedModelManager.cpp' をコンパイルしています)
+  
+  SkinningPipelineManager.cpp
+\project\engine\manager\graphics\SkinningPipelineManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\manager\graphics\SkinningPipelineManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/manager/graphics/SkinningPipelineManager.cpp' をコンパイルしています)
+  
+  TextureManager.cpp
+\project\engine\manager\graphics\TextureManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\manager\graphics\TextureManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/manager/graphics/TextureManager.cpp' をコンパイルしています)
+  
+  CameraManager.cpp
+\project\engine\manager\scene\CameraManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\manager\scene\CameraManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/manager/scene/CameraManager.cpp' をコンパイルしています)
+  
+  コードを生成中...
+  コンパイル中...
+  LightManager.cpp
+\project\engine\manager\scene\LightManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\manager\scene\LightManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/manager/scene/LightManager.cpp' をコンパイルしています)
+  
+  SrvManager.cpp
+\project\engine\manager\system\SrvManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\manager\system\SrvManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/manager/system/SrvManager.cpp' をコンパイルしています)
+  
+  MathUtils.cpp
+\project\engine\math\MathUtils.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\math\MathUtils.cpp':No such file or directory
+  (ソース ファイル '/project/engine/math/MathUtils.cpp' をコンパイルしています)
+  
+  SceneFactory.cpp
+\project\engine\scene\factory\SceneFactory.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\scene\factory\SceneFactory.cpp':No such file or directory
+  (ソース ファイル '/project/engine/scene/factory/SceneFactory.cpp' をコンパイルしています)
+  
+  SceneManager.cpp
+\project\engine\scene\manager\SceneManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\scene\manager\SceneManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/scene/manager/SceneManager.cpp' をコンパイルしています)
+  
+  MyGame.cpp
+\project\engine\scene\MyGame.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\scene\MyGame.cpp':No such file or directory
+  (ソース ファイル '/project/engine/scene/MyGame.cpp' をコンパイルしています)
+  
+  TimeManager.cpp
+\project\engine\time\TimeManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\time\TimeManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/time/TimeManager.cpp' をコンパイルしています)
+  
+  Timer.cpp
+\project\engine\time\Timer.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\time\Timer.cpp':No such file or directory
+  (ソース ファイル '/project/engine/time/Timer.cpp' をコンパイルしています)
+  
+  TimerManager.cpp
+\project\engine\time\TimerManager.cpp(1,1): error C1083: ソース ファイルを開けません。'..\project\engine\time\TimerManager.cpp':No such file or directory
+  (ソース ファイル '/project/engine/time/TimerManager.cpp' をコンパイルしています)
+  
+  Animator.cpp
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\engine\animation\Animator.cpp(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+C:\Users\k023g\source\repos\kuriharakento\KentoCompoEngine\engine\animation\Animator.cpp(296,1): error C1010: プリコンパイル ヘッダーを検索中に不明な EOF が見つかりました。'#include "pch.h"' をソースに追加しましたか?
+  コードを生成中...

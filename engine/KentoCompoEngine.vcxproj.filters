@@ -498,6 +498,7 @@
     <ClCompile Include="..\project\engine\time\TimerManager.cpp">
       <Filter>engine\time</Filter>
     </ClCompile>
+    <ClCompile Include="animation\Animator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\project\engine\animation\Animator.h">
@@ -1022,5 +1023,6 @@
     <ClInclude Include="..\project\engine\time\TimerManager.h">
       <Filter>engine\time</Filter>
     </ClInclude>
+    <ClInclude Include="animation\Animator.h" />
   </ItemGroup>
 </Project>

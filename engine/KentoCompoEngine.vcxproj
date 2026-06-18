@@ -133,6 +133,7 @@
     <ClCompile Include="..\project\engine\time\TimeManager.cpp" />
     <ClCompile Include="..\project\engine\time\Timer.cpp" />
     <ClCompile Include="..\project\engine\time\TimerManager.cpp" />
+    <ClCompile Include="animation\Animator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\project\engine\animation\Animator.h" />
@@ -314,6 +315,7 @@
     <ClInclude Include="..\project\engine\time\TimeManager.h" />
     <ClInclude Include="..\project\engine\time\Timer.h" />
     <ClInclude Include="..\project\engine\time\TimerManager.h" />
+    <ClInclude Include="animation\Animator.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>
