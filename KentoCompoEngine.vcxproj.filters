@@ -1,0 +1,460 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="engine">
+      <UniqueIdentifier>{b4b7dca0-e5cd-4cb7-91e9-b57d0eb13604}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\animation">
+      <UniqueIdentifier>{f279d6d4-03f5-4795-b039-7b7425273768}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\audio">
+      <UniqueIdentifier>{1ae4e478-ef5a-4615-a9a5-457016c356b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\base">
+      <UniqueIdentifier>{51ab8a87-1729-45a4-8b2a-c96e16f75667}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\camerawork">
+      <UniqueIdentifier>{da6c168a-a834-48be-bcb2-767b1014deec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\camerawork\base">
+      <UniqueIdentifier>{91102729-e30b-4f1c-a14d-155d224edefd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\camerawork\debug">
+      <UniqueIdentifier>{529d08f8-caf4-4231-a54f-858aa900781f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\camerawork\follow">
+      <UniqueIdentifier>{2e5afaa1-56b7-4c64-8713-3fc4bece5a77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\camerawork\orbit">
+      <UniqueIdentifier>{360b2e5d-433f-4dc8-ac2f-d4ae2e455be4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\camerawork\spline">
+      <UniqueIdentifier>{ef47861a-b74a-4141-8bef-363f6c31f385}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\camerawork\topdown">
+      <UniqueIdentifier>{1b14f002-350b-479a-98b9-eed51445fdd5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\ecs">
+      <UniqueIdentifier>{db9fdc80-02da-429b-9be1-92595e45b0ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\ecs\components">
+      <UniqueIdentifier>{c496c570-6571-4193-88f3-419d37fd4bb8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\ecs\debug">
+      <UniqueIdentifier>{97d6cb05-cf75-4983-9680-c80dfeace541}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\ecs\system">
+      <UniqueIdentifier>{e28413bc-42a6-4ef0-9069-ac5563030fe5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects">
+      <UniqueIdentifier>{b162012e-6aa5-4eec-b620-3bad29734795}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle">
+      <UniqueIdentifier>{65b2e681-4d88-4397-ba9b-76ee5526047e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle\dynamic">
+      <UniqueIdentifier>{536a66ef-b544-4f9e-b8fb-c9ec8878a310}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle\editor">
+      <UniqueIdentifier>{e715400c-727c-4ad2-a8b4-fbd1f69a2637}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle\gpu">
+      <UniqueIdentifier>{4d99bc81-af48-49c8-97b3-cf697a1eb4e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle\module">
+      <UniqueIdentifier>{7d8bc82d-62d9-4020-9184-5262afd79c44}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle\module\spawn">
+      <UniqueIdentifier>{77cac28f-cb97-4ddb-ad49-667af30ca76a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle\module\update">
+      <UniqueIdentifier>{fd1b86d4-12cf-48bb-96e9-9a730d3c670d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle\primitive">
+      <UniqueIdentifier>{177a0054-3689-4fbd-9896-49a044bf5ee3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle\renderer">
+      <UniqueIdentifier>{60d40f79-08ab-41c1-965f-f9f342c1abad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\particle\serialization">
+      <UniqueIdentifier>{d9159e72-d898-420e-b330-da7364b949bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\postprocess">
+      <UniqueIdentifier>{a26cbe4e-689d-4a9c-bcee-09d8c5b42adc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\effects\postprocess\base">
+      <UniqueIdentifier>{665d2da9-4db0-40da-8631-3b9901b2646e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\framework">
+      <UniqueIdentifier>{afcf177f-977d-4567-a9b4-3ba1ab915b5d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\gameobject">
+      <UniqueIdentifier>{c9e7595b-934d-4fbe-91cf-47c5e947951b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\gameobject\base">
+      <UniqueIdentifier>{7679bdbb-5c97-4464-80b3-d57128938d81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\gameobject\component">
+      <UniqueIdentifier>{d8d368fa-3206-42bf-bd9d-911c1a9e88e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\gameobject\component\base">
+      <UniqueIdentifier>{55ceb31f-ebb0-41e5-86d2-84c62f382a3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\gameobject\component\collision">
+      <UniqueIdentifier>{d1e096d4-0c9f-408b-9b8c-1cda088881d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\gameobject\manager">
+      <UniqueIdentifier>{c8340f36-62a5-43d0-a473-186c63d72048}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\graphics">
+      <UniqueIdentifier>{1878314d-66de-46af-9f9e-d4c026189711}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\graphics\2d">
+      <UniqueIdentifier>{591508c4-5079-4096-813d-ba4ae3336ca0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\graphics\3d">
+      <UniqueIdentifier>{cb550ada-f475-4f6c-8324-7ef7b8cfbd7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\graphics\deferred">
+      <UniqueIdentifier>{a8e04a42-349a-4d78-95b2-fde013eedddd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\graphics\shadow">
+      <UniqueIdentifier>{a2c6d4c0-8282-48bd-8845-8a3f30417683}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\input">
+      <UniqueIdentifier>{0198210e-1ad9-43ee-93d8-9df600c50462}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\jsonEditor">
+      <UniqueIdentifier>{9bf33e9b-56d5-4b43-abf0-175230982ea5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\light">
+      <UniqueIdentifier>{c7cfeeb8-2edc-40de-90bf-7d7a39e07ea0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\line">
+      <UniqueIdentifier>{07a34044-29ef-493a-bd83-7263b51c6cb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\manager">
+      <UniqueIdentifier>{96dbc74b-c2b7-47aa-9ceb-239c160afc97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\manager\editor">
+      <UniqueIdentifier>{a361a722-9415-4ef5-9e99-59ca7ebff904}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\manager\effect">
+      <UniqueIdentifier>{c22efb1f-6790-4baf-aec8-9a3e17bc8c7f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\manager\graphics">
+      <UniqueIdentifier>{51ed6d5d-9454-49fb-a9b3-736fbbcc745a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\manager\scene">
+      <UniqueIdentifier>{d8043e25-0b79-40d3-ab02-77428e00b779}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\manager\system">
+      <UniqueIdentifier>{ebb595a1-2690-496e-b831-d7fe372e868d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\math">
+      <UniqueIdentifier>{8565b49e-4e7f-4dd8-8c63-ba2ce26c971a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\scene">
+      <UniqueIdentifier>{ac585a4e-3b95-462c-968a-3f0f3e654071}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\scene\factory">
+      <UniqueIdentifier>{29358da9-c001-4a38-bd8b-94201c96f13c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\scene\interface">
+      <UniqueIdentifier>{327ccb3a-2029-4e6d-a7c6-78b1b941e8c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\scene\manager">
+      <UniqueIdentifier>{3f5b42bd-29cb-4446-915f-3afd38f0a887}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\time">
+      <UniqueIdentifier>{d7a68873-18df-4120-8769-d105c3160626}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="animation\Animator.cpp" />
+    <ClCompile Include="audio\Audio.cpp" />
+    <ClCompile Include="base\Camera.cpp" />
+    <ClCompile Include="base\D3DResourceLeakChecker.cpp" />
+    <ClCompile Include="base\DirectXCommon.cpp" />
+    <ClCompile Include="base\Logger.cpp" />
+    <ClCompile Include="base\ObjectPool.cpp" />
+    <ClCompile Include="base\PostProcessPass.cpp" />
+    <ClCompile Include="base\RenderTexture.cpp" />
+    <ClCompile Include="base\StringUtility.cpp" />
+    <ClCompile Include="base\WinApp.cpp" />
+    <ClCompile Include="camerawork\debug\DebugCamera.cpp" />
+    <ClCompile Include="camerawork\follow\FollowCamera.cpp" />
+    <ClCompile Include="camerawork\orbit\OrbitCameraWork.cpp" />
+    <ClCompile Include="camerawork\spline\Spline.cpp" />
+    <ClCompile Include="camerawork\spline\SplineCamera.cpp" />
+    <ClCompile Include="camerawork\spline\SplineData.cpp" />
+    <ClCompile Include="camerawork\topdown\TopDownCamera.cpp" />
+    <ClCompile Include="ecs\debug\EcsInspector.cpp" />
+    <ClCompile Include="ecs\EcsDebugViewer.cpp" />
+    <ClCompile Include="ecs\Registry.cpp" />
+    <ClCompile Include="ecs\system\CollisionSystem.cpp" />
+    <ClCompile Include="ecs\system\EcsStatusSystem.cpp" />
+    <ClCompile Include="ecs\system\HierarchySystem.cpp" />
+    <ClCompile Include="ecs\system\InstancedRenderSystem.cpp" />
+    <ClCompile Include="ecs\system\LifetimeSystem.cpp" />
+    <ClCompile Include="ecs\system\MovementSystem.cpp" />
+    <ClCompile Include="ecs\system\Object3dSystem.cpp" />
+    <ClCompile Include="ecs\system\PlayerSystem.cpp" />
+    <ClCompile Include="ecs\system\SystemManager.cpp" />
+    <ClCompile Include="ecs\system\WorldBoundarySystem.cpp" />
+    <ClCompile Include="effects\particle\editor\ParticleEditor.cpp" />
+    <ClCompile Include="effects\particle\gpu\GPUParticlePipeline.cpp" />
+    <ClCompile Include="effects\particle\gpu\GPUSimulator.cpp" />
+    <ClCompile Include="effects\particle\module\spawn\SubEmitterModule.cpp" />
+    <ClCompile Include="effects\particle\ParticleEffect.cpp" />
+    <ClCompile Include="effects\particle\ParticleEmitter.cpp" />
+    <ClCompile Include="effects\particle\ParticleManager.cpp" />
+    <ClCompile Include="effects\particle\primitive\PrimitiveGenerator.cpp" />
+    <ClCompile Include="effects\particle\renderer\MeshRenderer.cpp" />
+    <ClCompile Include="effects\particle\renderer\SpriteRenderer.cpp" />
+    <ClCompile Include="effects\particle\renderer\TrailRenderer.cpp" />
+    <ClCompile Include="effects\particle\serialization\ParticleEffectSerializer.cpp" />
+    <ClCompile Include="effects\postprocess\base\BasePostEffect.cpp" />
+    <ClCompile Include="effects\postprocess\BloomEffect.cpp" />
+    <ClCompile Include="effects\postprocess\CRTEffect.cpp" />
+    <ClCompile Include="effects\postprocess\GrayscaleEffect.cpp" />
+    <ClCompile Include="effects\postprocess\NoiseEffect.cpp" />
+    <ClCompile Include="effects\postprocess\VignetteEffect.cpp" />
+    <ClCompile Include="framework\Framework.cpp" />
+    <ClCompile Include="gameobject\base\GameObject.cpp" />
+    <ClCompile Include="gameobject\component\base\ICollisionComponent.cpp" />
+    <ClCompile Include="gameobject\component\collision\AABBColliderComponent.cpp" />
+    <ClCompile Include="gameobject\component\collision\CollisionAlgorithm.cpp" />
+    <ClCompile Include="gameobject\component\collision\CollisionManager.cpp" />
+    <ClCompile Include="gameobject\component\collision\CollisionUtils.cpp" />
+    <ClCompile Include="gameobject\component\collision\OBBColliderComponent.cpp" />
+    <ClCompile Include="gameobject\component\collision\RayColliderComponent.cpp" />
+    <ClCompile Include="gameobject\component\collision\SphereColliderComponent.cpp" />
+    <ClCompile Include="gameobject\manager\GameObjectManager.cpp" />
+    <ClCompile Include="graphics\2d\FontSprite.cpp" />
+    <ClCompile Include="graphics\2d\NumberSprite.cpp" />
+    <ClCompile Include="graphics\2d\Sprite.cpp" />
+    <ClCompile Include="graphics\2d\SpriteCommon.cpp" />
+    <ClCompile Include="graphics\3d\InstancedModelRenderer.cpp" />
+    <ClCompile Include="graphics\3d\Model.cpp" />
+    <ClCompile Include="graphics\3d\ModelCommon.cpp" />
+    <ClCompile Include="graphics\3d\Object3d.cpp" />
+    <ClCompile Include="graphics\3d\Object3dCommon.cpp" />
+    <ClCompile Include="graphics\3d\SkinnedModel.cpp" />
+    <ClCompile Include="graphics\3d\SkinnedObject3d.cpp" />
+    <ClCompile Include="graphics\3d\SkinningCompute.cpp" />
+    <ClCompile Include="graphics\3d\Skybox.cpp" />
+    <ClCompile Include="graphics\deferred\DeferredRenderer.cpp" />
+    <ClCompile Include="graphics\deferred\GBuffer.cpp" />
+    <ClCompile Include="graphics\deferred\GBufferPipeline.cpp" />
+    <ClCompile Include="graphics\deferred\LightPassPipeline.cpp" />
+    <ClCompile Include="graphics\shadow\ShadowMapPipeline.cpp" />
+    <ClCompile Include="graphics\shadow\ShadowSystem.cpp" />
+    <ClCompile Include="input\Input.cpp" />
+    <ClCompile Include="jsonEditor\JsonEditableBase.cpp" />
+    <ClCompile Include="jsonEditor\JsonEditorImGuiUtils.cpp" />
+    <ClCompile Include="jsonEditor\JsonSerialization.cpp" />
+    <ClCompile Include="line\Line.cpp" />
+    <ClCompile Include="line\LineCommon.cpp" />
+    <ClCompile Include="manager\editor\ConsoleLog.cpp" />
+    <ClCompile Include="manager\editor\DebugUIManager.cpp" />
+    <ClCompile Include="manager\editor\GameObjectEditor.cpp" />
+    <ClCompile Include="manager\editor\ImGuiManager.cpp" />
+    <ClCompile Include="manager\editor\JsonEditor.cpp" />
+    <ClCompile Include="manager\effect\ParticlePipelineManager.cpp" />
+    <ClCompile Include="manager\effect\PostProcessManager.cpp" />
+    <ClCompile Include="manager\graphics\InstancedModelPipelineManager.cpp" />
+    <ClCompile Include="manager\graphics\LineManager.cpp" />
+    <ClCompile Include="manager\graphics\ModelManager.cpp" />
+    <ClCompile Include="manager\graphics\ShadowMapManager.cpp" />
+    <ClCompile Include="manager\graphics\SkinnedModelManager.cpp" />
+    <ClCompile Include="manager\graphics\SkinningPipelineManager.cpp" />
+    <ClCompile Include="manager\graphics\TextureManager.cpp" />
+    <ClCompile Include="manager\scene\CameraManager.cpp" />
+    <ClCompile Include="manager\scene\LightManager.cpp" />
+    <ClCompile Include="manager\system\SrvManager.cpp" />
+    <ClCompile Include="math\MathUtils.cpp" />
+    <ClCompile Include="scene\factory\SceneFactory.cpp" />
+    <ClCompile Include="scene\manager\SceneManager.cpp" />
+    <ClCompile Include="scene\MyGame.cpp" />
+    <ClCompile Include="time\TimeManager.cpp" />
+    <ClCompile Include="time\Timer.cpp" />
+    <ClCompile Include="time\TimerManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="animation\Animator.h" />
+    <ClInclude Include="audio\Audio.h" />
+    <ClInclude Include="base\Camera.h" />
+    <ClInclude Include="base\D3DResourceLeakChecker.h" />
+    <ClInclude Include="base\DirectXCommon.h" />
+    <ClInclude Include="base\GraphicsTypes.h" />
+    <ClInclude Include="base\Logger.h" />
+    <ClInclude Include="base\ObjectPool.h" />
+    <ClInclude Include="base\PostProcessPass.h" />
+    <ClInclude Include="base\RenderTexture.h" />
+    <ClInclude Include="base\StringUtility.h" />
+    <ClInclude Include="base\WinApp.h" />
+    <ClInclude Include="camerawork\base\CameraWorkBase.h" />
+    <ClInclude Include="camerawork\debug\DebugCamera.h" />
+    <ClInclude Include="camerawork\follow\FollowCamera.h" />
+    <ClInclude Include="camerawork\orbit\OrbitCameraWork.h" />
+    <ClInclude Include="camerawork\spline\Spline.h" />
+    <ClInclude Include="camerawork\spline\SplineCamera.h" />
+    <ClInclude Include="camerawork\spline\SplineData.h" />
+    <ClInclude Include="camerawork\topdown\TopDownCamera.h" />
+    <ClInclude Include="ecs\ComponentArray.h" />
+    <ClInclude Include="ecs\components\ColliderComponent.h" />
+    <ClInclude Include="ecs\components\CollisionResponseComponent.h" />
+    <ClInclude Include="ecs\components\EnemyAIComponent.h" />
+    <ClInclude Include="ecs\components\HierarchyComponent.h" />
+    <ClInclude Include="ecs\components\InstancedRenderComponent.h" />
+    <ClInclude Include="ecs\components\LifetimeComponent.h" />
+    <ClInclude Include="ecs\components\MovementComponent.h" />
+    <ClInclude Include="ecs\components\Object3dComponent.h" />
+    <ClInclude Include="ecs\components\TagComponent.h" />
+    <ClInclude Include="ecs\components\TransformComponent.h" />
+    <ClInclude Include="ecs\components\VelocityComponent.h" />
+    <ClInclude Include="ecs\components\WorldBoundaryComponent.h" />
+    <ClInclude Include="ecs\debug\EcsInspector.h" />
+    <ClInclude Include="ecs\EcsDebugViewer.h" />
+    <ClInclude Include="ecs\Entity.h" />
+    <ClInclude Include="ecs\EntityBuilder.h" />
+    <ClInclude Include="ecs\EntityView.h" />
+    <ClInclude Include="ecs\Registry.h" />
+    <ClInclude Include="ecs\system\CollisionSystem.h" />
+    <ClInclude Include="ecs\system\EcsStatusSystem.h" />
+    <ClInclude Include="ecs\system\HierarchySystem.h" />
+    <ClInclude Include="ecs\system\InstancedRenderSystem.h" />
+    <ClInclude Include="ecs\system\ISystem.h" />
+    <ClInclude Include="ecs\system\LifetimeSystem.h" />
+    <ClInclude Include="ecs\system\MovementSystem.h" />
+    <ClInclude Include="ecs\system\Object3dSystem.h" />
+    <ClInclude Include="ecs\system\PlayerSystem.h" />
+    <ClInclude Include="ecs\system\SpatialPartition.h" />
+    <ClInclude Include="ecs\system\SystemManager.h" />
+    <ClInclude Include="ecs\system\WorldBoundarySystem.h" />
+    <ClInclude Include="effects\particle\dynamic\DynamicInput.h" />
+    <ClInclude Include="effects\particle\editor\ParticleEditor.h" />
+    <ClInclude Include="effects\particle\gpu\GPUParticlePipeline.h" />
+    <ClInclude Include="effects\particle\gpu\GPUSimulator.h" />
+    <ClInclude Include="effects\particle\module\IModule.h" />
+    <ClInclude Include="effects\particle\module\ModulePriorities.h" />
+    <ClInclude Include="effects\particle\module\spawn\InitialModules.h" />
+    <ClInclude Include="effects\particle\module\spawn\SpawnModules.h" />
+    <ClInclude Include="effects\particle\module\spawn\SpawnShapeModules.h" />
+    <ClInclude Include="effects\particle\module\spawn\SubEmitterModule.h" />
+    <ClInclude Include="effects\particle\module\update\AdvancedModules.h" />
+    <ClInclude Include="effects\particle\module\update\BehaviorModules.h" />
+    <ClInclude Include="effects\particle\module\update\ForceFieldModules.h" />
+    <ClInclude Include="effects\particle\module\update\MotionEffectModules.h" />
+    <ClInclude Include="effects\particle\module\update\NaturalBehaviorModules.h" />
+    <ClInclude Include="effects\particle\module\update\RibbonModules.h" />
+    <ClInclude Include="effects\particle\module\update\TextureSheetModule.h" />
+    <ClInclude Include="effects\particle\module\update\UpdateModules.h" />
+    <ClInclude Include="effects\particle\Particle.h" />
+    <ClInclude Include="effects\particle\ParticleEasing.h" />
+    <ClInclude Include="effects\particle\ParticleEffect.h" />
+    <ClInclude Include="effects\particle\ParticleEmitter.h" />
+    <ClInclude Include="effects\particle\ParticleManager.h" />
+    <ClInclude Include="effects\particle\ParticleTypes.h" />
+    <ClInclude Include="effects\particle\primitive\PrimitiveGenerator.h" />
+    <ClInclude Include="effects\particle\renderer\IRenderer.h" />
+    <ClInclude Include="effects\particle\renderer\MeshRenderer.h" />
+    <ClInclude Include="effects\particle\renderer\SpriteRenderer.h" />
+    <ClInclude Include="effects\particle\renderer\TrailRenderer.h" />
+    <ClInclude Include="effects\particle\serialization\ParticleEffectSerializer.h" />
+    <ClInclude Include="effects\postprocess\base\BasePostEffect.h" />
+    <ClInclude Include="effects\postprocess\BloomEffect.h" />
+    <ClInclude Include="effects\postprocess\CRTEffect.h" />
+    <ClInclude Include="effects\postprocess\GrayscaleEffect.h" />
+    <ClInclude Include="effects\postprocess\IPostEffect.h" />
+    <ClInclude Include="effects\postprocess\NoiseEffect.h" />
+    <ClInclude Include="effects\postprocess\VignetteEffect.h" />
+    <ClInclude Include="framework\Framework.h" />
+    <ClInclude Include="gameobject\base\GameObject.h" />
+    <ClInclude Include="gameobject\component\base\ComponentFactory.h" />
+    <ClInclude Include="gameobject\component\base\IActionComponent.h" />
+    <ClInclude Include="gameobject\component\base\ICollisionComponent.h" />
+    <ClInclude Include="gameobject\component\base\IGameObjectComponent.h" />
+    <ClInclude Include="gameobject\component\collision\AABBColliderComponent.h" />
+    <ClInclude Include="gameobject\component\collision\CollisionAlgorithm.h" />
+    <ClInclude Include="gameobject\component\collision\CollisionManager.h" />
+    <ClInclude Include="gameobject\component\collision\CollisionUtils.h" />
+    <ClInclude Include="gameobject\component\collision\OBBColliderComponent.h" />
+    <ClInclude Include="gameobject\component\collision\RayColliderComponent.h" />
+    <ClInclude Include="gameobject\component\collision\SphereColliderComponent.h" />
+    <ClInclude Include="gameobject\manager\GameObjectManager.h" />
+    <ClInclude Include="graphics\2d\FontSprite.h" />
+    <ClInclude Include="graphics\2d\NumberSprite.h" />
+    <ClInclude Include="graphics\2d\Sprite.h" />
+    <ClInclude Include="graphics\2d\SpriteCommon.h" />
+    <ClInclude Include="graphics\3d\InstancedModelRenderer.h" />
+    <ClInclude Include="graphics\3d\IRenderable3d.h" />
+    <ClInclude Include="graphics\3d\Model.h" />
+    <ClInclude Include="graphics\3d\ModelCommon.h" />
+    <ClInclude Include="graphics\3d\Object3d.h" />
+    <ClInclude Include="graphics\3d\Object3dCommon.h" />
+    <ClInclude Include="graphics\3d\SkinnedModel.h" />
+    <ClInclude Include="graphics\3d\SkinnedObject3d.h" />
+    <ClInclude Include="graphics\3d\SkinningCompute.h" />
+    <ClInclude Include="graphics\3d\Skybox.h" />
+    <ClInclude Include="graphics\deferred\DeferredRenderer.h" />
+    <ClInclude Include="graphics\deferred\GBuffer.h" />
+    <ClInclude Include="graphics\deferred\GBufferPipeline.h" />
+    <ClInclude Include="graphics\deferred\LightPassPipeline.h" />
+    <ClInclude Include="graphics\shadow\ShadowMap.h" />
+    <ClInclude Include="graphics\shadow\ShadowMapPipeline.h" />
+    <ClInclude Include="graphics\shadow\ShadowSystem.h" />
+    <ClInclude Include="input\Input.h" />
+    <ClInclude Include="jsonEditor\IJsonEditable.h" />
+    <ClInclude Include="jsonEditor\JsonEditableBase.h" />
+    <ClInclude Include="jsonEditor\JsonEditorImGuiUtils.h" />
+    <ClInclude Include="jsonEditor\JsonSerialization.h" />
+    <ClInclude Include="light\DirectionalLight.h" />
+    <ClInclude Include="light\LightConstants.h" />
+    <ClInclude Include="light\PointLight.h" />
+    <ClInclude Include="light\SpotLight.h" />
+    <ClInclude Include="line\Line.h" />
+    <ClInclude Include="line\LineCommon.h" />
+    <ClInclude Include="manager\editor\ConsoleLog.h" />
+    <ClInclude Include="manager\editor\DebugUIManager.h" />
+    <ClInclude Include="manager\editor\GameObjectEditor.h" />
+    <ClInclude Include="manager\editor\ImGuiManager.h" />
+    <ClInclude Include="manager\editor\JsonEditor.h" />
+    <ClInclude Include="manager\effect\ParticlePipelineManager.h" />
+    <ClInclude Include="manager\effect\PostProcessManager.h" />
+    <ClInclude Include="manager\graphics\InstancedModelPipelineManager.h" />
+    <ClInclude Include="manager\graphics\LineManager.h" />
+    <ClInclude Include="manager\graphics\ModelManager.h" />
+    <ClInclude Include="manager\graphics\ShadowMapManager.h" />
+    <ClInclude Include="manager\graphics\SkinnedModelManager.h" />
+    <ClInclude Include="manager\graphics\SkinningPipelineManager.h" />
+    <ClInclude Include="manager\graphics\TextureManager.h" />
+    <ClInclude Include="manager\scene\CameraManager.h" />
+    <ClInclude Include="manager\scene\LightManager.h" />
+    <ClInclude Include="manager\system\SrvManager.h" />
+    <ClInclude Include="math\AABB.h" />
+    <ClInclude Include="math\BlendMode.h" />
+    <ClInclude Include="math\Easing.h" />
+    <ClInclude Include="math\MathUtils.h" />
+    <ClInclude Include="math\MatrixFunc.h" />
+    <ClInclude Include="math\OBB.h" />
+    <ClInclude Include="math\Quaternion.h" />
+    <ClInclude Include="math\Ray.h" />
+    <ClInclude Include="math\Sphere.h" />
+    <ClInclude Include="math\Vector2.h" />
+    <ClInclude Include="math\Vector3.h" />
+    <ClInclude Include="math\Vector4.h" />
+    <ClInclude Include="math\VectorColorCodes.h" />
+    <ClInclude Include="scene\factory\SceneFactory.h" />
+    <ClInclude Include="scene\factory\SceneNames.h" />
+    <ClInclude Include="scene\interface\AbstractSceneFactory.h" />
+    <ClInclude Include="scene\interface\BaseScene.h" />
+    <ClInclude Include="scene\manager\SceneManager.h" />
+    <ClInclude Include="scene\MyGame.h" />
+    <ClInclude Include="scene\SceneContext.h" />
+    <ClInclude Include="time\TimeManager.h" />
+    <ClInclude Include="time\Timer.h" />
+    <ClInclude Include="time\TimerManager.h" />
+  </ItemGroup>
+</Project>
