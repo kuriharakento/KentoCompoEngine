@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -46,15 +46,12 @@
     <ClCompile Include="ecs\EcsDebugViewer.cpp" />
     <ClCompile Include="ecs\Registry.cpp" />
     <ClCompile Include="ecs\system\CollisionSystem.cpp" />
-    <ClCompile Include="ecs\system\EcsStatusSystem.cpp" />
     <ClCompile Include="ecs\system\HierarchySystem.cpp" />
     <ClCompile Include="ecs\system\InstancedRenderSystem.cpp" />
     <ClCompile Include="ecs\system\LifetimeSystem.cpp" />
     <ClCompile Include="ecs\system\MovementSystem.cpp" />
     <ClCompile Include="ecs\system\Object3dSystem.cpp" />
-    <ClCompile Include="ecs\system\PlayerSystem.cpp" />
     <ClCompile Include="ecs\system\SystemManager.cpp" />
-    <ClCompile Include="ecs\system\WorldBoundarySystem.cpp" />
     <ClCompile Include="effects\particle\editor\ParticleEditor.cpp" />
     <ClCompile Include="effects\particle\gpu\GPUParticlePipeline.cpp" />
     <ClCompile Include="effects\particle\gpu\GPUSimulator.cpp" />
@@ -163,7 +160,6 @@
     <ClInclude Include="ecs\ComponentArray.h" />
     <ClInclude Include="ecs\components\ColliderComponent.h" />
     <ClInclude Include="ecs\components\CollisionResponseComponent.h" />
-    <ClInclude Include="ecs\components\EnemyAIComponent.h" />
     <ClInclude Include="ecs\components\HierarchyComponent.h" />
     <ClInclude Include="ecs\components\InstancedRenderComponent.h" />
     <ClInclude Include="ecs\components\LifetimeComponent.h" />
@@ -180,17 +176,14 @@
     <ClInclude Include="ecs\EntityView.h" />
     <ClInclude Include="ecs\Registry.h" />
     <ClInclude Include="ecs\system\CollisionSystem.h" />
-    <ClInclude Include="ecs\system\EcsStatusSystem.h" />
     <ClInclude Include="ecs\system\HierarchySystem.h" />
     <ClInclude Include="ecs\system\InstancedRenderSystem.h" />
     <ClInclude Include="ecs\system\ISystem.h" />
     <ClInclude Include="ecs\system\LifetimeSystem.h" />
     <ClInclude Include="ecs\system\MovementSystem.h" />
     <ClInclude Include="ecs\system\Object3dSystem.h" />
-    <ClInclude Include="ecs\system\PlayerSystem.h" />
     <ClInclude Include="ecs\system\SpatialPartition.h" />
     <ClInclude Include="ecs\system\SystemManager.h" />
-    <ClInclude Include="ecs\system\WorldBoundarySystem.h" />
     <ClInclude Include="effects\particle\dynamic\DynamicInput.h" />
     <ClInclude Include="effects\particle\editor\ParticleEditor.h" />
     <ClInclude Include="effects\particle\gpu\GPUParticlePipeline.h" />

@@ -4,8 +4,6 @@
 
 #include "application/scene/debug/ParticleTestScene.h"
 #include "application/scene/debug/TestScene.h"
-#include "application/scene/play/GamePlayScene.h"
-#include "application/scene/play/ResultScene.h"
 #include "application/scene/play/TitleScene.h"
 #include "base/Logger.h"
 
@@ -24,8 +22,6 @@ std::unique_ptr<BaseScene> CreateSceneImpl()
 // シーン名 → 生成関数のテーブル（新シーン追加時はここに1行追加）
 const std::unordered_map<std::string, SceneCreator> kSceneTable = {
 	{"TITLE", CreateSceneImpl<TitleScene>},
-	{"GAMEPLAY", CreateSceneImpl<GamePlayScene>},
-	{"RESULT", CreateSceneImpl<ResultScene>},
 	{"PARTICLETEST", CreateSceneImpl<ParticleTestScene>},
 	{"TEST", CreateSceneImpl<TestScene>}};
 } // namespace

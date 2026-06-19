@@ -2,7 +2,6 @@
 #include "imgui/imgui.h"
 #include "../../../engine/ecs/components/TransformComponent.h"
 #include "../../../engine/ecs/components/InstancedRenderComponent.h"
-#include "../../../application/ecs/components/EnemyStateComponent.h"
 #include "../../../engine/ecs/components/LifetimeComponent.h"
 
 using namespace ecs;
@@ -114,23 +113,6 @@ void EcsInspector::DrawComponentEditor(Registry& registry, EntityID entity)
             }
             ImGui::Checkbox("Visible", &r.isVisible_);
             ImGui::Checkbox("Use Instancing", &r.useInstancing_);
-        }
-    }
-
-    // EnemyStateComponent
-    if (registry.HasComponent<EnemyStateComponent>(entity))
-    {
-        if (ImGui::CollapsingHeader("EnemyStateComponent", ImGuiTreeNodeFlags_DefaultOpen))
-        {
-            auto& s = registry.GetComponent<EnemyStateComponent>(entity);
-            const char* states[] = { "Idle", "Move", "Attack", "Dead" };
-            int current = (int)s.currentState_;
-            if (ImGui::Combo("State", &current, states, 4))
-            {
-                s.currentState_ = (EnemyStateComponent::State)current;
-            }
-            ImGui::DragInt("HP", &s.hp_, 1, 0, 1000);
-            ImGui::Text("State Timer: %.2f", s.stateTimer_);
         }
     }
 

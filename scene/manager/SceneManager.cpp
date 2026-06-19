@@ -34,14 +34,6 @@ void SceneManager::Initialize(const SceneContext& context)
 		{
 			ChangeScene(SceneNames::Title);
 		}
-		if (ImGui::Button("GamePlay"))
-		{
-			ChangeScene(SceneNames::GamePlay);
-		}
-		if (ImGui::Button("Result"))
-		{
-			ChangeScene(SceneNames::Result);
-		}
 		// Debug用シーン
 		if (ImGui::Button("ParticleTest"))
 		{

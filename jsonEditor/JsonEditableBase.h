@@ -13,7 +13,6 @@
 #include "base/GraphicsTypes.h"
 #include "JsonSerialization.h"
 #include "base/Logger.h"
-#include "application/GameObject/Combatable/base/StatusSystem.h"
 
 /* NOTE:
  * NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE マクロを使用して、構造体、クラスのシリアライズ・デシリアライズを自動生成する場合
@@ -177,14 +176,6 @@ void JsonEditableBase::RegisterDebug(const std::string& name, T* value)
 			{
 				ImGui::DragFloat("##value", value, 0.1f);
 			}
-			else if constexpr (std::is_same_v<std::decay_t<T>, ::StatusValue>)
-			{
-				float val = value->GetBase();
-				if (ImGui::DragFloat("##value", &val, 0.1f))
-				{
-					value->SetBase(val);
-				}
-			}
 			else if constexpr (std::is_same_v<T, int>)
 			{
 				ImGui::DragInt("##value", value);
@@ -324,14 +315,6 @@ void JsonEditableBase::Register(const std::string& name, T* value)
 			if constexpr (std::is_same_v<std::decay_t<T>, float>)
 			{
 				ImGui::DragFloat("##value", value, 0.1f);
-			}
-			else if constexpr (std::is_same_v<std::decay_t<T>, ::StatusValue>)
-			{
-				float val = value->GetBase();
-				if (ImGui::DragFloat("##value", &val, 0.1f))
-				{
-					value->SetBase(val);
-				}
 			}
 			else if constexpr (std::is_same_v<T, int>)
 			{

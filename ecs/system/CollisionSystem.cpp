@@ -12,13 +12,10 @@
 #include "engine/ecs/components/CollisionResponseComponent.h"
 #include "engine/gameobject/component/collision/CollisionAlgorithm.h"
 #include "math/AABB.h"
-#include "application/ecs/components/ObstacleComponent.h"
 #include "engine/ecs/components/MovementComponent.h"
 #include "math/VectorColorCodes.h"
 #include "engine/manager/graphics/LineManager.h"
 #include "math/MathUtils.h"
-
-#include "application/ecs/CollisionConfig.h" // 新しいレイヤー定義
 
 using namespace ecs;
 
@@ -198,7 +195,6 @@ void CollisionSystem::Update(Registry& registry)
 void CollisionSystem::DetectCollisions(Registry& registry)
 {
 	auto& colliderArray = registry.GetArray<ecs::ColliderComponent>();
-	auto* obstacleArray = registry.HasComponentArray<ObstacleComponent>() ? &registry.GetArray<ObstacleComponent>() : nullptr;
 	const uint32_t colliderCount = colliderArray.GetSize();
 
 	collisions_.clear();
@@ -220,20 +216,15 @@ void CollisionSystem::DetectCollisions(Registry& registry)
 		std::sort(neighbors.begin(), neighbors.end());
 		neighbors.erase(std::unique(neighbors.begin(), neighbors.end()), neighbors.end());
 
-		bool isAObs = obstacleArray && obstacleArray->HasComponent(entityA);
-
 		for (EntityID entityB : neighbors)
 		{
 			if (!registry.IsAlive(entityB)) continue;
 			auto& colB = colliderArray.GetData(entityB);
 			if (!colB.isActive_) continue;
 
-			// --- 汎用ビットマスクフィルタ (BNS-Standard) ---
+			// --- 汎用ビットマスクフィルタ ---
 			// 互いに相手をマスクしていなければ判定しない
 			if (!(colA.mask & colB.layer) && !(colB.mask & colA.layer)) continue;
-
-			bool isBObs = obstacleArray && obstacleArray->HasComponent(entityB);
-			if (isAObs && isBObs) continue; // 障害物同士は判定しない
 
 			// LOD判定（エンジン既定）
 			collisionAlgorithm::CollisionLOD lod = collisionAlgorithm::CollisionLOD::Precise;
@@ -243,7 +234,7 @@ void CollisionSystem::DetectCollisions(Registry& registry)
 
 			bool hit = false;
 			Vector3 mtv = { 0,0,0 };
-			bool needsMTV = (!colA.isTrigger_ && !colB.isTrigger_) && (isAObs || isBObs);
+			bool needsMTV = false;
 
 			if (lod == collisionAlgorithm::CollisionLOD::Sphere)
 			{
@@ -273,8 +264,6 @@ void CollisionSystem::DetectCollisions(Registry& registry)
 
 void CollisionSystem::ResolveCollisions(Registry& registry)
 {
-	auto& transformArray = registry.GetArray<TransformComponent>();
-	auto* obstacleArray = registry.HasComponentArray<ObstacleComponent>() ? &registry.GetArray<ObstacleComponent>() : nullptr;
 	auto* responseArray = registry.HasComponentArray<CollisionResponseComponent>() ? &registry.GetArray<CollisionResponseComponent>() : nullptr;
 
 	for (const auto& ev : collisions_)
@@ -288,36 +277,7 @@ void CollisionSystem::ResolveCollisions(Registry& registry)
 			if (responseArray->HasComponent(ev.b)) responseArray->GetData(ev.b).currentCollisions_.insert(ev.a);
 		}
 
-		// 物理的な押し戻し (Solid Response)
-		if (ev.isSolid)
-		{
-			bool isAObs = obstacleArray && obstacleArray->HasComponent(ev.a);
-			EntityID charEnt = isAObs ? ev.b : ev.a;
-			Vector3 finalMtv = isAObs ? ev.mtv : -ev.mtv;
-
-			if (transformArray.HasComponent(charEnt))
-			{
-				auto& trans = transformArray.GetData(charEnt);
-				Vector3 currentPos = MathUtils::GetTranslateFromMatrix(trans.worldMatrix_);
-				Vector3 newWorldPos = currentPos + finalMtv;
-
-				// ワールト行列を直接更新
-				trans.worldMatrix_.m[3][0] = newWorldPos.x;
-				trans.worldMatrix_.m[3][1] = newWorldPos.y;
-				trans.worldMatrix_.m[3][2] = newWorldPos.z;
-
-				trans.localPosition_ = newWorldPos;
-				trans.isDirty_ = true;
-
-				if (registry.HasComponent<MovementComponent>(charEnt) && finalMtv.y > 0.05f)
-				{
-					registry.GetComponent<MovementComponent>(charEnt).isGrounded_ = true;
-				}
-			}
-		}
-
-		// --- 秘伝のタレ: ここにあった DestroyEntityDeferred 系のゲームロジックは撤廃 ---
-		// それらは各エンティティの onCollisionEnter 等のコールバックで行う。
+		// 物理反応や破棄などのゲームロジックは、各エンティティの callback/system 側で行う。
 	}
 }
 

@@ -240,7 +240,7 @@ private:
  * 
  * 複数のTransformを追跡し、各位置でパーティクルをスポーン。
  * 各ソースに固有のribbonIdを割り当て、TrailRendererで個別のリボンとして描画。
- * BulletTrailManagerなど、動的に追加/削除されるトレイル用途向け。
+ * 動的に追加/削除されるトレイル用途向け。
  */
 class MultiSourceRibbonModule : public IModule
 {
