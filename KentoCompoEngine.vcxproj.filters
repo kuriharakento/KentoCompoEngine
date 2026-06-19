@@ -2,169 +2,169 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="animation">
-      <UniqueIdentifier>{91C8D63D-1F21-46F8-8248-DC9BDDB469A3}</UniqueIdentifier>
+      <UniqueIdentifier>{ED251C6F-2315-2F96-1BBF-9DEE9BE5092B}</UniqueIdentifier>
     </Filter>
     <Filter Include="audio">
-      <UniqueIdentifier>{0EEB39BD-A3E8-471F-A57E-0DB655343189}</UniqueIdentifier>
+      <UniqueIdentifier>{580BCAA5-3294-8B4F-B54B-B9FFFAD29D1E}</UniqueIdentifier>
     </Filter>
     <Filter Include="base">
-      <UniqueIdentifier>{032F012D-1CDF-413C-BD8D-6E3A37205DFA}</UniqueIdentifier>
+      <UniqueIdentifier>{DE163659-3315-0F0C-B2D5-5E55410BF994}</UniqueIdentifier>
     </Filter>
     <Filter Include="camerawork">
-      <UniqueIdentifier>{C2A2D824-BAF2-4477-A9E2-0CCFA561FF56}</UniqueIdentifier>
+      <UniqueIdentifier>{2AE49CFD-3C03-E663-688F-7B4302CB3B84}</UniqueIdentifier>
     </Filter>
     <Filter Include="camerawork\base">
-      <UniqueIdentifier>{DFA16D06-0BEF-4436-A5C6-65889A234B0A}</UniqueIdentifier>
+      <UniqueIdentifier>{E102FD5A-274C-40B4-6508-018F54C30ECE}</UniqueIdentifier>
     </Filter>
     <Filter Include="camerawork\debug">
-      <UniqueIdentifier>{EC8CDEA3-A448-488A-9BE5-979BA106F915}</UniqueIdentifier>
+      <UniqueIdentifier>{133CE9F4-407D-891E-7827-7029F7276484}</UniqueIdentifier>
     </Filter>
     <Filter Include="camerawork\follow">
-      <UniqueIdentifier>{645C8F0A-ED5D-44DE-AF57-A22EBB5F053D}</UniqueIdentifier>
+      <UniqueIdentifier>{85F977FB-C617-5178-0FC4-83332130ED8C}</UniqueIdentifier>
     </Filter>
     <Filter Include="camerawork\orbit">
-      <UniqueIdentifier>{567EE4D0-9AD9-40C1-BD0A-9C88F97DD73B}</UniqueIdentifier>
+      <UniqueIdentifier>{FA51E626-CA32-693B-5A83-5A63C22BAEC9}</UniqueIdentifier>
     </Filter>
     <Filter Include="camerawork\spline">
-      <UniqueIdentifier>{B238717A-36A1-4AFB-85F0-C2C1BAF05E5E}</UniqueIdentifier>
+      <UniqueIdentifier>{034E9709-B82B-60DF-F839-DE92786DEF26}</UniqueIdentifier>
     </Filter>
     <Filter Include="camerawork\topdown">
-      <UniqueIdentifier>{A3B3EE54-49FB-48EA-BD05-0B201C0C949B}</UniqueIdentifier>
+      <UniqueIdentifier>{36A28273-A28A-DE9A-D3B7-8E579F0E471C}</UniqueIdentifier>
     </Filter>
     <Filter Include="ecs">
-      <UniqueIdentifier>{BE6D7774-BB99-4369-A270-E09CFEFA2441}</UniqueIdentifier>
+      <UniqueIdentifier>{0193B22E-8611-EE4B-B409-E946751215B1}</UniqueIdentifier>
     </Filter>
     <Filter Include="ecs\components">
-      <UniqueIdentifier>{4D3E54DE-7AFD-4169-8B1B-AB3790A308B2}</UniqueIdentifier>
+      <UniqueIdentifier>{05D83E4A-8D5D-73AE-1DE0-2C663F37364E}</UniqueIdentifier>
     </Filter>
     <Filter Include="ecs\debug">
-      <UniqueIdentifier>{6F97494B-9D74-44D6-8991-604BD2910E74}</UniqueIdentifier>
+      <UniqueIdentifier>{93CB145A-551C-E8BD-EA96-6311AFA9C0EF}</UniqueIdentifier>
     </Filter>
     <Filter Include="ecs\system">
-      <UniqueIdentifier>{4481FF4F-FF71-4CEC-BF1C-D7622FBAC7FC}</UniqueIdentifier>
+      <UniqueIdentifier>{56DF663B-266D-AFB4-5208-CFCDD0D769BE}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects">
-      <UniqueIdentifier>{19B20EC3-B42D-4D80-A8F4-ACB6F39FD7B0}</UniqueIdentifier>
+      <UniqueIdentifier>{C587B32B-0E1F-ABBD-53CC-485D53694D37}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle">
-      <UniqueIdentifier>{3A978421-CDAB-4E8D-84A7-56AAEA71C670}</UniqueIdentifier>
+      <UniqueIdentifier>{E417CC2B-D7B8-CA28-B048-5F5F5A4FD2DF}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle\dynamic">
-      <UniqueIdentifier>{1A13CB6F-377D-4120-9867-B65DF5EA47B1}</UniqueIdentifier>
+      <UniqueIdentifier>{665DA392-E3B0-177D-C517-CAFF8D7BF33A}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle\editor">
-      <UniqueIdentifier>{4823760C-A012-44AB-B8C5-6D9E308DE92B}</UniqueIdentifier>
+      <UniqueIdentifier>{8E381EA4-5DF0-240F-AD33-EAF60C6D2C84}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle\gpu">
-      <UniqueIdentifier>{C78EE1C4-9C50-4BAB-B604-40744A8F22C1}</UniqueIdentifier>
+      <UniqueIdentifier>{EB65DBBF-732F-1E8E-4B68-18C61284A531}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle\module">
-      <UniqueIdentifier>{DE4D2D9F-0761-45EB-9F88-94C979BD902F}</UniqueIdentifier>
+      <UniqueIdentifier>{953E53BE-1011-9B7D-E06D-436455D6FB64}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle\module\spawn">
-      <UniqueIdentifier>{6E65A9BF-B9BB-4D31-AC64-8F08BF76E1FE}</UniqueIdentifier>
+      <UniqueIdentifier>{0C8E5228-FB29-6D55-6397-8602FF084E3F}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle\module\update">
-      <UniqueIdentifier>{CA9B48D2-834F-40B0-9746-01839C5923FF}</UniqueIdentifier>
+      <UniqueIdentifier>{5030915B-8AC9-9FCE-DCAA-3AAA55089582}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle\primitive">
-      <UniqueIdentifier>{657250DD-3306-4442-B497-83985A64F5E2}</UniqueIdentifier>
+      <UniqueIdentifier>{E8E6124A-7C59-5CAF-0C80-161B97C4AECA}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle\renderer">
-      <UniqueIdentifier>{7B2A726C-405B-4A0B-8EDE-5C67518C5A44}</UniqueIdentifier>
+      <UniqueIdentifier>{D26F2BFB-781B-BCA3-F98D-EFC1F49B87EE}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle\serialization">
-      <UniqueIdentifier>{711277FD-DAB7-47BD-A83F-807CAFA6CD41}</UniqueIdentifier>
+      <UniqueIdentifier>{6E5551C0-AFF4-5903-4FB6-15F85AFACA8E}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\postprocess">
-      <UniqueIdentifier>{ED4B0722-FFD1-4904-BF7F-EF395ADE79C1}</UniqueIdentifier>
+      <UniqueIdentifier>{87567338-B551-3C71-0BA5-22204342FCB0}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\postprocess\base">
-      <UniqueIdentifier>{85C45466-8B02-41B1-A579-FE023161874D}</UniqueIdentifier>
+      <UniqueIdentifier>{55EC7A5C-A72F-CF42-C46F-503FBDD218F3}</UniqueIdentifier>
     </Filter>
     <Filter Include="framework">
-      <UniqueIdentifier>{A143DD13-FFDA-484A-97AC-AA7CE47E54C5}</UniqueIdentifier>
+      <UniqueIdentifier>{DC576475-F185-5034-B3DF-BA2CBC1465E5}</UniqueIdentifier>
     </Filter>
     <Filter Include="gameobject">
-      <UniqueIdentifier>{9834960E-572D-443A-98F8-E7FECA87E8A9}</UniqueIdentifier>
+      <UniqueIdentifier>{5242FE77-4E2F-0251-6545-8111A6DB2382}</UniqueIdentifier>
     </Filter>
     <Filter Include="gameobject\base">
-      <UniqueIdentifier>{52E5C05E-DC3D-499E-AB73-FE02F41ED16A}</UniqueIdentifier>
+      <UniqueIdentifier>{EE3DAFE2-D6D0-BB9A-A85A-E8F03C45A385}</UniqueIdentifier>
     </Filter>
     <Filter Include="gameobject\component">
-      <UniqueIdentifier>{93AB04D6-3B87-456A-B6FC-F9D0C9A56873}</UniqueIdentifier>
+      <UniqueIdentifier>{27DE8F67-50F5-62C8-3050-C8AD830AB54F}</UniqueIdentifier>
     </Filter>
     <Filter Include="gameobject\component\base">
-      <UniqueIdentifier>{6BDB31E1-18F4-49BD-9F9B-51309FED3244}</UniqueIdentifier>
+      <UniqueIdentifier>{CD48CB88-DD2E-278F-0646-5616E2554B64}</UniqueIdentifier>
     </Filter>
     <Filter Include="gameobject\component\collision">
-      <UniqueIdentifier>{20D88D0A-E3E8-4324-9434-20B79FDDA6A8}</UniqueIdentifier>
+      <UniqueIdentifier>{0BF4CDBB-E0D3-C0F2-A002-EABFE1C27DD0}</UniqueIdentifier>
     </Filter>
     <Filter Include="gameobject\manager">
-      <UniqueIdentifier>{EE776C8F-F3C6-4D5D-BA50-F993E17CE40A}</UniqueIdentifier>
+      <UniqueIdentifier>{22B4094A-9F6E-4316-B156-B33340B14893}</UniqueIdentifier>
     </Filter>
     <Filter Include="graphics">
-      <UniqueIdentifier>{9AA32660-2D8F-469B-AF9D-09C467344DDE}</UniqueIdentifier>
+      <UniqueIdentifier>{2D47B073-0643-0391-642F-FA07997FF20A}</UniqueIdentifier>
     </Filter>
     <Filter Include="graphics\2d">
-      <UniqueIdentifier>{103022FE-81AA-41EC-93CD-DD20F69C0BBA}</UniqueIdentifier>
+      <UniqueIdentifier>{F6565E11-F4C9-D8AF-6A4B-505C88C3AACF}</UniqueIdentifier>
     </Filter>
     <Filter Include="graphics\3d">
-      <UniqueIdentifier>{8D149819-C55C-4409-AF43-BE59C5E776F6}</UniqueIdentifier>
+      <UniqueIdentifier>{36D116A8-47E3-B4FB-434B-3641275D8ECE}</UniqueIdentifier>
     </Filter>
     <Filter Include="graphics\deferred">
-      <UniqueIdentifier>{9E07BF94-B484-4DD4-9828-02EA6F37FD9F}</UniqueIdentifier>
+      <UniqueIdentifier>{50F04704-CE59-CEB6-C68A-260CF06D550F}</UniqueIdentifier>
     </Filter>
     <Filter Include="graphics\shadow">
-      <UniqueIdentifier>{4C6AA516-8BD2-4B16-8261-6EDA6B6B04D7}</UniqueIdentifier>
+      <UniqueIdentifier>{3A021D8D-4742-54AF-F5C8-42FC7426344F}</UniqueIdentifier>
     </Filter>
     <Filter Include="input">
-      <UniqueIdentifier>{013E76F7-42CB-4410-84D9-943724E55B81}</UniqueIdentifier>
+      <UniqueIdentifier>{0A1B3CA4-3AA5-900C-8810-C06AB1FF3967}</UniqueIdentifier>
     </Filter>
     <Filter Include="jsonEditor">
-      <UniqueIdentifier>{509A5324-BB88-4597-AE56-996334D8B572}</UniqueIdentifier>
+      <UniqueIdentifier>{B964069D-9D21-57B2-B320-954772B8E237}</UniqueIdentifier>
     </Filter>
     <Filter Include="light">
-      <UniqueIdentifier>{6E05D559-5F29-45A0-8D94-58D5037C5DCE}</UniqueIdentifier>
+      <UniqueIdentifier>{A43AC42A-F43B-F973-A9C0-9B4B608619D3}</UniqueIdentifier>
     </Filter>
     <Filter Include="line">
-      <UniqueIdentifier>{2276B07A-CF53-4A33-82F7-B3AE2DA92AD9}</UniqueIdentifier>
+      <UniqueIdentifier>{69C63864-D0E0-98DE-E692-9C2CC0FAC474}</UniqueIdentifier>
     </Filter>
     <Filter Include="manager">
-      <UniqueIdentifier>{E29D30AF-A6CE-4159-A24E-FE8237E6879E}</UniqueIdentifier>
+      <UniqueIdentifier>{C258021D-0A44-198D-E716-292B231E3190}</UniqueIdentifier>
     </Filter>
     <Filter Include="manager\editor">
-      <UniqueIdentifier>{2974352E-3D88-4D77-B315-7A070FAB2BE4}</UniqueIdentifier>
+      <UniqueIdentifier>{D154248E-515D-7950-7A02-F588A8FAF450}</UniqueIdentifier>
     </Filter>
     <Filter Include="manager\effect">
-      <UniqueIdentifier>{64AEB065-8D89-482A-8D9D-E768CB900C6F}</UniqueIdentifier>
+      <UniqueIdentifier>{00F45623-B1F9-ABD7-EF51-4BAD5F8306C7}</UniqueIdentifier>
     </Filter>
     <Filter Include="manager\graphics">
-      <UniqueIdentifier>{56324931-EF73-4B64-9F9D-2E8045A8DDB4}</UniqueIdentifier>
+      <UniqueIdentifier>{643B32CD-7132-DBBB-2AAA-2397872E2464}</UniqueIdentifier>
     </Filter>
     <Filter Include="manager\scene">
-      <UniqueIdentifier>{0D6E27DC-AA36-4484-B1EB-7DA5DEA3AE45}</UniqueIdentifier>
+      <UniqueIdentifier>{D939B566-F256-E4AC-8886-031B73B124D1}</UniqueIdentifier>
     </Filter>
     <Filter Include="manager\system">
-      <UniqueIdentifier>{AB45CD3B-ABC2-47E6-BB13-061A7FC039BE}</UniqueIdentifier>
+      <UniqueIdentifier>{AFB496F9-9DE7-847F-7BB4-926C665374E2}</UniqueIdentifier>
     </Filter>
     <Filter Include="math">
-      <UniqueIdentifier>{D5CB0585-9352-4D7C-A190-E0CC6E74DC4B}</UniqueIdentifier>
+      <UniqueIdentifier>{9E6E677E-3B66-40EB-FD13-3F5EE24487C2}</UniqueIdentifier>
     </Filter>
     <Filter Include="scene">
-      <UniqueIdentifier>{A71BDF98-0B7E-47E8-8061-1A55325D43E1}</UniqueIdentifier>
+      <UniqueIdentifier>{4B607F1E-4186-DE5A-94E1-5FEF8627609B}</UniqueIdentifier>
     </Filter>
     <Filter Include="scene\factory">
-      <UniqueIdentifier>{CD21A5C7-303C-4AFB-B60C-44A54FD75022}</UniqueIdentifier>
+      <UniqueIdentifier>{BD82BADC-1C2E-65EA-A4F9-998E5069BEBC}</UniqueIdentifier>
     </Filter>
     <Filter Include="scene\interface">
-      <UniqueIdentifier>{87AD7F70-5B73-463F-8C9A-459890944F38}</UniqueIdentifier>
+      <UniqueIdentifier>{1BF3A113-94C4-60FF-425A-C129E9DF08EA}</UniqueIdentifier>
     </Filter>
     <Filter Include="scene\manager">
-      <UniqueIdentifier>{C0D012B8-D647-418B-B71C-6C9D672075C1}</UniqueIdentifier>
+      <UniqueIdentifier>{72F9E7D2-E454-B61E-0BA0-A6E729EACF9C}</UniqueIdentifier>
     </Filter>
     <Filter Include="time">
-      <UniqueIdentifier>{DCF31D32-8909-4937-B15A-E70688619D9A}</UniqueIdentifier>
+      <UniqueIdentifier>{4B69CC07-3F9B-36C6-710F-A08B6922C42B}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -999,6 +999,4 @@
       <Filter>time</Filter>
     </ClInclude>
   </ItemGroup>
-  <ItemGroup />
-  <ItemGroup />
 </Project>
