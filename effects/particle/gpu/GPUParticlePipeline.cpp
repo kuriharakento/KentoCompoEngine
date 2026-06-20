@@ -43,6 +43,9 @@ void GPUParticlePipeline::Initialize(DirectXCommon* dxCommon)
 	CreateConverterRootSignature();
 	CompileConverterShader();
 	CreateConverterPipelineState();
+
+	// 各モジュール用パイプラインを構築
+	CreateModulePipelines();
 }
 
 void GPUParticlePipeline::Finalize()
@@ -56,6 +59,19 @@ void GPUParticlePipeline::Finalize()
 	converterPipelineState_.Reset();
 	converterRootSignature_.Reset();
 	converterShaderBlob_.Reset();
+
+	// 各モジュール用リソースを解放
+	vortexPipelineState_.Reset();
+	vortexRootSignature_.Reset();
+	vortexShaderBlob_.Reset();
+
+	attractorPipelineState_.Reset();
+	attractorRootSignature_.Reset();
+	attractorShaderBlob_.Reset();
+
+	curlNoisePipelineState_.Reset();
+	curlNoiseRootSignature_.Reset();
+	curlNoiseShaderBlob_.Reset();
 
 	// シングルトンインスタンスを削除
 	instance_.reset();
@@ -283,5 +299,110 @@ void GPUParticlePipeline::CreateConverterPipelineState()
 	if (FAILED(hr))
 	{
 		OutputDebugStringA("Failed to create converter compute pipeline state\n");
+	}
+}
+
+void GPUParticlePipeline::CreateModulePipelines()
+{
+	auto* device = dxCommon_->GetDevice();
+	UINT compileFlags = 0;
+#ifdef _DEBUG
+	compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+	// Vortex
+	{
+		vortexRootSignature_ = rootSignature_; // ルートシグネチャは共有
+		
+		Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
+		HRESULT hr = D3DCompileFromFile(
+			L"Resources/shaders/ParticleVortex.CS.hlsl",
+			nullptr,
+			D3D_COMPILE_STANDARD_FILE_INCLUDE,
+			"CSMain",
+			"cs_5_0",
+			compileFlags,
+			0,
+			&vortexShaderBlob_,
+			&errorBlob
+		);
+		if (FAILED(hr))
+		{
+			if (errorBlob)
+			{
+				OutputDebugStringA(static_cast<const char*>(errorBlob->GetBufferPointer()));
+			}
+		}
+		assert(SUCCEEDED(hr));
+
+		D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
+		psoDesc.pRootSignature = vortexRootSignature_.Get();
+		psoDesc.CS = { vortexShaderBlob_->GetBufferPointer(), vortexShaderBlob_->GetBufferSize() };
+		hr = device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&vortexPipelineState_));
+		assert(SUCCEEDED(hr));
+	}
+
+	// Attractor
+	{
+		attractorRootSignature_ = rootSignature_; // ルートシグネチャは共有
+		
+		Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
+		HRESULT hr = D3DCompileFromFile(
+			L"Resources/shaders/ParticleAttractor.CS.hlsl",
+			nullptr,
+			D3D_COMPILE_STANDARD_FILE_INCLUDE,
+			"CSMain",
+			"cs_5_0",
+			compileFlags,
+			0,
+			&attractorShaderBlob_,
+			&errorBlob
+		);
+		if (FAILED(hr))
+		{
+			if (errorBlob)
+			{
+				OutputDebugStringA(static_cast<const char*>(errorBlob->GetBufferPointer()));
+			}
+		}
+		assert(SUCCEEDED(hr));
+
+		D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
+		psoDesc.pRootSignature = attractorRootSignature_.Get();
+		psoDesc.CS = { attractorShaderBlob_->GetBufferPointer(), attractorShaderBlob_->GetBufferSize() };
+		hr = device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&attractorPipelineState_));
+		assert(SUCCEEDED(hr));
+	}
+
+	// CurlNoise
+	{
+		curlNoiseRootSignature_ = rootSignature_; // ルートシグネチャは共有
+		
+		Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
+		HRESULT hr = D3DCompileFromFile(
+			L"Resources/shaders/ParticleCurlNoise.CS.hlsl",
+			nullptr,
+			D3D_COMPILE_STANDARD_FILE_INCLUDE,
+			"CSMain",
+			"cs_5_0",
+			compileFlags,
+			0,
+			&curlNoiseShaderBlob_,
+			&errorBlob
+		);
+		if (FAILED(hr))
+		{
+			if (errorBlob)
+			{
+				OutputDebugStringA(static_cast<const char*>(errorBlob->GetBufferPointer()));
+			}
+		}
+		assert(SUCCEEDED(hr));
+
+		D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
+		psoDesc.pRootSignature = curlNoiseRootSignature_.Get();
+		psoDesc.CS = { curlNoiseShaderBlob_->GetBufferPointer(), curlNoiseShaderBlob_->GetBufferSize() };
+		hr = device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&curlNoisePipelineState_));
+		assert(SUCCEEDED(hr));
 	}
 }

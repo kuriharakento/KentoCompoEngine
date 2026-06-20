@@ -31,6 +31,7 @@ struct ParticleContext
 	Vector3 emitterPosition = {};
 	Transform* followTarget = nullptr;
 	uint32_t spawnCount = 0;
+	uint32_t maxParticles = 1000;
 };
 
 /**
@@ -50,7 +51,7 @@ public:
 	void SetRenderer(std::unique_ptr<IRenderer> renderer);
 	IRenderer* GetRenderer() const { return renderer_.get(); }
 
-	void SetMaxParticles(uint32_t max) { maxParticles_ = max; }
+	void SetMaxParticles(uint32_t max);
 	uint32_t GetMaxParticles() const { return maxParticles_; }
 
 	void SetSimulationMode(SimulationMode mode);
@@ -186,6 +187,7 @@ public:
 private:
 	void UpdateCPU(float deltaTime);
 	void UpdateGPU(float deltaTime, CameraManager* camera);
+	void UpdateGPUSpawns(float deltaTime);
 	void RemoveDeadParticles();
 	void ExecuteSpawnModules(ParticleContext& context);
 	void ExecuteUpdateModules(ParticleContext& context);

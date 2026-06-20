@@ -83,6 +83,12 @@ void SpriteRenderer::InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvM
 
 void SpriteRenderer::Update(const std::vector<Particle>& particles, CameraManager* camera)
 {
+	if (isGPUMode_)
+	{
+		instanceCount_ = 0;
+		return;
+	}
+
 	if (particles.empty())
 	{
 		instanceCount_ = 0;

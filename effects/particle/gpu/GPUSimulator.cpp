@@ -1,5 +1,10 @@
 #include "GPUSimulator.h"
 #include "effects/particle/gpu/GPUParticlePipeline.h"
+#include "effects/particle/module/IModule.h"
+#include "effects/particle/module/update/UpdateModules.h"
+#include "effects/particle/module/update/AdvancedModules.h"
+#include "effects/particle/module/update/MotionEffectModules.h"
+#include "effects/particle/module/update/NaturalBehaviorModules.h"
 #include "manager/system/SrvManager.h"
 #include "manager/scene/CameraManager.h"
 #include "base/Camera.h"
@@ -108,8 +113,8 @@ void GPUSimulator::CreateBuffers()
 		);
 	}
 
-	// リードバックバッファ
-	// GPU→CPU読み戻し用バッファ（ReadbackParticles時に使用）
+	// リードバックバッファ（ダブルバッファリングでストール防止）
+	for (uint32_t i = 0; i < kNumReadbackBuffers; ++i)
 	{
 		D3D12_HEAP_PROPERTIES heapProps{};
 		heapProps.Type = D3D12_HEAP_TYPE_READBACK;
@@ -129,7 +134,7 @@ void GPUSimulator::CreateBuffers()
 			&resourceDesc,
 			D3D12_RESOURCE_STATE_COPY_DEST,
 			nullptr,
-			IID_PPV_ARGS(&particleReadbackBuffer_)
+			IID_PPV_ARGS(&particleReadbackBuffer_[i])
 		);
 	}
 
@@ -262,15 +267,21 @@ void GPUSimulator::CreateBuffers()
 	}
 }
 
-void GPUSimulator::SpawnParticles(const std::vector<Particle>& newParticles)
+void GPUSimulator::UploadParticles(const std::vector<Particle>& particles)
 {
-	if (newParticles.empty()) return;
+	if (particles.empty())
+	{
+		particleCount_ = 0;
+		return;
+	}
 
-	// アップロードバッファにパーティクルデータを書き込む
+	// アップロード数を制限
+	uint32_t copyCount = (std::min)(static_cast<uint32_t>(particles.size()), maxParticles_);
+
+	// アップロードバッファにパーティクルデータを書き込む（先頭から）
 	void* data = nullptr;
 	particleUploadBuffer_->Map(0, nullptr, &data);
-	size_t copyCount = (std::min)(newParticles.size(), static_cast<size_t>(maxParticles_ - particleCount_));
-	memcpy(static_cast<Particle*>(data) + particleCount_, newParticles.data(), sizeof(Particle) * copyCount);
+	memcpy(data, particles.data(), sizeof(Particle) * copyCount);
 	particleUploadBuffer_->Unmap(0, nullptr);
 
 	auto* cmdList = dxCommon_->GetCommandList();
@@ -284,12 +295,12 @@ void GPUSimulator::SpawnParticles(const std::vector<Particle>& newParticles)
 	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	cmdList->ResourceBarrier(1, &barrier);
 
-	// アップロードバッファからGPUバッファへコピー
+	// アップロードバッファからGPUバッファへコピー（先頭から）
 	cmdList->CopyBufferRegion(
 		particleBuffer_.Get(),
-		particleCount_ * sizeof(Particle),
+		0,
 		particleUploadBuffer_.Get(),
-		particleCount_ * sizeof(Particle),
+		0,
 		copyCount * sizeof(Particle)
 	);
 
@@ -300,10 +311,16 @@ void GPUSimulator::SpawnParticles(const std::vector<Particle>& newParticles)
 
 	// 状態とカウントを更新
 	particleBufferState_ = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-	particleCount_ += static_cast<uint32_t>(copyCount);
+	particleCount_ = copyCount;
 }
 
-void GPUSimulator::UpdateConstantBuffer(float deltaTime)
+void GPUSimulator::ClearParticles()
+{
+	particleCount_ = 0;
+	readbackFrameIndex_ = 0;
+}
+
+void GPUSimulator::UpdateConstantBuffer(float deltaTime, const std::vector<std::unique_ptr<class IModule>>& modules, const Matrix4x4& emitterWorld, uint32_t simulationSpace)
 {
 	// 定数バッファにシミュレーションパラメータを書き込む
 	if (constantData_)
@@ -315,17 +332,199 @@ void GPUSimulator::UpdateConstantBuffer(float deltaTime)
 		constantData_->emitterPosition = emitterPosition_;
 		constantData_->gravity = gravity_;
 		constantData_->isBillboard = isBillboard_ ? 1 : 0;
+		constantData_->simulationSpace = simulationSpace;
+		constantData_->emitterWorld = emitterWorld;
+
+		// デフォルト初期値（モジュールが無効な場合）
+		constantData_->hasDrag = 0;
+		constantData_->hasColorFade = 0;
+		constantData_->hasScaleOL = 0;
+		constantData_->dragMin = 0.0f;
+		constantData_->dragMax = 0.0f;
+		constantData_->paddingDrag = 0.0f;
+		constantData_->colorFadeUseInitial = 0;
+		constantData_->colorFadeEasing = 0;
+		constantData_->paddingCF = 0.0f;
+		constantData_->colorFadeStart = { 1.0f, 1.0f, 1.0f, 1.0f };
+		constantData_->colorFadeEnd = { 1.0f, 1.0f, 1.0f, 1.0f };
+		constantData_->scaleOLEasing = 0;
+		constantData_->paddingScaleOL[0] = 0.0f;
+		constantData_->paddingScaleOL[1] = 0.0f;
+		constantData_->scaleOLStart = { 1.0f, 1.0f, 1.0f };
+		constantData_->paddingS1 = 0.0f;
+		constantData_->scaleOLEnd = { 1.0f, 1.0f, 1.0f };
+		constantData_->paddingS2 = 0.0f;
+
+		constantData_->hasNoise = 0;
+		constantData_->noiseStrength = 0.0f;
+		constantData_->noiseFrequency = 0.0f;
+		constantData_->paddingNoise = 0.0f;
+		constantData_->hasRotationOL = 0;
+		constantData_->rotOLStartSpeed = 0.0f;
+		constantData_->rotOLEndSpeed = 0.0f;
+		constantData_->rotOLEasing = 0;
+		constantData_->hasAlphaFade = 0;
+		constantData_->alphaFadeStart = 0.0f;
+		constantData_->alphaFadeEnd = 0.0f;
+		constantData_->alphaFadeEaseIn = 0;
+		constantData_->alphaFadeEaseOut = 0;
+		constantData_->paddingAlpha[0] = 0.0f;
+		constantData_->paddingAlpha[1] = 0.0f;
+		constantData_->paddingAlpha[2] = 0.0f;
+
+		constantData_->hasVelocityOL = 0;
+		constantData_->velocityOLStart = 1.0f;
+		constantData_->velocityOLEnd = 1.0f;
+		constantData_->paddingVelocityOL = 0.0f;
+
+		constantData_->hasStretchByVelocity = 0;
+		constantData_->stretchFactor = 0.0f;
+		constantData_->minStretch = 1.0f;
+		constantData_->maxStretch = 1.0f;
+		constantData_->stretchPreserveVolume = 0;
+		constantData_->paddingStretch[0] = 0.0f;
+		constantData_->paddingStretch[1] = 0.0f;
+		constantData_->paddingStretch[2] = 0.0f;
+
+		constantData_->hasFlicker = 0;
+		constantData_->flickerFrequency = 0.0f;
+		constantData_->flickerMinAlpha = 0.0f;
+		constantData_->flickerMaxAlpha = 0.0f;
+		constantData_->flickerRandomPhase = 0;
+		constantData_->flickerUseNoise = 0;
+		constantData_->paddingFlicker[0] = 0.0f;
+		constantData_->paddingFlicker[1] = 0.0f;
+
+		constantData_->hasFaceVelocity = 0;
+		constantData_->faceVelocityUse2D = 0;
+		constantData_->paddingFaceVelocity[0] = 0.0f;
+		constantData_->paddingFaceVelocity[1] = 0.0f;
+
+		// モジュールを走査してパラメータを抽出
+		for (const auto& module : modules)
+		{
+			if (module->GetName() == std::string("Drag"))
+			{
+				auto* m = dynamic_cast<DragModule*>(module.get());
+				if (m)
+				{
+					constantData_->hasDrag = 1;
+					constantData_->dragMin = m->GetMinDrag();
+					constantData_->dragMax = m->GetMaxDrag();
+				}
+			}
+			else if (module->GetName() == std::string("ColorFade"))
+			{
+				auto* m = dynamic_cast<ColorFadeModule*>(module.get());
+				if (m)
+				{
+					constantData_->hasColorFade = 1;
+					constantData_->colorFadeUseInitial = m->GetUseInitialColor() ? 1 : 0;
+					constantData_->colorFadeEasing = static_cast<uint32_t>(m->GetEasingType());
+					constantData_->colorFadeStart = m->GetStartColor();
+					constantData_->colorFadeEnd = m->GetEndColor();
+				}
+			}
+			else if (module->GetName() == std::string("ScaleOverLifetime"))
+			{
+				auto* m = dynamic_cast<ScaleOverLifetimeModule*>(module.get());
+				if (m)
+				{
+					constantData_->hasScaleOL = 1;
+					constantData_->scaleOLEasing = static_cast<uint32_t>(m->GetEasingType());
+					constantData_->scaleOLStart = m->GetStartScale();
+					constantData_->scaleOLEnd = m->GetEndScale();
+				}
+			}
+			else if (module->GetName() == std::string("Noise"))
+			{
+				auto* m = dynamic_cast<NoiseModule*>(module.get());
+				if (m)
+				{
+					constantData_->hasNoise = 1;
+					constantData_->noiseStrength = m->GetStrength();
+					constantData_->noiseFrequency = m->GetFrequency();
+				}
+			}
+			else if (module->GetName() == std::string("RotationOverLifetime"))
+			{
+				auto* m = dynamic_cast<RotationOverLifetimeModule*>(module.get());
+				if (m)
+				{
+					constantData_->hasRotationOL = 1;
+					constantData_->rotOLStartSpeed = m->GetStartSpeed();
+					constantData_->rotOLEndSpeed = m->GetEndSpeed();
+					constantData_->rotOLEasing = static_cast<uint32_t>(m->GetEasingType());
+				}
+			}
+			else if (module->GetName() == std::string("AlphaFade"))
+			{
+				auto* m = dynamic_cast<AlphaFadeModule*>(module.get());
+				if (m)
+				{
+					constantData_->hasAlphaFade = 1;
+					constantData_->alphaFadeStart = m->GetStartAlpha();
+					constantData_->alphaFadeEnd = m->GetEndAlpha();
+					constantData_->alphaFadeEaseIn = m->GetEaseIn() ? 1 : 0;
+					constantData_->alphaFadeEaseOut = m->GetEaseOut() ? 1 : 0;
+				}
+			}
+			else if (module->GetName() == std::string("VelocityOverLifetime"))
+			{
+				auto* m = dynamic_cast<VelocityOverLifetimeModule*>(module.get());
+				if (m)
+				{
+					constantData_->hasVelocityOL = 1;
+					constantData_->velocityOLStart = m->GetStartMultiplier();
+					constantData_->velocityOLEnd = m->GetEndMultiplier();
+				}
+			}
+			else if (module->GetName() == std::string("StretchByVelocity"))
+			{
+				auto* m = dynamic_cast<StretchByVelocityModule*>(module.get());
+				if (m)
+				{
+					constantData_->hasStretchByVelocity = 1;
+					constantData_->stretchFactor = m->GetStretchFactor();
+					constantData_->minStretch = m->GetMinStretch();
+					constantData_->maxStretch = m->GetMaxStretch();
+					constantData_->stretchPreserveVolume = m->GetPreserveVolume() ? 1 : 0;
+				}
+			}
+			else if (module->GetName() == std::string("Flicker"))
+			{
+				auto* m = dynamic_cast<FlickerModule*>(module.get());
+				if (m)
+				{
+					constantData_->hasFlicker = 1;
+					constantData_->flickerFrequency = m->GetFrequency();
+					constantData_->flickerMinAlpha = m->GetMinAlpha();
+					constantData_->flickerMaxAlpha = m->GetMaxAlpha();
+					constantData_->flickerRandomPhase = m->GetRandomPhase() ? 1 : 0;
+					constantData_->flickerUseNoise = m->GetUseNoise() ? 1 : 0;
+				}
+			}
+			else if (module->GetName() == std::string("FaceVelocity"))
+			{
+				auto* m = dynamic_cast<FaceVelocityModule*>(module.get());
+				if (m)
+				{
+					constantData_->hasFaceVelocity = 1;
+					constantData_->faceVelocityUse2D = m->IsUse2DAlignment() ? 1 : 0;
+				}
+			}
+		}
 	}
 }
 
-void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera)
+void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera, const std::vector<std::unique_ptr<class IModule>>& modules, const Matrix4x4& emitterWorld, uint32_t simulationSpace)
 {
-	// 未初期化の場合は処理をスキップ
-	if (!initialized_) return;
+	// 未初期化、またはパーティクルがない場合は処理をスキップ
+	if (!initialized_ || particleCount_ == 0) return;
 
 	// 総時間を更新し、定数バッファを更新
 	totalTime_ += deltaTime;
-	UpdateConstantBuffer(deltaTime);
+	UpdateConstantBuffer(deltaTime, modules, emitterWorld, simulationSpace);
 
 	auto* commandList = dxCommon_->GetCommandList();
 	auto* pipeline = GPUParticlePipeline::GetInstance();
@@ -356,9 +555,27 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera)
 	commandList->SetComputeRootConstantBufferView(0, constantBuffer_->GetGPUVirtualAddress());
 	commandList->SetComputeRootDescriptorTable(1, srvManager_->GetGPUDescriptorHandle(particleUavIndex_));
 
-	// スレッドグループ数を計算してディスパッチ
-	uint32_t groupCount = (maxParticles_ + GPUSimulator::kThreadGroupSize - 1) / GPUSimulator::kThreadGroupSize;
+	// スレッドグループ数を計算してディスパッチ (現在アクティブなパーティクル数基準)
+	uint32_t groupCount = (particleCount_ + GPUSimulator::kThreadGroupSize - 1) / GPUSimulator::kThreadGroupSize;
+	if (groupCount == 0) groupCount = 1;
 	commandList->Dispatch(groupCount, 1, 1);
+
+	// UAVバリアを張り、モジュール実行に繋ぐ
+	{
+		D3D12_RESOURCE_BARRIER uavBarrier{};
+		uavBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+		uavBarrier.UAV.pResource = nullptr;
+		commandList->ResourceBarrier(1, &uavBarrier);
+	}
+
+	// フェーズ1.5: 各モジュールのGPUシミュレーション実行
+	for (const auto& module : modules)
+	{
+		if (module->IsGPUSupported())
+		{
+			module->DispatchGPU(this, commandList, deltaTime);
+		}
+	}
 
 	// パーティクルバッファをSRV状態に遷移（コンバータが読み取る）
 	{
@@ -372,13 +589,15 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera)
 
 	// フェーズ2: レンダリングデータ変換（Particle → ParticleGPU）
 	// レンダリングバッファをUAV状態に遷移（コンバータが書き込む）
+	if (renderBufferState_ != D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
 	{
 		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
 			renderBuffer_.Get(),
-			D3D12_RESOURCE_STATE_GENERIC_READ,
+			renderBufferState_,
 			D3D12_RESOURCE_STATE_UNORDERED_ACCESS
 		);
 		commandList->ResourceBarrier(1, &barrier);
+		renderBufferState_ = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 	}
 
 	// コンバータパイプラインを設定
@@ -426,42 +645,59 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera)
 	
 	// 状態追跡を更新
 	particleBufferState_ = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+	renderBufferState_ = D3D12_RESOURCE_STATE_GENERIC_READ;
+
+	// 次フレームのReadback用に、シミュレーション結果をリードバックバッファへコピーしておく（ダブルバッファリングでストール防止）
+	if (particleCount_ > 0)
+	{
+		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+			particleBuffer_.Get(),
+			particleBufferState_,
+			D3D12_RESOURCE_STATE_COPY_SOURCE
+		);
+		commandList->ResourceBarrier(1, &barrier);
+
+		uint32_t writeIndex = readbackFrameIndex_ % kNumReadbackBuffers;
+
+		// 必要な件数分だけコピー
+		commandList->CopyBufferRegion(
+			particleReadbackBuffer_[writeIndex].Get(),
+			0,
+			particleBuffer_.Get(),
+			0,
+			particleCount_ * sizeof(Particle)
+		);
+
+		barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+			particleBuffer_.Get(),
+			D3D12_RESOURCE_STATE_COPY_SOURCE,
+			D3D12_RESOURCE_STATE_UNORDERED_ACCESS
+		);
+		commandList->ResourceBarrier(1, &barrier);
+
+		particleBufferState_ = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+	}
+
+	// 次のフレームに向けてフレームインデックスを進める
+	readbackFrameIndex_++;
 }
 
 void GPUSimulator::ReadbackParticles(std::vector<Particle>& outParticles)
 {
 	if (particleCount_ == 0) return;
 
-	// ステップ1: 前フレームのデータを読み出す（1フレーム遅延）
-	// リードバックバッファから前回コピー済みのデータを取得
+	// 初回フレーム（まだ一度もGPUでシミュレーションが終わっていない場合）はスキップ
+	if (readbackFrameIndex_ == 0) return;
+
+	// 1フレーム前にコピーされたバッファを読み出す（同期ストールが起きない）
+	uint32_t readIndex = (readbackFrameIndex_ - 1) % kNumReadbackBuffers;
+
 	void* data = nullptr;
-	HRESULT hr = particleReadbackBuffer_->Map(0, nullptr, &data);
+	HRESULT hr = particleReadbackBuffer_[readIndex]->Map(0, nullptr, &data);
 	if (SUCCEEDED(hr))
 	{
 		outParticles.resize(particleCount_);
 		memcpy(outParticles.data(), data, sizeof(Particle) * particleCount_);
-		particleReadbackBuffer_->Unmap(0, nullptr);
+		particleReadbackBuffer_[readIndex]->Unmap(0, nullptr);
 	}
-
-	// ステップ2: 次フレームのためのコピーをスケジューリング
-	auto* cmdList = dxCommon_->GetCommandList();
-
-	// パーティクルバッファをコピーソース状態に遷移
-	D3D12_RESOURCE_BARRIER barrier{};
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	barrier.Transition.pResource = particleBuffer_.Get();
-	barrier.Transition.StateBefore = particleBufferState_;
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_SOURCE;
-	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	cmdList->ResourceBarrier(1, &barrier);
-
-	// GPU→CPUへコピー（リードバックバッファへ）
-	cmdList->CopyResource(particleReadbackBuffer_.Get(), particleBuffer_.Get());
-
-	// パーティクルバッファをUAV状態に戻す
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_SOURCE;
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-	cmdList->ResourceBarrier(1, &barrier);
-	
-	particleBufferState_ = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 }

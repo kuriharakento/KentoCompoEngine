@@ -36,6 +36,11 @@ public:
 
 		while (timeSinceLastSpawn_ >= spawnInterval)
 		{
+			if (context.particles->size() >= context.maxParticles)
+			{
+				timeSinceLastSpawn_ = 0.0f; // これ以上は追加しないのでリセット
+				break;
+			}
 			Particle particle;
 			particle.position = context.emitterPosition;
 			particle.SetAlive(true);
@@ -126,6 +131,10 @@ public:
 		{
 			for (uint32_t i = 0; i < burstCount_; ++i)
 			{
+				if (context.particles->size() >= context.maxParticles)
+				{
+					break;
+				}
 				Particle particle;
 				particle.position = context.emitterPosition;
 				particle.SetAlive(true);

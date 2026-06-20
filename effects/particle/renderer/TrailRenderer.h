@@ -148,7 +148,7 @@ public:
 
 	/** @brief ビルボード設定 */
 	void SetBillboard(bool enable) { useBillboard_ = enable; }
-	bool GetBillboard() const { return useBillboard_; }
+	bool GetBillboard() const override { return useBillboard_; }
 
 	/** @brief 幅フェード（先端に向かって細くなる）を設定 */
 	void SetWidthFade(bool enable) { widthFade_ = enable; }
@@ -160,6 +160,9 @@ public:
 
 	/** @brief トレイルをクリア */
 	void ClearTrails() { trails_.clear(); }
+
+	/** @brief 状態をリセット */
+	void Reset() override { ClearTrails(); }
 
 private:
 	/**

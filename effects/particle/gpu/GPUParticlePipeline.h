@@ -64,6 +64,36 @@ public:
 	ID3D12PipelineState* GetConverterPipelineState() const { return converterPipelineState_.Get(); }
 
 	/**
+	 * @brief 渦モジュール用ルートシグネチャを取得
+	 */
+	ID3D12RootSignature* GetVortexRootSignature() const { return vortexRootSignature_.Get(); }
+
+	/**
+	 * @brief 渦モジュール用パイプラインステートを取得
+	 */
+	ID3D12PipelineState* GetVortexPipelineState() const { return vortexPipelineState_.Get(); }
+
+	/**
+	 * @brief 引力モジュール用ルートシグネチャを取得
+	 */
+	ID3D12RootSignature* GetAttractorRootSignature() const { return attractorRootSignature_.Get(); }
+
+	/**
+	 * @brief 引力モジュール用パイプラインステートを取得
+	 */
+	ID3D12PipelineState* GetAttractorPipelineState() const { return attractorPipelineState_.Get(); }
+
+	/**
+	 * @brief カールノイズモジュール用ルートシグネチャを取得
+	 */
+	ID3D12RootSignature* GetCurlNoiseRootSignature() const { return curlNoiseRootSignature_.Get(); }
+
+	/**
+	 * @brief カールノイズモジュール用パイプラインステートを取得
+	 */
+	ID3D12PipelineState* GetCurlNoisePipelineState() const { return curlNoisePipelineState_.Get(); }
+
+	/**
 	 * @brief パイプラインが有効か判定
 	 * @return 有効な場合true
 	 */
@@ -104,6 +134,11 @@ private:
 	 */
 	void CreateConverterPipelineState();
 
+	/**
+	 * @brief 各モジュール用のパイプラインを構築
+	 */
+	void CreateModulePipelines();
+
 private:
 	static std::unique_ptr<GPUParticlePipeline> instance_;
 
@@ -116,6 +151,21 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> converterRootSignature_;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> converterPipelineState_;
 	Microsoft::WRL::ComPtr<ID3DBlob> converterShaderBlob_;
+
+	// Vortex
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> vortexRootSignature_;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> vortexPipelineState_;
+	Microsoft::WRL::ComPtr<ID3DBlob> vortexShaderBlob_;
+
+	// Attractor
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> attractorRootSignature_;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> attractorPipelineState_;
+	Microsoft::WRL::ComPtr<ID3DBlob> attractorShaderBlob_;
+
+	// CurlNoise
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> curlNoiseRootSignature_;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> curlNoisePipelineState_;
+	Microsoft::WRL::ComPtr<ID3DBlob> curlNoiseShaderBlob_;
 
 public:
 	~GPUParticlePipeline() = default;

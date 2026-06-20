@@ -49,6 +49,12 @@ public:
 	virtual RendererType GetType() const = 0;
 
 	/**
+	 * @brief ビルボード有効化状態を取得
+	 * @return ビルボードが有効な場合true
+	 */
+	virtual bool GetBillboard() const { return true; }
+
+	/**
 	 * @brief テクスチャを設定
 	 * @param texturePath テクスチャファイルパス
 	 */
@@ -67,6 +73,11 @@ public:
 	 * @param count GPUパーティクル数
 	 */
 	virtual void SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count) { (void)enable; (void)srvIndex; (void)count; }
+
+	/**
+	 * @brief レンダラーの状態をリセット（プール再利用時など）
+	 */
+	virtual void Reset() {}
 
 	/**
 	 * @brief ブレンドモードを設定

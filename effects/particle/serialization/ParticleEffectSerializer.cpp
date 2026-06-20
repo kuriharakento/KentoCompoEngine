@@ -133,6 +133,7 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 
 	// 基本設定
 	emitter->SetMaxParticles(data.value("maxParticles", 1000u));
+	emitter->SetSimulationMode(static_cast<SimulationMode>(data.value("simulationMode", 0)));
 
 	if (data.contains("position"))
 	{
@@ -891,6 +892,7 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 {
 	data["name"] = emitter.GetName();
 	data["maxParticles"] = emitter.GetMaxParticles();
+	data["simulationMode"] = static_cast<int>(emitter.GetSimulationMode());
 	data["position"] = {
 		{"x", emitter.GetPosition().x},
 		{"y", emitter.GetPosition().y},
