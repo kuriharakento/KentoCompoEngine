@@ -4,6 +4,8 @@
 #include "DirectXTex/d3dx12.h"
 #include <cassert>
 #include <d3dcompiler.h>
+#include <filesystem>
+#include <vector>
 
 #pragma comment(lib, "d3dcompiler.lib")
 
@@ -177,8 +179,27 @@ void LightPassPipeline::CreatePipelineState()
 	Microsoft::WRL::ComPtr<ID3DBlob> vsBlob;
 	Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
 
+	// ファイルが存在しない場合の自動検索
+	std::wstring vsPath = L"Resources/shaders/LightPass.VS.hlsl";
+	if (!std::filesystem::exists(vsPath))
+	{
+		std::vector<std::wstring> searchPaths = {
+			L"application/Resources/shaders/LightPass.VS.hlsl",
+			L"../engine/Resources/shaders/LightPass.VS.hlsl",
+			L"Resources/shaders/LightPass.VS.hlsl"
+		};
+		for (const auto& path : searchPaths)
+		{
+			if (std::filesystem::exists(path))
+			{
+				vsPath = path;
+				break;
+			}
+		}
+	}
+
 	HRESULT hr = D3DCompileFromFile(
-		L"Resources/shaders/LightPass.VS.hlsl",
+		vsPath.c_str(),
 		nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE,
 		"main", "vs_5_0",
 		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
@@ -195,8 +216,27 @@ void LightPassPipeline::CreatePipelineState()
 
 	// ピクセルシェーダーのコンパイル
 	Microsoft::WRL::ComPtr<ID3DBlob> psBlob;
+	// ファイルが存在しない場合の自動検索
+	std::wstring psPath = L"Resources/shaders/LightPass.PS.hlsl";
+	if (!std::filesystem::exists(psPath))
+	{
+		std::vector<std::wstring> searchPaths = {
+			L"application/Resources/shaders/LightPass.PS.hlsl",
+			L"../engine/Resources/shaders/LightPass.PS.hlsl",
+			L"Resources/shaders/LightPass.PS.hlsl"
+		};
+		for (const auto& path : searchPaths)
+		{
+			if (std::filesystem::exists(path))
+			{
+				psPath = path;
+				break;
+			}
+		}
+	}
+
 	hr = D3DCompileFromFile(
-		L"Resources/shaders/LightPass.PS.hlsl",
+		psPath.c_str(),
 		nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE,
 		"main", "ps_5_0",
 		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,

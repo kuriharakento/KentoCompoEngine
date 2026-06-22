@@ -1,6 +1,8 @@
 #include "GPUParticlePipeline.h"
 #include "base/DirectXCommon.h"
 #include <d3dcompiler.h>
+#include <filesystem>
+#include <vector>
 
 #pragma comment(lib, "d3dcompiler.lib")
 
@@ -116,9 +118,28 @@ void GPUParticlePipeline::CompileShader()
 	compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
+	// ファイルが存在しない場合の自動検索
+	std::wstring filePath = L"Resources/shaders/ParticleCompute.hlsl";
+	if (!std::filesystem::exists(filePath))
+	{
+		std::vector<std::wstring> searchPaths = {
+			L"application/Resources/shaders/ParticleCompute.hlsl",
+			L"../engine/Resources/shaders/ParticleCompute.hlsl",
+			L"Resources/shaders/ParticleCompute.hlsl"
+		};
+		for (const auto& path : searchPaths)
+		{
+			if (std::filesystem::exists(path))
+			{
+				filePath = path;
+				break;
+			}
+		}
+	}
+
 	// コンピュートシェーダーをコンパイル
 	HRESULT hr = D3DCompileFromFile(
-		L"Resources/shaders/ParticleCompute.hlsl",
+		filePath.c_str(),
 		nullptr,
 		D3D_COMPILE_STANDARD_FILE_INCLUDE,
 		"CSMain",
@@ -174,9 +195,28 @@ void GPUParticlePipeline::CompileConverterShader()
 	compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
+	// ファイルが存在しない場合の自動検索
+	std::wstring filePath = L"Resources/shaders/ParticleConvert.CS.hlsl";
+	if (!std::filesystem::exists(filePath))
+	{
+		std::vector<std::wstring> searchPaths = {
+			L"application/Resources/shaders/ParticleConvert.CS.hlsl",
+			L"../engine/Resources/shaders/ParticleConvert.CS.hlsl",
+			L"Resources/shaders/ParticleConvert.CS.hlsl"
+		};
+		for (const auto& path : searchPaths)
+		{
+			if (std::filesystem::exists(path))
+			{
+				filePath = path;
+				break;
+			}
+		}
+	}
+
 	// パーティクル→レンダリングデータ変換用コンピュートシェーダーをコンパイル
 	HRESULT hr = D3DCompileFromFile(
-		L"Resources/shaders/ParticleConvert.CS.hlsl",
+		filePath.c_str(),
 		nullptr,
 		D3D_COMPILE_STANDARD_FILE_INCLUDE,
 		"CSMain",
