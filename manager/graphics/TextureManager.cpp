@@ -1,6 +1,7 @@
 #include "TextureManager.h"
 
 #include <algorithm>
+#include <filesystem>
 
 // system
 #include "base/StringUtility.h"
@@ -58,14 +59,43 @@ void TextureManager::LoadTexture(const std::string& filePath)
 	DirectX::ScratchImage image{};
 	// ファイル読み込みには元のパスを使用
 	std::wstring filePathW = StringUtility::ConvertString(filePath);
+
+	// ファイルが存在しない場合のエンジン側リソースへのフォールバック
+	std::wstring targetPath = filePathW;
+	if (!std::filesystem::exists(targetPath))
+	{
+		std::wstring filename = std::filesystem::path(filePathW).filename().wstring();
+		std::wstring fallbackTex = L"../engine/Resources/textures/" + filename;
+		std::wstring fallbackFont = L"../engine/Resources/fonts/" + filename;
+		std::wstring fallbackDirect = filePathW;
+		size_t pos = fallbackDirect.find(L"Resources/");
+		if (pos != std::wstring::npos)
+		{
+			fallbackDirect.replace(pos, 10, L"../engine/Resources/");
+		}
+
+		if (std::filesystem::exists(fallbackTex))
+		{
+			targetPath = fallbackTex;
+		}
+		else if (std::filesystem::exists(fallbackFont))
+		{
+			targetPath = fallbackFont;
+		}
+		else if (std::filesystem::exists(fallbackDirect))
+		{
+			targetPath = fallbackDirect;
+		}
+	}
+
 	HRESULT hr;
 
 	// ファイル形式に応じて読み込み方法を変更
-	if (filePathW.ends_with(L".dds"))
+	if (targetPath.ends_with(L".dds"))
 	{
 		// DDSファイルの場合
 		hr = DirectX::LoadFromDDSFile(
-			filePathW.c_str(),
+			targetPath.c_str(),
 			DirectX::DDS_FLAGS_NONE,
 			nullptr,
 			image
@@ -75,7 +105,7 @@ void TextureManager::LoadTexture(const std::string& filePath)
 	{
 		// WICファイル（PNG, JPG等）の場合
 		hr = DirectX::LoadFromWICFile(
-			filePathW.c_str(),
+			targetPath.c_str(),
 			DirectX::WIC_FLAGS_FORCE_SRGB,
 			nullptr,
 			image

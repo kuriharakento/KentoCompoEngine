@@ -3,6 +3,7 @@
 #include <cassert>
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 
 // math
 #include "base/GraphicsTypes.h"
@@ -48,11 +49,22 @@ void Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPat
 	// モデルファイルのパスを構築
 	std::string objFilePath = filename + "/" + filename + modelType;
 
+	// ファイルが存在しない場合のフォールバック（engine/Resources/models）
+	std::string resolvedDirectoryPath = directoryPath;
+	if (!std::filesystem::exists(resolvedDirectoryPath + "/" + objFilePath))
+	{
+		std::string fallbackPath = "../engine/Resources/models";
+		if (std::filesystem::exists(fallbackPath + "/" + objFilePath))
+		{
+			resolvedDirectoryPath = fallbackPath;
+		}
+	}
+
 	// モデルの読み込み
-	modelData_ = LoadModelFile(directoryPath, objFilePath);
+	modelData_ = LoadModelFile(resolvedDirectoryPath, objFilePath);
 
 	// モデルのベースパス
-	std::string basePath = directoryPath + "/" + filename + "/";
+	std::string basePath = resolvedDirectoryPath + "/" + filename + "/";
 
 	// 全マテリアルのテクスチャを読み込み
 	for (auto& material : modelData_.materials)

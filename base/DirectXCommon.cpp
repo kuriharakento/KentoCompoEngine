@@ -3,6 +3,7 @@
 #include <cassert>
 #include <format>
 #include <thread>
+#include <filesystem>
 
 //自作クラス
 #include "base/Logger.h"
@@ -754,9 +755,22 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileSharder(const std::wstrin
 
 	//これからシェーダーをコンパイルする旨をログに出す
 	Logger::Log(StringUtility::ConvertString(std::format(L"Begin CompileSharder, path:{}, profile:{}\n", filePath, profile)));
+
+	// ファイルが存在しない場合のエンジン側シェーダーへのフォールバック
+	std::wstring targetPath = filePath;
+	if (!std::filesystem::exists(targetPath))
+	{
+		std::wstring filename = std::filesystem::path(filePath).filename().wstring();
+		std::wstring fallbackShader = L"../engine/Resources/shaders/" + filename;
+		if (std::filesystem::exists(fallbackShader))
+		{
+			targetPath = fallbackShader;
+		}
+	}
+
 	//hlslファイルを読む
 	IDxcBlobEncoding* shaderSource = nullptr;
-	HRESULT hr = dxcUtils_->LoadFile(filePath.c_str(), nullptr, &shaderSource);
+	HRESULT hr = dxcUtils_->LoadFile(targetPath.c_str(), nullptr, &shaderSource);
 	//読めなかったら止める
 	assert(SUCCEEDED(hr));
 	//読み込んだファイルの内容を設定する
@@ -770,7 +784,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileSharder(const std::wstrin
 	///===================================================================
 
 	LPCWSTR arguments[] = {
-		filePath.c_str(),				//コンパイル対称のhlslファイル名
+		targetPath.c_str(),				//コンパイル対象のhlslファイル名
 		L"-E", L"main",					//エントリーポイントの指定。基本的にmain以外にはしない
 		L"-T", profile,					//Sharderprofileの設定
 		L"-Zi", L"-Qembed_debug",		//デバッグ用の情報を埋め込む
