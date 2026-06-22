@@ -112,8 +112,8 @@ public:
 
 				case SpawnShapeType::Box:
 				{
-					// boxSize_はハーフサイズとして扱う
-					Vector3 half = boxSize_;
+					// boxSize_はフルサイズとして扱う
+					Vector3 half = { boxSize_.x * 0.5f, boxSize_.y * 0.5f, boxSize_.z * 0.5f };
 					
 					if (spawnLocation_ == SpawnLocation::Edge)
 					{

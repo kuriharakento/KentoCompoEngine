@@ -62,4 +62,17 @@ public:
 	 * ループ中のSpawnBurstなどが未完了の間だけ false を返す。
 	 */
 	virtual bool IsComplete() const { return true; }
+
+	/**
+	 * @brief GPUシミュレーション（CS）をサポートしているか
+	 */
+	virtual bool IsGPUSupported() const { return false; }
+
+	/**
+	 * @brief GPU側でモジュールの計算を実行 (CS Dispatch)
+	 * @param simulator GPUSimulatorポインタ
+	 * @param cmdList D3D12コマンドリストポインタ
+	 * @param deltaTime 経過時間
+	 */
+	virtual void DispatchGPU(class GPUSimulator* simulator, struct ID3D12GraphicsCommandList* cmdList, float deltaTime) {}
 };

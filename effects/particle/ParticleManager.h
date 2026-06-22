@@ -93,6 +93,13 @@ public:
 	 */
 	ParticleEffect* Play(const std::string& effectName, Transform* followTarget);
 
+	/**
+	 * @brief エフェクトの事前生成（プールウォームアップ）
+	 * @param effectName ロード済みエフェクト名
+	 * @param count 事前生成数
+	 */
+	void Warmup(const std::string& effectName, size_t count);
+
 	//===== 手動管理API =====//
 
 	/**
@@ -129,6 +136,12 @@ public:
 	 * @brief エフェクトを手動で削除
 	 */
 	void RemoveEffect(ParticleEffect* effect);
+
+	/**
+	 * @brief レンダラーを遅延破棄キュー（ゴミ箱）に追加
+	 * @param renderer 破棄するレンダラー
+	 */
+	void AddRendererToTrashBin(std::unique_ptr<IRenderer> renderer);
 
 	//===== アクセサ =====//
 
@@ -170,6 +183,12 @@ private:
 
 	// アクティブなエフェクト
 	std::vector<std::unique_ptr<ParticleEffect>> effects_;
+
+	// 非アクティブなエフェクトプール（名前 → プールリスト）
+	std::unordered_map<std::string, std::vector<std::unique_ptr<ParticleEffect>>> effectPools_;
+
+	// 遅延破棄するレンダラーリスト（GPU使用中のリソース安全破棄用）
+	std::vector<std::unique_ptr<IRenderer>> rendererTrashBin_;
 
 	// 直接追加されたエミッター（後方互換用）
 	std::vector<std::unique_ptr<ParticleEmitter>> emitters_;

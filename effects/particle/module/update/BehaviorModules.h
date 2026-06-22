@@ -14,6 +14,8 @@
 #include <cmath>
 #include <numbers>
 #include <algorithm>
+#include <d3d12.h>
+#include <wrl/client.h>
 
 /**
  * @brief 加速度モジュール
@@ -53,9 +55,29 @@ private:
  */
 class CurlNoiseModule : public IModule
 {
+private:
+	struct GPUParams
+	{
+		float strength;
+		float frequency;
+		int32_t octaves;
+		float scrollSpeed;
+		uint32_t particleCount;
+		float deltaTime;
+		float padding[2];
+	};
+
 public:
 	CurlNoiseModule(float strength = 1.0f, float frequency = 1.0f, float octaves = 3)
 		: strength_(strength), frequency_(frequency), octaves_(static_cast<int>(octaves)) {}
+
+	~CurlNoiseModule() override
+	{
+		if (constantBuffer_)
+		{
+			constantBuffer_->Unmap(0, nullptr);
+		}
+	}
 
 	void Execute(ParticleContext& context) override
 	{
@@ -75,6 +97,9 @@ public:
 	ModulePhase GetPhase() const override { return ModulePhase::Update; }
 	const char* GetName() const override { return "CurlNoise"; }
 	int32_t GetPriority() const override { return ParticleModulePriority::kCurlNoise; }
+
+	bool IsGPUSupported() const override { return true; }
+	void DispatchGPU(class GPUSimulator* simulator, struct ID3D12GraphicsCommandList* cmdList, float deltaTime) override;
 
 	void SetStrength(float s) { strength_ = s; }
 	float GetStrength() const { return strength_; }
@@ -120,6 +145,10 @@ private:
 	float frequency_ = 1.0f;
 	int octaves_ = 3;
 	float scrollSpeed_ = 1.0f;
+
+	// GPU用定数バッファ
+	Microsoft::WRL::ComPtr<ID3D12Resource> constantBuffer_;
+	GPUParams* constantData_ = nullptr;
 };
 
 /**
@@ -475,3 +504,46 @@ private:
 	float speedBoost_ = 1.0f;
 	bool useSpeedCurve_ = false;
 };
+
+#include "effects/particle/gpu/GPUSimulator.h"
+#include "effects/particle/gpu/GPUParticlePipeline.h"
+#include "effects/particle/ParticleManager.h"
+#include "base/DirectXCommon.h"
+
+inline void CurlNoiseModule::DispatchGPU(GPUSimulator* simulator, ID3D12GraphicsCommandList* cmdList, float deltaTime)
+{
+	if (!constantBuffer_)
+	{
+		auto* pm = ParticleManager::GetInstance();
+		constantBuffer_ = pm->GetDxCommon()->CreateBufferResource((sizeof(GPUParams) + 255) & ~255);
+		constantBuffer_->Map(0, nullptr, reinterpret_cast<void**>(&constantData_));
+	}
+
+	if (constantData_)
+	{
+		constantData_->strength = strength_;
+		constantData_->frequency = frequency_;
+		constantData_->octaves = octaves_;
+		constantData_->scrollSpeed = scrollSpeed_;
+		constantData_->particleCount = simulator->GetParticleCount();
+		constantData_->deltaTime = deltaTime;
+	}
+
+	auto* pipeline = GPUParticlePipeline::GetInstance();
+	cmdList->SetPipelineState(pipeline->GetCurlNoisePipelineState());
+	cmdList->SetComputeRootSignature(pipeline->GetCurlNoiseRootSignature());
+	cmdList->SetComputeRootConstantBufferView(0, constantBuffer_->GetGPUVirtualAddress());
+	
+	auto* pm = ParticleManager::GetInstance();
+	cmdList->SetComputeRootDescriptorTable(1, pm->GetSrvManager()->GetGPUDescriptorHandle(simulator->GetParticleUavIndex()));
+
+	uint32_t groupCount = (simulator->GetParticleCount() + GPUSimulator::kThreadGroupSize - 1) / GPUSimulator::kThreadGroupSize;
+	if (groupCount == 0) groupCount = 1;
+	cmdList->Dispatch(groupCount, 1, 1);
+	
+	// UAVバリア（同期用）
+	D3D12_RESOURCE_BARRIER uavBarrier{};
+	uavBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+	uavBarrier.UAV.pResource = nullptr;
+	cmdList->ResourceBarrier(1, &uavBarrier);
+}

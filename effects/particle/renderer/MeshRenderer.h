@@ -123,7 +123,7 @@ public:
 	 * @brief ビルボード設定を取得
 	 * @return ビルボード有効フラグ
 	 */
-	bool GetBillboard() const { return useBillboard_; }
+	bool GetBillboard() const override { return useBillboard_; }
 
 	/**
 	 * @brief ティントカラーを設定

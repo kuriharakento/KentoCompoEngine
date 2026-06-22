@@ -1,6 +1,7 @@
 #include "ParticleEffect.h"
 #include "ParticleEmitter.h"
 #include "serialization/ParticleEffectSerializer.h"
+#include "module/update/RibbonModules.h"
 #include <algorithm>
 
 ParticleEffect::ParticleEffect() = default;
@@ -163,6 +164,16 @@ void ParticleEffect::Reset()
 	isPlaying_ = false;
 }
 
+void ParticleEffect::ResetForPool()
+{
+	for (auto& emitter : emitters_)
+	{
+		emitter->Reset();
+	}
+	position_ = {};
+	isPlaying_ = false;
+}
+
 bool ParticleEffect::IsFinished() const
 {
 	if (isPlaying_) return false;
@@ -180,4 +191,50 @@ bool ParticleEffect::IsFinished() const
 void ParticleEffect::SaveToFile(const std::string& jsonPath)
 {
 	ParticleEffectSerializer::Save(*this, jsonPath);
+}
+
+uint32_t ParticleEffect::RegisterSource(Transform* transform)
+{
+	for (auto& emitter : emitters_)
+	{
+		if (auto* module = emitter->GetModule<MultiSourceRibbonModule>())
+		{
+			return module->RegisterSource(transform);
+		}
+	}
+	return 0;
+}
+
+uint32_t ParticleEffect::RegisterSourceManual()
+{
+	for (auto& emitter : emitters_)
+	{
+		if (auto* module = emitter->GetModule<MultiSourceRibbonModule>())
+		{
+			return module->RegisterSourceManual();
+		}
+	}
+	return 0;
+}
+
+void ParticleEffect::UpdateSourcePosition(uint32_t sourceId, const Vector3& position)
+{
+	for (auto& emitter : emitters_)
+	{
+		if (auto* module = emitter->GetModule<MultiSourceRibbonModule>())
+		{
+			module->UpdateSourcePosition(sourceId, position);
+		}
+	}
+}
+
+void ParticleEffect::UnregisterSource(uint32_t sourceId)
+{
+	for (auto& emitter : emitters_)
+	{
+		if (auto* module = emitter->GetModule<MultiSourceRibbonModule>())
+		{
+			module->UnregisterSource(sourceId);
+		}
+	}
 }

@@ -4,6 +4,7 @@
 #include "manager/system/SrvManager.h"
 #include "manager/scene/CameraManager.h"
 #include "manager/effect/ParticlePipelineManager.h"
+#include "effects/particle/renderer/IRenderer.h"
 #include "time/TimeManager.h"
 #include "time/Timer.h"
 #include <algorithm>
@@ -41,6 +42,8 @@ void ParticleManager::Finalize()
 	}
 #endif
 	effects_.clear();
+	effectPools_.clear();
+	rendererTrashBin_.clear();
 	emitters_.clear();
 	effectDefinitions_.clear();
 	pipelineManager_.reset();
@@ -48,6 +51,9 @@ void ParticleManager::Finalize()
 
 void ParticleManager::Update(CameraManager* camera)
 {
+	// 前フレームの描画が完全に終わったため、ゴミ箱内の古いレンダラーを安全に破棄する
+	rendererTrashBin_.clear();
+
 	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
 	float unscaledDeltaTime = TimeManager::GetInstance().GetGameContext().realDeltaTime;
 
@@ -280,7 +286,24 @@ void ParticleManager::LoadEffectDefinition(const std::string& name, const std::s
 
 ParticleEffect* ParticleManager::Play(const std::string& effectName, const Vector3& position)
 {
-	// 定義があれば毎回新規生成。autoRemove=trueで再生完了後に自動解放される
+	// プールから取得を試みる
+	auto poolIt = effectPools_.find(effectName);
+	if (poolIt != effectPools_.end() && !poolIt->second.empty())
+	{
+		auto effect = std::move(poolIt->second.back());
+		poolIt->second.pop_back();
+
+		effect->ResetForPool();
+		effect->SetPosition(position);
+		effect->SetAutoRemove(true);
+		effect->Play();
+
+		ParticleEffect* ptr = effect.get();
+		effects_.push_back(std::move(effect));
+		return ptr;
+	}
+
+	// 定義があればロードして新規生成
 	auto it = effectDefinitions_.find(effectName);
 	if (it != effectDefinitions_.end())
 	{
@@ -302,7 +325,24 @@ ParticleEffect* ParticleManager::Play(const std::string& effectName, const Vecto
 
 ParticleEffect* ParticleManager::Play(const std::string& effectName, Transform* followTarget)
 {
-	// 定義があれば毎回新規生成。autoRemove=trueで再生完了後に自動解放される
+	// プールから取得を試みる
+	auto poolIt = effectPools_.find(effectName);
+	if (poolIt != effectPools_.end() && !poolIt->second.empty())
+	{
+		auto effect = std::move(poolIt->second.back());
+		poolIt->second.pop_back();
+
+		effect->ResetForPool();
+		effect->SetFollowTarget(followTarget);
+		effect->SetAutoRemove(true);
+		effect->Play();
+
+		ParticleEffect* ptr = effect.get();
+		effects_.push_back(std::move(effect));
+		return ptr;
+	}
+
+	// 定義があればロードして新規生成
 	auto it = effectDefinitions_.find(effectName);
 	if (it != effectDefinitions_.end())
 	{
@@ -320,6 +360,24 @@ ParticleEffect* ParticleManager::Play(const std::string& effectName, Transform* 
 	}
 
 	return nullptr;
+}
+
+void ParticleManager::Warmup(const std::string& effectName, size_t count)
+{
+	auto it = effectDefinitions_.find(effectName);
+	if (it == effectDefinitions_.end()) return;
+
+	auto& pool = effectPools_[effectName];
+	for (size_t i = 0; i < count; ++i)
+	{
+		auto effect = ParticleEffect::LoadFromFile(it->second);
+		if (effect)
+		{
+			effect->Initialize(effectName);
+			effect->ResetForPool();
+			pool.push_back(std::move(effect));
+		}
+	}
 }
 
 
@@ -368,29 +426,45 @@ void ParticleManager::StopAll()
 void ParticleManager::Clear()
 {
 	effects_.clear();
+	effectPools_.clear();
 	emitters_.clear();
 }
 
 void ParticleManager::RemoveEffect(ParticleEffect* effect)
 {
-	effects_.erase(
-		std::remove_if(effects_.begin(), effects_.end(),
-			[effect](const std::unique_ptr<ParticleEffect>& e) {
-				return e.get() == effect;
-			}),
-		effects_.end()
-	);
+	for (auto it = effects_.begin(); it != effects_.end();)
+	{
+		if (it->get() == effect)
+		{
+			std::string name = (*it)->GetName();
+			(*it)->ResetForPool();
+			effectPools_[name].push_back(std::move(*it));
+			effects_.erase(it);
+			break;
+		}
+		else
+		{
+			++it;
+		}
+	}
 }
 
 void ParticleManager::RemoveFinishedEffects()
 {
-	effects_.erase(
-		std::remove_if(effects_.begin(), effects_.end(),
-			[](const std::unique_ptr<ParticleEffect>& e) {
-				return e->IsFinished() && e->IsAutoRemove();
-			}),
-		effects_.end()
-	);
+	for (auto it = effects_.begin(); it != effects_.end();)
+	{
+		if ((*it)->IsFinished() && (*it)->IsAutoRemove())
+		{
+			std::string name = (*it)->GetName();
+			(*it)->ResetForPool();
+			effectPools_[name].push_back(std::move(*it));
+			it = effects_.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
 }
 
 ParticleEffect* ParticleManager::GetEffect(size_t index)
@@ -405,15 +479,29 @@ const ParticleEffect* ParticleManager::GetEffect(size_t index) const
 
 bool ParticleManager::RemoveEffect(const std::string& name)
 {
-	auto it = std::remove_if(effects_.begin(), effects_.end(),
-		[&name](const std::unique_ptr<ParticleEffect>& e) {
-			return e->GetName() == name;
-		});
-	
-	if (it != effects_.end())
+	bool removed = false;
+	for (auto it = effects_.begin(); it != effects_.end();)
 	{
-		effects_.erase(it, effects_.end());
-		return true;
+		if ((*it)->GetName() == name)
+		{
+			std::string effectName = (*it)->GetName();
+			(*it)->ResetForPool();
+			effectPools_[effectName].push_back(std::move(*it));
+			it = effects_.erase(it);
+			removed = true;
+		}
+		else
+		{
+			++it;
+		}
 	}
-	return false;
+	return removed;
+}
+
+void ParticleManager::AddRendererToTrashBin(std::unique_ptr<IRenderer> renderer)
+{
+	if (renderer)
+	{
+		rendererTrashBin_.push_back(std::move(renderer));
+	}
 }

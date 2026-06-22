@@ -185,6 +185,12 @@ void MeshRenderer::CreatePrimitiveBuffers(DirectXCommon* dxCommon)
 
 void MeshRenderer::Update(const std::vector<Particle>& particles, CameraManager* camera)
 {
+	if (isGPUMode_)
+	{
+		instanceCount_ = 0;
+		return;
+	}
+
 	instanceCount_ = 0;
 
 	Camera* activeCamera = camera->GetActiveCamera();

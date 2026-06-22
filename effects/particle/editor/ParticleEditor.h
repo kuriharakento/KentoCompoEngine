@@ -8,6 +8,8 @@
  */
 #include <string>
 #include <memory>
+#include "math/Vector3.h"
+#include "math/Vector4.h"
 
 class ParticleEffect;
 class ParticleEmitter;
@@ -63,6 +65,11 @@ public:
 	 * @brief エディタの表示/非表示を切り替え
 	 */
 	void ToggleVisible() { isVisible_ = !isVisible_; }
+
+	/**
+	 * @brief 天球（Skydome）の色を取得する
+	 */
+	Vector4 GetSkydomeColor() const { return skydomeColor_; }
 
 	/**
 	 * @brief 新規エフェクトを作成
@@ -153,6 +160,7 @@ private:
 
 	bool isVisible_ = false;
 	bool showDebug_ = true;  // デバッグ表示ON/OFF
+	bool showParticleMarkers_ = false; // パーティクルクロスマーカー表示ON/OFF
 	bool showAddEmitterDialog_ = false;
 	bool showAddModuleDialog_ = false;
 	int selectedEmitterIndex_ = -1;
@@ -163,8 +171,19 @@ private:
 	float previewRepeatInterval_ = 2.0f;    // ループ間隔（秒）
 	float previewElapsed_ = 0.0f;           // ループ用経過時間
 
+	// トレイルプレビュー用ダミーターゲット設定
+	bool enablePreviewTarget_ = false;       // ダミーターゲット有効フラグ
+	float previewTargetSpeed_ = 3.0f;        // ダミー移動速度
+	float previewTargetRadius_ = 4.0f;       // ダミー円運動半径
+	float previewTargetTime_ = 0.0f;         // ダミー移動経過時間
+	uint32_t previewSourceId_ = 0;           // プレビュー用ソースID
+	Vector3 previewTargetPos_ = {};          // ダミーの現在位置
+
 	std::string effectPath_;
 	char effectNameBuffer_[256] = {};
 	char emitterNameBuffer_[256] = {};
+
+	// 天球（Skydome）のカラー調整 (RGB)
+	Vector4 skydomeColor_ = { 1.0f, 1.0f, 1.0f, 1.0f };
 };
 

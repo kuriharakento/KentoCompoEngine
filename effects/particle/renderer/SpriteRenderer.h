@@ -19,7 +19,7 @@
 class SpriteRenderer : public IRenderer
 {
 public:
-	static constexpr uint32_t kMaxParticles = 10000;
+	static constexpr uint32_t kMaxParticles = 100000;
 
 	~SpriteRenderer() override;
 
@@ -60,6 +60,12 @@ public:
 	 * @param enabled ビルボード有効化フラグ
 	 */
 	void SetBillboard(bool enabled) { isBillboard_ = enabled; }
+
+	/**
+	 * @brief ビルボード有効化状態を取得
+	 * @return ビルボードが有効な場合true
+	 */
+	bool GetBillboard() const override { return isBillboard_; }
 
 	/**
 	 * @brief GPU描画モードを設定

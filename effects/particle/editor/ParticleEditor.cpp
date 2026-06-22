@@ -118,15 +118,54 @@ void ParticleEditor::DrawImGui()
 void ParticleEditor::Update(CameraManager* camera)
 {
 	(void)camera;
+	float dt = TimeManager::GetInstance().GetGameContext().deltaTime;
+
 	// ループプレビュー：一定間隔で全エミッターを再スタート
 	if (previewLooping_ && currentEffect_)
 	{
-		previewElapsed_ += TimeManager::GetInstance().GetGameContext().deltaTime;
+		previewElapsed_ += dt;
 		if (previewElapsed_ >= previewRepeatInterval_)
 		{
 			previewElapsed_ = 0.0f;
 			currentEffect_->Play();
 		}
+	}
+
+	// トレイル/マルチソースプレビュー用のダミーモーション更新
+	if (enablePreviewTarget_ && currentEffect_)
+	{
+		previewTargetTime_ += dt;
+
+		// 3次元のループ軌跡（円運動 ＋ サイン波の高さ変化）を計算
+		float angle = previewTargetTime_ * previewTargetSpeed_;
+		previewTargetPos_.x = std::cos(angle) * previewTargetRadius_;
+		previewTargetPos_.z = std::sin(angle) * previewTargetRadius_;
+		previewTargetPos_.y = std::sin(angle * 2.0f) * (previewTargetRadius_ * 0.5f) + previewTargetRadius_;
+
+		// エフェクト自体の位置を動かす（エミッター位置を動かすことで通常トレイルをプレビュー可能にする）
+		currentEffect_->SetPosition(previewTargetPos_);
+
+		// ソースが未登録なら新規登録
+		if (previewSourceId_ == 0)
+		{
+			previewSourceId_ = currentEffect_->RegisterSourceManual();
+		}
+
+		// 登録済みのソース座標を更新
+		if (previewSourceId_ != 0)
+		{
+			currentEffect_->UpdateSourcePosition(previewSourceId_, previewTargetPos_);
+		}
+	}
+	else
+	{
+		// OFF またはエフェクト消失時にソースを安全に解除
+		if (previewSourceId_ != 0 && currentEffect_)
+		{
+			currentEffect_->UnregisterSource(previewSourceId_);
+		}
+		previewSourceId_ = 0;
+		previewTargetTime_ = 0.0f;
 	}
 }
 
@@ -137,6 +176,16 @@ void ParticleEditor::DrawDebug()
 
 	auto* lineManager = LineManager::GetInstance();
 	if (!lineManager) return;
+
+	// トレイルプレビュー用のダミーターゲット位置を可視化（マゼンタ色の軸とマーカー）
+	if (enablePreviewTarget_)
+	{
+		lineManager->DrawAxis(previewTargetPos_, 0.8f);
+		Vector4 debugColor = { 1.0f, 0.0f, 1.0f, 0.5f }; // 半透明マゼンタ
+		lineManager->DrawLine({ previewTargetPos_.x - 0.2f, previewTargetPos_.y, previewTargetPos_.z }, { previewTargetPos_.x + 0.2f, previewTargetPos_.y, previewTargetPos_.z }, debugColor);
+		lineManager->DrawLine({ previewTargetPos_.x, previewTargetPos_.y - 0.2f, previewTargetPos_.z }, { previewTargetPos_.x, previewTargetPos_.y + 0.2f, previewTargetPos_.z }, debugColor);
+		lineManager->DrawLine({ previewTargetPos_.x, previewTargetPos_.y, previewTargetPos_.z - 0.2f }, { previewTargetPos_.x, previewTargetPos_.y, previewTargetPos_.z + 0.2f }, debugColor);
+	}
 
 	// エミッター位置を表示（黄色の座標軸）
 	for (size_t i = 0; i < currentEffect_->GetEmitterCount(); ++i)
@@ -310,30 +359,33 @@ void ParticleEditor::DrawDebug()
 		}
 
 		// パーティクル位置を表示（クロスマーカー）
-		const auto& particles = emitter->GetParticles();
-		for (const auto& particle : particles)
+		if (showParticleMarkers_)
 		{
-			if (!particle.IsAlive()) continue;
+			const auto& particles = emitter->GetParticles();
+			for (const auto& particle : particles)
+			{
+				if (!particle.IsAlive()) continue;
 
-			// パーティクル位置に小さなクロスを描画
-			Vector3 pos = particle.position;
-			Vector4 color = { 0.0f, 1.0f, 1.0f, 1.0f };  // シアン
+				// パーティクル位置に小さなクロスを描画
+				Vector3 pos = particle.position;
+				Vector4 color = { 0.0f, 1.0f, 1.0f, 1.0f };  // シアン
 
-			lineManager->DrawLine(
-				{ pos.x - kParticleMarkerSize, pos.y, pos.z },
-				{ pos.x + kParticleMarkerSize, pos.y, pos.z },
-				color
-			);
-			lineManager->DrawLine(
-				{ pos.x, pos.y - kParticleMarkerSize, pos.z },
-				{ pos.x, pos.y + kParticleMarkerSize, pos.z },
-				color
-			);
-			lineManager->DrawLine(
-				{ pos.x, pos.y, pos.z - kParticleMarkerSize },
-				{ pos.x, pos.y, pos.z + kParticleMarkerSize },
-				color
-			);
+				lineManager->DrawLine(
+					{ pos.x - kParticleMarkerSize, pos.y, pos.z },
+					{ pos.x + kParticleMarkerSize, pos.y, pos.z },
+					color
+				);
+				lineManager->DrawLine(
+					{ pos.x, pos.y - kParticleMarkerSize, pos.z },
+					{ pos.x, pos.y + kParticleMarkerSize, pos.z },
+					color
+				);
+				lineManager->DrawLine(
+					{ pos.x, pos.y, pos.z - kParticleMarkerSize },
+					{ pos.x, pos.y, pos.z + kParticleMarkerSize },
+					color
+				);
+			}
 		}
 	}
 #endif
@@ -467,6 +519,13 @@ void ParticleEditor::DrawMenuBar()
 		if (ImGui::Button("Reset View")) { if (currentEffect_) { currentEffect_->Reset(); currentEffect_->Play(); } }
 		
 		ImGui::Checkbox("Show Debug Lines", &showDebug_);
+		ImGui::SameLine();
+		ImGui::Checkbox("Show Particle Markers", &showParticleMarkers_);
+
+		// Skydome Color Tint
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(150.0f);
+		ImGui::ColorEdit3("Skydome Color", &skydomeColor_.x);
 	}
 }
 
@@ -622,6 +681,18 @@ void ParticleEditor::DrawPreviewPanel()
 			ImGui::ProgressBar(progress, ImVec2(-1, 6));
 		}
 
+		//===== トレイルプレビュー設定 =====//
+		ImGui::Spacing();
+		ImGui::SeparatorText("Trail Target Preview");
+		ImGui::Checkbox("Enable Motion Dummy", &enablePreviewTarget_);
+		ImGui::SetItemTooltip("On: トレイルテスト用の動くダミーターゲットを登録します");
+		if (enablePreviewTarget_)
+		{
+			ImGui::DragFloat("Motion Speed", &previewTargetSpeed_, 0.05f, 0.1f, 10.0f, "%.2f");
+			ImGui::DragFloat("Motion Radius", &previewTargetRadius_, 0.1f, 0.5f, 20.0f, "%.1f");
+			ImGui::Text("Dummy Position: (%.2f, %.2f, %.2f)", previewTargetPos_.x, previewTargetPos_.y, previewTargetPos_.z);
+		}
+
 		//===== エミッター一覧（パーティクル数表示）=====//
 		ImGui::Spacing();
 		ImGui::SeparatorText("Emitters");
@@ -771,6 +842,14 @@ void ParticleEditor::DrawEmitterPanel()
 			if (ImGui::InputInt("Max Particles", &maxP))
 			{
 				emitter->SetMaxParticles(static_cast<uint32_t>((std::max)(100, maxP)));
+			}
+
+			// Simulation Mode
+			int mode = static_cast<int>(emitter->GetSimulationMode());
+			const char* modes[] = { "CPU", "GPU" };
+			if (ImGui::Combo("Simulation Mode", &mode, modes, IM_ARRAYSIZE(modes)))
+			{
+				emitter->SetSimulationMode(static_cast<SimulationMode>(mode));
 			}
 
 			// Follow Offset
@@ -1787,9 +1866,19 @@ void ParticleEditor::DrawRendererPanel()
 				}
 			}
 
-			const char* blendModes[] = { "None", "Alpha", "Additive", "Multiply" };
+			const char* blendModes[] = {
+				"Alpha",
+				"Additive",
+				"Subtractive",
+				"Multiply",
+				"Screen",
+				"Darken",
+				"Lighten",
+				"ColorBurn",
+				"ColorDodge"
+			};
 			int currentBlend = static_cast<int>(renderer->GetBlendMode());
-			if (ImGui::Combo("Blend Mode", &currentBlend, blendModes, 4))
+			if (ImGui::Combo("Blend Mode", &currentBlend, blendModes, IM_ARRAYSIZE(blendModes)))
 			{
 				renderer->SetBlendMode(static_cast<BlendMode>(currentBlend));
 			}
@@ -2278,84 +2367,73 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 		else
 		{
 			// Update モジュール
-			const char* updateModules[] = {
-				"Gravity",
-				"Drag",
-				"Color Fade",
-				"Scale Over Lifetime",
-				"Rotation Over Lifetime",
-				"Texture Sheet",
-				"Attractor",
-				"Vortex",
-				"Orbit",
-				"Noise",
-				"Velocity Limit",
-				"Acceleration",
-				"Curl Noise",
-				"Size By Speed",
-				"Color By Speed",
-				"Collision",
-				"Kill Zone",
-				"Sprint To Target",
-				"Sub Emitter",
-				"Velocity Over Lifetime",
-				"Stretch By Velocity",
-				"Wind",
-				"Flicker",
-				"Alpha Fade",
-				"Rotation By Speed",
-				"Sine Wave",
-				"Spiral",
-				"Twist",
-				"Face Velocity",
-				"Jitter",
-				"Force Over Lifetime"
+			bool isGPUMode = (emitter->GetSimulationMode() == SimulationMode::GPU);
+
+			// GPUモード時はGPU対応モジュールのみ表示するために動的フィルタリング
+			std::vector<const char*> updateModules;
+			std::vector<const char*> updateDescriptions;
+			std::vector<int> originalIndices;
+
+			auto AddModuleOption = [&](const char* name, const char* desc, int origIndex, bool gpuSupported)
+			{
+				if (!isGPUMode || gpuSupported)
+				{
+					updateModules.push_back(name);
+					updateDescriptions.push_back(desc);
+					originalIndices.push_back(origIndex);
+				}
 			};
-			const char* updateDescriptions[] = {
-				"Apply gravity (downward Y-axis)",
-				"Apply air resistance to slow particles",
-				"Fade color over lifetime",
-				"Change scale over lifetime",
-				"Rotate over lifetime",
-				"UV animation for sprite sheets",
-				"Attract/repel to a point",
-				"Swirl particles in a vortex",
-				"Orbit around a center point",
-				"Add random noise movement",
-				"Limit maximum speed",
-				"Apply constant acceleration",
-				"Add turbulence with 3D curl noise",
-				"Change size based on speed",
-				"Change color based on speed",
-				"Collide and bounce off planes/boxes",
-				"Kill particles inside/outside a zone",
-				"Accelerate toward a target position",
-				"Spawn sub-effects on particle events",
-				"Multiply velocity over particle lifetime",
-				"Stretch particles in velocity direction (bullets, rain)",
-				"Apply directional wind force with turbulence",
-				"Flicker/blink alpha for fire, sparks",
-				"Simple alpha fade over lifetime",
-				"Rotate based on movement speed",
-				"Oscillate position with sine wave",
-				"Move in spiral pattern",
-				"Twist position around an axis",
-				"Align particle rotation to its velocity direction",
-				"Add random position jitter each frame",
-				"Apply a directional force that changes over lifetime"
-			};
-			
+
+			AddModuleOption("Gravity", "Apply gravity (downward Y-axis)", 0, true);
+			AddModuleOption("Drag", "Apply air resistance to slow particles", 1, true);
+			AddModuleOption("Color Fade", "Fade color over lifetime", 2, true);
+			AddModuleOption("Scale Over Lifetime", "Change scale over lifetime", 3, true);
+			AddModuleOption("Rotation Over Lifetime", "Rotate over lifetime", 4, true);
+			AddModuleOption("Texture Sheet", "UV animation for sprite sheets", 5, false);
+			AddModuleOption("Attractor", "Attract/repel to a point", 6, true);
+			AddModuleOption("Vortex", "Swirl particles in a vortex", 7, true);
+			AddModuleOption("Orbit", "Orbit around a center point", 8, false);
+			AddModuleOption("Noise", "Add random noise movement", 9, true);
+			AddModuleOption("Velocity Limit", "Limit maximum speed", 10, false);
+			AddModuleOption("Acceleration", "Apply constant acceleration", 11, false);
+			AddModuleOption("Curl Noise", "Add turbulence with 3D curl noise", 12, true);
+			AddModuleOption("Size By Speed", "Change size based on speed", 13, false);
+			AddModuleOption("Color By Speed", "Change color based on speed", 14, false);
+			AddModuleOption("Collision", "Collide and bounce off planes/boxes", 15, false);
+			AddModuleOption("Kill Zone", "Kill particles inside/outside a zone", 16, false);
+			AddModuleOption("Sprint To Target", "Accelerate toward a target position", 17, false);
+			AddModuleOption("Sub Emitter", "Spawn sub-effects on particle events", 18, false);
+			AddModuleOption("Velocity Over Lifetime", "Multiply velocity over particle lifetime", 19, true);
+			AddModuleOption("Stretch By Velocity", "Stretch particles in velocity direction (bullets, rain)", 20, true);
+			AddModuleOption("Wind", "Apply directional wind force with turbulence", 21, false);
+			AddModuleOption("Flicker", "Flicker/blink alpha for fire, sparks", 22, true);
+			AddModuleOption("Alpha Fade", "Simple alpha fade over lifetime", 23, true);
+			AddModuleOption("Rotation By Speed", "Rotate based on movement speed", 24, false);
+			AddModuleOption("Sine Wave", "Oscillate position with sine wave", 25, false);
+			AddModuleOption("Spiral", "Move in spiral pattern", 26, false);
+			AddModuleOption("Twist", "Twist position around an axis", 27, false);
+			AddModuleOption("Face Velocity", "Align particle rotation to its velocity direction", 28, true);
+			AddModuleOption("Jitter", "Add random position jitter each frame", 29, false);
+			AddModuleOption("Force Over Lifetime", "Apply a directional force that changes over lifetime", 30, false);
+
+			// クランプ処理（切り替え時にインデックスがはみ出ないようにする）
+			if (selectedModule >= static_cast<int>(updateModules.size()))
+			{
+				selectedModule = 0;
+			}
+
 			ImGui::SetNextItemWidth(200.0f);
-			ImGui::Combo("Update Module", &selectedModule, updateModules, IM_ARRAYSIZE(updateModules));
+			ImGui::Combo("Update Module", &selectedModule, updateModules.data(), static_cast<int>(updateModules.size()));
 			
 			// 説明表示
 			ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s",
-				(selectedModule >= 0 && selectedModule < IM_ARRAYSIZE(updateDescriptions))
+				(selectedModule >= 0 && selectedModule < static_cast<int>(updateDescriptions.size()))
 				? updateDescriptions[selectedModule] : "");
 
 			if (ImGui::Button("Add"))
 			{
-				switch (selectedModule)
+				int actualIndex = originalIndices[selectedModule];
+				switch (actualIndex)
 				{
 				case 0: emitter->AddModule(std::make_unique<GravityModule>()); break;
 				case 1: emitter->AddModule(std::make_unique<DragModule>()); break;

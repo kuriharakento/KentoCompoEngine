@@ -115,6 +115,11 @@ public:
 	void Reset();
 
 	/**
+	 * @brief プール再利用向けに完全に初期化
+	 */
+	void ResetForPool();
+
+	/**
 	 * @brief 再生中か
 	 */
 	bool IsPlaying() const { return isPlaying_; }
@@ -146,6 +151,34 @@ public:
 	 * @brief JSONファイルに保存
 	 */
 	void SaveToFile(const std::string& jsonPath);
+
+	//===== マルチソース管理API（バッチング用） =====//
+
+	/**
+	 * @brief 追従対象のTransformを登録
+	 * @param transform 追従対象
+	 * @return sourceId（解除時に使用）
+	 */
+	uint32_t RegisterSource(Transform* transform);
+
+	/**
+	 * @brief 手動更新用のソースを登録
+	 * @return sourceId（更新・解除時に使用）
+	 */
+	uint32_t RegisterSourceManual();
+
+	/**
+	 * @brief 手動ソースの座標を更新
+	 * @param sourceId 登録時のID
+	 * @param position 新しい座標
+	 */
+	void UpdateSourcePosition(uint32_t sourceId, const Vector3& position);
+
+	/**
+	 * @brief ソースを解除
+	 * @param sourceId 登録時のID
+	 */
+	void UnregisterSource(uint32_t sourceId);
 
 private:
 	std::string name_;
