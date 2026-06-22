@@ -60,31 +60,29 @@ void TextureManager::LoadTexture(const std::string& filePath)
 	// ファイル読み込みには元のパスを使用
 	std::wstring filePathW = StringUtility::ConvertString(filePath);
 
-	// ファイルが存在しない場合のエンジン側リソースへのフォールバック
+	// ファイルが存在しない場合の自動検索処理（相対パスやファイル名のみに対応）
 	std::wstring targetPath = filePathW;
 	if (!std::filesystem::exists(targetPath))
 	{
 		std::wstring filename = std::filesystem::path(filePathW).filename().wstring();
-		std::wstring fallbackTex = L"../engine/Resources/textures/" + filename;
-		std::wstring fallbackFont = L"../engine/Resources/fonts/" + filename;
-		std::wstring fallbackDirect = filePathW;
-		size_t pos = fallbackDirect.find(L"Resources/");
-		if (pos != std::wstring::npos)
-		{
-			fallbackDirect.replace(pos, 10, L"../engine/Resources/");
-		}
+		std::vector<std::wstring> searchPaths = {
+			L"application/Resources/textures/" + filename,
+			L"application/Resources/fonts/" + filename,
+			L"../engine/Resources/textures/" + filename,
+			L"../engine/Resources/fonts/" + filename,
+			L"Resources/textures/" + filename,
+			L"Resources/fonts/" + filename,
+			L"application/Resources/" + filePathW,
+			L"../engine/Resources/" + filePathW
+		};
 
-		if (std::filesystem::exists(fallbackTex))
+		for (const auto& path : searchPaths)
 		{
-			targetPath = fallbackTex;
-		}
-		else if (std::filesystem::exists(fallbackFont))
-		{
-			targetPath = fallbackFont;
-		}
-		else if (std::filesystem::exists(fallbackDirect))
-		{
-			targetPath = fallbackDirect;
+			if (std::filesystem::exists(path))
+			{
+				targetPath = path;
+				break;
+			}
 		}
 	}
 

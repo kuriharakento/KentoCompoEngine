@@ -49,14 +49,24 @@ void Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPat
 	// モデルファイルのパスを構築
 	std::string objFilePath = filename + "/" + filename + modelType;
 
-	// ファイルが存在しない場合のフォールバック（engine/Resources/models）
+	// ファイルが存在しない場合の自動検索処理
 	std::string resolvedDirectoryPath = directoryPath;
 	if (!std::filesystem::exists(resolvedDirectoryPath + "/" + objFilePath))
 	{
-		std::string fallbackPath = "../engine/Resources/models";
-		if (std::filesystem::exists(fallbackPath + "/" + objFilePath))
+		std::vector<std::string> searchPaths = {
+			"application/Resources/models",
+			"../engine/Resources/models",
+			"Resources/models",
+			directoryPath
+		};
+
+		for (const auto& path : searchPaths)
 		{
-			resolvedDirectoryPath = fallbackPath;
+			if (std::filesystem::exists(path + "/" + objFilePath))
+			{
+				resolvedDirectoryPath = path;
+				break;
+			}
 		}
 	}
 

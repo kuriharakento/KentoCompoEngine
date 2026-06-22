@@ -756,15 +756,24 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileSharder(const std::wstrin
 	//これからシェーダーをコンパイルする旨をログに出す
 	Logger::Log(StringUtility::ConvertString(std::format(L"Begin CompileSharder, path:{}, profile:{}\n", filePath, profile)));
 
-	// ファイルが存在しない場合のエンジン側シェーダーへのフォールバック
+	// ファイルが存在しない場合の自動検索処理
 	std::wstring targetPath = filePath;
 	if (!std::filesystem::exists(targetPath))
 	{
 		std::wstring filename = std::filesystem::path(filePath).filename().wstring();
-		std::wstring fallbackShader = L"../engine/Resources/shaders/" + filename;
-		if (std::filesystem::exists(fallbackShader))
+		std::vector<std::wstring> searchPaths = {
+			L"application/Resources/shaders/" + filename,
+			L"../engine/Resources/shaders/" + filename,
+			L"Resources/shaders/" + filename
+		};
+
+		for (const auto& path : searchPaths)
 		{
-			targetPath = fallbackShader;
+			if (std::filesystem::exists(path))
+			{
+				targetPath = path;
+				break;
+			}
 		}
 	}
 
