@@ -410,13 +410,37 @@ private:
 template <typename T>
 std::shared_ptr<T> GameObject::GetComponent() const
 {
-	// 全コンポーネントを走査
-	for (const auto& [_, comp] : components_)
+	// 1. T が ICollisionComponent またはその派生クラスの場合
+	if constexpr (std::is_base_of_v<GameObjectComponent::ICollisionComponent, T>)
 	{
-		// 指定された型へのキャストを試行
-		if (auto casted = std::dynamic_pointer_cast<T>(comp))
+		for (const auto& comp : collisionComponents_)
 		{
-			return casted;
+			if (auto casted = std::dynamic_pointer_cast<T>(comp))
+			{
+				return casted;
+			}
+		}
+	}
+	// 2. T が IActionComponent またはその派生クラスの場合
+	else if constexpr (std::is_base_of_v<GameObjectComponent::IActionComponent, T>)
+	{
+		for (const auto& comp : actionComponents_)
+		{
+			if (auto casted = std::dynamic_pointer_cast<T>(comp))
+			{
+				return casted;
+			}
+		}
+	}
+	// 3. それ以外の型の場合（フォールバック）
+	else
+	{
+		for (const auto& [_, comp] : components_)
+		{
+			if (auto casted = std::dynamic_pointer_cast<T>(comp))
+			{
+				return casted;
+			}
 		}
 	}
 	return nullptr;
