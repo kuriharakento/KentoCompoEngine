@@ -1,170 +1,170 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <ItemGroup>
     <Filter Include="animation">
-      <UniqueIdentifier>{ED251C6F-2315-2F96-1BBF-9DEE9BE5092B}</UniqueIdentifier>
+      <UniqueIdentifier>{6F1C25ED-1523-962F-1BBF-9DEE9BE5092B}</UniqueIdentifier>
     </Filter>
     <Filter Include="audio">
-      <UniqueIdentifier>{580BCAA5-3294-8B4F-B54B-B9FFFAD29D1E}</UniqueIdentifier>
+      <UniqueIdentifier>{A5CA0B58-9432-4F8B-B54B-B9FFFAD29D1E}</UniqueIdentifier>
     </Filter>
     <Filter Include="base">
-      <UniqueIdentifier>{DE163659-3315-0F0C-B2D5-5E55410BF994}</UniqueIdentifier>
+      <UniqueIdentifier>{593616DE-1533-0C0F-B2D5-5E55410BF994}</UniqueIdentifier>
     </Filter>
     <Filter Include="camerawork">
-      <UniqueIdentifier>{2AE49CFD-3C03-E663-688F-7B4302CB3B84}</UniqueIdentifier>
+      <UniqueIdentifier>{FD9CE42A-033C-63E6-688F-7B4302CB3B84}</UniqueIdentifier>
     </Filter>
     <Filter Include="camerawork\base">
-      <UniqueIdentifier>{E102FD5A-274C-40B4-6508-018F54C30ECE}</UniqueIdentifier>
+      <UniqueIdentifier>{5AFD02E1-4C27-B440-6508-018F54C30ECE}</UniqueIdentifier>
     </Filter>
     <Filter Include="camerawork\debug">
-      <UniqueIdentifier>{133CE9F4-407D-891E-7827-7029F7276484}</UniqueIdentifier>
+      <UniqueIdentifier>{F4E93C13-7D40-1E89-7827-7029F7276484}</UniqueIdentifier>
     </Filter>
     <Filter Include="camerawork\follow">
-      <UniqueIdentifier>{85F977FB-C617-5178-0FC4-83332130ED8C}</UniqueIdentifier>
+      <UniqueIdentifier>{FB77F985-17C6-7851-0FC4-83332130ED8C}</UniqueIdentifier>
     </Filter>
     <Filter Include="camerawork\orbit">
-      <UniqueIdentifier>{FA51E626-CA32-693B-5A83-5A63C22BAEC9}</UniqueIdentifier>
+      <UniqueIdentifier>{26E651FA-32CA-3B69-5A83-5A63C22BAEC9}</UniqueIdentifier>
     </Filter>
     <Filter Include="camerawork\spline">
-      <UniqueIdentifier>{034E9709-B82B-60DF-F839-DE92786DEF26}</UniqueIdentifier>
+      <UniqueIdentifier>{09974E03-2BB8-DF60-F839-DE92786DEF26}</UniqueIdentifier>
     </Filter>
     <Filter Include="camerawork\topdown">
-      <UniqueIdentifier>{36A28273-A28A-DE9A-D3B7-8E579F0E471C}</UniqueIdentifier>
+      <UniqueIdentifier>{7382A236-8AA2-9ADE-D3B7-8E579F0E471C}</UniqueIdentifier>
     </Filter>
     <Filter Include="ecs">
-      <UniqueIdentifier>{0193B22E-8611-EE4B-B409-E946751215B1}</UniqueIdentifier>
+      <UniqueIdentifier>{2EB29301-1186-4BEE-B409-E946751215B1}</UniqueIdentifier>
     </Filter>
     <Filter Include="ecs\components">
-      <UniqueIdentifier>{05D83E4A-8D5D-73AE-1DE0-2C663F37364E}</UniqueIdentifier>
+      <UniqueIdentifier>{4A3ED805-5D8D-AE73-1DE0-2C663F37364E}</UniqueIdentifier>
     </Filter>
     <Filter Include="ecs\debug">
-      <UniqueIdentifier>{93CB145A-551C-E8BD-EA96-6311AFA9C0EF}</UniqueIdentifier>
+      <UniqueIdentifier>{5A14CB93-1C55-BDE8-EA96-6311AFA9C0EF}</UniqueIdentifier>
     </Filter>
     <Filter Include="ecs\system">
-      <UniqueIdentifier>{56DF663B-266D-AFB4-5208-CFCDD0D769BE}</UniqueIdentifier>
+      <UniqueIdentifier>{3B66DF56-6D26-B4AF-5208-CFCDD0D769BE}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects">
-      <UniqueIdentifier>{C587B32B-0E1F-ABBD-53CC-485D53694D37}</UniqueIdentifier>
+      <UniqueIdentifier>{2BB387C5-1F0E-BDAB-53CC-485D53694D37}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle">
-      <UniqueIdentifier>{E417CC2B-D7B8-CA28-B048-5F5F5A4FD2DF}</UniqueIdentifier>
+      <UniqueIdentifier>{2BCC17E4-B8D7-28CA-B048-5F5F5A4FD2DF}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle\dynamic">
-      <UniqueIdentifier>{665DA392-E3B0-177D-C517-CAFF8D7BF33A}</UniqueIdentifier>
+      <UniqueIdentifier>{92A35D66-B0E3-7D17-C517-CAFF8D7BF33A}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle\editor">
-      <UniqueIdentifier>{8E381EA4-5DF0-240F-AD33-EAF60C6D2C84}</UniqueIdentifier>
+      <UniqueIdentifier>{A41E388E-F05D-0F24-AD33-EAF60C6D2C84}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle\gpu">
-      <UniqueIdentifier>{EB65DBBF-732F-1E8E-4B68-18C61284A531}</UniqueIdentifier>
+      <UniqueIdentifier>{BFDB65EB-2F73-8E1E-4B68-18C61284A531}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle\module">
-      <UniqueIdentifier>{953E53BE-1011-9B7D-E06D-436455D6FB64}</UniqueIdentifier>
+      <UniqueIdentifier>{BE533E95-1110-7D9B-E06D-436455D6FB64}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle\module\spawn">
-      <UniqueIdentifier>{0C8E5228-FB29-6D55-6397-8602FF084E3F}</UniqueIdentifier>
+      <UniqueIdentifier>{28528E0C-29FB-556D-6397-8602FF084E3F}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle\module\update">
-      <UniqueIdentifier>{5030915B-8AC9-9FCE-DCAA-3AAA55089582}</UniqueIdentifier>
+      <UniqueIdentifier>{5B913050-C98A-CE9F-DCAA-3AAA55089582}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle\primitive">
-      <UniqueIdentifier>{E8E6124A-7C59-5CAF-0C80-161B97C4AECA}</UniqueIdentifier>
+      <UniqueIdentifier>{4A12E6E8-597C-AF5C-0C80-161B97C4AECA}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle\renderer">
-      <UniqueIdentifier>{D26F2BFB-781B-BCA3-F98D-EFC1F49B87EE}</UniqueIdentifier>
+      <UniqueIdentifier>{FB2B6FD2-1B78-A3BC-F98D-EFC1F49B87EE}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\particle\serialization">
-      <UniqueIdentifier>{6E5551C0-AFF4-5903-4FB6-15F85AFACA8E}</UniqueIdentifier>
+      <UniqueIdentifier>{C051556E-F4AF-0359-4FB6-15F85AFACA8E}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\postprocess">
-      <UniqueIdentifier>{87567338-B551-3C71-0BA5-22204342FCB0}</UniqueIdentifier>
+      <UniqueIdentifier>{38735687-51B5-713C-0BA5-22204342FCB0}</UniqueIdentifier>
     </Filter>
     <Filter Include="effects\postprocess\base">
-      <UniqueIdentifier>{55EC7A5C-A72F-CF42-C46F-503FBDD218F3}</UniqueIdentifier>
+      <UniqueIdentifier>{5C7AEC55-2FA7-42CF-C46F-503FBDD218F3}</UniqueIdentifier>
     </Filter>
     <Filter Include="framework">
-      <UniqueIdentifier>{DC576475-F185-5034-B3DF-BA2CBC1465E5}</UniqueIdentifier>
+      <UniqueIdentifier>{756457DC-85F1-3450-B3DF-BA2CBC1465E5}</UniqueIdentifier>
     </Filter>
     <Filter Include="gameobject">
-      <UniqueIdentifier>{5242FE77-4E2F-0251-6545-8111A6DB2382}</UniqueIdentifier>
+      <UniqueIdentifier>{77FE4252-2F4E-5102-6545-8111A6DB2382}</UniqueIdentifier>
     </Filter>
     <Filter Include="gameobject\base">
-      <UniqueIdentifier>{EE3DAFE2-D6D0-BB9A-A85A-E8F03C45A385}</UniqueIdentifier>
+      <UniqueIdentifier>{E2AF3DEE-D0D6-9ABB-A85A-E8F03C45A385}</UniqueIdentifier>
     </Filter>
     <Filter Include="gameobject\component">
-      <UniqueIdentifier>{27DE8F67-50F5-62C8-3050-C8AD830AB54F}</UniqueIdentifier>
+      <UniqueIdentifier>{678FDE27-F550-C862-3050-C8AD830AB54F}</UniqueIdentifier>
     </Filter>
     <Filter Include="gameobject\component\base">
-      <UniqueIdentifier>{CD48CB88-DD2E-278F-0646-5616E2554B64}</UniqueIdentifier>
+      <UniqueIdentifier>{88CB48CD-2EDD-8F27-0646-5616E2554B64}</UniqueIdentifier>
     </Filter>
     <Filter Include="gameobject\component\collision">
-      <UniqueIdentifier>{0BF4CDBB-E0D3-C0F2-A002-EABFE1C27DD0}</UniqueIdentifier>
+      <UniqueIdentifier>{BBCDF40B-D3E0-F2C0-A002-EABFE1C27DD0}</UniqueIdentifier>
     </Filter>
     <Filter Include="gameobject\manager">
-      <UniqueIdentifier>{22B4094A-9F6E-4316-B156-B33340B14893}</UniqueIdentifier>
+      <UniqueIdentifier>{4A09B422-6E9F-1643-B156-B33340B14893}</UniqueIdentifier>
     </Filter>
     <Filter Include="graphics">
-      <UniqueIdentifier>{2D47B073-0643-0391-642F-FA07997FF20A}</UniqueIdentifier>
+      <UniqueIdentifier>{73B0472D-4306-9103-642F-FA07997FF20A}</UniqueIdentifier>
     </Filter>
     <Filter Include="graphics\2d">
-      <UniqueIdentifier>{F6565E11-F4C9-D8AF-6A4B-505C88C3AACF}</UniqueIdentifier>
+      <UniqueIdentifier>{115E56F6-C9F4-AFD8-6A4B-505C88C3AACF}</UniqueIdentifier>
     </Filter>
     <Filter Include="graphics\3d">
-      <UniqueIdentifier>{36D116A8-47E3-B4FB-434B-3641275D8ECE}</UniqueIdentifier>
+      <UniqueIdentifier>{A816D136-E347-FBB4-434B-3641275D8ECE}</UniqueIdentifier>
     </Filter>
     <Filter Include="graphics\deferred">
-      <UniqueIdentifier>{50F04704-CE59-CEB6-C68A-260CF06D550F}</UniqueIdentifier>
+      <UniqueIdentifier>{0447F050-59CE-B6CE-C68A-260CF06D550F}</UniqueIdentifier>
     </Filter>
     <Filter Include="graphics\shadow">
-      <UniqueIdentifier>{3A021D8D-4742-54AF-F5C8-42FC7426344F}</UniqueIdentifier>
+      <UniqueIdentifier>{8D1D023A-4247-AF54-F5C8-42FC7426344F}</UniqueIdentifier>
     </Filter>
     <Filter Include="input">
-      <UniqueIdentifier>{0A1B3CA4-3AA5-900C-8810-C06AB1FF3967}</UniqueIdentifier>
+      <UniqueIdentifier>{A43C1B0A-A53A-0C90-8810-C06AB1FF3967}</UniqueIdentifier>
     </Filter>
     <Filter Include="jsonEditor">
-      <UniqueIdentifier>{B964069D-9D21-57B2-B320-954772B8E237}</UniqueIdentifier>
+      <UniqueIdentifier>{9D0664B9-219D-B257-B320-954772B8E237}</UniqueIdentifier>
     </Filter>
     <Filter Include="light">
-      <UniqueIdentifier>{A43AC42A-F43B-F973-A9C0-9B4B608619D3}</UniqueIdentifier>
+      <UniqueIdentifier>{2AC43AA4-3BF4-73F9-A9C0-9B4B608619D3}</UniqueIdentifier>
     </Filter>
     <Filter Include="line">
-      <UniqueIdentifier>{69C63864-D0E0-98DE-E692-9C2CC0FAC474}</UniqueIdentifier>
+      <UniqueIdentifier>{6438C669-E0D0-DE98-E692-9C2CC0FAC474}</UniqueIdentifier>
     </Filter>
     <Filter Include="manager">
-      <UniqueIdentifier>{C258021D-0A44-198D-E716-292B231E3190}</UniqueIdentifier>
+      <UniqueIdentifier>{1D0258C2-440A-8D19-E716-292B231E3190}</UniqueIdentifier>
     </Filter>
     <Filter Include="manager\editor">
-      <UniqueIdentifier>{D154248E-515D-7950-7A02-F588A8FAF450}</UniqueIdentifier>
+      <UniqueIdentifier>{8E2454D1-5D51-5079-7A02-F588A8FAF450}</UniqueIdentifier>
     </Filter>
     <Filter Include="manager\effect">
-      <UniqueIdentifier>{00F45623-B1F9-ABD7-EF51-4BAD5F8306C7}</UniqueIdentifier>
+      <UniqueIdentifier>{2356F400-F9B1-D7AB-EF51-4BAD5F8306C7}</UniqueIdentifier>
     </Filter>
     <Filter Include="manager\graphics">
-      <UniqueIdentifier>{643B32CD-7132-DBBB-2AAA-2397872E2464}</UniqueIdentifier>
+      <UniqueIdentifier>{CD323B64-3271-BBDB-2AAA-2397872E2464}</UniqueIdentifier>
     </Filter>
     <Filter Include="manager\scene">
-      <UniqueIdentifier>{D939B566-F256-E4AC-8886-031B73B124D1}</UniqueIdentifier>
+      <UniqueIdentifier>{66B539D9-56F2-ACE4-8886-031B73B124D1}</UniqueIdentifier>
     </Filter>
     <Filter Include="manager\system">
-      <UniqueIdentifier>{AFB496F9-9DE7-847F-7BB4-926C665374E2}</UniqueIdentifier>
+      <UniqueIdentifier>{F996B4AF-E79D-7F84-7BB4-926C665374E2}</UniqueIdentifier>
     </Filter>
     <Filter Include="math">
-      <UniqueIdentifier>{9E6E677E-3B66-40EB-FD13-3F5EE24487C2}</UniqueIdentifier>
+      <UniqueIdentifier>{7E676E9E-663B-EB40-FD13-3F5EE24487C2}</UniqueIdentifier>
     </Filter>
     <Filter Include="scene">
-      <UniqueIdentifier>{4B607F1E-4186-DE5A-94E1-5FEF8627609B}</UniqueIdentifier>
+      <UniqueIdentifier>{1E7F604B-8641-5ADE-94E1-5FEF8627609B}</UniqueIdentifier>
     </Filter>
     <Filter Include="scene\factory">
-      <UniqueIdentifier>{BD82BADC-1C2E-65EA-A4F9-998E5069BEBC}</UniqueIdentifier>
+      <UniqueIdentifier>{DCBA82BD-2E1C-EA65-A4F9-998E5069BEBC}</UniqueIdentifier>
     </Filter>
     <Filter Include="scene\interface">
-      <UniqueIdentifier>{1BF3A113-94C4-60FF-425A-C129E9DF08EA}</UniqueIdentifier>
+      <UniqueIdentifier>{13A1F31B-C494-FF60-425A-C129E9DF08EA}</UniqueIdentifier>
     </Filter>
     <Filter Include="scene\manager">
-      <UniqueIdentifier>{72F9E7D2-E454-B61E-0BA0-A6E729EACF9C}</UniqueIdentifier>
+      <UniqueIdentifier>{D2E7F972-54E4-1EB6-0BA0-A6E729EACF9C}</UniqueIdentifier>
     </Filter>
     <Filter Include="time">
-      <UniqueIdentifier>{4B69CC07-3F9B-36C6-710F-A08B6922C42B}</UniqueIdentifier>
+      <UniqueIdentifier>{07CC694B-9B3F-C636-710F-A08B6922C42B}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -222,14 +222,14 @@
     <ClCompile Include="camerawork\topdown\TopDownCamera.cpp">
       <Filter>camerawork\topdown</Filter>
     </ClCompile>
-    <ClCompile Include="ecs\debug\EcsInspector.cpp">
-      <Filter>ecs\debug</Filter>
-    </ClCompile>
     <ClCompile Include="ecs\EcsDebugViewer.cpp">
       <Filter>ecs</Filter>
     </ClCompile>
     <ClCompile Include="ecs\Registry.cpp">
       <Filter>ecs</Filter>
+    </ClCompile>
+    <ClCompile Include="ecs\debug\EcsInspector.cpp">
+      <Filter>ecs\debug</Filter>
     </ClCompile>
     <ClCompile Include="ecs\system\CollisionSystem.cpp">
       <Filter>ecs\system</Filter>
@@ -252,6 +252,15 @@
     <ClCompile Include="ecs\system\SystemManager.cpp">
       <Filter>ecs\system</Filter>
     </ClCompile>
+    <ClCompile Include="effects\particle\ParticleEffect.cpp">
+      <Filter>effects\particle</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\particle\ParticleEmitter.cpp">
+      <Filter>effects\particle</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\particle\ParticleManager.cpp">
+      <Filter>effects\particle</Filter>
+    </ClCompile>
     <ClCompile Include="effects\particle\editor\ParticleEditor.cpp">
       <Filter>effects\particle\editor</Filter>
     </ClCompile>
@@ -263,15 +272,6 @@
     </ClCompile>
     <ClCompile Include="effects\particle\module\spawn\SubEmitterModule.cpp">
       <Filter>effects\particle\module\spawn</Filter>
-    </ClCompile>
-    <ClCompile Include="effects\particle\ParticleEffect.cpp">
-      <Filter>effects\particle</Filter>
-    </ClCompile>
-    <ClCompile Include="effects\particle\ParticleEmitter.cpp">
-      <Filter>effects\particle</Filter>
-    </ClCompile>
-    <ClCompile Include="effects\particle\ParticleManager.cpp">
-      <Filter>effects\particle</Filter>
     </ClCompile>
     <ClCompile Include="effects\particle\primitive\PrimitiveGenerator.cpp">
       <Filter>effects\particle\primitive</Filter>
@@ -288,9 +288,6 @@
     <ClCompile Include="effects\particle\serialization\ParticleEffectSerializer.cpp">
       <Filter>effects\particle\serialization</Filter>
     </ClCompile>
-    <ClCompile Include="effects\postprocess\base\BasePostEffect.cpp">
-      <Filter>effects\postprocess\base</Filter>
-    </ClCompile>
     <ClCompile Include="effects\postprocess\BloomEffect.cpp">
       <Filter>effects\postprocess</Filter>
     </ClCompile>
@@ -305,6 +302,9 @@
     </ClCompile>
     <ClCompile Include="effects\postprocess\VignetteEffect.cpp">
       <Filter>effects\postprocess</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\postprocess\base\BasePostEffect.cpp">
+      <Filter>effects\postprocess\base</Filter>
     </ClCompile>
     <ClCompile Include="framework\Framework.cpp">
       <Filter>framework</Filter>
@@ -468,14 +468,14 @@
     <ClCompile Include="math\MathUtils.cpp">
       <Filter>math</Filter>
     </ClCompile>
+    <ClCompile Include="scene\MyGame.cpp">
+      <Filter>scene</Filter>
+    </ClCompile>
     <ClCompile Include="scene\factory\SceneFactory.cpp">
       <Filter>scene\factory</Filter>
     </ClCompile>
     <ClCompile Include="scene\manager\SceneManager.cpp">
       <Filter>scene\manager</Filter>
-    </ClCompile>
-    <ClCompile Include="scene\MyGame.cpp">
-      <Filter>scene</Filter>
     </ClCompile>
     <ClCompile Include="time\TimeManager.cpp">
       <Filter>time</Filter>
@@ -551,6 +551,21 @@
     <ClInclude Include="ecs\ComponentArray.h">
       <Filter>ecs</Filter>
     </ClInclude>
+    <ClInclude Include="ecs\EcsDebugViewer.h">
+      <Filter>ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs\Entity.h">
+      <Filter>ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs\EntityBuilder.h">
+      <Filter>ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs\EntityView.h">
+      <Filter>ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs\Registry.h">
+      <Filter>ecs</Filter>
+    </ClInclude>
     <ClInclude Include="ecs\components\ColliderComponent.h">
       <Filter>ecs\components</Filter>
     </ClInclude>
@@ -587,31 +602,16 @@
     <ClInclude Include="ecs\debug\EcsInspector.h">
       <Filter>ecs\debug</Filter>
     </ClInclude>
-    <ClInclude Include="ecs\EcsDebugViewer.h">
-      <Filter>ecs</Filter>
-    </ClInclude>
-    <ClInclude Include="ecs\Entity.h">
-      <Filter>ecs</Filter>
-    </ClInclude>
-    <ClInclude Include="ecs\EntityBuilder.h">
-      <Filter>ecs</Filter>
-    </ClInclude>
-    <ClInclude Include="ecs\EntityView.h">
-      <Filter>ecs</Filter>
-    </ClInclude>
-    <ClInclude Include="ecs\Registry.h">
-      <Filter>ecs</Filter>
-    </ClInclude>
     <ClInclude Include="ecs\system\CollisionSystem.h">
       <Filter>ecs\system</Filter>
     </ClInclude>
     <ClInclude Include="ecs\system\HierarchySystem.h">
       <Filter>ecs\system</Filter>
     </ClInclude>
-    <ClInclude Include="ecs\system\InstancedRenderSystem.h">
+    <ClInclude Include="ecs\system\ISystem.h">
       <Filter>ecs\system</Filter>
     </ClInclude>
-    <ClInclude Include="ecs\system\ISystem.h">
+    <ClInclude Include="ecs\system\InstancedRenderSystem.h">
       <Filter>ecs\system</Filter>
     </ClInclude>
     <ClInclude Include="ecs\system\LifetimeSystem.h">
@@ -628,6 +628,24 @@
     </ClInclude>
     <ClInclude Include="ecs\system\SystemManager.h">
       <Filter>ecs\system</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\particle\Particle.h">
+      <Filter>effects\particle</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\particle\ParticleEasing.h">
+      <Filter>effects\particle</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\particle\ParticleEffect.h">
+      <Filter>effects\particle</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\particle\ParticleEmitter.h">
+      <Filter>effects\particle</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\particle\ParticleManager.h">
+      <Filter>effects\particle</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\particle\ParticleTypes.h">
+      <Filter>effects\particle</Filter>
     </ClInclude>
     <ClInclude Include="effects\particle\dynamic\DynamicInput.h">
       <Filter>effects\particle\dynamic</Filter>
@@ -683,24 +701,6 @@
     <ClInclude Include="effects\particle\module\update\UpdateModules.h">
       <Filter>effects\particle\module\update</Filter>
     </ClInclude>
-    <ClInclude Include="effects\particle\Particle.h">
-      <Filter>effects\particle</Filter>
-    </ClInclude>
-    <ClInclude Include="effects\particle\ParticleEasing.h">
-      <Filter>effects\particle</Filter>
-    </ClInclude>
-    <ClInclude Include="effects\particle\ParticleEffect.h">
-      <Filter>effects\particle</Filter>
-    </ClInclude>
-    <ClInclude Include="effects\particle\ParticleEmitter.h">
-      <Filter>effects\particle</Filter>
-    </ClInclude>
-    <ClInclude Include="effects\particle\ParticleManager.h">
-      <Filter>effects\particle</Filter>
-    </ClInclude>
-    <ClInclude Include="effects\particle\ParticleTypes.h">
-      <Filter>effects\particle</Filter>
-    </ClInclude>
     <ClInclude Include="effects\particle\primitive\PrimitiveGenerator.h">
       <Filter>effects\particle\primitive</Filter>
     </ClInclude>
@@ -719,9 +719,6 @@
     <ClInclude Include="effects\particle\serialization\ParticleEffectSerializer.h">
       <Filter>effects\particle\serialization</Filter>
     </ClInclude>
-    <ClInclude Include="effects\postprocess\base\BasePostEffect.h">
-      <Filter>effects\postprocess\base</Filter>
-    </ClInclude>
     <ClInclude Include="effects\postprocess\BloomEffect.h">
       <Filter>effects\postprocess</Filter>
     </ClInclude>
@@ -739,6 +736,9 @@
     </ClInclude>
     <ClInclude Include="effects\postprocess\VignetteEffect.h">
       <Filter>effects\postprocess</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\postprocess\base\BasePostEffect.h">
+      <Filter>effects\postprocess\base</Filter>
     </ClInclude>
     <ClInclude Include="framework\Framework.h">
       <Filter>framework</Filter>
@@ -794,10 +794,10 @@
     <ClInclude Include="graphics\2d\SpriteCommon.h">
       <Filter>graphics\2d</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\3d\InstancedModelRenderer.h">
+    <ClInclude Include="graphics\3d\IRenderable3d.h">
       <Filter>graphics\3d</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\3d\IRenderable3d.h">
+    <ClInclude Include="graphics\3d\InstancedModelRenderer.h">
       <Filter>graphics\3d</Filter>
     </ClInclude>
     <ClInclude Include="graphics\3d\Model.h">
@@ -968,6 +968,12 @@
     <ClInclude Include="math\VectorColorCodes.h">
       <Filter>math</Filter>
     </ClInclude>
+    <ClInclude Include="scene\MyGame.h">
+      <Filter>scene</Filter>
+    </ClInclude>
+    <ClInclude Include="scene\SceneContext.h">
+      <Filter>scene</Filter>
+    </ClInclude>
     <ClInclude Include="scene\factory\SceneFactory.h">
       <Filter>scene\factory</Filter>
     </ClInclude>
@@ -982,12 +988,6 @@
     </ClInclude>
     <ClInclude Include="scene\manager\SceneManager.h">
       <Filter>scene\manager</Filter>
-    </ClInclude>
-    <ClInclude Include="scene\MyGame.h">
-      <Filter>scene</Filter>
-    </ClInclude>
-    <ClInclude Include="scene\SceneContext.h">
-      <Filter>scene</Filter>
     </ClInclude>
     <ClInclude Include="time\TimeManager.h">
       <Filter>time</Filter>
