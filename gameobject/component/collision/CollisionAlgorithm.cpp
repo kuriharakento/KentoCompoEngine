@@ -648,10 +648,12 @@ namespace collisionAlgorithm
 
 	bool CheckAABBvsAABBSubstepMTV(const AABB& a, const Vector3& prevA, const AABB& b, const Vector3& prevB, Vector3& mtv)
 	{
-		constexpr float MAX_STEP_DISTANCE = 1.0f;
-		if (CheckAABBvsAABBMTV(a, b, mtv)) return true;
 		float maxDist = (std::max)((a.GetCenter() - prevA).Length(), (b.GetCenter() - prevB).Length());
-		if (maxDist < 0.001f) return false;
+		if (maxDist < 0.001f)
+		{
+			return CheckAABBvsAABBMTV(a, b, mtv);
+		}
+		constexpr float MAX_STEP_DISTANCE = 1.0f;
 		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE)));
 		for (int step = 0; step < subStepCount; ++step)
 		{
@@ -699,9 +701,11 @@ namespace collisionAlgorithm
 
 	bool CheckSpherevsOBBSubstepMTV(const Sphere& a, const Vector3& prevA, const OBB& b, const Vector3& prevB, Vector3& mtv)
 	{
-		if (CheckSpherevsOBBMTV(a, b, mtv)) return true;
 		float maxDist = (std::max)((a.center - prevA).Length(), (b.center - prevB).Length());
-		if (maxDist < 0.001f) return false;
+		if (maxDist < 0.001f)
+		{
+			return CheckSpherevsOBBMTV(a, b, mtv);
+		}
 		constexpr float MAX_STEP_DISTANCE_SPHERE_OBB = 1.0f;
 		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE_SPHERE_OBB)));
 		for (int step = 0; step < subStepCount; ++step)
@@ -721,9 +725,11 @@ namespace collisionAlgorithm
 
 	bool CheckSpherevsAABBSubstepMTV(const Sphere& a, const Vector3& prevA, const AABB& b, const Vector3& prevB, Vector3& mtv)
 	{
-		if (CheckSpherevsAABBMTV(a, b, mtv)) return true;
 		float maxDist = (std::max)((a.center - prevA).Length(), (b.GetCenter() - prevB).Length());
-		if (maxDist < 0.001f) return false;
+		if (maxDist < 0.001f)
+		{
+			return CheckSpherevsAABBMTV(a, b, mtv);
+		}
 		constexpr float MAX_STEP_DISTANCE_SPHERE_AABB = 1.0f;
 		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE_SPHERE_AABB)));
 		for (int step = 0; step < subStepCount; ++step)
@@ -744,9 +750,11 @@ namespace collisionAlgorithm
 
 	bool CheckAABBvsOBBSubstepMTV(const AABB& a, const Vector3& prevA, const OBB& b, const Vector3& prevB, Vector3& mtv)
 	{
-		if (CheckAABBvsOBBMTV(a, b, mtv)) return true;
 		float maxDist = (std::max)((a.GetCenter() - prevA).Length(), (b.center - prevB).Length());
-		if (maxDist < 0.001f) return false;
+		if (maxDist < 0.001f)
+		{
+			return CheckAABBvsOBBMTV(a, b, mtv);
+		}
 		constexpr float MAX_STEP_DISTANCE_AABB_OBB = 1.0f;
 		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE_AABB_OBB)));
 		for (int step = 0; step < subStepCount; ++step)
