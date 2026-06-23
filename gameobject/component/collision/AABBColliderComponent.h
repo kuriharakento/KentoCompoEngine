@@ -49,6 +49,11 @@ namespace GameObjectComponent
 		ColliderType GetColliderType() const override { return ColliderType::AABB; }
 		
 		/**
+		 * @brief ブロードフェーズ用 AABB を取得
+		 */
+		::AABB GetBroadphaseAABB() const override { return aabb_; }
+		
+		/**
 		 * @brief AABBデータを設定
 		 * @param aabb 設定する AABB データ
 		 */

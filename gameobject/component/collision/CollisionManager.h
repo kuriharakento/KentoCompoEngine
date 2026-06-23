@@ -1,5 +1,6 @@
 #pragma once
 #include <unordered_set>
+#include <unordered_map>
 #include <memory>
 #include <vector>
 #include <string>
@@ -115,6 +116,18 @@ public:
 	 */
 	const std::vector<GameObjectComponent::ICollisionComponent*>& GetColliders() const { return colliders_; }
 
+	/**
+	 * @brief 空間分割用のグリッドセルサイズを設定
+	 * @param size セルの1辺の長さ（m単位。ゲーム内の最大コライダーサイズ程度を推奨）
+	 */
+	void SetCellSize(float size) { cellSize_ = size; }
+
+	/**
+	 * @brief 空間分割用のグリッドセルサイズを取得
+	 * @return セルの1辺の長さ
+	 */
+	float GetCellSize() const { return cellSize_; }
+
 private:
 	// シングルトンインスタンス
 	static std::unique_ptr<CollisionManager> instance_;
@@ -131,15 +144,15 @@ public:
 #endif
 
 private:
-	// 衝突判定関数（3D）
-	bool CheckCollision(const GameObjectComponent::AABBColliderComponent* a, const GameObjectComponent::AABBColliderComponent* b);
-	bool CheckCollision(const GameObjectComponent::OBBColliderComponent* a, const GameObjectComponent::OBBColliderComponent* b);
-	bool CheckCollision(const GameObjectComponent::AABBColliderComponent* a, const GameObjectComponent::OBBColliderComponent* b);
+	// 衝突判定関数テーブル用型定義
+	using CollisionCheckFunc = bool(*)(const GameObjectComponent::ICollisionComponent*, const GameObjectComponent::ICollisionComponent*, Vector3& outMtv);
 
-	// 衝突判定関数（サブステップ）
-	bool CheckSubstepCollision(const GameObjectComponent::AABBColliderComponent* a, const GameObjectComponent::AABBColliderComponent* b);
-	bool CheckSubstepCollision(const GameObjectComponent::OBBColliderComponent* a, const GameObjectComponent::OBBColliderComponent* b);
-	bool CheckSubstepCollision(const GameObjectComponent::AABBColliderComponent* a, const GameObjectComponent::OBBColliderComponent* b);
+	// 衝突判定関数テーブルマトリクス
+	// 4x4 (AABB=0, Sphere=1, OBB=2, Ray=3)
+	CollisionCheckFunc collisionMatrix_[4][4] = {};
+
+	// CCD（サブステップ）用衝突判定関数テーブルマトリクス
+	CollisionCheckFunc ccdMatrix_[4][4] = {};
 
 	// コライダータイプから文字列を取得
 	std::string GetColliderTypeString(ColliderType type) const;
@@ -183,4 +196,30 @@ private:
 
 	// 2Dモード時の衝突判定面
 	CollisionPlane collisionPlane_ = CollisionPlane::XY;
+
+	// 空間分割用セルキー構造体
+	struct CellKey
+	{
+		int x, y, z;
+		
+		bool operator==(const CellKey& other) const
+		{
+			return x == other.x && y == other.y && z == other.z;
+		}
+	};
+
+	// セルキーハッシュ構造体
+	struct CellKeyHash
+	{
+		std::size_t operator()(const CellKey& key) const
+		{
+			return (std::hash<int>()(key.x) ^ (std::hash<int>()(key.y) << 1)) >> 1 ^ (std::hash<int>()(key.z) << 1);
+		}
+	};
+
+	// 空間グリッド分割バケット
+	std::unordered_map<CellKey, std::vector<GameObjectComponent::ICollisionComponent*>, CellKeyHash> gridBuckets_;
+
+	// 空間分割のセルサイズ
+	float cellSize_ = 15.0f; // デフォルト 15m 四方
 };

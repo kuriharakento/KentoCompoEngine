@@ -663,8 +663,8 @@ namespace collisionAlgorithm
 			Vector3 subMtv;
 			if (CheckAABBvsAABBMTV(subA, subB, subMtv))
 			{
-				// サブステップ時点での押し戻しを、終点からの変位として計算
-				mtv = (subPosB + subMtv) - b.GetCenter();
+				// サブステップ時点での相対押し出し変位
+				mtv = (subPosB - b.GetCenter()) - (subPosA - a.GetCenter()) + subMtv;
 				return true;
 			}
 		}
@@ -690,9 +690,7 @@ namespace collisionAlgorithm
 			Vector3 subMtv;
 			if (CheckOBBvsOBBMTV(subA, subB, subMtv))
 			{
-				// OBB(b) の現在の中心位置 b.center を基準に、
-				// サブステップ時点での安全な位置 (subB.center + subMtv) への変位を計算
-				mtv = (subB.center + subMtv) - b.center;
+				mtv = (subB.center - b.center) - (subA.center - a.center) + subMtv;
 				return true;
 			}
 		}
@@ -714,8 +712,7 @@ namespace collisionAlgorithm
 			Vector3 subMtv;
 			if (CheckSpherevsOBBMTV(subA, subB, subMtv))
 			{
-				// OBB(b) を動かす方向で統一するため、subB.center を基準にする
-				mtv = (subB.center + subMtv) - b.center;
+				mtv = (subB.center - b.center) - (subA.center - a.center) + subMtv;
 				return true;
 			}
 		}
@@ -738,9 +735,7 @@ namespace collisionAlgorithm
 			Vector3 subMtv;
 			if (CheckSpherevsAABBMTV(subA, subB, subMtv))
 			{
-				// AABB(b) を動かす方向で統一。subPosB を基準にする
-				Vector3 subPosB2 = MathUtils::Lerp(prevB, b.GetCenter(), t);
-				mtv = (subPosB2 + subMtv) - b.GetCenter();
+				mtv = (subPosB - b.GetCenter()) - (subA.center - a.center) + subMtv;
 				return true;
 			}
 		}
@@ -763,8 +758,7 @@ namespace collisionAlgorithm
 			Vector3 subMtv;
 			if (CheckAABBvsOBBMTV(subA, subB, subMtv))
 			{
-				// OBB(b) を動かす方向。subB.center を基準にする
-				mtv = (subB.center + subMtv) - b.center;
+				mtv = (subB.center - b.center) - (subPosA - a.GetCenter()) + subMtv;
 				return true;
 			}
 		}

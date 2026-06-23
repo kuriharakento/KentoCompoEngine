@@ -104,8 +104,6 @@ Model* GameObject::GetModel() const
 
 void GameObject::Update()
 {
-	ShowImGuiHierarchy();
-
 	// 更新中フラグを立てる（コンポーネントの追加・削除を保留するため）
 	isUpdating_ = true;
 
@@ -651,6 +649,13 @@ bool GameObject::LoadJson(const std::string& path)
 void GameObject::DrawImGui()
 {
 #ifdef USE_IMGUI
+	// 階層表示を描画
+	ShowImGuiHierarchy();
+
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Spacing();
+
 	// 自身のプロパティ（TransformやName）を描画
 	JsonEditableBase::DrawImGui();
 

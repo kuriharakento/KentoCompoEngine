@@ -2,6 +2,7 @@
 #include "engine/gameobject/component/base/ICollisionComponent.h"
 #include "engine/math/Ray.h"
 #include "jsonEditor/JsonEditableBase.h"
+#include <algorithm>
 
 /**
  * @brief レイによる衝突判定コンポーネント
@@ -55,6 +56,17 @@ namespace GameObjectComponent
 		 * @return コライダーの種類（Ray）
 		 */
 		ColliderType GetColliderType() const override { return ColliderType::Ray; }
+
+		/**
+		 * @brief ブロードフェーズ用 AABB を取得
+		 */
+		::AABB GetBroadphaseAABB() const override
+		{
+			Vector3 end = ray_.start + ray_.direction * ray_.length;
+			Vector3 minPos = { (std::min)(ray_.start.x, end.x), (std::min)(ray_.start.y, end.y), (std::min)(ray_.start.z, end.z) };
+			Vector3 maxPos = { (std::max)(ray_.start.x, end.x), (std::max)(ray_.start.y, end.y), (std::max)(ray_.start.z, end.z) };
+			return ::AABB(minPos, maxPos);
+		}
 
 		// --- ゲッター・セッター ---
 

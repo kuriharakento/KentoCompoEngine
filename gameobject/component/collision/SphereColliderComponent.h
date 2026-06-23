@@ -58,6 +58,15 @@ namespace GameObjectComponent
 		 */
 		ColliderType GetColliderType() const override;
 
+		/**
+		 * @brief ブロードフェーズ用 AABB を取得
+		 */
+		::AABB GetBroadphaseAABB() const override
+		{
+			Vector3 radiusVec = { sphere_.radius, sphere_.radius, sphere_.radius };
+			return ::AABB(sphere_.center - radiusVec, sphere_.center + radiusVec);
+		}
+
 	private:
 		// 球データ（中心位置と半径）
 		::Sphere sphere_;

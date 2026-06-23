@@ -33,6 +33,155 @@ void CollisionManager::Initialize()
 #ifdef USE_IMGUI
 	DebugUIManager::GetInstance()->RegisterDebugUI(this, "CollisionManager Colliders", [this]() { this->DrawImGui(); }, DebugUIArea::Console);
 #endif
+
+	// --- 1. 通常判定マトリクス (collisionMatrix_) の登録 ---
+	// AABB vs AABB
+	collisionMatrix_[static_cast<int>(ColliderType::AABB)][static_cast<int>(ColliderType::AABB)] = [](const ICollisionComponent* a, const ICollisionComponent* b, Vector3& outMtv) {
+		Vector3 tmpMtv = {};
+		if (!collisionAlgorithm::CheckAABBvsAABBMTV(static_cast<const AABBColliderComponent*>(a)->GetAABB(), static_cast<const AABBColliderComponent*>(b)->GetAABB(), tmpMtv)) return false;
+		outMtv = -tmpMtv;
+		return true;
+	};
+	// OBB vs OBB
+	collisionMatrix_[static_cast<int>(ColliderType::OBB)][static_cast<int>(ColliderType::OBB)] = [](const ICollisionComponent* a, const ICollisionComponent* b, Vector3& outMtv) {
+		Vector3 tmpMtv = {};
+		if (!collisionAlgorithm::CheckOBBvsOBBMTV(static_cast<const OBBColliderComponent*>(a)->GetOBB(), static_cast<const OBBColliderComponent*>(b)->GetOBB(), tmpMtv)) return false;
+		outMtv = -tmpMtv;
+		return true;
+	};
+	// Sphere vs Sphere
+	collisionMatrix_[static_cast<int>(ColliderType::Sphere)][static_cast<int>(ColliderType::Sphere)] = [](const ICollisionComponent* a, const ICollisionComponent* b, Vector3& outMtv) {
+		Vector3 tmpMtv = {};
+		if (!collisionAlgorithm::CheckSpherevsSphereMTV(static_cast<const SphereColliderComponent*>(a)->GetSphere(), static_cast<const SphereColliderComponent*>(b)->GetSphere(), tmpMtv)) return false;
+		outMtv = -tmpMtv;
+		return true;
+	};
+	// Sphere vs AABB
+	collisionMatrix_[static_cast<int>(ColliderType::Sphere)][static_cast<int>(ColliderType::AABB)] = [](const ICollisionComponent* a, const ICollisionComponent* b, Vector3& outMtv) {
+		Vector3 tmpMtv = {};
+		if (!collisionAlgorithm::CheckSpherevsAABBMTV(static_cast<const SphereColliderComponent*>(a)->GetSphere(), static_cast<const AABBColliderComponent*>(b)->GetAABB(), tmpMtv)) return false;
+		outMtv = -tmpMtv;
+		return true;
+	};
+	collisionMatrix_[static_cast<int>(ColliderType::AABB)][static_cast<int>(ColliderType::Sphere)] = [](const ICollisionComponent* a, const ICollisionComponent* b, Vector3& outMtv) {
+		Vector3 tmpMtv = {};
+		if (!collisionAlgorithm::CheckSpherevsAABBMTV(static_cast<const SphereColliderComponent*>(b)->GetSphere(), static_cast<const AABBColliderComponent*>(a)->GetAABB(), tmpMtv)) return false;
+		outMtv = tmpMtv;
+		return true;
+	};
+	// Sphere vs OBB
+	collisionMatrix_[static_cast<int>(ColliderType::Sphere)][static_cast<int>(ColliderType::OBB)] = [](const ICollisionComponent* a, const ICollisionComponent* b, Vector3& outMtv) {
+		Vector3 tmpMtv = {};
+		if (!collisionAlgorithm::CheckSpherevsOBBMTV(static_cast<const SphereColliderComponent*>(a)->GetSphere(), static_cast<const OBBColliderComponent*>(b)->GetOBB(), tmpMtv)) return false;
+		outMtv = -tmpMtv;
+		return true;
+	};
+	collisionMatrix_[static_cast<int>(ColliderType::OBB)][static_cast<int>(ColliderType::Sphere)] = [](const ICollisionComponent* a, const ICollisionComponent* b, Vector3& outMtv) {
+		Vector3 tmpMtv = {};
+		if (!collisionAlgorithm::CheckSpherevsOBBMTV(static_cast<const SphereColliderComponent*>(b)->GetSphere(), static_cast<const OBBColliderComponent*>(a)->GetOBB(), tmpMtv)) return false;
+		outMtv = tmpMtv;
+		return true;
+	};
+	// AABB vs OBB
+	collisionMatrix_[static_cast<int>(ColliderType::AABB)][static_cast<int>(ColliderType::OBB)] = [](const ICollisionComponent* a, const ICollisionComponent* b, Vector3& outMtv) {
+		Vector3 tmpMtv = {};
+		if (!collisionAlgorithm::CheckAABBvsOBBMTV(static_cast<const AABBColliderComponent*>(a)->GetAABB(), static_cast<const OBBColliderComponent*>(b)->GetOBB(), tmpMtv)) return false;
+		outMtv = -tmpMtv;
+		return true;
+	};
+	collisionMatrix_[static_cast<int>(ColliderType::OBB)][static_cast<int>(ColliderType::AABB)] = [](const ICollisionComponent* a, const ICollisionComponent* b, Vector3& outMtv) {
+		Vector3 tmpMtv = {};
+		if (!collisionAlgorithm::CheckAABBvsOBBMTV(static_cast<const AABBColliderComponent*>(b)->GetAABB(), static_cast<const OBBColliderComponent*>(a)->GetOBB(), tmpMtv)) return false;
+		outMtv = tmpMtv;
+		return true;
+	};
+
+	// --- 2. CCD (サブステップ) 判定マトリクス (ccdMatrix_) の登録 ---
+	// AABB vs AABB
+	ccdMatrix_[static_cast<int>(ColliderType::AABB)][static_cast<int>(ColliderType::AABB)] = [](const ICollisionComponent* a, const ICollisionComponent* b, Vector3& outMtv) {
+		Vector3 tmpMtv = {};
+		if (!collisionAlgorithm::CheckAABBvsAABBSubstepMTV(
+			static_cast<const AABBColliderComponent*>(a)->GetAABB(), a->GetPreviousPosition(),
+			static_cast<const AABBColliderComponent*>(b)->GetAABB(), b->GetPreviousPosition(),
+			tmpMtv)) return false;
+		outMtv = -tmpMtv;
+		return true;
+	};
+	// OBB vs OBB
+	ccdMatrix_[static_cast<int>(ColliderType::OBB)][static_cast<int>(ColliderType::OBB)] = [](const ICollisionComponent* a, const ICollisionComponent* b, Vector3& outMtv) {
+		Vector3 tmpMtv = {};
+		if (!collisionAlgorithm::CheckOBBvsOBBSubstepMTV(
+			static_cast<const OBBColliderComponent*>(a)->GetOBB(), a->GetPreviousPosition(),
+			static_cast<const OBBColliderComponent*>(b)->GetOBB(), b->GetPreviousPosition(),
+			tmpMtv)) return false;
+		outMtv = -tmpMtv;
+		return true;
+	};
+	// Sphere vs Sphere
+	ccdMatrix_[static_cast<int>(ColliderType::Sphere)][static_cast<int>(ColliderType::Sphere)] = [](const ICollisionComponent* a, const ICollisionComponent* b, Vector3& outMtv) {
+		if (!collisionAlgorithm::CheckSpherevsSphereSubstep3D(static_cast<const SphereColliderComponent*>(a), static_cast<const SphereColliderComponent*>(b))) return false;
+		Vector3 tmpMtv = {};
+		collisionAlgorithm::CheckSpherevsSphereMTV(static_cast<const SphereColliderComponent*>(a)->GetSphere(), static_cast<const SphereColliderComponent*>(b)->GetSphere(), tmpMtv);
+		outMtv = -tmpMtv;
+		return true;
+	};
+	// Sphere vs AABB
+	ccdMatrix_[static_cast<int>(ColliderType::Sphere)][static_cast<int>(ColliderType::AABB)] = [](const ICollisionComponent* a, const ICollisionComponent* b, Vector3& outMtv) {
+		Vector3 tmpMtv = {};
+		if (!collisionAlgorithm::CheckSpherevsAABBSubstepMTV(
+			static_cast<const SphereColliderComponent*>(a)->GetSphere(), a->GetPreviousPosition(),
+			static_cast<const AABBColliderComponent*>(b)->GetAABB(), b->GetPreviousPosition(),
+			tmpMtv)) return false;
+		outMtv = -tmpMtv;
+		return true;
+	};
+	ccdMatrix_[static_cast<int>(ColliderType::AABB)][static_cast<int>(ColliderType::Sphere)] = [](const ICollisionComponent* a, const ICollisionComponent* b, Vector3& outMtv) {
+		Vector3 tmpMtv = {};
+		if (!collisionAlgorithm::CheckSpherevsAABBSubstepMTV(
+			static_cast<const SphereColliderComponent*>(b)->GetSphere(), b->GetPreviousPosition(),
+			static_cast<const AABBColliderComponent*>(a)->GetAABB(), a->GetPreviousPosition(),
+			tmpMtv)) return false;
+		outMtv = tmpMtv;
+		return true;
+	};
+	// Sphere vs OBB
+	ccdMatrix_[static_cast<int>(ColliderType::Sphere)][static_cast<int>(ColliderType::OBB)] = [](const ICollisionComponent* a, const ICollisionComponent* b, Vector3& outMtv) {
+		Vector3 tmpMtv = {};
+		if (!collisionAlgorithm::CheckSpherevsOBBSubstepMTV(
+			static_cast<const SphereColliderComponent*>(a)->GetSphere(), a->GetPreviousPosition(),
+			static_cast<const OBBColliderComponent*>(b)->GetOBB(), b->GetPreviousPosition(),
+			tmpMtv)) return false;
+		outMtv = -tmpMtv;
+		return true;
+	};
+	ccdMatrix_[static_cast<int>(ColliderType::OBB)][static_cast<int>(ColliderType::Sphere)] = [](const ICollisionComponent* a, const ICollisionComponent* b, Vector3& outMtv) {
+		Vector3 tmpMtv = {};
+		if (!collisionAlgorithm::CheckSpherevsOBBSubstepMTV(
+			static_cast<const SphereColliderComponent*>(b)->GetSphere(), b->GetPreviousPosition(),
+			static_cast<const OBBColliderComponent*>(a)->GetOBB(), a->GetPreviousPosition(),
+			tmpMtv)) return false;
+		outMtv = tmpMtv;
+		return true;
+	};
+	// AABB vs OBB
+	ccdMatrix_[static_cast<int>(ColliderType::AABB)][static_cast<int>(ColliderType::OBB)] = [](const ICollisionComponent* a, const ICollisionComponent* b, Vector3& outMtv) {
+		Vector3 tmpMtv = {};
+		if (!collisionAlgorithm::CheckAABBvsOBBSubstepMTV(
+			static_cast<const AABBColliderComponent*>(a)->GetAABB(), a->GetPreviousPosition(),
+			static_cast<const OBBColliderComponent*>(b)->GetOBB(), b->GetPreviousPosition(),
+			tmpMtv)) return false;
+		outMtv = -tmpMtv;
+		return true;
+	};
+	ccdMatrix_[static_cast<int>(ColliderType::OBB)][static_cast<int>(ColliderType::AABB)] = [](const ICollisionComponent* a, const ICollisionComponent* b, Vector3& outMtv) {
+		Vector3 tmpMtv = {};
+		if (!collisionAlgorithm::CheckAABBvsOBBSubstepMTV(
+			static_cast<const AABBColliderComponent*>(b)->GetAABB(), b->GetPreviousPosition(),
+			static_cast<const OBBColliderComponent*>(a)->GetOBB(), a->GetPreviousPosition(),
+			tmpMtv)) return false;
+		outMtv = tmpMtv;
+		return true;
+	};
 }
 
 void CollisionManager::Finalize()
@@ -83,67 +232,125 @@ void CollisionManager::Unregister(ICollisionComponent* collider)
 
 void CollisionManager::CheckCollisions()
 {
-
 	// 新しい衝突ペアを格納するセット
 	std::unordered_set<CollisionPair, CollisionPairHash> newCollisions;
 
-	// 全てのペアに対して判定を行う
-	for (size_t i = 0; i < colliders_.size(); ++i)
+	// 衝突詳細情報を一時保存するマップ
+	struct CollisionDetails
 	{
-		for (size_t j = i + 1; j < colliders_.size(); ++j)
+		Vector3 normal; // a から見た押し出し方向
+		float depth;
+		Vector3 point;
+	};
+	std::unordered_map<CollisionPair, CollisionDetails, CollisionPairHash> detailsMap;
+
+	// --- 1. ブロードフェーズ: 各コライダーをグリッドセルに登録 ---
+	gridBuckets_.clear();
+	for (auto& collider : colliders_)
+	{
+		if (!collider->GetOwner()->IsActive())
 		{
-			ICollisionComponent* a = colliders_[i];
-			ICollisionComponent* b = colliders_[j];
+			continue;
+		}
 
-			// 両方のオブジェクトがアクティブな場合のみ判定
-			if (!a->GetOwner()->IsActive() || !b->GetOwner()->IsActive())
-			{
-				continue;
-			}
+		::AABB broadphaseAABB = collider->GetBroadphaseAABB();
 
-			bool isHit = false;
+		// 境界座標からセルインデックスの最小・最大を計算
+		int minX = static_cast<int>(std::floor(broadphaseAABB.min_.x / cellSize_));
+		int minY = static_cast<int>(std::floor(broadphaseAABB.min_.y / cellSize_));
+		int minZ = static_cast<int>(std::floor(broadphaseAABB.min_.z / cellSize_));
 
-			// 型に応じて判定関数を呼び分け
-			if (a->GetColliderType() == ColliderType::AABB && b->GetColliderType() == ColliderType::AABB)
-			{
-				isHit = collisionAlgorithm::CheckAABBvsAABBSubstep3D(static_cast<AABBColliderComponent*>(a), static_cast<AABBColliderComponent*>(b));
-			}
-			else if (a->GetColliderType() == ColliderType::OBB && b->GetColliderType() == ColliderType::OBB)
-			{
-				isHit = collisionAlgorithm::CheckOBBvsOBBSubstep3D(static_cast<OBBColliderComponent*>(a), static_cast<OBBColliderComponent*>(b));
-			}
-			else if (a->GetColliderType() == ColliderType::Sphere && b->GetColliderType() == ColliderType::Sphere)
-			{
-				isHit = collisionAlgorithm::CheckSpherevsSphereSubstep3D(static_cast<SphereColliderComponent*>(a), static_cast<SphereColliderComponent*>(b));
-			}
-			else if (a->GetColliderType() == ColliderType::Sphere && b->GetColliderType() == ColliderType::AABB)
-			{
-				isHit = collisionAlgorithm::CheckSpherevsAABBSubstep3D(static_cast<SphereColliderComponent*>(a), static_cast<AABBColliderComponent*>(b));
-			}
-			else if (a->GetColliderType() == ColliderType::AABB && b->GetColliderType() == ColliderType::Sphere)
-			{
-				isHit = collisionAlgorithm::CheckSpherevsAABBSubstep3D(static_cast<SphereColliderComponent*>(b), static_cast<AABBColliderComponent*>(a));
-			}
-			else if (a->GetColliderType() == ColliderType::Sphere && b->GetColliderType() == ColliderType::OBB)
-			{
-				isHit = collisionAlgorithm::CheckSpherevsOBBSubstep3D(static_cast<SphereColliderComponent*>(a), static_cast<OBBColliderComponent*>(b));
-			}
-			else if (a->GetColliderType() == ColliderType::OBB && b->GetColliderType() == ColliderType::Sphere)
-			{
-				isHit = collisionAlgorithm::CheckSpherevsOBBSubstep3D(static_cast<SphereColliderComponent*>(b), static_cast<OBBColliderComponent*>(a));
-			}
-			else if (a->GetColliderType() == ColliderType::AABB && b->GetColliderType() == ColliderType::OBB)
-			{
-				isHit = collisionAlgorithm::CheckAABBvsOBBSubstep3D(static_cast<AABBColliderComponent*>(a), static_cast<OBBColliderComponent*>(b));
-			}
-			else if (a->GetColliderType() == ColliderType::OBB && b->GetColliderType() == ColliderType::AABB)
-			{
-				isHit = collisionAlgorithm::CheckAABBvsOBBSubstep3D(static_cast<AABBColliderComponent*>(b), static_cast<OBBColliderComponent*>(a));
-			}
+		int maxX = static_cast<int>(std::floor(broadphaseAABB.max_.x / cellSize_));
+		int maxY = static_cast<int>(std::floor(broadphaseAABB.max_.y / cellSize_));
+		int maxZ = static_cast<int>(std::floor(broadphaseAABB.max_.z / cellSize_));
 
-			if (isHit)
+		// 重複してまたがっているすべてのセルに登録
+		for (int x = minX; x <= maxX; ++x)
+		{
+			for (int y = minY; y <= maxY; ++y)
 			{
-				newCollisions.insert({ a, b });
+				for (int z = minZ; z <= maxZ; ++z)
+				{
+					gridBuckets_[{x, y, z}].push_back(collider);
+				}
+			}
+		}
+	}
+
+	// --- 2. ナローフェーズ: 同一セル内のコライダー同士を総当たり判定 ---
+	for (auto& [key, bucket] : gridBuckets_)
+	{
+		if (bucket.size() < 2)
+		{
+			continue;
+		}
+
+		for (size_t i = 0; i < bucket.size(); ++i)
+		{
+			for (size_t j = i + 1; j < bucket.size(); ++j)
+			{
+				ICollisionComponent* a = bucket[i];
+				ICollisionComponent* b = bucket[j];
+
+				// 重複判定を防ぐためにポインタアドレス順でソートしたキーを使用
+				CollisionPair pair = { a, b };
+				if (pair.a > pair.b)
+				{
+					std::swap(pair.a, pair.b);
+				}
+
+				if (newCollisions.find(pair) != newCollisions.end())
+				{
+					continue; // 既に別のセルで判定・検知済み
+				}
+
+				// 衝突レイヤーによるフィルタリング
+				if (!(a->GetCollisionMask() & static_cast<uint32_t>(b->GetCollisionLayer())) ||
+					!(b->GetCollisionMask() & static_cast<uint32_t>(a->GetCollisionLayer())))
+				{
+					continue;
+				}
+
+				bool isHit = false;
+				Vector3 mtv = {};
+
+				int typeA = static_cast<int>(a->GetColliderType());
+				int typeB = static_cast<int>(b->GetColliderType());
+
+				if (a->UseSubstep() || b->UseSubstep())
+				{
+					if (ccdMatrix_[typeA][typeB])
+					{
+						isHit = ccdMatrix_[typeA][typeB](a, b, mtv);
+					}
+				}
+				else
+				{
+					if (collisionMatrix_[typeA][typeB])
+					{
+						isHit = collisionMatrix_[typeA][typeB](a, b, mtv);
+					}
+				}
+
+				if (isHit)
+				{
+					newCollisions.insert(pair);
+
+					// MTVから法線とめり込み深さを算出
+					Vector3 normal = {};
+					float depth = 0.0f;
+					float length = mtv.Length();
+					if (length > 0.0001f)
+					{
+						normal = mtv / length;
+						depth = length;
+					}
+
+					// 衝突点の計算
+					Vector3 point = (a->GetCollisionPosition() + b->GetCollisionPosition()) * 0.5f;
+
+					detailsMap[pair] = { normal, depth, point };
+				}
 			}
 		}
 	}
@@ -151,18 +358,41 @@ void CollisionManager::CheckCollisions()
 	// 衝突状態の変化を検出し、コールバックを呼び出す
 	for (auto& pair : newCollisions)
 	{
+		auto detIt = detailsMap.find(pair);
+		CollisionDetails details = {};
+		if (detIt != detailsMap.end())
+		{
+			details = detIt->second;
+		}
+
+		// a 側の衝突情報
+		CollisionInfo infoA;
+		infoA.other = pair.b->GetOwner();
+		infoA.otherCollider = const_cast<ICollisionComponent*>(pair.b);
+		infoA.normal = details.normal; // a から見た押し出し方向
+		infoA.depth = details.depth;
+		infoA.collisionPoint = details.point;
+
+		// b 側の衝突情報
+		CollisionInfo infoB;
+		infoB.other = pair.a->GetOwner();
+		infoB.otherCollider = const_cast<ICollisionComponent*>(pair.a);
+		infoB.normal = -details.normal; // b から見たら押し出し方向は逆向き
+		infoB.depth = details.depth;
+		infoB.collisionPoint = details.point;
+
 		if (currentCollisions_.find(pair) == currentCollisions_.end())
 		{
 			// 新規衝突 (OnEnter)
-			pair.a->CallOnEnter(pair.b->GetOwner());
-			pair.b->CallOnEnter(pair.a->GetOwner());
+			pair.a->CallOnEnter(infoA);
+			pair.b->CallOnEnter(infoB);
 			LogCollision("Enter", pair.a, pair.b);
 		}
 		else
 		{
 			// 継続衝突 (OnStay)
-			pair.a->CallOnStay(pair.b->GetOwner());
-			pair.b->CallOnStay(pair.a->GetOwner());
+			pair.a->CallOnStay(infoA);
+			pair.b->CallOnStay(infoB);
 		}
 	}
 
@@ -171,8 +401,17 @@ void CollisionManager::CheckCollisions()
 		if (newCollisions.find(pair) == newCollisions.end())
 		{
 			// 衝突終了 (OnExit)
-			pair.a->CallOnExit(pair.b->GetOwner());
-			pair.b->CallOnExit(pair.a->GetOwner());
+			// Exitのときはめり込みは無いため深さ0、法線0にする
+			CollisionInfo infoA;
+			infoA.other = pair.b->GetOwner();
+			infoA.otherCollider = const_cast<ICollisionComponent*>(pair.b);
+			
+			CollisionInfo infoB;
+			infoB.other = pair.a->GetOwner();
+			infoB.otherCollider = const_cast<ICollisionComponent*>(pair.a);
+
+			pair.a->CallOnExit(infoA);
+			pair.b->CallOnExit(infoB);
 			LogCollision("Exit", pair.a, pair.b);
 		}
 	}

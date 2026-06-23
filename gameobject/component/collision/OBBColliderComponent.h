@@ -49,6 +49,23 @@ namespace GameObjectComponent
 		 * @return ColliderType::OBB
 		 */
 		ColliderType GetColliderType() const override { return ColliderType::OBB; }
+
+		/**
+		 * @brief ブロードフェーズ用 AABB を取得
+		 */
+		::AABB GetBroadphaseAABB() const override
+		{
+			Vector3 axesX = { obb_.rotate.m[0][0], obb_.rotate.m[0][1], obb_.rotate.m[0][2] };
+			Vector3 axesY = { obb_.rotate.m[1][0], obb_.rotate.m[1][1], obb_.rotate.m[1][2] };
+			Vector3 axesZ = { obb_.rotate.m[2][0], obb_.rotate.m[2][1], obb_.rotate.m[2][2] };
+			
+			float hx = std::abs(axesX.x) * obb_.size.x + std::abs(axesY.x) * obb_.size.y + std::abs(axesZ.x) * obb_.size.z;
+			float hy = std::abs(axesX.y) * obb_.size.x + std::abs(axesY.y) * obb_.size.y + std::abs(axesZ.y) * obb_.size.z;
+			float hz = std::abs(axesX.z) * obb_.size.x + std::abs(axesY.z) * obb_.size.y + std::abs(axesZ.z) * obb_.size.z;
+			
+			Vector3 h = { hx, hy, hz };
+			return ::AABB(obb_.center - h, obb_.center + h);
+		}
 		
 		/**
 		 * @brief OBBデータを設定

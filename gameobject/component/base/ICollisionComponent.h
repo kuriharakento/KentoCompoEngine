@@ -3,6 +3,8 @@
 
 #include "IGameObjectComponent.h"
 #include "math/Vector3.h"
+#include "math/AABB.h"
+#include "engine/gameobject/component/collision/CollisionLayer.h"
 
 class CollisionManager;
 
@@ -34,6 +36,22 @@ enum class ColliderType
  */
 namespace GameObjectComponent
 {
+	class IGameObjectComponent;
+	class IActionComponent;
+	class ICollisionComponent;
+
+	/**
+	 * @brief 衝突判定の詳細情報を格納する構造体
+	 */
+	struct CollisionInfo
+	{
+		::GameObject* other = nullptr;                      // 衝突相手のGameObject
+		ICollisionComponent* otherCollider = nullptr;      // 衝突相手のコライダー
+		Vector3 normal = {};                                // 衝突法線（相手から自身へ向かう押し出し方向）
+		float depth = 0.0f;                                 // めり込み深さ
+		Vector3 collisionPoint = {};                        // 衝突位置
+	};
+
 	class ICollisionComponent : public virtual IGameObjectComponent
 	{
 	public:
@@ -118,15 +136,21 @@ namespace GameObjectComponent
 		/**
 		 * @brief 衝突時のコールバック関数型
 		 * 
-		 * @param other 衝突相手のGameObject
+		 * @param info 衝突の詳細情報
 		 */
-		using CollisionCallback = std::function<void(::GameObject* other)>;
+		using CollisionCallback = std::function<void(const CollisionInfo& info)>;
 
 		/**
 		 * @brief コライダーの種類を取得
 		 * @return コライダーの種類（AABB, OBB, Sphere）
 		 */
 		virtual ColliderType GetColliderType() const = 0;
+
+		/**
+		 * @brief ブロードフェーズ（空間分割等）用のAABBを取得
+		 * @return 境界AABB
+		 */
+		virtual ::AABB GetBroadphaseAABB() const = 0;
 
 		/**
 		 * @brief 衝突開始時のコールバックを設定
@@ -147,22 +171,46 @@ namespace GameObjectComponent
 		void SetOnExit(CollisionCallback callback) { onExit_ = callback; }
 
 		/**
-		 * @brief 衝突開始時のコールバックを実行
-		 * @param other 衝突相手のGameObject
+		 * @brief 自身が属する衝突レイヤーを設定
+		 * @param layer 設定するレイヤー
 		 */
-		void CallOnEnter(::GameObject* other) const { if (onEnter_) onEnter_(other); }
+		void SetCollisionLayer(ColliderLayer layer) { layer_ = layer; }
+
+		/**
+		 * @brief 自身が属する衝突レイヤーを取得
+		 * @return 現在のレイヤー
+		 */
+		ColliderLayer GetCollisionLayer() const { return layer_; }
+
+		/**
+		 * @brief 衝突判定を行う相手のレイヤーマスクを設定
+		 * @param mask 衝突判定を行うレイヤーマスク（論理和）
+		 */
+		void SetCollisionMask(uint32_t mask) { collisionMask_ = mask; }
+
+		/**
+		 * @brief 衝突判定を行う相手のレイヤーマスクを取得
+		 * @return 現在のレイヤーマスク
+		 */
+		uint32_t GetCollisionMask() const { return collisionMask_; }
+
+		/**
+		 * @brief 衝突開始時のコールバックを実行
+		 * @param info 衝突の詳細情報
+		 */
+		void CallOnEnter(const CollisionInfo& info) const { if (onEnter_) onEnter_(info); }
 		
 		/**
 		 * @brief 衝突中のコールバックを実行
-		 * @param other 衝突相手のGameObject
+		 * @param info 衝突の詳細情報
 		 */
-		void CallOnStay(::GameObject* other) const { if (onStay_) onStay_(other); }
+		void CallOnStay(const CollisionInfo& info) const { if (onStay_) onStay_(info); }
 		
 		/**
 		 * @brief 衝突終了時のコールバックを実行
-		 * @param other 衝突相手のGameObject
+		 * @param info 衝突の詳細情報
 		 */
-		void CallOnExit(::GameObject* other) const { if (onExit_) onExit_(other); }
+		void CallOnExit(const CollisionInfo& info) const { if (onExit_) onExit_(info); }
 
 		/**
 		 * @brief このコンポーネントを所有するGameObjectを取得
@@ -185,6 +233,12 @@ namespace GameObjectComponent
 		
 		// 判定サイズのオフセット（微調整用）
 		Vector3 sizeOffset_ = {};
+
+		// 自身が属する衝突レイヤー
+		ColliderLayer layer_ = ColliderLayers::None;
+
+		// 衝突判定を行う対象のレイヤーマスク
+		uint32_t collisionMask_ = ColliderLayers::All;
 
 	private:
 		// 衝突開始時のコールバック
