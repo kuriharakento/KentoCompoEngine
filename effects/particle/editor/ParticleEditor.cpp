@@ -604,11 +604,13 @@ void ParticleEditor::DrawEffectPanel()
 			ImGui::PopStyleColor();
 			
 			ImGui::SameLine();
+			ImGui::PushID(1234);
 			if (ImGui::Button("Save As..."))
 			{
 				effectPath_.clear();
 				SaveEffect("");
 			}
+			ImGui::PopID();
 		}
 	}
 }
