@@ -314,21 +314,21 @@ void CollisionManager::CheckCollisions()
 				bool isHit = false;
 				Vector3 mtv = {};
 
-				int typeA = static_cast<int>(a->GetColliderType());
-				int typeB = static_cast<int>(b->GetColliderType());
+				int typeA = static_cast<int>(pair.a->GetColliderType());
+				int typeB = static_cast<int>(pair.b->GetColliderType());
 
-				if (a->UseSubstep() || b->UseSubstep())
+				if (pair.a->UseSubstep() || pair.b->UseSubstep())
 				{
 					if (ccdMatrix_[typeA][typeB])
 					{
-						isHit = ccdMatrix_[typeA][typeB](a, b, mtv);
+						isHit = ccdMatrix_[typeA][typeB](pair.a, pair.b, mtv);
 					}
 				}
 				else
 				{
 					if (collisionMatrix_[typeA][typeB])
 					{
-						isHit = collisionMatrix_[typeA][typeB](a, b, mtv);
+						isHit = collisionMatrix_[typeA][typeB](pair.a, pair.b, mtv);
 					}
 				}
 
