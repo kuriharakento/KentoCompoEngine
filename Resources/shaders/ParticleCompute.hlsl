@@ -206,6 +206,19 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     
     // 重力を適用
     p.velocity += gravity * deltaTime;
+
+    // 4. NoiseModule (シンプルなサイン波ノイズ風の動き)
+    if (hasNoise != 0)
+    {
+        float t = p.age * noiseFrequency;
+        float idOffset = float(p.id);
+        float3 noiseVal = float3(
+            sin(t * 2.0f + idOffset * 0.1f) * noiseStrength,
+            sin(t * 2.3f + idOffset * 0.2f) * noiseStrength,
+            sin(t * 2.7f + idOffset * 0.3f) * noiseStrength
+        );
+        p.velocity += noiseVal * deltaTime;
+    }
     
     // 位置を更新
     p.position += p.velocity * deltaTime;
@@ -243,19 +256,6 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
             p.scale.x = shrink;
             p.scale.z = shrink;
         }
-    }
-
-    // 4. NoiseModule (シンプルなサイン波ノイズ風の動き)
-    if (hasNoise != 0)
-    {
-        float t = p.age * noiseFrequency;
-        float idOffset = float(p.id);
-        float3 noiseVal = float3(
-            sin(t * 2.0f + idOffset * 0.1f) * noiseStrength,
-            sin(t * 2.3f + idOffset * 0.2f) * noiseStrength,
-            sin(t * 2.7f + idOffset * 0.3f) * noiseStrength
-        );
-        p.velocity += noiseVal * deltaTime;
     }
 
     // 4.5. FaceVelocityModule (進行方向アライメント)

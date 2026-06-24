@@ -350,13 +350,37 @@ void GPUParticlePipeline::CreateModulePipelines()
 	compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
+	// パス検索用ヘルパー
+	auto ResolvePath = [](const std::wstring& baseName) -> std::wstring
+	{
+		std::wstring filePath = L"Resources/shaders/" + baseName;
+		if (!std::filesystem::exists(filePath))
+		{
+			std::vector<std::wstring> searchPaths = {
+				L"application/Resources/shaders/" + baseName,
+				L"../engine/Resources/shaders/" + baseName,
+				L"Resources/shaders/" + baseName
+			};
+			for (const auto& path : searchPaths)
+			{
+				if (std::filesystem::exists(path))
+				{
+					filePath = path;
+					break;
+				}
+			}
+		}
+		return filePath;
+	};
+
 	// Vortex
 	{
 		vortexRootSignature_ = rootSignature_; // ルートシグネチャは共有
+		std::wstring filePath = ResolvePath(L"ParticleVortex.CS.hlsl");
 		
 		Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
 		HRESULT hr = D3DCompileFromFile(
-			L"Resources/shaders/ParticleVortex.CS.hlsl",
+			filePath.c_str(),
 			nullptr,
 			D3D_COMPILE_STANDARD_FILE_INCLUDE,
 			"CSMain",
@@ -385,10 +409,11 @@ void GPUParticlePipeline::CreateModulePipelines()
 	// Attractor
 	{
 		attractorRootSignature_ = rootSignature_; // ルートシグネチャは共有
+		std::wstring filePath = ResolvePath(L"ParticleAttractor.CS.hlsl");
 		
 		Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
 		HRESULT hr = D3DCompileFromFile(
-			L"Resources/shaders/ParticleAttractor.CS.hlsl",
+			filePath.c_str(),
 			nullptr,
 			D3D_COMPILE_STANDARD_FILE_INCLUDE,
 			"CSMain",
@@ -417,10 +442,11 @@ void GPUParticlePipeline::CreateModulePipelines()
 	// CurlNoise
 	{
 		curlNoiseRootSignature_ = rootSignature_; // ルートシグネチャは共有
+		std::wstring filePath = ResolvePath(L"ParticleCurlNoise.CS.hlsl");
 		
 		Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
 		HRESULT hr = D3DCompileFromFile(
-			L"Resources/shaders/ParticleCurlNoise.CS.hlsl",
+			filePath.c_str(),
 			nullptr,
 			D3D_COMPILE_STANDARD_FILE_INCLUDE,
 			"CSMain",
