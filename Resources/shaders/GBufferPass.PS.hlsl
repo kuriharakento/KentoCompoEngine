@@ -45,7 +45,8 @@ GBufferOutput main(PixelShaderInput input)
     GBufferOutput output;
     
     // テクスチャカラー
-    float4 texColor = gTexture.Sample(gSampler, input.texcoord);
+    float4 transformedUV = mul(float4(input.texcoord, 0.0f, 1.0f), uvTransform);
+    float4 texColor = gTexture.Sample(gSampler, transformedUV.xy);
     
     // アルファテスト
     if (texColor.a < 0.5f)
