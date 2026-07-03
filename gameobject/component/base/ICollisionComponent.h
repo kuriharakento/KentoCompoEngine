@@ -218,6 +218,14 @@ namespace GameObjectComponent
 		 */
 		::GameObject* GetOwner() const { return owner_; }
 
+		// --- 追加: アクティブ状態の制御 ---
+		void SetActive(bool active) { isActive_ = active; }
+		bool IsActive() const { return isActive_; }
+
+		// --- 追加: 位置自動更新の制御 ---
+		void SetAutoUpdatePosition(bool enable) { autoUpdatePosition_ = enable; }
+		bool IsAutoUpdatePosition() const { return autoUpdatePosition_; }
+
 	protected:
 		// コンポーネントを所有するGameObject
 		::GameObject* owner_ = nullptr;
@@ -240,6 +248,10 @@ namespace GameObjectComponent
 		// 衝突判定を行う対象のレイヤーマスク
 		uint32_t collisionMask_ = ColliderLayers::All;
 
+		// --- 追加: 各種制御フラグ ---
+		bool isActive_ = true;             // コライダーが有効かどうか
+		bool autoUpdatePosition_ = true;   // GameObjectの位置に自動同期するか
+
 	private:
 		// 衝突開始時のコールバック
 		CollisionCallback onEnter_ = nullptr;
@@ -250,4 +262,4 @@ namespace GameObjectComponent
 		// 衝突終了時のコールバック
 		CollisionCallback onExit_ = nullptr;
 	};
-}
+}

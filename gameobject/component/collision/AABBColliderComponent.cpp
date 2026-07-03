@@ -30,12 +30,18 @@ namespace GameObjectComponent
 
 	void AABBColliderComponent::Update(::GameObject* owner)
 	{
-		Vector3 pos = owner->GetPosition();
-		Vector3 size = owner->GetScale();
-		
-		// サイズオフセットを適用してAABBを更新
-		aabb_.min_ = pos - (size + sizeOffset_);
-		aabb_.max_ = pos + (size + sizeOffset_);
+		// 非アクティブ時は更新もデバッグ描画も行わない
+		if (!isActive_) return;
+
+		if (owner && autoUpdatePosition_)
+		{
+			Vector3 pos = owner->GetPosition();
+			Vector3 size = owner->GetScale();
+			
+			// サイズオフセットを適用してAABBを更新
+			aabb_.min_ = pos - (size + sizeOffset_);
+			aabb_.max_ = pos + (size + sizeOffset_);
+		}
 		
 	#ifdef _DEBUG
 		// デバッグモードでAABBを可視化

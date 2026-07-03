@@ -29,7 +29,11 @@ namespace GameObjectComponent
 
 	void SphereColliderComponent::Update(::GameObject* owner)
 	{
-		if (owner)
+		// 非アクティブ時は更新もデバッグ描画も行わない
+		if (!isActive_) return;
+
+		// ownerが存在し、かつ自動更新が有効な場合のみ位置を同期する
+		if (owner && autoUpdatePosition_)
 		{
 			// GameObjectの位置に合わせて球の中心を更新
 			sphere_.center = owner->GetPosition();

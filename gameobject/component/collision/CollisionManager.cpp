@@ -248,7 +248,8 @@ void CollisionManager::CheckCollisions()
 	gridBuckets_.clear();
 	for (auto& collider : colliders_)
 	{
-		if (!collider->GetOwner()->IsActive())
+		// GameObject自身が非アクティブ、またはコライダー個別で非アクティブな場合は判定しない
+		if (!collider->GetOwner()->IsActive() || !collider->IsActive())
 		{
 			continue;
 		}

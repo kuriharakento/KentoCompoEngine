@@ -39,12 +39,18 @@ namespace GameObjectComponent
 
 	void OBBColliderComponent::Update(::GameObject* owner)
 	{
-		const ::Matrix4x4& m = owner->GetWorldMatrix();
+		// 非アクティブ時は更新もデバッグ描画も行わない
+		if (!isActive_) return;
 
-		// ワールド行列から位置、回転、スケールを取得してOBBを更新
-		obb_.center = MathUtils::GetTranslateFromMatrix(m);
-		obb_.rotate = MathUtils::GetMatrixRotate(m);
-		obb_.size = MathUtils::GetScaleFromMatrix(m) + sizeOffset_;
+		if (owner && autoUpdatePosition_)
+		{
+			const ::Matrix4x4& m = owner->GetWorldMatrix();
+
+			// ワールド行列から位置、回転、スケールを取得してOBBを更新
+			obb_.center = MathUtils::GetTranslateFromMatrix(m);
+			obb_.rotate = MathUtils::GetMatrixRotate(m);
+			obb_.size = MathUtils::GetScaleFromMatrix(m) + sizeOffset_;
+		}
 		
 	#ifdef _DEBUG
 		// デバッグモードでOBBを可視化
