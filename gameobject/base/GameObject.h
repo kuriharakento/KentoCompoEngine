@@ -146,6 +146,16 @@ public:
 	template<typename T>
 	std::shared_ptr<T> GetComponent() const;
 
+	/**
+	 * @brief 名前と型を指定してのコンポーネント取得
+	 * 
+	 * @tparam T 取得するコンポーネントの型
+	 * @param name コンポーネント名（一意識別子）
+	 * @return 指定された型と名前のコンポーネント（見つからない場合はnullptr）
+	 */
+	template<typename T>
+	std::shared_ptr<T> GetComponent(const std::string& name) const;
+
 public: // アクセッサ
 	// === Transform関連 ===
 	/**
@@ -442,6 +452,24 @@ std::shared_ptr<T> GameObject::GetComponent() const
 				return casted;
 			}
 		}
+	}
+	return nullptr;
+}
+
+/**
+ * @brief 名前と型を指定してのコンポーネント取得（テンプレート実装）
+ * 
+ * @tparam T 取得するコンポーネントの型
+ * @param name コンポーネント名（一意識別子）
+ * @return 指定された型と名前のコンポーネント（見つからない場合はnullptr）
+ */
+template <typename T>
+std::shared_ptr<T> GameObject::GetComponent(const std::string& name) const
+{
+	auto it = components_.find(name);
+	if (it != components_.end())
+	{
+		return std::dynamic_pointer_cast<T>(it->second);
 	}
 	return nullptr;
 }
