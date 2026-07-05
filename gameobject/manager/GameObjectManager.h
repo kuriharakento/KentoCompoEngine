@@ -98,6 +98,20 @@ public:
 	std::vector<GameObject*> FindAll(const std::string& name) const;
 
 	/**
+	 * @brief タグでGameObjectを検索
+	 * @param tag 検索するタグ
+	 * @return 最初に見つかったGameObject。無ければnullptr
+	 */
+	GameObject* FindWithTag(const std::string& tag) const;
+
+	/**
+	 * @brief 指定したタグのGameObjectをすべて検索
+	 * @param tag 検索するタグ
+	 * @return 見つかったGameObjectのリスト
+	 */
+	std::vector<GameObject*> FindAllWithTag(const std::string& tag) const;
+
+	/**
 	 * @brief 管理中の全GameObjectを取得
 	 */
 	const std::vector<GameObject*>& GetGameObjects() const { return gameObjects_; }

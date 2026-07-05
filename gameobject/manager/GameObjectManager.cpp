@@ -208,6 +208,31 @@ std::vector<GameObject*> GameObjectManager::FindAll(const std::string& name) con
 	return result;
 }
 
+GameObject* GameObjectManager::FindWithTag(const std::string& tag) const
+{
+	for (auto* obj : gameObjects_)
+	{
+		if (obj && obj->GetTag() == tag)
+		{
+			return obj;
+		}
+	}
+	return nullptr;
+}
+
+std::vector<GameObject*> GameObjectManager::FindAllWithTag(const std::string& tag) const
+{
+	std::vector<GameObject*> result;
+	for (auto* obj : gameObjects_)
+	{
+		if (obj && obj->GetTag() == tag)
+		{
+			result.push_back(obj);
+		}
+	}
+	return result;
+}
+
 GameObject* GameObjectManager::CreateGameObject(const std::string& name, const std::string& tag)
 {
 	auto newObj = std::make_unique<GameObject>(tag);
