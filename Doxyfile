@@ -46,3 +46,8 @@ SOURCE_BROWSER         = YES
 INLINE_SOURCES         = NO
 REFERENCED_BY_RELATION = YES
 REFERENCES_RELATION    = YES
+
+# 見やすさとデザイン向上のための設定
+GENERATE_TREEVIEW      = YES
+HTML_EXTRA_STYLESHEET  = docs/doxygen-awesome/doxygen-awesome.css
+HTML_EXTRA_FILES       = docs/doxygen-awesome/doxygen-awesome-darkmode-toggle.js
