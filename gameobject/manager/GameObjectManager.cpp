@@ -108,11 +108,14 @@ void GameObjectManager::Update()
 	for (auto* obj : tempObjects)
 	{
 		auto it = std::find(gameObjects_.begin(), gameObjects_.end(), obj);
-		if (it != gameObjects_.end() && obj->IsActive())
+		if (it != gameObjects_.end() && obj->IsActive() && !obj->IsPendingDestroy())
 		{
 			obj->Update();
 		}
 	}
+
+	// 破棄保留中のオブジェクトを安全に解放
+	ClearPendingDestroyObjects();
 }
 
 void GameObjectManager::Draw3D(CameraManager* camera)
@@ -221,4 +224,21 @@ GameObject* GameObjectManager::CreateGameObject(const std::string& name, const s
 	Register(ptr);
 
 	return ptr;
+}
+
+void GameObjectManager::ClearPendingDestroyObjects()
+{
+	std::vector<GameObject*> toDestroy;
+	for (auto* obj : gameObjects_)
+	{
+		if (obj && obj->IsPendingDestroy())
+		{
+			toDestroy.push_back(obj);
+		}
+	}
+
+	for (auto* obj : toDestroy)
+	{
+		Unregister(obj);
+	}
 }

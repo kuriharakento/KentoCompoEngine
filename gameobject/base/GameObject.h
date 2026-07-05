@@ -296,6 +296,16 @@ public: // アクセッサ
 	 */
 	bool IsActive() const { return isActive_; }
 
+	/**
+	 * @brief オブジェクトの破棄を要求する（フレーム末尾で安全にメモリ解放されます）
+	 */
+	void Destroy() { isPendingDestroy_ = true; }
+
+	/**
+	 * @brief 破棄保留中であるかを取得
+	 */
+	bool IsPendingDestroy() const { return isPendingDestroy_; }
+
 	// === 親子関係関連 ===
 	/**
 	 * @brief 子オブジェクトの追加
@@ -403,6 +413,8 @@ private:
 	std::string name_ = "";
 	// アクティブ状態フラグ
 	bool isActive_;
+	// 破棄保留中フラグ
+	bool isPendingDestroy_ = false;
 
 	// === 親子関係システム ===
 	// 子オブジェクトのマップ

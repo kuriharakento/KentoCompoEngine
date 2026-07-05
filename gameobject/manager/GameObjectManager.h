@@ -110,6 +110,11 @@ private:
 	GameObjectManager(const GameObjectManager&) = delete;
 	GameObjectManager& operator=(const GameObjectManager&) = delete;
 
+	/**
+	 * @brief 破棄保留中のオブジェクトを安全に解放・登録解除する
+	 */
+	void ClearPendingDestroyObjects();
+
 private:
 	static std::unique_ptr<GameObjectManager> instance_;
 
