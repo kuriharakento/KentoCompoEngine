@@ -2,7 +2,7 @@
   <tr>
     <td align="left" valign="middle">
       <h1>KentoCompoEngine</h1>
-      <p>コンポーネント指向（ECS）を採用した、DirectX 12ベースの自社製3Dゲームエンジンです。</p>
+      <p>コンポーネント指向（ECS,GameObject）を採用した、DirectX 12ベースの自作3Dゲームエンジンです。</p>
     </td>
     <td align="center" valign="middle" width="150">
       <img src="https://github.com/kuriharakento.png" width="120" height="120" style="border-radius: 50%; border: 3px solid #0078d4;" alt="kuriharakento" />
