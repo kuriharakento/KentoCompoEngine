@@ -1,8 +1,8 @@
 #include "Audio.h"
 
-#include <cstring>
-#include <cassert>
 #include <algorithm>
+#include <cassert>
+#include <cstring>
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
@@ -23,28 +23,49 @@ namespace
 	{
 		switch (preset)
 		{
-		case ReverbPreset::Generic:     return XAUDIO2FX_I3DL2_PRESET_GENERIC;
-		case ReverbPreset::Room:        return XAUDIO2FX_I3DL2_PRESET_ROOM;
-		case ReverbPreset::Bathroom:    return XAUDIO2FX_I3DL2_PRESET_BATHROOM;
-		case ReverbPreset::StoneRoom:   return XAUDIO2FX_I3DL2_PRESET_STONEROOM;
-		case ReverbPreset::Auditorium:  return XAUDIO2FX_I3DL2_PRESET_AUDITORIUM;
-		case ReverbPreset::ConcertHall: return XAUDIO2FX_I3DL2_PRESET_CONCERTHALL;
-		case ReverbPreset::Cave:        return XAUDIO2FX_I3DL2_PRESET_CAVE;
-		case ReverbPreset::Arena:       return XAUDIO2FX_I3DL2_PRESET_ARENA;
-		case ReverbPreset::Hangar:      return XAUDIO2FX_I3DL2_PRESET_HANGAR;
-		case ReverbPreset::Forest:      return XAUDIO2FX_I3DL2_PRESET_FOREST;
-		case ReverbPreset::City:        return XAUDIO2FX_I3DL2_PRESET_CITY;
-		case ReverbPreset::Mountains:   return XAUDIO2FX_I3DL2_PRESET_MOUNTAINS;
-		case ReverbPreset::Quarry:      return XAUDIO2FX_I3DL2_PRESET_QUARRY;
-		case ReverbPreset::Plain:       return XAUDIO2FX_I3DL2_PRESET_PLAIN;
-		case ReverbPreset::SmallRoom:   return XAUDIO2FX_I3DL2_PRESET_SMALLROOM;
-		case ReverbPreset::MediumRoom:  return XAUDIO2FX_I3DL2_PRESET_MEDIUMROOM;
-		case ReverbPreset::LargeRoom:   return XAUDIO2FX_I3DL2_PRESET_LARGEROOM;
-		case ReverbPreset::MediumHall:  return XAUDIO2FX_I3DL2_PRESET_MEDIUMHALL;
-		case ReverbPreset::LargeHall:   return XAUDIO2FX_I3DL2_PRESET_LARGEHALL;
-		case ReverbPreset::Plate:       return XAUDIO2FX_I3DL2_PRESET_PLATE;
+		case ReverbPreset::Generic:
+			return XAUDIO2FX_I3DL2_PRESET_GENERIC;
+		case ReverbPreset::Room:
+			return XAUDIO2FX_I3DL2_PRESET_ROOM;
+		case ReverbPreset::Bathroom:
+			return XAUDIO2FX_I3DL2_PRESET_BATHROOM;
+		case ReverbPreset::StoneRoom:
+			return XAUDIO2FX_I3DL2_PRESET_STONEROOM;
+		case ReverbPreset::Auditorium:
+			return XAUDIO2FX_I3DL2_PRESET_AUDITORIUM;
+		case ReverbPreset::ConcertHall:
+			return XAUDIO2FX_I3DL2_PRESET_CONCERTHALL;
+		case ReverbPreset::Cave:
+			return XAUDIO2FX_I3DL2_PRESET_CAVE;
+		case ReverbPreset::Arena:
+			return XAUDIO2FX_I3DL2_PRESET_ARENA;
+		case ReverbPreset::Hangar:
+			return XAUDIO2FX_I3DL2_PRESET_HANGAR;
+		case ReverbPreset::Forest:
+			return XAUDIO2FX_I3DL2_PRESET_FOREST;
+		case ReverbPreset::City:
+			return XAUDIO2FX_I3DL2_PRESET_CITY;
+		case ReverbPreset::Mountains:
+			return XAUDIO2FX_I3DL2_PRESET_MOUNTAINS;
+		case ReverbPreset::Quarry:
+			return XAUDIO2FX_I3DL2_PRESET_QUARRY;
+		case ReverbPreset::Plain:
+			return XAUDIO2FX_I3DL2_PRESET_PLAIN;
+		case ReverbPreset::SmallRoom:
+			return XAUDIO2FX_I3DL2_PRESET_SMALLROOM;
+		case ReverbPreset::MediumRoom:
+			return XAUDIO2FX_I3DL2_PRESET_MEDIUMROOM;
+		case ReverbPreset::LargeRoom:
+			return XAUDIO2FX_I3DL2_PRESET_LARGEROOM;
+		case ReverbPreset::MediumHall:
+			return XAUDIO2FX_I3DL2_PRESET_MEDIUMHALL;
+		case ReverbPreset::LargeHall:
+			return XAUDIO2FX_I3DL2_PRESET_LARGEHALL;
+		case ReverbPreset::Plate:
+			return XAUDIO2FX_I3DL2_PRESET_PLATE;
 		case ReverbPreset::Default:
-		default:                        return XAUDIO2FX_I3DL2_PRESET_DEFAULT;
+		default:
+			return XAUDIO2FX_I3DL2_PRESET_DEFAULT;
 		}
 	}
 
@@ -53,11 +74,16 @@ namespace
 	{
 		switch (group)
 		{
-		case SoundGroup::BGM:     return "BGM";
-		case SoundGroup::SE:      return "SE";
-		case SoundGroup::Voice:   return "Voice";
-		case SoundGroup::Ambient: return "Ambient";
-		default:                  return "Unknown";
+		case SoundGroup::BGM:
+			return "BGM";
+		case SoundGroup::SE:
+			return "SE";
+		case SoundGroup::Voice:
+			return "Voice";
+		case SoundGroup::Ambient:
+			return "Ambient";
+		default:
+			return "Unknown";
 		}
 	}
 
@@ -68,31 +94,31 @@ namespace
 	};
 
 	constexpr PresetInfo kPresetList[] = {
-		{ ReverbPreset::Default,     "Default" },
-		{ ReverbPreset::Generic,     "Generic" },
-		{ ReverbPreset::Room,        "Room" },
-		{ ReverbPreset::Bathroom,    "Bathroom" },
-		{ ReverbPreset::StoneRoom,   "Stone Room" },
-		{ ReverbPreset::Auditorium,  "Auditorium" },
-		{ ReverbPreset::ConcertHall, "Concert Hall" },
-		{ ReverbPreset::Cave,        "Cave" },
-		{ ReverbPreset::Arena,       "Arena" },
-		{ ReverbPreset::Hangar,      "Hangar" },
-		{ ReverbPreset::Forest,      "Forest" },
-		{ ReverbPreset::City,        "City" },
-		{ ReverbPreset::Mountains,   "Mountains" },
-		{ ReverbPreset::Quarry,      "Quarry" },
-		{ ReverbPreset::Plain,       "Plain" },
-		{ ReverbPreset::SmallRoom,   "Small Room" },
-		{ ReverbPreset::MediumRoom,  "Medium Room" },
-		{ ReverbPreset::LargeRoom,   "Large Room" },
-		{ ReverbPreset::MediumHall,  "Medium Hall" },
-		{ ReverbPreset::LargeHall,   "Large Hall" },
-		{ ReverbPreset::Plate,       "Plate" },
+		{ReverbPreset::Default, "Default"},
+		{ReverbPreset::Generic, "Generic"},
+		{ReverbPreset::Room, "Room"},
+		{ReverbPreset::Bathroom, "Bathroom"},
+		{ReverbPreset::StoneRoom, "Stone Room"},
+		{ReverbPreset::Auditorium, "Auditorium"},
+		{ReverbPreset::ConcertHall, "Concert Hall"},
+		{ReverbPreset::Cave, "Cave"},
+		{ReverbPreset::Arena, "Arena"},
+		{ReverbPreset::Hangar, "Hangar"},
+		{ReverbPreset::Forest, "Forest"},
+		{ReverbPreset::City, "City"},
+		{ReverbPreset::Mountains, "Mountains"},
+		{ReverbPreset::Quarry, "Quarry"},
+		{ReverbPreset::Plain, "Plain"},
+		{ReverbPreset::SmallRoom, "Small Room"},
+		{ReverbPreset::MediumRoom, "Medium Room"},
+		{ReverbPreset::LargeRoom, "Large Room"},
+		{ReverbPreset::MediumHall, "Medium Hall"},
+		{ReverbPreset::LargeHall, "Large Hall"},
+		{ReverbPreset::Plate, "Plate"},
 	};
 	constexpr int kPresetCount = sizeof(kPresetList) / sizeof(kPresetList[0]);
 #endif
-}
+} // namespace
 
 std::unique_ptr<Audio> Audio::instance_ = nullptr;
 
@@ -117,7 +143,8 @@ void Audio::Initialize()
 #ifdef USE_IMGUI
 	debugData_.reverbAmount = kDefaultReverbAmount;
 
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Audio Debug", [this]() {
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Audio Debug", [this]()
+	{
 		this->DrawDebugWindow();
 	}, DebugUIArea::Console);
 #endif
@@ -840,8 +867,7 @@ void Audio::InitializeEffect()
 		&submixVoiceDry_,
 		channels,
 		sampleRate,
-		0, 0, nullptr, nullptr
-	);
+		0, 0, nullptr, nullptr);
 
 	if (FAILED(hr))
 	{
@@ -875,8 +901,7 @@ void Audio::InitializeEffect()
 		reverbChannels,
 		sampleRate,
 		0, 0, nullptr,
-		&effectChain
-	);
+		&effectChain);
 
 	reverbEffect->Release();
 
@@ -928,11 +953,20 @@ void Audio::DrawDebugWindow()
 			SetMasterVolume(masterVolume_);
 		}
 
-		if (ImGui::Button("Stop All")) { StopAll(); }
+		if (ImGui::Button("Stop All"))
+		{
+			StopAll();
+		}
 		ImGui::SameLine();
-		if (ImGui::Button("Pause All")) { PauseAll(); }
+		if (ImGui::Button("Pause All"))
+		{
+			PauseAll();
+		}
 		ImGui::SameLine();
-		if (ImGui::Button("Resume All")) { ResumeAll(); }
+		if (ImGui::Button("Resume All"))
+		{
+			ResumeAll();
+		}
 
 		ImGui::Text("Loaded: %zu | Playing: %zu | Fading: %zu",
 					soundDataMap_.size(), sourceVoiceMap_.size(), fadeList_.size());
@@ -941,7 +975,7 @@ void Audio::DrawDebugWindow()
 	// グループ設定
 	if (ImGui::CollapsingHeader("Groups", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		const SoundGroup groups[] = { SoundGroup::BGM, SoundGroup::SE, SoundGroup::Voice, SoundGroup::Ambient };
+		const SoundGroup groups[] = {SoundGroup::BGM, SoundGroup::SE, SoundGroup::Voice, SoundGroup::Ambient};
 
 		for (int i = 0; i < 4; ++i)
 		{
@@ -951,11 +985,20 @@ void Audio::DrawDebugWindow()
 				SetGroupVolume(groups[i], debugData_.groupVolumes[i]);
 			}
 			ImGui::SameLine();
-			if (ImGui::SmallButton("Stop")) { StopGroup(groups[i]); }
+			if (ImGui::SmallButton("Stop"))
+			{
+				StopGroup(groups[i]);
+			}
 			ImGui::SameLine();
-			if (ImGui::SmallButton("Pause")) { PauseGroup(groups[i]); }
+			if (ImGui::SmallButton("Pause"))
+			{
+				PauseGroup(groups[i]);
+			}
 			ImGui::SameLine();
-			if (ImGui::SmallButton("Resume")) { ResumeGroup(groups[i]); }
+			if (ImGui::SmallButton("Resume"))
+			{
+				ResumeGroup(groups[i]);
+			}
 			ImGui::PopID();
 		}
 	}
@@ -1016,8 +1059,14 @@ void Audio::DrawDebugWindow()
 					bool paused = IsPaused(name);
 
 					std::string label = name + " [" + GetGroupName(pair.second.group) + "]";
-					if (playing) { label += " (Playing)"; }
-					else if (paused) { label += " (Paused)"; }
+					if (playing)
+					{
+						label += " (Playing)";
+					}
+					else if (paused)
+					{
+						label += " (Paused)";
+					}
 
 					if (ImGui::Selectable(label.c_str(), debugData_.selectedSound == name))
 					{
@@ -1065,11 +1114,17 @@ void Audio::DrawDebugWindow()
 					ImGui::SameLine();
 					if (paused)
 					{
-						if (ImGui::Button("Resume")) { Resume(debugData_.selectedSound); }
+						if (ImGui::Button("Resume"))
+						{
+							Resume(debugData_.selectedSound);
+						}
 					}
 					else
 					{
-						if (ImGui::Button("Pause")) { Pause(debugData_.selectedSound); }
+						if (ImGui::Button("Pause"))
+						{
+							Pause(debugData_.selectedSound);
+						}
 					}
 				}
 

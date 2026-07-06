@@ -2,12 +2,12 @@
 #include <xaudio2.h>
 #pragma comment(lib, "xaudio2.lib")
 #include <fstream>
+#include <memory>
+#include <string>
 #include <unordered_map>
+#include <vector>
 #include <wrl.h>
 #include <xaudio2fx.h>
-#include <vector>
-#include <string>
-#include <memory>
 
 struct ChunkHeader
 {
@@ -83,7 +83,7 @@ struct FadeData
 struct AudioDebugData
 {
 	bool windowVisible = false;
-	float groupVolumes[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	float groupVolumes[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 	std::string selectedSound;
 	float selectedVolume = 1.0f;
 	float selectedPitch = 1.0f;
@@ -162,7 +162,7 @@ private:
 private:
 	Microsoft::WRL::ComPtr<IXAudio2> xAudio2;
 	IXAudio2MasteringVoice* masterVoice = nullptr;
-	IXAudio2SubmixVoice* submixVoiceDry_ = nullptr;    // ドライ音用
+	IXAudio2SubmixVoice* submixVoiceDry_ = nullptr;	   // ドライ音用
 	IXAudio2SubmixVoice* submixVoiceReverb_ = nullptr; // リバーブ用
 
 	std::unordered_map<std::string, SoundData> soundDataMap_;
