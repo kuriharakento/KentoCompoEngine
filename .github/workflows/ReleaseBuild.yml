@@ -23,7 +23,7 @@ jobs:
         mkdir -p application/scene/debug
         mkdir -p application/scene/play
         echo -e "#pragma once\n#include \"scene/interface/BaseScene.h\"\nclass ParticleTestScene : public BaseScene { public: void Initialize() override {} void Finalize() override {} void Draw2D() override {} };" > application/scene/debug/ParticleTestScene.h
-        echo -e "#pragma once\n#include \"scene/interface/BaseScene.h\"\nclass TestScene : public BaseScene { public: void Initialize() override {} void Draw2D() override {} };" > application/scene/debug/TestScene.h
+        echo -e "#pragma once\n#include \"scene/interface/BaseScene.h\"\nclass TestScene : public BaseScene { public: void Initialize() override {} void Finalize() override {} void Draw2D() override {} };" > application/scene/debug/TestScene.h
         echo -e "#pragma once\n#include \"scene/interface/BaseScene.h\"\nclass TitleScene : public BaseScene { public: void Initialize() override {} void Finalize() override {} void Draw2D() override {} };" > application/scene/play/TitleScene.h
       shell: bash
 
