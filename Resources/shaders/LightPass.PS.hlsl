@@ -61,6 +61,7 @@ cbuffer DirectionalLightData : register(b1)
     float4 dirLightColor;
     float3 dirLightDirection;
     float dirLightIntensity;
+    float4 ambientColor;
 };
 
 // カスケードシャドウデータ
@@ -329,10 +330,10 @@ float4 main(PixelShaderInput input) : SV_TARGET
     float4 materialData = gMaterial.Sample(gSampler, input.texcoord);
     float depth = gDepth.Sample(gSampler, input.texcoord);
     
-    // 背景をスキップ
+    // 背景をスキップ（環境光の明るさに同期）
     if (depth >= 1.0f)
     {
-        return float4(0.1f, 0.1f, 0.15f, 1.0f);
+        return float4(float3(0.1f, 0.1f, 0.15f) * ambientColor.rgb, 1.0f);
     }
     
     float3 albedo = albedoMetal.rgb;
@@ -344,8 +345,8 @@ float4 main(PixelShaderInput input) : SV_TARGET
     float4 viewPos = mul(float4(worldPos, 1.0f), viewMatrix);
     float viewDepth = viewPos.z;
     
-    // アンビエント
-    float3 ambient = albedo * 0.1f * ao;
+    // アンビエント（環境光のカラー乗数を適用）
+    float3 ambient = albedo * 0.1f * ao * ambientColor.rgb;
     
     // ディレクショナルライト
     float3 lightDir = normalize(-dirLightDirection);
