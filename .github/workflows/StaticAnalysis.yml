@@ -11,7 +11,7 @@ on:
       - develop
 
 env:
-  PROJECT_DIR: project/
+  PROJECT_DIR: ./
 
 jobs:
   analyze:
