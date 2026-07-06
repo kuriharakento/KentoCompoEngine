@@ -18,6 +18,15 @@ jobs:
       with:
         path: engine
 
+    - name: Create dummy application headers for build compatibility
+      run: |
+        mkdir -p application/scene/debug
+        mkdir -p application/scene/play
+        echo -e "#pragma once\n#include \"scene/interface/BaseScene.h\"\nclass ParticleTestScene : public BaseScene { public: void Initialize() override {} void Finalize() override {} void Draw2D() override {} };" > application/scene/debug/ParticleTestScene.h
+        echo -e "#pragma once\n#include \"scene/interface/BaseScene.h\"\nclass TestScene : public BaseScene { public: void Initialize() override {} void Finalize() override {} void Draw2D() override {} };" > application/scene/debug/TestScene.h
+        echo -e "#pragma once\n#include \"scene/interface/BaseScene.h\"\nclass TitleScene : public BaseScene { public: void Initialize() override {} void Finalize() override {} void Draw2D() override {} };" > application/scene/play/TitleScene.h
+      shell: bash
+
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v2
       with:
