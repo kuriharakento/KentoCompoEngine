@@ -43,7 +43,7 @@ jobs:
       run: |
         echo "## cppcheck (バグ・メモリリーク検知)" >> $env:GITHUB_STEP_SUMMARY
         $errFile = "cppcheck_err.txt"
-        cppcheck --enable=warning,performance,portability -i externals ${{ env.PROJECT_DIR }} 2> $errFile
+        cppcheck --enable=warning,performance,portability -i externals -i ./externals -i externals/ ${{ env.PROJECT_DIR }} 2> $errFile
         
         if (Test-Path $errFile) {
             $content = Get-Content $errFile
@@ -63,7 +63,7 @@ jobs:
       shell: pwsh
       run: |
         echo "## コーディングスタイル (.clang-format)" >> $env:GITHUB_STEP_SUMMARY
-        $files = Get-ChildItem -Path ${{ env.PROJECT_DIR }} -Include *.cpp,*.h -Recurse | Where-Object { $_.FullName -notmatch '[\\/]externals[\\/]' }
+        $files = Get-ChildItem -Path ${{ env.PROJECT_DIR }} -Include *.cpp,*.h -Recurse | Where-Object { $_.FullName -notlike "*externals*" }
         $failedFiles = @()
         
         foreach ($f in $files) {
@@ -88,7 +88,7 @@ jobs:
       shell: pwsh
       run: |
         echo "## Workspace 独自ルール" >> $env:GITHUB_STEP_SUMMARY
-        $files = Get-ChildItem -Path ${{ env.PROJECT_DIR }} -Include *.cpp,*.h -Recurse | Where-Object { $_.FullName -notmatch '[\\/]externals[\\/]' }
+        $files = Get-ChildItem -Path ${{ env.PROJECT_DIR }} -Include *.cpp,*.h -Recurse | Where-Object { $_.FullName -notlike "*externals*" }
         $errors = 0
         
         foreach ($f in $files) {
