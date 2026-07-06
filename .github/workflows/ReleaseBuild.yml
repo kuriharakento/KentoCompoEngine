@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  SOLUTION_FILE_PATH: project/KentoCompo.sln
+  SOLUTION_FILE_PATH: KentoCompoEngine.vcxproj
   CONFIGURATION: Release
 
 jobs:
