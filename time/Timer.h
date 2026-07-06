@@ -125,6 +125,12 @@ public:
      */
     float GetDuration() const;
 
+	/**
+	 * @brief 進行具合を取得（0.0〜1.0）
+	 * @return 進行具合
+	 */
+	float GetProgress() const;
+
     /**
      * @brief タイマー名を取得
      * @return タイマーの識別名
