@@ -55,6 +55,8 @@ cbuffer Constants : register(b0)
     uint simulationSpace;
 
     float4x4 emitterWorld;
+    uint spawnCount;
+    float3 paddingSpawn;
 
     // 追加モジュールパラメータ (アプローチB)
     uint hasDrag;
@@ -230,11 +232,6 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         float4 effectiveStart = (colorFadeUseInitial != 0) ? p.initialColor : colorFadeStart;
         p.color = lerp(effectiveStart, colorFadeEnd, t);
     }
-    else
-    {
-        // デフォルトのカラーフェード（寿命に応じてアルファを減少）
-        p.color.a = saturate(1.0f - lifeRatio);
-    }
 
     // 3. ScaleOverLifetimeModule
     if (hasScaleOL != 0)
@@ -243,7 +240,7 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         p.scale = lerp(scaleOLStart, scaleOLEnd, t);
     }
 
-    // 3.5. StretchByVelocityModule (速度によるスケール伸長)
+    // 4. StretchByVelocityModule (速度によるスケール伸長)
     if (hasStretchByVelocity != 0)
     {
         float speed = length(p.velocity);
@@ -258,7 +255,7 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         }
     }
 
-    // 4.5. FaceVelocityModule (進行方向アライメント)
+    // 5. FaceVelocityModule (進行方向アライメント)
     if (hasFaceVelocity != 0)
     {
         float speedSq = dot(p.velocity, p.velocity);

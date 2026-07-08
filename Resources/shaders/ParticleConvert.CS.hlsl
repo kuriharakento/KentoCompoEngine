@@ -25,8 +25,15 @@ struct Camera
 
 // 入力：シミュレーション結果
 StructuredBuffer<Particle> gParticles : register(t0);
+// 入力：新規発生パーティクル
+StructuredBuffer<Particle> gSpawnParticles : register(t1);
+
 // 出力：レンダリング用データ
 RWStructuredBuffer<ParticleForGPU> gRenderParticles : register(u0);
+// 出力：次フレームのシミュレーション用パーティクルバッファ
+RWStructuredBuffer<Particle> gOutParticles : register(u1);
+// 出力：生存＋新規発生の合計数を数えるカウンタ
+RWStructuredBuffer<uint> gCounter : register(u2);
 
 // 定数
 cbuffer Constants : register(b0)
@@ -43,6 +50,8 @@ cbuffer Constants : register(b0)
     uint simulationSpace;
 
     float4x4 emitterWorld;
+    uint spawnCount;
+    float3 paddingSpawn;
 
     // 追加モジュールパラメータ (アプローチB)
     uint hasDrag;
@@ -134,8 +143,8 @@ float4x4 CalculateBillboardMatrix(float3 position, float3 cameraPos)
     // カメラが真上の場合
     if (abs(dot(forward, up)) > 0.99f) up = float3(0, 0, -1);
     
-    float3 right = normalize(cross(up, forward));
-    up = cross(forward, right);
+    float3 right = normalize(cross(forward, up)); // 左右反転防止のため順序を修正
+    up = cross(right, forward);
     
     float4x4 m = (float4x4)0;
     m[0][0] = right.x;   m[0][1] = right.y;   m[0][2] = right.z;
@@ -145,22 +154,72 @@ float4x4 CalculateBillboardMatrix(float3 position, float3 cameraPos)
     return m;
 }
 
+groupshared uint gs_ActiveCount;
+groupshared uint gs_GlobalBaseIndex;
+groupshared uint gs_LocalOffsets[256];
+
 [numthreads(256, 1, 1)]
-void CSMain(uint3 dtid : SV_DispatchThreadID)
+void CSMain(uint3 dtid : SV_DispatchThreadID, uint groupIndex : SV_GroupIndex)
 {
     uint id = dtid.x;
-    if (id >= particleCount) return;
+    uint totalInputCount = particleCount + spawnCount;
 
-    Particle p = gParticles[id];
-    
-    // Aliveチェック
-    if ((p.flags & FLAG_ALIVE) == 0)
+    // 共有メモリの初期化
+    if (groupIndex == 0)
     {
-        gRenderParticles[id].World = (float4x4)0;
-        gRenderParticles[id].WVP = (float4x4)0;
-        gRenderParticles[id].color = float4(0,0,0,0);
+        gs_ActiveCount = 0;
+        gs_GlobalBaseIndex = 0;
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    // グループ外のスレッドは早期リターン（ただし同期バリアの後で行う必要あり）
+    bool isWithinBounds = (id < totalInputCount);
+    
+    Particle p;
+    bool isSpawn = false;
+    if (isWithinBounds)
+    {
+        isSpawn = (id >= particleCount);
+        if (isSpawn)
+        {
+            p = gSpawnParticles[id - particleCount];
+        }
+        else
+        {
+            p = gParticles[id];
+        }
+    }
+
+    // 生存判定
+    bool isAlive = isWithinBounds && ((p.flags & FLAG_ALIVE) != 0);
+
+    // グループ内の生存カウンタをインクリメントし、スレッドローカルのオフセットを得る
+    uint localOffset = 0;
+    if (isAlive)
+    {
+        InterlockedAdd(gs_ActiveCount, 1, localOffset);
+        gs_LocalOffsets[groupIndex] = localOffset;
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    // 代表スレッドがグローバルカウンタに一括加算
+    if (groupIndex == 0 && gs_ActiveCount > 0)
+    {
+        InterlockedAdd(gCounter[0], gs_ActiveCount, gs_GlobalBaseIndex);
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    // 生存していないスレッドはここで終了
+    if (!isAlive)
+    {
         return;
     }
+
+    // 最終的な出力インデックス
+    uint outIndex = gs_GlobalBaseIndex + gs_LocalOffsets[groupIndex];
+
+    // 最大数を超えないようにガード
+    if (outIndex >= maxParticles) return;
 
     // スケール行列
     float4x4 scaleMat = (float4x4)0;
@@ -169,42 +228,63 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     scaleMat[2][2] = p.scale.z;
     scaleMat[3][3] = 1.0f;
 
-    // 回転行列
+    // 1. パーティクルのワールド位置を計算
+    float3 worldPos = p.position;
+    if (simulationSpace == 1)
+    {
+        worldPos = mul(float4(p.position, 1.0f), emitterWorld).xyz;
+    }
+
+    // 2. 回転行列の決定
     float4x4 rotMat;
     if (isBillboard)
     {
-        rotMat = CalculateBillboardMatrix(p.position, cameraEye);
-        // Z回転のみ適用する？（通常ビルボードはZ回転許容）
-        // ここでは簡易ビルボードとする
+        rotMat = CalculateBillboardMatrix(worldPos, cameraEye);
     }
     else
     {
         rotMat = EulerToMatrix(p.rotation.xyz);
     }
 
-    // 平行移動行列
-    float4x4 transMat = (float4x4)0;
-    transMat[0][0] = 1.0f; transMat[1][1] = 1.0f; transMat[2][2] = 1.0f; transMat[3][3] = 1.0f;
-    transMat[3][0] = p.position.x;
-    transMat[3][1] = p.position.y;
-    transMat[3][2] = p.position.z;
-
-    // World行列合成 (Scale * Rot * Trans)
-    float4x4 world = mul(scaleMat, mul(rotMat, transMat));
-
-    // ローカルシミュレーションの場合はエミッターのワールド行列を適用
-    if (simulationSpace == 1)
+    // 3. ワールド行列の合成
+    float4x4 world;
+    if (isBillboard)
     {
-        world = mul(world, emitterWorld);
+        // ビルボードの場合はエミッターの回転を掛けない（すでにワールド位置になっているため、Scale * Rot * Translation）
+        float4x4 transMat = (float4x4)0;
+        transMat[0][0] = 1.0f; transMat[1][1] = 1.0f; transMat[2][2] = 1.0f; transMat[3][3] = 1.0f;
+        transMat[3][0] = worldPos.x;
+        transMat[3][1] = worldPos.y;
+        transMat[3][2] = worldPos.z;
+        
+        world = mul(scaleMat, mul(rotMat, transMat));
+    }
+    else
+    {
+        // 通常回転の場合は従来通り (Scale * Rot * Trans) * emitterWorld
+        float4x4 transMat = (float4x4)0;
+        transMat[0][0] = 1.0f; transMat[1][1] = 1.0f; transMat[2][2] = 1.0f; transMat[3][3] = 1.0f;
+        transMat[3][0] = p.position.x;
+        transMat[3][1] = p.position.y;
+        transMat[3][2] = p.position.z;
+        
+        world = mul(scaleMat, mul(rotMat, transMat));
+        if (simulationSpace == 1)
+        {
+            world = mul(world, emitterWorld);
+        }
     }
 
     // WVP行列
     float4x4 viewProj = mul(cameraView, cameraProjection);
     float4x4 wvp = mul(world, viewProj);
 
-    // 出力
-    gRenderParticles[id].World = world;
-    gRenderParticles[id].WVP = wvp;
-    gRenderParticles[id].color = p.color;
-    gRenderParticles[id].uvOffsetScale = float4(0, 0, 1, 1); // TODO: Offset support
+    // 出力1：次フレームのシミュレーション用
+    gOutParticles[outIndex] = p;
+
+    // 出力2：描画用データ
+    gRenderParticles[outIndex].World = world;
+    gRenderParticles[outIndex].WVP = wvp;
+    gRenderParticles[outIndex].color = p.color;
+    gRenderParticles[outIndex].uvOffsetScale = float4(0, 0, 1, 1); // TODO: Offset support
 }

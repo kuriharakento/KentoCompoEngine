@@ -287,11 +287,26 @@ void MeshRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 	uint32_t index = isGPUMode_ ? gpuSrvIndex_ : instanceSrvIndex_;
 	dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(1, srvManager->GetGPUDescriptorHandle(index));
 
-	dxCommon->GetCommandList()->DrawIndexedInstanced(
-		static_cast<UINT>(primitiveMesh_.indices.size()),
-		drawCount,
-		0, 0, 0
-	);
+	// 描画
+	if (isGPUMode_ && gpuIndirectArgsBuffer_)
+	{
+		dxCommon->GetCommandList()->ExecuteIndirect(
+			GPUParticlePipeline::GetInstance()->GetMeshCommandSignature(),
+			1,
+			gpuIndirectArgsBuffer_,
+			0,
+			nullptr,
+			0
+		);
+	}
+	else
+	{
+		dxCommon->GetCommandList()->DrawIndexedInstanced(
+			static_cast<UINT>(primitiveMesh_.indices.size()),
+			drawCount,
+			0, 0, 0
+		);
+	}
 }
 
 void MeshRenderer::Initialize(const std::string& texturePath)
@@ -316,9 +331,10 @@ void MeshRenderer::SetTexture(const std::string& texturePath)
 	textureIndex_ = TextureManager::GetInstance()->GetTextureIndexByFilePath(texturePath);
 }
 
-void MeshRenderer::SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count)
+void MeshRenderer::SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count, ID3D12Resource* indirectArgsBuffer)
 {
 	isGPUMode_ = enable;
 	gpuSrvIndex_ = srvIndex;
 	gpuParticleCount_ = count;
+	gpuIndirectArgsBuffer_ = indirectArgsBuffer;
 }

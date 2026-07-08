@@ -64,6 +64,26 @@ public:
 	ID3D12PipelineState* GetConverterPipelineState() const { return converterPipelineState_.Get(); }
 
 	/**
+	 * @brief WriteIndirectArgs用ルートシグネチャを取得
+	 */
+	ID3D12RootSignature* GetWriteIndirectArgsRootSignature() const { return writeIndirectArgsRootSignature_.Get(); }
+
+	/**
+	 * @brief WriteIndirectArgs用パイプラインステートを取得
+	 */
+	ID3D12PipelineState* GetWriteIndirectArgsPipelineState() const { return writeIndirectArgsPipelineState_.Get(); }
+
+	/**
+	 * @brief コマンドシグネチャを取得
+	 */
+	ID3D12CommandSignature* GetCommandSignature() const { return commandSignature_.Get(); }
+
+	/**
+	 * @brief メッシュ用コマンドシグネチャを取得
+	 */
+	ID3D12CommandSignature* GetMeshCommandSignature() const { return meshCommandSignature_.Get(); }
+
+	/**
 	 * @brief 渦モジュール用ルートシグネチャを取得
 	 */
 	ID3D12RootSignature* GetVortexRootSignature() const { return vortexRootSignature_.Get(); }
@@ -135,6 +155,26 @@ private:
 	void CreateConverterPipelineState();
 
 	/**
+	 * @brief WriteIndirectArgs用ルートシグネチャを作成
+	 */
+	void CreateWriteIndirectArgsRootSignature();
+
+	/**
+	 * @brief WriteIndirectArgs用コンピュートシェーダーをコンパイル
+	 */
+	void CompileWriteIndirectArgsShader();
+
+	/**
+	 * @brief WriteIndirectArgs用パイプラインステートを作成
+	 */
+	void CreateWriteIndirectArgsPipelineState();
+
+	/**
+	 * @brief コマンドシグネチャを作成
+	 */
+	void CreateCommandSignature();
+
+	/**
 	 * @brief 各モジュール用のパイプラインを構築
 	 */
 	void CreateModulePipelines();
@@ -151,6 +191,15 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> converterRootSignature_;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> converterPipelineState_;
 	Microsoft::WRL::ComPtr<ID3DBlob> converterShaderBlob_;
+
+	// WriteIndirectArgs
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> writeIndirectArgsRootSignature_;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> writeIndirectArgsPipelineState_;
+	Microsoft::WRL::ComPtr<ID3DBlob> writeIndirectArgsShaderBlob_;
+
+	// Command Signature for ExecuteIndirect
+	Microsoft::WRL::ComPtr<ID3D12CommandSignature> commandSignature_;
+	Microsoft::WRL::ComPtr<ID3D12CommandSignature> meshCommandSignature_;
 
 	// Vortex
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> vortexRootSignature_;

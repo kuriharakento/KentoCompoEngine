@@ -19,6 +19,17 @@ void ParticleEmitter::Initialize(const std::string& name)
 
 void ParticleEmitter::Update(float deltaTime, CameraManager* camera)
 {
+	if (!isPaused_)
+	{
+		activeTime_ += deltaTime;
+	}
+
+	if (wasEmitting_ && !isEmitting_)
+	{
+		stopTime_ = activeTime_;
+	}
+	wasEmitting_ = isEmitting_;
+
 	// Transform追従
 	if (followTarget_)
 	{
@@ -36,14 +47,31 @@ void ParticleEmitter::Update(float deltaTime, CameraManager* camera)
 	}
 	else
 	{
-		UpdateGPU(deltaTime, camera);
+		bool skip = !isEmitting_ && (activeTime_ > stopTime_ + maxLifetime_);
+		if (!skip)
+		{
+			UpdateGPU(deltaTime, camera);
+		}
+		else
+		{
+			if (gpuSimulator_)
+			{
+				gpuSimulator_->ClearParticles();
+			}
+		}
 	}
 
 	if (renderer_)
 	{
 		if (simulationMode_ == SimulationMode::GPU && gpuSimulator_)
 		{
-			renderer_->SetGPUMode(true, gpuSimulator_->GetRenderSrvIndex(), gpuSimulator_->GetParticleCount());
+			uint32_t currentElementCount = renderer_->GetElementCount();
+			if (lastElementCount_ != currentElementCount)
+			{
+				gpuSimulator_->InitializeIndirectArgs(renderer_->GetType(), currentElementCount);
+				lastElementCount_ = currentElementCount;
+			}
+			renderer_->SetGPUMode(true, gpuSimulator_->GetRenderSrvIndex(), gpuSimulator_->GetParticleCount(), gpuSimulator_->GetIndirectArgsBuffer());
 		}
 		else
 		{
@@ -55,11 +83,23 @@ void ParticleEmitter::Update(float deltaTime, CameraManager* camera)
 
 void ParticleEmitter::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
+	if (simulationMode_ == SimulationMode::GPU)
+	{
+		bool skip = !isEmitting_ && (activeTime_ > stopTime_ + maxLifetime_);
+		if (skip) return;
+	}
+
 	if (renderer_)
 	{
 		if (simulationMode_ == SimulationMode::GPU && gpuSimulator_)
 		{
-			renderer_->SetGPUMode(true, gpuSimulator_->GetRenderSrvIndex(), gpuSimulator_->GetParticleCount());
+			uint32_t currentElementCount = renderer_->GetElementCount();
+			if (lastElementCount_ != currentElementCount)
+			{
+				gpuSimulator_->InitializeIndirectArgs(renderer_->GetType(), currentElementCount);
+				lastElementCount_ = currentElementCount;
+			}
+			renderer_->SetGPUMode(true, gpuSimulator_->GetRenderSrvIndex(), gpuSimulator_->GetParticleCount(), gpuSimulator_->GetIndirectArgsBuffer());
 		}
 		else
 		{
@@ -166,6 +206,10 @@ void ParticleEmitter::Reset()
 	isPaused_ = false;
 	hasPreviousPosition_ = false;
 	nextParticleId_ = 0;
+	activeTime_ = 0.0f;
+	stopTime_ = 0.0f;
+	wasEmitting_ = true;
+	lastElementCount_ = 0;
 
 	if (renderer_)
 	{
@@ -187,6 +231,10 @@ void ParticleEmitter::Restart()
 	isEmitting_ = true;
 	delayElapsed_ = false;
 	isPaused_ = false;
+	activeTime_ = 0.0f;
+	stopTime_ = 0.0f;
+	wasEmitting_ = true;
+	lastElementCount_ = 0;
 
 	// モジュールの生成カウント等もリセット
 	for (auto& module : modules_)
@@ -394,13 +442,11 @@ void ParticleEmitter::UpdateGPU(float deltaTime, CameraManager* camera)
 {
 	if (gpuSimulator_)
 	{
-		// 1. GPUから前フレームの更新結果を読み戻し
-		gpuSimulator_->ReadbackParticles(particles_);
+		// 1. CPU側のパーティクルリストをクリア（新規スポンのみを入れるため）
+		particles_.clear();
 
-		// 2. 寿命が尽きたパーティクルをCPU側で削除（詰め直し）
-		RemoveDeadParticles();
-
-		// 3. CPU側でライフサイクル更新と新規スポン処理を行う
+		// 2. CPU側でライフサイクル更新と新規スポン処理を行う
+		// これにより、このフレームで新規発生したパーティクルのみが particles_ に格納される
 		UpdateGPUSpawns(deltaTime);
 
 		// 重力モジュールの値をGPUシミュレーターに転送
@@ -427,31 +473,27 @@ void ParticleEmitter::UpdateGPU(float deltaTime, CameraManager* camera)
 		}
 		gpuSimulator_->SetIsBillboard(isBillboard);
 
-		// 4. 全パーティクル（生存＋新規スポン）をGPUへ転送して更新
-		if (!particles_.empty())
+		// 3. 新規スポンデータがあればGPUにアップロード
+		// 新規スポンが0件でもDispatchは実行（生存パーティクルのシミュレーションのため）
+		gpuSimulator_->UploadParticles(particles_);
+		
+		// エミッターのワールド行列を計算
+		Matrix4x4 emitterWorld;
+		if (followTarget_)
 		{
-			// particles_ をそのまま一括アップロード
-			gpuSimulator_->UploadParticles(particles_);
-			
-			// エミッターのワールド行列を計算
-			Matrix4x4 emitterWorld;
-			if (followTarget_)
-			{
-				emitterWorld = MakeAffineMatrix(followTarget_->scale, followTarget_->rotate, position_);
-			}
-			else
-			{
-				emitterWorld = MakeAffineMatrix({ 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, position_);
-			}
-
-			// 5. GPUシミュレーション実行
-			gpuSimulator_->SetEmitterPosition(position_);
-			gpuSimulator_->Dispatch(deltaTime, camera, modules_, emitterWorld, static_cast<uint32_t>(simulationSpace_));
+			emitterWorld = MakeAffineMatrix(followTarget_->scale, followTarget_->rotate, position_);
 		}
 		else
 		{
-			gpuSimulator_->ClearParticles();
+			emitterWorld = MakeAffineMatrix({ 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, position_);
 		}
+
+		// 4. GPUシミュレーション実行 (常に実行、生存数等の更新をGPUで完結させるため)
+		gpuSimulator_->SetEmitterPosition(position_);
+		gpuSimulator_->Dispatch(deltaTime, camera, modules_, emitterWorld, static_cast<uint32_t>(simulationSpace_));
+
+		// 5. アップロード完了したため、次のフレームに備えてCPU側新規スポンデータをクリア
+		particles_.clear();
 	}
 	else
 	{

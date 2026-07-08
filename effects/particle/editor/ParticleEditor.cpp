@@ -704,7 +704,17 @@ void ParticleEditor::DrawPreviewPanel()
 		for (size_t i = 0; i < emitterCount; ++i)
 		{
 			const auto* emitter = currentEffect_->GetEmitter(i);
-			if (emitter) totalParticles += static_cast<uint32_t>(emitter->GetParticles().size());
+			if (emitter)
+			{
+				if (emitter->GetGPUSimulator())
+				{
+					totalParticles += emitter->GetGPUSimulator()->GetActiveParticleCount();
+				}
+				else
+				{
+					totalParticles += static_cast<uint32_t>(emitter->GetParticles().size());
+				}
+			}
 		}
 		ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.5f, 1.0f), "Total Particles: %u", totalParticles);
 
@@ -727,7 +737,10 @@ void ParticleEditor::DrawPreviewPanel()
 			ImGui::SameLine();
 			ImGui::Text("%-20s", emitter->GetName().c_str());
 			ImGui::SameLine();
-			ImGui::TextDisabled("Particles: %d", static_cast<int>(emitter->GetParticles().size()));
+			int particleCount = emitter->GetGPUSimulator() 
+				? static_cast<int>(emitter->GetGPUSimulator()->GetActiveParticleCount())
+				: static_cast<int>(emitter->GetParticles().size());
+			ImGui::TextDisabled("Particles: %d", particleCount);
 
 			// 行の右端にRestart/Stopボタン
 			ImGui::SameLine(ImGui::GetWindowWidth() - 100.0f);
@@ -1024,7 +1037,10 @@ void ParticleEditor::DrawModulePanel()
 	if (!emitter) return;
 
 	// Active Particles表示（シンプルに）
-	ImGui::Text("Active Particles: %d", static_cast<int>(emitter->GetParticles().size()));
+	int activeCount = emitter->GetGPUSimulator()
+		? static_cast<int>(emitter->GetGPUSimulator()->GetActiveParticleCount())
+		: static_cast<int>(emitter->GetParticles().size());
+	ImGui::Text("Active Particles: %d", activeCount);
 	ImGui::Separator();
 
 	// モジュールリスト（Spawn/Updateで分離）

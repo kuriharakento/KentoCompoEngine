@@ -1,5 +1,6 @@
 #include "SpriteRenderer.h"
 #include <numbers>
+#include "effects/particle/gpu/GPUParticlePipeline.h"
 #include "effects/particle/ParticleManager.h"
 #include "manager/effect/ParticlePipelineManager.h"
 #include "manager/scene/CameraManager.h"
@@ -155,14 +156,29 @@ void SpriteRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 	commandList->SetGraphicsRootDescriptorTable(1, srvManager->GetGPUDescriptorHandle(index));
 
 	// 描画
-	commandList->DrawInstanced(4, drawCount, 0, 0);
+	if (isGPUMode_ && gpuIndirectArgsBuffer_)
+	{
+		commandList->ExecuteIndirect(
+			GPUParticlePipeline::GetInstance()->GetCommandSignature(),
+			1,
+			gpuIndirectArgsBuffer_,
+			0,
+			nullptr,
+			0
+		);
+	}
+	else
+	{
+		commandList->DrawInstanced(4, drawCount, 0, 0);
+	}
 }
 
-void SpriteRenderer::SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count)
+void SpriteRenderer::SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count, ID3D12Resource* indirectArgsBuffer)
 {
 	isGPUMode_ = enable;
 	gpuSrvIndex_ = srvIndex;
 	gpuParticleCount_ = count;
+	gpuIndirectArgsBuffer_ = indirectArgsBuffer;
 }
 
 void SpriteRenderer::UpdateInstanceData(const Particle& particle, const Matrix4x4& billboardMatrix, CameraManager* camera)

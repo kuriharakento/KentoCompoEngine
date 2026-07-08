@@ -72,8 +72,9 @@ public:
 	 * @param enable GPU描画モード有効化フラグ
 	 * @param srvIndex GPUパーティクルバッファのSRVインデックス
 	 * @param count GPUパーティクル数
+	 * @param indirectArgsBuffer 間接描画引数バッファポインタ
 	 */
-	void SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count) override; 
+	void SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count, ID3D12Resource* indirectArgsBuffer = nullptr) override; 
 
 private:
 	/**
@@ -116,4 +117,5 @@ public:
 	bool isGPUMode_ = false;                                    ///< GPUシミュレーションモードフラグ
 	uint32_t gpuSrvIndex_ = 0;                                  ///< GPUパーティクルバッファのSRVインデックス
 	uint32_t gpuParticleCount_ = 0;                             ///< GPUパーティクル数
+	ID3D12Resource* gpuIndirectArgsBuffer_ = nullptr;           ///< GPU間接描画用引数バッファポインタ
 };

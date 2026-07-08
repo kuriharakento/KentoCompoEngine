@@ -118,6 +118,10 @@ public:
 	void SetInactiveResponse(InactiveResponse response) { inactiveResponse_ = response; }
 	InactiveResponse GetInactiveResponse() const { return inactiveResponse_; }
 
+	// MaxLifetime: 最大寿命設定
+	void SetMaxLifetime(float maxLifetime) { maxLifetime_ = maxLifetime; }
+	float GetMaxLifetime() const { return maxLifetime_; }
+
 	// 状態取得
 	float GetEmitterAge() const { return emitterAge_; }
 	bool IsEmitting() const { return isEmitting_; }
@@ -232,6 +236,11 @@ private:
 	bool isEmitting_ = true;                        ///< パーティクル生成中か
 	bool delayElapsed_ = false;                     ///< 遅延経過済みか
 	bool isPaused_ = false;                         ///< 一時停止中か
+	float activeTime_ = 0.0f;                       ///< 累積稼働時間
+	float stopTime_ = 0.0f;                         ///< 生成停止した時間
+	float maxLifetime_ = 5.0f;                      ///< パーティクル最大寿命
+	bool wasEmitting_ = true;                       ///< 前フレームの生成状態
+	uint32_t lastElementCount_ = 0;                 ///< 前フレームの描画要素数
 
 	//===== 移動検出 =====//
 	bool spawnOnlyWhenMoving_ = false;              ///< 移動時のみパーティクル生成するか

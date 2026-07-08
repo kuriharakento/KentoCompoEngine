@@ -67,12 +67,19 @@ public:
 	virtual std::string GetTexturePath() const { return ""; }
 
 	/**
+	 * @brief 描画要素数（スプライトなら頂点数4、メッシュならインデックス数）を取得
+	 * @return 描画要素数
+	 */
+	virtual uint32_t GetElementCount() const { return 4; }
+
+	/**
 	 * @brief GPU描画モードを設定
 	 * @param enable GPU描画モード有効化フラグ
 	 * @param srvIndex GPUパーティクルバッファのSRVインデックス
 	 * @param count GPUパーティクル数
+	 * @param indirectArgsBuffer 間接描画引数バッファポインタ
 	 */
-	virtual void SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count) { (void)enable; (void)srvIndex; (void)count; }
+	virtual void SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count, struct ID3D12Resource* indirectArgsBuffer = nullptr) { (void)enable; (void)srvIndex; (void)count; (void)indirectArgsBuffer; }
 
 	/**
 	 * @brief レンダラーの状態をリセット（プール再利用時など）

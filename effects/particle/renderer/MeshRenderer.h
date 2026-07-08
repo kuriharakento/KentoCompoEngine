@@ -54,6 +54,12 @@ public:
 	RendererType GetType() const override { return RendererType::Mesh; }
 
 	/**
+	 * @brief 描画要素数（メッシュのインデックス数）を取得
+	 * @return インデックス数
+	 */
+	uint32_t GetElementCount() const override { return static_cast<uint32_t>(primitiveMesh_.indices.size()); }
+
+	/**
 	 * @brief テクスチャを設定
 	 * @param texturePath テクスチャファイルパス
 	 */
@@ -64,8 +70,9 @@ public:
 	 * @param enable GPU描画モード有効化フラグ
 	 * @param srvIndex GPUパーティクルバッファのSRVインデックス
 	 * @param count GPUパーティクル数
+	 * @param indirectArgsBuffer 間接描画引数バッファポインタ
 	 */
-	void SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count) override;
+	void SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count, ID3D12Resource* indirectArgsBuffer = nullptr) override;
 
 	/**
 	 * @brief モデルパスを設定（外部メッシュファイル用）
@@ -166,6 +173,7 @@ private:
 	bool isGPUMode_ = false;                                    ///< GPUシミュレーションモードフラグ
 	uint32_t gpuSrvIndex_ = 0;                                  ///< GPUパーティクルバッファのSRVインデックス
 	uint32_t gpuParticleCount_ = 0;                             ///< GPUパーティクル数
+	ID3D12Resource* gpuIndirectArgsBuffer_ = nullptr;           ///< GPU間接描画用引数バッファポインタ
 
 	uint32_t textureIndex_ = 0;                                 ///< テクスチャのSRVインデックス
 	std::string texturePath_;                                   ///< テクスチャファイルパス
