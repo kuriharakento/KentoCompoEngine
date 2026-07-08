@@ -351,6 +351,7 @@ void Object3d::CreateDirectionalLightData()
 	directionalLightData_->color = { 1.0f, 1.0f, 1.0f, 1.0f };
 	directionalLightData_->direction = Vector3::Normalize({ 0.0f, kDefaultLightDirectionY, 0.0f });
 	directionalLightData_->intensity = kDefaultLightIntensity;
+	directionalLightData_->ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
 }
 
 void Object3d::CreateCameraData()

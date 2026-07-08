@@ -18,6 +18,7 @@ struct DirectionalLight
     float4 color;
     float3 direction;
     float intensity;
+    float4 ambient;
 };
 
 // カメラ

@@ -14,4 +14,5 @@ struct DirectionalLight
 	Vector4 color;		// ライトの色（RGBAで指定）
 	Vector3 direction;	// ライトの向き（正規化されたベクトル）
 	float intensity;	// ライトの強さ（明るさの倍率）
+	Vector4 ambient;	// 環境光の色と強度
 };

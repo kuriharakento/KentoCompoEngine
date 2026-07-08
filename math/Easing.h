@@ -64,18 +64,27 @@ constexpr int kPowerFour = 4;
  * @param progress イージングの進行具合。0.0f は開始点、1.0f は終了点に対応。0.0f 〜 1.0f の範囲で指定。
  * @return 開始位置から終了位置までの間の値を返します。
  **/
-template<class T> T EasingToEnd(T start, T end, T (*func)(T), T progress) { return start + func(progress) * (end - start); }
+template<class T, class U = float>
+T EasingToEnd(T start, T end, U (*func)(U), U progress)
+{
+	return start + (end - start) * func(progress);
+}
 
 /**
  * @brief 指定したイージング関数を使用して、開始値から終了値までの間の補間値を計算
  * @tparam T 値の型（浮動小数点数や整数など）
+ * @tparam U 進行度およびイージング関数の入力の型（通常は float）
  * @param start イージングを始めたい位置（または値）
  * @param amount 動かしたい量（開始位置からの移動距離や変化量）
  * @param func イージング関数 (例: EaseInSine, EaseOutQuad など)
  * @param progress イージングの進行具合。0.0f は開始点、1.0f は終了点に対応。0.0f 〜 1.0f の範囲で指定。
  * @return 開始位置から動かしたい量に応じた補間値を返します。
  **/
-template<class T> T EasingByAmout(T start, T amount, T (*func)(T), T progress) { return start + func(progress) * amount; }
+template<class T, class U = float>
+T EasingByAmout(T start, T amount, U (*func)(U), U progress)
+{
+	return start + amount * func(progress);
+}
 
 //============================================
 // Sine - 正弦波に基づくイージング

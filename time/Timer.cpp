@@ -88,6 +88,11 @@ float Timer::GetDuration() const
 	return duration_;
 }
 
+float Timer::GetProgress() const
+{
+	return elapsed_ / duration_;
+}
+
 std::string Timer::GetName() const
 {
     return name_;

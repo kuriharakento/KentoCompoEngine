@@ -484,6 +484,7 @@ void LightManager::DrawImGui()
 				directionalLight_.direction = Vector3::Normalize(directionalLight_.direction);
 			}
 			ImGui::DragFloat("Intensity", &directionalLight_.intensity, 0.05f, 0.0f, 10.0f);
+			ImGui::ColorEdit4("Ambient Color", &directionalLight_.ambient.x);
 			ImGui::EndTabItem();
 		}
 
@@ -1125,6 +1126,7 @@ void LightManager::CreateDirectionalLightBuffer() {
 	directionalLightData_->color = { 1.0f, 1.0f, 1.0f, 1.0f };
 	directionalLightData_->direction = Vector3::Normalize({ 0.0f, -1.0f, 1.0f });
 	directionalLightData_->intensity = 1.0f;
+	directionalLightData_->ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 	// CPU側のデータも同期
 	directionalLight_ = *directionalLightData_;
