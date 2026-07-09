@@ -262,4 +262,4 @@ namespace GameObjectComponent
 		// 衝突終了時のコールバック
 		CollisionCallback onExit_ = nullptr;
 	};
-}
+}
