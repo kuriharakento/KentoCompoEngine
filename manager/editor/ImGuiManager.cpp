@@ -7,6 +7,7 @@
 //system
 #include "base/WinApp.h"
 #include "manager/system/SrvManager.h"
+#include <fstream>
 
 void ImGuiManager::Initialize([[maybe_unused]] WinApp* winApp, [[maybe_unused]] DirectXCommon* dxCommon, [[maybe_unused]] SrvManager* srvManager)
 {
@@ -99,11 +100,28 @@ void ImGuiManager::Initialize([[maybe_unused]] WinApp* winApp, [[maybe_unused]] 
 	colors[ImGuiCol_NavWindowingDimBg]      = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 	colors[ImGuiCol_ModalWindowDimBg]       = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
-	// Win32用の初期化（ウィンドウハンドルを渡す）
-	ImGui_ImplWin32_Init(winApp_->GetHwnd());
+
+	// ドッキング機能を有効にする
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+	// フォントを読み込んで設定する
+	float fontSize = 15.0f;
+	std::ifstream file(FiraMonoFontPath_);
+	if (file.is_open())
+	{
+		file.close();
+		// 日本語にも対応させてみる
+		ImFont* myFont = io.Fonts->AddFontFromFileTTF(FiraMonoFontPath_, fontSize, nullptr, io.Fonts->GetGlyphRangesJapanese());
+		// フォントを使う
+		io.FontDefault = myFont;
+	}
 
 	// SRVの確保とインデックスの取得
 	uint32_t srvIndex = srvManager_->Allocate();
+
+	// Win32用の初期化（ウィンドウハンドルを渡す）
+	ImGui_ImplWin32_Init(winApp_->GetHwnd());
 
 	// DX12用の初期化（デバイス、バックバッファ、SRVヒープを設定）
 	ImGui_ImplDX12_Init(
@@ -114,10 +132,6 @@ void ImGuiManager::Initialize([[maybe_unused]] WinApp* winApp, [[maybe_unused]] 
 		srvManager_->GetCPUDescriptorHandle(srvIndex),
 		srvManager_->GetGPUDescriptorHandle(srvIndex)
 	);
-
-	// ドッキング機能を有効にする
-	ImGuiIO& io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 #endif
 }
 

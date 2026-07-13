@@ -53,5 +53,8 @@ private:
 
 	// DirectXCommonへのポインタ
 	DirectXCommon* dxCommon_ = nullptr;
+
+	// FiraMono フォントのファイルパス
+	const char* FiraMonoFontPath_ = "../engine/Resources/fonts/FiraMono-Medium.ttf";
 };
 
