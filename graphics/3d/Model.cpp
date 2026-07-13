@@ -46,7 +46,7 @@ void Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPat
 {
 	modelCommon_ = modelCommon;
 
-	// "enemy/charge" のようにサブディレクトリを含む場合はベースネームのみを使う
+	// サブディレクトリを含む場合はベースネームのみを使う
 	std::string baseName = filename;
 	size_t slashPos = filename.rfind('/');
 	if (slashPos != std::string::npos)
