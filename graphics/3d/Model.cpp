@@ -46,8 +46,16 @@ void Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPat
 {
 	modelCommon_ = modelCommon;
 
-	// モデルファイルのパスを構築
-	std::string objFilePath = filename + "/" + filename + modelType;
+	// "enemy/charge" のようにサブディレクトリを含む場合はベースネームのみを使う
+	std::string baseName = filename;
+	size_t slashPos = filename.rfind('/');
+	if (slashPos != std::string::npos)
+	{
+		baseName = filename.substr(slashPos + 1);
+	}
+
+	// モデルファイルのパスを構築: <filename>/<baseName><ext>
+	std::string objFilePath = filename + "/" + baseName + modelType;
 
 	// ファイルが存在しない場合の自動検索処理
 	std::string resolvedDirectoryPath = directoryPath;
