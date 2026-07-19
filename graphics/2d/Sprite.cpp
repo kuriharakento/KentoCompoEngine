@@ -215,8 +215,9 @@ void Sprite::UpdateMatrix()
 	// ビュー行列（2Dなので単位行列）
 	Matrix4x4 viewMatrixSprite = MakeIdentity4x4();
 
-	// 正射影行列を計算（1280x720の仮想スクリーン解像度に固定）
-	Matrix4x4 projectionMatrixSprite = MakeOrthographicMatrix(0.0f, 0.0f, 1280.0f, 720.0f, 0.0f, kMaxDepth);
+	// 正射影行列を計算（1920x1080の基準解像度に固定）
+	Matrix4x4 projectionMatrixSprite = MakeOrthographicMatrix(
+		0.0f, 0.0f, Sprite::kCoordinateWidth, Sprite::kCoordinateHeight, 0.0f, kMaxDepth);
 
 	// WVP行列を計算して設定
 	Matrix4x4 worldViewProjectionMatrixSprite = Multiply(worldMatrixSprite, Multiply(viewMatrixSprite, projectionMatrixSprite));

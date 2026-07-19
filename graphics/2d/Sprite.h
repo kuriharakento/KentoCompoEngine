@@ -16,6 +16,10 @@ class SpriteCommon;
  */
 class Sprite
 {
+public:
+	static constexpr float kCoordinateWidth = 1920.0f;
+	static constexpr float kCoordinateHeight = 1080.0f;
+
 public: // メンバ関数
 
 	/**
