@@ -129,6 +129,13 @@ public:
 	void StartShake(float intensity, float duration);
 
 	/**
+	 * @brief 一時的なFOVズームを開始
+	 * @param fovOffset 視野角のオフセット（負の値でズームイン）
+	 * @param duration ズームの継続時間（秒）
+	 */
+	void StartZoom(float fovOffset, float duration);
+
+	/**
 	 * @brief GPU定数バッファを初期化
 	 * @param dxCommon DirectXCommonへのポインタ
 	 */
@@ -174,6 +181,15 @@ private:
 	float shakeTimer_ = 0.0f;
 	// シェイクの強度
 	float shakeIntensity_ = 0.0f;
+
+	// 一時的なFOVズーム用オフセット
+	float zoomFovOffset_ = 0.0f;
+	// ズームの持続時間
+	float zoomDuration_ = 0.0f;
+	// ズームの残り時間
+	float zoomTimer_ = 0.0f;
+	// 開始時のズームオフセット
+	float startZoomFovOffset_ = 0.0f;
 
 	// GPU定数バッファ
 	Microsoft::WRL::ComPtr<ID3D12Resource> constantBuffer_;

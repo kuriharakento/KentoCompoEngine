@@ -42,12 +42,24 @@ void Camera::Update()
 		shakeOffset_ = { 0.0f, 0.0f, 0.0f };
 	}
 
+	// ズームタイマーが有効ならオフセットを更新
+	if (zoomTimer_ > 0.0f) {
+		zoomTimer_ -= kDeltaTime;
+		if (zoomTimer_ < 0.0f) zoomTimer_ = 0.0f;
+		float progress = 1.0f - (zoomTimer_ / zoomDuration_);
+		// 減衰計算（3乗することで、引き始めはスッと戻り、最後の着地はゆっくりになる）
+		float damping = (1.0f - progress) * (1.0f - progress) * (1.0f - progress);
+		zoomFovOffset_ = startZoomFovOffset_ * damping;
+	} else {
+		zoomFovOffset_ = 0.0f;
+	}
+
 	// ワールド行列の更新
 	worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate + shakeOffset_);
 	// ビュー行列の更新
 	viewMatrix_ = Inverse(worldMatrix_);
 	// 透視投影行列の更新
-	projectionMatrix_ = MakePerspectiveFovMatrix(fovY_, aspectRatio_, nearClip_, farClip_);
+	projectionMatrix_ = MakePerspectiveFovMatrix(fovY_ + zoomFovOffset_, aspectRatio_, nearClip_, farClip_);
 	// ビュープロジェクション行列の更新
 	viewProjectionMatrix_ = viewMatrix_ * projectionMatrix_;
 
@@ -66,6 +78,14 @@ void Camera::StartShake(float intensity, float duration)
 	shakeIntensity_ = intensity;
 	shakeDuration_ = duration;
 	shakeTimer_ = duration;
+}
+
+void Camera::StartZoom(float fovOffset, float duration)
+{
+	zoomFovOffset_ = fovOffset;
+	startZoomFovOffset_ = fovOffset;
+	zoomDuration_ = duration;
+	zoomTimer_ = duration;
 }
 
 void Camera::InitializeConstantBuffer(DirectXCommon* dxCommon)

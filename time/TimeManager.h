@@ -74,6 +74,12 @@ public:
 	 */
 	void SetUITimeScale(float scale) { uiContext_.timeScale = scale; }
 
+	/**
+	 * @brief 指定した実時間だけゲームの更新時間を0にする。
+	 * @param durationSeconds ヒットストップ時間（秒）。負数は0として扱う。
+	 */
+	void StartHitStop(float durationSeconds);
+
     // --- 時間取得 ---
 
     /**
@@ -110,6 +116,8 @@ private:
 	bool paused_ = false;                                   // ゲーム一時停止フラグ
     TimeContext gameContext_; // ゲーム用コンテキスト
     TimeContext uiContext_;   // UI用コンテキスト
+	// ヒットストップの残り実時間（秒）
+	float hitStopRemaining_ = 0.0f;
 
     std::chrono::steady_clock::time_point lastUpdate_;      // 前回Update呼び出し時刻
 };

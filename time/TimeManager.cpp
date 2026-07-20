@@ -3,6 +3,8 @@
 #include "imgui/imgui.h"
 #include "manager/editor/DebugUIManager.h"
 
+#include <algorithm>
+
 TimeManager& TimeManager::GetInstance()
 {
 	// 静的ローカル変数でシングルトンを実現
@@ -66,8 +68,15 @@ void TimeManager::Update()
 	lastUpdate_ = now;
 
 	// 各コンテキストの更新
-	UpdateTimeContext(gameContext_, realDelta, paused_);
+	const bool isHitStopped = hitStopRemaining_ > 0.0f;
+	hitStopRemaining_ = std::max(0.0f, hitStopRemaining_ - realDelta);
+	UpdateTimeContext(gameContext_, realDelta, paused_ || isHitStopped);
 	UpdateTimeContext(uiContext_, realDelta, false);      // UIは通常ポーズの影響を受けない
+}
+
+void TimeManager::StartHitStop(float durationSeconds)
+{
+	hitStopRemaining_ = std::max(hitStopRemaining_, std::max(0.0f, durationSeconds));
 }
 
 void TimeManager::Pause()

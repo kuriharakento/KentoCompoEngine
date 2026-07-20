@@ -323,6 +323,12 @@ public: // アクセッサ
 	GameObject* GetChild(const std::string& name) const;
 
 	/**
+	 * @brief 親オブジェクトを取得する。
+	 * @return 親オブジェクト（所有しない）。ルートの場合はnullptr。
+	 */
+	GameObject* GetParent() const { return parent_; }
+
+	/**
 	 * @brief アタッチされている全コンポーネントを取得
 	 */
 	const std::unordered_map<std::string, std::shared_ptr<GameObjectComponent::IGameObjectComponent>>& GetComponents() const { return components_; }

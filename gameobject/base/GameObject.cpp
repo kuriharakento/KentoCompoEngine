@@ -153,7 +153,7 @@ void GameObject::Update()
 
 void GameObject::Draw3D(CameraManager* camera)
 {
-	if (!renderable3d_) { return; }
+	if (!isActive_ || !renderable3d_) { return; }
 
 	// Transform情報をObject3Dに適用（親子関係を考慮）
 	ApplyTransformToObject3D(camera);
@@ -181,6 +181,8 @@ void GameObject::Draw3D(CameraManager* camera)
 
 void GameObject::Draw2D()
 {
+	if (!isActive_) { return; }
+
 	// アクションコンポーネントの2D描画
 	for (auto& actionComp : actionComponents_)
 	{
@@ -201,7 +203,7 @@ void GameObject::Draw2D()
 
 void GameObject::DrawShadow(Camera* camera)
 {
-	if (!renderable3d_) { return; }
+	if (!isActive_ || !renderable3d_) { return; }
 
 	bool castShadow = true;
 	if (auto* obj3d = GetObject3d())
@@ -245,7 +247,7 @@ void GameObject::DrawShadow(Camera* camera)
 
 void GameObject::DrawGBuffer(CameraManager* camera)
 {
-	if (!renderable3d_) { return; }
+	if (!isActive_ || !renderable3d_) { return; }
 
 	// Transform情報をObject3Dに適用（親子関係を考慮）
 	if (camera)
