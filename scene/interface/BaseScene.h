@@ -1,6 +1,9 @@
 #pragma once
-#include "engine/scene/factory/SceneNames.h"
+#include "engine/scene/interface/ISceneState.h"
 #include <vector>
+#include <memory>
+#include <string>
+#include <cassert>
 #include "graphics/3d/Object3d.h"
 
 #ifdef USE_IMGUI
@@ -8,19 +11,6 @@
 #endif
 
 #include <d3d12.h>
-
- /// シーンの状態（ライフサイクル）
-enum class SceneState
-{
-	None,       ///< 未初期化／無効
-    Enter,      ///< シーン開始（フェードイン等）
-    Intro,      ///< イントロ／スタート演出
-    Playing,    ///< プレイ中
-    Paused,     ///< ポーズ中
-    Cutscene,   ///< カットシーン／特別演出
-    End,        ///< 終了演出（クリア／失敗）
-    Exit,       ///< シーン退場（フェードアウト等）
-};
 
 class SceneManager;
 
@@ -31,240 +21,230 @@ class BaseScene
 {
 public:
     BaseScene() = default;
+    
     virtual ~BaseScene()
-	{
+    {
+        // Finalize() で OnExit 済みのはず。未呼び出しを検知する
+        assert(!currentState_ && "Finalize() が呼ばれずにデストラクタに到達した");
+        
+        currentState_.reset();
+
 #ifdef USE_IMGUI
-		if (DebugUIManager::HasInstance())
-		{
-			DebugUIManager::GetInstance()->UnregisterDebugUI(this);
-		}
+        if (DebugUIManager::HasInstance())
+        {
+            DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+        }
 #endif
-	}
+    }
 
-	//============================================
-	// 純粋仮想関数（必ずオーバーライドする）
-	//============================================
+    //============================================
+    // 純粋仮想関数・仮想関数
+    //============================================
 
-    // 初期化 
+    /**
+     * @brief 初期化。
+     */
     virtual void Initialize() = 0;
-	// 終了
-	virtual void Finalize() = 0;
-	// 描画
-	// 描画（登録されたオブジェクトを自動描画）
-	virtual void Draw3D() {
-		for (auto* object : objects_) {
-			// Forwardパスでは、Forwardタイプのオブジェクトのみを描画
-			if (object->GetRenderingType() == RenderingType::Forward) {
-				object->Draw();
-			}
-		}
-	}
-	virtual void Draw2D() = 0; // 2Dは実装依存（スプライトなど）
-	
-	// シャドウ描画
-	virtual void DrawShadow() {
-		for (auto* object : objects_) {
-			if (object->GetCastShadow()) {  // 影を落とすオブジェクトのみ
-				object->DrawShadowOnly();
-			}
-		}
-	}
-	
-	// G-Buffer描画
-	virtual void DrawGBuffer() {
-		for (auto* object : objects_) {
-			// G-Bufferパスでは、Deferredタイプのオブジェクトのみを描画
-			if (object->GetRenderingType() == RenderingType::Deferred) {
-				object->DrawGBuffer();
-			}
-		}
-	}
-
-	/**
-	 * @brief オブジェクトの登録（描画ループで自動的に処理されるようになる）
-	 * @param object 登録するオブジェクト
-	 */
-	void RegisterObject(Object3d* object) {
-		objects_.push_back(object);
-	}
-
-	/**
-	 * @brief オブジェクトリストのクリア
-	 */
-	void ClearObjects() {
-		objects_.clear();
-	}
-
-	//==========================================
-
-	// 共通処理
-	//==========================================
 
     /**
-	 * @brief 更新処理
+     * @brief 終了処理（NVI）。
+     *
+     * non-virtual — BaseScene が実行順序を制御する。
+     * 1. ステートの OnExit（派生メンバがまだ生きている状態で実行）
+     * 2. 派生クラスの後片付け（OnFinalize）
      */
-    void Update()
+    void Finalize()
     {
-		// 共通更新処理
-		CommonUpdate();
-
-		// 状態別更新処理
-        switch (currentState_)
+        // 1. ステートの後片付け
+        if (currentState_)
         {
-        case SceneState::Enter:      OnUpdateEnter(); break;
-        case SceneState::Intro:      OnUpdateIntro(); break;
-        case SceneState::Playing:    OnUpdatePlaying(); break;
-        case SceneState::Paused:     OnUpdatePaused(); break;
-        case SceneState::Cutscene:   OnUpdateCutscene(); break;
-        case SceneState::End:        OnUpdateEnd(); break;
-        case SceneState::Exit:       OnUpdateExit(); break;
-        default:                     break;
+            currentState_->OnExit(*this);
+            currentState_.reset();
         }
+
+        // 2. 派生クラスの後片付け
+        OnFinalize();
     }
 
-	// ImGuiの描画
-    virtual void DrawImGui() {}
-
-    // 共通更新処理
-    virtual void CommonUpdate() {}
-
-    // SceneManager の参照設定（非所有ポインタ）
-    void SetSceneManager(SceneManager* mgr) { sceneManager_ = mgr; }
-
-    // 現在の状態を取得（デバッグ、条件分岐用）
-    SceneState GetCurrentState() const { return currentState_; }
-
-    // --- Pause / Resume の簡易 API ---
-    // 外部からシーンを一時停止 / 復帰させたい場合に使う
-    void RequestPause()
-    {
-        if (currentState_ == SceneState::Paused) return;
-        previousState_ = currentState_;
-        ChangeState(SceneState::Paused);
-    }
-
-    void RequestResume()
-    {
-        if (currentState_ != SceneState::Paused) return;
-        // previousState_ が未初期化の場合は Playing に戻す
-        ChangeState(previousState_ == SceneState::Paused ? SceneState::Playing : previousState_);
-    }
-
-#ifdef USE_IMGUI
-    // デバッグ用: 外部から強制的に状態を変更する（ImGui用）
-    void DebugSetState(SceneState next) { ChangeState(next); }
-#endif
-
-protected:
     /**
-     * @brief 初期状態をセットする
-	 * Warning: Initialize内の一番下で呼ぶこと（Enter内で使う変数などの初期化が終わってないとエラーが出るので）
+     * @brief 3D描画（登録されたオブジェクトを自動描画）。
      */
-    void StartState(SceneState start)
+    virtual void Draw3D()
     {
-        SceneState prev = currentState_;
-        currentState_ = start;
-
-        // start に応じた Enter を呼ぶ
-        switch (currentState_)
+        for (auto* object : objects_)
         {
-        case SceneState::Enter:      OnEnterEnter(); break;
-        case SceneState::Intro:      OnEnterIntro(); break;
-        case SceneState::Playing:    OnEnterPlaying(); break;
-        case SceneState::Paused:     OnEnterPaused(); break;
-        case SceneState::Cutscene:   OnEnterCutscene(); break;
-        case SceneState::End:        OnEnterEnd(); break;
-        case SceneState::Exit:       OnEnterExit(); break;
-        default: break;
+            // Forwardパスでは、Forwardタイプのオブジェクトのみを描画
+            if (object->GetRenderingType() == RenderingType::Forward)
+            {
+                object->Draw();
+            }
         }
     }
 
     /**
-	 * \brief 状態の変更
-	 * \param next つぎの状態
+     * @brief 2D描画。2Dは実装依存（スプライトなど）。
      */
-    void ChangeState(SceneState next)
+    virtual void Draw2D() = 0;
+    
+    /**
+     * @brief シャドウ描画。
+     */
+    virtual void DrawShadow()
     {
-        if (next == currentState_) return;
-
-        // 現在状態の Exit
-        switch (currentState_)
+        for (auto* object : objects_)
         {
-        case SceneState::Enter:      OnExitEnter(); break;
-        case SceneState::Intro:      OnExitIntro(); break;
-        case SceneState::Playing:    OnExitPlaying(); break;
-        case SceneState::Paused:     OnExitPaused(); break;
-        case SceneState::Cutscene:   OnExitCutscene(); break;
-        case SceneState::End:        OnExitEnd(); break;
-        case SceneState::Exit:       OnExitExit(); break;
-        default: break;
+            if (object->GetCastShadow())
+            {  // 影を落とすオブジェクトのみ
+                object->DrawShadowOnly();
+            }
         }
-
-        SceneState prev = currentState_;
-        currentState_ = next;
-
-        // 次状態の Enter
-        switch (currentState_)
+    }
+    
+    /**
+     * @brief G-Buffer描画。
+     */
+    virtual void DrawGBuffer()
+    {
+        for (auto* object : objects_)
         {
-        case SceneState::Enter:      OnEnterEnter(); break;
-        case SceneState::Intro:      OnEnterIntro(); break;
-        case SceneState::Playing:    OnEnterPlaying(); break;
-        case SceneState::Paused:     OnEnterPaused(); break;
-        case SceneState::Cutscene:   OnEnterCutscene(); break;
-        case SceneState::End:        OnEnterEnd(); break;
-        case SceneState::Exit:       OnEnterExit(); break;
-        default: break;
+            // G-Bufferパスでは、Deferredタイプのオブジェクトのみを描画
+            if (object->GetRenderingType() == RenderingType::Deferred)
+            {
+                object->DrawGBuffer();
+            }
         }
+    }
+
+    /**
+     * @brief オブジェクトの登録（描画ループで自動的に処理されるようになる）
+     * @param object 登録するオブジェクト
+     */
+    void RegisterObject(Object3d* object)
+    {
+        objects_.push_back(object);
+    }
+
+    /**
+     * @brief オブジェクトリストのクリア
+     */
+    void ClearObjects()
+    {
+        objects_.clear();
     }
 
     //==========================================
-    // フック（必要なものだけオーバーライドする）
-	//==========================================
+    // 共通処理
+    //==========================================
 
-    // Enter（フェードインなど）
-    virtual void OnEnterEnter() {}
-    virtual void OnUpdateEnter() {}
-    virtual void OnExitEnter() {}
+    /**
+     * @brief 更新処理。
+     */
+    void Update()
+    {
+        // 共通更新処理
+        CommonUpdate();
 
-    // Intro（カメライントロ等）
-    virtual void OnEnterIntro() {}
-    virtual void OnUpdateIntro() {}
-    virtual void OnExitIntro() {}
+        // 状態別更新処理
+        if (!isPaused_ && currentState_)
+        {
+            currentState_->OnUpdate(*this);
+        }
+    }
 
-    // Playing（プレイ中）
-    virtual void OnEnterPlaying() {}
-    virtual void OnUpdatePlaying() {}
-    virtual void OnExitPlaying() {}
+    /**
+     * @brief ImGuiの描画。
+     */
+    virtual void DrawImGui() {}
 
-    // Paused（ポーズ）
-    virtual void OnEnterPaused() {}
-    virtual void OnUpdatePaused() {}
-    virtual void OnExitPaused() {}
+    /**
+     * @brief 共通更新処理。
+     */
+    virtual void CommonUpdate() {}
 
-    // Cutscene（カットシーン）
-    virtual void OnEnterCutscene() {}
-    virtual void OnUpdateCutscene() {}
-    virtual void OnExitCutscene() {}
+    /**
+     * @brief SceneManager の参照設定（非所有ポインタ）。
+     * @param mgr シーンマネージャー
+     */
+    void SetSceneManager(SceneManager* mgr)
+    {
+        sceneManager_ = mgr;
+    }
 
-    // End（終了演出）
-    virtual void OnEnterEnd() {}
-    virtual void OnUpdateEnd() {}
-    virtual void OnExitEnd() {}
+    /**
+     * @brief ステートを切り替える。旧ステートの OnExit → 新ステートの OnEnter を自動で呼ぶ。
+     * @param next 次のステート（所有権を移動）
+     */
+    void ChangeState(std::unique_ptr<ISceneState> next)
+    {
+        // 再帰呼び出しガード
+        assert(!isChangingState_ && "ChangeState の再帰呼び出しは禁止");
+        isChangingState_ = true;
 
-    // Exit（フェードアウト等）
-    virtual void OnEnterExit() {}
-    virtual void OnUpdateExit() {}
-    virtual void OnExitExit() {}
+        if (currentState_)
+        {
+            currentState_->OnExit(*this);
+        }
+        currentState_ = std::move(next);
+        if (currentState_)
+        {
+            currentState_->OnEnter(*this);
+        }
 
-	// シーンマネージャー（非所有ポインタ）
+        isChangingState_ = false;
+    }
+
+    /**
+     * @brief 一時停止の要求。
+     */
+    void RequestPause()
+    {
+        isPaused_ = true;
+    }
+
+    /**
+     * @brief 一時停止の解除（復帰）。
+     */
+    void RequestResume()
+    {
+        isPaused_ = false;
+    }
+
+    /**
+     * @brief 一時停止中かどうかを取得。
+     * @return 一時停止中なら true
+     */
+    bool IsPaused() const
+    {
+        return isPaused_;
+    }
+
+    /**
+     * @brief 現在のステート名を取得（デバッグ用）。
+     * @return ステート名の文字列参照
+     */
+    const std::string& GetCurrentStateName() const
+    {
+        static const std::string noneName = "None";
+        return currentState_ ? currentState_->GetName() : noneName;
+    }
+
+protected:
+    /**
+     * @brief 派生クラスの後片付け用フック。
+     */
+    virtual void OnFinalize() {}
+
+    // シーンマネージャー（非所有ポインタ）
     SceneManager* sceneManager_ = nullptr;
 
 private:
-	// 現在のシーン状態
-	SceneState currentState_ = SceneState::None;
-	// 前のシーン状態（Pause 復帰用）
-    SceneState previousState_ = SceneState::None;
+    // 現在のステート
+    std::unique_ptr<ISceneState> currentState_;
+    // ポーズ中フラグ
+    bool isPaused_ = false;
+    // ChangeState 再帰ガード
+    bool isChangingState_ = false;
 
-	// 描画対象オブジェクトリスト
-	std::vector<Object3d*> objects_;
+    // 描画対象オブジェクトリスト
+    std::vector<Object3d*> objects_;
 };

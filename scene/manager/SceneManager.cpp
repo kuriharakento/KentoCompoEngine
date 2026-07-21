@@ -18,7 +18,7 @@ void SceneManager::Initialize(const SceneContext& context)
 	context_ = context;
 
 	//初期シーンの名前
-	std::string startSceneName = SceneNames::Title;
+	std::string startSceneName = "TitleScene";
 
 	//最初のシーンを生成
 	currentScene_ = sceneFactory_->CreateScene(startSceneName);
@@ -30,32 +30,44 @@ void SceneManager::Initialize(const SceneContext& context)
 	// シーンマネージャーをデバッグUIに登録
 	DebugUIManager::GetInstance()->RegisterDebugUI(this, "SceneManager", [this]() {
 		ImGui::Text("CurrentScene: %s", currentSceneName_.c_str());
-		if (ImGui::Button("Title"))
+
+		// 任意文字列によるシーン直接切り替え入力欄（末尾の "Scene" は自動付加）
+		static char inputSceneName[128] = "";
+		ImGui::SeparatorText("Direct Scene Switch");
+		ImGui::InputText("Scene Name", inputSceneName, sizeof(inputSceneName));
+		ImGui::SameLine();
+		if (ImGui::Button("Go") && inputSceneName[0] != '\0')
 		{
-			ChangeScene(SceneNames::Title);
+			std::string targetScene = inputSceneName;
+			if (targetScene.size() < 5 || targetScene.substr(targetScene.size() - 5) != "Scene")
+			{
+				targetScene += "Scene";
+			}
+			ChangeScene(targetScene);
 		}
-		// Debug用シーン
-		if (ImGui::Button("ParticleTest"))
+
+		ImGui::SeparatorText("Registered Scenes");
+		auto registeredScenes = SceneFactory::GetRegisteredSceneNames();
+		for (const auto& sceneName : registeredScenes)
 		{
-			ChangeScene(SceneNames::ParticleTest);
+			// ボタン表示用ラベル（末尾の "Scene" を取り除いて表示）
+			std::string label = sceneName;
+			if (label.size() >= 5 && label.substr(label.size() - 5) == "Scene")
+			{
+				label = label.substr(0, label.size() - 5);
+			}
+
+			if (ImGui::Button(label.c_str()))
+			{
+				ChangeScene(sceneName);
+			}
 		}
-		if (ImGui::Button("Test"))
-		{
-			ChangeScene(SceneNames::Test);
-		}
-		// --- シーンのステートを直接変更するデバッグ UI ---
+
+		// --- シーンのステート表示（デバッグ UI） ---
 		if (currentScene_)
 		{
 			ImGui::SeparatorText("Scene State");
-			const char* stateNames[] = { "None", "Enter", "Intro", "Playing", "Paused", "Cutscene", "End", "Exit" };
-			int current = static_cast<int>(currentScene_->GetCurrentState());
-			static int selectedState = current;
-			// UI と内部状態を常に同期しておく
-			if (selectedState != current) selectedState = current;
-			if (ImGui::Combo("State", &selectedState, stateNames, IM_ARRAYSIZE(stateNames)))
-			{
-				currentScene_->DebugSetState(static_cast<SceneState>(selectedState));
-			}
+			ImGui::Text("State: %s", currentScene_->GetCurrentStateName().c_str());
 		}
 	}, DebugUIArea::Inspector);
 #endif

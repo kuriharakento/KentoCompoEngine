@@ -301,6 +301,7 @@
     <ClInclude Include="scene\factory\SceneNames.h" />
     <ClInclude Include="scene\interface\AbstractSceneFactory.h" />
     <ClInclude Include="scene\interface\BaseScene.h" />
+    <ClInclude Include="scene\interface\ISceneState.h" />
     <ClInclude Include="scene\manager\SceneManager.h" />
     <ClInclude Include="scene\MyGame.h" />
     <ClInclude Include="scene\SceneContext.h" />
