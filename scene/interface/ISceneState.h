@@ -31,6 +31,14 @@ public:
     }
 
     /**
+     * @brief ステート切り替えの条件判定（OnUpdate の直後に自動的に呼ばれる）。
+     * @param scene 所属シーン
+     */
+    virtual void CheckTransition(BaseScene& scene)
+    {
+    }
+
+    /**
      * @brief このステートから出る瞬間に呼ばれる。
      * @param scene 所属シーン
      */

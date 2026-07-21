@@ -12,6 +12,8 @@
 
 #include <d3d12.h>
 
+#include "engine/scene/state/SceneStateMachine.h"
+
 class SceneManager;
 
 /**
@@ -20,15 +22,13 @@ class SceneManager;
 class BaseScene
 {
 public:
-    BaseScene() = default;
+    BaseScene()
+    {
+        stateMachine_.SetOwner(this);
+    }
     
     virtual ~BaseScene()
     {
-        // Finalize() で OnExit 済みのはず。未呼び出しを検知する
-        assert(!currentState_ && "Finalize() が呼ばれずにデストラクタに到達した");
-        
-        currentState_.reset();
-
 #ifdef USE_IMGUI
         if (DebugUIManager::HasInstance())
         {
@@ -48,21 +48,9 @@ public:
 
     /**
      * @brief 終了処理（NVI）。
-     *
-     * non-virtual — BaseScene が実行順序を制御する。
-     * 1. ステートの OnExit（派生メンバがまだ生きている状態で実行）
-     * 2. 派生クラスの後片付け（OnFinalize）
      */
     void Finalize()
     {
-        // 1. ステートの後片付け
-        if (currentState_)
-        {
-            currentState_->OnExit(*this);
-            currentState_.reset();
-        }
-
-        // 2. 派生クラスの後片付け
         OnFinalize();
     }
 
@@ -145,9 +133,9 @@ public:
         CommonUpdate();
 
         // 状態別更新処理
-        if (!isPaused_ && currentState_)
+        if (!isPaused_)
         {
-            currentState_->OnUpdate(*this);
+            stateMachine_.Update();
         }
     }
 
@@ -171,26 +159,26 @@ public:
     }
 
     /**
-     * @brief ステートを切り替える。旧ステートの OnExit → 新ステートの OnEnter を自動で呼ぶ。
-     * @param next 次のステート（所有権を移動）
+     * @brief ステートマシンの参照取得。
      */
-    void ChangeState(std::unique_ptr<ISceneState> next)
+    SceneStateMachine& GetStateMachine() { return stateMachine_; }
+    const SceneStateMachine& GetStateMachine() const { return stateMachine_; }
+
+    /**
+     * @brief ステートの事前登録。
+     */
+    void RegisterState(const std::string& name, std::unique_ptr<ISceneState> state)
     {
-        // 再帰呼び出しガード
-        assert(!isChangingState_ && "ChangeState の再帰呼び出しは禁止");
-        isChangingState_ = true;
+        stateMachine_.RegisterState(name, std::move(state));
+    }
 
-        if (currentState_)
-        {
-            currentState_->OnExit(*this);
-        }
-        currentState_ = std::move(next);
-        if (currentState_)
-        {
-            currentState_->OnEnter(*this);
-        }
-
-        isChangingState_ = false;
+    /**
+     * @brief 登録済みのステートに切り替える。
+     * @param name 切り替え先のステート名
+     */
+    void ChangeState(const std::string& name)
+    {
+        stateMachine_.ChangeState(name);
     }
 
     /**
@@ -224,8 +212,7 @@ public:
      */
     const std::string& GetCurrentStateName() const
     {
-        static const std::string noneName = "None";
-        return currentState_ ? currentState_->GetName() : noneName;
+        return stateMachine_.GetCurrentStateName();
     }
 
 protected:
@@ -236,14 +223,12 @@ protected:
 
     // シーンマネージャー（非所有ポインタ）
     SceneManager* sceneManager_ = nullptr;
+    // ステートマシン
+    SceneStateMachine stateMachine_{this};
 
 private:
-    // 現在のステート
-    std::unique_ptr<ISceneState> currentState_;
     // ポーズ中フラグ
     bool isPaused_ = false;
-    // ChangeState 再帰ガード
-    bool isChangingState_ = false;
 
     // 描画対象オブジェクトリスト
     std::vector<Object3d*> objects_;
