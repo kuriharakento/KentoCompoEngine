@@ -158,6 +158,8 @@ public:
         sceneManager_ = mgr;
     }
 
+	SceneManager* GetSceneManager() const { return sceneManager_; }
+
     /**
      * @brief ステートマシンの参照取得。
      */
