@@ -15,7 +15,7 @@ public: //メンバ関数
 	//デストラクタ
 	~SceneManager();
 	//コンストラクタ
-	SceneManager(SceneFactory* sceneFactory) : currentScene_(nullptr), nextScene_(nullptr), sceneFactory_(sceneFactory) {}
+	SceneManager(SceneFactory* sceneFactory) : currentScene_(nullptr), nextScene_(nullptr), sceneFactory_(sceneFactory), context_{} {}
 
 	//初期化
 	void Initialize(const SceneContext& context);
@@ -52,6 +52,8 @@ private: //メンバ関数
 	void ReserveNextScene();
 
 private: //メンバ変数
+	const std::string sceneStr = "Scene";
+
 	//今のシーン
 	std::unique_ptr<BaseScene> currentScene_;
 	//次のシーン
@@ -65,6 +67,6 @@ private: //メンバ変数
 	std::string nextSceneName_ = "";
 
 	//シーンコンテキスト
-	SceneContext context_;
+	SceneContext context_{};
 };
 

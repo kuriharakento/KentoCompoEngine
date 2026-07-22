@@ -39,10 +39,6 @@ void SceneManager::Initialize(const SceneContext& context)
 		if (ImGui::Button("Go") && inputSceneName[0] != '\0')
 		{
 			std::string targetScene = inputSceneName;
-			if (targetScene.size() < 5 || targetScene.substr(targetScene.size() - 5) != "Scene")
-			{
-				targetScene += "Scene";
-			}
 			ChangeScene(targetScene);
 		}
 
@@ -59,7 +55,7 @@ void SceneManager::Initialize(const SceneContext& context)
 
 			if (ImGui::Button(label.c_str()))
 			{
-				ChangeScene(sceneName);
+				ChangeScene(label);
 			}
 		}
 
@@ -109,10 +105,13 @@ void SceneManager::ChangeScene(const std::string& sceneName)
 	assert(sceneFactory_);
 	assert(nextScene_ == nullptr);
 
+	// Sceneという文字列をつけてシーン名を作成
+	const std::string fullSceneName = sceneName + "Scene";
+
 	//次のシーンを生成
-	nextScene_ = sceneFactory_->CreateScene(sceneName);
+	nextScene_ = sceneFactory_->CreateScene(fullSceneName);
 	//次のシーンの名前をセット
-	nextSceneName_ = sceneName;
+	nextSceneName_ = fullSceneName;
 }
 
 void SceneManager::ReserveNextScene()
