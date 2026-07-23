@@ -125,17 +125,13 @@ public:
 	 */
 	bool GetBillboard() const override { return useBillboard_; }
 
-	/**
-	 * @brief ティントカラーを設定
-	 * @param color ティントカラー（RGBA）
-	 */
-	void SetTintColor(const Vector4& color) { tintColor_ = color; }
+	void SetTintColor(const Vector4& color) override { tintColor_ = color; }
 
 	/**
 	 * @brief ティントカラーを取得
 	 * @return ティントカラー（RGBA）
 	 */
-	Vector4 GetTintColor() const { return tintColor_; }
+	Vector4 GetTintColor() const override { return tintColor_; }
 
 	/**
 	 * @brief バッファを初期化

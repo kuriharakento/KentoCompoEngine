@@ -122,6 +122,11 @@ void SpriteRenderer::SetTexture(const std::string& texturePath)
 
 void SpriteRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
+	if (materialData_)
+	{
+		materialData_->color = tintColor_;
+	}
+
 	uint32_t drawCount = isGPUMode_ ? gpuParticleCount_ : instanceCount_;
 	if (drawCount == 0) return;
 

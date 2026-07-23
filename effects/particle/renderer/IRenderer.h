@@ -8,6 +8,7 @@
  */
 #include "effects/particle/Particle.h"
 #include "effects/particle/ParticleTypes.h"
+#include "math/Vector4.h"
 #include <vector>
 
 class CameraManager;
@@ -90,6 +91,18 @@ public:
 	 * @return ブレンドモード
 	 */
 	BlendMode GetBlendMode() const { return blendMode_; }
+
+	/**
+	 * @brief ティントカラーを設定
+	 * @param color ティントカラー（RGBA）
+	 */
+	virtual void SetTintColor(const Vector4& /*color*/) {}
+
+	/**
+	 * @brief ティントカラーを取得
+	 * @return ティントカラー（RGBA）
+	 */
+	virtual Vector4 GetTintColor() const { return { 1.0f, 1.0f, 1.0f, 1.0f }; }
 
 protected:
 	BlendMode blendMode_ = BlendMode::Alpha;

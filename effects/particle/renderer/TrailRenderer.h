@@ -164,6 +164,10 @@ public:
 	/** @brief 状態をリセット */
 	void Reset() override { ClearTrails(); }
 
+	/** @brief ティントカラーを設定 */
+	void SetTintColor(const Vector4& color) override { tintColor_ = color; }
+	Vector4 GetTintColor() const override { return tintColor_; }
+
 private:
 	/**
 	 * @brief バッファを初期化
@@ -245,4 +249,5 @@ private:
 	std::unordered_map<uint32_t, TrailData> trails_;
 	float currentTime_ = 0.0f;
 	float lastDeltaTime_ = 0.016f;
+	Vector4 tintColor_ = { 1.0f, 1.0f, 1.0f, 1.0f };
 };

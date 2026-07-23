@@ -67,6 +67,10 @@ public:
 	 */
 	bool GetBillboard() const override { return isBillboard_; }
 
+	/** @brief ティントカラーを設定 */
+	void SetTintColor(const Vector4& color) override { tintColor_ = color; }
+	Vector4 GetTintColor() const override { return tintColor_; }
+
 	/**
 	 * @brief GPU描画モードを設定
 	 * @param enable GPU描画モード有効化フラグ
@@ -116,4 +120,5 @@ public:
 	bool isGPUMode_ = false;                                    ///< GPUシミュレーションモードフラグ
 	uint32_t gpuSrvIndex_ = 0;                                  ///< GPUパーティクルバッファのSRVインデックス
 	uint32_t gpuParticleCount_ = 0;                             ///< GPUパーティクル数
+	Vector4 tintColor_ = { 1.0f, 1.0f, 1.0f, 1.0f };
 };

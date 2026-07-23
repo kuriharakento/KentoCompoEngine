@@ -745,6 +745,11 @@ void TrailRenderer::InterpolateSegments(
 
 void TrailRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
+	if (materialData_)
+	{
+		materialData_->color = tintColor_;
+	}
+
 	if (vertexCount_ < 4) return;
 
 	auto commandList = dxCommon->GetCommandList();

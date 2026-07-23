@@ -1931,6 +1931,13 @@ void ParticleEditor::DrawRendererPanel()
 						ImGui::EndCombo();
 					}
 				}
+
+				// ティントカラー
+				Vector4 tintColor = spriteRenderer->GetTintColor();
+				if (ImGui::ColorEdit4("Tint Color##Sprite", &tintColor.x))
+				{
+					spriteRenderer->SetTintColor(tintColor);
+				}
 			}
 			// Trail Renderer特有の設定
 			else if (auto* trailRenderer = dynamic_cast<TrailRenderer*>(renderer))
@@ -2052,6 +2059,13 @@ void ParticleEditor::DrawRendererPanel()
 						}
 						ImGui::EndCombo();
 					}
+				}
+
+				// ティントカラー
+				Vector4 tintColor = trailRenderer->GetTintColor();
+				if (ImGui::ColorEdit4("Tint Color##Trail", &tintColor.x))
+				{
+					trailRenderer->SetTintColor(tintColor);
 				}
 			}
 			// Mesh Renderer特有の設定

@@ -865,6 +865,11 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 			renderer->SetPrimitive(static_cast<PrimitiveType>(rendererData.value("primitiveType", 0)), options);
 			renderer->SetBillboard(rendererData.value("billboard", false));
 			renderer->SetScale(rendererData.value("scale", 1.0f));
+			emitter->SetRenderer(std::move(renderer));
+		}
+
+		if (auto* renderer = emitter->GetRenderer())
+		{
 			if (rendererData.contains("tintColor"))
 			{
 				Vector4 tint;
@@ -874,7 +879,6 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 				tint.w = rendererData["tintColor"].value("a", 1.0f);
 				renderer->SetTintColor(tint);
 			}
-			emitter->SetRenderer(std::move(renderer));
 		}
 	}
 	else
@@ -1299,7 +1303,11 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 				{"cubeFaceVisible", {opts.cubeFaceVisible[0], opts.cubeFaceVisible[1], opts.cubeFaceVisible[2],
 									 opts.cubeFaceVisible[3], opts.cubeFaceVisible[4], opts.cubeFaceVisible[5]}}
 			};
-			Vector4 tint = meshRenderer->GetTintColor();
+		}
+
+		if (renderer)
+		{
+			Vector4 tint = renderer->GetTintColor();
 			data["renderer"]["tintColor"] = {{"r", tint.x}, {"g", tint.y}, {"b", tint.z}, {"a", tint.w}};
 		}
 	}
