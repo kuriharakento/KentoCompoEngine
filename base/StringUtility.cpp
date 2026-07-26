@@ -2,6 +2,9 @@
 
 #include <Windows.h>
 
+namespace KCE
+{
+
 namespace StringUtility
 {
 	std::wstring ConvertString(const std::string& str)
@@ -38,3 +41,6 @@ namespace StringUtility
 		return result;
 	}
 }
+
+} // namespace KCE
+

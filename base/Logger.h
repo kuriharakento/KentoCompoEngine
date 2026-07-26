@@ -1,6 +1,9 @@
 #pragma once
 #include <string>
 
+namespace KCE
+{
+
 /**
  * @brief ログ出力機能を提供するネームスペース
  */
@@ -23,3 +26,6 @@ namespace Logger
 	 */
 	void Log(const std::string& message, LogLevel level = LogLevel::Info);
 }
+
+} // namespace KCE
+

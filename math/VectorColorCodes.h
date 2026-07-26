@@ -1,6 +1,9 @@
 #pragma once
 #include "math/Vector4.h"
 
+namespace KCE
+{
+
 /**
  * @brief 事前定義されたカラーコード定数を提供する名前空間
  * 
@@ -42,3 +45,6 @@ namespace VectorColorCodes {
     const Vector4 Beige = { 0.96f, 0.96f, 0.86f, 1.0f };  // ベージュ
     const Vector4 Transparent = { 0.0f, 0.0f, 0.0f, 0.0f }; // 透明色
 }
+
+} // namespace KCE
+

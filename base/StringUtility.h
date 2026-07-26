@@ -1,6 +1,9 @@
 #pragma once
 #include <string>
 
+namespace KCE
+{
+
 /**
  * @brief 文字列変換ユーティリティを提供するネームスペース
  */
@@ -20,3 +23,6 @@ namespace StringUtility
 	 */
 	std::string ConvertString(const std::wstring& wstr);
 }
+
+} // namespace KCE
+

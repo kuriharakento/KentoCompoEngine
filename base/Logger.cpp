@@ -1,6 +1,9 @@
 #include "manager/editor/ConsoleLog.h"
 #include <Windows.h>
 
+namespace KCE
+{
+
 namespace Logger
 {
     // UTF-8からUTF-16への変換関数
@@ -29,3 +32,6 @@ namespace Logger
         }
     }
 }
+
+} // namespace KCE
+

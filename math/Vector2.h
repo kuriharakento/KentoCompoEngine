@@ -1,6 +1,9 @@
 #pragma once
 #include <cmath>
 
+namespace KCE
+{
+
 /**
  * @brief 2次元ベクトル構造体
  * 
@@ -109,3 +112,6 @@ struct Vector2 {
 		return x == other.x && y == other.y;
 	}
 };
+
+} // namespace KCE
+
