@@ -33,7 +33,7 @@ LineManager* LineManager::GetInstance()
 	// インスタンスが存在しない場合は生成
 	if (instance_ == nullptr)
 	{
-		instance_.reset(new LineManager());
+		instance_ = std::make_unique<LineManager>();
 	}
 	return instance_.get();
 }

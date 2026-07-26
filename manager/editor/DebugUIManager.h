@@ -153,6 +153,7 @@ public:
 
 private:
 	static std::unique_ptr<DebugUIManager> instance_;
+	friend std::unique_ptr<DebugUIManager> std::make_unique<DebugUIManager>();
 
 	DebugUIManager() = default;
 	DebugUIManager(const DebugUIManager&) = delete;

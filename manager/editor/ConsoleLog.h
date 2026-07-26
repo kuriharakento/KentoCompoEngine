@@ -80,6 +80,7 @@ public:
 
 private:
 	static std::unique_ptr<ConsoleLog> instance_;
+	friend std::unique_ptr<ConsoleLog> std::make_unique<ConsoleLog>();
 
 	ConsoleLog() = default;
 	ConsoleLog(const ConsoleLog&) = delete;

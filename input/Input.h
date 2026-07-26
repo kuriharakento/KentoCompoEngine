@@ -263,6 +263,7 @@ public:
     }
 
 private:
+    friend std::unique_ptr<Input> std::make_unique<Input>();
     Input();
 
     // コピーと代入を禁止

@@ -3,7 +3,7 @@
 
 namespace KCE
 {
-/// 半分のスケール係数
+/** @brief 半分のスケール係数 */
 constexpr float kHalfScale = 0.5f;
 
 /**

@@ -151,6 +151,8 @@ public:
 #endif
 
 private:
+	friend std::unique_ptr<Audio> std::make_unique<Audio>();
+
 	void InitializeEffect();
 	void RemoveFromGroupMap(IXAudio2SourceVoice* sourceVoice);
 	float ClampVolume(float volume) const;

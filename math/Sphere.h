@@ -3,7 +3,7 @@
 
 namespace KCE
 {
-/// 球のデフォルト半径
+/** @brief 球のデフォルト半径 */
 constexpr float kDefaultRadius = 1.0f;
 
 /**

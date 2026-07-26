@@ -11,7 +11,7 @@ GameObjectManager* GameObjectManager::GetInstance()
 {
 	if (!instance_)
 	{
-		instance_.reset(new GameObjectManager());
+		instance_ = std::make_unique<GameObjectManager>();
 	}
 	return instance_.get();
 }

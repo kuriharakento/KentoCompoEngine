@@ -15,7 +15,7 @@ JsonEditor* JsonEditor::GetInstance()
 	// インスタンスが存在しない場合は生成
 	if (instance_ == nullptr)
 	{
-		instance_.reset(new JsonEditor());
+		instance_ = std::make_unique<JsonEditor>();
 	}
 	return instance_.get();
 }

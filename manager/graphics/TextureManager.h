@@ -180,6 +180,7 @@ private: // メンバ変数
 
 private: // シングルトンインスタンス
 	static std::unique_ptr<TextureManager> instance_; // シングルトンインスタンス
+	friend std::unique_ptr<TextureManager> std::make_unique<TextureManager>();
 
 	TextureManager() = default;                            // コンストラクタ
 	TextureManager(const TextureManager&) = delete;       // コピー禁止

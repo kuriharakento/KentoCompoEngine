@@ -27,7 +27,7 @@ SkinnedModelManager* SkinnedModelManager::GetInstance()
 {
     if (!instance_)
     {
-        instance_ = std::unique_ptr<SkinnedModelManager>(new SkinnedModelManager());
+		instance_ = std::make_unique<SkinnedModelManager>();
     }
     return instance_.get();
 }

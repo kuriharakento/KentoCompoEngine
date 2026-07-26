@@ -17,7 +17,7 @@ GameObjectEditor* GameObjectEditor::GetInstance()
 {
 	if (!instance_)
 	{
-		instance_.reset(new GameObjectEditor());
+		instance_ = std::make_unique<GameObjectEditor>();
 	}
 	return instance_.get();
 }

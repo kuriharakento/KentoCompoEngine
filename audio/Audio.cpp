@@ -130,7 +130,7 @@ Audio* Audio::GetInstance()
 {
 	if (!instance_)
 	{
-		instance_.reset(new Audio());
+		instance_ = std::make_unique<Audio>();
 	}
 	return instance_.get();
 }

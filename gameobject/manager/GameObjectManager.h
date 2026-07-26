@@ -122,6 +122,7 @@ public:
 	~GameObjectManager() = default;
 
 private:
+	friend std::unique_ptr<GameObjectManager> std::make_unique<GameObjectManager>();
 	GameObjectManager() = default;
 	GameObjectManager(const GameObjectManager&) = delete;
 	GameObjectManager& operator=(const GameObjectManager&) = delete;

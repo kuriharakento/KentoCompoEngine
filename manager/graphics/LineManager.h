@@ -122,6 +122,7 @@ private:
 
 private:    // シングルトンインスタンス
 	static std::unique_ptr<LineManager> instance_;
+	friend std::unique_ptr<LineManager> std::make_unique<LineManager>();
 	LineManager() = default;                                 // コンストラクタ
 	LineManager(const LineManager&) = delete;                // コピーコンストラクタ
 	LineManager& operator=(const LineManager&) = delete;     // コピー代入禁止

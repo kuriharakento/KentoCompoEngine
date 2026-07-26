@@ -17,7 +17,7 @@ ConsoleLog* ConsoleLog::GetInstance()
 {
 	if (instance_ == nullptr)
 	{
-		instance_.reset(new ConsoleLog());
+		instance_ = std::make_unique<ConsoleLog>();
 	}
 	return instance_.get();
 }

@@ -58,7 +58,7 @@ struct alignas(16) PostEffectParams
 	// 16バイトアラインメント用パディング
 	float pad2[3];
 
-	//// --- CRT ---
+	/** @brief CRT */
 	// CRTエフェクト有効フラグ (0: 無効、1: 有効)
 	int crtEnabled;
 	// スキャンラインエフェクト有効フラグ (0: 無効、1: 有効)
@@ -80,7 +80,7 @@ struct alignas(16) PostEffectParams
 	// 16バイトアラインメント用パディング
 	float pad3[4];
 
-	/// --- bloom ---
+	/** @brief Bloom */
 	// Bloomエフェクト有効フラグ (0: 無効、1: 有効)
 	int bloomEnabled;
 	// Bloomの強度 (0.0f～1.0f以上)

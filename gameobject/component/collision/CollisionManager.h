@@ -133,6 +133,7 @@ public:
 private:
 	// シングルトンインスタンス
 	static std::unique_ptr<CollisionManager> instance_;
+	friend std::unique_ptr<CollisionManager> std::make_unique<CollisionManager>();
 	
 	CollisionManager() = default;
 	CollisionManager(const CollisionManager&) = delete;

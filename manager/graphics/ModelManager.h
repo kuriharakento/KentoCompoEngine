@@ -61,6 +61,7 @@ public:
 
 private: /*========[ シングルトン ]========*/
 	static std::unique_ptr<ModelManager> instance_; // シングルトンインスタンス
+	friend std::unique_ptr<ModelManager> std::make_unique<ModelManager>();
 	
 	// コピー禁止
 	ModelManager()=default;

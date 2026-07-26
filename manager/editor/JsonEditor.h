@@ -80,6 +80,7 @@ private:
 
 private: // シングルトンインスタンス
 	static std::unique_ptr<JsonEditor> instance_;
+	friend std::unique_ptr<JsonEditor> std::make_unique<JsonEditor>();
 	JsonEditor() = default;       // コンストラクタ
 	JsonEditor(const JsonEditor&) = delete;            // コピーコンストラクタ
 	JsonEditor& operator=(const JsonEditor&) = delete; // コピー代入禁止

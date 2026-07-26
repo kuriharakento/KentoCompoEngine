@@ -19,7 +19,7 @@ DebugUIManager* DebugUIManager::GetInstance()
 #ifdef USE_IMGUI
 	if (instance_ == nullptr)
 	{
-		instance_.reset(new DebugUIManager());
+		instance_ = std::make_unique<DebugUIManager>();
 	}
 	return instance_.get();
 #else
