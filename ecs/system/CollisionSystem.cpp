@@ -226,7 +226,7 @@ void CollisionSystem::DetectCollisions(Registry& registry)
 
 			// --- 汎用ビットマスクフィルタ ---
 			// 互いに相手をマスクしていなければ判定しない
-			if (!(colA.mask & colB.layer) && !(colB.mask & colA.layer)) continue;
+			if (!(colA.mask_ & colB.layer_) && !(colB.mask_ & colA.layer_)) continue;
 
 			// LOD判定（エンジン既定）
 			collisionAlgorithm::CollisionLOD lod = collisionAlgorithm::CollisionLOD::Precise;
