@@ -6,6 +6,8 @@
 #include <cstring>
 #include <thread>
 
+namespace KCE
+{
 #pragma comment(lib, "dinput8.lib")
 #pragma comment(lib, "dxguid.lib")
 
@@ -462,3 +464,4 @@ Vector2 Input::GetMousePosition() const
 {
 	return Vector2{ GetMouseX(), GetMouseY() };
 }
+} // namespace KCE

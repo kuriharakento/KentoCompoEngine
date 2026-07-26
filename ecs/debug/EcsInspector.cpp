@@ -4,6 +4,8 @@
 #include "../../../engine/ecs/components/InstancedRenderComponent.h"
 #include "../../../engine/ecs/components/LifetimeComponent.h"
 
+namespace KCE
+{
 using namespace ecs;
 
 void EcsInspector::Initialize()
@@ -127,3 +129,4 @@ void EcsInspector::DrawComponentEditor(Registry& registry, EntityID entity)
         }
     }
 }
+} // namespace KCE

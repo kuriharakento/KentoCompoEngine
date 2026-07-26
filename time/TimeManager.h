@@ -1,6 +1,8 @@
 #pragma once
 #include <chrono>
 
+namespace KCE
+{
 /**
  * @brief 時間コンテキスト構造体
  * 
@@ -121,3 +123,4 @@ private:
 
     std::chrono::steady_clock::time_point lastUpdate_;      // 前回Update呼び出し時刻
 };
+} // namespace KCE

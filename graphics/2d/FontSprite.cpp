@@ -6,7 +6,11 @@
 #ifdef USE_IMGUI
 #include "ImGui/imgui.h"
 #include "manager/editor/DebugUIManager.h"
+
 #endif // USE_IMGUI
+
+namespace KCE
+{
 
 using json = nlohmann::json;
 
@@ -331,4 +335,5 @@ void FontSprite::DrawImGui()
     }
 	ImGui::PopID();
 }
-#endif
+#endif
+} // namespace KCE

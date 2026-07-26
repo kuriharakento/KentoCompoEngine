@@ -2,7 +2,11 @@
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
+
 #endif
+
+namespace KCE
+{
 
 // 最大蓄積行数
 constexpr size_t kMaxLogSize = 1000;
@@ -126,3 +130,4 @@ void ConsoleLog::Draw([[maybe_unused]] bool* open)
 	ImGui::End();
 #endif
 }
+} // namespace KCE

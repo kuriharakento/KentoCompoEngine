@@ -12,6 +12,8 @@
 #include "effects/particle/ParticleTypes.h"
 #include <algorithm>
 
+namespace KCE
+{
 /**
  * @brief テクスチャシートアニメーションモジュール
  * 
@@ -153,3 +155,4 @@ private:
 	uint32_t startFrame_ = 0;
 	TextureSheetPlayMode playMode_ = TextureSheetPlayMode::Loop;
 };
+} // namespace KCE

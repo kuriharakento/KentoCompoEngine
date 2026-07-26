@@ -3,6 +3,8 @@
 #include "math/Sphere.h"
 #include "jsonEditor/JsonEditableBase.h"
 
+namespace KCE
+{
 /**
  * @brief 球（Sphere）による衝突判定コンポーネント
  * 
@@ -29,19 +31,19 @@ namespace GameObjectComponent
 		 * @brief コンストラクタ
 		 * @param owner このコンポーネントを所有するGameObject
 		 */
-		SphereColliderComponent(::GameObject* owner);
+		SphereColliderComponent(GameObject* owner);
 
 		/**
 		 * @brief 球データを取得
 		 * @return 現在の球データ
 		 */
-		const ::Sphere& GetSphere() const;
+		const Sphere& GetSphere() const;
 		
 		/**
 		 * @brief 球データを設定
 		 * @param s 設定する球データ
 		 */
-		void SetSphere(const ::Sphere& s);
+		void SetSphere(const Sphere& s);
 
 		/**
 		 * @brief 毎フレームの更新処理
@@ -50,7 +52,7 @@ namespace GameObjectComponent
 		 * 
 		 * @param owner このコンポーネントを所有するGameObject
 		 */
-		void Update(::GameObject* owner) override;
+		void Update(GameObject* owner) override;
 
 		/**
 		 * @brief コライダーの種類を取得
@@ -61,14 +63,15 @@ namespace GameObjectComponent
 		/**
 		 * @brief ブロードフェーズ用 AABB を取得
 		 */
-		::AABB GetBroadphaseAABB() const override
+		AABB GetBroadphaseAABB() const override
 		{
 			Vector3 radiusVec = { sphere_.radius, sphere_.radius, sphere_.radius };
-			return ::AABB(sphere_.center - radiusVec, sphere_.center + radiusVec);
+			return AABB(sphere_.center - radiusVec, sphere_.center + radiusVec);
 		}
 
 	private:
 		// 球データ（中心位置と半径）
-		::Sphere sphere_;
+		Sphere sphere_;
 	};
-}
+}
+} // namespace KCE

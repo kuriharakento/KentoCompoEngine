@@ -3,6 +3,8 @@
 #include "jsonEditor/JsonEditableBase.h"
 #include "math/Vector3.h"
 
+namespace KCE
+{
 using json = nlohmann::json;
 
 /**
@@ -48,4 +50,4 @@ private:
 	// 制御点の座標配列
 	std::vector<Vector3> controlPoints;
 };
-
+} // namespace KCE

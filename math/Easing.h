@@ -3,6 +3,8 @@
 #include <numbers>
 #include "math/Vector2.h"
 
+namespace KCE
+{
 // 参照したサイト
 // https://easings.net/ja
 
@@ -432,3 +434,4 @@ template<class T> T LerpAngle(T a, T b, T t) {
 	}
 	return a + diff * t;
 }
+} // namespace KCE

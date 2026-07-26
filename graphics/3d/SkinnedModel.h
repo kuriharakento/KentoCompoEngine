@@ -9,6 +9,8 @@
 #include "math/MathUtils.h"
 #include "manager/graphics/SkinnedModelManager.h"
 
+namespace KCE
+{
 /**
  * @brief スキニングモデルクラス
  * @details ボーンアニメーション付きの3Dモデルのインスタンス。
@@ -187,3 +189,4 @@ public:
 	 */
 	void SetResourceState(D3D12_RESOURCE_STATES state) { currentResourceState_ = state; }
 };
+} // namespace KCE

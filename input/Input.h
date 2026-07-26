@@ -14,6 +14,8 @@
 #include <memory>
 #include "math/Vector2.h"
 
+namespace KCE
+{
 // 前方宣言
 class WinApp;
 
@@ -330,3 +332,4 @@ private:
     Vector2 nextMouseSize_ = { 0.0f, 0.0f };
     bool hasNextCorrection_ = false;
 };
+} // namespace KCE

@@ -2,6 +2,8 @@
 
 #include "../../../engine/ecs/Entity.h"
 
+namespace KCE
+{
 namespace ecs
 {
     /**
@@ -19,3 +21,4 @@ namespace ecs
         EntityID nextSibling_ = kInvalidEntity;
     };
 }
+} // namespace KCE

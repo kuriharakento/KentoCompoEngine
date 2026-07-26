@@ -5,6 +5,8 @@
 #include "manager/editor/DebugUIManager.h"
 #include "math/MathUtils.h"
 
+namespace KCE
+{
 // カメラ補間速度（イージング係数）
 constexpr float kCameraLerpSpeed = 0.1f;
 
@@ -87,3 +89,4 @@ void TopDownCamera::DrawImGui()
 	ImGui::DragFloat3("Camera Offset", &offset_.x, 0.1f);
 }
 #endif
+} // namespace KCE

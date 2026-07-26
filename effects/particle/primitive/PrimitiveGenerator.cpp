@@ -2,6 +2,8 @@
 #include <numbers>
 #include <cmath>
 
+namespace KCE
+{
 PrimitiveMesh PrimitiveGenerator::Generate(PrimitiveType type, const PrimitiveOptions& options)
 {
 	switch (type)
@@ -725,3 +727,4 @@ PrimitiveMesh PrimitiveGenerator::GenerateSpiral(uint32_t segments, float turns)
 	}
 	return mesh;
 }
+} // namespace KCE

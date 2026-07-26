@@ -12,6 +12,8 @@
 #include <unordered_map>
 #include "ParticleEmitter.h"
 
+namespace KCE
+{
 class DirectXCommon;
 class SrvManager;
 class CameraManager;
@@ -197,3 +199,4 @@ private:
 	DirectXCommon* dxCommon_ = nullptr;
 	SrvManager* srvManager_ = nullptr;
 };
+} // namespace KCE

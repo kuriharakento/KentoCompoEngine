@@ -13,6 +13,8 @@
 // manager
 #include "manager/graphics/TextureManager.h"
 
+namespace KCE
+{
 // 行列の行数・列数
 constexpr int kMatrixRows = 4;
 constexpr int kMatrixColumns = 4;
@@ -533,3 +535,4 @@ void Model::SetUVRotate(const Vector3& rotate)
 		}
 	}
 }
+} // namespace KCE

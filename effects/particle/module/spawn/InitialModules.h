@@ -13,6 +13,8 @@
 #include "math/Vector4.h"
 #include "math/MathUtils.h"
 
+namespace KCE
+{
 /**
  * @brief 初期位置設定モジュール
  */
@@ -233,3 +235,4 @@ private:
 	uint32_t groupCount_ = 1;
 	uint32_t nextId_ = 0;
 };
+} // namespace KCE

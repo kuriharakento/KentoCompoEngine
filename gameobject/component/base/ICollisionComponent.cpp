@@ -1,6 +1,8 @@
 #include "ICollisionComponent.h"
 #include "engine/gameobject/component/collision/CollisionManager.h"
 
+namespace KCE
+{
 namespace GameObjectComponent
 {
 	ICollisionComponent::~ICollisionComponent()
@@ -10,11 +12,11 @@ namespace GameObjectComponent
 		CollisionManager::GetInstance()->Unregister(this);
 	}
 
-	ICollisionComponent::ICollisionComponent(::GameObject* owner)
+	ICollisionComponent::ICollisionComponent(GameObject* owner)
 	{
 		owner_ = owner;
 		// CollisionManagerに自動登録
 		CollisionManager::GetInstance()->Register(this);
 	}
 }
-
+} // namespace KCE

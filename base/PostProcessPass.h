@@ -4,6 +4,8 @@
 #include <d3d12.h>
 #include <string>
 
+namespace KCE
+{
 class DirectXCommon;
 class SrvManager;
 
@@ -63,4 +65,4 @@ private:
 
  
 };
-
+} // namespace KCE

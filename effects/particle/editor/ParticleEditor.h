@@ -11,6 +11,8 @@
 #include "math/Vector3.h"
 #include "math/Vector4.h"
 
+namespace KCE
+{
 class ParticleEffect;
 class ParticleEmitter;
 class DirectXCommon;
@@ -186,4 +188,4 @@ private:
 	// 天球（Skydome）のカラー調整 (RGB)
 	Vector4 skydomeColor_ = { 1.0f, 1.0f, 1.0f, 1.0f };
 };
-
+} // namespace KCE

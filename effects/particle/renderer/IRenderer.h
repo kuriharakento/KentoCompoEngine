@@ -11,6 +11,8 @@
 #include "math/Vector4.h"
 #include <vector>
 
+namespace KCE
+{
 class CameraManager;
 class DirectXCommon;
 class SrvManager;
@@ -107,3 +109,4 @@ public:
 protected:
 	BlendMode blendMode_ = BlendMode::Alpha;
 };
+} // namespace KCE

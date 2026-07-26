@@ -2,6 +2,8 @@
 #include "base/Logger.h"
 #include <cassert>
 
+namespace KCE
+{
 void ShadowMapPipeline::Initialize(DirectXCommon* dxCommon)
 {
 	assert(dxCommon);
@@ -169,3 +171,4 @@ void ShadowMapPipeline::CreatePipelineState()
 	);
 	assert(SUCCEEDED(hr));
 }
+} // namespace KCE

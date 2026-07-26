@@ -14,6 +14,8 @@
 #include <fstream>
 #include <filesystem>
 
+namespace KCE
+{
 GameObject::~GameObject()
 {
 	if (GameObjectManager::HasInstance())
@@ -683,3 +685,4 @@ void GameObject::DrawImGui()
 	}
 #endif // USE_IMGUI
 }
+} // namespace KCE

@@ -9,11 +9,14 @@
 
 // Factory
 #include "engine/gameobject/component/base/ComponentFactory.h"
+
+namespace KCE
+{
 REGISTER_COMPONENT(OBBColliderComponent)
 
 namespace GameObjectComponent
 {
-	OBBColliderComponent::OBBColliderComponent(::GameObject* owner) : ICollisionComponent(owner)
+	OBBColliderComponent::OBBColliderComponent(GameObject* owner) : ICollisionComponent(owner)
 	{
 		if(!owner)
 		{
@@ -37,14 +40,14 @@ namespace GameObjectComponent
 
 	}
 
-	void OBBColliderComponent::Update(::GameObject* owner)
+	void OBBColliderComponent::Update(GameObject* owner)
 	{
 		// 非アクティブ時は更新もデバッグ描画も行わない
 		if (!isActive_) return;
 
 		if (owner && autoUpdatePosition_)
 		{
-			const ::Matrix4x4& m = owner->GetWorldMatrix();
+			const Matrix4x4& m = owner->GetWorldMatrix();
 
 			// ワールド行列から位置、回転、スケールを取得してOBBを更新
 			obb_.center = MathUtils::GetTranslateFromMatrix(m);
@@ -59,7 +62,7 @@ namespace GameObjectComponent
 		// サブステップ判定使用時は前フレーム位置も可視化
 		if (useSubstep_)
 		{
-			::OBB previousObb = obb_;
+			OBB previousObb = obb_;
 			previousObb.center = previousPosition_;
 			previousObb.rotate = obb_.rotate;
 			previousObb.size = obb_.size;
@@ -68,4 +71,4 @@ namespace GameObjectComponent
 	#endif
 	}
 }
-
+} // namespace KCE

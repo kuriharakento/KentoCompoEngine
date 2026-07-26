@@ -1,6 +1,8 @@
 #pragma once
 #include "base/BasePostEffect.h"
 
+namespace KCE
+{
 // Bloomエフェクトのデフォルトパラメータ
 constexpr float kDefaultBloomIntensity = 0.7f;    // デフォルトのBloom強度
 constexpr float kDefaultBloomThreshold = 0.78f;   // デフォルトのしきい値
@@ -144,3 +146,4 @@ private:
     // 内部パラメータ
     Parameters params_;
 };
+} // namespace KCE

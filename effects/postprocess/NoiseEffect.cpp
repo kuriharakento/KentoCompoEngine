@@ -1,5 +1,7 @@
 #include "NoiseEffect.h"
 
+namespace KCE
+{
 NoiseEffect::NoiseEffect()
 {
     // デフォルトパラメータの設定
@@ -82,3 +84,4 @@ void NoiseEffect::SetEnabled(bool enabled)
         isDirty_ = true;
     }
 }
+} // namespace KCE

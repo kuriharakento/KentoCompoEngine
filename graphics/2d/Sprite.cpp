@@ -3,6 +3,8 @@
 #include "SpriteCommon.h"
 #include "manager/graphics/TextureManager.h"
 
+namespace KCE
+{
 // スプライトの頂点数
 constexpr int kVertexCount = 4;
 // スプライトのインデックス数
@@ -240,5 +242,4 @@ void Sprite::AdjustTextureSize()
 	// 画像サイズをテクスチャサイズに合わせる
 	size_ = textureSize_;
 }
-
-
+} // namespace KCE

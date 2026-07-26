@@ -5,6 +5,8 @@
 #include <memory>
 #include <string>
 
+namespace KCE
+{
 class BaseScene;
 
 /**
@@ -127,3 +129,4 @@ private:
 	std::unordered_map<std::string, std::unique_ptr<ISceneState>> states_;
 	ISceneState* currentState_ = nullptr; // 現在のステート（非所有ポインタ）
 };
+} // namespace KCE

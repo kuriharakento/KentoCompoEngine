@@ -5,6 +5,8 @@
 #include "base/Logger.h"
 #include "manager/graphics/TextureManager.h"
 
+namespace KCE
+{
 // ルートパラメータ数（カスケードシャドウ用に追加）
 constexpr int kRootParameterCount = 16;
 // 入力要素数
@@ -314,3 +316,4 @@ void Object3dCommon::CreateGraphicsPipelineState()
 	hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&graphicsPipelineState_));
 	assert(SUCCEEDED(hr));
 }
+} // namespace KCE

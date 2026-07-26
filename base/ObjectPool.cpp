@@ -1,6 +1,9 @@
 #include "ObjectPool.h"
+#include "effects/particle/ParticleEffect.h"
 #include <cassert>
 
+namespace KCE
+{
 // 前方宣言（明示的インスタンス化のため）
 class ParticleEffect;
 // class Bullet; // 今後必要になったら追加
@@ -196,9 +199,9 @@ typename ObjectPool<T>::Handle ObjectPool<T>::RecycleOldest()
 // 明示的テンプレートインスタンス化
 // =========================================================================
 
-#include "effects/particle/ParticleEffect.h"
 template class ObjectPool<ParticleEffect>;
 
 // 今後、Enemy や Bullet 等でプーリングを使用する場合は、以下に追記していく
 // #include "gameobject/enemy/Enemy.h"
 // template class ObjectPool<Enemy>;
+} // namespace KCE

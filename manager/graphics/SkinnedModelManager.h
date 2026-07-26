@@ -8,6 +8,8 @@
 
 #include "base/GraphicsTypes.h"
 
+namespace KCE
+{
 class ModelCommon;
 class DirectXCommon;
 
@@ -73,3 +75,4 @@ private:
     // キャッシュ (パスをキーにする)
     std::map<std::string, std::unique_ptr<SkinnedModelSharedResource>> modelCache_;
 };
+} // namespace KCE

@@ -4,6 +4,8 @@
 // math
 #include "math/Vector3.h"
 
+namespace KCE
+{
 /**
  * @brief デバッグ用フリーカメラクラス
  * 
@@ -155,3 +157,4 @@ private:
     // Tabキーの前フレーム押下状態
     bool prevTabPressed_ = false;
 };
+} // namespace KCE

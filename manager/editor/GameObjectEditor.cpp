@@ -9,6 +9,8 @@
 // Factory
 #include "engine/gameobject/component/base/ComponentFactory.h"
 
+namespace KCE
+{
 std::unique_ptr<GameObjectEditor> GameObjectEditor::instance_ = nullptr;
 
 GameObjectEditor* GameObjectEditor::GetInstance()
@@ -357,3 +359,4 @@ void GameObjectEditor::UpdateJsonFileList()
 		selectedJsonIndex_ = 0;
 	}
 }
+} // namespace KCE

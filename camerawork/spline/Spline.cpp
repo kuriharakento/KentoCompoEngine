@@ -1,5 +1,7 @@
 #include "Spline.h"
 
+namespace KCE
+{
 // Catmull-Rom係数（スプライン補間の基本係数）
 constexpr float kCatmullRomHalf = 0.5f;
 // P1の係数
@@ -37,3 +39,4 @@ Vector3 Spline::CatmullRom(const Vector3& p0, const Vector3& p1, const Vector3& 
         calc(p0.z, p1.z, p2.z, p3.z)
     );
 }
+} // namespace KCE

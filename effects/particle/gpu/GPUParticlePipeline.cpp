@@ -4,6 +4,8 @@
 #include <filesystem>
 #include <vector>
 
+namespace KCE
+{
 #pragma comment(lib, "d3dcompiler.lib")
 
 namespace
@@ -472,3 +474,4 @@ void GPUParticlePipeline::CreateModulePipelines()
 		assert(SUCCEEDED(hr));
 	}
 }
+} // namespace KCE

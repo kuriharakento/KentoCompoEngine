@@ -8,7 +8,8 @@
 #include "base/Logger.h"
 #include <cassert>
 
-
+namespace KCE
+{
 void DeferredRenderer::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, uint32_t width, uint32_t height)
 {
 	assert(dxCommon);
@@ -234,3 +235,4 @@ void DeferredRenderer::ExecuteLightPass(
 	// フルスクリーンクワッド描画
 	commandList->DrawInstanced(4, 1, 0, 0);
 }
+} // namespace KCE

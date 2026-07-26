@@ -6,6 +6,8 @@
 #include <type_traits>
 #include <algorithm>
 
+namespace KCE
+{
 /**
  * @brief ComponentArrayの共通インターフェース。
  */
@@ -232,4 +234,4 @@ private:
     // 有効データ数
     uint32_t validCount_;
 };
-
+} // namespace KCE

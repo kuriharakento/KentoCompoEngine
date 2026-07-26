@@ -2,6 +2,8 @@
 #include "base/DirectXCommon.h"
 #include "base/Camera.h"
 
+namespace KCE
+{
 Line::~Line()
 {
 	// 頂点バッファのアンマップとリセット
@@ -116,3 +118,4 @@ void Line::Draw() {
 void Line::Clear() {
     vertices_.clear();
 }
+} // namespace KCE

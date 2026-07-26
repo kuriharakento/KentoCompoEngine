@@ -1,6 +1,8 @@
 #pragma once
 #include "base/BasePostEffect.h"
 
+namespace KCE
+{
 // グレースケールエフェクトのデフォルト強度
 constexpr float kDefaultGrayscaleIntensity = 1.0f;
 
@@ -69,3 +71,4 @@ private:
     // 内部パラメータ
     Parameters params_;
 };
+} // namespace KCE

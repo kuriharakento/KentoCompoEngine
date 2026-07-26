@@ -11,7 +11,8 @@
 #include "externals/DirectXTex/DirectXTex.h"
 #include "math/Vector4.h"
 
-
+namespace KCE
+{
 /**
  * @brief DirectX12の共通機能を管理するクラス
  */
@@ -335,4 +336,4 @@ private:
 	// レンダーテクスチャのクリア値
 	D3D12_CLEAR_VALUE clearValue_;
 };
-
+} // namespace KCE

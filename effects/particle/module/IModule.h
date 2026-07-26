@@ -2,6 +2,8 @@
 #include "effects/particle/ParticleTypes.h"
 #include <cstdint>
 
+namespace KCE
+{
 struct ParticleContext;
 
 /**
@@ -76,3 +78,4 @@ public:
 	 */
 	virtual void DispatchGPU(class GPUSimulator* simulator, struct ID3D12GraphicsCommandList* cmdList, float deltaTime) {}
 };
+} // namespace KCE

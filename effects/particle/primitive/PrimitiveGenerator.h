@@ -13,6 +13,8 @@
 #include <vector>
 #include <cmath>
 
+namespace KCE
+{
 /**
  * @brief プリミティブ頂点データ
  * @note Particle.VS.hlslのVertexShaderInputと一致するレイアウト
@@ -166,3 +168,4 @@ private:
 	static constexpr float kPi = 3.14159265358979f;
 	static constexpr float kTwoPi = kPi * 2.0f;
 };
+} // namespace KCE

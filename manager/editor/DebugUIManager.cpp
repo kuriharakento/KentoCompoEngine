@@ -1,5 +1,16 @@
 #include "DebugUIManager.h"
 
+#ifdef USE_IMGUI
+#include "externals/imgui/imgui.h"
+#include "externals/imgui/imgui_internal.h"
+#include "externals/nlohmann/json.hpp"
+#include <fstream>
+
+#endif
+
+namespace KCE
+{
+
 // instance_ の実体は、非ImGui環境でのリンクエラーを防ぐために常に定義する
 std::unique_ptr<DebugUIManager> DebugUIManager::instance_ = nullptr;
 
@@ -23,11 +34,6 @@ bool DebugUIManager::HasInstance()
 
 // ------ ここから下は ImGui 有効時（Debugビルド等）のみコンパイル ------
 #ifdef USE_IMGUI
-
-#include "externals/imgui/imgui.h"
-#include "externals/imgui/imgui_internal.h"
-#include "externals/nlohmann/json.hpp"
-#include <fstream>
 
 static std::unordered_map<std::string, DebugUIManager::SavedUIState> s_savedStates;
 static float s_prevScale = 1.0f;
@@ -615,3 +621,4 @@ void DebugUIManager::ApplyUIScale(float scale)
 }
 
 #endif // USE_IMGUI
+} // namespace KCE

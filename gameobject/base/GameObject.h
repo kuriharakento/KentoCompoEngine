@@ -17,6 +17,8 @@
 // json
 #include "jsonEditor/JsonEditableBase.h"
 
+namespace KCE
+{
 namespace GameObjectComponent
 {
 	class IGameObjectComponent;
@@ -491,3 +493,4 @@ std::shared_ptr<T> GameObject::GetComponent(const std::string& name) const
 	}
 	return nullptr;
 }
+} // namespace KCE

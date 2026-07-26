@@ -1,6 +1,8 @@
 #include "GrayscaleEffect.h"
 #include <cassert>
 
+namespace KCE
+{
 GrayscaleEffect::GrayscaleEffect()
 {
     // デフォルトパラメータの設定
@@ -48,3 +50,4 @@ void GrayscaleEffect::SetEnabled(bool enabled)
 		isDirty_ = true;
 	}
 }
+} // namespace KCE

@@ -3,6 +3,8 @@
 #include "math/OBB.h"
 #include "math/Vector3.h"
 
+namespace KCE
+{
 class GameObject;
 
 /**
@@ -57,3 +59,4 @@ namespace collisionUtils
 	 */
 	void ResolvePenetration(GameObject* self, GameObject* other);
 }
+} // namespace KCE

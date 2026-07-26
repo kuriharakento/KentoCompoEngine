@@ -12,6 +12,8 @@
 #include <d3d12.h>
 #include <numbers>
 
+namespace KCE
+{
 MeshRenderer::~MeshRenderer()
 {
 	if (instanceResource_)
@@ -322,3 +324,4 @@ void MeshRenderer::SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count)
 	gpuSrvIndex_ = srvIndex;
 	gpuParticleCount_ = count;
 }
+} // namespace KCE

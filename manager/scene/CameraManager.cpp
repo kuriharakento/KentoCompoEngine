@@ -7,7 +7,11 @@
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
 #include "manager/editor/DebugUIManager.h"
+
 #endif
+
+namespace KCE
+{
 
 void CameraManager::Initialize(DirectXCommon* dxCommon)
 {
@@ -123,3 +127,4 @@ void CameraManager::DrawImGui() {
 	}
 }
 #endif
+} // namespace KCE

@@ -7,6 +7,8 @@
 #include "manager/system/SrvManager.h"
 #include "manager/graphics/SkinningPipelineManager.h"
 
+namespace KCE
+{
 // スレッドグループサイズ
 constexpr UINT kThreadGroupSize = 256;
 
@@ -183,3 +185,4 @@ void SkinningCompute::CreateConstantBuffer()
 	constantData_->padding[1] = 0;
 	constantData_->padding[2] = 0;
 }
+} // namespace KCE

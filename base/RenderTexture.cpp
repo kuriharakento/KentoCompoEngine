@@ -6,6 +6,8 @@
 #include "DirectXCommon.h"
 #include "manager/system/SrvManager.h"
 
+namespace KCE
+{
 // RTV用ディスクリプタ数
 constexpr UINT kRtvDescriptorCount = 1;
 // ミップレベル数
@@ -222,4 +224,4 @@ void RenderTexture::Resize(uint32_t width, uint32_t height)
 
 	currentState_ = D3D12_RESOURCE_STATE_RENDER_TARGET;
 }
-
+} // namespace KCE

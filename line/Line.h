@@ -5,6 +5,8 @@
 #include <d3d12.h>
 #include "base/GraphicsTypes.h"
 
+namespace KCE
+{
 class Camera;
 
 /**
@@ -86,3 +88,4 @@ private:
     Microsoft::WRL::ComPtr<ID3D12Resource> wvpResource_; // WVP行列用定数バッファ
 	LineTransformationMatrix* wvpData_ = nullptr;      // マップされたWVP行列データ
 };
+} // namespace KCE

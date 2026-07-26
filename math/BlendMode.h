@@ -1,5 +1,7 @@
 #pragma once
 
+namespace KCE
+{
 /**
  * @brief 描画時のブレンドモードを指定する列挙型
  * 
@@ -18,3 +20,4 @@ enum class BlendMode
 	ColorBurn,    // カラーバーン（色を焼き込む）- コントラストを強調
 	ColorDodge    // カラードッジ（色を抜く・明るくする）- ハイライト効果に使用
 };
+} // namespace KCE

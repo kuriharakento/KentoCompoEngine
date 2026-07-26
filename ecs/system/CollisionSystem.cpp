@@ -17,6 +17,8 @@
 #include "engine/manager/graphics/LineManager.h"
 #include "math/MathUtils.h"
 
+namespace KCE
+{
 using namespace ecs;
 
 thread_local CollisionSystem::ThreadLocalContext tlContext;
@@ -328,3 +330,4 @@ void CollisionSystem::Draw(Registry& registry, Camera* camera, LightManager* lig
 	}
 #endif
 }
+} // namespace KCE

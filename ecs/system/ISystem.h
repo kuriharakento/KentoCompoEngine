@@ -1,5 +1,7 @@
 #pragma once
 
+namespace KCE
+{
 class Registry;
 class Camera;
 class LightManager;
@@ -46,3 +48,4 @@ public:
 	 */
 	virtual void Finalize() {}
 };
+} // namespace KCE

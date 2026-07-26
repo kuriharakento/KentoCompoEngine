@@ -11,6 +11,8 @@
 #include "effects/postprocess/NoiseEffect.h"
 #include "effects/postprocess/VignetteEffect.h"
 
+namespace KCE
+{
 class DirectXCommon;
 class SrvManager;
 class RenderTexture;
@@ -186,3 +188,4 @@ private:
 
     
 };
+} // namespace KCE

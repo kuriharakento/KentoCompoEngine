@@ -5,6 +5,10 @@
 #include <unordered_map>
 #include <vector>
 
+struct ImGuiTextBuffer;
+
+namespace KCE
+{
 /**
  * @brief デバッグUIの表示エリア
  * @details 各エリアの使い分け：
@@ -160,7 +164,7 @@ private:
 	void SaveLayout();
 	void ClearLoadedStates();
 	SavedUIState& GetOrAddLoadedState(const std::string& name);
-	void WriteAllSettings(struct ImGuiTextBuffer* buf);
+	void WriteAllSettings(::ImGuiTextBuffer* buf);
 	void ApplyLoadedStatesToActiveUIs();
 
 	float uiScale_ = 1.0f;
@@ -173,3 +177,4 @@ private:
 	bool resetLayoutRequested_ = false;
 #endif
 };
+} // namespace KCE

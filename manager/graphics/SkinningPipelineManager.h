@@ -3,6 +3,8 @@
 #include <d3d12.h>
 #include "base/DirectXCommon.h"
 
+namespace KCE
+{
 /**
  * @brief スキニング計算用パイプラインマネージャー
  * @details コンピュートシェーダーによるスキニングに必要なルートシグネチャとPSOを管理するシングルトンクラス
@@ -56,3 +58,4 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState_;
 };
+} // namespace KCE

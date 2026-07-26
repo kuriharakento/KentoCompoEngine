@@ -7,6 +7,8 @@
 #include "graphics/3d/Model.h"
 #include "graphics/3d/ModelCommon.h"
 
+namespace KCE
+{
 /**
  * @brief モデルマネージャークラス
  * @details 3Dモデルのロードとキャッシングを管理するシングルトンクラス
@@ -74,4 +76,4 @@ private: /*========[ メンバ変数 ]========*/
 	// モデルデータのキャッシュ（ファイルパス -> モデル）
 	std::map<std::string, std::unique_ptr<Model>> models_;
 };
-
+} // namespace KCE

@@ -2,6 +2,8 @@
 #include <memory>
 #include "../../../engine/graphics/3d/Object3d.h"
 
+namespace KCE
+{
 namespace ecs
 {
     /**
@@ -15,3 +17,4 @@ namespace ecs
         bool isVisible_ = true;
     };
 }
+} // namespace KCE

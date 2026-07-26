@@ -3,6 +3,8 @@
 #include <algorithm>
 #include "manager/editor/GameObjectEditor.h"
 
+namespace KCE
+{
 std::unique_ptr<GameObjectManager> GameObjectManager::instance_ = nullptr;
 
 GameObjectManager* GameObjectManager::GetInstance()
@@ -267,3 +269,4 @@ void GameObjectManager::ClearPendingDestroyObjects()
 		Unregister(obj);
 	}
 }
+} // namespace KCE

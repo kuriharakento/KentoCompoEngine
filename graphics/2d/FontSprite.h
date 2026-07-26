@@ -6,6 +6,8 @@
 #include "SpriteCommon.h"
 #include "Sprite.h"
 
+namespace KCE
+{
 /**
  * @brief フォント整列方向
  */
@@ -266,3 +268,4 @@ private:
 	// 整列方向
 	FontAlignment alignment_ = FontAlignment::Left;
 };
+} // namespace KCE

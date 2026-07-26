@@ -9,6 +9,8 @@
 #include <set>
 #include <functional>
 
+namespace KCE
+{
 /**
  * @brief 空間分割（Grid）を用いて効率的に衝突判定を行うシステム。
  */
@@ -54,3 +56,4 @@ private:
 
     std::unique_ptr<LinearSpatialHash> grid_;
 };
+} // namespace KCE

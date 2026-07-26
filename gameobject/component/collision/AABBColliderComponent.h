@@ -5,6 +5,8 @@
 #include "Math/Vector3.h"
 #include "jsonEditor/JsonEditableBase.h"
 
+namespace KCE
+{
 /**
  * @brief 軸平行境界ボックス（AABB）による衝突判定コンポーネント
  * 
@@ -26,7 +28,7 @@ namespace GameObjectComponent
 		 * @brief コンストラクタ
 		 * @param owner このコンポーネントを所有するGameObject
 		 */
-		AABBColliderComponent(::GameObject* owner);
+		AABBColliderComponent(GameObject* owner);
 		
 		/**
 		 * @brief デストラクタ
@@ -40,7 +42,7 @@ namespace GameObjectComponent
 		 * 
 		 * @param owner このコンポーネントを所有するGameObject
 		 */
-		void Update(::GameObject* owner) override;
+		void Update(GameObject* owner) override;
 		
 		/**
 		 * @brief コライダーの種類を取得
@@ -51,23 +53,23 @@ namespace GameObjectComponent
 		/**
 		 * @brief ブロードフェーズ用 AABB を取得
 		 */
-		::AABB GetBroadphaseAABB() const override { return aabb_; }
+		AABB GetBroadphaseAABB() const override { return aabb_; }
 		
 		/**
 		 * @brief AABBデータを設定
 		 * @param aabb 設定する AABB データ
 		 */
-		void SetAABB(const ::AABB& aabb) { aabb_ = aabb; }
+		void SetAABB(const AABB& aabb) { aabb_ = aabb; }
 		
 		/**
 		 * @brief AABBデータを取得
 		 * @return 現在の AABB データ
 		 */
-		const ::AABB& GetAABB() const { return aabb_; }
+		const AABB& GetAABB() const { return aabb_; }
 
 	private:
 		// AABBデータ（中心位置とサイズ）
-		::AABB aabb_;
+		AABB aabb_;
 	};
 }
-
+} // namespace KCE

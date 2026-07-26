@@ -1,6 +1,8 @@
 #pragma once
 #include "IGameObjectComponent.h"
 
+namespace KCE
+{
 /**
  * @brief アクションコンポーネントの基底インターフェース
  * 
@@ -24,7 +26,7 @@ namespace GameObjectComponent
 		 * 
 		 * @param camera 描画に使用するカメラマネージャー
 		 */
-		virtual void Draw3D(::CameraManager* camera) {}
+		virtual void Draw3D(CameraManager* camera) {}
 
 		/**
 		 * @brief 2D描画処理
@@ -35,3 +37,4 @@ namespace GameObjectComponent
 		virtual void Draw2D() {}
 	};
 }
+} // namespace KCE

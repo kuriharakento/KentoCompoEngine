@@ -3,6 +3,8 @@
 #include <d3d12.h>
 #include "base/DirectXCommon.h"
 
+namespace KCE
+{
 /**
  * @brief シャドウマップ用パイプラインクラス
  * @details シャドウマップ描画に必要なルートシグネチャとパイプラインステートを管理
@@ -59,3 +61,4 @@ private:
 	// パイプラインステート
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState_;
 };
+} // namespace KCE

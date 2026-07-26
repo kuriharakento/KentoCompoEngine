@@ -15,6 +15,8 @@
 #include "math/MathUtils.h"
 #include "engine/gameobject/component/collision/CollisionAlgorithm.h"
 
+namespace KCE
+{
 using namespace GameObjectComponent;
 
 std::unique_ptr<CollisionManager> CollisionManager::instance_ = nullptr;
@@ -254,7 +256,7 @@ void CollisionManager::CheckCollisions()
 			continue;
 		}
 
-		::AABB broadphaseAABB = collider->GetBroadphaseAABB();
+		AABB broadphaseAABB = collider->GetBroadphaseAABB();
 
 		// 境界座標からセルインデックスの最小・最大を計算
 		int minX = static_cast<int>(std::floor(broadphaseAABB.min_.x / cellSize_));
@@ -486,3 +488,4 @@ void CollisionManager::DrawImGui()
 	ImGui::Text("Active Collisions: %zu", currentCollisions_.size());
 }
 #endif
+} // namespace KCE

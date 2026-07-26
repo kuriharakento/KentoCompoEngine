@@ -3,6 +3,8 @@
 #include <d3d12.h>
 #include "math/MatrixFunc.h"
 
+namespace KCE
+{
 /**
  * @brief シャドウマップの解像度設定
  */
@@ -144,3 +146,4 @@ struct CascadeShadowDataForGPU
 	// パディング
 	float padding[3];
 };
+} // namespace KCE

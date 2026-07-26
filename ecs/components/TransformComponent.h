@@ -4,6 +4,8 @@
 #include "math/Vector3.h"
 #include "math/Quaternion.h"
 
+namespace KCE
+{
 namespace ecs
 {
     /**
@@ -29,3 +31,4 @@ namespace ecs
         bool isDirty_ = true;
     };
 }
+} // namespace KCE

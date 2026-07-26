@@ -5,6 +5,8 @@
 #include "math/MatrixFunc.h"
 #include <cstdint>
 
+namespace KCE
+{
 /**
  * @brief パーティクルデータ構造（CPU/GPU統一レイアウト）
  * 
@@ -75,3 +77,4 @@ struct ParticleGPU
 	Vector4 color;
 	Vector4 uvOffsetScale; // テクスチャシート用 (offsetX, offsetY, scaleX, scaleY)
 };
+} // namespace KCE

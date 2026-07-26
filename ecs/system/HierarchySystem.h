@@ -6,6 +6,8 @@
 #include "../components/TransformComponent.h"
 #include "../components/HierarchyComponent.h"
 
+namespace KCE
+{
 /**
  * @brief 親子関係を持つEntityのWorldMatrixを計算するシスチE??
  */
@@ -29,3 +31,4 @@ private:
      */
     void UpdateChildrenRecursive(Registry& registry, EntityID parentEntity, bool parentDirty);
 };
+} // namespace KCE

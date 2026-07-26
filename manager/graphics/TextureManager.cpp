@@ -7,6 +7,8 @@
 #include "base/StringUtility.h"
 #include "externals/DirectXTex/d3dx12.h"
 
+namespace KCE
+{
 // SRVインデックスの開始番号の実体（ImGuiが0番を使用するため、1番から開始）
 uint32_t TextureManager::kSRVIndexTop = 1;
 
@@ -255,3 +257,4 @@ std::string TextureManager::NormalizePath(const std::string& filePath) const
 
 	return result;
 }
+} // namespace KCE

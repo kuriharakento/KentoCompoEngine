@@ -4,6 +4,8 @@
 #include "camerawork/base/CameraWorkBase.h"
 #include "camerawork/spline/SplineData.h"
 
+namespace KCE
+{
 class LineManager;
 
 /**
@@ -92,4 +94,4 @@ private:
 	// 終了フラグ
 	bool isEnd_ = false;
 };
-
+} // namespace KCE

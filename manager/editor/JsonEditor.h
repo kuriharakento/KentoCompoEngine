@@ -6,6 +6,8 @@
 // editor
 #include "jsonEditor/JsonEditableBase.h"
 
+namespace KCE
+{
 /**
  * @brief JSONエディタクラス
  * @details タブベースのJSONエディタUIを管理するシングルトンクラス
@@ -85,3 +87,4 @@ private: // シングルトンインスタンス
 public:
 	~JsonEditor() = default;      // デストラクタ
 };
+} // namespace KCE

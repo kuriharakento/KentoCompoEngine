@@ -7,6 +7,8 @@
 #include <filesystem>
 #include <vector>
 
+namespace KCE
+{
 #pragma comment(lib, "d3dcompiler.lib")
 
 void LightPassPipeline::Initialize(DirectXCommon* dxCommon)
@@ -291,3 +293,4 @@ void LightPassPipeline::SetPipeline()
 	commandList->SetPipelineState(pipelineState_.Get());
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 }
+} // namespace KCE

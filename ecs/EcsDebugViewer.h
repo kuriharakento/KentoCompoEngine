@@ -3,6 +3,8 @@
 #include "Registry.h"
 #include <memory>
 
+namespace KCE
+{
 // No namespaces
 
 /**
@@ -32,5 +34,4 @@ private:
     // ウィンドウを表示するかどうかのフラグ
     bool m_showWindow = true;
 };
-
-
+} // namespace KCE

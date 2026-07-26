@@ -4,6 +4,8 @@
 
 #include "base/DirectXCommon.h"
 
+namespace KCE
+{
 /**
  * @brief スプライト共通部クラス
  * @details スプライト描画に必要なルートシグネチャとパイプラインステートを管理する
@@ -54,4 +56,4 @@ private: // メンバ変数
 
 
 };
-
+} // namespace KCE

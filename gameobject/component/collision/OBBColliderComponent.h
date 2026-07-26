@@ -3,6 +3,8 @@
 #include "math/OBB.h"
 #include "jsonEditor/JsonEditableBase.h"
 
+namespace KCE
+{
 /**
  * @brief 方向付き境界ボックス（OBB）による衝突判定コンポーネント
  * 
@@ -28,7 +30,7 @@ namespace GameObjectComponent
 		 * @brief コンストラクタ
 		 * @param owner このコンポーネントを所有するGameObject
 		 */
-		OBBColliderComponent(::GameObject* owner);
+		OBBColliderComponent(GameObject* owner);
 		
 		/**
 		 * @brief デストラクタ
@@ -42,7 +44,7 @@ namespace GameObjectComponent
 		 * 
 		 * @param owner このコンポーネントを所有するGameObject
 		 */
-		void Update(::GameObject* owner) override;
+		void Update(GameObject* owner) override;
 		
 		/**
 		 * @brief コライダーの種類を取得
@@ -53,7 +55,7 @@ namespace GameObjectComponent
 		/**
 		 * @brief ブロードフェーズ用 AABB を取得
 		 */
-		::AABB GetBroadphaseAABB() const override
+		AABB GetBroadphaseAABB() const override
 		{
 			Vector3 axesX = { obb_.rotate.m[0][0], obb_.rotate.m[0][1], obb_.rotate.m[0][2] };
 			Vector3 axesY = { obb_.rotate.m[1][0], obb_.rotate.m[1][1], obb_.rotate.m[1][2] };
@@ -64,25 +66,24 @@ namespace GameObjectComponent
 			float hz = std::abs(axesX.z) * obb_.size.x + std::abs(axesY.z) * obb_.size.y + std::abs(axesZ.z) * obb_.size.z;
 			
 			Vector3 h = { hx, hy, hz };
-			return ::AABB(obb_.center - h, obb_.center + h);
+			return AABB(obb_.center - h, obb_.center + h);
 		}
 		
 		/**
 		 * @brief OBBデータを設定
 		 * @param obb 設定するOBBデータ
 		 */
-		void SetOBB(const ::OBB& obb) { obb_ = obb; }
+		void SetOBB(const OBB& obb) { obb_ = obb; }
 		
 		/**
 		 * @brief OBBデータを取得
 		 * @return 現在のOBBデータ
 		 */
-		const ::OBB& GetOBB() const { return obb_; }
+		const OBB& GetOBB() const { return obb_; }
 
 	private:
 		// OBBデータ（中心位置、サイズ、回転行列）
-		::OBB obb_;
+		OBB obb_;
 	};
 }
-
-
+} // namespace KCE

@@ -24,7 +24,11 @@
 
 #ifdef USE_IMGUI
 #include "ImGui/imgui_internal.h"
+
 #endif
+
+namespace KCE
+{
 
 // ブラーレンダーターゲットの数（ピンポンバッファ用）
 constexpr int kBlurRenderTargetCount = 2;
@@ -399,4 +403,4 @@ void Framework::ShowPerformanceInfo()
 {
 	// 何もしない（Hierarchy内の DrawArea で描画されるため）
 }
-
+} // namespace KCE

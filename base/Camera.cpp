@@ -1,6 +1,8 @@
 #include "Camera.h"
 #include "DirectXCommon.h"
 
+namespace KCE
+{
 // フレームレート（FPS）
 constexpr float kFrameRate = 60.0f;
 // 1フレームあたりの時間（秒）
@@ -113,3 +115,4 @@ D3D12_GPU_VIRTUAL_ADDRESS Camera::GetConstantBufferAddress() const
 	}
 	return 0;
 }
+} // namespace KCE

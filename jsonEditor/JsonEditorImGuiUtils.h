@@ -6,6 +6,8 @@
 #include "imgui/imgui.h"
 #include "base/GraphicsTypes.h"
 
+namespace KCE
+{
 /**
  * @brief float型変数のImGui編集UIを描画
  * @param name ラベル文字列
@@ -109,4 +111,5 @@ void DrawImGuiForRawJson(const std::string& name, T* value)
 	}
 }
 
+} // namespace KCE
 #endif // USE_IMGUI

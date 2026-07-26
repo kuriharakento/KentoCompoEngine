@@ -3,6 +3,8 @@
 #include <fstream>
 #include <filesystem>
 
+namespace KCE
+{
 // JSONインデント幅
 constexpr int kJsonIndent = 4;
 
@@ -375,3 +377,4 @@ void JsonEditableBase::Deserialize(const nlohmann::json& json)
 		}
 	}
 }
+} // namespace KCE

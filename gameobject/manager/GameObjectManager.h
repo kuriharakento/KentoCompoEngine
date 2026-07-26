@@ -3,6 +3,8 @@
 #include <string>
 #include <memory>
 
+namespace KCE
+{
 class GameObject;
 class CameraManager;
 class Camera;
@@ -142,3 +144,4 @@ private:
 	Object3dCommon* cachedObject3dCommon_ = nullptr;
 	LightManager* cachedLightManager_ = nullptr;
 };
+} // namespace KCE

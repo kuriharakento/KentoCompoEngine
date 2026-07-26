@@ -12,6 +12,8 @@
 #include "effects/particle/ParticleEasing.h"
 #include "math/Vector3.h"
 
+namespace KCE
+{
 /**
  * @brief 重力モジュール
  */
@@ -185,3 +187,4 @@ Vector3 startScale_ = { 1, 1, 1 };
 Vector3 endScale_ = { 0, 0, 0 };
 EasingType easingType_ = EasingType::Linear;
 };
+} // namespace KCE

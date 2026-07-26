@@ -9,6 +9,8 @@
 #include <wrl.h>
 #include <xaudio2fx.h>
 
+namespace KCE
+{
 struct ChunkHeader
 {
 	char id[4];
@@ -190,3 +192,4 @@ private:
 public:
 	~Audio() = default;
 };
+} // namespace KCE

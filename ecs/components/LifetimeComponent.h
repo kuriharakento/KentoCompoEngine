@@ -1,5 +1,7 @@
 #pragma once
 
+namespace KCE
+{
 namespace ecs
 {
     /**
@@ -17,3 +19,4 @@ namespace ecs
         float maxLifetime_ = 10.0f;
     };
 }
+} // namespace KCE

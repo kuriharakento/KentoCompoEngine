@@ -3,6 +3,8 @@
 #include <cassert>
 #include <random>
 
+namespace KCE
+{
 namespace MathUtils
 {
 	// ゼロ判定の閾値
@@ -244,3 +246,4 @@ namespace MathUtils
 
 
 }
+} // namespace KCE

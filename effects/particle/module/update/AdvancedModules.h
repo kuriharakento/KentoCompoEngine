@@ -15,6 +15,8 @@
 #include <cmath>
 #include <numbers>
 
+namespace KCE
+{
 /**
  * @brief 回転オーバーライフタイムモジュール
  * Z軸まわりの回転をクォータニオンで適用
@@ -199,3 +201,4 @@ public:
 private:
 	float maxSpeed_ = 10.0f;
 };
+} // namespace KCE

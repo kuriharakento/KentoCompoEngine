@@ -12,6 +12,8 @@
 #include <cstdlib>
 #include <algorithm>
 
+namespace KCE
+{
 /**
  * @brief アニメーションカーブ（キーフレーム補間）
  */
@@ -314,3 +316,4 @@ private:
 	Vector4 max_ = { 1, 1, 1, 1 };
 	ColorGradient gradient_;
 };
+} // namespace KCE

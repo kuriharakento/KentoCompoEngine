@@ -8,6 +8,8 @@
 // system
 #include "manager/scene/CameraManager.h"
 
+namespace KCE
+{
 // 球描画のセグメント数（緯度方向）
 constexpr int kSphereSegments = 8;
 // 球描画のリング数（経度方向）
@@ -286,3 +288,4 @@ void LineManager::DrawLine(const Vector3& start, const Vector3& end, const Vecto
 	// ラインを追加
 	line_->AddLine(start, end, color);
 }
+} // namespace KCE

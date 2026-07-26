@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+namespace KCE
+{
 class GameObject;
 
 /**
@@ -72,3 +74,4 @@ private:
 	std::vector<std::string> jsonFiles_;
 	int selectedJsonIndex_ = 0;
 };
+} // namespace KCE

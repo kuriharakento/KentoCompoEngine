@@ -7,6 +7,8 @@
 #include "manager/system/SrvManager.h"
 #include "base/RenderTexture.h"
 
+namespace KCE
+{
 PostProcessManager::PostProcessManager() {}
 
 PostProcessManager::~PostProcessManager() {}
@@ -506,3 +508,4 @@ void PostProcessManager::UpdateConstantBuffer()
 	// 前フレームのパラメータを更新
 	preParams_ = params_;
 }
+} // namespace KCE

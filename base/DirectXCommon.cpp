@@ -16,6 +16,8 @@
 #pragma comment(lib,"dxgi.lib")
 #include "externals/DirectXTex/d3dx12.h"
 
+namespace KCE
+{
 //ImGui
 //#include "externals/imgui/imgui.h"
 //#include "externals/imgui/imgui_impl_dx12.h"
@@ -922,4 +924,4 @@ Microsoft::WRL::ComPtr<ID3D12Resource> DirectXCommon::UploadTextureData(Microsof
 	commandList_->ResourceBarrier(1, &barrier);
 	return intermediateResource;
 }
-
+} // namespace KCE

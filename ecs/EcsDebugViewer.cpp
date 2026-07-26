@@ -1,6 +1,8 @@
 #include "EcsDebugViewer.h"
 #include "imgui/imgui.h"
 
+namespace KCE
+{
 // No namespaces
 
 void EcsDebugViewer::Initialize()
@@ -26,3 +28,4 @@ void EcsDebugViewer::DrawImGui(const Registry& registry)
     }
 #endif
 }
+} // namespace KCE

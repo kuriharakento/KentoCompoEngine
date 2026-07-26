@@ -6,6 +6,8 @@
 #include <vector>
 #include <type_traits>
 
+namespace KCE
+{
 class GameObject;
 
 namespace GameObjectComponent
@@ -96,4 +98,5 @@ namespace GameObjectComponent
  * @brief コンポーネントを起動時に自動登録するためのマクロ
  */
 #define REGISTER_COMPONENT(Type) \
-	static GameObjectComponent::ComponentRegisterer<GameObjectComponent::Type> g_registerer_##Type(#Type);
+	static KCE::GameObjectComponent::ComponentRegisterer<KCE::GameObjectComponent::Type> g_registerer_##Type(#Type);
+} // namespace KCE

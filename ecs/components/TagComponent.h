@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+namespace KCE
+{
 namespace ecs
 {
 /**
@@ -26,3 +28,4 @@ struct TagComponent
     Type type = Type::Unknown;
 };
 }
+} // namespace KCE

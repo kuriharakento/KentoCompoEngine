@@ -5,6 +5,8 @@
 #include "base/GraphicsTypes.h"
 #include "math/Quaternion.h"
 
+namespace KCE
+{
 /**
  * @brief アニメーター
  * @details スケルタルアニメーションの再生を管理する。
@@ -142,3 +144,4 @@ private:
 	// ルートのワールド行列
 	Matrix4x4 worldMatrix_;
 };
+} // namespace KCE

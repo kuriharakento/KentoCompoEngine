@@ -2,6 +2,8 @@
 #include "Sprite.h"
 #include "SpriteCommon.h"
 
+namespace KCE
+{
 /**
  * @brief 数値の表示揃え位置
  */
@@ -200,3 +202,4 @@ private:
 	// 最小表示桁数（0で無効）
 	int minDigits_ = 0;
 };
+} // namespace KCE

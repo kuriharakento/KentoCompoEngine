@@ -1,6 +1,8 @@
 #pragma once
 #include "Vector3.h"
 
+namespace KCE
+{
 /// 球のデフォルト半径
 constexpr float kDefaultRadius = 1.0f;
 
@@ -28,3 +30,4 @@ struct Sphere
      */
     Sphere(const Vector3& c, float r) : center(c), radius(r) {}
 };
+} // namespace KCE

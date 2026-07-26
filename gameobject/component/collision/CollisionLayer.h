@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 
+namespace KCE
+{
 namespace GameObjectComponent
 {
 	/**
@@ -14,3 +16,4 @@ namespace GameObjectComponent
 		static constexpr ColliderLayer All  = 0xFFFFFFFF;
 	}
 }
+} // namespace KCE

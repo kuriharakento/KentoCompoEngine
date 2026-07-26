@@ -8,6 +8,8 @@
 #include "math/AABB.h"
 #include "math/OBB.h"
 
+namespace KCE
+{
 class CameraManager;
 
 /**
@@ -127,3 +129,4 @@ private:    // シングルトンインスタンス
 public:
 	~LineManager() = default;                                // デストラクタ演算子
 };
+} // namespace KCE

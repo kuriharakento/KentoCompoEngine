@@ -8,6 +8,8 @@
 #include "math/Vector4.h"
 #include "math/Quaternion.h"
 
+namespace KCE
+{
 /*==========================================================
  * スキニング用定数
  *==========================================================*/
@@ -339,3 +341,4 @@ struct SkinnedModelData
     // ルートノード
     Node rootNode;
 };
+} // namespace KCE

@@ -17,6 +17,8 @@
 #include <numbers>
 #include <algorithm>
 
+namespace KCE
+{
 /**
  * @brief 放射状初期速度モジュール
  * エミッター中心から放射状に初期速度を付与
@@ -557,3 +559,4 @@ private:
 	float twistStrength_ = 1.0f;
 	int heightAxis_ = 1; // Y axis by default
 };
+} // namespace KCE

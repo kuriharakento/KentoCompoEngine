@@ -4,6 +4,8 @@
 
 #include "base/Logger.h"
 
+namespace KCE
+{
 // ルートパラメータ数
 constexpr int kSpriteRootParameterCount = 4;
 // 入力要素数
@@ -190,3 +192,4 @@ void SpriteCommon::CreateGraphicsPipelineState()
 	hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&graphicsPipelineState_));
 	assert(SUCCEEDED(hr));
 }
+} // namespace KCE

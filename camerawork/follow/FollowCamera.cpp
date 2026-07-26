@@ -6,6 +6,8 @@
 #include "input/Input.h"
 #include "math/MathUtils.h"
 
+namespace KCE
+{
 // ピッチ角最小値（度）- 水平より少し下
 constexpr float kPitchMin = -5.0f;
 // ピッチ角最大値（度）- 真上にならない範囲
@@ -61,3 +63,4 @@ void FollowCamera::Update()
     camera_->SetRotate(MathUtils::CalculateDirectionToTarget(cameraPos, *target_));
 
 }
+} // namespace KCE

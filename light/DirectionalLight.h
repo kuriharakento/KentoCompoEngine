@@ -2,6 +2,8 @@
 #include "math/Vector3.h"
 #include "math/Vector4.h"
 
+namespace KCE
+{
 /**
  * @brief ディレクショナルライト（平行光源）
  * 
@@ -16,3 +18,4 @@ struct DirectionalLight
 	float intensity;	// ライトの強さ（明るさの倍率）
 	Vector4 ambient;	// 環境光の色と強度
 };
+} // namespace KCE

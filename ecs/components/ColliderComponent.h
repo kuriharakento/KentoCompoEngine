@@ -8,6 +8,8 @@
 #include "engine/ecs/Entity.h"
 #include <functional>
 
+namespace KCE
+{
 namespace ecs
 {
 struct CollisionPartnerInfo
@@ -57,3 +59,4 @@ struct ColliderComponent
     CollisionCallback onCollisionExit;  // 衝突終了時
 };
 }
+} // namespace KCE

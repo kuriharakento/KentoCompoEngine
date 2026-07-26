@@ -1,5 +1,7 @@
 #pragma once
 
+namespace KCE
+{
 class SrvManager;
 class WinApp;
 class DirectXCommon;
@@ -57,4 +59,4 @@ private:
 	// FiraMono フォントのファイルパス
 	const char* FiraMonoFontPath_ = "../engine/Resources/fonts/FiraMono-Medium.ttf";
 };
-
+} // namespace KCE

@@ -10,6 +10,8 @@
 #include "OBBColliderComponent.h"
 #include "engine/gameobject/component/base/ICollisionComponent.h"
 
+namespace KCE
+{
 namespace GameObjectComponent
 {
 	class ICollisionComponent;
@@ -223,3 +225,4 @@ private:
 	// 空間分割のセルサイズ
 	float cellSize_ = 15.0f; // デフォルト 15m 四方
 };
+} // namespace KCE

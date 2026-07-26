@@ -17,6 +17,8 @@
 #include "manager/graphics/LineManager.h"
 #include "manager/editor/DebugUIManager.h"
 
+namespace KCE
+{
 LightManager::LightManager()
 {
 	// ライトの数を初期化
@@ -1362,3 +1364,4 @@ D3D12_GPU_VIRTUAL_ADDRESS LightManager::GetPointLightShadowMatrixGPUAddress(cons
 }
 
 #pragma endregion
+} // namespace KCE

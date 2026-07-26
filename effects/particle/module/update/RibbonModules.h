@@ -16,6 +16,8 @@
 #include <algorithm>
 #include <unordered_map>
 
+namespace KCE
+{
 /**
  * @brief リボン補間モジュール（生成時補間）
  * 
@@ -439,3 +441,4 @@ private:
 	float minMoveDistance_ = 0.05f;
 	uint32_t nextRibbonId_ = 1;
 };
+} // namespace KCE

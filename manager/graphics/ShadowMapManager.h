@@ -7,6 +7,8 @@
 #include "graphics/shadow/ShadowMap.h"
 #include "base/DirectXCommon.h"
 
+namespace KCE
+{
 class SrvManager;
 
 /**
@@ -240,3 +242,4 @@ private:
     // 最大DSV数
     static constexpr uint32_t kMaxDSVCount = 64;
 };
+} // namespace KCE

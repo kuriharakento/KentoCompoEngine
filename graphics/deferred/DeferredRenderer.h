@@ -11,7 +11,8 @@
 #include "GBufferPipeline.h"
 #include "LightPassPipeline.h"
 
-
+namespace KCE
+{
 class DirectXCommon;
 class SrvManager;
 class LightManager;
@@ -118,3 +119,4 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> lightBuffer_;
 	LightBufferForGPU* lightBufferData_ = nullptr;
 };
+} // namespace KCE

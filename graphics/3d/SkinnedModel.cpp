@@ -7,6 +7,8 @@
 #include "manager/graphics/SkinnedModelManager.h"
 #include "base/DirectXCommon.h"
 
+namespace KCE
+{
 // デフォルトテクスチャパス
 const std::string kDefaultTexturePath = "./Resources/white1x1.png";
 constexpr float kDefaultShininess = 30.0f;
@@ -211,3 +213,4 @@ void SkinnedModel::SetEnableLighting(bool enable)
 		}
 	}
 }
+} // namespace KCE

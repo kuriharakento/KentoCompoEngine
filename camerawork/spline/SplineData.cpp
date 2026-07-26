@@ -4,7 +4,11 @@
 #include "base/Logger.h"
 #ifdef USE_IMGUI
 #include "imgui/imgui.h"
+
 #endif
+
+namespace KCE
+{
 
 SplineData::SplineData()
 {
@@ -31,3 +35,4 @@ void SplineData::DrawImGui()
 	// 基底クラスの情報表示
 	JsonEditableBase::DrawImGui();
 }
+} // namespace KCE

@@ -3,6 +3,8 @@
 #include <Windows.h>
 #include <functional>
 
+namespace KCE
+{
 /**
  * @brief Windowsアプリケーション管理クラス
  */
@@ -92,5 +94,4 @@ private:
 	std::function<void(uint32_t, uint32_t)> resizeCallback_;
 
 };
-
-
+} // namespace KCE

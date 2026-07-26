@@ -9,6 +9,8 @@
 #include "manager/system/SrvManager.h"
 #include "engine/manager/graphics/ShadowMapManager.h"
 
+namespace KCE
+{
 // デフォルトのディレクショナルライト強度
 constexpr float kDefaultLightIntensity = 0.5f;
 // デフォルトのディレクショナルライト方向のY成分
@@ -390,3 +392,4 @@ void Object3d::SetShadowMap(SrvManager* srvManager, uint32_t shadowMapSrvIndex, 
 	shadowMatrixGPUAddress_ = shadowMatrixGPUAddress;
 	shadowEnabled_ = true;
 }
+} // namespace KCE

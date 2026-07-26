@@ -7,6 +7,8 @@
 #include <d3d12.h>
 #include "graphics/3d/Model.h"
 
+namespace KCE
+{
 class Camera;
 class LightManager;
 class SrvManager;
@@ -66,3 +68,4 @@ private:
     Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
     Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState_;
 };
+} // namespace KCE

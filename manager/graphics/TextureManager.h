@@ -11,6 +11,8 @@
 #include "base/DirectXCommon.h"
 #include "manager/system/SrvManager.h"
 
+namespace KCE
+{
 /**
  * @brief テクスチャマネージャークラス
  * @details テクスチャのロード、キャッシング、SRVインデックス管理を行うシングルトンクラス
@@ -186,3 +188,4 @@ private: // シングルトンインスタンス
 public:
 	~TextureManager() = default;                           // デストラクタ
 };
+} // namespace KCE

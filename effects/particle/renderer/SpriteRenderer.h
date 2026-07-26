@@ -13,6 +13,8 @@
 #include <wrl/client.h>
 #include <string>
 
+namespace KCE
+{
 /**
  * @brief スプライトレンダラー
  */
@@ -122,3 +124,4 @@ public:
 	uint32_t gpuParticleCount_ = 0;                             ///< GPUパーティクル数
 	Vector4 tintColor_ = { 1.0f, 1.0f, 1.0f, 1.0f };
 };
+} // namespace KCE

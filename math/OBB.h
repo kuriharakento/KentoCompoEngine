@@ -2,6 +2,8 @@
 #include "MatrixFunc.h"
 #include "math/Vector3.h"
 
+namespace KCE
+{
 /**
  * @brief 有向境界ボックス（Oriented Bounding Box）
  * 
@@ -20,3 +22,4 @@ struct OBB
 	 */
 	OBB() : center(), rotate(MakeIdentity4x4()), size() {}
 };
+} // namespace KCE

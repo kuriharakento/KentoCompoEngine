@@ -7,7 +7,11 @@
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
 #include "manager/editor/DebugUIManager.h"
+
 #endif
+
+namespace KCE
+{
 
 namespace
 {
@@ -1167,3 +1171,4 @@ void Audio::DrawDebugWindow()
 }
 
 #endif
+} // namespace KCE

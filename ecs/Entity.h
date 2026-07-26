@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+namespace KCE
+{
 /**
  * @brief Entityを一意に識別するID。
  *
@@ -130,4 +132,4 @@ private:
     // 管理元。所有しない
     Registry* registry_ = nullptr;
 };
-
+} // namespace KCE

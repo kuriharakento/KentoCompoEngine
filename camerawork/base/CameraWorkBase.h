@@ -1,6 +1,8 @@
 #pragma once
 #include "base/Camera.h"
 
+namespace KCE
+{
 /**
  * @brief カメラワークの基底クラス
  * 
@@ -33,3 +35,4 @@ protected:
 	// 操作対象のカメラ
 	Camera* camera_ = nullptr;
 };
+} // namespace KCE

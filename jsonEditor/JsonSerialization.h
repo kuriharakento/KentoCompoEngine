@@ -2,6 +2,8 @@
 #include <nlohmann/json.hpp>
 #include "base/GraphicsTypes.h"
 
+namespace KCE
+{
 /**
  * @brief TransformをJSONにシリアライズ
  * @param j 出力先のJSONオブジェクト
@@ -44,4 +46,4 @@ void to_json(nlohmann::json& j, Vector4 const& v);
  * @brief JSONからVector4にデシリアライズ
  */
 void from_json(nlohmann::json const& j, Vector4& v);
-
+} // namespace KCE

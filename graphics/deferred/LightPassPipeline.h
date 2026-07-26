@@ -2,6 +2,8 @@
 #include <wrl.h>
 #include <d3d12.h>
 
+namespace KCE
+{
 class DirectXCommon;
 
 /**
@@ -45,3 +47,4 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState_;
 };
+} // namespace KCE

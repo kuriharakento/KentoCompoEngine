@@ -7,6 +7,8 @@
 // Logger::LogLevelの定義を使用するためインクルード
 #include "base/Logger.h"
 
+namespace KCE
+{
 #ifdef USE_IMGUI
 /**
  * @brief 蓄積されたログエントリー情報
@@ -83,3 +85,4 @@ private:
 	ConsoleLog(const ConsoleLog&) = delete;
 	ConsoleLog& operator=(const ConsoleLog&) = delete;
 };
+} // namespace KCE

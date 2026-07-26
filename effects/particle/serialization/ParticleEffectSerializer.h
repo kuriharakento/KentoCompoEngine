@@ -8,6 +8,8 @@
 #include <string>
 #include <memory>
 
+namespace KCE
+{
 class ParticleEffect;
 class ParticleEmitter;
 
@@ -34,3 +36,4 @@ public:
 	 */
 	static bool Save(const ParticleEffect& effect, const std::string& path);
 };
+} // namespace KCE

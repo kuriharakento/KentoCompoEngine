@@ -5,6 +5,8 @@
 
 #include <algorithm>
 
+namespace KCE
+{
 TimeManager& TimeManager::GetInstance()
 {
 	// 静的ローカル変数でシングルトンを実現
@@ -95,3 +97,4 @@ bool TimeManager::IsPaused() const
 {
 	return paused_;
 }
+} // namespace KCE

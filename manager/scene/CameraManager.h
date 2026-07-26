@@ -4,6 +4,8 @@
 #include <memory>
 #include "base/Camera.h"
 
+namespace KCE
+{
 class DirectXCommon;
 
 /**
@@ -81,3 +83,4 @@ private:
 	// DirectXCommonへのポインタ（カメラのGPUバッファ初期化用）
 	DirectXCommon* dxCommon_ = nullptr;
 };
+} // namespace KCE

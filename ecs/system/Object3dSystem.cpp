@@ -3,6 +3,8 @@
 #include "../components/TransformComponent.h"
 #include "../../../engine/graphics/3d/Object3d.h"
 
+namespace KCE
+{
 using namespace ecs;
 
 void Object3dSystem::Draw(Registry& registry, Camera* camera)
@@ -132,3 +134,4 @@ void Object3dSystem::DrawShadow(Registry& registry, Camera* camera)
         objComp.object3d_->DrawShadowOnly();
     }
 }
+} // namespace KCE

@@ -6,6 +6,8 @@
 #include "engine/base/DirectXCommon.h"
 #include "manager/system/SrvManager.h"
 
+namespace KCE
+{
 // 256バイトアラインメント用マスク
 constexpr size_t kAlignmentMask = 255;
 // SRV用のディスクリプタレンジ数
@@ -137,3 +139,4 @@ void PostProcessPass::UpdateConstantBuffer()
     memcpy(mappedData, &effectSettings_, sizeof(effectSettings_));
     constantBuffer_->Unmap(0, nullptr);
 }
+} // namespace KCE

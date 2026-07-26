@@ -3,6 +3,8 @@
 #include <functional>
 #include "math/MatrixFunc.h"
 
+namespace KCE
+{
 void Animator::Initialize(const Skeleton* skeleton)
 {
 	skeleton_ = skeleton;
@@ -293,3 +295,4 @@ uint32_t Animator::FindKeyIndex(const std::vector<AnimationKey<T>>& keys, float 
 // テンプレートの明示的インスタンス化
 template uint32_t Animator::FindKeyIndex<Vector3>(const std::vector<AnimationKey<Vector3>>& keys, float time) const;
 template uint32_t Animator::FindKeyIndex<Quaternion>(const std::vector<AnimationKey<Quaternion>>& keys, float time) const;
+} // namespace KCE

@@ -2,6 +2,8 @@
 #include <vector>
 #include <algorithm>
 
+namespace KCE
+{
 // 10進数の基数
 constexpr int kDecimalBase = 10;
 // 数字テクスチャのY座標開始位置
@@ -218,3 +220,4 @@ void NumberSprite::SetScale(float scale)
 {
 	scale_ = scale;
 }
+} // namespace KCE

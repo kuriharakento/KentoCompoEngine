@@ -2,6 +2,8 @@
 #include "base/DirectXCommon.h"
 #include "base/Camera.h"
 
+namespace KCE
+{
 class SrvManager;
 class LightManager;
 
@@ -94,5 +96,4 @@ private: // メンバ変数
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState_ = nullptr;
 
 };
-
-
+} // namespace KCE

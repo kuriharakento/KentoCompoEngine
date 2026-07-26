@@ -4,6 +4,8 @@
 #include <d3d12.h>
 #include <wrl/client.h>
 
+namespace KCE
+{
 class DirectXCommon;
 
 /**
@@ -195,4 +197,4 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> constantBuffer_;
 	CameraGPUData* constantData_ = nullptr;
 };
-
+} // namespace KCE

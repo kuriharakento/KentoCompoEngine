@@ -12,6 +12,8 @@
 #include <d3dcompiler.h>
 #include <cassert>
 
+namespace KCE
+{
 #pragma comment(lib, "d3dcompiler.lib")
 
 using namespace DirectX;
@@ -78,9 +80,6 @@ void InstancedModelRenderer::UpdateBuffer(const Matrix4x4* matrices, uint32_t co
         mappedData[i] = data;
     }
 }
-
-#include "manager/graphics/ShadowMapManager.h"
-#include "manager/graphics/TextureManager.h"
 
 void InstancedModelRenderer::DrawInstanced(Camera* camera, LightManager* lightManager, ShadowMapManager* shadowMapManager)
 {
@@ -214,3 +213,4 @@ void InstancedModelRenderer::DrawInstancedShadow(Camera* camera, ShadowMapManage
         commandList->DrawIndexedInstanced(mesh.indexCount, currentInstanceCount_, 0, 0, 0);
     }
 }
+} // namespace KCE

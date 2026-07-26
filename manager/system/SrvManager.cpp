@@ -1,5 +1,7 @@
 #include "SrvManager.h"
 
+namespace KCE
+{
 // === 定数定義 ===
 constexpr UINT kCubemapMostDetailedMip = 0;        // キューブマップの最詳細Mipレベル
 constexpr float kCubemapMinLODClamp = 0.0f;        // キューブマップの最小LODクランプ値
@@ -156,3 +158,4 @@ D3D12_GPU_DESCRIPTOR_HANDLE SrvManager::GetGPUDescriptorHandle(uint32_t index)
 	handleGPU.ptr += (descriptorSize_ * index);
 	return handleGPU;
 }
+} // namespace KCE

@@ -6,6 +6,8 @@
 #include "base/DirectXCommon.h"
 #include "base/Logger.h"
 
+namespace KCE
+{
 void ParticlePipelineManager::Initialize(DirectXCommon* dxCommon)
 {
 	dxCommon_ = dxCommon;
@@ -489,3 +491,4 @@ void ParticlePipelineManager::CreateRibbonPipelineState(BlendMode mode)
 
 	ribbonPipelines_[mode] = pipelineState;
 }
+} // namespace KCE

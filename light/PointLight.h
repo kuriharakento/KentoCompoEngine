@@ -5,6 +5,8 @@
 #include "math/Vector4.h"
 #include "math/MatrixFunc.h"
 
+namespace KCE
+{
 /**
  * @brief GPU用ポイントライト構造体
  * 
@@ -45,3 +47,4 @@ struct CPUPointLight {
     Matrix4x4 viewProjectionMatrices[6]; // ビュー・プロジェクション行列（6面）
     bool shadowEnabled = false;          // シャドウ有効フラグ
 };
+} // namespace KCE

@@ -3,6 +3,8 @@
 #include "math/Vector2.h"
 #include "math/Vector3.h"
 
+namespace KCE
+{
 // GPU定数バッファのアラインメントサイズ（16バイト境界）
 constexpr size_t kAlignmentSize = 16;
 
@@ -191,3 +193,4 @@ protected:
 	bool isDirty_ = true;
 
 };
+} // namespace KCE

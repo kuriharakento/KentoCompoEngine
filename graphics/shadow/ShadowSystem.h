@@ -8,6 +8,8 @@
 #include "manager/system/SrvManager.h"
 #include "graphics/3d/Object3d.h"
 
+namespace KCE
+{
 /**
  * @brief シャドウシステムクラス
  * @details ゲームシーンでのシャドウマップ描画を簡略化するヘルパークラス
@@ -83,3 +85,4 @@ private:
 
 	bool isInitialized_ = false;
 };
+} // namespace KCE

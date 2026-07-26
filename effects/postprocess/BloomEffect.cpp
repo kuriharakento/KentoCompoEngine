@@ -2,6 +2,8 @@
 
 #include "base/WinApp.h"
 
+namespace KCE
+{
 BloomEffect::BloomEffect()
 {
     // デフォルトパラメータの設定
@@ -107,3 +109,4 @@ void BloomEffect::SetBloomMix(float bloomMix)
 		isDirty_ = true;
 	}
 }
+} // namespace KCE

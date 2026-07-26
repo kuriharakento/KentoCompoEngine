@@ -11,6 +11,8 @@
 #include <string>
 #include <memory>
 
+namespace KCE
+{
 class DirectXCommon;
 
 /**
@@ -170,3 +172,4 @@ private:
 public:
 	~GPUParticlePipeline() = default;
 };
+} // namespace KCE

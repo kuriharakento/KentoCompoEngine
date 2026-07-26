@@ -1,6 +1,8 @@
 #pragma once
 #include "Vector3.h"
 
+namespace KCE
+{
 /// 半分のスケール係数
 constexpr float kHalfScale = 0.5f;
 
@@ -54,3 +56,4 @@ struct AABB
 		return (max_ - min_) * kHalfScale;
 	}
 };
+} // namespace KCE

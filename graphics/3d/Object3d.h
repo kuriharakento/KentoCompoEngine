@@ -13,6 +13,8 @@
 // camera
 #include "manager/scene/CameraManager.h"
 
+namespace KCE
+{
 class LightManager;
 class SrvManager;
 class ShadowMapManager;
@@ -396,5 +398,4 @@ private: /*========[ メンバ変数 ]========*/
 	// レンダリングタイプ
 	RenderingType renderingType_ = RenderingType::Deferred;
 };
-
-
+} // namespace KCE
