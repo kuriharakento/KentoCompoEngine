@@ -72,6 +72,7 @@ public:
 	void ClearLayoutResetRequest();
 
 	void DrawArea(DebugUIArea area);
+	bool HasVisibleDebugUI(DebugUIArea area) const;
 
 	/**
 	 * @brief Toolsメニュー用のサブメニューを描画する
@@ -122,6 +123,7 @@ public:
 	void ClearLayoutResetRequest() {}
 
 	void DrawArea(DebugUIArea area) {}
+	bool HasVisibleDebugUI(DebugUIArea area) const { return false; }
 
 	/**
 	 * @brief Toolsメニュー用のサブメニューを描画する（非ImGui時は何もしない）

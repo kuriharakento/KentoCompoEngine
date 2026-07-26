@@ -4,6 +4,7 @@
 #include "externals/imgui/imgui.h"
 #include "externals/imgui/imgui_internal.h"
 #include "externals/nlohmann/json.hpp"
+#include <algorithm>
 #include <fstream>
 
 #endif
@@ -172,123 +173,104 @@ void DebugUIManager::Draw()
 
 void DebugUIManager::DrawArea([[maybe_unused]] DebugUIArea area)
 {
+	std::vector<DebugUI*> areaUIs;
 	for (auto& [owner, list] : debugUIs_)
 	{
 		for (auto& ui : list)
 		{
-			// エリアが違う、または非表示ならスキップ
-			if (ui.area != area || !ui.visible)
+			if (ui.area == area && ui.visible)
 			{
-				continue;
+				areaUIs.push_back(&ui);
 			}
-
-			ImGui::PushID(ui.name.c_str());
-
-			// カードごとの背景色を計算
-			ImVec4 window_bg = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
-			ImVec4 card_bg = window_bg;
-			card_bg.x += 0.05f;
-			card_bg.y += 0.05f;
-			card_bg.z += 0.05f;
-			if (card_bg.x > 1.0f)
-			{
-				card_bg.x = 1.0f;
-			}
-			if (card_bg.y > 1.0f)
-			{
-				card_bg.y = 1.0f;
-			}
-			if (card_bg.z > 1.0f)
-			{
-				card_bg.z = 1.0f;
-			}
-
-			ImGui::PushStyleColor(ImGuiCol_ChildBg, card_bg);
-			ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 4.0f);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
-
-			ImVec2 child_size = ImVec2(0.0f, 180.0f);
-			ImGuiChildFlags child_flags = ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeY;
-
-			bool child_opened = ImGui::BeginChild(ui.name.c_str(), child_size, child_flags, 0);
-			ImGui::PopStyleVar(2); // WindowPadding と ChildRounding を即座に復元してポップアップ等への影響を防ぐ
-
-			if (child_opened)
-			{
-				// ヘッダー用のスタイル適用
-				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 1.0f));
-				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 2.0f));
-
-				ImGui::Dummy(ImVec2(0.0f, 2.0f));
-
-				ImGui::AlignTextToFramePadding();
-				ImGui::Text(ui.name.c_str());
-
-				// 右寄せコントロール
-				float avail_width = ImGui::GetContentRegionAvail().x;
-				float combo_width = 90.0f; // 余裕を持たせた幅
-				float text_width = ImGui::CalcTextSize("Move:").x;
-				float close_btn_width = 20.0f;											 // 余裕を持たせた幅
-				float space_needed = combo_width + text_width + close_btn_width + 16.0f; // コントロール間の間隔も広めに
-				float right_align_x = avail_width - space_needed;						 // すでに WindowPadding があるため -8.0f は不要
-				if (right_align_x > 40.0f)
-				{
-					ImGui::SameLine(ImGui::GetCursorPosX() + right_align_x);
-				}
-				else
-				{
-					ImGui::SameLine();
-				}
-
-				ImGui::TextDisabled("Move:");
-				ImGui::SameLine(0.0f, 6.0f); // 余裕を持たせる
-				ImGui::SetNextItemWidth(combo_width);
-				int currentArea = static_cast<int>(ui.area);
-				const char* areaNames[] = {"Hierarchy", "Inspector", "Console", "Scene", "Project"};
-				std::string comboId = "##MoveArea_" + ui.name;
-
-				if (ImGui::Combo(comboId.c_str(), &currentArea, areaNames, IM_ARRAYSIZE(areaNames)))
-				{
-					ui.area = static_cast<DebugUIArea>(currentArea);
-					SaveLayout();
-				}
-
-				ImGui::SameLine(0.0f, 10.0f);
-				std::string closeButtonId = "x##Close_" + ui.name;
-				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 0.2f, 0.2f, 0.6f));
-				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1.0f, 0.1f, 0.1f, 0.9f));
-				if (ImGui::Button(closeButtonId.c_str(), ImVec2(close_btn_width, 18.0f)))
-				{
-					ui.visible = false;
-					SaveLayout();
-				}
-				ImGui::PopStyleColor(3);
-
-				ImGui::Dummy(ImVec2(0.0f, 2.0f));
-				ImGui::Separator();
-				ImGui::Dummy(ImVec2(0.0f, 4.0f));
-
-				// スタイル復元（drawFunc内を通常サイズで描画するため）
-				ImGui::PopStyleVar(2);
-
-				if (ui.drawFunc)
-				{
-					ui.drawFunc();
-				}
-
-				ImGui::Dummy(ImVec2(0.0f, 4.0f));
-			}
-			ImGui::EndChild();
-
-			ImGui::PopStyleColor();
-
-			// カード同士の間のスペース
-			ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-			ImGui::PopID();
 		}
 	}
+
+	std::sort(areaUIs.begin(), areaUIs.end(), [](const DebugUI* lhs, const DebugUI* rhs) { return lhs->name < rhs->name; });
+	for (DebugUI* ui : areaUIs)
+	{
+		ImGui::PushID(ui);
+		ImGuiStorage* storage = ImGui::GetStateStorage();
+		const ImGuiID openId = ImGui::GetID("DebugUISectionOpen");
+		bool open = storage->GetBool(openId, true);
+
+		// SeparatorText の見た目を保ったまま、行全体を折り畳み操作にする。
+		const ImVec2 rowPos = ImGui::GetCursorScreenPos();
+		const float rowHeight = ImMax(ImGui::GetTextLineHeightWithSpacing(), 1.0f);
+		const float rowWidth = ImMax(ImGui::GetContentRegionAvail().x, 1.0f);
+		const ImRect separatorRect(rowPos, ImVec2(rowPos.x + rowWidth, rowPos.y + rowHeight));
+		const ImGuiID separatorId = ImGui::GetID("DebugUISeparator");
+		ImGui::ItemSize(separatorRect);
+		bool separatorHovered = false;
+		bool separatorHeld = false;
+		if (ImGui::ItemAdd(separatorRect, separatorId) && ImGui::ButtonBehavior(separatorRect, separatorId, &separatorHovered, &separatorHeld))
+		{
+			open = !open;
+			storage->SetBool(openId, open);
+		}
+
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		const ImU32 textColor = ImGui::GetColorU32(ImGuiCol_Text);
+		const ImU32 separatorColor = ImGui::GetColorU32(ImGuiCol_Separator);
+		if (separatorHovered)
+		{
+			drawList->AddRectFilled(rowPos, ImVec2(rowPos.x + rowWidth, rowPos.y + rowHeight), ImGui::GetColorU32(ImGuiCol_HeaderHovered));
+			ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+		}
+
+		const float arrowSize = ImGui::GetFontSize() * 0.70f;
+		const ImVec2 arrowPos(rowPos.x + 2.0f, rowPos.y + (rowHeight - arrowSize) * 0.5f);
+		ImGui::RenderArrow(drawList, arrowPos, textColor, open ? ImGuiDir_Down : ImGuiDir_Right, 0.70f);
+		const ImVec2 textPos(rowPos.x + ImGui::GetFontSize() + 6.0f, rowPos.y + (rowHeight - ImGui::GetFontSize()) * 0.5f);
+		drawList->AddText(textPos, textColor, ui->name.c_str());
+		const float lineStart = textPos.x + ImGui::CalcTextSize(ui->name.c_str()).x + 10.0f;
+		const float lineY = rowPos.y + rowHeight * 0.5f;
+		if (lineStart < rowPos.x + rowWidth)
+		{
+			drawList->AddLine(ImVec2(lineStart, lineY), ImVec2(rowPos.x + rowWidth, lineY), separatorColor);
+		}
+		if (ImGui::BeginPopupContextItem("DebugUIOptions"))
+		{
+			const char* areaNames[] = {"Hierarchy", "Inspector", "Console", "Scene", "Project"};
+			for (int i = 0; i < IM_ARRAYSIZE(areaNames); ++i)
+			{
+				if (ImGui::MenuItem(areaNames[i], nullptr, static_cast<int>(ui->area) == i))
+				{
+					ui->area = static_cast<DebugUIArea>(i);
+					SaveLayout();
+				}
+			}
+			ImGui::Separator();
+			if (ImGui::MenuItem("Hide"))
+			{
+				ui->visible = false;
+				SaveLayout();
+			}
+			ImGui::EndPopup();
+		}
+		if (open && ui->drawFunc)
+		{
+			ImGui::Indent(4.0f);
+			ui->drawFunc();
+			ImGui::Unindent(4.0f);
+		}
+		ImGui::Dummy(ImVec2(0.0f, 4.0f));
+		ImGui::PopID();
+	}
+}
+
+bool DebugUIManager::HasVisibleDebugUI(DebugUIArea area) const
+{
+	for (const auto& [owner, list] : debugUIs_)
+	{
+		for (const auto& ui : list)
+		{
+			if (ui.area == area && ui.visible)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 void DebugUIManager::DrawToolsMenu()

@@ -340,8 +340,10 @@ void MyGame::Draw()
 	if (firstFrame)
 	{
 		firstFrame = false;
-		// imgui.ini が存在しない場合のみ初期レイアウトを構築する
-		if (!std::filesystem::exists("imgui.ini"))
+		// 最小化中などに保存された極端に小さいDockSpaceも初期配置へ戻す。
+		ImGuiDockNode* dockNode = ImGui::DockBuilderGetNode(dockspace_id);
+		const bool invalidDockSize = dockNode == nullptr || dockNode->Size.x < viewport->Size.x * 0.5f || dockNode->Size.y < viewport->Size.y * 0.5f;
+		if (!std::filesystem::exists("imgui.ini") || invalidDockSize)
 		{
 			debugUIManager->RequestLayoutReset();
 		}
@@ -395,8 +397,19 @@ void MyGame::Draw()
 	Vector2 size = { imageSize.x, imageSize.y };
 	Input::GetInstance()->SetMouseCorrection(offset, size);
 
-	// 登録されたSceneエリアのデバッグUIを描画する
-	debugUIManager->DrawArea(DebugUIArea::Scene);
+	// Scene用UIは画像の後ろではなく、画像左上のオーバーレイとして描画する。
+	const ImVec2 overlaySize(ImMin(360.0f, imageSize.x - 16.0f), ImMin(320.0f, imageSize.y - 16.0f));
+	if (debugUIManager->HasVisibleDebugUI(DebugUIArea::Scene) && overlaySize.x > 0.0f && overlaySize.y > 0.0f)
+	{
+		ImGui::SetCursorScreenPos(ImVec2(imagePos.x + 8.0f, imagePos.y + 8.0f));
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.06f, 0.06f, 0.06f, 0.88f));
+		if (ImGui::BeginChild("SceneDebugOverlay", overlaySize, ImGuiChildFlags_Borders))
+		{
+			debugUIManager->DrawArea(DebugUIArea::Scene);
+		}
+		ImGui::EndChild();
+		ImGui::PopStyleColor();
+	}
 
 	ImGui::End();
 
