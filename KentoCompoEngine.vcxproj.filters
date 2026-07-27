@@ -468,9 +468,6 @@
     <ClCompile Include="math\MathUtils.cpp">
       <Filter>math</Filter>
     </ClCompile>
-    <ClCompile Include="scene\MyGame.cpp">
-      <Filter>scene</Filter>
-    </ClCompile>
     <ClCompile Include="scene\factory\SceneFactory.cpp">
       <Filter>scene\factory</Filter>
     </ClCompile>
@@ -967,9 +964,6 @@
     </ClInclude>
     <ClInclude Include="math\VectorColorCodes.h">
       <Filter>math</Filter>
-    </ClInclude>
-    <ClInclude Include="scene\MyGame.h">
-      <Filter>scene</Filter>
     </ClInclude>
     <ClInclude Include="scene\SceneContext.h">
       <Filter>scene</Filter>

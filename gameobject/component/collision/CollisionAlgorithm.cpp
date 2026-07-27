@@ -1083,40 +1083,40 @@ bool collisionAlgorithm::CheckOBBvsOBB2D(const OBBColliderComponent* a, const OB
 bool collisionAlgorithm::CheckOBBvsOBB_XY(const OBB& obbA, const OBB& obbB)
 {
 	// XY平面の中心座標（直接アクセス）
-	Vector2 centerA(obbA.center.x, obbA.center.y);
-	Vector2 centerB(obbB.center.x, obbB.center.y);
-	Vector2 toCenter = centerB - centerA;
+	KCE::Vector2 centerA(obbA.center.x, obbA.center.y);
+	KCE::Vector2 centerB(obbB.center.x, obbB.center.y);
+	KCE::Vector2 toCenter = centerB - centerA;
 
 	// XY平面の軸ベクトル（回転行列から直接取得、正規化済み）
-	Vector2 axesA[2] = {
-		Vector2(obbA.rotate.m[0][0], obbA.rotate.m[0][1]),  // X軸
-		Vector2(obbA.rotate.m[1][0], obbA.rotate.m[1][1])   // Y軸
+	KCE::Vector2 axesA[2] = {
+		KCE::Vector2(obbA.rotate.m[0][0], obbA.rotate.m[0][1]),  // X軸
+		KCE::Vector2(obbA.rotate.m[1][0], obbA.rotate.m[1][1])   // Y軸
 	};
 
-	Vector2 axesB[2] = {
-		Vector2(obbB.rotate.m[0][0], obbB.rotate.m[0][1]),  // X軸
-		Vector2(obbB.rotate.m[1][0], obbB.rotate.m[1][1])   // Y軸
+	KCE::Vector2 axesB[2] = {
+		KCE::Vector2(obbB.rotate.m[0][0], obbB.rotate.m[0][1]),  // X軸
+		KCE::Vector2(obbB.rotate.m[1][0], obbB.rotate.m[1][1])   // Y軸
 	};
 
 	// XY平面のサイズ
-	Vector2 sizeA(obbA.size.x, obbA.size.y);
-	Vector2 sizeB(obbB.size.x, obbB.size.y);
+	KCE::Vector2 sizeA(obbA.size.x, obbA.size.y);
+	KCE::Vector2 sizeB(obbB.size.x, obbB.size.y);
 
 	// 4つの分離軸でテスト
-	Vector2 testAxes[4] = { axesA[0], axesA[1], axesB[0], axesB[1] };
+	KCE::Vector2 testAxes[4] = { axesA[0], axesA[1], axesB[0], axesB[1] };
 
 	for (int i = 0; i < 4; ++i)
 	{
-		const Vector2& axis = testAxes[i];
+		const KCE::Vector2& axis = testAxes[i];
 
 		// 投影幅計算
-		float projA = std::abs(Vector2::Dot(axesA[0] * sizeA.x, axis)) +
-			std::abs(Vector2::Dot(axesA[1] * sizeA.y, axis));
+		float projA = std::abs(KCE::Vector2::Dot(axesA[0] * sizeA.x, axis)) +
+			std::abs(KCE::Vector2::Dot(axesA[1] * sizeA.y, axis));
 
-		float projB = std::abs(Vector2::Dot(axesB[0] * sizeB.x, axis)) +
-			std::abs(Vector2::Dot(axesB[1] * sizeB.y, axis));
+		float projB = std::abs(KCE::Vector2::Dot(axesB[0] * sizeB.x, axis)) +
+			std::abs(KCE::Vector2::Dot(axesB[1] * sizeB.y, axis));
 
-		float distance = std::abs(Vector2::Dot(toCenter, axis));
+		float distance = std::abs(KCE::Vector2::Dot(toCenter, axis));
 
 		if (distance > projA + projB)
 		{
@@ -1129,37 +1129,37 @@ bool collisionAlgorithm::CheckOBBvsOBB_XY(const OBB& obbA, const OBB& obbB)
 // XZ平面専用の高速判定
 bool collisionAlgorithm::CheckOBBvsOBB_XZ(const OBB& obbA, const OBB& obbB)
 {
-	Vector2 centerA(obbA.center.x, obbA.center.z);
-	Vector2 centerB(obbB.center.x, obbB.center.z);
-	Vector2 toCenter = centerB - centerA;
+	KCE::Vector2 centerA(obbA.center.x, obbA.center.z);
+	KCE::Vector2 centerB(obbB.center.x, obbB.center.z);
+	KCE::Vector2 toCenter = centerB - centerA;
 
-	Vector2 axesA[2] = {
-		Vector2(obbA.rotate.m[0][0], obbA.rotate.m[0][2]),  // X軸のXZ成分
-		Vector2(obbA.rotate.m[2][0], obbA.rotate.m[2][2])   // Z軸のXZ成分
+	KCE::Vector2 axesA[2] = {
+		KCE::Vector2(obbA.rotate.m[0][0], obbA.rotate.m[0][2]),  // X軸のXZ成分
+		KCE::Vector2(obbA.rotate.m[2][0], obbA.rotate.m[2][2])   // Z軸のXZ成分
 	};
 
-	Vector2 axesB[2] = {
-		Vector2(obbB.rotate.m[0][0], obbB.rotate.m[0][2]),
-		Vector2(obbB.rotate.m[2][0], obbB.rotate.m[2][2])
+	KCE::Vector2 axesB[2] = {
+		KCE::Vector2(obbB.rotate.m[0][0], obbB.rotate.m[0][2]),
+		KCE::Vector2(obbB.rotate.m[2][0], obbB.rotate.m[2][2])
 	};
 
-	Vector2 sizeA(obbA.size.x, obbA.size.z);  // XZなのでZ成分
-	Vector2 sizeB(obbB.size.x, obbB.size.z);  // XZなのでZ成分
+	KCE::Vector2 sizeA(obbA.size.x, obbA.size.z);  // XZなのでZ成分
+	KCE::Vector2 sizeB(obbB.size.x, obbB.size.z);  // XZなのでZ成分
 
-	Vector2 testAxes[4] = { axesA[0], axesA[1], axesB[0], axesB[1] };
+	KCE::Vector2 testAxes[4] = { axesA[0], axesA[1], axesB[0], axesB[1] };
 
 	for (int i = 0; i < 4; ++i)
 	{
-		const Vector2& axis = testAxes[i];
+		const KCE::Vector2& axis = testAxes[i];
 
 		// 修正: sizeA.x と sizeA.y ではなく、sizeA.x と sizeA.z
-		float projA = std::abs(Vector2::Dot(axesA[0] * sizeA.x, axis)) +
-			std::abs(Vector2::Dot(axesA[1] * sizeA.y, axis));  // ← ここをsizeA.yに修正
+		float projA = std::abs(KCE::Vector2::Dot(axesA[0] * sizeA.x, axis)) +
+			std::abs(KCE::Vector2::Dot(axesA[1] * sizeA.y, axis));  // ← ここをsizeA.yに修正
 
-		float projB = std::abs(Vector2::Dot(axesB[0] * sizeB.x, axis)) +
-			std::abs(Vector2::Dot(axesB[1] * sizeB.y, axis));  // ← ここをsizeB.yに修正
+		float projB = std::abs(KCE::Vector2::Dot(axesB[0] * sizeB.x, axis)) +
+			std::abs(KCE::Vector2::Dot(axesB[1] * sizeB.y, axis));  // ← ここをsizeB.yに修正
 
-		float distance = std::abs(Vector2::Dot(toCenter, axis));
+		float distance = std::abs(KCE::Vector2::Dot(toCenter, axis));
 
 		if (distance > projA + projB)
 		{
@@ -1172,37 +1172,37 @@ bool collisionAlgorithm::CheckOBBvsOBB_XZ(const OBB& obbA, const OBB& obbB)
 // YZ平面専用の高速判定
 bool collisionAlgorithm::CheckOBBvsOBB_YZ(const OBB& obbA, const OBB& obbB)
 {
-	Vector2 centerA(obbA.center.y, obbA.center.z);
-	Vector2 centerB(obbB.center.y, obbB.center.z);
-	Vector2 toCenter = centerB - centerA;
+	KCE::Vector2 centerA(obbA.center.y, obbA.center.z);
+	KCE::Vector2 centerB(obbB.center.y, obbB.center.z);
+	KCE::Vector2 toCenter = centerB - centerA;
 
-	Vector2 axesA[2] = {
-		Vector2(obbA.rotate.m[1][1], obbA.rotate.m[1][2]),  // Y軸のYZ成分
-		Vector2(obbA.rotate.m[2][1], obbA.rotate.m[2][2])   // Z軸のYZ成分
+	KCE::Vector2 axesA[2] = {
+		KCE::Vector2(obbA.rotate.m[1][1], obbA.rotate.m[1][2]),  // Y軸のYZ成分
+		KCE::Vector2(obbA.rotate.m[2][1], obbA.rotate.m[2][2])   // Z軸のYZ成分
 	};
 
-	Vector2 axesB[2] = {
-		Vector2(obbB.rotate.m[1][1], obbB.rotate.m[1][2]),
-		Vector2(obbB.rotate.m[2][1], obbB.rotate.m[2][2])
+	KCE::Vector2 axesB[2] = {
+		KCE::Vector2(obbB.rotate.m[1][1], obbB.rotate.m[1][2]),
+		KCE::Vector2(obbB.rotate.m[2][1], obbB.rotate.m[2][2])
 	};
 
-	Vector2 sizeA(obbA.size.y, obbA.size.z);  // YZなのでY,Z成分
-	Vector2 sizeB(obbB.size.y, obbB.size.z);  // YZなのでY,Z成分
+	KCE::Vector2 sizeA(obbA.size.y, obbA.size.z);  // YZなのでY,Z成分
+	KCE::Vector2 sizeB(obbB.size.y, obbB.size.z);  // YZなのでY,Z成分
 
-	Vector2 testAxes[4] = { axesA[0], axesA[1], axesB[0], axesB[1] };
+	KCE::Vector2 testAxes[4] = { axesA[0], axesA[1], axesB[0], axesB[1] };
 
 	for (int i = 0; i < 4; ++i)
 	{
-		const Vector2& axis = testAxes[i];
+		const KCE::Vector2& axis = testAxes[i];
 
 		// 修正: YZ平面なので sizeA.x と sizeA.y を使用
-		float projA = std::abs(Vector2::Dot(axesA[0] * sizeA.x, axis)) +  // sizeA.x = obbA.size.y
-			std::abs(Vector2::Dot(axesA[1] * sizeA.y, axis));   // sizeA.y = obbA.size.z
+		float projA = std::abs(KCE::Vector2::Dot(axesA[0] * sizeA.x, axis)) +  // sizeA.x = obbA.size.y
+			std::abs(KCE::Vector2::Dot(axesA[1] * sizeA.y, axis));   // sizeA.y = obbA.size.z
 
-		float projB = std::abs(Vector2::Dot(axesB[0] * sizeB.x, axis)) +
-			std::abs(Vector2::Dot(axesB[1] * sizeB.y, axis));
+		float projB = std::abs(KCE::Vector2::Dot(axesB[0] * sizeB.x, axis)) +
+			std::abs(KCE::Vector2::Dot(axesB[1] * sizeB.y, axis));
 
-		float distance = std::abs(Vector2::Dot(toCenter, axis));
+		float distance = std::abs(KCE::Vector2::Dot(toCenter, axis));
 
 		if (distance > projA + projB)
 		{
@@ -1221,64 +1221,64 @@ bool collisionAlgorithm::CheckAABBvsOBB2D(const AABBColliderComponent* a, const 
 	const AABB& aBox = a->GetAABB();
 	const OBB& obb = b->GetOBB();
 
-	Vector2 aCenter, obbCenter;
+	KCE::Vector2 aCenter, obbCenter;
 	switch (plane)
 	{
 	case CollisionPlane::XY:
-		aCenter = Vector2(aBox.GetCenter().x, aBox.GetCenter().y);
-		obbCenter = Vector2(obb.center.x, obb.center.y);
+		aCenter = KCE::Vector2(aBox.GetCenter().x, aBox.GetCenter().y);
+		obbCenter = KCE::Vector2(obb.center.x, obb.center.y);
 		break;
 	case CollisionPlane::XZ:
-		aCenter = Vector2(aBox.GetCenter().x, aBox.GetCenter().z);
-		obbCenter = Vector2(obb.center.x, obb.center.z);
+		aCenter = KCE::Vector2(aBox.GetCenter().x, aBox.GetCenter().z);
+		obbCenter = KCE::Vector2(obb.center.x, obb.center.z);
 		break;
 	case CollisionPlane::YZ:
-		aCenter = Vector2(aBox.GetCenter().y, aBox.GetCenter().z);
-		obbCenter = Vector2(obb.center.y, obb.center.z);
+		aCenter = KCE::Vector2(aBox.GetCenter().y, aBox.GetCenter().z);
+		obbCenter = KCE::Vector2(obb.center.y, obb.center.z);
 		break;
 	}
 
 	Matrix4x4 rot = obb.rotate;
-	Vector2 axes[2];
-	axes[0] = Vector2(GetSizeFromIndex(Vector3(rot.m[axis1][0], rot.m[axis2][0], 0), 0),
+	KCE::Vector2 axes[2];
+	axes[0] = KCE::Vector2(GetSizeFromIndex(Vector3(rot.m[axis1][0], rot.m[axis2][0], 0), 0),
 					  GetSizeFromIndex(Vector3(rot.m[axis1][0], rot.m[axis2][0], 0), 1));
-	axes[1] = Vector2(GetSizeFromIndex(Vector3(rot.m[axis1][1], rot.m[axis2][1], 0), 0),
+	axes[1] = KCE::Vector2(GetSizeFromIndex(Vector3(rot.m[axis1][1], rot.m[axis2][1], 0), 0),
 					  GetSizeFromIndex(Vector3(rot.m[axis1][1], rot.m[axis2][1], 0), 1));
 
-	Vector2 aabbAxes[2] = { Vector2(1,0), Vector2(0,1) };
-	Vector2 testAxes[4] = {
-		Vector2::Normalize(axes[0]),
-		Vector2::Normalize(axes[1]),
+	KCE::Vector2 aabbAxes[2] = { KCE::Vector2(1,0), KCE::Vector2(0,1) };
+	KCE::Vector2 testAxes[4] = {
+		KCE::Vector2::Normalize(axes[0]),
+		KCE::Vector2::Normalize(axes[1]),
 		aabbAxes[0],
 		aabbAxes[1]
 	};
 
-	Vector2 toCenter = aCenter - obbCenter;
-	Vector2 aHalf;
+	KCE::Vector2 toCenter = aCenter - obbCenter;
+	KCE::Vector2 aHalf;
 	switch (plane)
 	{
 	case CollisionPlane::XY:
-		aHalf = Vector2(aBox.GetHalfSize().x, aBox.GetHalfSize().y);
+		aHalf = KCE::Vector2(aBox.GetHalfSize().x, aBox.GetHalfSize().y);
 		break;
 	case CollisionPlane::XZ:
-		aHalf = Vector2(aBox.GetHalfSize().x, aBox.GetHalfSize().z);
+		aHalf = KCE::Vector2(aBox.GetHalfSize().x, aBox.GetHalfSize().z);
 		break;
 	case CollisionPlane::YZ:
-		aHalf = Vector2(aBox.GetHalfSize().y, aBox.GetHalfSize().z);
+		aHalf = KCE::Vector2(aBox.GetHalfSize().y, aBox.GetHalfSize().z);
 		break;
 	}
 
 	for (int i = 0; i < 4; ++i)
 	{
-		const Vector2& axis = testAxes[i];
+		const KCE::Vector2& axis = testAxes[i];
 
-		float aProj = std::abs(Vector2::Dot(axis, Vector2(aHalf.x, 0))) +
-			std::abs(Vector2::Dot(axis, Vector2(0, aHalf.y)));
+		float aProj = std::abs(KCE::Vector2::Dot(axis, KCE::Vector2(aHalf.x, 0))) +
+			std::abs(KCE::Vector2::Dot(axis, KCE::Vector2(0, aHalf.y)));
 
-		float bProj = std::abs(Vector2::Dot(axes[0] * GetSizeFromIndex(obb.size, axis1), axis)) +
-			std::abs(Vector2::Dot(axes[1] * GetSizeFromIndex(obb.size, axis2), axis));
+		float bProj = std::abs(KCE::Vector2::Dot(axes[0] * GetSizeFromIndex(obb.size, axis1), axis)) +
+			std::abs(KCE::Vector2::Dot(axes[1] * GetSizeFromIndex(obb.size, axis2), axis));
 
-		float distance = std::abs(Vector2::Dot(toCenter, axis));
+		float distance = std::abs(KCE::Vector2::Dot(toCenter, axis));
 
 		if (distance > aProj + bProj)
 			return false;
@@ -1375,30 +1375,30 @@ bool collisionAlgorithm::CheckCirclevsOBB2D(const SphereColliderComponent* a, co
 	float obb_cy = GetSizeFromIndex(obb.center, axis2);
 
 	// OBBの2D軸
-	Vector2 axes[2];
-	axes[0] = Vector2(GetSizeFromIndex(Vector3(obb.rotate.m[axis1][0], obb.rotate.m[axis2][0], 0), 0),
+	KCE::Vector2 axes[2];
+	axes[0] = KCE::Vector2(GetSizeFromIndex(Vector3(obb.rotate.m[axis1][0], obb.rotate.m[axis2][0], 0), 0),
 					  GetSizeFromIndex(Vector3(obb.rotate.m[axis1][0], obb.rotate.m[axis2][0], 0), 1));
-	axes[1] = Vector2(GetSizeFromIndex(Vector3(obb.rotate.m[axis1][1], obb.rotate.m[axis2][1], 0), 0),
+	axes[1] = KCE::Vector2(GetSizeFromIndex(Vector3(obb.rotate.m[axis1][1], obb.rotate.m[axis2][1], 0), 0),
 					  GetSizeFromIndex(Vector3(obb.rotate.m[axis1][1], obb.rotate.m[axis2][1], 0), 1));
 
-	Vector2 obbCenter(obb_cx, obb_cy);
-	Vector2 circleCenter(sx, sy);
-	Vector2 d = circleCenter - obbCenter;
-	Vector2 closest = obbCenter;
+	KCE::Vector2 obbCenter(obb_cx, obb_cy);
+	KCE::Vector2 circleCenter(sx, sy);
+	KCE::Vector2 d = circleCenter - obbCenter;
+	KCE::Vector2 closest = obbCenter;
 
 	const float size1 = GetSizeFromIndex(obb.size, axis1);
 	const float size2 = GetSizeFromIndex(obb.size, axis2);
 
 	// 各軸ごとに最近傍点を算出
-	float dist1 = Vector2::Dot(d, axes[0]);
+	float dist1 = KCE::Vector2::Dot(d, axes[0]);
 	float clamped1 = (std::max)(-size1, (std::min)(dist1, size1));
 	closest += axes[0] * clamped1;
 
-	float dist2 = Vector2::Dot(d, axes[1]);
+	float dist2 = KCE::Vector2::Dot(d, axes[1]);
 	float clamped2 = (std::max)(-size2, (std::min)(dist2, size2));
 	closest += axes[1] * clamped2;
 
-	Vector2 diff = circleCenter - closest;
+	KCE::Vector2 diff = circleCenter - closest;
 	float distSq = diff.x * diff.x + diff.y * diff.y;
 
 	if (distSq <= s.radius * s.radius)
@@ -1720,29 +1720,29 @@ bool collisionAlgorithm::CheckCirclevsOBBSubstep2D(const SphereColliderComponent
 		float obb_cx = GetSizeFromIndex(movedOBB.center, axis1);
 		float obb_cy = GetSizeFromIndex(movedOBB.center, axis2);
 
-		Vector2 axes[2];
-		axes[0] = Vector2(GetSizeFromIndex(Vector3(movedOBB.rotate.m[axis1][0], movedOBB.rotate.m[axis2][0], 0), 0),
+		KCE::Vector2 axes[2];
+		axes[0] = KCE::Vector2(GetSizeFromIndex(Vector3(movedOBB.rotate.m[axis1][0], movedOBB.rotate.m[axis2][0], 0), 0),
 						  GetSizeFromIndex(Vector3(movedOBB.rotate.m[axis1][0], movedOBB.rotate.m[axis2][0], 0), 1));
-		axes[1] = Vector2(GetSizeFromIndex(Vector3(movedOBB.rotate.m[axis1][1], movedOBB.rotate.m[axis2][1], 0), 0),
+		axes[1] = KCE::Vector2(GetSizeFromIndex(Vector3(movedOBB.rotate.m[axis1][1], movedOBB.rotate.m[axis2][1], 0), 0),
 						  GetSizeFromIndex(Vector3(movedOBB.rotate.m[axis1][1], movedOBB.rotate.m[axis2][1], 0), 1));
 
-		Vector2 obbCenter(obb_cx, obb_cy);
-		Vector2 circleCenter(sx, sy);
-		Vector2 d = circleCenter - obbCenter;
-		Vector2 closest = obbCenter;
+		KCE::Vector2 obbCenter(obb_cx, obb_cy);
+		KCE::Vector2 circleCenter(sx, sy);
+		KCE::Vector2 d = circleCenter - obbCenter;
+		KCE::Vector2 closest = obbCenter;
 
 		const float size1 = GetSizeFromIndex(movedOBB.size, axis1);
 		const float size2 = GetSizeFromIndex(movedOBB.size, axis2);
 
-		float dist1 = Vector2::Dot(d, axes[0]);
+		float dist1 = KCE::Vector2::Dot(d, axes[0]);
 		float clamped1 = (std::max)(-size1, (std::min)(dist1, size1));
 		closest += axes[0] * clamped1;
 
-		float dist2 = Vector2::Dot(d, axes[1]);
+		float dist2 = KCE::Vector2::Dot(d, axes[1]);
 		float clamped2 = (std::max)(-size2, (std::min)(dist2, size2));
 		closest += axes[1] * clamped2;
 
-		Vector2 diff = circleCenter - closest;
+		KCE::Vector2 diff = circleCenter - closest;
 		float distSq = diff.x * diff.x + diff.y * diff.y;
 
 		if (distSq <= sphereA.radius * sphereA.radius)

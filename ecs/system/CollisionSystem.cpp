@@ -317,7 +317,7 @@ void CollisionSystem::Draw(Registry& registry, Camera* camera, LightManager* lig
 			auto& collider = colliderArray.GetDataFromDenseIndex(i);
 			if (!collider.isActive_ || !registry.HasComponent<TransformComponent>(entity)) continue;
 
-			Vector4 color = collider.isTrigger_ ? VectorColorCodes::Lime : VectorColorCodes::Cyan;
+			Vector4 color = collider.isTrigger_ ? KCE::VectorColorCodes::Lime : KCE::VectorColorCodes::Cyan;
 			switch (collider.type_)
 			{
 			case ColliderType::AABB:   lineManager->DrawAABB(collider.worldAabb_, color); break;

@@ -25,7 +25,7 @@ struct VertexData
     // 位置
     Vector4 position;
     // テクスチャ座標
-    Vector2 texcoord;
+    KCE::Vector2 texcoord;
     // 法線
     Vector3 normal;
 };
@@ -199,7 +199,7 @@ struct SkinnedVertexData
     // 位置
     Vector4 position;
     // テクスチャ座標
-    Vector2 texcoord;
+    KCE::Vector2 texcoord;
     // 法線
     Vector3 normal;
     // 影響するボーンのインデックス

@@ -44,7 +44,7 @@ namespace GameObjectComponent
 		LineManager::GetInstance()->DrawSphere(
 			sphere_.center, 
 			sphere_.radius,
-			VectorColorCodes::Yellow
+			KCE::VectorColorCodes::Yellow
 		);
 	#endif
 	}

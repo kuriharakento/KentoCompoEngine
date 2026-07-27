@@ -453,7 +453,7 @@ void CollisionManager::LogCollision(const std::string& phase, const ICollisionCo
 	std::string typeAString = GetColliderTypeString(a->GetColliderType());
 	std::string typeBString = GetColliderTypeString(b->GetColliderType());
 
-	Logger::Log("| Collision " + phase + " " +
+	KCE::Logger::Log("| Collision " + phase + " " +
 				(phase == "Exit" ? "<-" : (phase == "Enter" ? "->" : "=="))
 				+ " | " + tagA + ": " + typeAString + ", " + tagB + ": " + typeBString + "\n");
 #endif

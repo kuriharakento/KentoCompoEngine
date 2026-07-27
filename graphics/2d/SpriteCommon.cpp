@@ -97,7 +97,7 @@ void SpriteCommon::CreateRootSignature()
 	hr = D3D12SerializeRootSignature(&descriptionRootSignature, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &errorBlob);
 	if (FAILED(hr))
 	{
-		Logger::Log(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
+		KCE::Logger::Log(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
 		assert(false);
 	}
 

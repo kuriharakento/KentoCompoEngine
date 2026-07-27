@@ -186,6 +186,11 @@ void DirectXCommon::PostDraw()
 	if (fence_->GetCompletedValue() < fenceValue_)
 	{
 		HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		if (fenceEvent == nullptr)
+		{
+			KCE::Logger::Log("Failed to create fence event.\n", KCE::Logger::LogLevel::Error);
+			return;
+		}
 		//指定したSignalにたどり着いていないので、たどり着くまで待つようにイベントを設定する
 		fence_->SetEventOnCompletion(fenceValue_, fenceEvent);
 		//イベントを待つ
@@ -230,6 +235,11 @@ void DirectXCommon::ExecuteAndWait()
 	if (fence_->GetCompletedValue() < fenceValue_)
 	{
 		HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		if (fenceEvent == nullptr)
+		{
+			KCE::Logger::Log("Failed to create fence event.\n", KCE::Logger::LogLevel::Error);
+			return;
+		}
 		fence_->SetEventOnCompletion(fenceValue_, fenceEvent);
 		WaitForSingleObject(fenceEvent, INFINITE);
 		CloseHandle(fenceEvent);
@@ -372,7 +382,7 @@ void DirectXCommon::InitializeDevice()
 		if (!(adapterDesc.Flags & DXGI_ADAPTER_FLAG3_SOFTWARE))
 		{
 			//採用したアダプタの情報をログに出力。wstringの方なので注意
-			Logger::Log(StringUtility::ConvertString(std::format(L"Use Adapter:{}\n", adapterDesc.Description)));
+			KCE::Logger::Log(KCE::StringUtility::ConvertString(std::format(L"Use Adapter:{}\n", adapterDesc.Description)));
 			break;
 		}
 		useAdapter = nullptr;
@@ -396,14 +406,14 @@ void DirectXCommon::InitializeDevice()
 		if (SUCCEEDED(hr))
 		{
 			//生成できたのでログ出力を行ってループを抜ける
-			Logger::Log(std::format("FeatureLevel : {}\n", featureLevelStrings[i]));
+			KCE::Logger::Log(std::format("FeatureLevel : {}\n", featureLevelStrings[i]));
 			break;
 		}
 	}
 
 	//デバイスの生成がうまくいかなかったので起動できない
 	assert(device_ != nullptr);
-	Logger::Log("Complete create D3D12Device!!!");//初期化完了のログを出す
+	KCE::Logger::Log("Complete create D3D12Device!!!");//初期化完了のログを出す
 
 	/*--------------[ エラー時にブレークを発生させる設定 ]-----------------*/
 
@@ -754,7 +764,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileSharder(const std::wstrin
 	///===================================================================
 
 	//これからシェーダーをコンパイルする旨をログに出す
-	Logger::Log(StringUtility::ConvertString(std::format(L"Begin CompileSharder, path:{}, profile:{}\n", filePath, profile)));
+	KCE::Logger::Log(KCE::StringUtility::ConvertString(std::format(L"Begin CompileSharder, path:{}, profile:{}\n", filePath, profile)));
 
 	// ファイルが存在しない場合の自動検索処理
 	std::wstring targetPath = filePath;
@@ -823,9 +833,9 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileSharder(const std::wstrin
 	shaderResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&shaderError), nullptr);
 	if (shaderError != nullptr && shaderError->GetStringLength() != 0)
 	{
-		Logger::Log(shaderError->GetStringPointer());
+		KCE::Logger::Log(shaderError->GetStringPointer());
 		// 警告・エラーダメ絶対
-		assert(SUCCEEDED(false));
+		assert(false);
 	}
 
 
@@ -838,7 +848,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileSharder(const std::wstrin
 	hr = shaderResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
 	assert(SUCCEEDED(hr));
 	//成功したログを出す
-	Logger::Log(StringUtility::ConvertString(std::format(L"Compile Succeeded, path:{}, profile:{}\n", filePath, profile)));
+	KCE::Logger::Log(KCE::StringUtility::ConvertString(std::format(L"Compile Succeeded, path:{}, profile:{}\n", filePath, profile)));
 	//もう使わないリソースを解放
 	shaderSource->Release();
 	shaderResult->Release();

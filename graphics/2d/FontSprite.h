@@ -74,7 +74,7 @@ public:
      *
      * DrawText 呼び出し時にも EnsureSpritesForText を実行して必要な分だけスプライトを用意します。
      */
-    void DrawText(const std::string& text, const Vector2& position, float scale = 1.0f, float spacing = 0.0f);
+    void DrawText(const std::string& text, const KCE::Vector2& position, float scale = 1.0f, float spacing = 0.0f);
 
     /**
      * @brief 単一文字描画
@@ -82,7 +82,7 @@ public:
      * @param position 描画位置
      * @param scale スケール
      */
-    void DrawChar(char character, const Vector2& position, float scale = 1.0f);
+    void DrawChar(char character, const KCE::Vector2& position, float scale = 1.0f);
 
     /*---------------[ セッター ]---------------*/
 
@@ -97,7 +97,7 @@ public:
      * @brief 描画位置を設定
      * @param position 描画開始位置
      */
-    void SetPosition(const Vector2& position) { position_ = position; }
+    void SetPosition(const KCE::Vector2& position) { position_ = position; }
 
     /**
      * @brief スケールを設定
@@ -153,7 +153,7 @@ public:
      * @brief 描画位置を取得
      * @return 現在の描画位置
      */
-    const Vector2& GetPosition() const { return position_; }
+    const KCE::Vector2& GetPosition() const { return position_; }
 
     /**
      * @brief スケールを取得
@@ -221,7 +221,7 @@ private:
     /**
      * @brief 内部実装：文字列を描画
      */
-    void DrawTextInternal(const std::string& text, const Vector2& position, float scale, float spacing);
+    void DrawTextInternal(const std::string& text, const KCE::Vector2& position, float scale, float spacing);
 
 private:
     // スプライト共通部
@@ -243,7 +243,7 @@ private:
     std::string text_;
 
     // 描画位置
-    Vector2 position_ = { 0.0f, 0.0f };
+    KCE::Vector2 position_ = { 0.0f, 0.0f };
 
     // スケール
     float scale_ = 1.0f;

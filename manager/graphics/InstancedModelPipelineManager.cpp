@@ -98,7 +98,7 @@ void InstancedModelPipelineManager::CreatePipeline()
 	{
 		if (errorBlob)
 		{
-			Logger::Log(reinterpret_cast<const char*>(errorBlob->GetBufferPointer()));
+			KCE::Logger::Log(reinterpret_cast<const char*>(errorBlob->GetBufferPointer()));
 		}
 		assert(false);
 	}

@@ -235,7 +235,7 @@ void LightManager::AddPointLight(const std::string& name)
 	// 最大個数に達している場合は追加しない
 	if (pointLights_.size() >= LightMaxCount::kMaxPointLightCount)
 	{
-		Logger::Log("ポイントライトの最大数に達しているため追加できません\n");
+		KCE::Logger::Log("ポイントライトの最大数に達しているため追加できません\n");
 		return;
 	}
 
@@ -259,7 +259,7 @@ void LightManager::AddSpotLight(const std::string& name)
 	// 最大個数に達している場合は追加しない
 	if (spotLights_.size() >= LightMaxCount::kMaxSpotLightCount)
 	{
-		Logger::Log("スポットライトの最大数に達しているため追加できません\n");
+		KCE::Logger::Log("スポットライトの最大数に達しているため追加できません\n");
 		return;
 	}
 
@@ -322,7 +322,7 @@ void LightManager::StartGradient(const std::string& name, const Vector4& startCo
 		light.easingFunction = easingFunction;
 	} else {
 		// ライトが見つからない場合はログを出力
-		Logger::Log("ライトが見つかりません: " + name);
+		KCE::Logger::Log("ライトが見つかりません: " + name);
 	}
 }
 
@@ -610,7 +610,7 @@ void LightManager::SetPointLightColor(const std::string& name, const Vector4& co
 	if (pointLights_.find(name) != pointLights_.end()) {
 		pointLights_.at(name).gpuData.color = color;
 	} else {
-		Logger::Log("ポイントライトが見つかりません: " + name);
+		KCE::Logger::Log("ポイントライトが見つかりません: " + name);
 	}
 }
 
@@ -619,7 +619,7 @@ void LightManager::SetPointLightPosition(const std::string& name, const Vector3&
 	if (pointLights_.find(name) != pointLights_.end()) {
 		pointLights_.at(name).gpuData.position = position;
 	} else {
-		Logger::Log("ポイントライトが見つかりません: " + name);
+		KCE::Logger::Log("ポイントライトが見つかりません: " + name);
 	}
 }
 
@@ -628,7 +628,7 @@ void LightManager::SetPointLightIntensity(const std::string& name, float intensi
 	if (pointLights_.find(name) != pointLights_.end()) {
 		pointLights_.at(name).gpuData.intensity = intensity;
 	} else {
-		Logger::Log("ポイントライトが見つかりません: " + name);
+		KCE::Logger::Log("ポイントライトが見つかりません: " + name);
 	}
 }
 
@@ -637,7 +637,7 @@ void LightManager::SetPointLightRadius(const std::string& name, float radius)
 	if (pointLights_.find(name) != pointLights_.end()) {
 		pointLights_.at(name).gpuData.radius = radius;
 	} else {
-		Logger::Log("ポイントライトが見つかりません: " + name);
+		KCE::Logger::Log("ポイントライトが見つかりません: " + name);
 	}
 }
 
@@ -646,7 +646,7 @@ void LightManager::SetPointLightDecay(const std::string& name, float decay)
 	if (pointLights_.find(name) != pointLights_.end()) {
 		pointLights_.at(name).gpuData.decay = decay;
 	} else {
-		Logger::Log("ポイントライトが見つかりません: " + name);
+		KCE::Logger::Log("ポイントライトが見つかりません: " + name);
 	}
 }
 
@@ -656,7 +656,7 @@ void LightManager::SetSpotLightColor(const std::string& name, const Vector4& col
 	if (spotLights_.find(name) != spotLights_.end()) {
 		spotLights_.at(name).gpuData.color = color;
 	} else {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 	}
 }
 
@@ -665,7 +665,7 @@ void LightManager::SetSpotLightPosition(const std::string& name, const Vector3& 
 	if (spotLights_.find(name) != spotLights_.end()) {
 		spotLights_.at(name).gpuData.position = position;
 	} else {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 	}
 }
 
@@ -674,7 +674,7 @@ void LightManager::SetSpotLightIntensity(const std::string& name, float intensit
 	if (spotLights_.find(name) != spotLights_.end()) {
 		spotLights_.at(name).gpuData.intensity = intensity;
 	} else {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 	}
 }
 
@@ -683,7 +683,7 @@ void LightManager::SetSpotLightDirection(const std::string& name, const Vector3&
 	if (spotLights_.find(name) != spotLights_.end()) {
 		spotLights_.at(name).gpuData.direction = direction;
 	} else {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 	}
 }
 
@@ -692,7 +692,7 @@ void LightManager::SetSpotLightDistance(const std::string& name, float distance)
 	if (spotLights_.find(name) != spotLights_.end()) {
 		spotLights_.at(name).gpuData.distance = distance;
 	} else {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 	}
 }
 
@@ -701,7 +701,7 @@ void LightManager::SetSpotLightDecay(const std::string& name, float decay)
 	if (spotLights_.find(name) != spotLights_.end()) {
 		spotLights_.at(name).gpuData.decay = decay;
 	} else {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 	}
 }
 
@@ -710,7 +710,7 @@ void LightManager::SetSpotLightCosAngle(const std::string& name, float cosAngle)
 	if (spotLights_.find(name) != spotLights_.end()) {
 		spotLights_.at(name).gpuData.cosAngle = cosAngle;
 	} else {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 	}
 }
 
@@ -719,7 +719,7 @@ void LightManager::SetSpotLightCosFalloffStart(const std::string& name, float co
 	if (spotLights_.find(name) != spotLights_.end()) {
 		spotLights_.at(name).gpuData.cosFalloffStart = cosFalloffStart;
 	} else {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 	}
 }
 
@@ -740,7 +740,7 @@ const GPUPointLight& LightManager::GetPointLight(const std::string& name) const
 	if (pointLights_.find(name) != pointLights_.end()) {
 		return pointLights_.at(name).gpuData;
 	} else {
-		Logger::Log("ポイントライトが見つかりません: " + name);
+		KCE::Logger::Log("ポイントライトが見つかりません: " + name);
 		return pointLights_.begin()->second.gpuData;
 	}
 }
@@ -750,7 +750,7 @@ const GPUSpotLight& LightManager::GetSpotLight(const std::string& name) const
 	if (spotLights_.find(name) != spotLights_.end()) {
 		return spotLights_.at(name).gpuData;
 	} else {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 		return spotLights_.begin()->second.gpuData;
 	}
 }
@@ -761,7 +761,7 @@ const Vector4& LightManager::GetPointLightColor(const std::string& name) const
 	if (pointLights_.find(name) != pointLights_.end()) {
 		return pointLights_.at(name).gpuData.color;
 	} else {
-		Logger::Log("ポイントライトが見つかりません: " + name);
+		KCE::Logger::Log("ポイントライトが見つかりません: " + name);
 		return pointLights_.begin()->second.gpuData.color;
 	}
 }
@@ -771,7 +771,7 @@ const Vector3& LightManager::GetPointLightPosition(const std::string& name) cons
 	if (pointLights_.find(name) != pointLights_.end()) {
 		return pointLights_.at(name).gpuData.position;
 	} else {
-		Logger::Log("ポイントライトが見つかりません: " + name);
+		KCE::Logger::Log("ポイントライトが見つかりません: " + name);
 		return pointLights_.begin()->second.gpuData.position;
 	}
 }
@@ -781,7 +781,7 @@ float LightManager::GetPointLightIntensity(const std::string& name) const
 	if (pointLights_.find(name) != pointLights_.end()) {
 		return pointLights_.at(name).gpuData.intensity;
 	} else {
-		Logger::Log("ポイントライトが見つかりません: " + name);
+		KCE::Logger::Log("ポイントライトが見つかりません: " + name);
 		return pointLights_.begin()->second.gpuData.intensity;
 	}
 }
@@ -791,7 +791,7 @@ float LightManager::GetPointLightRadius(const std::string& name) const
 	if (pointLights_.find(name) != pointLights_.end()) {
 		return pointLights_.at(name).gpuData.radius;
 	} else {
-		Logger::Log("ポイントライトが見つかりません: " + name);
+		KCE::Logger::Log("ポイントライトが見つかりません: " + name);
 		return pointLights_.begin()->second.gpuData.radius;
 	}
 }
@@ -801,7 +801,7 @@ float LightManager::GetPointLightDecay(const std::string& name) const
 	if (pointLights_.find(name) != pointLights_.end()) {
 		return pointLights_.at(name).gpuData.decay;
 	} else {
-		Logger::Log("ポイントライトが見つかりません: " + name);
+		KCE::Logger::Log("ポイントライトが見つかりません: " + name);
 		return pointLights_.begin()->second.gpuData.decay;
 	}
 }
@@ -812,7 +812,7 @@ const Vector4& LightManager::GetSpotLightColor(const std::string& name) const
 	if (spotLights_.find(name) != spotLights_.end()) {
 		return spotLights_.at(name).gpuData.color;
 	} else {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 		return spotLights_.begin()->second.gpuData.color;
 	}
 }
@@ -822,7 +822,7 @@ const Vector3& LightManager::GetSpotLightPosition(const std::string& name) const
 	if (spotLights_.find(name) != spotLights_.end()) {
 		return spotLights_.at(name).gpuData.position;
 	} else {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 		return spotLights_.begin()->second.gpuData.position;
 	}
 }
@@ -832,7 +832,7 @@ float LightManager::GetSpotLightIntensity(const std::string& name) const
 	if (spotLights_.find(name) != spotLights_.end()) {
 		return spotLights_.at(name).gpuData.intensity;
 	} else {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 		return spotLights_.begin()->second.gpuData.intensity;
 	}
 }
@@ -842,7 +842,7 @@ const Vector3& LightManager::GetSpotLightDirection(const std::string& name) cons
 	if (spotLights_.find(name) != spotLights_.end()) {
 		return spotLights_.at(name).gpuData.direction;
 	} else {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 		return spotLights_.begin()->second.gpuData.direction;
 	}
 }
@@ -852,7 +852,7 @@ float LightManager::GetSpotLightDistance(const std::string& name) const
 	if (spotLights_.find(name) != spotLights_.end()) {
 		return spotLights_.at(name).gpuData.distance;
 	} else {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 		return spotLights_.begin()->second.gpuData.distance;
 	}
 }
@@ -862,7 +862,7 @@ float LightManager::GetSpotLightDecay(const std::string& name) const
 	if (spotLights_.find(name) != spotLights_.end()) {
 		return spotLights_.at(name).gpuData.decay;
 	} else {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 		return spotLights_.begin()->second.gpuData.decay;
 	}
 }
@@ -872,7 +872,7 @@ float LightManager::GetSpotLightCosAngle(const std::string& name) const
 	if (spotLights_.find(name) != spotLights_.end()) {
 		return spotLights_.at(name).gpuData.cosAngle;
 	} else {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 		return spotLights_.begin()->second.gpuData.cosAngle;
 	}
 }
@@ -882,7 +882,7 @@ float LightManager::GetSpotLightCosFalloffStart(const std::string& name) const
 	if (spotLights_.find(name) != spotLights_.end()) {
 		return spotLights_.at(name).gpuData.cosFalloffStart;
 	} else {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 		return spotLights_.begin()->second.gpuData.cosFalloffStart;
 	}
 }
@@ -1152,7 +1152,7 @@ void LightManager::CreateDirectionalLightBuffer() {
 void LightManager::UpdateSpotLightShadowMatrix(const std::string& name, float nearPlane, float farPlane) {
 	auto it = spotLights_.find(name);
 	if (it == spotLights_.end()) {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 		return;
 	}
 
@@ -1214,7 +1214,7 @@ const Matrix4x4& LightManager::GetSpotLightShadowMatrix(const std::string& name)
 	static Matrix4x4 identity = MakeIdentity4x4();
 	auto it = spotLights_.find(name);
 	if (it == spotLights_.end()) {
-		Logger::Log("スポットライトが見つかりません: " + name);
+		KCE::Logger::Log("スポットライトが見つかりません: " + name);
 		return identity;
 	}
 	return it->second.viewProjectionMatrix;
@@ -1242,7 +1242,7 @@ bool LightManager::IsSpotLightShadowEnabled(const std::string& name) const {
 void LightManager::UpdatePointLightShadowMatrix(const std::string& name, float nearPlane, float farPlane) {
 	auto it = pointLights_.find(name);
 	if (it == pointLights_.end()) {
-		Logger::Log("ポイントライトが見つかりません: " + name);
+		KCE::Logger::Log("ポイントライトが見つかりません: " + name);
 		return;
 	}
 
@@ -1313,7 +1313,7 @@ const Matrix4x4& LightManager::GetPointLightShadowMatrix(const std::string& name
 	}
 	auto it = pointLights_.find(name);
 	if (it == pointLights_.end()) {
-		Logger::Log("ポイントライトが見つかりません: " + name);
+		KCE::Logger::Log("ポイントライトが見つかりません: " + name);
 		return identity;
 	}
 	return it->second.viewProjectionMatrices[faceIndex];

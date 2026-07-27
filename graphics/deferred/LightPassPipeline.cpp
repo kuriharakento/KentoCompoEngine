@@ -17,7 +17,7 @@ void LightPassPipeline::Initialize(DirectXCommon* dxCommon)
 	CreateRootSignature();
 	CreatePipelineState();
 
-	Logger::Log("LightPassPipeline initialized\n");
+	KCE::Logger::Log("LightPassPipeline initialized\n");
 }
 
 void LightPassPipeline::CreateRootSignature()
@@ -162,7 +162,7 @@ void LightPassPipeline::CreateRootSignature()
 	{
 		if (errorBlob)
 		{
-			Logger::Log(static_cast<char*>(errorBlob->GetBufferPointer()));
+			KCE::Logger::Log(static_cast<char*>(errorBlob->GetBufferPointer()));
 		}
 		assert(false);
 	}
@@ -209,7 +209,7 @@ void LightPassPipeline::CreatePipelineState()
 	{
 		if (errorBlob)
 		{
-			Logger::Log(static_cast<char*>(errorBlob->GetBufferPointer()));
+			KCE::Logger::Log(static_cast<char*>(errorBlob->GetBufferPointer()));
 		}
 		assert(false);
 	}
@@ -246,7 +246,7 @@ void LightPassPipeline::CreatePipelineState()
 	{
 		if (errorBlob)
 		{
-			Logger::Log(static_cast<char*>(errorBlob->GetBufferPointer()));
+			KCE::Logger::Log(static_cast<char*>(errorBlob->GetBufferPointer()));
 		}
 		assert(false);
 	}

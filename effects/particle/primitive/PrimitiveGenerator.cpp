@@ -114,10 +114,10 @@ PrimitiveMesh PrimitiveGenerator::GenerateSphere(uint32_t segments, uint32_t rin
 				std::sin(phi1) * std::sin(theta1)
 			};
 
-			Vector2 uv00 = { float(lon) / float(kLongitudeDiv), float(lat) / float(kLatitudeDiv) };
-			Vector2 uv01 = { float(lon + 1) / float(kLongitudeDiv), float(lat) / float(kLatitudeDiv) };
-			Vector2 uv10 = { float(lon) / float(kLongitudeDiv), float(lat + 1) / float(kLatitudeDiv) };
-			Vector2 uv11 = { float(lon + 1) / float(kLongitudeDiv), float(lat + 1) / float(kLatitudeDiv) };
+			KCE::Vector2 uv00 = { float(lon) / float(kLongitudeDiv), float(lat) / float(kLatitudeDiv) };
+			KCE::Vector2 uv01 = { float(lon + 1) / float(kLongitudeDiv), float(lat) / float(kLatitudeDiv) };
+			KCE::Vector2 uv10 = { float(lon) / float(kLongitudeDiv), float(lat + 1) / float(kLatitudeDiv) };
+			KCE::Vector2 uv11 = { float(lon + 1) / float(kLongitudeDiv), float(lat + 1) / float(kLatitudeDiv) };
 
 			// 三角形1: p00 → p10 → p11
 			mesh.vertices.push_back({ { p00.x * kRadius, p00.y * kRadius, p00.z * kRadius, 1.0f }, uv00, p00 });
@@ -251,9 +251,9 @@ PrimitiveMesh PrimitiveGenerator::GenerateCone(uint32_t segments, bool withCap)
 			Vector4 p0 = { radius * std::cos(theta0), 0.0f, radius * std::sin(theta0), 1.0f };
 			Vector4 p1 = { radius * std::cos(theta1), 0.0f, radius * std::sin(theta1), 1.0f };
 	
-			Vector2 uvCenter = { 0.5f, 0.5f };
-			Vector2 uv0 = { 0.5f + p0.x / (2.0f * radius), 0.5f + p0.z / (2.0f * radius) };
-			Vector2 uv1 = { 0.5f + p1.x / (2.0f * radius), 0.5f + p1.z / (2.0f * radius) };
+			KCE::Vector2 uvCenter = { 0.5f, 0.5f };
+			KCE::Vector2 uv0 = { 0.5f + p0.x / (2.0f * radius), 0.5f + p0.z / (2.0f * radius) };
+			KCE::Vector2 uv1 = { 0.5f + p1.x / (2.0f * radius), 0.5f + p1.z / (2.0f * radius) };
 	
 			mesh.vertices.push_back({ center, uvCenter, downNormal });
 			mesh.vertices.push_back({ p0,     uv0,      downNormal });
@@ -364,10 +364,10 @@ PrimitiveMesh PrimitiveGenerator::GenerateTorus(uint32_t segments, uint32_t tube
 			Vector3 n11 = p11 - center1;
 
 			// UV
-			Vector2 uv00 = { float(i) / float(kCircleDiv), float(j) / float(kTubeDiv) };
-			Vector2 uv01 = { float(i) / float(kCircleDiv), float(j + 1) / float(kTubeDiv) };
-			Vector2 uv10 = { float(i + 1) / float(kCircleDiv), float(j) / float(kTubeDiv) };
-			Vector2 uv11 = { float(i + 1) / float(kCircleDiv), float(j + 1) / float(kTubeDiv) };
+			KCE::Vector2 uv00 = { float(i) / float(kCircleDiv), float(j) / float(kTubeDiv) };
+			KCE::Vector2 uv01 = { float(i) / float(kCircleDiv), float(j + 1) / float(kTubeDiv) };
+			KCE::Vector2 uv10 = { float(i + 1) / float(kCircleDiv), float(j) / float(kTubeDiv) };
+			KCE::Vector2 uv11 = { float(i + 1) / float(kCircleDiv), float(j + 1) / float(kTubeDiv) };
 
 			// 三角形1: p00 → p10 → p11
 			mesh.vertices.push_back({ { p00.x, p00.y, p00.z, 1.0f }, uv00, n00 });
@@ -519,7 +519,7 @@ PrimitiveMesh PrimitiveGenerator::GenerateStar(uint32_t points, float innerRadiu
 	}
 
 	Vector4 center = { 0.0f, 0.0f, 0.0f, 1.0f };
-	Vector2 uvCenter = { 0.5f, 0.5f };
+	KCE::Vector2 uvCenter = { 0.5f, 0.5f };
 
 	// 扇状に分割
 	for (int i = 0; i < kPoints * 2; ++i)
@@ -530,9 +530,9 @@ PrimitiveMesh PrimitiveGenerator::GenerateStar(uint32_t points, float innerRadiu
 		Vector4 p1 = starPoints[i];
 		Vector4 p2 = starPoints[nextIndex];
 
-		Vector2 uv0 = uvCenter;
-		Vector2 uv1 = { (p1.x + 1.0f) * 0.5f, (p1.y + 1.0f) * 0.5f };
-		Vector2 uv2 = { (p2.x + 1.0f) * 0.5f, (p2.y + 1.0f) * 0.5f };
+		KCE::Vector2 uv0 = uvCenter;
+		KCE::Vector2 uv1 = { (p1.x + 1.0f) * 0.5f, (p1.y + 1.0f) * 0.5f };
+		KCE::Vector2 uv2 = { (p2.x + 1.0f) * 0.5f, (p2.y + 1.0f) * 0.5f };
 
 		mesh.vertices.push_back({ p0, uv0, normal });
 		mesh.vertices.push_back({ p1, uv1, normal });
@@ -687,7 +687,7 @@ PrimitiveMesh PrimitiveGenerator::GenerateSpiral(uint32_t segments, float turns)
 			length = std::sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
 			if(length>0) normal = { normal.x / length, normal.y / length, normal.z / length };
 
-			Vector2 texcoord = {
+			KCE::Vector2 texcoord = {
 				static_cast<float>(j) / static_cast<float>(kLocalRingDiv),
 				vertices[i].texcoord.y
 			};

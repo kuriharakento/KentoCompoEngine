@@ -137,7 +137,7 @@ void Skybox::CreateModeldata(const std::string& textureFilePath)
 	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&material_));
 
 	// マテリアルの初期値を設定
-	material_->color = VectorColorCodes::White;
+	material_->color = KCE::VectorColorCodes::White;
 	material_->uvTransform = MakeIdentity4x4();
 	material_->enableLighting = false;
 }
@@ -290,7 +290,7 @@ void Skybox::CreateRootSignature()
 	hr = D3D12SerializeRootSignature(&descriptionRootSignature, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &errorBlob);
 	if (FAILED(hr))
 	{
-		Logger::Log(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
+		KCE::Logger::Log(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
 		assert(false);
 	}
 

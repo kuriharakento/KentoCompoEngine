@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <Windows.h>
 #include <functional>
+#include <string>
 
 /**
  * @brief Windowsアプリケーション管理クラス
@@ -24,6 +25,12 @@ public:
 	 * @brief 初期化
 	 */
 	void Initialize();
+
+	/**
+	 * @brief ウィンドウタイトルを変更する。
+	 * @param title ウィンドウタイトル
+	 */
+	void SetWindowTitle(const std::wstring& title);
 
 	/**
 	 * @brief ウィンドウの終了処理

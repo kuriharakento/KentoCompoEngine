@@ -320,14 +320,14 @@ void GameObject::AddComponent(const std::string& name, std::unique_ptr<GameObjec
 	// nullポインタチェック
 	if (!comp)
 	{
-		Logger::Log("Error: Attempted to add a null component with name: " + name);
+		KCE::Logger::Log("Error: Attempted to add a null component with name: " + name);
 		return;
 	}
 
 	// 同名コンポーネントの重複チェック
 	if (components_.find(name) != components_.end())
 	{
-		Logger::Log("Warning: Component already exists: " + name);
+		KCE::Logger::Log("Warning: Component already exists: " + name);
 		return;
 	}
 
@@ -365,7 +365,7 @@ void GameObject::AddChild(const std::string& name, std::unique_ptr<GameObject> c
 	// 同名の子オブジェクト存在チェック
 	if (auto it = children_.find(name); it != children_.end())
 	{
-		Logger::Log("Warning: Child with name '" + name + "' already exists.");
+		KCE::Logger::Log("Warning: Child with name '" + name + "' already exists.");
 		return;
 	}
 
@@ -376,7 +376,7 @@ void GameObject::AddChild(const std::string& name, std::unique_ptr<GameObject> c
 	}
 	else
 	{
-		Logger::Log("Error: Attempted to add a null child GameObject.");
+		KCE::Logger::Log("Error: Attempted to add a null child GameObject.");
 	}
 }
 
@@ -389,7 +389,7 @@ GameObject* GameObject::GetChild(const std::string& name) const
 	}
 	else
 	{
-		Logger::Log("Warning: Child with name '" + name + "' not found.");
+		KCE::Logger::Log("Warning: Child with name '" + name + "' not found.");
 		return nullptr;
 	}
 }
@@ -463,7 +463,7 @@ void GameObject::AddComponentImmediate(const std::string& name, std::shared_ptr<
 	// 重複チェック（安全のため再確認）
 	if (components_.find(name) != components_.end())
 	{
-		Logger::Log("Warning: Component already exists on immediate add: " + name);
+		KCE::Logger::Log("Warning: Component already exists on immediate add: " + name);
 		return;
 	}
 
@@ -486,7 +486,7 @@ void GameObject::RemoveComponentImmediate(const std::string& name)
 
 	if (it == components_.end())
 	{
-		Logger::Log("Warning: Component not found: " + name);
+		KCE::Logger::Log("Warning: Component not found: " + name);
 		return;
 	}
 
@@ -544,7 +544,7 @@ void GameObject::ProcessPendingChanges()
 			// 既に存在する場合は追加をスキップ
 			if (components_.find(name) != components_.end())
 			{
-				Logger::Log("Warning: Component already exists when processing pending add: " + name + " - Skipped.");
+				KCE::Logger::Log("Warning: Component already exists when processing pending add: " + name + " - Skipped.");
 				continue;
 			}
 

@@ -33,7 +33,7 @@ void ShadowMapManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManage
     // ディレクショナルライトシャドウマップを初期状態で無効化
     directionalLightShadowMap_.isEnabled = false;
     
-    Logger::Log("ShadowMapManager initialized\n");
+    KCE::Logger::Log("ShadowMapManager initialized\n");
 }
 
 void ShadowMapManager::CreateDirectionalLightShadowMap(uint32_t resolution) {
@@ -51,7 +51,7 @@ void ShadowMapManager::CreateDirectionalLightShadowMap(uint32_t resolution) {
     // 有効化
     directionalLightShadowMap_.isEnabled = true;
     
-    Logger::Log("Created DirectionalLight shadow map: " + std::to_string(resolution) + "x" + std::to_string(resolution) + "\n");
+    KCE::Logger::Log("Created DirectionalLight shadow map: " + std::to_string(resolution) + "x" + std::to_string(resolution) + "\n");
 }
 
 void ShadowMapManager::CreateCascadeShadowMaps(uint32_t resolution) {
@@ -66,7 +66,7 @@ void ShadowMapManager::CreateCascadeShadowMaps(uint32_t resolution) {
     
     cascadeShadowMap_.isEnabled = true;
     
-    Logger::Log("Created Cascade shadow maps: " + std::to_string(ShadowMapConfig::kCascadeCount) + 
+    KCE::Logger::Log("Created Cascade shadow maps: " + std::to_string(ShadowMapConfig::kCascadeCount) +
                 " cascades, " + std::to_string(resolution) + "x" + std::to_string(resolution) + " each\n");
 }
 
@@ -123,7 +123,7 @@ void ShadowMapManager::BeginCascadeShadowPass(uint32_t cascadeIndex) {
 void ShadowMapManager::CreateSpotLightShadowMap(const std::string& name, uint32_t resolution) {
     // 既に存在する場合はスキップ
     if (spotLightShadowMaps_.find(name) != spotLightShadowMaps_.end()) {
-        Logger::Log("SpotLight shadow map already exists: " + name + "\n");
+        KCE::Logger::Log("SpotLight shadow map already exists: " + name + "\n");
         return;
     }
     
@@ -137,13 +137,13 @@ void ShadowMapManager::CreateSpotLightShadowMap(const std::string& name, uint32_
     
     spotLightShadowMaps_.emplace(name, std::move(shadowMap));
     
-    Logger::Log("Created SpotLight shadow map: " + name + " (" + std::to_string(resolution) + "x" + std::to_string(resolution) + ")\n");
+    KCE::Logger::Log("Created SpotLight shadow map: " + name + " (" + std::to_string(resolution) + "x" + std::to_string(resolution) + ")\n");
 }
 
 void ShadowMapManager::CreatePointLightShadowMap(const std::string& name, uint32_t resolution) {
     // 既に存在する場合はスキップ
     if (pointLightShadowMaps_.find(name) != pointLightShadowMaps_.end()) {
-        Logger::Log("PointLight shadow map already exists: " + name + "\n");
+        KCE::Logger::Log("PointLight shadow map already exists: " + name + "\n");
         return;
     }
     
@@ -162,7 +162,7 @@ void ShadowMapManager::CreatePointLightShadowMap(const std::string& name, uint32
     
     pointLightShadowMaps_.emplace(name, std::move(shadowMap));
     
-    Logger::Log("Created PointLight cube shadow map: " + name + " (" + std::to_string(resolution) + "x" + std::to_string(resolution) + ")\n");
+    KCE::Logger::Log("Created PointLight cube shadow map: " + name + " (" + std::to_string(resolution) + "x" + std::to_string(resolution) + ")\n");
 }
 
 void ShadowMapManager::BeginDirectionalLightShadowPass() {
@@ -350,7 +350,7 @@ void ShadowMapManager::Clear() {
 const ShadowMap& ShadowMapManager::GetSpotLightShadowMap(const std::string& name) const {
     auto it = spotLightShadowMaps_.find(name);
     if (it == spotLightShadowMaps_.end()) {
-        Logger::Log("SpotLight shadow map not found: " + name + "\n");
+        KCE::Logger::Log("SpotLight shadow map not found: " + name + "\n");
         static ShadowMap empty;
         return empty;
     }
@@ -360,7 +360,7 @@ const ShadowMap& ShadowMapManager::GetSpotLightShadowMap(const std::string& name
 ShadowMap& ShadowMapManager::GetSpotLightShadowMap(const std::string& name) {
     auto it = spotLightShadowMaps_.find(name);
     if (it == spotLightShadowMaps_.end()) {
-        Logger::Log("SpotLight shadow map not found: " + name + "\n");
+        KCE::Logger::Log("SpotLight shadow map not found: " + name + "\n");
         static ShadowMap empty;
         return empty;
     }
@@ -370,7 +370,7 @@ ShadowMap& ShadowMapManager::GetSpotLightShadowMap(const std::string& name) {
 const PointLightShadowMap& ShadowMapManager::GetPointLightShadowMap(const std::string& name) const {
     auto it = pointLightShadowMaps_.find(name);
     if (it == pointLightShadowMaps_.end()) {
-        Logger::Log("PointLight shadow map not found: " + name + "\n");
+        KCE::Logger::Log("PointLight shadow map not found: " + name + "\n");
         static PointLightShadowMap empty;
         return empty;
     }
@@ -380,7 +380,7 @@ const PointLightShadowMap& ShadowMapManager::GetPointLightShadowMap(const std::s
 PointLightShadowMap& ShadowMapManager::GetPointLightShadowMap(const std::string& name) {
     auto it = pointLightShadowMaps_.find(name);
     if (it == pointLightShadowMaps_.end()) {
-        Logger::Log("PointLight shadow map not found: " + name + "\n");
+        KCE::Logger::Log("PointLight shadow map not found: " + name + "\n");
         static PointLightShadowMap empty;
         return empty;
     }

@@ -42,7 +42,7 @@ void ConsoleLog::Finalize()
 	instance_.reset();
 }
 
-void ConsoleLog::AddLog([[maybe_unused]] const std::string& message, [[maybe_unused]] Logger::LogLevel level)
+void ConsoleLog::AddLog([[maybe_unused]] const std::string& message, [[maybe_unused]] KCE::Logger::LogLevel level)
 {
 #ifdef USE_IMGUI
 	std::lock_guard<std::mutex> lock(mutex_);
@@ -104,11 +104,11 @@ void ConsoleLog::Draw([[maybe_unused]] bool* open)
 		{
 			ImVec4 color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // Default Info = White
 
-			if (log.level == Logger::LogLevel::Warning)
+			if (log.level == KCE::Logger::LogLevel::Warning)
 			{
 				color = ImVec4(1.0f, 0.8f, 0.2f, 1.0f); // Yellow
 			}
-			else if (log.level == Logger::LogLevel::Error)
+			else if (log.level == KCE::Logger::LogLevel::Error)
 			{
 				color = ImVec4(1.0f, 0.3f, 0.3f, 1.0f); // Red
 			}

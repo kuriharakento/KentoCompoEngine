@@ -32,7 +32,7 @@ void DeferredRenderer::Initialize(DirectXCommon* dxCommon, SrvManager* srvManage
 	CreateCameraBuffer();
 	CreateLightBuffer();
 
-	Logger::Log("DeferredRenderer initialized\n");
+	KCE::Logger::Log("DeferredRenderer initialized\n");
 }
 
 void DeferredRenderer::Resize(uint32_t width, uint32_t height)

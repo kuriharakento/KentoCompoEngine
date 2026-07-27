@@ -111,8 +111,8 @@ public:
      */
     struct BlurParams
     {
-        Vector2 texelSize;           // テクセルサイズ
-        Vector2 blurDirection;       // ブラー方向
+        KCE::Vector2 texelSize;           // テクセルサイズ
+        KCE::Vector2 blurDirection;       // ブラー方向
         float radius = 8.0f;         // ブラー半径
         float padding[3] = {};       // パディング
     } blurParams_;

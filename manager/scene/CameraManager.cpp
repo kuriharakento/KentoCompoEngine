@@ -33,7 +33,7 @@ void CameraManager::AddCamera(const std::string& name) {
     if (cameras_.find(name) == cameras_.end()) {
         // 新しいカメラをunique_ptrで生成してマップに追加
         cameras_[name] = std::make_unique<Camera>();
-        Logger::Log("Add Camera: " + name + "\n");
+        KCE::Logger::Log("Add Camera: " + name + "\n");
 
 		// GPU定数バッファを初期化
 		if (dxCommon_)

@@ -214,11 +214,11 @@ void LineManager::DrawArrow(const Vector3& start, const Vector3& direction, floa
 void LineManager::DrawAxis(const Vector3& position, float scale)
 {
     // X軸（赤）
-    DrawLine(position, position + Vector3{ scale, 0, 0 }, VectorColorCodes::Red);
+    DrawLine(position, position + Vector3{ scale, 0, 0 }, KCE::VectorColorCodes::Red);
     // Y軸（緑）
-    DrawLine(position, position + Vector3{ 0, scale, 0 }, VectorColorCodes::Green);
+    DrawLine(position, position + Vector3{ 0, scale, 0 }, KCE::VectorColorCodes::Green);
     // Z軸（青）
-    DrawLine(position, position + Vector3{ 0, 0, scale }, VectorColorCodes::Blue);
+    DrawLine(position, position + Vector3{ 0, 0, scale }, KCE::VectorColorCodes::Blue);
 }
 
 void LineManager::DrawAABB(const AABB& aabb, const Vector4& color)

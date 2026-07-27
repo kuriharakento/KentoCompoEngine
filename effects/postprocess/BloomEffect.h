@@ -85,13 +85,13 @@ public:
      * @brief 画面サイズの逆数を取得する
      * @return 画面サイズの逆数 (UV計算用)
      */
-	Vector2 GetInvScreenSize() const { return params_.invScreenSize; }
+	KCE::Vector2 GetInvScreenSize() const { return params_.invScreenSize; }
 
     /**
      * @brief 画面サイズの逆数を設定する
      * @param invScreenSize 画面サイズの逆数
      */
-	void SetInvScreenSize(const Vector2& invScreenSize);
+	void SetInvScreenSize(const KCE::Vector2& invScreenSize);
 
     /**
      * @brief しきい値の緩やかさを取得する
@@ -135,7 +135,7 @@ private:
         // 16バイトアラインメント用パディング
         float padding[3];
         // 画面サイズの逆数
-        Vector2 invScreenSize;
+        KCE::Vector2 invScreenSize;
 		// しきい値の緩やかさ
 		float thresholdKnee;
 		// オリジナル画像とBloom画像の合成比率

@@ -45,7 +45,7 @@ namespace GameObjectComponent
 		
 	#ifdef _DEBUG
 		// デバッグモードでAABBを可視化
-		LineManager::GetInstance()->DrawAABB(aabb_, VectorColorCodes::Cyan);
+		LineManager::GetInstance()->DrawAABB(aabb_, KCE::VectorColorCodes::Cyan);
 	#endif
 	}
 }

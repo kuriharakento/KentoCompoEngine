@@ -58,7 +58,7 @@ void TextureManager::LoadTexture(const std::string& filePath)
 
 	DirectX::ScratchImage image{};
 	// ファイル読み込みには元のパスを使用
-	std::wstring filePathW = StringUtility::ConvertString(filePath);
+	std::wstring filePathW = KCE::StringUtility::ConvertString(filePath);
 
 	// ファイルが存在しない場合の自動検索処理（相対パスやファイル名のみに対応）
 	std::wstring targetPath = filePathW;

@@ -14,7 +14,7 @@
 struct LogEntry
 {
 	std::string message;
-	Logger::LogLevel level;
+	KCE::Logger::LogLevel level;
 };
 #endif
 
@@ -52,7 +52,7 @@ public:
 	 * @param message ログメッセージ
 	 * @param level ログレベル
 	 */
-	void AddLog(const std::string& message, Logger::LogLevel level);
+	void AddLog(const std::string& message, KCE::Logger::LogLevel level);
 
 	/**
 	 * @brief 蓄積されたログ履歴をクリアする

@@ -28,7 +28,7 @@ public:
 	 * @param textureFilePath 数字テクスチャのファイルパス
 	 * @param digit 1桁のサイズ（幅、高さ）
 	 */
-	void Initialize(SpriteCommon* spriteCommon, const std::string& textureFilePath, const Vector2& digit);
+	void Initialize(SpriteCommon* spriteCommon, const std::string& textureFilePath, const KCE::Vector2& digit);
 
 	/**
 	 * @brief 更新処理
@@ -47,7 +47,7 @@ public:
 	 * @param number 描画する数字（0-9）
 	 * @param position 描画位置
 	 */
-	void DrawDigit(int number, const Vector2& position);
+	void DrawDigit(int number, const KCE::Vector2& position);
 
 	/**
 	 * @brief 数値を描画
@@ -55,7 +55,7 @@ public:
 	 * @param position 描画開始位置（左端）
 	 * @param spacing 桁間のスペース
 	 */
-	void DrawNumber(int number, const Vector2& position, float spacing);
+	void DrawNumber(int number, const KCE::Vector2& position, float spacing);
 
 	/*---------------[ ゲッター ]---------------*/
 
@@ -69,7 +69,7 @@ public:
 	 * @brief 描画位置を取得
 	 * @return 現在の描画位置
 	 */
-	const Vector2& GetPosition() const { return position_; }
+	const KCE::Vector2& GetPosition() const { return position_; }
 
 	/**
 	 * @brief 桁間のスペースを取得
@@ -81,7 +81,7 @@ public:
 	 * @brief 1桁のサイズを取得
 	 * @return 1桁のサイズ（幅、高さ）
 	 */
-	const Vector2& GetDigitSize() const { return digit_; }
+	const KCE::Vector2& GetDigitSize() const { return digit_; }
 
 	/**
 	 * @brief 色を取得
@@ -119,7 +119,7 @@ public:
 	 * @brief 描画位置を設定
 	 * @param position 描画位置
 	 */
-	void SetPosition(const Vector2& position) { position_ = position; }
+	void SetPosition(const KCE::Vector2& position) { position_ = position; }
 
 	/**
 	 * @brief 桁間のスペースを設定
@@ -131,7 +131,7 @@ public:
 	 * @brief 1桁のサイズを設定
 	 * @param size 1桁のサイズ（幅、高さ）
 	 */
-	void SetDigitSize(const Vector2& size);
+	void SetDigitSize(const KCE::Vector2& size);
 
 	/**
 	 * @brief 色を設定
@@ -176,17 +176,17 @@ private:
 	 * @param digitCount 実際の桁数
 	 * @return 描画開始位置
 	 */
-	Vector2 CalculateStartPosition(int digitCount) const;
+	KCE::Vector2 CalculateStartPosition(int digitCount) const;
 
 private:
 	// 10桁分のスプライト(intの桁数は最大10桁までなので)
 	std::array<std::unique_ptr<Sprite>, 10> digits_;
 	// 1桁のサイズ
-	Vector2 digit_ = {};
+	KCE::Vector2 digit_ = {};
 	// 表示する数値
 	int number_ = 0;
 	// 描画位置
-	Vector2 position_ = {};
+	KCE::Vector2 position_ = {};
 	// 桁間のスペース
 	float spacing_ = 0.0f;
 	// 色

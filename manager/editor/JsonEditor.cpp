@@ -107,7 +107,7 @@ void JsonEditor::Initialize()
 					}
 					else
 					{
-						Logger::Log("[JSON Error] Failed to open raw JSON file: " + dirPath + rawJsonFileName_ + "\n");
+						KCE::Logger::Log("[JSON Error] Failed to open raw JSON file: " + dirPath + rawJsonFileName_ + "\n");
 						rawJsonContentStr_ = "{}";
 					}
 				}
@@ -121,7 +121,7 @@ void JsonEditor::Initialize()
 					}
 					else
 					{
-						Logger::Log("[JSON Error] Failed to save raw JSON file: " + dirPath + rawJsonFileName_ + "\n");
+						KCE::Logger::Log("[JSON Error] Failed to save raw JSON file: " + dirPath + rawJsonFileName_ + "\n");
 					}
 				}
 

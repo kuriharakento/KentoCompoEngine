@@ -126,7 +126,6 @@
     <ClCompile Include="math\MathUtils.cpp" />
     <ClCompile Include="scene\factory\SceneFactory.cpp" />
     <ClCompile Include="scene\manager\SceneManager.cpp" />
-    <ClCompile Include="scene\MyGame.cpp" />
     <ClCompile Include="time\TimeManager.cpp" />
     <ClCompile Include="time\Timer.cpp" />
     <ClCompile Include="time\TimerManager.cpp" />
@@ -303,7 +302,6 @@
     <ClInclude Include="scene\interface\BaseScene.h" />
     <ClInclude Include="scene\interface\ISceneState.h" />
     <ClInclude Include="scene\manager\SceneManager.h" />
-    <ClInclude Include="scene\MyGame.h" />
     <ClInclude Include="scene\SceneContext.h" />
     <ClInclude Include="time\TimeManager.h" />
     <ClInclude Include="time\Timer.h" />

@@ -370,7 +370,7 @@ void Framework::Run()
 	Initialize();
 
 	// メインループ開始ログ
-	Logger::Log("\n/******* Start Main Loop *******/\n\n");
+	KCE::Logger::Log("\n/******* Start Main Loop *******/\n\n");
 
 	// メインループ
 	while (true)
@@ -389,7 +389,7 @@ void Framework::Run()
 	}
 
 	// メインループ終了ログ
-	Logger::Log("\n/******* End Main Loop *******/\n\n");
+	KCE::Logger::Log("\n/******* End Main Loop *******/\n\n");
 
 	// 終了処理
 	Finalize();

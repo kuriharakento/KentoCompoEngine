@@ -9,7 +9,7 @@ constexpr float kTextureTopY = 0.0f;
 // アンカーポイントの中心位置
 constexpr float kAnchorCenter = 0.5f;
 
-void NumberSprite::Initialize(SpriteCommon* spriteCommon, const std::string& textureFilePath, const Vector2& digit)
+void NumberSprite::Initialize(SpriteCommon* spriteCommon, const std::string& textureFilePath, const KCE::Vector2& digit)
 {
 	digit_ = digit;
 
@@ -20,12 +20,12 @@ void NumberSprite::Initialize(SpriteCommon* spriteCommon, const std::string& tex
 		sprite->Initialize(spriteCommon, textureFilePath);
 
 		// 各桁は初期状態で全体表示（左上座標とサイズは描画時に設定）
-		sprite->SetTextureLeftTop(Vector2(0.0f, 0.0f));
+		sprite->SetTextureLeftTop(KCE::Vector2(0.0f, 0.0f));
 		sprite->SetTextureSize(digit_);
 		sprite->SetSize(digit_);
 
 		// 中心を基準にアンカーポイントを設定
-		sprite->SetAnchorPoint(Vector2(kAnchorCenter, kAnchorCenter));
+		sprite->SetAnchorPoint(KCE::Vector2(kAnchorCenter, kAnchorCenter));
 	}
 }
 
@@ -47,7 +47,7 @@ void NumberSprite::Draw()
 	DrawNumber(number_, position_, spacing_);
 }
 
-void NumberSprite::DrawDigit(int number, const Vector2& position)
+void NumberSprite::DrawDigit(int number, const KCE::Vector2& position)
 {
 	// 非表示なら描画しない
 	if (!isVisible_) return;
@@ -62,12 +62,12 @@ void NumberSprite::DrawDigit(int number, const Vector2& position)
 
 	// テクスチャ内の対応する数字位置を計算
 	float srcX = digit_.x * number;
-	sprite->SetTextureLeftTop(Vector2(srcX, kTextureTopY));
+	sprite->SetTextureLeftTop(KCE::Vector2(srcX, kTextureTopY));
 	sprite->SetPosition(position);
 	sprite->Draw();
 }
 
-void NumberSprite::DrawNumber(int number, const Vector2& position, float spacing)
+void NumberSprite::DrawNumber(int number, const KCE::Vector2& position, float spacing)
 {
 	// 非表示なら描画しない
 	if (!isVisible_) return;
@@ -96,23 +96,23 @@ void NumberSprite::DrawNumber(int number, const Vector2& position, float spacing
 	int displayDigitCount = (minDigits_ > actualDigitCount) ? minDigits_ : actualDigitCount;
 
 	// スケールを適用したサイズ
-	Vector2 scaledSize = { digit_.x * scale_, digit_.y * scale_ };
+	KCE::Vector2 scaledSize = { digit_.x * scale_, digit_.y * scale_ };
 
 	// 揃え位置に応じた開始位置を計算
-	Vector2 startPos = CalculateStartPosition(displayDigitCount);
+	KCE::Vector2 startPos = CalculateStartPosition(displayDigitCount);
 
 	// ゼロ埋めが必要な桁数
 	int leadingZeros = displayDigitCount - actualDigitCount;
 
 	// 左詰で描画
-	Vector2 pos = startPos;
+	KCE::Vector2 pos = startPos;
 	int spriteIndex = 0;
 
 	// 先頭のゼロを描画（ゼロ埋め）
 	for (int i = 0; i < leadingZeros && spriteIndex < static_cast<int>(digits_.size()); ++i)
 	{
 		float srcX = 0.0f; // 0のテクスチャ位置
-		digits_[spriteIndex]->SetTextureLeftTop(Vector2(srcX, kTextureTopY));
+		digits_[spriteIndex]->SetTextureLeftTop(KCE::Vector2(srcX, kTextureTopY));
 		digits_[spriteIndex]->SetPosition(pos);
 		digits_[spriteIndex]->SetSize(scaledSize);
 		digits_[spriteIndex]->SetColor(color_);
@@ -129,7 +129,7 @@ void NumberSprite::DrawNumber(int number, const Vector2& position, float spacing
 
 		// テクスチャ内の対応する数字位置を計算
 		float srcX = digit_.x * d;
-		digits_[spriteIndex]->SetTextureLeftTop(Vector2(srcX, kTextureTopY));
+		digits_[spriteIndex]->SetTextureLeftTop(KCE::Vector2(srcX, kTextureTopY));
 		digits_[spriteIndex]->SetPosition(pos);
 		digits_[spriteIndex]->SetSize(scaledSize);
 		digits_[spriteIndex]->SetColor(color_);
@@ -155,7 +155,7 @@ int NumberSprite::GetDigitCount(int number) const
 	return count;
 }
 
-Vector2 NumberSprite::CalculateStartPosition(int digitCount) const
+KCE::Vector2 NumberSprite::CalculateStartPosition(int digitCount) const
 {
 	// スケールを適用したサイズ
 	float scaledWidth = digit_.x * scale_;
@@ -163,7 +163,7 @@ Vector2 NumberSprite::CalculateStartPosition(int digitCount) const
 	// 全体の幅を計算
 	float totalWidth = scaledWidth * digitCount + spacing_ * (digitCount - 1);
 
-	Vector2 startPos = position_;
+	KCE::Vector2 startPos = position_;
 
 	switch (alignment_)
 	{
@@ -185,7 +185,7 @@ Vector2 NumberSprite::CalculateStartPosition(int digitCount) const
 	return startPos;
 }
 
-void NumberSprite::SetDigitSize(const Vector2& size)
+void NumberSprite::SetDigitSize(const KCE::Vector2& size)
 {
 	digit_ = size;
 

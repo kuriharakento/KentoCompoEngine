@@ -22,7 +22,7 @@ struct PrimitiveVertex
 	// POSITION0 (float4)
 	Vector4 position;
 	// TEXCOORD0 (float2)
-	Vector2 texcoord;
+	KCE::Vector2 texcoord;
 	// NORMAL0 (float3)
 	Vector3 normal;
 };

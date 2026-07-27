@@ -54,7 +54,7 @@ namespace GameObjectComponent
 		
 	#ifdef _DEBUG
 		// デバッグモードでOBBを可視化
-		LineManager::GetInstance()->DrawOBB(obb_, VectorColorCodes::Cyan);
+		LineManager::GetInstance()->DrawOBB(obb_, KCE::VectorColorCodes::Cyan);
 		
 		// サブステップ判定使用時は前フレーム位置も可視化
 		if (useSubstep_)
@@ -63,7 +63,7 @@ namespace GameObjectComponent
 			previousObb.center = previousPosition_;
 			previousObb.rotate = obb_.rotate;
 			previousObb.size = obb_.size;
-			LineManager::GetInstance()->DrawOBB(previousObb, VectorColorCodes::Red);
+			LineManager::GetInstance()->DrawOBB(previousObb, KCE::VectorColorCodes::Red);
 		}
 	#endif
 	}

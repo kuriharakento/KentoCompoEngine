@@ -23,7 +23,7 @@ void GBuffer::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, uint32
 	CreateDepthBuffer();
 	CreateDescriptors();
 
-	Logger::Log("GBuffer initialized: " + std::to_string(width) + "x" + std::to_string(height) + "\n");
+	KCE::Logger::Log("GBuffer initialized: " + std::to_string(width) + "x" + std::to_string(height) + "\n");
 }
 
 void GBuffer::CreateRenderTargets()

@@ -10,6 +10,6 @@ std::unique_ptr<BaseScene> SceneFactory::CreateScene(const std::string& sceneNam
 		return it->second();
 	}
 
-	Logger::Log("[SceneFactory Error] Can't Create Scene: '" + sceneName + "' (Scene is not registered)\n");
+	KCE::Logger::Log("[SceneFactory Error] Can't Create Scene: '" + sceneName + "' (Scene is not registered)\n");
 	return nullptr;
 }

@@ -47,14 +47,14 @@ public:
 	{
 		if (!state)
 		{
-			Logger::Log("[SceneStateMachine Error] Attempted to register nullptr state: " + name + "\n");
+			KCE::Logger::Log("[SceneStateMachine Error] Attempted to register nullptr state: " + name + "\n");
 			return false;
 		}
 
 		auto [it, inserted] = states_.emplace(name, std::move(state));
 		if (!inserted)
 		{
-			Logger::Log("[SceneStateMachine Error] Duplicate state registration rejected: " + name + "\n");
+			KCE::Logger::Log("[SceneStateMachine Error] Duplicate state registration rejected: " + name + "\n");
 			return false;
 		}
 
@@ -70,7 +70,7 @@ public:
 		auto it = states_.find(name);
 		if (it == states_.end())
 		{
-			Logger::Log("[SceneStateMachine Error] State not found: " + name + "\n");
+			KCE::Logger::Log("[SceneStateMachine Error] State not found: " + name + "\n");
 			return;
 		}
 

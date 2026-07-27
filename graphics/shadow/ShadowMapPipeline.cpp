@@ -10,7 +10,7 @@ void ShadowMapPipeline::Initialize(DirectXCommon* dxCommon)
 	CreateRootSignature();
 	CreatePipelineState();
 
-	Logger::Log("ShadowMapPipeline initialized\n");
+	KCE::Logger::Log("ShadowMapPipeline initialized\n");
 }
 
 void ShadowMapPipeline::SetPipeline() const
@@ -79,7 +79,7 @@ void ShadowMapPipeline::CreateRootSignature()
 	{
 		if (errorBlob)
 		{
-			Logger::Log(static_cast<char*>(errorBlob->GetBufferPointer()));
+			KCE::Logger::Log(static_cast<char*>(errorBlob->GetBufferPointer()));
 		}
 		assert(false);
 	}

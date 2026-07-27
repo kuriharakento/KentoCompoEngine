@@ -232,7 +232,7 @@ void Sprite::AdjustTextureSize()
 		TextureManager::GetInstance()->GetMetadata(textureIndex_);
 
 	// テクスチャのサイズを取得
-	textureSize_ = Vector2(
+	textureSize_ = KCE::Vector2(
 		static_cast<float>(metadata.width), 
 		static_cast<float>(metadata.height)
 	);

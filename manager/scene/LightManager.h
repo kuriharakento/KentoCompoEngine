@@ -526,12 +526,12 @@ private:
 	float duration_ = 1.0f;
 
 	// ポイントライトのグラデーション用色
-	Vector4 startPointLightColor_ = VectorColorCodes::White;  // 開始色
-	Vector4 endPointLightColor_ = VectorColorCodes::Purple;   // 終了色
+	Vector4 startPointLightColor_ = KCE::VectorColorCodes::White;  // 開始色
+	Vector4 endPointLightColor_ = KCE::VectorColorCodes::Purple;   // 終了色
 
 	// スポットライトのグラデーション用色
-	Vector4 startSpotLightColor_ = VectorColorCodes::White;   // 開始色
-	Vector4 endSpotLightColor_ = VectorColorCodes::Red;       // 終了色
+	Vector4 startSpotLightColor_ = KCE::VectorColorCodes::White;   // 開始色
+	Vector4 endSpotLightColor_ = KCE::VectorColorCodes::Red;       // 終了色
 
 	// ディレクショナルライトデータ
 	DirectionalLight directionalLight_;

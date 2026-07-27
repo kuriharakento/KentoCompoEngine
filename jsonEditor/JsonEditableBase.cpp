@@ -29,7 +29,7 @@ bool JsonEditableBase::LoadJson(const std::string& path)
 	std::ifstream ifs(fullPath);
 	if (!ifs)
 	{
-		Logger::Log("[JSON Error] Failed to open JSON file: " + fullPath + "\n");
+		KCE::Logger::Log("[JSON Error] Failed to open JSON file: " + fullPath + "\n");
 		return false;
 	}
 
@@ -40,27 +40,27 @@ bool JsonEditableBase::LoadJson(const std::string& path)
 	}
 	catch (const std::exception& e)
 	{
-		Logger::Log("[JSON Error] Parsing exception in file '" + fullPath + "': " + std::string(e.what()) + "\n");
+		KCE::Logger::Log("[JSON Error] Parsing exception in file '" + fullPath + "': " + std::string(e.what()) + "\n");
 		return false;
 	}
 
 #ifdef _DEBUG
 	// デバッグ: 読み込んだファイルパスとobjects配列サイズ
-	Logger::Log("LoadJson path: " + fullPath + "\n");
+	KCE::Logger::Log("LoadJson path: " + fullPath + "\n");
 	if (json.contains("objects"))
 	{
 		if (json["objects"].is_array())
 		{
-			Logger::Log("Raw JSON 'objects' count: " + std::to_string(json["objects"].size()) + "\n");
+			KCE::Logger::Log("Raw JSON 'objects' count: " + std::to_string(json["objects"].size()) + "\n");
 		}
 		else
 		{
-			Logger::Log("'objects' is not an array\n");
+			KCE::Logger::Log("'objects' is not an array\n");
 		}
 	}
 	else
 	{
-		Logger::Log("No 'objects' key in JSON\n");
+		KCE::Logger::Log("No 'objects' key in JSON\n");
 	}
 #endif
 
@@ -129,7 +129,7 @@ bool JsonEditableBase::LoadJson(const std::string& path)
 		}
 		catch (const std::exception& e)
 		{
-			Logger::Log("[JSON Warning] Value assignment failed for key '" + key + "': " + std::string(e.what()) + "\n");
+			KCE::Logger::Log("[JSON Warning] Value assignment failed for key '" + key + "': " + std::string(e.what()) + "\n");
 		}
     }
 
@@ -150,7 +150,7 @@ bool JsonEditableBase::SaveJson(const std::string& path) const
 		}
 		catch (const std::exception& e)
 		{
-			Logger::Log("[JSON Error] Failed to serialize key '" + key + "': " + std::string(e.what()) + "\n");
+			KCE::Logger::Log("[JSON Error] Failed to serialize key '" + key + "': " + std::string(e.what()) + "\n");
 		}
 	}
 	
@@ -158,7 +158,7 @@ bool JsonEditableBase::SaveJson(const std::string& path) const
 	std::ofstream ofs(fullPath);
 	if (!ofs)
 	{
-		Logger::Log("[JSON Error] Failed to open JSON file for writing: " + fullPath + "\n");
+		KCE::Logger::Log("[JSON Error] Failed to open JSON file for writing: " + fullPath + "\n");
 		return false;
 	}
 
@@ -169,7 +169,7 @@ bool JsonEditableBase::SaveJson(const std::string& path) const
 	}
 	catch (const std::exception& e)
 	{
-		Logger::Log("[JSON Error] Exception during JSON write to file '" + fullPath + "': " + std::string(e.what()) + "\n");
+		KCE::Logger::Log("[JSON Error] Exception during JSON write to file '" + fullPath + "': " + std::string(e.what()) + "\n");
 		return false;
 	}
 
@@ -288,7 +288,7 @@ void JsonEditableBase::DrawOptions()
 	}
 	catch (const std::exception& e)
 	{
-		Logger::Log("[JSON Error] Exception scanning directory: " + std::string(e.what()) + "\n");
+		KCE::Logger::Log("[JSON Error] Exception scanning directory: " + std::string(e.what()) + "\n");
 	}
 
 	// ドロップダウンでファイル一覧を表示
@@ -352,7 +352,7 @@ nlohmann::json JsonEditableBase::Serialize() const
 		}
 		catch (const std::exception& e)
 		{
-			Logger::Log("[JSON Error] Failed to serialize key '" + key + "': " + std::string(e.what()) + "\n");
+			KCE::Logger::Log("[JSON Error] Failed to serialize key '" + key + "': " + std::string(e.what()) + "\n");
 		}
 	}
 	return json;
@@ -370,7 +370,7 @@ void JsonEditableBase::Deserialize(const nlohmann::json& json)
 			}
 			catch (const std::exception& e)
 			{
-				Logger::Log("[JSON Warning] Value assignment failed for key '" + key + "': " + std::string(e.what()) + "\n");
+				KCE::Logger::Log("[JSON Warning] Value assignment failed for key '" + key + "': " + std::string(e.what()) + "\n");
 			}
 		}
 	}

@@ -268,7 +268,7 @@ void JsonEditableBase::Register(const std::string& name, T* value)
 	if (getters_.count(name)) return;
 
 	// 型名を出力
-	Logger::Log("Register: " + name + " type: " + std::string(typeid(T).name()) + "\n");
+	KCE::Logger::Log("Register: " + name + " type: " + std::string(typeid(T).name()) + "\n");
 
 	// 登録順序を保存
 	registrationOrder_.push_back(name);
@@ -293,7 +293,7 @@ void JsonEditableBase::Register(const std::string& name, T* value)
 			j.get_to(*value);
 		}
 		catch (const std::exception& e) {
-			Logger::Log("JSON parse error for key '" + name + "': " + std::string(e.what()) + "\n");
+			KCE::Logger::Log("JSON parse error for key '" + name + "': " + std::string(e.what()) + "\n");
 		}
 		};
 

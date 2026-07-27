@@ -222,7 +222,7 @@ public:
      * @brief マウスの座標を取得
      * @return クライアント領域内のマウス座標ベクトル
 	 */
-	Vector2 GetMousePosition() const;
+	KCE::Vector2 GetMousePosition() const;
 
     /**
      * @brief マウスの固定状態を設定
@@ -244,7 +244,7 @@ public:
      * @param offset 描画領域の左上座標
      * @param size 描画領域のサイズ
      */
-    void SetMouseCorrection(const Vector2& offset, const Vector2& size)
+    void SetMouseCorrection(const KCE::Vector2& offset, const KCE::Vector2& size)
     {
         nextMouseOffset_ = offset;
         nextMouseSize_ = size;
@@ -321,12 +321,12 @@ private:
     size_t playIndex_;                                 // 再生インデックス
 
     // マウス補正用
-    Vector2 mouseOffset_ = { 0.0f, 0.0f };
-    Vector2 mouseSize_ = { 0.0f, 0.0f };
+    KCE::Vector2 mouseOffset_ = { 0.0f, 0.0f };
+    KCE::Vector2 mouseSize_ = { 0.0f, 0.0f };
     bool hasCorrection_ = false;
 
     // 次フレーム適用バッファ
-    Vector2 nextMouseOffset_ = { 0.0f, 0.0f };
-    Vector2 nextMouseSize_ = { 0.0f, 0.0f };
+    KCE::Vector2 nextMouseOffset_ = { 0.0f, 0.0f };
+    KCE::Vector2 nextMouseSize_ = { 0.0f, 0.0f };
     bool hasNextCorrection_ = false;
 };

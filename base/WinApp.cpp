@@ -108,6 +108,11 @@ void WinApp::Initialize()
 
 }
 
+void WinApp::SetWindowTitle(const std::wstring& title)
+{
+	SetWindowText(hwnd_, title.c_str());
+}
+
 void WinApp::Finalize()
 {
 	// ウィンドウを閉じる

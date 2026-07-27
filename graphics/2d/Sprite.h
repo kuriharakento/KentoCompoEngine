@@ -48,7 +48,7 @@ public: // アクセッサ
 	 * @brief 座標の取得
 	 * @return 現在の座標
 	 */
-	const Vector2& GetPosition() const { return position_; }
+	const KCE::Vector2& GetPosition() const { return position_; }
 
 	/**
 	 * @brief 回転の取得
@@ -66,13 +66,13 @@ public: // アクセッサ
 	 * @brief サイズの取得
 	 * @return 現在のサイズ（幅、高さ）
 	 */
-	const Vector2& GetSize() const { return size_; }
+	const KCE::Vector2& GetSize() const { return size_; }
 
 	/**
 	 * @brief アンカーポイントの取得
 	 * @return 現在のアンカーポイント（0.0-1.0）
 	 */
-	const Vector2& GetAnchorPoint() const { return anchorPoint_; }
+	const KCE::Vector2& GetAnchorPoint() const { return anchorPoint_; }
 
 	/**
 	 * @brief 左右フリップの取得
@@ -90,13 +90,13 @@ public: // アクセッサ
 	 * @brief テクスチャ左上座標の取得
 	 * @return テクスチャ内の切り出し開始位置
 	 */
-	const Vector2& GetTextureLeftTop() const { return textureLeftTop_; }
+	const KCE::Vector2& GetTextureLeftTop() const { return textureLeftTop_; }
 
 	/**
 	 * @brief テクスチャ切り出しサイズの取得
 	 * @return テクスチャの切り出しサイズ
 	 */
-	const Vector2& GetTextureSize() const { return textureSize_; }
+	const KCE::Vector2& GetTextureSize() const { return textureSize_; }
 
 	/*---------------[ セッター ]---------------*/
 
@@ -110,7 +110,7 @@ public: // アクセッサ
 	 * @brief 座標の設定
 	 * @param position 新しい座標
 	 */
-	void SetPosition(const Vector2& position) { position_ = position; }
+	void SetPosition(const KCE::Vector2& position) { position_ = position; }
 
 	/**
 	 * @brief 回転の設定
@@ -128,13 +128,13 @@ public: // アクセッサ
 	 * @brief サイズの設定
 	 * @param size 新しいサイズ（幅、高さ）
 	 */
-	void SetSize(const Vector2& size) { size_ = size; }
+	void SetSize(const KCE::Vector2& size) { size_ = size; }
 
 	/**
 	 * @brief アンカーポイントの設定
 	 * @param anchorPoint 新しいアンカーポイント（0.0-1.0）
 	 */
-	void SetAnchorPoint(const Vector2& anchorPoint) { anchorPoint_ = anchorPoint; }
+	void SetAnchorPoint(const KCE::Vector2& anchorPoint) { anchorPoint_ = anchorPoint; }
 
 	/**
 	 * @brief 左右フリップの設定
@@ -152,13 +152,13 @@ public: // アクセッサ
 	 * @brief テクスチャ左上座標の設定
 	 * @param textureLeftTop テクスチャ内の切り出し開始位置
 	 */
-	void SetTextureLeftTop(const Vector2& textureLeftTop) { textureLeftTop_ = textureLeftTop; }
+	void SetTextureLeftTop(const KCE::Vector2& textureLeftTop) { textureLeftTop_ = textureLeftTop; }
 
 	/**
 	 * @brief テクスチャ切り出しサイズの設定
 	 * @param textureSize テクスチャの切り出しサイズ
 	 */
-	void SetTextureSize(const Vector2& textureSize) { textureSize_ = textureSize; }
+	void SetTextureSize(const KCE::Vector2& textureSize) { textureSize_ = textureSize; }
 
 private: // メンバ関数
 	/**
@@ -217,16 +217,16 @@ private: // メンバ変数
 	uint32_t textureIndex_ = 0;
 
 	// 座標
-	Vector2 position_ = { 0.0f,0.0f };
+	KCE::Vector2 position_ = { 0.0f,0.0f };
 
 	// 回転
 	float rotation_ = 0.0f;
 
 	// サイズ
-	Vector2 size_ = { 0.0f,0.0f };
+	KCE::Vector2 size_ = { 0.0f,0.0f };
 
 	// アンカーポイント
-	Vector2 anchorPoint_ = { 0.0f,0.0f };
+	KCE::Vector2 anchorPoint_ = { 0.0f,0.0f };
 
 	// 左右フリップ
 	bool isFlipX_ = false;
@@ -235,9 +235,9 @@ private: // メンバ変数
 	bool isFlipY_ = false;
 
 	// テクスチャ左上座標
-	Vector2 textureLeftTop_ = { 0.0f,0.0f };
+	KCE::Vector2 textureLeftTop_ = { 0.0f,0.0f };
 
 	// テクスチャ切り出しサイズ
-	Vector2 textureSize_ = { 0.0f,0.0f };
+	KCE::Vector2 textureSize_ = { 0.0f,0.0f };
 };
 

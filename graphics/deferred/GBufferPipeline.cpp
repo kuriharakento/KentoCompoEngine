@@ -17,7 +17,7 @@ void GBufferPipeline::Initialize(DirectXCommon* dxCommon)
 	CreateRootSignature();
 	CreatePipelineState();
 
-	Logger::Log("GBufferPipeline initialized\n");
+	KCE::Logger::Log("GBufferPipeline initialized\n");
 }
 
 void GBufferPipeline::CreateRootSignature()
@@ -94,7 +94,7 @@ void GBufferPipeline::CreateRootSignature()
 	{
 		if (errorBlob)
 		{
-			Logger::Log(static_cast<char*>(errorBlob->GetBufferPointer()));
+			KCE::Logger::Log(static_cast<char*>(errorBlob->GetBufferPointer()));
 		}
 		assert(false);
 	}
@@ -141,7 +141,7 @@ void GBufferPipeline::CreatePipelineState()
 	{
 		if (errorBlob)
 		{
-			Logger::Log(static_cast<char*>(errorBlob->GetBufferPointer()));
+			KCE::Logger::Log(static_cast<char*>(errorBlob->GetBufferPointer()));
 		}
 		assert(false);
 	}
@@ -178,7 +178,7 @@ void GBufferPipeline::CreatePipelineState()
 	{
 		if (errorBlob)
 		{
-			Logger::Log(static_cast<char*>(errorBlob->GetBufferPointer()));
+			KCE::Logger::Log(static_cast<char*>(errorBlob->GetBufferPointer()));
 		}
 		assert(false);
 	}

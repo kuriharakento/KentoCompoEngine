@@ -107,7 +107,7 @@ void Input::Finalize()
         SetVibration(i, kVibrationOff, kVibrationOff);
     }
 
-    Logger::Log("Inputクラスの終了処理が完了しました。\n");
+    KCE::Logger::Log("Inputクラスの終了処理が完了しました。\n");
 }
 
 void Input::Update() {
@@ -131,7 +131,7 @@ void Input::Update() {
     // マウス固定の有効/無効を切り替え
     if (TriggerKey(DIK_F1)) {
         isMouseLockEnabled_ = !isMouseLockEnabled_;
-        Logger::Log(isMouseLockEnabled_ ? "マウス固定: 有効\n" : "マウス固定: 無効\n");
+        KCE::Logger::Log(isMouseLockEnabled_ ? "マウス固定: 有効\n" : "マウス固定: 無効\n");
     }
 
     // マウスの状態を更新
@@ -265,7 +265,7 @@ void Input::Update() {
             // 再生完了
             isPlaying_ = false;
             playIndex_ = 0;
-            Logger::Log("入力の再生が完了しました。\n");
+            KCE::Logger::Log("入力の再生が完了しました。\n");
         }
     }
 
@@ -363,13 +363,13 @@ void Input::StartRecording()
 {
     isRecording_ = true;
     recordedInputs_.clear();
-    Logger::Log("入力の記録を開始しました。\n");
+    KCE::Logger::Log("入力の記録を開始しました。\n");
 }
 
 void Input::StopRecording()
 {
     isRecording_ = false;
-    Logger::Log("入力の記録を停止しました。\n");
+    KCE::Logger::Log("入力の記録を停止しました。\n");
 }
 
 void Input::PlayRecording()
@@ -378,7 +378,7 @@ void Input::PlayRecording()
     {
         isPlaying_ = true;
         playIndex_ = 0;
-        Logger::Log("入力の再生を開始しました。\n");
+        KCE::Logger::Log("入力の再生を開始しました。\n");
     }
 }
 
@@ -458,7 +458,7 @@ float Input::GetMouseY() const
 	return realY;
 }
 
-Vector2 Input::GetMousePosition() const
+KCE::Vector2 Input::GetMousePosition() const
 {
-	return Vector2{ GetMouseX(), GetMouseY() };
+	return KCE::Vector2{ GetMouseX(), GetMouseY() };
 }

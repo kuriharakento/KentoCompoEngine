@@ -11,7 +11,7 @@ void ShadowSystem::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, L
 	shadowMapPipeline_.Initialize(dxCommon);
 
 	isInitialized_ = true;
-	Logger::Log("ShadowSystem initialized\n");
+	KCE::Logger::Log("ShadowSystem initialized\n");
 }
 
 void ShadowSystem::CreateDirectionalLightShadow(uint32_t resolution)

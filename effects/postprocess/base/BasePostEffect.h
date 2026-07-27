@@ -91,7 +91,7 @@ struct alignas(16) PostEffectParams
 	float pad4[3];
 
 	// 画面サイズの逆数 (シェーダー内でのUV計算用)
-	Vector2 invScreenSize;
+	KCE::Vector2 invScreenSize;
 	// しきい値の緩やかさ (0.0f: 急峻、1.0f: 緩やか)
 	float bloomThresholdKnee;
 	// オリジナル画像とBloom画像の合成比率 (1.0f: Bloomを完全に適用)

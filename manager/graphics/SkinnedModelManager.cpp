@@ -62,7 +62,7 @@ const SkinnedModelSharedResource* SkinnedModelManager::LoadModel(const std::stri
 
     if (!scene || !scene->HasMeshes())
     {
-        Logger::Log("Failed to load skinned model: " + fullPath + "\n");
+        KCE::Logger::Log("Failed to load skinned model: " + fullPath + "\n");
         return nullptr;
     }
 

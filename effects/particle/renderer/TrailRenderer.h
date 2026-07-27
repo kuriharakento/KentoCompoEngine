@@ -30,7 +30,7 @@ class SrvManager;
 struct TrailVertex
 {
 	Vector3 position;
-	Vector2 texcoord;
+	KCE::Vector2 texcoord;
 	Vector4 color;
 };
 
