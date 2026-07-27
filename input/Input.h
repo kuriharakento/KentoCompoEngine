@@ -14,6 +14,8 @@
 #include <memory>
 #include "math/Vector2.h"
 
+namespace KCE
+{
 // 前方宣言
 class WinApp;
 
@@ -261,6 +263,7 @@ public:
     }
 
 private:
+    friend std::unique_ptr<Input> std::make_unique<Input>();
     Input();
 
     // コピーと代入を禁止
@@ -330,3 +333,4 @@ private:
     KCE::Vector2 nextMouseSize_ = { 0.0f, 0.0f };
     bool hasNextCorrection_ = false;
 };
+} // namespace KCE

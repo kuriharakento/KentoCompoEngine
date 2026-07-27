@@ -2,6 +2,8 @@
 // camerawork
 #include "camerawork/base/CameraWorkBase.h"
 
+namespace KCE
+{
 /**
  * @brief ターゲット追従カメラクラス
  *
@@ -62,3 +64,4 @@ private:
 	// 操作対象のカメラ
 	Camera* camera_ = nullptr;
 };
+} // namespace KCE

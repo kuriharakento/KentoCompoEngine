@@ -5,6 +5,8 @@
 #include "engine/gameobject/base/GameObject.h"
 #include "engine/ecs/components/ColliderComponent.h"
 
+namespace KCE
+{
 using namespace GameObjectComponent;
 
 namespace collisionAlgorithm
@@ -1756,4 +1758,4 @@ bool collisionAlgorithm::CheckCirclevsOBBSubstep2D(const SphereColliderComponent
 	}
 	return false;
 }
-
+} // namespace KCE

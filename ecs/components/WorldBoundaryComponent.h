@@ -1,6 +1,8 @@
 #pragma once
 #include "math/Vector3.h"
 
+namespace KCE
+{
 namespace ecs
 {
     /**
@@ -15,3 +17,4 @@ namespace ecs
         bool active_ = true;
     };
 }
+} // namespace KCE

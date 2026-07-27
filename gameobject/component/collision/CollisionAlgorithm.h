@@ -4,6 +4,8 @@
 #include "SphereColliderComponent.h"
 #include "RayColliderComponent.h"
 
+namespace KCE
+{
 /**
  * @brief 2D判定時の衝突判定面を表す列挙型
  */
@@ -352,4 +354,4 @@ namespace collisionAlgorithm
 	 */
 	bool CheckCirclevsOBBSubstep2D(const SphereColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane);
 }
-
+} // namespace KCE

@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 
+namespace KCE
+{
 /**
  * @file ModulePriorities.h
  * @brief パーティクルモジュールの実行優先度定数
@@ -116,3 +118,4 @@ namespace ParticleModulePriority
 	/** @brief 寿命に応じた外力 */
 	constexpr int32_t kForceOverLifetime = -30;
 }
+} // namespace KCE

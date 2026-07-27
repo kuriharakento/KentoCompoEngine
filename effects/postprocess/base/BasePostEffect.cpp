@@ -2,6 +2,8 @@
 #include "DirectXTex/d3dx12.h"
 #include <cassert>
 
+namespace KCE
+{
 // コンストラクタ：エフェクトを無効状態で初期化
 BasePostEffect::BasePostEffect() : enabled_(false), isDirty_(true) {}
 
@@ -18,3 +20,4 @@ void BasePostEffect::SetEnabled(bool enabled)
 		isDirty_ = true;
 	}
 }
+} // namespace KCE

@@ -1,5 +1,7 @@
 #include "JsonEditorImGuiUtils.h"
 
+namespace KCE
+{
 #ifdef USE_IMGUI
 
 // 文字列入力バッファのサイズ
@@ -137,3 +139,4 @@ void DrawImGuiForStringVector(const std::string& name, std::vector<std::string>*
 }
 
 #endif // USE_IMGUI
+} // namespace KCE

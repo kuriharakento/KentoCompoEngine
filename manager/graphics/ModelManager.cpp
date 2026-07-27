@@ -1,5 +1,7 @@
 #include "ModelManager.h"
 
+namespace KCE
+{
 // シングルトンインスタンスの実体
 std::unique_ptr<ModelManager> ModelManager::instance_ = nullptr;
 
@@ -8,7 +10,7 @@ ModelManager* ModelManager::GetInstance()
 	// インスタンスが存在しない場合は生成
 	if (instance_ == nullptr)
 	{
-		instance_.reset(new ModelManager());
+		instance_ = std::make_unique<ModelManager>();
 	}
 	return instance_.get();
 }
@@ -54,3 +56,4 @@ Model* ModelManager::FindModel(const std::string& filePath)
 	// ファイル名一致なし
 	return nullptr;
 }
+} // namespace KCE

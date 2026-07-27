@@ -2,6 +2,8 @@
 
 #include <string>
 
+namespace KCE
+{
 namespace ecs
 {
     /**
@@ -22,3 +24,4 @@ namespace ecs
         bool isVisible_ = true;
     };
 }
+} // namespace KCE

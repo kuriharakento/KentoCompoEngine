@@ -7,6 +7,8 @@
 #include "base/GraphicsTypes.h"
 #include "manager/system/SrvManager.h"
 
+namespace KCE
+{
 class SrvManager;
 
 /**
@@ -98,3 +100,4 @@ private:
 	ID3D12Resource* inputBuffer_ = nullptr;
 	ID3D12Resource* outputBuffer_ = nullptr;
 };
+} // namespace KCE

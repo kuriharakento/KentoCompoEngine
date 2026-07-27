@@ -6,6 +6,8 @@
 #include "math/Vector3.h"
 #include <numbers>
 
+namespace KCE
+{
 class Camera;
 
 /**
@@ -121,3 +123,4 @@ private:
     // アクティブ状態フラグ
     bool isActive_ = false;
 };
+} // namespace KCE

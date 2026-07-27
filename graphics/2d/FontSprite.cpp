@@ -6,7 +6,11 @@
 #ifdef USE_IMGUI
 #include "ImGui/imgui.h"
 #include "manager/editor/DebugUIManager.h"
+
 #endif // USE_IMGUI
+
+namespace KCE
+{
 
 using json = nlohmann::json;
 
@@ -183,7 +187,7 @@ void FontSprite::Draw()
     if (!isVisible_) return;
 
 	// アライメントに基づいた位置オフセットを計算
-	KCE::Vector2 drawPos = position_;
+	Vector2 drawPos = position_;
 	if (alignment_ != FontAlignment::Left)
 	{
 		float totalWidth = GetTextWidth();
@@ -201,7 +205,7 @@ void FontSprite::Draw()
     DrawTextInternal(text_, drawPos, scale_, spacing_);
 }
 
-void FontSprite::DrawChar(char character, const KCE::Vector2& position, float scale)
+void FontSprite::DrawChar(char character, const Vector2& position, float scale)
 {
     // 一時スプライトで描画（キャッシュを使わない）
     auto tmp = CreateSpriteForChar(character);
@@ -219,7 +223,7 @@ void FontSprite::DrawChar(char character, const KCE::Vector2& position, float sc
     sprite->Draw();
 }
 
-void FontSprite::DrawText(const std::string& text, const KCE::Vector2& position, float scale, float spacing)
+void FontSprite::DrawText(const std::string& text, const Vector2& position, float scale, float spacing)
 {
     // 即座に描画（引数で指定された値を使用）
     // Ensure してから描画（text_ は変更しない）
@@ -227,9 +231,9 @@ void FontSprite::DrawText(const std::string& text, const KCE::Vector2& position,
     DrawTextInternal(text, position, scale, spacing);
 }
 
-void FontSprite::DrawTextInternal(const std::string& text, const KCE::Vector2& position, float scale, float spacing)
+void FontSprite::DrawTextInternal(const std::string& text, const Vector2& position, float scale, float spacing)
 {
-    KCE::Vector2 currentPos = position;
+    Vector2 currentPos = position;
     float charWidth = cellSize_ * scale + spacing;
 
     for (size_t i = 0; i < text.size(); ++i)
@@ -332,3 +336,4 @@ void FontSprite::DrawImGui()
 	ImGui::PopID();
 }
 #endif
+} // namespace KCE

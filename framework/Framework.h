@@ -24,6 +24,8 @@
 // deferred
 #include "graphics/deferred/DeferredRenderer.h"
 
+namespace KCE
+{
 /**
  * @brief フレームワーククラス
  * @details ゲームエンジンの基盤となるクラス。
@@ -139,5 +141,4 @@ protected: // メンバ変数
 	// ディファードレンダラー
 	std::unique_ptr<DeferredRenderer> deferredRenderer_;
 };
-
-
+} // namespace KCE

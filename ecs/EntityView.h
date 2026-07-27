@@ -3,6 +3,8 @@
 #include "Registry.h"
 #include <tuple>
 
+namespace KCE
+{
 // No namespaces
 
 /**
@@ -69,3 +71,4 @@ private:
     // キャッシュされたコンポーネント配列の参照タプル
     std::tuple<ComponentArray<T>&...> arrays_;
 };
+} // namespace KCE

@@ -5,11 +5,14 @@
 
 // Factory
 #include "engine/gameobject/component/base/ComponentFactory.h"
+
+namespace KCE
+{
 REGISTER_COMPONENT(RayColliderComponent)
 
 namespace GameObjectComponent
 {
-	RayColliderComponent::RayColliderComponent(::GameObject* owner)
+	RayColliderComponent::RayColliderComponent(GameObject* owner)
 		: ICollisionComponent(owner)
 	{
 		Register("offset", &offset_);
@@ -25,7 +28,7 @@ namespace GameObjectComponent
 		Update(owner_);
 	}
 
-	void RayColliderComponent::Update(::GameObject* owner)
+	void RayColliderComponent::Update(GameObject* owner)
 	{
 		if (!owner_) return;
 
@@ -63,4 +66,4 @@ namespace GameObjectComponent
 	#endif
 	}
 }
-
+} // namespace KCE

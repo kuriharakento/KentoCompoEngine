@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <DirectXTex/d3dx12.h>
 
+namespace KCE
+{
 namespace
 {
 	// 定数バッファのアライメント（256バイト境界）
@@ -701,3 +703,4 @@ void GPUSimulator::ReadbackParticles(std::vector<Particle>& outParticles)
 		particleReadbackBuffer_[readIndex]->Unmap(0, nullptr);
 	}
 }
+} // namespace KCE

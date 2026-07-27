@@ -4,6 +4,8 @@
 #include "ISystem.h"
 #include "../../../engine/ecs/Registry.h"
 
+namespace KCE
+{
 class Camera;
 
 class Object3dSystem : public ISystem
@@ -18,3 +20,4 @@ public:
     void DrawGBuffer(Registry& registry, Camera* camera);
     void DrawShadow(Registry& registry, Camera* camera);
 };
+} // namespace KCE

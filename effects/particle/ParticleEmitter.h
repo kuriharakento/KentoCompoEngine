@@ -13,6 +13,8 @@
 #include "ParticleTypes.h"
 #include <base/GraphicsTypes.h>
 
+namespace KCE
+{
 // 前方宣言
 class IModule;
 class IRenderer;
@@ -239,3 +241,4 @@ private:
 	Vector3 previousPosition_ = {};                 ///< 前フレームの位置
 	bool hasPreviousPosition_ = false;              ///< 前フレームの位置が有効か
 };
+} // namespace KCE

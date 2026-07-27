@@ -9,6 +9,8 @@
 #include <cmath>
 #include <algorithm>
 
+namespace KCE
+{
 TrailRenderer::~TrailRenderer()
 {
 	if (vertexResource_)
@@ -779,3 +781,4 @@ void TrailRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 	// 描画
 	commandList->DrawInstanced(vertexCount_, 1, 0, 0);
 }
+} // namespace KCE

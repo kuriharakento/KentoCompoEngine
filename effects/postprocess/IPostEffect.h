@@ -1,6 +1,8 @@
 #pragma once
 #include <d3d12.h>
 
+namespace KCE
+{
 class DirectXCommon;
 
 /**
@@ -26,4 +28,4 @@ public:
      */
     virtual bool IsEnabled() const = 0;
 };
-
+} // namespace KCE

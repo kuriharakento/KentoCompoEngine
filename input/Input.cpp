@@ -6,6 +6,8 @@
 #include <cstring>
 #include <thread>
 
+namespace KCE
+{
 #pragma comment(lib, "dinput8.lib")
 #pragma comment(lib, "dxguid.lib")
 
@@ -31,7 +33,7 @@ Input* Input::GetInstance()
 {
     if (!instance_)
     {
-        		instance_.reset(new Input());
+		instance_ = std::make_unique<Input>();
     }
     return instance_.get();
 }
@@ -107,7 +109,7 @@ void Input::Finalize()
         SetVibration(i, kVibrationOff, kVibrationOff);
     }
 
-    KCE::Logger::Log("Inputクラスの終了処理が完了しました。\n");
+    Logger::Log("Inputクラスの終了処理が完了しました。\n");
 }
 
 void Input::Update() {
@@ -131,7 +133,7 @@ void Input::Update() {
     // マウス固定の有効/無効を切り替え
     if (TriggerKey(DIK_F1)) {
         isMouseLockEnabled_ = !isMouseLockEnabled_;
-        KCE::Logger::Log(isMouseLockEnabled_ ? "マウス固定: 有効\n" : "マウス固定: 無効\n");
+        Logger::Log(isMouseLockEnabled_ ? "マウス固定: 有効\n" : "マウス固定: 無効\n");
     }
 
     // マウスの状態を更新
@@ -265,7 +267,7 @@ void Input::Update() {
             // 再生完了
             isPlaying_ = false;
             playIndex_ = 0;
-            KCE::Logger::Log("入力の再生が完了しました。\n");
+            Logger::Log("入力の再生が完了しました。\n");
         }
     }
 
@@ -363,13 +365,13 @@ void Input::StartRecording()
 {
     isRecording_ = true;
     recordedInputs_.clear();
-    KCE::Logger::Log("入力の記録を開始しました。\n");
+    Logger::Log("入力の記録を開始しました。\n");
 }
 
 void Input::StopRecording()
 {
     isRecording_ = false;
-    KCE::Logger::Log("入力の記録を停止しました。\n");
+    Logger::Log("入力の記録を停止しました。\n");
 }
 
 void Input::PlayRecording()
@@ -378,7 +380,7 @@ void Input::PlayRecording()
     {
         isPlaying_ = true;
         playIndex_ = 0;
-        KCE::Logger::Log("入力の再生を開始しました。\n");
+        Logger::Log("入力の再生を開始しました。\n");
     }
 }
 
@@ -458,7 +460,8 @@ float Input::GetMouseY() const
 	return realY;
 }
 
-KCE::Vector2 Input::GetMousePosition() const
+Vector2 Input::GetMousePosition() const
 {
-	return KCE::Vector2{ GetMouseX(), GetMouseY() };
+	return Vector2{ GetMouseX(), GetMouseY() };
 }
+} // namespace KCE

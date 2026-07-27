@@ -3,6 +3,8 @@
 #include "Vector3.h"
 #include "MatrixFunc.h"
 
+namespace KCE
+{
 /**
  * @brief クォータニオン
  * @details 回転を表現するための四元数。Slerp補間に対応。
@@ -200,3 +202,4 @@ struct Quaternion
         return Vector3(result.x, result.y, result.z);
     }
 };
+} // namespace KCE

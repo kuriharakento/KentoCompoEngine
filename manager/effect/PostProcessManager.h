@@ -11,6 +11,8 @@
 #include "effects/postprocess/NoiseEffect.h"
 #include "effects/postprocess/VignetteEffect.h"
 
+namespace KCE
+{
 class DirectXCommon;
 class SrvManager;
 class RenderTexture;
@@ -111,8 +113,8 @@ public:
      */
     struct BlurParams
     {
-        KCE::Vector2 texelSize;           // テクセルサイズ
-        KCE::Vector2 blurDirection;       // ブラー方向
+        Vector2 texelSize;           // テクセルサイズ
+        Vector2 blurDirection;       // ブラー方向
         float radius = 8.0f;         // ブラー半径
         float padding[3] = {};       // パディング
     } blurParams_;
@@ -186,3 +188,4 @@ private:
 
     
 };
+} // namespace KCE

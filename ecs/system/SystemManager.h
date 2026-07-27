@@ -7,6 +7,8 @@
 #include <unordered_map>
 #include <cassert>
 
+namespace KCE
+{
 /**
  * @brief ECSシステムを一括管理・実行するクラス。
  */
@@ -70,4 +72,4 @@ private:
     // 型による逆引きマップ (非所有)
     std::unordered_map<std::type_index, ISystem*> systemMap_;
 };
-
+} // namespace KCE

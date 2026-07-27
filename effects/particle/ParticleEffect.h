@@ -12,6 +12,8 @@
 #include "math/Vector3.h"
 #include "time/Timer.h"
 
+namespace KCE
+{
 class ParticleEmitter;
 class CameraManager;
 class DirectXCommon;
@@ -188,3 +190,4 @@ private:
 	bool isAutoRemove_ = true;
 	DeltaTimeType deltaTimeType_ = DeltaTimeType::DeltaTime;
 };
+} // namespace KCE

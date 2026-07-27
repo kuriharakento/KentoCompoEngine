@@ -1,5 +1,7 @@
 #pragma once
 
+namespace KCE
+{
 class Skybox;
 class PostProcessManager;
 class PostProcessPass;
@@ -26,3 +28,4 @@ struct SceneContext
 	Skybox* skybox = nullptr;
 	ShadowMapManager* shadowMapManager = nullptr;
 };
+} // namespace KCE

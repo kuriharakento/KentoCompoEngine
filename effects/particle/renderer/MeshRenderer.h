@@ -14,6 +14,8 @@
 #include <d3d12.h>
 #include <wrl/client.h>
 
+namespace KCE
+{
 /**
  * @brief メッシュレンダラー
  * 
@@ -194,3 +196,4 @@ private:
 	bool useBillboard_ = false;                                 ///< ビルボード有効フラグ
 	Vector4 tintColor_ = { 1.0f, 1.0f, 1.0f, 1.0f };           ///< ティントカラー（RGBA）
 };
+} // namespace KCE

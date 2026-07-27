@@ -4,6 +4,8 @@
 #include "imgui/imgui.h"
 #include "manager/editor/DebugUIManager.h"
 
+namespace KCE
+{
 TimerManager& TimerManager::GetInstance()
 {
 	// 静的ローカル変数でシングルトンを実現
@@ -141,3 +143,4 @@ void TimerManager::DrawImGui()
 	}
 }
 #endif
+} // namespace KCE

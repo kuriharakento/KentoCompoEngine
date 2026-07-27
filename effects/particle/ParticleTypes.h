@@ -2,6 +2,8 @@
 
 #include "math/BlendMode.h"
 
+namespace KCE
+{
 /**
  * @brief シミュレーションモード
  */
@@ -133,3 +135,4 @@ enum class EasingType
 	EaseOutBounce,
 	EaseInOutBounce
 };
+} // namespace KCE

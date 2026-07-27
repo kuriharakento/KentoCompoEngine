@@ -3,6 +3,8 @@
 #include "base/GraphicsTypes.h"
 #include "light/DirectionalLight.h"
 
+namespace KCE
+{
 class Object3dCommon;
 class Camera;
 class LightManager;
@@ -168,3 +170,4 @@ public:
 	 */
 	virtual void SetRenderingType(RenderingType type) = 0;
 };
+} // namespace KCE

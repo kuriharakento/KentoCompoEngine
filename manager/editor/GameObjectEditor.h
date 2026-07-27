@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+namespace KCE
+{
 class GameObject;
 
 /**
@@ -39,6 +41,7 @@ public:
 	~GameObjectEditor() = default;
 
 private:
+	friend std::unique_ptr<GameObjectEditor> std::make_unique<GameObjectEditor>();
 	GameObjectEditor() = default;
 	GameObjectEditor(const GameObjectEditor&) = delete;
 	GameObjectEditor& operator=(const GameObjectEditor&) = delete;
@@ -72,3 +75,4 @@ private:
 	std::vector<std::string> jsonFiles_;
 	int selectedJsonIndex_ = 0;
 };
+} // namespace KCE

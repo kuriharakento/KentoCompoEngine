@@ -1,6 +1,8 @@
 #pragma once
 #include "Vector3.h"
 
+namespace KCE
+{
 /**
  * @brief 3D空間上のレイ（半直線）を表す構造体
  */
@@ -13,3 +15,4 @@ struct Ray
 	Ray() : start(0, 0, 0), direction(0, 0, 1), length(1.0f) {}
 	Ray(const Vector3& s, const Vector3& d, float l) : start(s), direction(d), length(l) {}
 };
+} // namespace KCE

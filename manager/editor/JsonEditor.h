@@ -6,6 +6,8 @@
 // editor
 #include "jsonEditor/JsonEditableBase.h"
 
+namespace KCE
+{
 /**
  * @brief JSONエディタクラス
  * @details タブベースのJSONエディタUIを管理するシングルトンクラス
@@ -78,6 +80,7 @@ private:
 
 private: // シングルトンインスタンス
 	static std::unique_ptr<JsonEditor> instance_;
+	friend std::unique_ptr<JsonEditor> std::make_unique<JsonEditor>();
 	JsonEditor() = default;       // コンストラクタ
 	JsonEditor(const JsonEditor&) = delete;            // コピーコンストラクタ
 	JsonEditor& operator=(const JsonEditor&) = delete; // コピー代入禁止
@@ -85,3 +88,4 @@ private: // シングルトンインスタンス
 public:
 	~JsonEditor() = default;      // デストラクタ
 };
+} // namespace KCE

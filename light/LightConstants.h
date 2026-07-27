@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 
+namespace KCE
+{
 /**
  * @brief ライトの最大数を定義する名前空間
  * 
@@ -27,3 +29,4 @@ struct LightCount
 	uint32_t spotLightCount = 0;  // 現在のスポットライト数
 	uint32_t padding;             // 16バイトアライメント用パディング
 };
+} // namespace KCE

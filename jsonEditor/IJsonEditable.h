@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 
+namespace KCE
+{
 /**
  * @brief JSON編集可能なオブジェクトのインターフェース
  * 
@@ -32,4 +34,4 @@ protected:
 
     virtual ~IJsonEditable() = default;
 };
-
+} // namespace KCE

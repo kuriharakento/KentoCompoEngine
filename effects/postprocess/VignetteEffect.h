@@ -2,6 +2,8 @@
 #include "base/BasePostEffect.h"
 #include "math/Vector3.h"
 
+namespace KCE
+{
 // ビネットエフェクトのデフォルトパラメータ
 constexpr float kDefaultVignetteIntensity = 1.0f;   // デフォルトの強度
 constexpr float kDefaultVignetteRadius = 0.6f;      // デフォルトの半径
@@ -115,3 +117,4 @@ private:
     // 内部パラメータ
     Parameters params_;
 };
+} // namespace KCE

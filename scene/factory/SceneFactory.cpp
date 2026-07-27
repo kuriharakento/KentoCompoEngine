@@ -1,6 +1,8 @@
 #include "SceneFactory.h"
 #include "base/Logger.h"
 
+namespace KCE
+{
 std::unique_ptr<BaseScene> SceneFactory::CreateScene(const std::string& sceneName)
 {
 	auto& reg = GetRegistry();
@@ -13,3 +15,4 @@ std::unique_ptr<BaseScene> SceneFactory::CreateScene(const std::string& sceneNam
 	KCE::Logger::Log("[SceneFactory Error] Can't Create Scene: '" + sceneName + "' (Scene is not registered)\n");
 	return nullptr;
 }
+} // namespace KCE

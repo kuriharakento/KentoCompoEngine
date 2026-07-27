@@ -6,6 +6,8 @@
 #include "base/DirectXCommon.h"
 #include "base/Logger.h"
 
+namespace KCE
+{
 void ParticlePipelineManager::Initialize(DirectXCommon* dxCommon)
 {
 	dxCommon_ = dxCommon;
@@ -120,7 +122,7 @@ void ParticlePipelineManager::CreateRootSignature()
 	hr = D3D12SerializeRootSignature(&descriptionRootSignature, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &errorBlob);
 	if (FAILED(hr))
 	{
-		KCE::Logger::Log(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
+		Logger::Log(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
 		assert(false);
 	}
 	// バイナリをもとに生成
@@ -339,7 +341,7 @@ void ParticlePipelineManager::CreateRibbonRootSignature()
 	hr = D3D12SerializeRootSignature(&descriptionRootSignature, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &errorBlob);
 	if (FAILED(hr))
 	{
-		KCE::Logger::Log(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
+		Logger::Log(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
 		assert(false);
 	}
 
@@ -489,3 +491,4 @@ void ParticlePipelineManager::CreateRibbonPipelineState(BlendMode mode)
 
 	ribbonPipelines_[mode] = pipelineState;
 }
+} // namespace KCE

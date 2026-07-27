@@ -12,6 +12,8 @@
 
 #include "manager/graphics/TextureManager.h"
 
+namespace KCE
+{
 // 定数
 constexpr int kMatrixRows = 4;
 constexpr int kMatrixColumns = 4;
@@ -25,7 +27,7 @@ SkinnedModelManager* SkinnedModelManager::GetInstance()
 {
     if (!instance_)
     {
-        instance_ = std::unique_ptr<SkinnedModelManager>(new SkinnedModelManager());
+		instance_ = std::make_unique<SkinnedModelManager>();
     }
     return instance_.get();
 }
@@ -291,3 +293,4 @@ const SkinnedModelSharedResource* SkinnedModelManager::LoadModel(const std::stri
     modelCache_[fullPath] = std::move(sharedResource);
     return modelCache_[fullPath].get();
 }
+} // namespace KCE

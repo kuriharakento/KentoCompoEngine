@@ -1,6 +1,8 @@
 #include "ShadowSystem.h"
 #include "base/Logger.h"
 
+namespace KCE
+{
 void ShadowSystem::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, LightManager* lightManager)
 {
 	dxCommon_ = dxCommon;
@@ -164,3 +166,4 @@ void ShadowSystem::Finalize()
 	shadowMapManager_.Clear();
 	isInitialized_ = false;
 }
+} // namespace KCE

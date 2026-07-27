@@ -1,5 +1,7 @@
 #include "HierarchySystem.h"
 
+namespace KCE
+{
 using namespace ecs;
 
 
@@ -123,4 +125,4 @@ void HierarchySystem::UpdateChildrenRecursive(Registry& registry, EntityID paren
         }
     }
 }
-
+} // namespace KCE

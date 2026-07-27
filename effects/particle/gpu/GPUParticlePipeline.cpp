@@ -4,6 +4,8 @@
 #include <filesystem>
 #include <vector>
 
+namespace KCE
+{
 #pragma comment(lib, "d3dcompiler.lib")
 
 namespace
@@ -24,7 +26,7 @@ GPUParticlePipeline* GPUParticlePipeline::GetInstance()
 	// シングルトンインスタンス生成
 	if (!instance_)
 	{
-		instance_.reset(new GPUParticlePipeline());
+		instance_ = std::make_unique<GPUParticlePipeline>();
 	}
 	return instance_.get();
 }
@@ -472,3 +474,4 @@ void GPUParticlePipeline::CreateModulePipelines()
 		assert(SUCCEEDED(hr));
 	}
 }
+} // namespace KCE

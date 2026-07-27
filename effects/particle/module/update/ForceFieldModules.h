@@ -11,11 +11,17 @@
 #include "effects/particle/ParticleEmitter.h"
 #include "effects/particle/ParticleTypes.h"
 #include "math/Vector3.h"
+#include "effects/particle/gpu/GPUSimulator.h"
+#include "effects/particle/gpu/GPUParticlePipeline.h"
+#include "effects/particle/ParticleManager.h"
+#include "base/DirectXCommon.h"
 #include <cmath>
 #include <algorithm>
 #include <d3d12.h>
 #include <wrl/client.h>
 
+namespace KCE
+{
 /**
  * @brief アトラクターモジュール
  * 
@@ -239,11 +245,6 @@ private:
 	GPUParams* constantData_ = nullptr;
 };
 
-#include "effects/particle/gpu/GPUSimulator.h"
-#include "effects/particle/gpu/GPUParticlePipeline.h"
-#include "effects/particle/ParticleManager.h"
-#include "base/DirectXCommon.h"
-
 inline void AttractorModule::DispatchGPU(GPUSimulator* simulator, ID3D12GraphicsCommandList* cmdList, float deltaTime)
 {
 	if (!constantBuffer_)
@@ -320,3 +321,4 @@ inline void VortexModule::DispatchGPU(GPUSimulator* simulator, ID3D12GraphicsCom
 	uavBarrier.UAV.pResource = nullptr;
 	cmdList->ResourceBarrier(1, &uavBarrier);
 }
+} // namespace KCE

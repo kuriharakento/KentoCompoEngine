@@ -5,6 +5,8 @@
 #include <fstream>
 #include <sstream>
 
+namespace KCE
+{
 // シングルトンインスタンスの実体
 std::unique_ptr<JsonEditor> JsonEditor::instance_ = nullptr;
 
@@ -13,7 +15,7 @@ JsonEditor* JsonEditor::GetInstance()
 	// インスタンスが存在しない場合は生成
 	if (instance_ == nullptr)
 	{
-		instance_.reset(new JsonEditor());
+		instance_ = std::make_unique<JsonEditor>();
 	}
 	return instance_.get();
 }
@@ -245,3 +247,4 @@ void JsonEditor::RenderEditUI()
 void JsonEditor::SaveAll()
 {
 }
+} // namespace KCE

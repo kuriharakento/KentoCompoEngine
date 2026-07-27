@@ -3,6 +3,8 @@
 #include "math/Vector2.h"
 #include "math/Vector3.h"
 
+namespace KCE
+{
 // GPU定数バッファのアラインメントサイズ（16バイト境界）
 constexpr size_t kAlignmentSize = 16;
 
@@ -56,7 +58,7 @@ struct alignas(16) PostEffectParams
 	// 16バイトアラインメント用パディング
 	float pad2[3];
 
-	//// --- CRT ---
+	/** @brief CRT */
 	// CRTエフェクト有効フラグ (0: 無効、1: 有効)
 	int crtEnabled;
 	// スキャンラインエフェクト有効フラグ (0: 無効、1: 有効)
@@ -78,7 +80,7 @@ struct alignas(16) PostEffectParams
 	// 16バイトアラインメント用パディング
 	float pad3[4];
 
-	/// --- bloom ---
+	/** @brief Bloom */
 	// Bloomエフェクト有効フラグ (0: 無効、1: 有効)
 	int bloomEnabled;
 	// Bloomの強度 (0.0f～1.0f以上)
@@ -91,7 +93,7 @@ struct alignas(16) PostEffectParams
 	float pad4[3];
 
 	// 画面サイズの逆数 (シェーダー内でのUV計算用)
-	KCE::Vector2 invScreenSize;
+	Vector2 invScreenSize;
 	// しきい値の緩やかさ (0.0f: 急峻、1.0f: 緩やか)
 	float bloomThresholdKnee;
 	// オリジナル画像とBloom画像の合成比率 (1.0f: Bloomを完全に適用)
@@ -191,3 +193,4 @@ protected:
 	bool isDirty_ = true;
 
 };
+} // namespace KCE

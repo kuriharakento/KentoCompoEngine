@@ -8,6 +8,8 @@
 #include "engine/ecs/Entity.h"
 #include <functional>
 
+namespace KCE
+{
 namespace ecs
 {
 struct CollisionPartnerInfo
@@ -21,8 +23,8 @@ struct CollisionPartnerInfo
 struct ColliderComponent
 {
     // --- フィルタリング設定 ---
-    uint32_t layer = 0;              // 自身が属するレイヤー（CollisionLayer::Player 等）
-    uint32_t mask  = 0xFFFFFFFF;     // 衝突を検知したい相手のレイヤーマスク
+    uint32_t layer_ = 0;              // 自身が属するレイヤー（CollisionLayer::Player 等）
+    uint32_t mask_  = 0xFFFFFFFF;     // 衝突を検知したい相手のレイヤーマスク
 
     // --- 形状データ ---
     ColliderType type_ = ColliderType::AABB;
@@ -57,3 +59,4 @@ struct ColliderComponent
     CollisionCallback onCollisionExit;  // 衝突終了時
 };
 }
+} // namespace KCE

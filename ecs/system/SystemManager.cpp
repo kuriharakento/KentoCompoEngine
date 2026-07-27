@@ -1,6 +1,7 @@
 #include "SystemManager.h"
 
-
+namespace KCE
+{
 void SystemManager::AddSystem(std::unique_ptr<ISystem> system)
 {
     assert(system != nullptr);
@@ -59,5 +60,4 @@ void SystemManager::Finalize()
     systems_.clear();
     systemMap_.clear();
 }
-
-
+} // namespace KCE

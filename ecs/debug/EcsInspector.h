@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+namespace KCE
+{
 // No namespaces
 
 /**
@@ -46,3 +48,4 @@ private:
     // 検索フィルタ文字列
     char searchFilter_[128] = "";
 };
+} // namespace KCE

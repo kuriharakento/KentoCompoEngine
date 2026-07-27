@@ -10,6 +10,8 @@
 #include <cmath>
 #include <numbers>
 
+namespace KCE
+{
 /**
  * @brief 速度方向へのアライメントモジュール
  * パーティクルの回転を進行方向に合わせる。
@@ -145,3 +147,4 @@ private:
 	float endStrength_ = 0.0f;
 	EasingType easingType_ = EasingType::Linear;
 };
+} // namespace KCE

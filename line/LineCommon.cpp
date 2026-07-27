@@ -3,6 +3,8 @@
 #include "externals/DirectXTex/d3dx12.h"
 #include "base/DirectXCommon.h"
 
+namespace KCE
+{
 void LineCommon::Initialize(DirectXCommon* dxCommon) {
     dxCommon_ = dxCommon;
     CreateRootSignature();
@@ -102,3 +104,4 @@ void LineCommon::CreateGraphicsPipelineState() {
     hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState_));
     assert(SUCCEEDED(hr));
 }
+} // namespace KCE

@@ -11,12 +11,18 @@
 #include "effects/particle/ParticleEmitter.h"
 #include "math/Vector3.h"
 #include "math/Vector4.h"
+#include "effects/particle/gpu/GPUSimulator.h"
+#include "effects/particle/gpu/GPUParticlePipeline.h"
+#include "effects/particle/ParticleManager.h"
+#include "base/DirectXCommon.h"
 #include <cmath>
 #include <numbers>
 #include <algorithm>
 #include <d3d12.h>
 #include <wrl/client.h>
 
+namespace KCE
+{
 /**
  * @brief 加速度モジュール
  * パーティクルに定数加速度を適用する
@@ -505,11 +511,6 @@ private:
 	bool useSpeedCurve_ = false;
 };
 
-#include "effects/particle/gpu/GPUSimulator.h"
-#include "effects/particle/gpu/GPUParticlePipeline.h"
-#include "effects/particle/ParticleManager.h"
-#include "base/DirectXCommon.h"
-
 inline void CurlNoiseModule::DispatchGPU(GPUSimulator* simulator, ID3D12GraphicsCommandList* cmdList, float deltaTime)
 {
 	if (!constantBuffer_)
@@ -547,3 +548,4 @@ inline void CurlNoiseModule::DispatchGPU(GPUSimulator* simulator, ID3D12Graphics
 	uavBarrier.UAV.pResource = nullptr;
 	cmdList->ResourceBarrier(1, &uavBarrier);
 }
+} // namespace KCE

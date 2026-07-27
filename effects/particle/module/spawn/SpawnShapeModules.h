@@ -15,6 +15,8 @@
 #include <cmath>
 #include <numbers>
 
+namespace KCE
+{
 /**
  * @brief スポーン形状タイプ
  */
@@ -303,3 +305,4 @@ private:
 	Vector3 minAngle_ = {};
 	Vector3 maxAngle_ = { 360.0f, 360.0f, 360.0f };
 };
+} // namespace KCE

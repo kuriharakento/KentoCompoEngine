@@ -1,5 +1,7 @@
 #include "Timer.h"
 
+namespace KCE
+{
 void Timer::Start()
 {
     // タイマーを開始状態に設定
@@ -97,3 +99,4 @@ std::string Timer::GetName() const
 {
     return name_;
 }
+} // namespace KCE

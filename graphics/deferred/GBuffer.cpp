@@ -4,6 +4,8 @@
 #include "base/Logger.h"
 #include <cassert>
 
+namespace KCE
+{
 GBuffer::~GBuffer()
 {
 	// ComPtrで自動解放
@@ -311,4 +313,4 @@ void GBuffer::Resize(uint32_t width, uint32_t height)
 	CreateRenderTargets();
 	CreateDepthBuffer();
 }
-
+} // namespace KCE

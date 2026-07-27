@@ -16,6 +16,8 @@
 #pragma comment(lib,"dxgi.lib")
 #include "externals/DirectXTex/d3dx12.h"
 
+namespace KCE
+{
 //ImGui
 //#include "externals/imgui/imgui.h"
 //#include "externals/imgui/imgui_impl_dx12.h"
@@ -443,7 +445,7 @@ void DirectXCommon::InitializeDevice()
 		//指定したメッセージの表示を抑制する
 		infoQueue->PushStorageFilter(&filter);
 
-		////解放
+		/** @brief 解放 */
 		//infoQueue->Release();
 	}
 #endif
@@ -543,16 +545,12 @@ void DirectXCommon::CreateDepthBuffer()
 void DirectXCommon::CreateDescriptorHeap()
 {
 
-	///===================================================================
-	///ディスクリプタヒープのサイズ
-	///===================================================================
+	/** @brief ディスクリプタヒープのサイズ */
 
 	descriptorSizeRTV_ = device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	descriptorSizeDSV_ = device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
-	///===================================================================
-	///ディスクリプタヒープの生成
-	///===================================================================
+	/** @brief ディスクリプタヒープの生成 */
 
 	// RTV用のヒープでディスクリプタの数は２。RTVはShader内で触るものではないので、ShaderVisibleはfalse
 	rtvDescriptorHeap_ = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, kRtvDescriptorCount, false);
@@ -618,7 +616,7 @@ void DirectXCommon::CreateFence()
 	hr = device_->CreateFence(fenceValue_, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence_));
 	assert(SUCCEEDED(hr));
 
-	////FenceのSignalを待つためのイベントを作成する
+	/** @brief FenceのSignalを待つためのイベントを作成する */
 	//fenceEvent_ = CreateEvent(NULL, FALSE, FALSE, NULL);
 	//assert(fenceEvent_ != nullptr);
 }
@@ -759,9 +757,7 @@ D3D12_GPU_DESCRIPTOR_HANDLE DirectXCommon::GetGPUDescriptorHandle(Microsoft::WRL
 
 Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileSharder(const std::wstring& filePath, const wchar_t* profile)
 {
-	///===================================================================
-	///1.hlslファイルを読む
-	///===================================================================
+	/** @brief 1. HLSLファイルを読む */
 
 	//これからシェーダーをコンパイルする旨をログに出す
 	KCE::Logger::Log(KCE::StringUtility::ConvertString(std::format(L"Begin CompileSharder, path:{}, profile:{}\n", filePath, profile)));
@@ -798,9 +794,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileSharder(const std::wstrin
 	shaderSourceBuffer.Size = shaderSource->GetBufferSize();
 	shaderSourceBuffer.Encoding = DXC_CP_UTF8;		//UTF8の文字コードであることを通知
 
-	///===================================================================
-	///2.コンパイルする
-	///===================================================================
+	/** @brief 2. コンパイルする */
 
 	LPCWSTR arguments[] = {
 		targetPath.c_str(),				//コンパイル対象のhlslファイル名
@@ -824,9 +818,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileSharder(const std::wstrin
 	assert(SUCCEEDED(hr));
 
 
-	///===================================================================
-	///3.警告・エラーが出ていないか確認する
-	///===================================================================
+	/** @brief 3. 警告・エラーが出ていないか確認する */
 
 	// 警告・エラーが出てたらログに出して止める
 	IDxcBlobUtf8* shaderError = nullptr;
@@ -839,9 +831,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileSharder(const std::wstrin
 	}
 
 
-	///===================================================================
-	///4.コンパイル結果を受け取って返す
-	///===================================================================
+	/** @brief 4. コンパイル結果を受け取って返す */
 
 	//コンパイル結果から実行用のバイナリ部分を取得
 	IDxcBlob* shaderBlob = nullptr;
@@ -932,4 +922,4 @@ Microsoft::WRL::ComPtr<ID3D12Resource> DirectXCommon::UploadTextureData(Microsof
 	commandList_->ResourceBarrier(1, &barrier);
 	return intermediateResource;
 }
-
+} // namespace KCE

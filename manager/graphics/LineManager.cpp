@@ -8,6 +8,8 @@
 // system
 #include "manager/scene/CameraManager.h"
 
+namespace KCE
+{
 // 球描画のセグメント数（緯度方向）
 constexpr int kSphereSegments = 8;
 // 球描画のリング数（経度方向）
@@ -31,7 +33,7 @@ LineManager* LineManager::GetInstance()
 	// インスタンスが存在しない場合は生成
 	if (instance_ == nullptr)
 	{
-		instance_.reset(new LineManager());
+		instance_ = std::make_unique<LineManager>();
 	}
 	return instance_.get();
 }
@@ -214,11 +216,11 @@ void LineManager::DrawArrow(const Vector3& start, const Vector3& direction, floa
 void LineManager::DrawAxis(const Vector3& position, float scale)
 {
     // X軸（赤）
-    DrawLine(position, position + Vector3{ scale, 0, 0 }, KCE::VectorColorCodes::Red);
+    DrawLine(position, position + Vector3{ scale, 0, 0 }, VectorColorCodes::Red);
     // Y軸（緑）
-    DrawLine(position, position + Vector3{ 0, scale, 0 }, KCE::VectorColorCodes::Green);
+    DrawLine(position, position + Vector3{ 0, scale, 0 }, VectorColorCodes::Green);
     // Z軸（青）
-    DrawLine(position, position + Vector3{ 0, 0, scale }, KCE::VectorColorCodes::Blue);
+    DrawLine(position, position + Vector3{ 0, 0, scale }, VectorColorCodes::Blue);
 }
 
 void LineManager::DrawAABB(const AABB& aabb, const Vector4& color)
@@ -286,3 +288,4 @@ void LineManager::DrawLine(const Vector3& start, const Vector3& end, const Vecto
 	// ラインを追加
 	line_->AddLine(start, end, color);
 }
+} // namespace KCE

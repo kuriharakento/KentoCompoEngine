@@ -2,7 +2,9 @@
 #include <cmath>
 #include <iostream>
 
-/// IsZero判定用のイプシロンの2乗
+namespace KCE
+{
+/** @brief IsZero判定用のイプシロンの2乗 */
 constexpr float kEpsilonSquared = 1e-12f;
 
 /**
@@ -302,3 +304,4 @@ struct Vector3
 	}
 
 };
+} // namespace KCE

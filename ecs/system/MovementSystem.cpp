@@ -4,6 +4,8 @@
 #include "engine/ecs/components/TransformComponent.h"
 #include "engine/ecs/components/MovementComponent.h"
 
+namespace KCE
+{
 using namespace ecs;
 
 
@@ -69,4 +71,4 @@ void MovementSystem::Update(Registry& registry)
         transform.isDirty_ = true;
     }
 }
-
+} // namespace KCE

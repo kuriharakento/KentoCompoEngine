@@ -1,6 +1,8 @@
 #pragma once
 #include "base/DirectXCommon.h"
 
+namespace KCE
+{
 /**
  * @brief SRV（Shader Resource View）を管理するクラス
  * 
@@ -202,4 +204,4 @@ public:
 
 
 };
-
+} // namespace KCE

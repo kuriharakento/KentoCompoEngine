@@ -3,6 +3,8 @@
 #include <vector>
 #include <cstdint>
 
+namespace KCE
+{
 /**
  * @brief メモリの動的確保を行わずにオブジェクトを高速再利用する汎用プール。
  *
@@ -110,3 +112,4 @@ private:
 	OverflowPolicy policy_ = OverflowPolicy::Fail;
 	uint32_t activeCount_ = 0;
 };
+} // namespace KCE

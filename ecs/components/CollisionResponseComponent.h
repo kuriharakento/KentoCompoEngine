@@ -4,6 +4,8 @@
 #include <unordered_set>
 #include "engine/ecs/Entity.h"
 
+namespace KCE
+{
 namespace ecs
 {
     /**
@@ -32,3 +34,4 @@ namespace ecs
         }
     };
 }
+} // namespace KCE

@@ -8,6 +8,8 @@
 #include "base/DirectXCommon.h"
 #include "base/GraphicsTypes.h"
 
+namespace KCE
+{
 SpriteRenderer::~SpriteRenderer()
 {
 	if (instancingResource_)
@@ -194,3 +196,4 @@ void SpriteRenderer::UpdateInstanceData(const Particle& particle, const Matrix4x
 		instancingData_[instanceCount_].color = particle.color;
 	}
 }
+} // namespace KCE

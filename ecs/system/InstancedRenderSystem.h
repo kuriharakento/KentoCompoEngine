@@ -14,6 +14,8 @@
 
 #include "../../../engine/math/MatrixFunc.h"
 
+namespace KCE
+{
 class Camera;
 class LightManager;
 
@@ -47,3 +49,4 @@ private:
     static std::vector<Matrix4x4> s_instanceMatrices;
     static std::unordered_map<std::string, std::vector<Matrix4x4>> s_groupedMatrices;
 };
+} // namespace KCE

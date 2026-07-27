@@ -3,6 +3,8 @@
 #include "Registry.h"
 #include "Entity.h"
 
+namespace KCE
+{
 /**
  * @brief メソッドチェーンで直感的にEntityを構築するためのビルダー
  *
@@ -58,3 +60,4 @@ private:
 	Registry& registry_;
 	Entity entity_;
 };
+} // namespace KCE

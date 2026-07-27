@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <array>
 
+namespace KCE
+{
 class DirectXCommon;
 class SrvManager;
 
@@ -128,3 +130,4 @@ private:
 	// 現在の深度バッファの状態
 	D3D12_RESOURCE_STATES currentDepthState_ = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 };
+} // namespace KCE

@@ -9,6 +9,8 @@
 #include <memory>
 #include <cassert>
 
+namespace KCE
+{
 /**
  * @brief Entityとコンポーネントを管理するコアクラス。
  * 
@@ -268,4 +270,4 @@ inline bool Entity::IsValid() const
 {
     return registry_ != nullptr && registry_->IsAlive(id_);
 }
-
+} // namespace KCE

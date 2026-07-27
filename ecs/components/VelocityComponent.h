@@ -2,6 +2,8 @@
 
 #include <DirectXMath.h>
 
+namespace KCE
+{
 namespace ecs
 {
     /**
@@ -17,3 +19,4 @@ namespace ecs
         DirectX::XMFLOAT3 velocity = { 0.0f, 0.0f, 0.0f };
     };
 }
+} // namespace KCE

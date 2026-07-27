@@ -11,6 +11,8 @@
 #include "base/DirectXCommon.h"
 #include "manager/system/SrvManager.h"
 
+namespace KCE
+{
 /**
  * @brief テクスチャマネージャークラス
  * @details テクスチャのロード、キャッシング、SRVインデックス管理を行うシングルトンクラス
@@ -178,6 +180,7 @@ private: // メンバ変数
 
 private: // シングルトンインスタンス
 	static std::unique_ptr<TextureManager> instance_; // シングルトンインスタンス
+	friend std::unique_ptr<TextureManager> std::make_unique<TextureManager>();
 
 	TextureManager() = default;                            // コンストラクタ
 	TextureManager(const TextureManager&) = delete;       // コピー禁止
@@ -186,3 +189,4 @@ private: // シングルトンインスタンス
 public:
 	~TextureManager() = default;                           // デストラクタ
 };
+} // namespace KCE

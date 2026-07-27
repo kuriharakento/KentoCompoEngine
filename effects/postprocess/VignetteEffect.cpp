@@ -1,5 +1,7 @@
 #include "VignetteEffect.h"
 
+namespace KCE
+{
 VignetteEffect::VignetteEffect()
 {
     // デフォルトパラメータの設定
@@ -80,3 +82,4 @@ void VignetteEffect::SetEnabled(bool enabled)
         isDirty_ = true;
     }
 }
+} // namespace KCE

@@ -1,6 +1,8 @@
 #include "LifetimeSystem.h"
 #include "engine/time/TimeManager.h"
 
+namespace KCE
+{
 using namespace ecs;
 
 
@@ -26,4 +28,4 @@ void LifetimeSystem::Update(Registry& registry)
         }
     }
 }
-
+} // namespace KCE

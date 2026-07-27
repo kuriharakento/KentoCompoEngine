@@ -2,6 +2,8 @@
 
 #include "math/Vector3.h"
 
+namespace KCE
+{
 namespace ecs
 {
     /**
@@ -26,3 +28,4 @@ namespace ecs
         float gravity_ = 9.8f;
     };
 }
+} // namespace KCE

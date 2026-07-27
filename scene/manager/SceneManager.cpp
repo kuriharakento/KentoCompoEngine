@@ -6,6 +6,8 @@
 #include "effects/particle/ParticleManager.h"
 #include "manager/editor/DebugUIManager.h"
 
+namespace KCE
+{
 SceneManager::~SceneManager()
 {
 	//現在のシーンを終了
@@ -136,3 +138,4 @@ void SceneManager::ReserveNextScene()
 		currentScene_->Initialize();
 	}
 }
+} // namespace KCE

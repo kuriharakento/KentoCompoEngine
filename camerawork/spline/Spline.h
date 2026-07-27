@@ -1,6 +1,8 @@
 #pragma once
 #include "math/Vector3.h"
 
+namespace KCE
+{
 /**
  * @brief スプライン補間クラス
  * 
@@ -27,4 +29,4 @@ public:
 	static Vector3 CatmullRom(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t);
 
 };
-
+} // namespace KCE

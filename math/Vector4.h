@@ -1,6 +1,8 @@
 #pragma once
 #include <cmath>
 
+namespace KCE
+{
 /**
  * @brief 4次元ベクトル構造体
  * 
@@ -142,3 +144,4 @@ struct Vector4 {
         return *this;
     }
 };
+} // namespace KCE

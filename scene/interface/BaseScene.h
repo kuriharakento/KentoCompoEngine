@@ -14,6 +14,8 @@
 
 #include "engine/scene/state/SceneStateMachine.h"
 
+namespace KCE
+{
 class SceneManager;
 
 /**
@@ -235,3 +237,4 @@ private:
     // 描画対象オブジェクトリスト
     std::vector<Object3d*> objects_;
 };
+} // namespace KCE

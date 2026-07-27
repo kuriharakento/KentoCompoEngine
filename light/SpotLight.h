@@ -7,6 +7,8 @@
 #include "DirectXTex/d3dx12.h"
 #include "math/MatrixFunc.h"
 
+namespace KCE
+{
 // シャドウマップの解像度
 constexpr UINT kShadowMapResolution = 1024;
 // シャドウマップのクリア時深度値
@@ -59,3 +61,4 @@ struct CPUSpotLight {
     Matrix4x4 viewProjectionMatrix; // ビュー・プロジェクション行列
     bool shadowEnabled = false;     // シャドウ有効フラグ
 };
+} // namespace KCE

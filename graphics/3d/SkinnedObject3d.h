@@ -17,6 +17,8 @@
 // camera
 #include "base/Camera.h"
 
+namespace KCE
+{
 class Object3dCommon;
 class SrvManager;
 class LightManager;
@@ -284,3 +286,4 @@ private:
 	// レンダリングタイプ
 	RenderingType renderingType_ = RenderingType::Deferred;
 };
+} // namespace KCE

@@ -5,11 +5,14 @@
 
 // Factory
 #include "engine/gameobject/component/base/ComponentFactory.h"
+
+namespace KCE
+{
 REGISTER_COMPONENT(SphereColliderComponent)
 
 namespace GameObjectComponent
 {
-	SphereColliderComponent::SphereColliderComponent(::GameObject* owner)
+	SphereColliderComponent::SphereColliderComponent(GameObject* owner)
 		: ICollisionComponent(owner), sphere_()
 	{
 		Register("radius", &sphere_.radius);
@@ -17,17 +20,17 @@ namespace GameObjectComponent
 		Register("useSubstep", &useSubstep_);
 	}
 
-	const ::Sphere& SphereColliderComponent::GetSphere() const
+	const Sphere& SphereColliderComponent::GetSphere() const
 	{
 		return sphere_;
 	}
 
-	void SphereColliderComponent::SetSphere(const ::Sphere& s)
+	void SphereColliderComponent::SetSphere(const Sphere& s)
 	{
 		sphere_ = s;
 	}
 
-	void SphereColliderComponent::Update(::GameObject* owner)
+	void SphereColliderComponent::Update(GameObject* owner)
 	{
 		// 非アクティブ時は更新もデバッグ描画も行わない
 		if (!isActive_) return;
@@ -54,4 +57,4 @@ namespace GameObjectComponent
 		return ColliderType::Sphere;
 	}
 }
-
+} // namespace KCE

@@ -4,6 +4,8 @@
 #include "math/MathUtils.h"
 #include <time/TimeManager.h>
 
+namespace KCE
+{
 void OrbitCameraWork::Initialize(Camera* camera)
 {
 	camera_ = camera;
@@ -60,3 +62,4 @@ void OrbitCameraWork::Start(const Vector3* target, float radius, float speed, fl
 	isActive_ = true;
 	deltaType_ = deltaType;
 }
+} // namespace KCE

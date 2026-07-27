@@ -9,13 +9,15 @@
 // Factory
 #include "engine/gameobject/component/base/ComponentFactory.h"
 
+namespace KCE
+{
 std::unique_ptr<GameObjectEditor> GameObjectEditor::instance_ = nullptr;
 
 GameObjectEditor* GameObjectEditor::GetInstance()
 {
 	if (!instance_)
 	{
-		instance_.reset(new GameObjectEditor());
+		instance_ = std::make_unique<GameObjectEditor>();
 	}
 	return instance_.get();
 }
@@ -357,3 +359,4 @@ void GameObjectEditor::UpdateJsonFileList()
 		selectedJsonIndex_ = 0;
 	}
 }
+} // namespace KCE

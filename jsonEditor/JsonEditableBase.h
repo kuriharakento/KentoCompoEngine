@@ -14,6 +14,8 @@
 #include "JsonSerialization.h"
 #include "base/Logger.h"
 
+namespace KCE
+{
 /* NOTE:
  * NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE マクロを使用して、構造体、クラスのシリアライズ・デシリアライズを自動生成する場合
  * 変数名は必ずJsonで定義した名前と一致させること。
@@ -503,3 +505,4 @@ void JsonEditableBase::Register(const std::string& name, T* value)
 	}
 #endif // USE_IMGUI
 }
+} // namespace KCE

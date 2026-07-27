@@ -1,5 +1,7 @@
 #include "JsonSerialization.h"
 
+namespace KCE
+{
 void to_json(nlohmann::json& j, Transform const& t)
 {
     // 標準的なキー名でシリアライズ
@@ -101,4 +103,4 @@ void from_json(nlohmann::json const& j, Vector4& v)
         v.w = j[3].get<float>();
     }
 }
-
+} // namespace KCE

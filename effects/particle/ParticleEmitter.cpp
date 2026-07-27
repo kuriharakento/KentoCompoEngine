@@ -8,6 +8,8 @@
 #include "base/DirectXCommon.h"
 #include <algorithm>
 
+namespace KCE
+{
 ParticleEmitter::ParticleEmitter() = default;
 ParticleEmitter::~ParticleEmitter() = default;
 
@@ -644,3 +646,4 @@ const IModule* ParticleEmitter::GetModuleByName(const std::string& name) const
 	}
 	return nullptr;
 }
+} // namespace KCE

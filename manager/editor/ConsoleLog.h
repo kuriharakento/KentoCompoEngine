@@ -7,6 +7,8 @@
 // Logger::LogLevelの定義を使用するためインクルード
 #include "base/Logger.h"
 
+namespace KCE
+{
 #ifdef USE_IMGUI
 /**
  * @brief 蓄積されたログエントリー情報
@@ -78,8 +80,10 @@ public:
 
 private:
 	static std::unique_ptr<ConsoleLog> instance_;
+	friend std::unique_ptr<ConsoleLog> std::make_unique<ConsoleLog>();
 
 	ConsoleLog() = default;
 	ConsoleLog(const ConsoleLog&) = delete;
 	ConsoleLog& operator=(const ConsoleLog&) = delete;
 };
+} // namespace KCE

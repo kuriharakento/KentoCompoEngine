@@ -9,7 +9,11 @@
 #ifdef USE_IMGUI
 #include "imgui/imgui.h"
 #include "manager/editor/DebugUIManager.h"
+
 #endif
+
+namespace KCE
+{
 
 // 60FPS想定のフレームデルタタイム
 constexpr float kFrameDeltaTime = 0.016f;
@@ -228,3 +232,4 @@ void DebugCamera::DrawImGui()
     }
 #endif
 }
+} // namespace KCE

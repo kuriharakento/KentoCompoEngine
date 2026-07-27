@@ -17,6 +17,8 @@
 #include "engine/manager/graphics/LineManager.h"
 #include "math/MathUtils.h"
 
+namespace KCE
+{
 using namespace ecs;
 
 thread_local CollisionSystem::ThreadLocalContext tlContext;
@@ -224,7 +226,7 @@ void CollisionSystem::DetectCollisions(Registry& registry)
 
 			// --- 汎用ビットマスクフィルタ ---
 			// 互いに相手をマスクしていなければ判定しない
-			if (!(colA.mask & colB.layer) && !(colB.mask & colA.layer)) continue;
+			if (!(colA.mask_ & colB.layer_) && !(colB.mask_ & colA.layer_)) continue;
 
 			// LOD判定（エンジン既定）
 			collisionAlgorithm::CollisionLOD lod = collisionAlgorithm::CollisionLOD::Precise;
@@ -328,3 +330,4 @@ void CollisionSystem::Draw(Registry& registry, Camera* camera, LightManager* lig
 	}
 #endif
 }
+} // namespace KCE

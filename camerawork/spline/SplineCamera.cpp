@@ -9,6 +9,8 @@
 // editor
 #include "manager/editor/JsonEditor.h"
 
+namespace KCE
+{
 // スプライン補間の微小値（次位置計算用）
 constexpr float kSplineSegmentDelta = 0.01f;
 // セグメントごとのサンプル数（デバッグ描画用）
@@ -156,3 +158,4 @@ void SplineCamera::DrawSplineLine()
     }
 #endif
 }
+} // namespace KCE

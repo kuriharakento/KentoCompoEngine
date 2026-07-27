@@ -1,5 +1,7 @@
 #include "CRTEffect.h"
 
+namespace KCE
+{
 CRTEffect::CRTEffect()
 {
 	// デフォルトパラメータの設定
@@ -128,3 +130,4 @@ void CRTEffect::SetChromaticAberrationOffset(float offset)
 		isDirty_ = true;
 	}
 }
+} // namespace KCE

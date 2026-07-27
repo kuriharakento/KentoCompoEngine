@@ -2,6 +2,8 @@
 #include <string>
 #include <functional>
 
+namespace KCE
+{
 /**
  * @brief デルタタイム取得タイプ
  * 
@@ -156,3 +158,4 @@ private:
     std::function<void(float)> onTick_; // 毎フレームコールバック
     std::function<void()> onFinish_;    // 終了時コールバック
 };
+} // namespace KCE

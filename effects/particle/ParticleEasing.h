@@ -3,6 +3,8 @@
 #include "math/Easing.h"
 #include "math/MathUtils.h"
 
+namespace KCE
+{
 /**
  * @brief イージングタイプに基づいて値を補間する
  * @tparam T 値の型
@@ -67,3 +69,4 @@ inline float DeterministicRandom(uint32_t id, uint32_t subSeed = 0)
 	x = (x >> 16) ^ x;
 	return static_cast<float>(x) / static_cast<float>(0xFFFFFFFF);
 }
+} // namespace KCE

@@ -4,6 +4,8 @@
 #include "module/update/RibbonModules.h"
 #include <algorithm>
 
+namespace KCE
+{
 ParticleEffect::ParticleEffect() = default;
 ParticleEffect::~ParticleEffect() = default;
 
@@ -238,3 +240,4 @@ void ParticleEffect::UnregisterSource(uint32_t sourceId)
 		}
 	}
 }
+} // namespace KCE

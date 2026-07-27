@@ -20,6 +20,8 @@
 #include <unordered_map>
 #include <random>
 
+namespace KCE
+{
 /**
  * @brief サブエミッタートリガー条件
  */
@@ -247,4 +249,4 @@ private:
 	std::unordered_map<uint32_t, float> continuousAccumulators_;
 	mutable std::mt19937 rng_{ std::random_device{}() };
 };
-
+} // namespace KCE

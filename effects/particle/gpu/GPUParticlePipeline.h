@@ -11,6 +11,8 @@
 #include <string>
 #include <memory>
 
+namespace KCE
+{
 class DirectXCommon;
 
 /**
@@ -100,6 +102,7 @@ public:
 	bool IsValid() const { return pipelineState_ != nullptr; }
 
 private:
+	friend std::unique_ptr<GPUParticlePipeline> std::make_unique<GPUParticlePipeline>();
 	GPUParticlePipeline() = default;
 	GPUParticlePipeline(const GPUParticlePipeline&) = delete;
 	GPUParticlePipeline& operator=(const GPUParticlePipeline&) = delete;
@@ -170,3 +173,4 @@ private:
 public:
 	~GPUParticlePipeline() = default;
 };
+} // namespace KCE

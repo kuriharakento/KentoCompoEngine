@@ -5,6 +5,8 @@
 #include <cstdint>
 #include "math/Vector4.h"
 
+namespace KCE
+{
 class DirectXCommon;
 class SrvManager;
 
@@ -110,3 +112,4 @@ private:
     D3D12_RESOURCE_STATES currentState_ = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
 };
+} // namespace KCE

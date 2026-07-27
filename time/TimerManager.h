@@ -4,6 +4,8 @@
 #include <string>
 #include "Timer.h"
 
+namespace KCE
+{
 /**
  * @brief タイマー管理クラス
  * 
@@ -94,3 +96,4 @@ private:
 
     std::unordered_map<std::string, std::unique_ptr<Timer>> timers_; // タイマー格納用マップ
 };
+} // namespace KCE

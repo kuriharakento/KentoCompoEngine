@@ -8,6 +8,8 @@
 
 #include "base/GraphicsTypes.h"
 
+namespace KCE
+{
 class ModelCommon;
 class DirectXCommon;
 
@@ -61,6 +63,7 @@ public:
     const SkinnedModelSharedResource* LoadModel(const std::string& directoryPath, const std::string& filename, const std::string& modelType);
 
 private:
+    friend std::unique_ptr<SkinnedModelManager> std::make_unique<SkinnedModelManager>();
     SkinnedModelManager() = default;
     SkinnedModelManager(const SkinnedModelManager&) = delete;
     SkinnedModelManager& operator=(const SkinnedModelManager&) = delete;
@@ -73,3 +76,4 @@ private:
     // キャッシュ (パスをキーにする)
     std::map<std::string, std::unique_ptr<SkinnedModelSharedResource>> modelCache_;
 };
+} // namespace KCE

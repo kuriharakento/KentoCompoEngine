@@ -4,6 +4,8 @@
 #include "DirectXTex/d3dx12.h"
 #include <cassert>
 
+namespace KCE
+{
 ShadowMapManager::~ShadowMapManager() {
     // リソースはComPtrで自動解放されるため、特別な処理は不要
 }
@@ -494,3 +496,4 @@ uint32_t ShadowMapManager::CreateCubeSRV(ID3D12Resource* resource) {
     
     return srvIndex;
 }
+} // namespace KCE

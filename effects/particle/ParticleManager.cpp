@@ -12,7 +12,11 @@
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
 #include "manager/editor/DebugUIManager.h"
+
 #endif
+
+namespace KCE
+{
 
 ParticleManager* ParticleManager::GetInstance()
 {
@@ -505,3 +509,4 @@ void ParticleManager::AddRendererToTrashBin(std::unique_ptr<IRenderer> renderer)
 		rendererTrashBin_.push_back(std::move(renderer));
 	}
 }
+} // namespace KCE

@@ -9,6 +9,8 @@
 #include "manager/system/SrvManager.h"
 #include <fstream>
 
+namespace KCE
+{
 void ImGuiManager::Initialize([[maybe_unused]] WinApp* winApp, [[maybe_unused]] DirectXCommon* dxCommon, [[maybe_unused]] SrvManager* srvManager)
 {
 #ifdef USE_IMGUI
@@ -176,3 +178,4 @@ void ImGuiManager::Draw()
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
 #endif
 }
+} // namespace KCE

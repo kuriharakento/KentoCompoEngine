@@ -1,6 +1,8 @@
 #include "SkinningPipelineManager.h"
 #include <cassert>
 
+namespace KCE
+{
 SkinningPipelineManager* SkinningPipelineManager::GetInstance()
 {
 	static SkinningPipelineManager instance;
@@ -95,3 +97,4 @@ void SkinningPipelineManager::CreatePipeline()
 	hr = device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState_));
 	assert(SUCCEEDED(hr));
 }
+} // namespace KCE

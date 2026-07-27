@@ -1,5 +1,7 @@
 #include "Registry.h"
 
+namespace KCE
+{
 void Registry::Initialize(uint32_t maxEntities)
 {
     maxEntities_ = maxEntities;
@@ -93,4 +95,4 @@ void Registry::FlushGarbageCollection()
 
     destroyQueue_.clear();
 }
-
+} // namespace KCE

@@ -7,6 +7,8 @@
 #include "manager/system/SrvManager.h"
 #include "base/RenderTexture.h"
 
+namespace KCE
+{
 PostProcessManager::PostProcessManager() {}
 
 PostProcessManager::~PostProcessManager() {}
@@ -277,7 +279,7 @@ void PostProcessManager::RenderBlurPass(RenderTexture* inputTexture, RenderTextu
 
 	// ブラー方向を設定（水平または垂直）
 	blurParams_.texelSize = { 1.0f / viewport_.Width, 1.0f / viewport_.Height };
-	blurParams_.blurDirection = horizontal ? KCE::Vector2{ 1.0f, 0.0f } : KCE::Vector2{ 0.0f, 1.0f };
+	blurParams_.blurDirection = horizontal ? Vector2{ 1.0f, 0.0f } : Vector2{ 0.0f, 1.0f };
 
 	// 定数バッファを更新してGPUに転送
 	void* mappedData = nullptr;
@@ -506,3 +508,4 @@ void PostProcessManager::UpdateConstantBuffer()
 	// 前フレームのパラメータを更新
 	preParams_ = params_;
 }
+} // namespace KCE

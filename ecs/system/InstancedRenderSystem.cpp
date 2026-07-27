@@ -6,6 +6,8 @@
 #include "manager/scene/LightManager.h"
 #include "engine/manager/graphics/ShadowMapManager.h"
 
+namespace KCE
+{
 using namespace ecs;
 
 // 静的メンバの定義
@@ -208,3 +210,4 @@ void InstancedRenderSystem::DrawShadowGrouped(
         it->second->DrawInstancedShadow(camera, shadowMapManager);
     }
 }
+} // namespace KCE

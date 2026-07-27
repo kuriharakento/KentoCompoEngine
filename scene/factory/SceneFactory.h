@@ -6,6 +6,8 @@
 #include <vector>
 #include <memory>
 
+namespace KCE
+{
 /**
  * @brief 動的レジストリ機能を持つシーンファクトリー
  */
@@ -77,5 +79,5 @@ private:
  * 各シーンの .cpp ファイルの Initialize() 直前に記述する。
  */
 #define REGISTER_SCENE(SceneClass) \
-	namespace { [[maybe_unused]] const bool is##SceneClass##Registered = SceneFactory::Register<SceneClass>(#SceneClass); }
-
+	namespace { [[maybe_unused]] const bool is##SceneClass##Registered = KCE::SceneFactory::Register<SceneClass>(#SceneClass); }
+} // namespace KCE

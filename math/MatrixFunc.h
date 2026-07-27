@@ -5,6 +5,8 @@
 #include "Vector3.h"
 #include "Vector4.h"
 
+namespace KCE
+{
 /**
  * @brief コタンジェント（余接）を計算
  * @param a 角度（ラジアン）
@@ -451,4 +453,4 @@ inline Matrix4x4 MakeOrthographicProjectionMatrix(float width, float height, flo
 
 	return result;
 }
-
+} // namespace KCE

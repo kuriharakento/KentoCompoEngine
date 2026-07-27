@@ -5,6 +5,8 @@
 #include "../../../engine/ecs/Registry.h"
 #include "../components/LifetimeComponent.h"
 
+namespace KCE
+{
 /**
  * @brief 寿命が尽きたEntityを破?E??るシスチE??
  */
@@ -18,3 +20,4 @@ public:
      */
     void Update(Registry& registry) override;
 };
+} // namespace KCE

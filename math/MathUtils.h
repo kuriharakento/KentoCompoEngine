@@ -4,6 +4,8 @@
 
 #include "MatrixFunc.h"
 
+namespace KCE
+{
 /**
  * @brief 数学ユーティリティ関数を提供する名前空間
  * 
@@ -197,3 +199,4 @@ namespace MathUtils
 	Matrix4x4 Transpose(const Matrix4x4& m);
 
 };
+} // namespace KCE

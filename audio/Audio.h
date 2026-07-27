@@ -9,6 +9,8 @@
 #include <wrl.h>
 #include <xaudio2fx.h>
 
+namespace KCE
+{
 struct ChunkHeader
 {
 	char id[4];
@@ -149,6 +151,8 @@ public:
 #endif
 
 private:
+	friend std::unique_ptr<Audio> std::make_unique<Audio>();
+
 	void InitializeEffect();
 	void RemoveFromGroupMap(IXAudio2SourceVoice* sourceVoice);
 	float ClampVolume(float volume) const;
@@ -160,8 +164,8 @@ private:
 #endif
 
 private:
-	Microsoft::WRL::ComPtr<IXAudio2> xAudio2;
-	IXAudio2MasteringVoice* masterVoice = nullptr;
+	Microsoft::WRL::ComPtr<IXAudio2> xAudio2_;
+	IXAudio2MasteringVoice* masterVoice_ = nullptr;
 	IXAudio2SubmixVoice* submixVoiceDry_ = nullptr;	   // ドライ音用
 	IXAudio2SubmixVoice* submixVoiceReverb_ = nullptr; // リバーブ用
 
@@ -176,7 +180,7 @@ private:
 	float masterVolume_ = 1.0f;
 	float reverbAmount_ = 0.3f;
 	ReverbPreset currentPreset_ = ReverbPreset::Default;
-	const std::string directoryPath = "Resources/audio/";
+	const std::string directoryPath_ = "Resources/audio/";
 
 #ifdef USE_IMGUI
 	AudioDebugData debugData_;
@@ -190,3 +194,4 @@ private:
 public:
 	~Audio() = default;
 };
+} // namespace KCE

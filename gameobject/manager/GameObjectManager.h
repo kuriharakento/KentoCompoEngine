@@ -3,6 +3,8 @@
 #include <string>
 #include <memory>
 
+namespace KCE
+{
 class GameObject;
 class CameraManager;
 class Camera;
@@ -120,6 +122,7 @@ public:
 	~GameObjectManager() = default;
 
 private:
+	friend std::unique_ptr<GameObjectManager> std::make_unique<GameObjectManager>();
 	GameObjectManager() = default;
 	GameObjectManager(const GameObjectManager&) = delete;
 	GameObjectManager& operator=(const GameObjectManager&) = delete;
@@ -142,3 +145,4 @@ private:
 	Object3dCommon* cachedObject3dCommon_ = nullptr;
 	LightManager* cachedLightManager_ = nullptr;
 };
+} // namespace KCE

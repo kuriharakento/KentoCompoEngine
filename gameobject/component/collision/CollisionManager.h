@@ -10,6 +10,8 @@
 #include "OBBColliderComponent.h"
 #include "engine/gameobject/component/base/ICollisionComponent.h"
 
+namespace KCE
+{
 namespace GameObjectComponent
 {
 	class ICollisionComponent;
@@ -131,6 +133,7 @@ public:
 private:
 	// シングルトンインスタンス
 	static std::unique_ptr<CollisionManager> instance_;
+	friend std::unique_ptr<CollisionManager> std::make_unique<CollisionManager>();
 	
 	CollisionManager() = default;
 	CollisionManager(const CollisionManager&) = delete;
@@ -223,3 +226,4 @@ private:
 	// 空間分割のセルサイズ
 	float cellSize_ = 15.0f; // デフォルト 15m 四方
 };
+} // namespace KCE

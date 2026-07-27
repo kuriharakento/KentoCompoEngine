@@ -8,6 +8,8 @@
 #include "math/AABB.h"
 #include "engine/ecs/Entity.h"
 
+namespace KCE
+{
 /**
  * @brief 原子的な操作を避けるため、各スレッドが独立してカウントし、
  *        最後に統合するなどの工夫も可能だが、まずはシンプルな2パス実装とする。
@@ -169,5 +171,4 @@ private:
     std::vector<uint32_t> tempCounts_;
     uint32_t currentEntryCount_ = 0;
 };
-
-
+} // namespace KCE

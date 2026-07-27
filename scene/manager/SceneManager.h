@@ -6,6 +6,8 @@
 #include "engine/scene/interface/BaseScene.h"
 #include "scene/SceneContext.h"
 
+namespace KCE
+{
 class SceneFactory;
 class ShadowMapManager;
 
@@ -69,4 +71,4 @@ private: //メンバ変数
 	//シーンコンテキスト
 	SceneContext context_{};
 };
-
+} // namespace KCE

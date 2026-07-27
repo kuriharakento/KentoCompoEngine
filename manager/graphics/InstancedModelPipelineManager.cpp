@@ -4,6 +4,8 @@
 #include <d3dcompiler.h>
 #include <cassert>
 
+namespace KCE
+{
 InstancedModelPipelineManager* InstancedModelPipelineManager::GetInstance()
 {
 	static InstancedModelPipelineManager instance;
@@ -210,3 +212,4 @@ void InstancedModelPipelineManager::CreatePipeline()
 	hr = device->CreateGraphicsPipelineState(&shadowPsoDesc, IID_PPV_ARGS(&pipelineStateShadow_));
 	assert(SUCCEEDED(hr));
 }
+} // namespace KCE

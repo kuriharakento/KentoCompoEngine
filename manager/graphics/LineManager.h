@@ -8,6 +8,8 @@
 #include "math/AABB.h"
 #include "math/OBB.h"
 
+namespace KCE
+{
 class CameraManager;
 
 /**
@@ -120,6 +122,7 @@ private:
 
 private:    // シングルトンインスタンス
 	static std::unique_ptr<LineManager> instance_;
+	friend std::unique_ptr<LineManager> std::make_unique<LineManager>();
 	LineManager() = default;                                 // コンストラクタ
 	LineManager(const LineManager&) = delete;                // コピーコンストラクタ
 	LineManager& operator=(const LineManager&) = delete;     // コピー代入禁止
@@ -127,3 +130,4 @@ private:    // シングルトンインスタンス
 public:
 	~LineManager() = default;                                // デストラクタ演算子
 };
+} // namespace KCE

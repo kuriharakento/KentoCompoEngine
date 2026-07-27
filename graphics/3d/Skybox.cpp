@@ -10,6 +10,8 @@
 // editor
 #include "ImGui/imgui.h"
 
+namespace KCE
+{
 // スカイボックスの頂点数（6面 × 6頂点 = 36頂点）
 constexpr int kSkyboxVertexCount = 36;
 // キューブの面数
@@ -384,3 +386,4 @@ void Skybox::CreatePipelineState()
 	hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&pipelineState_));
 	assert(SUCCEEDED(hr));
 }
+} // namespace KCE

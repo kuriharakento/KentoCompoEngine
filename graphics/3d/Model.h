@@ -10,6 +10,8 @@
 #include "base/GraphicsTypes.h"
 #include "math/MathUtils.h"
 
+namespace KCE
+{
 /**
  * @brief 3Dモデルクラス
  * @details OBJ/FBXなどの3Dモデルファイルを読み込み、描画するためのクラス。
@@ -235,3 +237,4 @@ private:
 	// メッシュリソース（マルチメッシュ対応）
 	std::vector<MeshResource> meshResources_;
 };
+} // namespace KCE

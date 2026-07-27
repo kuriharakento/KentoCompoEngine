@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 
+namespace KCE
+{
 class BaseScene;
 
 /**
@@ -56,3 +58,4 @@ public:
         return name;
     }
 };
+} // namespace KCE

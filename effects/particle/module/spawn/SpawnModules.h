@@ -11,6 +11,8 @@
 #include "math/Vector3.h"
 #include "math/Vector4.h"
 
+namespace KCE
+{
 /**
  * @brief 基本スポーンモジュール（毎秒N個生成）
  */
@@ -222,3 +224,4 @@ private:
 	int currentLoop_ = 0;
 	bool hasFired_ = false;
 };
+} // namespace KCE

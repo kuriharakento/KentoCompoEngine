@@ -3,6 +3,8 @@
 #include <numbers>
 #include "math/Vector2.h"
 
+namespace KCE
+{
 // 参照したサイト
 // https://easings.net/ja
 
@@ -10,49 +12,49 @@
 // イージングしたい値 = 始めたい位置 + イージング関数(時間) * 始めたい位置と終わりたい位置の差分 //
 //===============================================================================================//
 
-/// 半分の値（0.5）
+/** @brief 半分の値（0.5） */
 constexpr float kHalfValue = 0.5f;
-/// 2倍の値
+/** @brief 2倍の値 */
 constexpr float kDoubleValue = 2.0f;
-/// Back系イージングの制御定数 c1
+/** @brief Back系イージングの制御定数 c1 */
 constexpr float kBackC1 = 1.70158f;
-/// Back系イージングの制御定数 c2 の乗数
+/** @brief Back系イージングの制御定数 c2 の乗数 */
 constexpr float kBackC2Multiplier = 1.525f;
-/// Bounce系イージングの反発係数 n1
+/** @brief Bounce系イージングの反発係数 n1 */
 constexpr float kBounceN1 = 7.5625f;
-/// Bounce系イージングの区間分割定数 d1
+/** @brief Bounce系イージングの区間分割定数 d1 */
 constexpr float kBounceD1 = 2.75f;
-/// Bounce系イージングの区間オフセット1
+/** @brief Bounce系イージングの区間オフセット1 */
 constexpr float kBounceOffset1 = 1.5f;
-/// Bounce系イージングの区間オフセット2
+/** @brief Bounce系イージングの区間オフセット2 */
 constexpr float kBounceOffset2 = 2.25f;
-/// Bounce系イージングの区間オフセット3
+/** @brief Bounce系イージングの区間オフセット3 */
 constexpr float kBounceOffset3 = 2.625f;
-/// Bounce系イージングの高さ補正1
+/** @brief Bounce系イージングの高さ補正1 */
 constexpr float kBounceHeight1 = 0.75f;
-/// Bounce系イージングの高さ補正2
+/** @brief Bounce系イージングの高さ補正2 */
 constexpr float kBounceHeight2 = 0.9375f;
-/// Bounce系イージングの高さ補正3
+/** @brief Bounce系イージングの高さ補正3 */
 constexpr float kBounceHeight3 = 0.984375f;
-/// Bounce系イージングの区間境界2
+/** @brief Bounce系イージングの区間境界2 */
 constexpr float kBounceBoundary2 = 2.5f;
-/// Quint系イージングの5乗係数（2^4 = 16）
+/** @brief Quint系イージングの5乗係数（2^4 = 16） */
 constexpr float kQuintCoefficient = 16.0f;
-/// Quart系イージングの4乗係数（2^3 = 8）
+/** @brief Quart系イージングの4乗係数（2^3 = 8） */
 constexpr float kQuartCoefficient = 8.0f;
-/// Elastic系イージングのオフセット（10.75）
+/** @brief Elastic系イージングのオフセット（10.75） */
 constexpr float kElasticOffset1 = 10.75f;
-/// Elastic系イージングのオフセット（0.75）
+/** @brief Elastic系イージングのオフセット（0.75） */
 constexpr float kElasticOffset2 = 0.75f;
-/// Elastic系イージングのオフセット（11.125）
+/** @brief Elastic系イージングのオフセット（11.125） */
 constexpr float kElasticOffset3 = 11.125f;
-/// Elastic/Expo系イージングの指数計算用オフセット
+/** @brief Elastic/Expo系イージングの指数計算用オフセット */
 constexpr float kExponentOffset = 10.0f;
-/// Elastic/Expo系イージングの乗数（20）
+/** @brief Elastic/Expo系イージングの乗数（20） */
 constexpr float kExponentMultiplier20 = 20.0f;
-/// 指数（5）Quint用
+/** @brief 指数（5）Quint用 */
 constexpr int kPowerFive = 5;
-/// 指数（4）Quart用
+/** @brief 指数（4）Quart用 */
 constexpr int kPowerFour = 4;
 
 /**
@@ -432,3 +434,4 @@ template<class T> T LerpAngle(T a, T b, T t) {
 	}
 	return a + diff * t;
 }
+} // namespace KCE

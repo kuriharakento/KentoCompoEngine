@@ -4,6 +4,8 @@
 #include <string>
 #include <memory>
 
+namespace KCE
+{
 //シーン工場の抽象クラス
 class AbstractSceneFactory
 {
@@ -13,4 +15,4 @@ public:
 	//シーンの生成
 	virtual std::unique_ptr<BaseScene> CreateScene(const std::string& name) = 0;
 };
-
+} // namespace KCE

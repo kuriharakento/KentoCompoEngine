@@ -1,6 +1,8 @@
 #pragma once
 #include "base/BasePostEffect.h"
 
+namespace KCE
+{
 // CRTエフェクトのデフォルトパラメータ
 constexpr float kDefaultScanlineIntensity = 0.5f;       // デフォルトのスキャンライン強度
 constexpr float kDefaultScanlineCount = 10.0f;          // デフォルトのスキャンライン数
@@ -176,4 +178,4 @@ private:
 	// 内部パラメータ
 	Parameters params_;
 };
-
+} // namespace KCE

@@ -1,5 +1,7 @@
 #pragma once
 
+namespace KCE
+{
 class CameraManager;
 class GameObject;
 
@@ -29,6 +31,7 @@ namespace GameObjectComponent
 		 * 
 		 * @param owner このコンポーネントを所有するGameObject
 		 */
-		virtual void Update(::GameObject* owner) = 0;
+		virtual void Update(GameObject* owner) = 0;
 	};
 }
+} // namespace KCE

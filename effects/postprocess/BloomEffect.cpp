@@ -2,6 +2,8 @@
 
 #include "base/WinApp.h"
 
+namespace KCE
+{
 BloomEffect::BloomEffect()
 {
     // デフォルトパラメータの設定
@@ -78,7 +80,7 @@ void BloomEffect::SetEnabled(bool enabled)
     }
 }
 
-void BloomEffect::SetInvScreenSize(const KCE::Vector2& invScreenSize)
+void BloomEffect::SetInvScreenSize(const Vector2& invScreenSize)
 {
 	// 値が変更された場合のみ更新
 	if (params_.invScreenSize.x != invScreenSize.x || params_.invScreenSize.y != invScreenSize.y)
@@ -107,3 +109,4 @@ void BloomEffect::SetBloomMix(float bloomMix)
 		isDirty_ = true;
 	}
 }
+} // namespace KCE

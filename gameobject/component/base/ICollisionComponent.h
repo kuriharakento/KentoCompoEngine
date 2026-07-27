@@ -6,6 +6,8 @@
 #include "math/AABB.h"
 #include "engine/gameobject/component/collision/CollisionLayer.h"
 
+namespace KCE
+{
 class CollisionManager;
 
 /**
@@ -45,7 +47,7 @@ namespace GameObjectComponent
 	 */
 	struct CollisionInfo
 	{
-		::GameObject* other = nullptr;                      // 衝突相手のGameObject
+		GameObject* other = nullptr;                      // 衝突相手のGameObject
 		ICollisionComponent* otherCollider = nullptr;      // 衝突相手のコライダー
 		Vector3 normal = {};                                // 衝突法線（相手から自身へ向かう押し出し方向）
 		float depth = 0.0f;                                 // めり込み深さ
@@ -69,7 +71,7 @@ namespace GameObjectComponent
 		 * 
 		 * @param owner このコンポーネントを所有するGameObject
 		 */
-		ICollisionComponent(::GameObject* owner);
+		ICollisionComponent(GameObject* owner);
 
 		/**
 		 * @brief 前フレームの位置を設定
@@ -150,7 +152,7 @@ namespace GameObjectComponent
 		 * @brief ブロードフェーズ（空間分割等）用のAABBを取得
 		 * @return 境界AABB
 		 */
-		virtual ::AABB GetBroadphaseAABB() const = 0;
+		virtual AABB GetBroadphaseAABB() const = 0;
 
 		/**
 		 * @brief 衝突開始時のコールバックを設定
@@ -216,7 +218,7 @@ namespace GameObjectComponent
 		 * @brief このコンポーネントを所有するGameObjectを取得
 		 * @return 所有者のGameObject
 		 */
-		::GameObject* GetOwner() const { return owner_; }
+		GameObject* GetOwner() const { return owner_; }
 
 		// --- 追加: アクティブ状態の制御 ---
 		void SetActive(bool active) { isActive_ = active; }
@@ -228,7 +230,7 @@ namespace GameObjectComponent
 
 	protected:
 		// コンポーネントを所有するGameObject
-		::GameObject* owner_ = nullptr;
+		GameObject* owner_ = nullptr;
 		
 		// 前フレームの位置（サブステップ判定用）
 		Vector3 previousPosition_ = {};
@@ -263,3 +265,4 @@ namespace GameObjectComponent
 		CollisionCallback onExit_ = nullptr;
 	};
 }
+} // namespace KCE

@@ -7,7 +7,11 @@
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
 #include "manager/editor/DebugUIManager.h"
+
 #endif
+
+namespace KCE
+{
 
 namespace
 {
@@ -126,17 +130,17 @@ Audio* Audio::GetInstance()
 {
 	if (!instance_)
 	{
-		instance_.reset(new Audio());
+		instance_ = std::make_unique<Audio>();
 	}
 	return instance_.get();
 }
 
 void Audio::Initialize()
 {
-	HRESULT hr = XAudio2Create(&xAudio2, 0, XAUDIO2_DEFAULT_PROCESSOR);
+	HRESULT hr = XAudio2Create(&xAudio2_, 0, XAUDIO2_DEFAULT_PROCESSOR);
 	assert(SUCCEEDED(hr));
 
-	hr = xAudio2->CreateMasteringVoice(&masterVoice);
+	hr = xAudio2_->CreateMasteringVoice(&masterVoice_);
 	assert(SUCCEEDED(hr));
 
 	reverbAmount_ = kDefaultReverbAmount;
@@ -192,16 +196,16 @@ void Audio::Finalize()
 		submixVoiceDry_ = nullptr;
 	}
 
-	if (masterVoice)
+	if (masterVoice_)
 	{
-		masterVoice->DestroyVoice();
-		masterVoice = nullptr;
+		masterVoice_->DestroyVoice();
+		masterVoice_ = nullptr;
 	}
 
-	if (xAudio2)
+	if (xAudio2_)
 	{
-		xAudio2->StopEngine();
-		xAudio2.Reset();
+		xAudio2_->StopEngine();
+		xAudio2_.Reset();
 	}
 
 	instance_.reset();
@@ -300,7 +304,7 @@ void Audio::LoadWave(const std::string& name, const char* filename, SoundGroup g
 		return;
 	}
 
-	std::string fullpath = directoryPath + filename;
+	std::string fullpath = directoryPath_ + filename;
 	std::ifstream file(fullpath, std::ios::binary);
 	assert(file.is_open());
 
@@ -369,12 +373,12 @@ void Audio::PlayWave(SoundData* soundData, bool loop)
 		sendList.SendCount = 2;
 		sendList.pSends = sendDescs;
 
-		hr = xAudio2->CreateSourceVoice(&sourceVoice, &soundData->wfex, 0,
+		hr = xAudio2_->CreateSourceVoice(&sourceVoice, &soundData->wfex, 0,
 										XAUDIO2_DEFAULT_FREQ_RATIO, nullptr, &sendList);
 	}
 	else
 	{
-		hr = xAudio2->CreateSourceVoice(&sourceVoice, &soundData->wfex);
+		hr = xAudio2_->CreateSourceVoice(&sourceVoice, &soundData->wfex);
 	}
 	assert(SUCCEEDED(hr));
 
@@ -426,12 +430,12 @@ void Audio::PlayWave(const std::string& name, bool loop)
 		sendList.SendCount = 2;
 		sendList.pSends = sendDescs;
 
-		hr = xAudio2->CreateSourceVoice(&sourceVoice, &soundData.wfex, 0,
+		hr = xAudio2_->CreateSourceVoice(&sourceVoice, &soundData.wfex, 0,
 										XAUDIO2_DEFAULT_FREQ_RATIO, nullptr, &sendList);
 	}
 	else
 	{
-		hr = xAudio2->CreateSourceVoice(&sourceVoice, &soundData.wfex);
+		hr = xAudio2_->CreateSourceVoice(&sourceVoice, &soundData.wfex);
 	}
 	assert(SUCCEEDED(hr));
 
@@ -627,9 +631,9 @@ void Audio::SetGroupVolume(SoundGroup group, float volume)
 void Audio::SetMasterVolume(float volume)
 {
 	masterVolume_ = ClampVolume(volume);
-	if (masterVoice)
+	if (masterVoice_)
 	{
-		masterVoice->SetVolume(masterVolume_);
+		masterVoice_->SetVolume(masterVolume_);
 	}
 }
 
@@ -679,12 +683,12 @@ void Audio::FadeIn(const std::string& name, float duration, float targetVolume)
 			sendList.SendCount = 2;
 			sendList.pSends = sendDescs;
 
-			hr = xAudio2->CreateSourceVoice(&sourceVoice, &soundData.wfex, 0,
+			hr = xAudio2_->CreateSourceVoice(&sourceVoice, &soundData.wfex, 0,
 											XAUDIO2_DEFAULT_FREQ_RATIO, nullptr, &sendList);
 		}
 		else
 		{
-			hr = xAudio2->CreateSourceVoice(&sourceVoice, &soundData.wfex);
+			hr = xAudio2_->CreateSourceVoice(&sourceVoice, &soundData.wfex);
 		}
 
 		if (FAILED(hr))
@@ -857,13 +861,13 @@ void Audio::InitializeEffect()
 {
 	// マスターボイスの詳細を取得
 	XAUDIO2_VOICE_DETAILS masterDetails;
-	masterVoice->GetVoiceDetails(&masterDetails);
+	masterVoice_->GetVoiceDetails(&masterDetails);
 
 	UINT32 channels = masterDetails.InputChannels;
 	UINT32 sampleRate = masterDetails.InputSampleRate;
 
 	// ドライ用サブミックスボイスを作成（エフェクトなし）
-	HRESULT hr = xAudio2->CreateSubmixVoice(
+	HRESULT hr = xAudio2_->CreateSubmixVoice(
 		&submixVoiceDry_,
 		channels,
 		sampleRate,
@@ -896,7 +900,7 @@ void Audio::InitializeEffect()
 	effectChain.pEffectDescriptors = &effectDesc;
 
 	// リバーブ用サブミックスボイスを作成（2chで作成）
-	hr = xAudio2->CreateSubmixVoice(
+	hr = xAudio2_->CreateSubmixVoice(
 		&submixVoiceReverb_,
 		reverbChannels,
 		sampleRate,
@@ -1167,3 +1171,4 @@ void Audio::DrawDebugWindow()
 }
 
 #endif
+} // namespace KCE

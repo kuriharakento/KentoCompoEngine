@@ -9,6 +9,8 @@
 #include "manager/system/SrvManager.h"
 #include "engine/manager/graphics/ShadowMapManager.h"
 
+namespace KCE
+{
 // デフォルトのディレクショナルライト強度
 constexpr float kDefaultLightIntensity = 0.5f;
 // デフォルトのディレクショナルライト方向のY成分
@@ -18,9 +20,7 @@ constexpr float kDefaultScale = 1.0f;
 // ワールド行列の位置成分のインデックス
 constexpr int kWorldMatrixPosIndex = 3;
 
-///////////////////////////////////////////////////////////////////////
-///						>>>基本的な処理<<<							///
-///////////////////////////////////////////////////////////////////////
+/** @brief 基本的な処理 */
 
 Object3d::~Object3d()
 {
@@ -192,9 +192,7 @@ void Object3d::DrawGBuffer()
 }
 
 
-///////////////////////////////////////////////////////////////////////
-///						>>>その他関数の処理<<<						///
-///////////////////////////////////////////////////////////////////////
+/** @brief その他関数の処理 */
 
 void Object3d::UpdateMatrix(Camera* camera)
 {
@@ -390,3 +388,4 @@ void Object3d::SetShadowMap(SrvManager* srvManager, uint32_t shadowMapSrvIndex, 
 	shadowMatrixGPUAddress_ = shadowMatrixGPUAddress;
 	shadowEnabled_ = true;
 }
+} // namespace KCE

@@ -1,5 +1,7 @@
 #pragma once
 
+namespace KCE
+{
 /**
  * @brief Direct3Dリソースリークチェッカークラス
  */
@@ -13,4 +15,4 @@ public:
 	 */
 	~D3DResourceLeakChecker();
 };
-
+} // namespace KCE

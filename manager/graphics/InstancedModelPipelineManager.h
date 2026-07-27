@@ -3,6 +3,8 @@
 #include <d3d12.h>
 #include "base/DirectXCommon.h"
 
+namespace KCE
+{
 /**
  * @brief インスタンス描画用パイプラインマネージャー
  * @details インスタンス描画に必要なルートシグネチャとPSOを管理するシングルトンクラス
@@ -60,3 +62,4 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineStateGBuffer_;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineStateShadow_;
 };
+} // namespace KCE

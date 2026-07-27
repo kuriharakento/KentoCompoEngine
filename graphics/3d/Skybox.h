@@ -4,6 +4,8 @@
 #include "base/GraphicsTypes.h"
 #include "d3d12.h"
 
+namespace KCE
+{
 class Camera;
 class DirectXCommon;
 
@@ -120,5 +122,4 @@ private:
 		Vector3(0.0f, 0.0f, 0.0f)
 	};
 };
-
-
+} // namespace KCE

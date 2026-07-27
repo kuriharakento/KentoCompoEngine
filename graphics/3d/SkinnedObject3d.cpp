@@ -7,6 +7,8 @@
 #include "manager/graphics/ModelManager.h"
 #include "manager/scene/LightManager.h"
 
+namespace KCE
+{
 SkinnedObject3d::~SkinnedObject3d()
 {
 	if (wvpResource_)
@@ -383,3 +385,4 @@ void SkinnedObject3d::CreateDrawResources()
 	directionalLightResource_->Map(0, nullptr, reinterpret_cast<void**>(&directionalLightData_));
 	*directionalLightData_ = directionalLight_;
 }
+} // namespace KCE

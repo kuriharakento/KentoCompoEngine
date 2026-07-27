@@ -9,11 +9,14 @@
 
 // Factory
 #include "engine/gameobject/component/base/ComponentFactory.h"
+
+namespace KCE
+{
 REGISTER_COMPONENT(AABBColliderComponent)
 
 namespace GameObjectComponent
 {
-	AABBColliderComponent::AABBColliderComponent(::GameObject* owner) : ICollisionComponent(owner), aabb_(Vector3(), Vector3())
+	AABBColliderComponent::AABBColliderComponent(GameObject* owner) : ICollisionComponent(owner), aabb_(Vector3(), Vector3())
 	{
 		// GameObjectの位置とスケールからAABBを初期化
 		aabb_.min_ = owner->GetPosition() - owner->GetScale();
@@ -28,7 +31,7 @@ namespace GameObjectComponent
 		
 	}
 
-	void AABBColliderComponent::Update(::GameObject* owner)
+	void AABBColliderComponent::Update(GameObject* owner)
 	{
 		// 非アクティブ時は更新もデバッグ描画も行わない
 		if (!isActive_) return;
@@ -49,4 +52,4 @@ namespace GameObjectComponent
 	#endif
 	}
 }
-
+} // namespace KCE

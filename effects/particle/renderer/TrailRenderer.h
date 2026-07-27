@@ -20,6 +20,8 @@
 #include <unordered_map>
 #include <deque>
 
+namespace KCE
+{
 class CameraManager;
 class DirectXCommon;
 class SrvManager;
@@ -251,3 +253,4 @@ private:
 	float lastDeltaTime_ = 0.016f;
 	Vector4 tintColor_ = { 1.0f, 1.0f, 1.0f, 1.0f };
 };
+} // namespace KCE

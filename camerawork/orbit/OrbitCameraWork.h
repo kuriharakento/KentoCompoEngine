@@ -3,6 +3,8 @@
 #include "camerawork/base/CameraWorkBase.h"
 #include <time/Timer.h>
 
+namespace KCE
+{
 /**
  * @brief 軌道カメラワーククラス
  * 
@@ -107,4 +109,4 @@ private:
 	// 時間タイプ（DeltaTime or RealDeltaTime）
 	DeltaTimeType deltaType_ = DeltaTimeType::DeltaTime;
 };
-
+} // namespace KCE

@@ -1,6 +1,8 @@
 #pragma once
 #include "base/DirectXCommon.h"
 
+namespace KCE
+{
 /**
  * @brief モデル共通部クラス
  * @details 3Dモデル描画に必要なDirectXCommonへのポインタを保持する
@@ -26,4 +28,4 @@ private:
 	DirectXCommon* dxCommon_;
 
 };
-
+} // namespace KCE

@@ -3,6 +3,8 @@
 #include "OBBColliderComponent.h"
 #include "engine/gameobject/base/GameObject.h"
 
+namespace KCE
+{
 namespace collisionUtils
 {
 	using GameObjectComponent::OBBColliderComponent;
@@ -23,3 +25,4 @@ namespace collisionUtils
 		}
 	}
 }
+} // namespace KCE

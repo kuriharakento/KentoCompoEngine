@@ -5,6 +5,8 @@
 
 #include "math/BlendMode.h"
 
+namespace KCE
+{
 class DirectXCommon;
 
 /**
@@ -86,3 +88,4 @@ private:
 
 	DirectXCommon* dxCommon_ = nullptr; // DirectXCommonへのポインタ
 };
+} // namespace KCE

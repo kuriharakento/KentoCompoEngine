@@ -6,6 +6,8 @@
 
 #include "base/GraphicsTypes.h"
 
+namespace KCE
+{
 // ポインタが必要なので前方宣言
 class SpriteCommon;
 
@@ -240,4 +242,4 @@ private: // メンバ変数
 	// テクスチャ切り出しサイズ
 	KCE::Vector2 textureSize_ = { 0.0f,0.0f };
 };
-
+} // namespace KCE

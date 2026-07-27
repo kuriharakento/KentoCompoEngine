@@ -7,6 +7,8 @@
 #include <filesystem>
 #include <vector>
 
+namespace KCE
+{
 #pragma comment(lib, "d3dcompiler.lib")
 
 void GBufferPipeline::Initialize(DirectXCommon* dxCommon)
@@ -242,3 +244,4 @@ void GBufferPipeline::SetPipeline()
 	commandList->SetPipelineState(pipelineState_.Get());
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
+} // namespace KCE

@@ -12,6 +12,8 @@
 // math
 #include "math/VectorColorCodes.h"
 
+namespace KCE
+{
 /**
  * @brief ライトマネージャークラス
  * @details ポイントライトとスポットライトの管理を行う
@@ -588,3 +590,4 @@ private:
 	Matrix4x4* pointLightVPData_[kMaxPointLightShadows][6] = {};
 	std::unordered_map<std::string, uint32_t> pointLightVPIndices_; // ライト名 -> バッファインデックス
 };
+} // namespace KCE

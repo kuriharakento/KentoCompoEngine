@@ -1,6 +1,8 @@
 #pragma once
 #include "base/BasePostEffect.h"
 
+namespace KCE
+{
 // ノイズエフェクトのデフォルトパラメータ
 constexpr float kDefaultNoiseIntensity = 0.2f;      // デフォルトのノイズ強度
 constexpr float kDefaultNoiseTime = 0.0f;           // デフォルトの時間
@@ -115,3 +117,4 @@ private:
     // 内部パラメータ
     Parameters params_;
 };
+} // namespace KCE

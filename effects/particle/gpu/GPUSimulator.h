@@ -15,6 +15,8 @@
 #include <cstdint>
 #include <vector>
 
+namespace KCE
+{
 class DirectXCommon;
 class SrvManager;
 class CameraManager;
@@ -257,3 +259,4 @@ private:
 	D3D12_RESOURCE_STATES particleBufferState_ = D3D12_RESOURCE_STATE_COMMON;
 	D3D12_RESOURCE_STATES renderBufferState_ = D3D12_RESOURCE_STATE_COMMON;
 };
+} // namespace KCE

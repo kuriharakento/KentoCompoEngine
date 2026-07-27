@@ -2,11 +2,14 @@
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
+
 extern  IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 #endif
 
 #pragma comment(lib,"winmm.lib")
 
+namespace KCE
+{
 // システムタイマー精度（ミリ秒）
 constexpr UINT kTimerPrecision = 1;
 
@@ -14,7 +17,7 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 {
 	// ImGuiのメッセージ処理
 #ifdef USE_IMGUI
-	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
+	if (::ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
 	{
 		return true;
 	}
@@ -66,9 +69,7 @@ void WinApp::Initialize()
 	// システムタイマーの精度を上げる
 	timeBeginPeriod(kTimerPrecision);
 
-	///===================================================================
-	///ウィンドウを表示
-	///===================================================================
+	/** @brief ウィンドウを表示 */
 
 	// ウィンドウプロシージャを設定
 	wc_.lpfnWndProc = WindowProc;
@@ -151,4 +152,4 @@ void WinApp::Resize(uint32_t width, uint32_t height)
 	SetWindowPos(hwnd_, nullptr, 0, 0, rect.right - rect.left, rect.bottom - rect.top,
 		SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 }
-
+} // namespace KCE

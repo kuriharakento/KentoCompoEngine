@@ -4,6 +4,8 @@
 #include "jsonEditor/JsonEditableBase.h"
 #include <algorithm>
 
+namespace KCE
+{
 /**
  * @brief レイによる衝突判定コンポーネント
  * 
@@ -18,7 +20,7 @@ namespace GameObjectComponent
 		 * @brief コンストラクタ
 		 * @param owner このコンポーネントを所有するGameObject
 		 */
-		RayColliderComponent(::GameObject* owner);
+		RayColliderComponent(GameObject* owner);
 
 		/**
 		 * @brief 初期化処理
@@ -31,7 +33,7 @@ namespace GameObjectComponent
 		 * GameObjectのTransform（位置・回転）に基づいて、
 		 * レイの始点と方向をワールド座標系で更新します。
 		 */
-		void Update(::GameObject* owner) override;
+		void Update(GameObject* owner) override;
 
 		/**
 		 * @brief デバッグ用描画処理
@@ -60,12 +62,12 @@ namespace GameObjectComponent
 		/**
 		 * @brief ブロードフェーズ用 AABB を取得
 		 */
-		::AABB GetBroadphaseAABB() const override
+		AABB GetBroadphaseAABB() const override
 		{
 			Vector3 end = ray_.start + ray_.direction * ray_.length;
 			Vector3 minPos = { (std::min)(ray_.start.x, end.x), (std::min)(ray_.start.y, end.y), (std::min)(ray_.start.z, end.z) };
 			Vector3 maxPos = { (std::max)(ray_.start.x, end.x), (std::max)(ray_.start.y, end.y), (std::max)(ray_.start.z, end.z) };
-			return ::AABB(minPos, maxPos);
+			return AABB(minPos, maxPos);
 		}
 
 		// --- ゲッター・セッター ---
@@ -74,7 +76,7 @@ namespace GameObjectComponent
 		 * @brief 更新されたワールド座標系のRayを取得
 		 * @return ワールド座標系のRay空間情報
 		 */
-		const ::Ray& GetRay() const { return ray_; }
+		const Ray& GetRay() const { return ray_; }
 
 		/**
 		 * @brief レイのローカルオフセット位置を設定
@@ -96,7 +98,7 @@ namespace GameObjectComponent
 
 	private:
 		// ワールド座標系に変換されたレイの空間情報
-		::Ray ray_{};
+		Ray ray_{};
 
 		// 親オブジェクト中心からのオフセット
 		Vector3 offset_ = { 0.0f, 0.0f, 0.0f };
@@ -111,4 +113,4 @@ namespace GameObjectComponent
 		Vector3 baseDirection_ = { 0.0f, 0.0f, 1.0f };
 	};
 }
-
+} // namespace KCE

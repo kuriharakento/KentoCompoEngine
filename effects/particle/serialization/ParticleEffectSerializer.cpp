@@ -21,6 +21,9 @@
 // nlohmann/json を有効化
 #define USE_NLOHMANN_JSON
 #include "externals/nlohmann/json.hpp"
+
+namespace KCE
+{
 using json = nlohmann::json;
 
 // 前方宣言（プライベートヘルパー関数）
@@ -1313,3 +1316,4 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 	}
 }
 #endif
+} // namespace KCE
