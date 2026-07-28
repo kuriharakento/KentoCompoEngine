@@ -4,6 +4,7 @@
 #include <filesystem>
 
 // system
+#include "base/PathManager.h"
 #include "base/StringUtility.h"
 #include "externals/DirectXTex/d3dx12.h"
 
@@ -66,34 +67,30 @@ void TextureManager::LoadTexture(const std::string& filePath)
 	std::wstring targetPath = filePathW;
 	if (!std::filesystem::exists(targetPath))
 	{
-		std::wstring filename = std::filesystem::path(filePathW).filename().wstring();
-		std::vector<std::wstring> searchPaths = {
-			// 1. サブディレクトリ階層を考慮した検索
-			L"application/Resources/textures/" + filePathW,
-			L"application/Resources/fonts/" + filePathW,
-			L"application/Resources/" + filePathW,
-			L"Resources/textures/" + filePathW,
-			L"Resources/fonts/" + filePathW,
-			L"Resources/" + filePathW,
-			L"../engine/Resources/textures/" + filePathW,
-			L"../engine/Resources/fonts/" + filePathW,
-			L"../engine/Resources/" + filePathW,
-
-			// 2. ファイル名のみのフォールバック検索
-			L"application/Resources/textures/" + filename,
-			L"application/Resources/fonts/" + filename,
-			L"Resources/textures/" + filename,
-			L"Resources/fonts/" + filename,
-			L"../engine/Resources/textures/" + filename,
-			L"../engine/Resources/fonts/" + filename
-		};
-
-		for (const auto& path : searchPaths)
+		std::filesystem::path resolved = PathManager::ResolveApplicationResource(filePath);
+		if (std::filesystem::exists(resolved))
 		{
-			if (std::filesystem::exists(path))
+			targetPath = resolved.wstring();
+		}
+		else
+		{
+			std::filesystem::path appRoot = PathManager::GetApplicationResourceRoot();
+			std::wstring filename = std::filesystem::path(filePathW).filename().wstring();
+			std::vector<std::filesystem::path> searchPaths = {
+				appRoot / "textures" / filePathW,
+				appRoot / "fonts" / filePathW,
+				appRoot / filePathW,
+				appRoot / "textures" / filename,
+				appRoot / "fonts" / filename
+			};
+
+			for (const auto& path : searchPaths)
 			{
-				targetPath = path;
-				break;
+				if (std::filesystem::exists(path))
+				{
+					targetPath = path.wstring();
+					break;
+				}
 			}
 		}
 	}

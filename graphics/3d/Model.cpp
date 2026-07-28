@@ -11,6 +11,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 // manager
+#include "base/PathManager.h"
 #include "manager/graphics/TextureManager.h"
 
 namespace KCE
@@ -22,6 +23,7 @@ constexpr int kMatrixColumns = 4;
 constexpr float kDefaultShininess = 30.0f;
 // デフォルトの反射率
 constexpr float kDefaultReflectivity = 0.0f;
+
 // 三角形の頂点数
 constexpr int kTriangleVertices = 3;
 // 座標の左手系変換係数
@@ -29,7 +31,7 @@ constexpr float kLeftHandConversion = -1.0f;
 // 頂点座標のW成分
 constexpr float kVertexW = 1.0f;
 // デフォルトテクスチャパス
-const std::string kDefaultTexturePath = "./Resources/white1x1.png";
+const std::string kDefaultTexturePath = "textures/white1x1.png";
 
 Model::Model(const Model& other)
 {
@@ -63,18 +65,18 @@ void Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPat
 	std::string resolvedDirectoryPath = directoryPath;
 	if (!std::filesystem::exists(resolvedDirectoryPath + "/" + objFilePath))
 	{
-		std::vector<std::string> searchPaths = {
-			"application/Resources/models",
-			"../engine/Resources/models",
-			"Resources/models",
+		std::filesystem::path appModels = PathManager::GetApplicationResourceRoot() / "models";
+		std::vector<std::filesystem::path> searchPaths = {
+			appModels,
+			PathManager::GetApplicationResourceRoot(),
 			directoryPath
 		};
 
 		for (const auto& path : searchPaths)
 		{
-			if (std::filesystem::exists(path + "/" + objFilePath))
+			if (std::filesystem::exists(path / objFilePath))
 			{
-				resolvedDirectoryPath = path;
+				resolvedDirectoryPath = path.string();
 				break;
 			}
 		}

@@ -9,6 +9,8 @@
 
 #endif // USE_IMGUI
 
+#include "base/PathManager.h"
+
 namespace KCE
 {
 
@@ -19,21 +21,21 @@ void FontSprite::Initialize(SpriteCommon* spriteCommon, const std::string& fontN
     assert(spriteCommon);
     spriteCommon_ = spriteCommon;
 
-    // フォントファイル置き場（fontName を基にファイル名を構築）
-    const std::string dirPath = "./Resources/fonts/";
-    // フォント名から生成するアトラスPNGの接尾辞（例: <fontName>_atlas.png）
-    const std::string atlasPath = "_atlas.png";
-    // フォントメトリクスJSONの接尾辞（例: <fontName>_metrics.json）
-    const std::string metricsPath = "_metrics.json";
+    std::filesystem::path fontDir = PathManager::GetApplicationResourceRoot() / "fonts";
+    std::filesystem::path atlasFile = fontDir / (fontName + "_atlas.png");
+    std::filesystem::path metricsFile = fontDir / (fontName + "_metrics.json");
 
-    // フォント名のみを引数に与える想定：
-    // atlasTexturePath_ = "./Resources/fonts/" + fontName + "_atlas.png"
-    // jsonPath = "./Resources/fonts/" + fontName + "_metrics.json"
-    // （ファイル名／命名規則を変える場合はここを変更してください）
-    atlasTexturePath_ = dirPath + fontName + atlasPath;
+    if (!std::filesystem::exists(atlasFile))
+    {
+        atlasFile = PathManager::ResolveApplicationResource("fonts/" + fontName + "_atlas.png");
+    }
+    if (!std::filesystem::exists(metricsFile))
+    {
+        metricsFile = PathManager::ResolveApplicationResource("fonts/" + fontName + "_metrics.json");
+    }
 
-    // フォントメトリクスJSONのパスを構築して読み込む
-    const std::string jsonPath = dirPath + fontName + metricsPath;
+    atlasTexturePath_ = atlasFile.string();
+    const std::string jsonPath = metricsFile.string();
 
     // JSONからフォントメトリクスを読み込む
     LoadFontMetrics(jsonPath);

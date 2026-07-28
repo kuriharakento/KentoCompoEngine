@@ -180,7 +180,7 @@ private:
 	float masterVolume_ = 1.0f;
 	float reverbAmount_ = 0.3f;
 	ReverbPreset currentPreset_ = ReverbPreset::Default;
-	const std::string directoryPath_ = "Resources/audio/";
+	const std::string directoryPath_ = "audio/";
 
 #ifdef USE_IMGUI
 	AudioDebugData debugData_;

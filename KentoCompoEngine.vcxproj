@@ -16,6 +16,7 @@
     <ClCompile Include="base\Camera.cpp" />
     <ClCompile Include="base\D3DResourceLeakChecker.cpp" />
     <ClCompile Include="base\DirectXCommon.cpp" />
+    <ClCompile Include="base\PathManager.cpp" />
     <ClCompile Include="base\Logger.cpp" />
     <ClCompile Include="base\ObjectPool.cpp" />
     <ClCompile Include="base\PostProcessPass.cpp" />
@@ -126,6 +127,7 @@
     <ClInclude Include="base\Camera.h" />
     <ClInclude Include="base\D3DResourceLeakChecker.h" />
     <ClInclude Include="base\DirectXCommon.h" />
+    <ClInclude Include="base\PathManager.h" />
     <ClInclude Include="base\GraphicsTypes.h" />
     <ClInclude Include="base\Logger.h" />
     <ClInclude Include="base\ObjectPool.h" />

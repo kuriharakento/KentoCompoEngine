@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 namespace KCE
 {
 class SrvManager;
@@ -56,7 +58,7 @@ private:
 	// DirectXCommonへのポインタ
 	DirectXCommon* dxCommon_ = nullptr;
 
-	// FiraMono フォントのファイルパス
-	const char* FiraMonoFontPath_ = "../engine/Resources/fonts/FiraMono-Medium.ttf";
+	// FiraMono フォントの相対パス
+	std::string FiraMonoFontPath_ = "fonts/FiraMono-Medium.ttf";
 };
 } // namespace KCE

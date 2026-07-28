@@ -1,8 +1,10 @@
 #include "Audio.h"
 
+#include "base/PathManager.h"
 #include <algorithm>
 #include <cassert>
 #include <cstring>
+#include <filesystem>
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
@@ -304,7 +306,12 @@ void Audio::LoadWave(const std::string& name, const char* filename, SoundGroup g
 		return;
 	}
 
-	std::string fullpath = directoryPath_ + filename;
+	std::filesystem::path resolved = PathManager::ResolveApplicationResource(directoryPath_ + filename);
+	if (!std::filesystem::exists(resolved))
+	{
+		resolved = PathManager::GetApplicationResourceRoot() / "audio" / filename;
+	}
+	std::string fullpath = resolved.string();
 	std::ifstream file(fullpath, std::ios::binary);
 	assert(file.is_open());
 

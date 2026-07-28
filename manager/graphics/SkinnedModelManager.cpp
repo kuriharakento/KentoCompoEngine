@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstring>
 
+#include "base/PathManager.h"
 #include "manager/graphics/TextureManager.h"
 
 namespace KCE
@@ -19,7 +20,7 @@ constexpr int kMatrixRows = 4;
 constexpr int kMatrixColumns = 4;
 constexpr float kLeftHandConversion = -1.0f;
 constexpr float kVertexW = 1.0f;
-const std::string kDefaultTexturePath = "./Resources/white1x1.png";
+const std::string kDefaultTexturePath = "textures/white1x1.png";
 
 std::unique_ptr<SkinnedModelManager> SkinnedModelManager::instance_ = nullptr;
 
@@ -45,7 +46,32 @@ void SkinnedModelManager::Finalize()
 
 const SkinnedModelSharedResource* SkinnedModelManager::LoadModel(const std::string& directoryPath, const std::string& filename, const std::string& modelType)
 {
-    std::string fullPath = directoryPath + "/" + filename + "/" + filename + modelType;
+    std::string relativeModelPath = directoryPath + "/" + filename + "/" + filename + modelType;
+    std::string fullPath = relativeModelPath;
+    if (!std::filesystem::exists(fullPath))
+    {
+        std::filesystem::path resolved = PathManager::ResolveApplicationResource(relativeModelPath);
+        if (std::filesystem::exists(resolved))
+        {
+            fullPath = resolved.string();
+        }
+        else
+        {
+            std::filesystem::path appModels = PathManager::GetApplicationResourceRoot() / "models";
+            std::vector<std::filesystem::path> searchPaths = {
+                appModels / filename / (filename + modelType),
+                appModels / (filename + modelType)
+            };
+            for (const auto& path : searchPaths)
+            {
+                if (std::filesystem::exists(path))
+                {
+                    fullPath = path.string();
+                    break;
+                }
+            }
+        }
+    }
     
     // キャッシュ確認
     auto it = modelCache_.find(fullPath);

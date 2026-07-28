@@ -5,9 +5,11 @@
 #include "externals/imgui/imgui_impl_dx12.h"
 
 //system
+#include "base/PathManager.h"
 #include "base/WinApp.h"
 #include "manager/system/SrvManager.h"
 #include <fstream>
+#include <filesystem>
 
 namespace KCE
 {
@@ -109,14 +111,14 @@ void ImGuiManager::Initialize([[maybe_unused]] WinApp* winApp, [[maybe_unused]] 
 
 	// フォントを読み込んで設定する
 	float fontSize = 15.0f;
-	std::ifstream file(FiraMonoFontPath_);
-	if (file.is_open())
+	std::filesystem::path fontPath = PathManager::ResolveApplicationResource(FiraMonoFontPath_);
+	if (std::filesystem::exists(fontPath))
 	{
-		file.close();
-		// 日本語にも対応させてみる
-		ImFont* myFont = io.Fonts->AddFontFromFileTTF(FiraMonoFontPath_, fontSize, nullptr, io.Fonts->GetGlyphRangesJapanese());
-		// フォントを使う
-		io.FontDefault = myFont;
+		ImFont* myFont = io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), fontSize, nullptr, io.Fonts->GetGlyphRangesJapanese());
+		if (myFont)
+		{
+			io.FontDefault = myFont;
+		}
 	}
 
 	// SRVの確保とインデックスの取得

@@ -10,7 +10,7 @@
 namespace KCE
 {
 // デフォルトテクスチャパス
-const std::string kDefaultTexturePath = "./Resources/white1x1.png";
+const std::string kDefaultTexturePath = "textures/white1x1.png";
 constexpr float kDefaultShininess = 30.0f;
 constexpr float kDefaultReflectivity = 0.0f;
 
