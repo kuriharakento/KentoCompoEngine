@@ -141,9 +141,9 @@ void GPUParticlePipeline::CompileShader()
 	if (!std::filesystem::exists(filePath))
 	{
 		std::vector<std::wstring> searchPaths = {
-			L"application/Resources/shaders/ParticleCompute.hlsl",
-			L"../engine/Resources/shaders/ParticleCompute.hlsl",
-			L"Resources/shaders/ParticleCompute.hlsl"
+			L"engine/Resources/shaders/ParticleCompute.hlsl",
+			L"Resources/shaders/ParticleCompute.hlsl",
+			L"../Resources/shaders/ParticleCompute.hlsl"
 		};
 		for (const auto& path : searchPaths)
 		{
@@ -218,9 +218,9 @@ void GPUParticlePipeline::CompileConverterShader()
 	if (!std::filesystem::exists(filePath))
 	{
 		std::vector<std::wstring> searchPaths = {
-			L"application/Resources/shaders/ParticleConvert.CS.hlsl",
-			L"../engine/Resources/shaders/ParticleConvert.CS.hlsl",
-			L"Resources/shaders/ParticleConvert.CS.hlsl"
+			L"engine/Resources/shaders/ParticleConvert.CS.hlsl",
+			L"Resources/shaders/ParticleConvert.CS.hlsl",
+			L"../Resources/shaders/ParticleConvert.CS.hlsl"
 		};
 		for (const auto& path : searchPaths)
 		{
@@ -359,9 +359,9 @@ void GPUParticlePipeline::CreateModulePipelines()
 		if (!std::filesystem::exists(filePath))
 		{
 			std::vector<std::wstring> searchPaths = {
-				L"application/Resources/shaders/" + baseName,
-				L"../engine/Resources/shaders/" + baseName,
-				L"Resources/shaders/" + baseName
+				L"engine/Resources/shaders/" + baseName,
+				L"Resources/shaders/" + baseName,
+				L"../Resources/shaders/" + baseName
 			};
 			for (const auto& path : searchPaths)
 			{

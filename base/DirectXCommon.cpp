@@ -768,9 +768,9 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileSharder(const std::wstrin
 	{
 		std::wstring filename = std::filesystem::path(filePath).filename().wstring();
 		std::vector<std::wstring> searchPaths = {
-			L"application/Resources/shaders/" + filename,
-			L"../engine/Resources/shaders/" + filename,
-			L"Resources/shaders/" + filename
+			L"engine/Resources/shaders/" + filename,
+			L"Resources/shaders/" + filename,
+			L"../Resources/shaders/" + filename
 		};
 
 		for (const auto& path : searchPaths)

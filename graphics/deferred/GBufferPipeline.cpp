@@ -118,9 +118,9 @@ void GBufferPipeline::CreatePipelineState()
 	if (!std::filesystem::exists(vsPath))
 	{
 		std::vector<std::wstring> searchPaths = {
-			L"application/Resources/shaders/GBufferPass.VS.hlsl",
-			L"../engine/Resources/shaders/GBufferPass.VS.hlsl",
-			L"Resources/shaders/GBufferPass.VS.hlsl"
+			L"engine/Resources/shaders/GBufferPass.VS.hlsl",
+			L"Resources/shaders/GBufferPass.VS.hlsl",
+			L"../Resources/shaders/GBufferPass.VS.hlsl"
 		};
 		for (const auto& path : searchPaths)
 		{
@@ -155,9 +155,9 @@ void GBufferPipeline::CreatePipelineState()
 	if (!std::filesystem::exists(psPath))
 	{
 		std::vector<std::wstring> searchPaths = {
-			L"application/Resources/shaders/GBufferPass.PS.hlsl",
-			L"../engine/Resources/shaders/GBufferPass.PS.hlsl",
-			L"Resources/shaders/GBufferPass.PS.hlsl"
+			L"engine/Resources/shaders/GBufferPass.PS.hlsl",
+			L"Resources/shaders/GBufferPass.PS.hlsl",
+			L"../Resources/shaders/GBufferPass.PS.hlsl"
 		};
 		for (const auto& path : searchPaths)
 		{

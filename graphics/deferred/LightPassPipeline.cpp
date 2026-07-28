@@ -186,9 +186,9 @@ void LightPassPipeline::CreatePipelineState()
 	if (!std::filesystem::exists(vsPath))
 	{
 		std::vector<std::wstring> searchPaths = {
-			L"application/Resources/shaders/LightPass.VS.hlsl",
-			L"../engine/Resources/shaders/LightPass.VS.hlsl",
-			L"Resources/shaders/LightPass.VS.hlsl"
+			L"engine/Resources/shaders/LightPass.VS.hlsl",
+			L"Resources/shaders/LightPass.VS.hlsl",
+			L"../Resources/shaders/LightPass.VS.hlsl"
 		};
 		for (const auto& path : searchPaths)
 		{
@@ -223,9 +223,9 @@ void LightPassPipeline::CreatePipelineState()
 	if (!std::filesystem::exists(psPath))
 	{
 		std::vector<std::wstring> searchPaths = {
-			L"application/Resources/shaders/LightPass.PS.hlsl",
-			L"../engine/Resources/shaders/LightPass.PS.hlsl",
-			L"Resources/shaders/LightPass.PS.hlsl"
+			L"engine/Resources/shaders/LightPass.PS.hlsl",
+			L"Resources/shaders/LightPass.PS.hlsl",
+			L"../Resources/shaders/LightPass.PS.hlsl"
 		};
 		for (const auto& path : searchPaths)
 		{
