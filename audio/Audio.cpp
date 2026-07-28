@@ -5,6 +5,10 @@
 #include <cassert>
 #include <cstring>
 #include <filesystem>
+#include <limits>
+#include <mfapi.h>
+#include <mfidl.h>
+#include <mfreadwrite.h>
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
@@ -21,6 +25,39 @@ namespace
 	constexpr float kDeltaTime = 1.0f / kFrameRate;
 	constexpr int kStereoChannels = 2;
 	constexpr int kDefaultSampleRate = 44100;
+	class MediaBufferLock
+	{
+	public:
+		explicit MediaBufferLock(IMFMediaBuffer* buffer) : buffer_(buffer) {}
+
+		HRESULT Lock(BYTE** data, DWORD* length)
+		{
+			HRESULT hr = buffer_->Lock(data, nullptr, length);
+			locked_ = SUCCEEDED(hr);
+			return hr;
+		}
+
+		~MediaBufferLock()
+		{
+			if (locked_)
+			{
+				buffer_->Unlock();
+			}
+		}
+
+	private:
+		Microsoft::WRL::ComPtr<IMFMediaBuffer> buffer_;
+		bool locked_ = false;
+	};
+
+	struct CoTaskMemDeleter
+	{
+		void operator()(void* memory) const
+		{
+			CoTaskMemFree(memory);
+		}
+	};
+
 	constexpr float kMinPitch = 0.5f;
 	constexpr float kMaxPitch = 2.0f;
 	constexpr float kDefaultReverbAmount = 0.3f; // デフォルト30%
@@ -139,7 +176,15 @@ Audio* Audio::GetInstance()
 
 void Audio::Initialize()
 {
-	HRESULT hr = XAudio2Create(&xAudio2_, 0, XAUDIO2_DEFAULT_PROCESSOR);
+	HRESULT hr = MFStartup(MF_VERSION);
+	assert(SUCCEEDED(hr));
+	if (FAILED(hr))
+	{
+		return;
+	}
+	mediaFoundationInitialized_ = true;
+
+	hr = XAudio2Create(&xAudio2_, 0, XAUDIO2_DEFAULT_PROCESSOR);
 	assert(SUCCEEDED(hr));
 
 	hr = xAudio2_->CreateMasteringVoice(&masterVoice_);
@@ -208,6 +253,12 @@ void Audio::Finalize()
 	{
 		xAudio2_->StopEngine();
 		xAudio2_.Reset();
+	}
+
+	if (mediaFoundationInitialized_)
+	{
+		MFShutdown();
+		mediaFoundationInitialized_ = false;
 	}
 
 	instance_.reset();
@@ -301,65 +352,154 @@ SoundData Audio::LoadWave(const char* filename)
 
 void Audio::LoadWave(const std::string& name, const char* filename, SoundGroup group)
 {
+	Load(name, filename, group);
+}
+
+void Audio::Load(const std::string& filename, SoundGroup group)
+{
+	Load(filename, filename, group);
+}
+
+void Audio::Load(const std::string& name, const std::string& filename, SoundGroup group)
+{
 	if (soundDataMap_.find(name) != soundDataMap_.end())
 	{
 		return;
 	}
 
-	std::filesystem::path resolved = PathManager::ResolveApplicationResource(directoryPath_ + filename);
+	std::filesystem::path relativePath = std::filesystem::path(directoryPath_) / filename;
+	std::filesystem::path resolved = PathManager::ResolveApplicationResource(relativePath);
 	if (!std::filesystem::exists(resolved))
 	{
 		resolved = PathManager::GetApplicationResourceRoot() / "audio" / filename;
 	}
-	std::string fullpath = resolved.string();
-	std::ifstream file(fullpath, std::ios::binary);
-	assert(file.is_open());
-
-	RiffHeader riff;
-	file.read(reinterpret_cast<char*>(&riff), sizeof(riff));
-	assert(strncmp(riff.chunk.id, "RIFF", 4) == 0);
-	assert(strncmp(riff.type, "WAVE", 4) == 0);
-
-	FormatChunk format = {};
-	std::vector<BYTE> buffer;
-	unsigned int dataSize = 0;
-
-	while (file.peek() != EOF)
+	SoundData soundData = {};
+	if (DecodeAudioFile(resolved, group, soundData))
 	{
-		ChunkHeader chunkHeader;
-		file.read(reinterpret_cast<char*>(&chunkHeader), sizeof(chunkHeader));
+		soundDataMap_[name] = std::move(soundData);
+	}
+}
 
-		if (strncmp(chunkHeader.id, "fmt ", 4) == 0)
-		{
-			assert(chunkHeader.size <= sizeof(format.fmt));
-			file.read(reinterpret_cast<char*>(&format.fmt), chunkHeader.size);
-		}
-		else if (strncmp(chunkHeader.id, "data", 4) == 0)
-		{
-			buffer.resize(chunkHeader.size);
-			dataSize = chunkHeader.size;
-			file.read(reinterpret_cast<char*>(buffer.data()), chunkHeader.size);
-		}
-		else
-		{
-			file.seekg(chunkHeader.size, std::ios::cur);
-		}
+bool Audio::DecodeAudioFile(const std::filesystem::path& path, SoundGroup group, SoundData& output)
+{
+	if (!mediaFoundationInitialized_ || !std::filesystem::exists(path))
+	{
+		return false;
+	}
 
-		if (format.fmt.wFormatTag && !buffer.empty())
+	Microsoft::WRL::ComPtr<IMFSourceReader> sourceReader;
+	HRESULT hr = MFCreateSourceReaderFromURL(path.c_str(), nullptr, &sourceReader);
+	if (FAILED(hr))
+	{
+		return false;
+	}
+
+	hr = sourceReader->SetStreamSelection(MF_SOURCE_READER_ALL_STREAMS, FALSE);
+	if (FAILED(hr))
+	{
+		return false;
+	}
+	hr = sourceReader->SetStreamSelection(MF_SOURCE_READER_FIRST_AUDIO_STREAM, TRUE);
+	if (FAILED(hr))
+	{
+		return false;
+	}
+
+	Microsoft::WRL::ComPtr<IMFMediaType> requestedType;
+	hr = MFCreateMediaType(&requestedType);
+	if (FAILED(hr))
+	{
+		return false;
+	}
+	hr = requestedType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
+	if (FAILED(hr))
+	{
+		return false;
+	}
+	hr = requestedType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);
+	if (FAILED(hr))
+	{
+		return false;
+	}
+	hr = sourceReader->SetCurrentMediaType(MF_SOURCE_READER_FIRST_AUDIO_STREAM, nullptr, requestedType.Get());
+	if (FAILED(hr))
+	{
+		return false;
+	}
+
+	Microsoft::WRL::ComPtr<IMFMediaType> currentType;
+	hr = sourceReader->GetCurrentMediaType(MF_SOURCE_READER_FIRST_AUDIO_STREAM, &currentType);
+	if (FAILED(hr))
+	{
+		return false;
+	}
+
+	WAVEFORMATEX* rawWaveFormat = nullptr;
+	UINT32 waveFormatSize = 0;
+	hr = MFCreateWaveFormatExFromMFMediaType(currentType.Get(), &rawWaveFormat, &waveFormatSize);
+	std::unique_ptr<WAVEFORMATEX, CoTaskMemDeleter> waveFormat(rawWaveFormat);
+	if (FAILED(hr) || !waveFormat || waveFormatSize < sizeof(WAVEFORMATEX))
+	{
+		return false;
+	}
+
+	SoundData decoded = {};
+	decoded.wfex = *waveFormat;
+	decoded.group = group;
+
+	for (;;)
+	{
+		DWORD flags = 0;
+		Microsoft::WRL::ComPtr<IMFSample> sample;
+		hr = sourceReader->ReadSample(MF_SOURCE_READER_FIRST_AUDIO_STREAM, 0, nullptr, &flags, nullptr, &sample);
+		if (FAILED(hr) || (flags & MF_SOURCE_READERF_ERROR) != 0)
+		{
+			return false;
+		}
+		if ((flags & MF_SOURCE_READERF_CURRENTMEDIATYPECHANGED) != 0)
+		{
+			return false;
+		}
+		if ((flags & MF_SOURCE_READERF_ENDOFSTREAM) != 0)
 		{
 			break;
 		}
+		if (!sample)
+		{
+			continue;
+		}
+
+		Microsoft::WRL::ComPtr<IMFMediaBuffer> mediaBuffer;
+		hr = sample->ConvertToContiguousBuffer(&mediaBuffer);
+		if (FAILED(hr))
+		{
+			return false;
+		}
+
+		BYTE* data = nullptr;
+		DWORD length = 0;
+		MediaBufferLock bufferLock(mediaBuffer.Get());
+		hr = bufferLock.Lock(&data, &length);
+		if (FAILED(hr))
+		{
+			return false;
+		}
+
+		constexpr size_t kMaximumAudioBytes = static_cast<size_t>(XAUDIO2_MAX_BUFFER_BYTES);
+		if (length > kMaximumAudioBytes || decoded.buffer.size() > kMaximumAudioBytes - length)
+		{
+			return false;
+		}
+		decoded.buffer.insert(decoded.buffer.end(), data, data + length);
 	}
 
-	assert(format.fmt.wFormatTag != 0 && !buffer.empty());
-	file.close();
-
-	SoundData soundData = {};
-	soundData.wfex = format.fmt;
-	soundData.buffer = std::move(buffer);
-	soundData.bufferSize = dataSize;
-	soundData.group = group;
-	soundDataMap_[name] = soundData;
+	if (decoded.buffer.empty() || decoded.buffer.size() > (std::numeric_limits<unsigned int>::max)())
+	{
+		return false;
+	}
+	decoded.bufferSize = static_cast<unsigned int>(decoded.buffer.size());
+	output = std::move(decoded);
+	return true;
 }
 
 void Audio::PlayWave(SoundData* soundData, bool loop)

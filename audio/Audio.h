@@ -2,6 +2,7 @@
 #include <xaudio2.h>
 #pragma comment(lib, "xaudio2.lib")
 #include <fstream>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -109,6 +110,21 @@ public:
 	SoundData LoadWave(const char* filename);
 	void LoadWave(const std::string& name, const char* filename, SoundGroup group);
 
+	/**
+	 * @brief Application側のaudioフォルダから音声を読み込む。
+	 * @param filename 音声ファイル名。キャッシュキーにも使用する。
+	 * @param group 音声グループ
+	 */
+	void Load(const std::string& filename, SoundGroup group);
+
+	/**
+	 * @brief Application側のaudioフォルダから音声を指定名で読み込む。
+	 * @param name キャッシュに登録する名前
+	 * @param filename 音声ファイル名
+	 * @param group 音声グループ
+	 */
+	void Load(const std::string& name, const std::string& filename, SoundGroup group);
+
 	void PlayWave(SoundData* soundData, bool loop = false);
 	void PlayWave(const std::string& name, bool loop = false);
 	void StopWave(const std::string& name);
@@ -154,6 +170,7 @@ private:
 	friend std::unique_ptr<Audio> std::make_unique<Audio>();
 
 	void InitializeEffect();
+	bool DecodeAudioFile(const std::filesystem::path& path, SoundGroup group, SoundData& output);
 	void RemoveFromGroupMap(IXAudio2SourceVoice* sourceVoice);
 	float ClampVolume(float volume) const;
 	float ClampPitch(float pitch) const;
@@ -177,6 +194,7 @@ private:
 	std::unordered_map<IXAudio2SourceVoice*, bool> fadeOutStopMap_;
 
 	bool reverbEnabled_ = true;
+	bool mediaFoundationInitialized_ = false;
 	float masterVolume_ = 1.0f;
 	float reverbAmount_ = 0.3f;
 	ReverbPreset currentPreset_ = ReverbPreset::Default;

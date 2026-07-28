@@ -1,4 +1,5 @@
 #include "GameObject.h"
+#include "base/PathManager.h"
 #include "engine/gameobject/manager/GameObjectManager.h"
 
 #include "engine/graphics/3d/Object3dCommon.h"
@@ -564,9 +565,9 @@ bool GameObject::SaveJson(const std::string& path) const
 		targetPath = name_ + ".json";
 	}
 
-	std::string dirPath = "Resources/json/gameobject/";
+	std::filesystem::path dirPath = PathManager::GetApplicationResourceRoot() / "json" / "gameobject";
 	std::filesystem::create_directories(dirPath);
-	std::string fullPath = dirPath + targetPath;
+	std::filesystem::path fullPath = dirPath / targetPath;
 
 	// 1. GameObject 自身のパラメータをシリアライズ
 	nlohmann::json json = JsonEditableBase::Serialize();
@@ -602,7 +603,7 @@ bool GameObject::LoadJson(const std::string& path)
 		targetPath = name_ + ".json";
 	}
 
-	std::string fullPath = "Resources/json/gameobject/" + targetPath;
+	std::filesystem::path fullPath = PathManager::GetApplicationResourceRoot() / "json" / "gameobject" / targetPath;
 	if (!std::filesystem::exists(fullPath))
 	{
 		return false;

@@ -1,4 +1,5 @@
 #include "GameObjectEditor.h"
+#include "base/PathManager.h"
 #include "engine/gameobject/base/GameObject.h"
 #include "engine/gameobject/manager/GameObjectManager.h"
 #include "manager/editor/DebugUIManager.h"
@@ -336,7 +337,7 @@ void GameObjectEditor::AddComponentByName(GameObject* owner, const std::string& 
 void GameObjectEditor::UpdateJsonFileList()
 {
 	jsonFiles_.clear();
-	std::string dirPath = "Resources/json/gameobject/";
+	std::filesystem::path dirPath = PathManager::GetApplicationResourceRoot() / "json" / "gameobject";
 	try
 	{
 		std::filesystem::create_directories(dirPath);

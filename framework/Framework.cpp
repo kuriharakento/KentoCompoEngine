@@ -254,6 +254,7 @@ void Framework::Finalize()
 	/*----- 終了処理（初期化の逆順で解放） -----*/
 
 	sceneManager_.reset();
+	Audio::GetInstance()->Finalize();
 	winApp_->Finalize();
 	winApp_.reset();
 	DebugUIManager::GetInstance()->Finalize();
@@ -271,7 +272,6 @@ void Framework::Finalize()
 	InstancedModelPipelineManager::GetInstance()->Finalize();
 	SkinningPipelineManager::GetInstance()->Finalize();
 	Input::GetInstance()->Finalize();
-	Audio::GetInstance()->Finalize();
 	lightManager_.reset();
 	LineManager::GetInstance()->Finalize();
 	renderTexture_.reset();
