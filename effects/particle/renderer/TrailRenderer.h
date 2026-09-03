@@ -69,6 +69,11 @@ struct TrailMaterial
 	int32_t useTextureColor = 1;
 	float padding[2] = {};
 	Matrix4x4 uvTransform = MakeIdentity4x4();
+	Vector4 emissiveColorIntensity = { 1.0f, 1.0f, 1.0f, 1.0f };
+	uint32_t emissiveEnabled = 0;
+	uint32_t emissiveSource = 0;
+	float bloomContribution = 1.0f;
+	float emissivePadding = 0.0f;
 };
 
 /**
@@ -96,6 +101,8 @@ public:
 	 * @param texturePath テクスチャファイルパス
 	 */
 	void SetTexture(const std::string& texturePath) override;
+	void SetEmissiveTexture(const std::string& texturePath) override;
+	std::string GetEmissiveTexturePath() const override { return emissiveTexturePath_; }
 
 	/**
 	 * @brief パーティクルデータを更新
@@ -110,6 +117,7 @@ public:
 	 * @param srvManager SrvManagerポインタ
 	 */
 	void Draw(DirectXCommon* dxCommon, SrvManager* srvManager) override;
+	void SetGPURibbonMode(bool enable, ID3D12Resource* vertexBuffer, ID3D12Resource* drawArguments, uint32_t maxVertices) override;
 
 	/**
 	 * @brief レンダラータイプを取得
@@ -222,6 +230,11 @@ private:
 	//===== GPUリソース =====//
 	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_{};
+	Microsoft::WRL::ComPtr<ID3D12CommandSignature> drawCommandSignature_;
+	ID3D12Resource* gpuVertexBuffer_ = nullptr;
+	ID3D12Resource* gpuDrawArguments_ = nullptr;
+	uint32_t gpuMaxVertices_ = 0;
+	bool gpuRibbonMode_ = false;
 
 	TrailVertex* vertexData_ = nullptr;
 	uint32_t vertexCount_ = 0;
@@ -234,6 +247,8 @@ private:
 
 	//===== 描画設定 =====//
 	uint32_t textureIndex_ = 0;
+	uint32_t emissiveTextureIndex_ = 0;
+	std::string emissiveTexturePath_;
 	std::string texturePath_;
 
 	//===== トレイル設定 =====//

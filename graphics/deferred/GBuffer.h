@@ -124,7 +124,7 @@ private:
 	static constexpr DXGI_FORMAT kAlbedoFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	static constexpr DXGI_FORMAT kNormalFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
 	static constexpr DXGI_FORMAT kMaterialFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-	static constexpr DXGI_FORMAT kEmissiveFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	static constexpr DXGI_FORMAT kEmissiveFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	// static constexpr DXGI_FORMAT kDepthFormat = DXGI_FORMAT_D32_FLOAT; // D32_FLOATはForward Passと不一致のため廃止
 
 	// 現在の深度バッファの状態

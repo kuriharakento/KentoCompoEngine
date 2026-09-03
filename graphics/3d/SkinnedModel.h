@@ -117,6 +117,8 @@ public: // アクセッサ
 	 * @param enable ライティング有効フラグ
 	 */
 	void SetEnableLighting(bool enable);
+	void SetEmissiveSettings(const EmissiveSettings& settings);
+	EmissiveSettings GetEmissiveSettings() const;
 
 private: // メンバ関数
 	/**
@@ -155,6 +157,7 @@ private:
 		uint32_t materialIndex = 0;
 		// テクスチャインデックス
 		uint32_t textureIndex = 0;
+		uint32_t emissiveTextureIndex = 0;
 		// 頂点オフセット（全体バッファ内）
 		uint32_t vertexOffset = 0;
 		// マテリアルバッファ

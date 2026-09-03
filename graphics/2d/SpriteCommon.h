@@ -23,7 +23,7 @@ public: // メンバ関数
 	 * @brief 共通描画設定
 	 * @details ルートシグネチャ、パイプラインステート、プリミティブトポロジーを設定する
 	 */
-	void CommonRenderingSetting();
+	void CommonRenderingSetting(bool bloomEnabled = false);
 
 public: // アクセッサ
 	/**
@@ -53,6 +53,7 @@ private: // メンバ変数
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_ = nullptr;
 	// グラフィックスパイプラインステート
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState_ = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> bloomGraphicsPipelineState_ = nullptr;
 
 
 };

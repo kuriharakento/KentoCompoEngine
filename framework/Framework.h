@@ -132,6 +132,9 @@ protected: // メンバ変数
 	std::unique_ptr<Skybox> skybox_;
 	// ブルーム用ブライトパスレンダーターゲット
 	std::unique_ptr<RenderTexture> brightPassRT_;
+	// Selective Bloom source. Deferred opaque and forward emissive renderers
+	// contribute to this HDR target; non-emissive scene luminance is excluded.
+	std::unique_ptr<RenderTexture> selectiveBloomRT_;
 	// ブラー用のレンダーターゲット（ピンポンバッファ）
 	std::unique_ptr<RenderTexture> blurRT_[2];
 	// シャドウマップマネージャー

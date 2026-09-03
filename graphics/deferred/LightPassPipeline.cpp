@@ -17,7 +17,8 @@ void LightPassPipeline::Initialize(DirectXCommon* dxCommon)
 	dxCommon_ = dxCommon;
 
 	CreateRootSignature();
-	CreatePipelineState();
+	CreatePipelineState(true);
+	CreatePipelineState(false);
 
 	KCE::Logger::Log("LightPassPipeline initialized\n");
 }
@@ -173,7 +174,7 @@ void LightPassPipeline::CreateRootSignature()
 	assert(SUCCEEDED(hr));
 }
 
-void LightPassPipeline::CreatePipelineState()
+void LightPassPipeline::CreatePipelineState(bool bloomTargetEnabled)
 {
 	auto* device = dxCommon_->GetDevice();
 
@@ -237,9 +238,13 @@ void LightPassPipeline::CreatePipelineState()
 		}
 	}
 
+	const D3D_SHADER_MACRO singleTargetDefines[] = {
+		{ "KCE_BLOOM_TARGET_DISABLED", "1" },
+		{ nullptr, nullptr }
+	};
 	hr = D3DCompileFromFile(
 		psPath.c_str(),
-		nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		bloomTargetEnabled ? nullptr : singleTargetDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE,
 		"main", "ps_5_0",
 		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
 		0, &psBlob, &errorBlob
@@ -261,8 +266,12 @@ void LightPassPipeline::CreatePipelineState()
 	psoDesc.InputLayout = { nullptr, 0 };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
-	psoDesc.NumRenderTargets = 1;
+	psoDesc.NumRenderTargets = bloomTargetEnabled ? 2 : 1;
 	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	if (bloomTargetEnabled)
+	{
+		psoDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	}
 	psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 
 	psoDesc.SampleDesc.Count = 1;
@@ -278,19 +287,26 @@ void LightPassPipeline::CreatePipelineState()
 
 	psoDesc.BlendState.RenderTarget[0].BlendEnable = FALSE;
 	psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+	if (bloomTargetEnabled)
+	{
+		psoDesc.BlendState.RenderTarget[1].BlendEnable = FALSE;
+		psoDesc.BlendState.RenderTarget[1].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+	}
 
 	psoDesc.DepthStencilState.DepthEnable = FALSE;
 	psoDesc.DepthStencilState.StencilEnable = FALSE;
 
-	hr = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState_));
+	auto& target = bloomTargetEnabled ? pipelineState_ : singleTargetPipelineState_;
+	hr = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&target));
 	assert(SUCCEEDED(hr));
 }
 
-void LightPassPipeline::SetPipeline()
+void LightPassPipeline::SetPipeline(bool bloomTargetEnabled)
 {
 	auto* commandList = dxCommon_->GetCommandList();
 	commandList->SetGraphicsRootSignature(rootSignature_.Get());
-	commandList->SetPipelineState(pipelineState_.Get());
+	commandList->SetPipelineState(
+		bloomTargetEnabled ? pipelineState_.Get() : singleTargetPipelineState_.Get());
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 }
 } // namespace KCE

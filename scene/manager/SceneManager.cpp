@@ -1,6 +1,8 @@
 #include "SceneManager.h"
 #include "engine/scene/factory/SceneFactory.h"
 #include <assert.h>
+#include <cstdlib>
+#include <optional>
 
 #include "externals/imgui/imgui.h"
 #include "effects/particle/ParticleManager.h"
@@ -8,6 +10,20 @@
 
 namespace KCE
 {
+namespace
+{
+std::optional<std::string> ReadEnvironmentString(const char* name)
+{
+	char* value = nullptr;
+	size_t length = 0;
+	if (_dupenv_s(&value, &length, name) != 0 || !value) return std::nullopt;
+	std::string result(value);
+	std::free(value);
+	if (result.empty()) return std::nullopt;
+	return result;
+}
+}
+
 SceneManager::~SceneManager()
 {
 	//現在のシーンを終了
@@ -21,9 +37,21 @@ void SceneManager::Initialize(const SceneContext& context)
 
 	//初期シーンの名前
 	std::string startSceneName = "TitleScene";
+	if (const auto configuredScene = ReadEnvironmentString("KCE_START_SCENE"))
+	{
+		startSceneName = *configuredScene;
+		if (startSceneName.size() < 5 || startSceneName.substr(startSceneName.size() - 5) != "Scene") startSceneName += "Scene";
+	}
 
 	//最初のシーンを生成
 	currentScene_ = sceneFactory_->CreateScene(startSceneName);
+	if (!currentScene_)
+	{
+		// 指定シーンが未登録の場合はTitleSceneへフォールバックする（nullptr参照防止）
+		startSceneName = "TitleScene";
+		currentScene_ = sceneFactory_->CreateScene(startSceneName);
+	}
+	assert(currentScene_ && "Failed to create fallback TitleScene");
 	currentScene_->SetSceneManager(this);
 	currentScene_->Initialize();
 	currentSceneName_ = startSceneName;

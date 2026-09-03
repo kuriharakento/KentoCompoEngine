@@ -183,6 +183,8 @@ public: // アクセッサ
 	 * @brief 色の設定
 	 */
 	void SetColor(const Vector4& color) override;
+	void SetEmissiveSettings(const EmissiveSettings& settings) override { if (model_) model_->SetEmissiveSettings(settings); }
+	EmissiveSettings GetEmissiveSettings() const override { return model_ ? model_->GetEmissiveSettings() : EmissiveSettings{}; }
 
 	/**
 	 * @brief 色の取得

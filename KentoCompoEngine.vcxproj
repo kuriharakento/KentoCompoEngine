@@ -46,9 +46,11 @@
     <ClCompile Include="effects\particle\editor\ParticleEditor.cpp" />
     <ClCompile Include="effects\particle\gpu\GPUParticlePipeline.cpp" />
     <ClCompile Include="effects\particle\gpu\GPUSimulator.cpp" />
+	<ClCompile Include="effects\particle\module\ModuleRuntime.cpp" />
     <ClCompile Include="effects\particle\module\spawn\SubEmitterModule.cpp" />
     <ClCompile Include="effects\particle\ParticleEffect.cpp" />
     <ClCompile Include="effects\particle\ParticleEmitter.cpp" />
+    <ClCompile Include="effects\particle\diagnostics\ParticleDiagnostics.cpp" />
     <ClCompile Include="effects\particle\ParticleManager.cpp" />
     <ClCompile Include="effects\particle\primitive\PrimitiveGenerator.cpp" />
     <ClCompile Include="effects\particle\renderer\MeshRenderer.cpp" />
@@ -178,6 +180,7 @@
     <ClInclude Include="effects\particle\gpu\GPUParticlePipeline.h" />
     <ClInclude Include="effects\particle\gpu\GPUSimulator.h" />
     <ClInclude Include="effects\particle\module\IModule.h" />
+	<ClInclude Include="effects\particle\module\ModuleRuntime.h" />
     <ClInclude Include="effects\particle\module\ModulePriorities.h" />
     <ClInclude Include="effects\particle\module\spawn\InitialModules.h" />
     <ClInclude Include="effects\particle\module\spawn\SpawnModules.h" />
@@ -195,6 +198,7 @@
     <ClInclude Include="effects\particle\ParticleEasing.h" />
     <ClInclude Include="effects\particle\ParticleEffect.h" />
     <ClInclude Include="effects\particle\ParticleEmitter.h" />
+    <ClInclude Include="effects\particle\diagnostics\ParticleDiagnostics.h" />
     <ClInclude Include="effects\particle\ParticleManager.h" />
     <ClInclude Include="effects\particle\ParticleTypes.h" />
     <ClInclude Include="effects\particle\primitive\PrimitiveGenerator.h" />

@@ -1,12 +1,20 @@
 #include "ParticleEmitter.h"
 #include "effects/particle/module/IModule.h"
 #include "effects/particle/module/spawn/SubEmitterModule.h"
+#include "effects/particle/module/spawn/SpawnModules.h"
+#include "effects/particle/module/spawn/InitialModules.h"
+#include "effects/particle/module/spawn/SpawnShapeModules.h"
 #include "effects/particle/module/update/UpdateModules.h"
+#include "effects/particle/module/update/AdvancedModules.h"
+#include "effects/particle/module/update/MotionEffectModules.h"
 #include "effects/particle/renderer/IRenderer.h"
+#include "effects/particle/renderer/TrailRenderer.h"
 #include "effects/particle/gpu/GPUSimulator.h"
 #include "effects/particle/ParticleManager.h"
 #include "base/DirectXCommon.h"
 #include <algorithm>
+#include <cmath>
+#include "effects/particle/diagnostics/ParticleDiagnostics.h"
 
 namespace KCE
 {
@@ -31,6 +39,7 @@ void ParticleEmitter::Update(float deltaTime, CameraManager* camera)
 	{
 		position_ = followEmitterPosition_ + followOffset_;
 	}
+	ApplyDynamicBindings();
 
 	if (simulationMode_ == SimulationMode::CPU)
 	{
@@ -43,13 +52,18 @@ void ParticleEmitter::Update(float deltaTime, CameraManager* camera)
 
 	if (renderer_)
 	{
-		if (simulationMode_ == SimulationMode::GPU && gpuSimulator_)
+		if (simulationMode_ == SimulationMode::GPU && gpuSimulator_ && gpuSimulator_->IsInitialized() && gpuSimulator_->IsPureGPUPath())
 		{
-			renderer_->SetGPUMode(true, gpuSimulator_->GetRenderSrvIndex(), gpuSimulator_->GetParticleCount());
+			renderer_->SetGPUMode(true, gpuSimulator_->GetRenderSrvIndex(), gpuSimulator_->GetParticleCount(),
+				gpuSimulator_->IsPureGPUPath() ? gpuSimulator_->GetDrawArgumentsBuffer() : nullptr);
+			const bool gpuRibbon = gpuSimulator_->IsPureGPUPath() && renderer_->GetType() == RendererType::Ribbon;
+			renderer_->SetGPURibbonMode(gpuRibbon, gpuSimulator_->GetRibbonVertexBuffer(),
+				gpuSimulator_->GetRibbonDrawArgumentsBuffer(), gpuSimulator_->GetMaxParticles() * 6u);
 		}
 		else
 		{
 			renderer_->SetGPUMode(false, 0, 0);
+			renderer_->SetGPURibbonMode(false, nullptr, nullptr, 0);
 		}
 		renderer_->Update(particles_, camera);
 	}
@@ -59,13 +73,18 @@ void ParticleEmitter::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
 	if (renderer_)
 	{
-		if (simulationMode_ == SimulationMode::GPU && gpuSimulator_)
+		if (simulationMode_ == SimulationMode::GPU && gpuSimulator_ && gpuSimulator_->IsInitialized() && gpuSimulator_->IsPureGPUPath())
 		{
-			renderer_->SetGPUMode(true, gpuSimulator_->GetRenderSrvIndex(), gpuSimulator_->GetParticleCount());
+			renderer_->SetGPUMode(true, gpuSimulator_->GetRenderSrvIndex(), gpuSimulator_->GetParticleCount(),
+				gpuSimulator_->IsPureGPUPath() ? gpuSimulator_->GetDrawArgumentsBuffer() : nullptr);
+			const bool gpuRibbon = gpuSimulator_->IsPureGPUPath() && renderer_->GetType() == RendererType::Ribbon;
+			renderer_->SetGPURibbonMode(gpuRibbon, gpuSimulator_->GetRibbonVertexBuffer(),
+				gpuSimulator_->GetRibbonDrawArgumentsBuffer(), gpuSimulator_->GetMaxParticles() * 6u);
 		}
 		else
 		{
 			renderer_->SetGPUMode(false, 0, 0);
+			renderer_->SetGPURibbonMode(false, nullptr, nullptr, 0);
 		}
 		renderer_->Draw(dxCommon, srvManager);
 	}
@@ -75,21 +94,133 @@ void ParticleEmitter::AddModule(std::unique_ptr<IModule> module)
 {
 	modules_.push_back(std::move(module));
 	modulesSorted_ = false; // 再ソートが必要
+	compiledEmitterDirty_ = true;
 }
 
 void ParticleEmitter::SetMaxParticles(uint32_t max)
 {
+	constexpr uint32_t kMaximumParticleCapacity = 1000000u;
+	max = (std::clamp)(max, 1u, kMaximumParticleCapacity);
 	if (maxParticles_ == max) return;
+	const uint32_t previousCapacity = maxParticles_;
 	maxParticles_ = max;
-	particles_.reserve(maxParticles_);
 
 	// GPUシミュレーターが存在する場合は再初期化（再確保）する
 	if (gpuSimulator_)
 	{
 		auto* pm = ParticleManager::GetInstance();
-		gpuSimulator_ = std::make_unique<GPUSimulator>();
-		gpuSimulator_->Initialize(pm->GetDxCommon(), pm->GetSrvManager(), maxParticles_);
+		auto replacement = std::make_unique<GPUSimulator>();
+		replacement->Initialize(pm->GetDxCommon(), pm->GetSrvManager(), maxParticles_);
+		if (!replacement->IsInitialized())
+		{
+			maxParticles_ = previousCapacity;
+			return;
+		}
+		pm->AddSimulatorToTrashBin(std::move(gpuSimulator_));
+		gpuSimulator_ = std::move(replacement);
 	}
+	if (particles_.size() > maxParticles_) particles_.resize(maxParticles_);
+	particles_.reserve(maxParticles_);
+}
+
+void ParticleEmitter::ApplyDynamicBindings()
+{
+	if (dynamicBindings_.empty()) return;
+	const float normalizedTime = duration_ > 0.0f ? (std::clamp)(emitterAge_ / duration_, 0.0f, 1.0f) : emitterAge_ - std::floor(emitterAge_);
+	const uint32_t seed = nextParticleId_ ^ static_cast<uint32_t>(emitterAge_ * 1000.0f);
+	auto value = [&](const char* module, const char* parameter) -> const ModuleParameterValue*
+	{
+		const auto* binding = FindDynamicBinding(module, parameter);
+		if (!binding) return nullptr;
+		static thread_local ModuleParameterValue evaluated;
+		evaluated = binding->Evaluate(normalizedTime, seed, &parameterStore_);
+		return &evaluated;
+	};
+	auto getFloat = [&](const char* module, const char* parameter, float fallback)
+	{
+		const auto* resolved = value(module, parameter); const auto* typed = resolved ? std::get_if<float>(resolved) : nullptr; return typed ? *typed : fallback;
+	};
+	auto getV3 = [&](const char* module, const char* parameter, Vector3 fallback)
+	{
+		const auto* resolved = value(module, parameter); const auto* typed = resolved ? std::get_if<Vector3>(resolved) : nullptr; return typed ? *typed : fallback;
+	};
+	auto getV4 = [&](const char* module, const char* parameter, Vector4 fallback)
+	{
+		const auto* resolved = value(module, parameter); const auto* typed = resolved ? std::get_if<Vector4>(resolved) : nullptr; return typed ? *typed : fallback;
+	};
+	for (auto& module : modules_)
+	{
+		if (auto* m = dynamic_cast<SpawnRateModule*>(module.get())) m->SetRate(getFloat("SpawnRate", "rate", m->GetRate()));
+		else if (auto* m = dynamic_cast<SpawnShapeModule*>(module.get()))
+		{
+			m->SetRadius(getFloat("SpawnShape", "innerRadius", m->GetInnerRadius()), getFloat("SpawnShape", "outerRadius", m->GetOuterRadius()));
+			m->SetBoxSize(getV3("SpawnShape", "boxSize", m->GetBoxSize()));
+			m->SetConeHeight(getFloat("SpawnShape", "coneHeight", m->GetConeHeight()));
+			m->SetLine(getV3("SpawnShape", "lineStart", m->GetLineStart()), getV3("SpawnShape", "lineEnd", m->GetLineEnd()));
+			m->SetInitialSpeed(getFloat("SpawnShape", "initialSpeed", m->GetInitialSpeed()));
+			m->SetArcAngle(getFloat("SpawnShape", "arcAngle", m->GetArcAngle()));
+		}
+		else if (auto* m = dynamic_cast<InitialPositionModule*>(module.get())) m->SetOffsetRange(getV3("InitialPosition", "min", m->GetMinOffset()), getV3("InitialPosition", "max", m->GetMaxOffset()));
+		else if (auto* m = dynamic_cast<InitialVelocityModule*>(module.get())) m->SetVelocityRange(getV3("InitialVelocity", "min", m->GetMinVelocity()), getV3("InitialVelocity", "max", m->GetMaxVelocity()));
+		else if (auto* m = dynamic_cast<InitialLifetimeModule*>(module.get())) m->SetLifetimeRange(getFloat("InitialLifetime", "min", m->GetMinLifetime()), getFloat("InitialLifetime", "max", m->GetMaxLifetime()));
+		else if (auto* m = dynamic_cast<InitialColorModule*>(module.get())) { m->SetMinColor(getV4("InitialColor", "min", m->GetMinColor())); m->SetMaxColor(getV4("InitialColor", "max", m->GetMaxColor())); }
+		else if (auto* m = dynamic_cast<InitialScaleModule*>(module.get())) m->SetScaleRange(getV3("InitialScale", "min", m->GetMinScale()), getV3("InitialScale", "max", m->GetMaxScale()));
+		else if (auto* m = dynamic_cast<GravityModule*>(module.get())) m->SetGravityRange(getV3("Gravity", "min", m->GetMinGravity()), getV3("Gravity", "max", m->GetMaxGravity()));
+		else if (auto* m = dynamic_cast<DragModule*>(module.get())) m->SetDragRange(getFloat("Drag", "min", m->GetMinDrag()), getFloat("Drag", "max", m->GetMaxDrag()));
+		else if (auto* m = dynamic_cast<ColorFadeModule*>(module.get())) m->SetColors(getV4("ColorFade", "start", m->GetStartColor()), getV4("ColorFade", "end", m->GetEndColor()));
+		else if (auto* m = dynamic_cast<ScaleOverLifetimeModule*>(module.get())) m->SetScales(getV3("ScaleOverLifetime", "start", m->GetStartScale()), getV3("ScaleOverLifetime", "end", m->GetEndScale()));
+		else if (auto* m = dynamic_cast<RotationOverLifetimeModule*>(module.get())) m->SetRotationSpeedRange(getFloat("RotationOverLifetime", "startSpeed", m->GetStartSpeed()), getFloat("RotationOverLifetime", "endSpeed", m->GetEndSpeed()));
+		else if (auto* m = dynamic_cast<NoiseModule*>(module.get())) { m->SetStrength(getFloat("Noise", "strength", m->GetStrength())); m->SetFrequency(getFloat("Noise", "frequency", m->GetFrequency())); }
+		else if (auto* m = dynamic_cast<VelocityOverLifetimeModule*>(module.get())) { m->SetStartMultiplier(getFloat("VelocityOverLifetime", "startMultiplier", m->GetStartMultiplier())); m->SetEndMultiplier(getFloat("VelocityOverLifetime", "endMultiplier", m->GetEndMultiplier())); }
+		else if (auto* m = dynamic_cast<StretchByVelocityModule*>(module.get())) { m->SetStretchFactor(getFloat("StretchByVelocity", "stretchFactor", m->GetStretchFactor())); m->SetMinStretch(getFloat("StretchByVelocity", "minStretch", m->GetMinStretch())); m->SetMaxStretch(getFloat("StretchByVelocity", "maxStretch", m->GetMaxStretch())); }
+		else if (auto* m = dynamic_cast<FlickerModule*>(module.get())) { m->SetFrequency(getFloat("Flicker", "frequency", m->GetFrequency())); m->SetMinAlpha(getFloat("Flicker", "minAlpha", m->GetMinAlpha())); m->SetMaxAlpha(getFloat("Flicker", "maxAlpha", m->GetMaxAlpha())); }
+		else if (auto* m = dynamic_cast<AlphaFadeModule*>(module.get())) { m->SetStartAlpha(getFloat("AlphaFade", "startAlpha", m->GetStartAlpha())); m->SetEndAlpha(getFloat("AlphaFade", "endAlpha", m->GetEndAlpha())); }
+	}
+}
+
+bool ParticleEmitter::SetDynamicBinding(DynamicParameterBinding binding)
+{
+	const ModuleDescriptor* descriptor = ModuleDescriptorRegistry::GetInstance().Find(binding.moduleId);
+	if (!descriptor || binding.parameterId.empty() || binding.emitterParameter.size() > 128 || binding.keys.size() > 1024) return false;
+	const auto schema = std::find_if(descriptor->parameters.begin(), descriptor->parameters.end(),
+		[&](const ModuleParameterSchema& parameter) { return parameter.id == binding.parameterId; });
+	if (schema == descriptor->parameters.end() || !schema->dynamicInput || schema->type != binding.type) return false;
+	if (binding.mode == DynamicBindingMode::EmitterParameter && binding.emitterParameter.empty()) return false;
+	std::sort(binding.keys.begin(), binding.keys.end(), [](const DynamicBindingKey& a, const DynamicBindingKey& b) { return a.time < b.time; });
+	for (size_t index = 1; index < binding.keys.size();)
+	{
+		if (binding.keys[index - 1].time == binding.keys[index].time)
+		{
+			binding.keys[index - 1] = binding.keys[index];
+			binding.keys.erase(binding.keys.begin() + static_cast<std::ptrdiff_t>(index));
+		}
+		else ++index;
+	}
+	auto existing = std::find_if(dynamicBindings_.begin(), dynamicBindings_.end(), [&](const DynamicParameterBinding& value)
+	{
+		return value.moduleId == binding.moduleId && value.parameterId == binding.parameterId;
+	});
+	if (existing == dynamicBindings_.end()) dynamicBindings_.push_back(std::move(binding));
+	else *existing = std::move(binding);
+	compiledEmitterDirty_ = true;
+	return true;
+}
+
+bool ParticleEmitter::RemoveDynamicBinding(const std::string& moduleId, const std::string& parameterId)
+{
+	const size_t oldSize = dynamicBindings_.size();
+	std::erase_if(dynamicBindings_, [&](const DynamicParameterBinding& value) { return value.moduleId == moduleId && value.parameterId == parameterId; });
+	if (dynamicBindings_.size() != oldSize) compiledEmitterDirty_ = true;
+	return dynamicBindings_.size() != oldSize;
+}
+
+const DynamicParameterBinding* ParticleEmitter::FindDynamicBinding(const std::string& moduleId, const std::string& parameterId) const
+{
+	auto binding = std::find_if(dynamicBindings_.begin(), dynamicBindings_.end(), [&](const DynamicParameterBinding& value)
+	{
+		return value.moduleId == moduleId && value.parameterId == parameterId;
+	});
+	return binding == dynamicBindings_.end() ? nullptr : &*binding;
 }
 
 void ParticleEmitter::SetRenderer(std::unique_ptr<IRenderer> renderer)
@@ -108,6 +239,7 @@ void ParticleEmitter::SetSimulationMode(SimulationMode mode)
 
 	// シミュレーションモード切り替え時は、古いパーティクルデータをクリアする
 	ClearParticles();
+	if (gpuSimulator_) gpuSimulator_->ClearParticles();
 
 	simulationMode_ = mode;
 
@@ -116,6 +248,11 @@ void ParticleEmitter::SetSimulationMode(SimulationMode mode)
 		auto* pm = ParticleManager::GetInstance();
 		gpuSimulator_ = std::make_unique<GPUSimulator>();
 		gpuSimulator_->Initialize(pm->GetDxCommon(), pm->GetSrvManager(), maxParticles_);
+		if (!gpuSimulator_->IsInitialized())
+		{
+			gpuSimulator_.reset();
+			simulationMode_ = SimulationMode::CPU;
+		}
 	}
 }
 
@@ -145,6 +282,7 @@ void ParticleEmitter::Stop()
 	if (inactiveResponse_ == InactiveResponse::Kill)
 	{
 		particles_.clear();
+		if (gpuSimulator_) gpuSimulator_->ClearParticles();
 	}
 }
 
@@ -161,6 +299,8 @@ void ParticleEmitter::Resume()
 void ParticleEmitter::Reset()
 {
 	particles_.clear();
+	if (gpuSimulator_) gpuSimulator_->ClearParticles();
+	pureGpuLoopResetRequested_ = true;
 	emitterAge_ = 0.0f;
 	currentLoopCount_ = 0;
 	isEmitting_ = true;
@@ -189,6 +329,7 @@ void ParticleEmitter::Restart()
 	isEmitting_ = true;
 	delayElapsed_ = false;
 	isPaused_ = false;
+	pureGpuLoopResetRequested_ = true;
 
 	// モジュールの生成カウント等もリセット
 	for (auto& module : modules_)
@@ -199,7 +340,29 @@ void ParticleEmitter::Restart()
 
 bool ParticleEmitter::IsComplete() const
 {
-	return !isEmitting_ && particles_.empty();
+	const bool gpuMayBeAlive = simulationMode_ == SimulationMode::GPU && gpuSimulator_ && gpuSimulator_->MayHaveLiveParticles();
+	return !isEmitting_ && particles_.empty() && !gpuMayBeAlive;
+}
+
+uint32_t ParticleEmitter::GetActiveParticleCount() const
+{
+	return simulationMode_ == SimulationMode::GPU && gpuSimulator_ && gpuSimulator_->IsPureGPUPath()
+		? (gpuSimulator_->MayHaveLiveParticles() ? gpuSimulator_->GetMaxParticles() : 0u)
+		: static_cast<uint32_t>(particles_.size());
+}
+
+void ParticleEmitter::BindGPUEventSource(ParticleEmitter* source)
+{
+	if (!gpuSimulator_) return;
+	if (source && source->gpuSimulator_)
+	{
+		gpuSimulator_->SetEventSource(source->gpuSimulator_.get(), gpuEventTrigger_, gpuEventProbability_,
+			gpuEventInheritVelocity_, gpuEventVelocityScale_, gpuEventInheritColor_);
+	}
+	else
+	{
+		gpuSimulator_->ClearEventSource();
+	}
 }
 
 void ParticleEmitter::RemoveModule(size_t index)
@@ -208,6 +371,7 @@ void ParticleEmitter::RemoveModule(size_t index)
 	{
 		modules_.erase(modules_.begin() + static_cast<ptrdiff_t>(index));
 		modulesSorted_ = false;
+		compiledEmitterDirty_ = true;
 	}
 }
 
@@ -217,6 +381,7 @@ void ParticleEmitter::MoveModuleUp(size_t index)
 	{
 		std::swap(modules_[index], modules_[index - 1]);
 		modulesSorted_ = false;
+		compiledEmitterDirty_ = true;
 	}
 }
 
@@ -226,6 +391,7 @@ void ParticleEmitter::MoveModuleDown(size_t index)
 	{
 		std::swap(modules_[index], modules_[index + 1]);
 		modulesSorted_ = false;
+		compiledEmitterDirty_ = true;
 	}
 }
 
@@ -246,10 +412,17 @@ void ParticleEmitter::SortModulesByPriority()
 		});
 
 	modulesSorted_ = true;
+	if (compiledEmitterDirty_)
+	{
+		compiledEmitter_ = ModuleDescriptorRegistry::GetInstance().Compile(modules_, dynamicBindings_);
+		compiledEmitterDirty_ = false;
+	}
 }
 
 void ParticleEmitter::UpdateCPU(float deltaTime)
 {
+	ParticleScopeTimer timer(ParticleProfileScope::EmitterUpdateCpuPerCall);
+
 	// 一時停止中は何もしない
 	if (isPaused_) return;
 
@@ -394,66 +567,62 @@ update_particles:
 
 void ParticleEmitter::UpdateGPU(float deltaTime, CameraManager* camera)
 {
-	if (gpuSimulator_)
+	ParticleScopeTimer timer(ParticleProfileScope::EmitterUpdateGpuPerCall);
+
+	if (gpuSimulator_ && gpuSimulator_->IsInitialized())
 	{
-		// 1. GPUから前フレームの更新結果を読み戻し
-		gpuSimulator_->ReadbackParticles(particles_);
-
-		// 2. 寿命が尽きたパーティクルをCPU側で削除（詰め直し）
-		RemoveDeadParticles();
-
-		// 3. CPU側でライフサイクル更新と新規スポン処理を行う
-		UpdateGPUSpawns(deltaTime);
-
-		// 重力モジュールの値をGPUシミュレーターに転送
-		Vector3 gravity = { 0.0f, 0.0f, 0.0f };
-		for (const auto& module : modules_)
+		const bool pureGpu = renderer_ &&
+			(renderer_->GetType() == RendererType::Sprite || renderer_->GetType() == RendererType::Mesh || renderer_->GetType() == RendererType::Ribbon) &&
+			gpuSimulator_->SupportsPureGPU(modules_, renderer_->GetType());
+		if (pureGpu)
 		{
-			if (module->GetName() == std::string("Gravity"))
+			UpdatePureGPULifecycle(deltaTime);
+
+			Vector3 gravity = { 0.0f, 0.0f, 0.0f };
+			for (const auto& module : modules_)
 			{
-				auto* gravityModule = dynamic_cast<GravityModule*>(module.get());
-				if (gravityModule)
+				if (auto* gravityModule = dynamic_cast<GravityModule*>(module.get()))
 				{
 					gravity = gravityModule->GetMinGravity();
+					break;
 				}
-				break;
 			}
-		}
-		gpuSimulator_->SetGravity(gravity);
-
-		// レンダラーのビルボード設定をGPUシミュレーターに転送
-		bool isBillboard = true;
-		if (renderer_)
-		{
-			isBillboard = renderer_->GetBillboard();
-		}
-		gpuSimulator_->SetIsBillboard(isBillboard);
-
-		// 4. 全パーティクル（生存＋新規スポン）をGPUへ転送して更新
-		if (!particles_.empty())
-		{
-			// particles_ をそのまま一括アップロード
-			gpuSimulator_->UploadParticles(particles_);
-			
-			// エミッターのワールド行列を計算
-			Matrix4x4 emitterWorld;
-			if (followTarget_)
+			gpuSimulator_->SetGravity(gravity);
+			gpuSimulator_->SetIsBillboard(renderer_->GetBillboard());
+			gpuSimulator_->SetEmitterPosition(position_);
+			if (auto* trail = dynamic_cast<TrailRenderer*>(renderer_.get()))
 			{
-				emitterWorld = MakeAffineMatrix(followTarget_->scale, followTarget_->rotate, position_);
+				uint32_t ribbonGroupCount = 1;
+				for (const auto& module : modules_)
+				{
+					if (const auto* assign = dynamic_cast<const AssignRibbonIdModule*>(module.get()))
+					{
+						ribbonGroupCount = assign->GetGroupCount();
+						break;
+					}
+				}
+				gpuSimulator_->SetRibbonParameters(true, trail->GetTrailWidth(), trail->GetWidthFade(), trail->GetAlphaFade(), ribbonGroupCount);
 			}
 			else
 			{
-				emitterWorld = MakeAffineMatrix({ 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, position_);
+				gpuSimulator_->SetRibbonParameters(false, 0.5f, false, false);
 			}
 
-			// 5. GPUシミュレーション実行
-			gpuSimulator_->SetEmitterPosition(position_);
-			gpuSimulator_->Dispatch(deltaTime, camera, modules_, emitterWorld, static_cast<uint32_t>(simulationSpace_));
+			Matrix4x4 emitterWorld = followTarget_
+				? MakeAffineMatrix(followTarget_->scale, followTarget_->rotate, position_)
+				: MakeAffineMatrix({ 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, position_);
+			gpuSimulator_->DispatchPure(deltaTime, camera, modules_, emitterWorld,
+				static_cast<uint32_t>(simulationSpace_), enabled_ && isEmitting_ && delayElapsed_ && !isPaused_,
+				pureGpuLoopResetRequested_);
+			pureGpuLoopResetRequested_ = false;
+			particles_.clear();
+			return;
 		}
-		else
-		{
-			gpuSimulator_->ClearParticles();
-		}
+
+		// Unsupported combinations use the CPU implementation directly. The old
+		// hybrid path copied the full particle pool GPU -> CPU -> GPU every frame.
+		gpuSimulator_->ClearParticles();
+		UpdateCPU(deltaTime);
 	}
 	else
 	{
@@ -461,8 +630,42 @@ void ParticleEmitter::UpdateGPU(float deltaTime, CameraManager* camera)
 	}
 }
 
+void ParticleEmitter::UpdatePureGPULifecycle(float deltaTime)
+{
+	if (isPaused_) return;
+	SortModulesByPriority();
+
+	if (!delayElapsed_)
+	{
+		emitterAge_ += deltaTime;
+		if (emitterAge_ < startDelay_) return;
+		delayElapsed_ = true;
+		emitterAge_ = 0.0f;
+	}
+
+	if (!isEmitting_ || duration_ <= 0.0f) return;
+	emitterAge_ += deltaTime;
+	if (emitterAge_ < duration_) return;
+
+	if (loopBehavior_ == LoopBehavior::Infinite)
+	{
+		emitterAge_ = 0.0f;
+		pureGpuLoopResetRequested_ = true;
+		return;
+	}
+	if (loopBehavior_ == LoopBehavior::Multiple && ++currentLoopCount_ < loopCount_)
+	{
+		emitterAge_ = 0.0f;
+		pureGpuLoopResetRequested_ = true;
+		return;
+	}
+	isEmitting_ = false;
+}
+
 void ParticleEmitter::UpdateGPUSpawns(float deltaTime)
 {
+	ParticleScopeTimer timer(ParticleProfileScope::UpdateGPUSpawns);
+
 	if (isPaused_) return;
 
 	SortModulesByPriority();
@@ -572,6 +775,8 @@ void ParticleEmitter::UpdateGPUSpawns(float deltaTime)
 
 void ParticleEmitter::RemoveDeadParticles()
 {
+	ParticleScopeTimer timer(ParticleProfileScope::RemoveDeadParticles);
+
 	// SubEmitter OnDeath trigger
 	SubEmitterModule* subEmitter = nullptr;
 	for (auto& module : modules_)
@@ -603,24 +808,14 @@ void ParticleEmitter::RemoveDeadParticles()
 
 void ParticleEmitter::ExecuteSpawnModules(ParticleContext& context)
 {
-	for (auto& module : modules_)
-	{
-		if (module->GetPhase() == ModulePhase::Spawn)
-		{
-			module->Execute(context);
-		}
-	}
+	context.parameters = &parameterStore_;
+	compiledEmitter_.Execute(ModulePhase::Spawn, context);
 }
 
 void ParticleEmitter::ExecuteUpdateModules(ParticleContext& context)
 {
-	for (auto& module : modules_)
-	{
-		if (module->GetPhase() == ModulePhase::Update)
-		{
-			module->Execute(context);
-		}
-	}
+	context.parameters = &parameterStore_;
+	compiledEmitter_.Execute(ModulePhase::Update, context);
 }
 
 IModule* ParticleEmitter::GetModuleByName(const std::string& name)

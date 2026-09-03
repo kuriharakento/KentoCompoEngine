@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <iostream>
 
 // system
 #include "base/PathManager.h"
@@ -44,8 +45,18 @@ void TextureManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)
 
 void TextureManager::LoadTexture(const std::string& filePath)
 {
+	LoadTextureInternal(filePath, true);
+}
+
+void TextureManager::LoadTextureLinear(const std::string& filePath)
+{
+	LoadTextureInternal(filePath, false);
+}
+
+void TextureManager::LoadTextureInternal(const std::string& filePath, bool forceSrgb)
+{
 	// パスを正規化（重複読み込み防止用）
-	std::string normalizedPath = NormalizePath(filePath);
+	std::string normalizedPath = NormalizePath(filePath) + (forceSrgb ? "" : "|linear");
 
 	/*--------------[ 読み込み済みテクスチャを検索 ]-----------------*/
 	if (textureDatas_.contains(normalizedPath))
@@ -60,40 +71,16 @@ void TextureManager::LoadTexture(const std::string& filePath)
 	/*--------------[ テクスチャファイルを読み込み ]-----------------*/
 
 	DirectX::ScratchImage image{};
-	// ファイル読み込みには元のパスを使用
-	std::wstring filePathW = KCE::StringUtility::ConvertString(filePath);
 
-	// ファイルが存在しない場合の自動検索処理（相対パスやファイル名のみに対応）
-	std::wstring targetPath = filePathW;
-	if (!std::filesystem::exists(targetPath))
+	auto resolvedOpt = ResolveTexturePath(filePath);
+	if (!resolvedOpt.has_value())
 	{
-		std::filesystem::path resolved = PathManager::ResolveApplicationResource(filePath);
-		if (std::filesystem::exists(resolved))
-		{
-			targetPath = resolved.wstring();
-		}
-		else
-		{
-			std::filesystem::path appRoot = PathManager::GetApplicationResourceRoot();
-			std::wstring filename = std::filesystem::path(filePathW).filename().wstring();
-			std::vector<std::filesystem::path> searchPaths = {
-				appRoot / "textures" / filePathW,
-				appRoot / "fonts" / filePathW,
-				appRoot / filePathW,
-				appRoot / "textures" / filename,
-				appRoot / "fonts" / filename
-			};
-
-			for (const auto& path : searchPaths)
-			{
-				if (std::filesystem::exists(path))
-				{
-					targetPath = path.wstring();
-					break;
-				}
-			}
-		}
+		// assert が無効な Release でも optional を不正参照しない。
+		// 呼び出し側は CheckTextureExists() で事前検証できる。
+		std::cerr << "TextureManager::LoadTexture: texture not found: " << filePath << '\n';
+		return;
 	}
+	std::wstring targetPath = resolvedOpt->wstring();
 
 	HRESULT hr;
 
@@ -113,19 +100,29 @@ void TextureManager::LoadTexture(const std::string& filePath)
 		// WICファイル（PNG, JPG等）の場合
 		hr = DirectX::LoadFromWICFile(
 			targetPath.c_str(),
-			DirectX::WIC_FLAGS_FORCE_SRGB,
+			forceSrgb ? DirectX::WIC_FLAGS_FORCE_SRGB : DirectX::WIC_FLAGS_IGNORE_SRGB,
 			nullptr,
 			image
 		);
 	}
-	assert(SUCCEEDED(hr));
+	if (FAILED(hr))
+	{
+		std::cerr << "TextureManager::LoadTexture: decode failed: " << filePath << '\n';
+		return;
+	}
+	if (!forceSrgb)
+	{
+		image.OverrideFormat(DirectX::MakeLinear(image.GetMetadata().format));
+	}
 
 	/*--------------[ ミップマップの作成 ]-----------------*/
 
 	DirectX::ScratchImage mipImages{};
-	if (DirectX::IsCompressed(image.GetMetadata().format))
+	const auto& sourceMetadata = image.GetMetadata();
+	if (DirectX::IsCompressed(sourceMetadata.format) ||
+		(sourceMetadata.width == 1 && sourceMetadata.height == 1))
 	{
-		// 圧縮フォーマットならそのまま使用
+		// 圧縮済み、またはミップを生成できない1x1画像はそのまま使用する。
 		mipImages = std::move(image);
 	}
 	else
@@ -135,16 +132,29 @@ void TextureManager::LoadTexture(const std::string& filePath)
 			image.GetImages(),
 			image.GetImageCount(),
 			image.GetMetadata(),
-			DirectX::TEX_FILTER_SRGB,
+			forceSrgb ? DirectX::TEX_FILTER_SRGB : DirectX::TEX_FILTER_DEFAULT,
 			0,
 			mipImages
 		);
 	}
-	assert(SUCCEEDED(hr));
+	if (FAILED(hr))
+	{
+		std::cerr << "TextureManager::LoadTexture: mip generation failed: " << filePath << '\n';
+		return;
+	}
 
 	/*--------------[ テクスチャデータを追加 ]-----------------*/
 
-	// 正規化パスをキーにしてテクスチャデータを登録
+	uint32_t allocatedSrvIndex = SrvManager::kInvalidSrvIndex;
+	if (!srvManager_->TryAllocate(allocatedSrvIndex))
+	{
+		std::cerr << "TextureManager::LoadTexture: descriptor heap exhausted\n";
+		return;
+	}
+
+	// All fallible CPU-side work has succeeded. Publish the cache entry only
+	// after a descriptor has also been reserved, so failed loads cannot leave a
+	// half-initialized texture that later renderers mistake for valid data.
 	TextureData& textureData = textureDatas_[normalizedPath];
 
 	/*--------------[ テクスチャデータの書き込み ]-----------------*/
@@ -154,17 +164,9 @@ void TextureManager::LoadTexture(const std::string& filePath)
 	// 中間リソースをリストに追加して保持（後でまとめて解放）
 	intermediateResources_.push_back(UploadTextureData(textureData.resource, mipImages));
 
-	/*--------------[ ディスクリプタハンドルの計算 ]-----------------*/
-
-	// テクスチャデータの要素数番号をSRVのインデックスとする
-	uint32_t srvIndex = static_cast<uint32_t>(textureDatas_.size() - 1) + kSRVIndexTop;
-
-	textureData.srvHandleCPU = GetSrvHandleCPU(srvIndex);
-	textureData.srvHandleGPU = GetSrvHandleGPU(srvIndex);
-
 	/*--------------[ SRVの生成 ]-----------------*/
 
-	textureData.srvIndex = srvManager_->Allocate();
+	textureData.srvIndex = allocatedSrvIndex;
 
 	if(textureData.metadata.IsCubemap())
 	{
@@ -195,11 +197,26 @@ void TextureManager::ClearIntermediateResources()
 
 uint32_t TextureManager::GetTextureIndexByFilePath(const std::string& filePath)
 {
-	// パスを正規化
-	std::string normalizedPath = NormalizePath(filePath);
-	// ファイルパスが登録されているか確認
-	assert(filePathToIndex_.contains(normalizedPath));
-	return filePathToIndex_[normalizedPath];
+	uint32_t index = SrvManager::kInvalidSrvIndex;
+	const bool found = TryGetTextureIndexByFilePath(filePath, index);
+	assert(found);
+	return index;
+}
+
+uint32_t TextureManager::GetLinearTextureIndexByFilePath(const std::string& filePath)
+{
+	const auto it = filePathToIndex_.find(NormalizePath(filePath) + "|linear");
+	assert(it != filePathToIndex_.end());
+	return it->second;
+}
+
+bool TextureManager::TryGetTextureIndexByFilePath(const std::string& filePath, uint32_t& outIndex) const
+{
+	outIndex = SrvManager::kInvalidSrvIndex;
+	const auto it = filePathToIndex_.find(NormalizePath(filePath));
+	if (it == filePathToIndex_.end()) return false;
+	outIndex = it->second;
+	return srvManager_ && srvManager_->IsAllocated(outIndex);
 }
 
 const DirectX::TexMetadata& TextureManager::GetMetadata(uint32_t textureIndex)
@@ -253,5 +270,49 @@ std::string TextureManager::NormalizePath(const std::string& filePath) const
 		[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
 	return result;
+}
+
+bool TextureManager::IsTextureLoaded(const std::string& filePath) const
+{
+	return textureDatas_.contains(NormalizePath(filePath));
+}
+
+bool TextureManager::CheckTextureExists(const std::string& filePath) const
+{
+	return ResolveTexturePath(filePath).has_value();
+}
+
+std::optional<std::filesystem::path> TextureManager::ResolveTexturePath(const std::string& filePath) const
+{
+	std::wstring filePathW = KCE::StringUtility::ConvertString(filePath);
+	if (std::filesystem::exists(filePathW))
+	{
+		return std::filesystem::path(filePathW);
+	}
+
+	std::filesystem::path resolved = PathManager::ResolveApplicationResource(filePath);
+	if (std::filesystem::exists(resolved))
+	{
+		return resolved;
+	}
+
+	std::filesystem::path appRoot = PathManager::GetApplicationResourceRoot();
+	std::wstring filename = std::filesystem::path(filePathW).filename().wstring();
+	std::vector<std::filesystem::path> searchPaths = {
+		appRoot / "textures" / filePathW,
+		appRoot / "fonts" / filePathW,
+		appRoot / filePathW,
+		appRoot / "textures" / filename,
+		appRoot / "fonts" / filename
+	};
+
+	for (const auto& path : searchPaths)
+	{
+		if (std::filesystem::exists(path))
+		{
+			return path;
+		}
+	}
+	return std::nullopt;
 }
 } // namespace KCE

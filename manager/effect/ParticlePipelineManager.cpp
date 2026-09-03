@@ -1,6 +1,7 @@
 #include "ParticlePipelineManager.h"
 
 #include <cassert>
+#include <chrono>
 
 // system
 #include "base/DirectXCommon.h"
@@ -10,44 +11,52 @@ namespace KCE
 {
 void ParticlePipelineManager::Initialize(DirectXCommon* dxCommon)
 {
+	const auto prewarmStart = std::chrono::steady_clock::now();
 	dxCommon_ = dxCommon;
+	particleVertexShader_ = dxCommon_->CompileSharder(L"Resources/shaders/Particle.VS.hlsl", L"vs_6_0");
+	particlePixelShader_ = dxCommon_->CompileSharder(L"Resources/shaders/Particle.PS.hlsl", L"ps_6_0");
+	particleSingleTargetPixelShader_ = dxCommon_->CompileSharder(L"Resources/shaders/ParticleSingleTarget.PS.hlsl", L"ps_6_0");
+	ribbonVertexShader_ = dxCommon_->CompileSharder(L"Resources/shaders/Ribbon.VS.hlsl", L"vs_6_0");
+	ribbonPixelShader_ = dxCommon_->CompileSharder(L"Resources/shaders/Ribbon.PS.hlsl", L"ps_6_0");
+	ribbonSingleTargetPixelShader_ = dxCommon_->CompileSharder(L"Resources/shaders/RibbonSingleTarget.PS.hlsl", L"ps_6_0");
+	assert(particleVertexShader_ && particlePixelShader_ && particleSingleTargetPixelShader_ &&
+		ribbonVertexShader_ && ribbonPixelShader_ && ribbonSingleTargetPixelShader_);
 	// 共通のルートシグネチャを生成
 	CreateRootSignature();
 
 	// 各ブレンドモードに対応するパイプラインステートを生成
-	CreateGraphicsPipelineState(BlendMode::Alpha);
-	CreateGraphicsPipelineState(BlendMode::Additive);
-	CreateGraphicsPipelineState(BlendMode::Multiply);
-	CreateGraphicsPipelineState(BlendMode::Subtractive);
-	CreateGraphicsPipelineState(BlendMode::Screen);
-	CreateGraphicsPipelineState(BlendMode::Darken);
-	CreateGraphicsPipelineState(BlendMode::Lighten);
-	CreateGraphicsPipelineState(BlendMode::ColorBurn);
-	CreateGraphicsPipelineState(BlendMode::ColorDodge);
+	const BlendMode modes[] = { BlendMode::Alpha, BlendMode::Additive, BlendMode::Multiply,
+		BlendMode::Subtractive, BlendMode::Screen, BlendMode::Darken, BlendMode::Lighten,
+		BlendMode::ColorBurn, BlendMode::ColorDodge };
+	for (const BlendMode mode : modes) {
+		CreateGraphicsPipelineState(mode, false, true);
+		CreateGraphicsPipelineState(mode, true, true);
+		CreateGraphicsPipelineState(mode, false, false);
+	}
 
 	// リボン用パイプラインを生成
 	CreateRibbonRootSignature();
-	CreateRibbonPipelineState(BlendMode::Alpha);
-	CreateRibbonPipelineState(BlendMode::Additive);
-	CreateRibbonPipelineState(BlendMode::Multiply);
-	CreateRibbonPipelineState(BlendMode::Subtractive);
-	CreateRibbonPipelineState(BlendMode::Screen);
-	CreateRibbonPipelineState(BlendMode::Darken);
-	CreateRibbonPipelineState(BlendMode::Lighten);
-	CreateRibbonPipelineState(BlendMode::ColorBurn);
-	CreateRibbonPipelineState(BlendMode::ColorDodge);
+	for (const BlendMode mode : modes) {
+		CreateRibbonPipelineState(mode, false, true);
+		CreateRibbonPipelineState(mode, true, true);
+		CreateRibbonPipelineState(mode, false, false);
+	}
+	prewarmMilliseconds_ = std::chrono::duration<double, std::milli>(
+		std::chrono::steady_clock::now() - prewarmStart).count();
+	Logger::Log("Particle selective-bloom PSO prewarm: " + std::to_string(prewarmMilliseconds_) + " ms (54 permutations)\n");
 }
 
-ID3D12PipelineState* ParticlePipelineManager::GetPipelineState(BlendMode mode) const
+ID3D12PipelineState* ParticlePipelineManager::GetPipelineState(BlendMode mode, bool bloomEnabled) const
 {
-	// 指定されたブレンドモードのパイプラインステートを検索
-	auto it = pipelines_.find(mode);
-	if (it != pipelines_.end())
+	const auto& pipelines = !selectiveBloomOutputEnabled_ ? singleTargetPipelines_
+		: (bloomEnabled ? bloomPipelines_ : pipelines_);
+	auto it = pipelines.find(mode);
+	if (it != pipelines.end())
 	{
 		return it->second.Get();
 	}
-	// 見つからない場合はnullptrを返す
-	return nullptr;
+	const auto fallback = pipelines.find(BlendMode::Alpha);
+	return fallback != pipelines.end() ? fallback->second.Get() : nullptr;
 }
 
 void ParticlePipelineManager::CreateRootSignature()
@@ -75,7 +84,9 @@ void ParticlePipelineManager::CreateRootSignature()
 	descriptionRootSignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
 	// RootParameter作成（4つのルートパラメータを設定）
-	D3D12_ROOT_PARAMETER rootParameters[4] = {};
+	D3D12_DESCRIPTOR_RANGE emissiveRange = descriptorRange[0];
+	emissiveRange.BaseShaderRegister = 1;
+	D3D12_ROOT_PARAMETER rootParameters[5] = {};
 	// マテリアル用CBV（PixelShaderで使用）
 	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
@@ -98,6 +109,10 @@ void ParticlePipelineManager::CreateRootSignature()
 	rootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	rootParameters[3].Descriptor.RegisterSpace = 0;
 	rootParameters[3].Descriptor.ShaderRegister = 1;
+	rootParameters[4].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[4].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[4].DescriptorTable.pDescriptorRanges = &emissiveRange;
+	rootParameters[4].DescriptorTable.NumDescriptorRanges = 1;
 
 	// サンプラーの設定
 	D3D12_STATIC_SAMPLER_DESC staticSamplers[1] = {};
@@ -134,7 +149,7 @@ void ParticlePipelineManager::CreateRootSignature()
 	assert(SUCCEEDED(hr));
 }
 
-void ParticlePipelineManager::CreateGraphicsPipelineState(BlendMode mode)
+void ParticlePipelineManager::CreateGraphicsPipelineState(BlendMode mode, bool bloomEnabled, bool bloomTargetEnabled)
 {
 	// ルートシグネチャは初期化時に生成済みとする
 	HRESULT hr;
@@ -228,13 +243,15 @@ void ParticlePipelineManager::CreateGraphicsPipelineState(BlendMode mode)
 	D3D12_RASTERIZER_DESC rasterizerDesc{};
 	rasterizerDesc.CullMode = D3D12_CULL_MODE_NONE;   // カリングなし
 	rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID; // ソリッド描画
+	rasterizerDesc.DepthClipEnable = TRUE;
 
 	/*--------------[ シェーダーのコンパイル ]-----------------*/
 
-	Microsoft::WRL::ComPtr<IDxcBlob> vertexShaderBlob = dxCommon_->CompileSharder(L"Resources/shaders/Particle.VS.hlsl", L"vs_6_0");
+	Microsoft::WRL::ComPtr<IDxcBlob> vertexShaderBlob = particleVertexShader_;
 	assert(vertexShaderBlob != nullptr);
 
-	Microsoft::WRL::ComPtr<IDxcBlob> pixelShaderBlob = dxCommon_->CompileSharder(L"Resources/shaders/Particle.PS.hlsl", L"ps_6_0");
+	Microsoft::WRL::ComPtr<IDxcBlob> pixelShaderBlob = bloomTargetEnabled
+		? particlePixelShader_ : particleSingleTargetPixelShader_;
 	assert(pixelShaderBlob != nullptr);
 
 	/*--------------[ 深度ステンシルステートの設定 ]-----------------*/
@@ -255,33 +272,49 @@ void ParticlePipelineManager::CreateGraphicsPipelineState(BlendMode mode)
 	graphicsPipelineStateDesc.RasterizerState = rasterizerDesc;
 	graphicsPipelineStateDesc.DepthStencilState = depthStencilDesc;
 	graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	graphicsPipelineStateDesc.NumRenderTargets = 1;
+	graphicsPipelineStateDesc.NumRenderTargets = bloomTargetEnabled ? 2 : 1;
 	graphicsPipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	if (bloomTargetEnabled)
+	{
+		graphicsPipelineStateDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	}
+	graphicsPipelineStateDesc.BlendState.IndependentBlendEnable = TRUE;
+	auto& bloomBlend = graphicsPipelineStateDesc.BlendState.RenderTarget[1];
+	bloomBlend.BlendEnable = bloomEnabled ? TRUE : FALSE;
+	bloomBlend.SrcBlend = D3D12_BLEND_ONE;
+	bloomBlend.DestBlend = mode == BlendMode::Alpha ? D3D12_BLEND_INV_SRC_ALPHA : D3D12_BLEND_ONE;
+	bloomBlend.BlendOp = D3D12_BLEND_OP_ADD;
+	bloomBlend.SrcBlendAlpha = D3D12_BLEND_ONE;
+	bloomBlend.DestBlendAlpha = D3D12_BLEND_ONE;
+	bloomBlend.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+	bloomBlend.RenderTargetWriteMask = bloomEnabled ? D3D12_COLOR_WRITE_ENABLE_ALL : 0;
 	graphicsPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	graphicsPipelineStateDesc.SampleDesc.Count = 1;
 	graphicsPipelineStateDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState;
-	hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(
-		&graphicsPipelineStateDesc,
-		IID_PPV_ARGS(&pipelineState)
-	);
+	hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&pipelineState));
 	assert(SUCCEEDED(hr));
+	if (SUCCEEDED(hr)) ++psoCreationCount_;
 
 	// 生成したパイプラインステートをマップに登録
-	pipelines_[mode] = pipelineState;
+	auto& target = !bloomTargetEnabled ? singleTargetPipelines_
+		: (bloomEnabled ? bloomPipelines_ : pipelines_);
+	target[mode] = pipelineState;
 }
 
-ID3D12PipelineState* ParticlePipelineManager::GetRibbonPipelineState(BlendMode mode) const
+ID3D12PipelineState* ParticlePipelineManager::GetRibbonPipelineState(BlendMode mode, bool bloomEnabled) const
 {
-	auto it = ribbonPipelines_.find(mode);
-	if (it != ribbonPipelines_.end())
+	const auto& pipelines = !selectiveBloomOutputEnabled_ ? ribbonSingleTargetPipelines_
+		: (bloomEnabled ? ribbonBloomPipelines_ : ribbonPipelines_);
+	auto it = pipelines.find(mode);
+	if (it != pipelines.end())
 	{
 		return it->second.Get();
 	}
-	// デフォルトでAlphaを返す
-	auto defaultIt = ribbonPipelines_.find(BlendMode::Alpha);
-	if (defaultIt != ribbonPipelines_.end())
+	// Bloom有効状態を維持したAlphaへフォールバックする。
+	auto defaultIt = pipelines.find(BlendMode::Alpha);
+	if (defaultIt != pipelines.end())
 	{
 		return defaultIt->second.Get();
 	}
@@ -301,7 +334,9 @@ void ParticlePipelineManager::CreateRibbonRootSignature()
 	descriptionRootSignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
 	// RootParameter作成（3つ: ViewProjection CBV, Material CBV, Texture SRV）
-	D3D12_ROOT_PARAMETER rootParameters[3] = {};
+	D3D12_DESCRIPTOR_RANGE emissiveRange = descriptorRange[0];
+	emissiveRange.BaseShaderRegister = 1;
+	D3D12_ROOT_PARAMETER rootParameters[4] = {};
 
 	// ViewProjection CBV (b0) - VertexShader
 	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
@@ -318,6 +353,10 @@ void ParticlePipelineManager::CreateRibbonRootSignature()
 	rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	rootParameters[2].DescriptorTable.pDescriptorRanges = descriptorRange;
 	rootParameters[2].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[3].DescriptorTable.pDescriptorRanges = &emissiveRange;
+	rootParameters[3].DescriptorTable.NumDescriptorRanges = 1;
 
 	// サンプラー
 	D3D12_STATIC_SAMPLER_DESC staticSamplers[1] = {};
@@ -353,7 +392,7 @@ void ParticlePipelineManager::CreateRibbonRootSignature()
 	assert(SUCCEEDED(hr));
 }
 
-void ParticlePipelineManager::CreateRibbonPipelineState(BlendMode mode)
+void ParticlePipelineManager::CreateRibbonPipelineState(BlendMode mode, bool bloomEnabled, bool bloomTargetEnabled)
 {
 	HRESULT hr;
 
@@ -454,10 +493,11 @@ void ParticlePipelineManager::CreateRibbonPipelineState(BlendMode mode)
 	rasterizerDesc.DepthClipEnable = TRUE;
 
 	// シェーダーコンパイル
-	Microsoft::WRL::ComPtr<IDxcBlob> vertexShaderBlob = dxCommon_->CompileSharder(L"Resources/shaders/Ribbon.VS.hlsl", L"vs_6_0");
+	Microsoft::WRL::ComPtr<IDxcBlob> vertexShaderBlob = ribbonVertexShader_;
 	assert(vertexShaderBlob != nullptr);
 
-	Microsoft::WRL::ComPtr<IDxcBlob> pixelShaderBlob = dxCommon_->CompileSharder(L"Resources/shaders/Ribbon.PS.hlsl", L"ps_6_0");
+	Microsoft::WRL::ComPtr<IDxcBlob> pixelShaderBlob = bloomTargetEnabled
+		? ribbonPixelShader_ : ribbonSingleTargetPixelShader_;
 	assert(pixelShaderBlob != nullptr);
 
 	// 深度ステンシルステート
@@ -476,19 +516,33 @@ void ParticlePipelineManager::CreateRibbonPipelineState(BlendMode mode)
 	graphicsPipelineStateDesc.RasterizerState = rasterizerDesc;
 	graphicsPipelineStateDesc.DepthStencilState = depthStencilDesc;
 	graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	graphicsPipelineStateDesc.NumRenderTargets = 1;
+	graphicsPipelineStateDesc.NumRenderTargets = bloomTargetEnabled ? 2 : 1;
 	graphicsPipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	if (bloomTargetEnabled)
+	{
+		graphicsPipelineStateDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	}
+	graphicsPipelineStateDesc.BlendState.IndependentBlendEnable = TRUE;
+	auto& bloomBlend = graphicsPipelineStateDesc.BlendState.RenderTarget[1];
+	bloomBlend.BlendEnable = bloomEnabled ? TRUE : FALSE;
+	bloomBlend.SrcBlend = D3D12_BLEND_ONE;
+	bloomBlend.DestBlend = mode == BlendMode::Alpha ? D3D12_BLEND_INV_SRC_ALPHA : D3D12_BLEND_ONE;
+	bloomBlend.BlendOp = D3D12_BLEND_OP_ADD;
+	bloomBlend.SrcBlendAlpha = D3D12_BLEND_ONE;
+	bloomBlend.DestBlendAlpha = D3D12_BLEND_ONE;
+	bloomBlend.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+	bloomBlend.RenderTargetWriteMask = bloomEnabled ? D3D12_COLOR_WRITE_ENABLE_ALL : 0;
 	graphicsPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	graphicsPipelineStateDesc.SampleDesc.Count = 1;
 	graphicsPipelineStateDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState;
-	hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(
-		&graphicsPipelineStateDesc,
-		IID_PPV_ARGS(&pipelineState)
-	);
+	hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&pipelineState));
 	assert(SUCCEEDED(hr));
+	if (SUCCEEDED(hr)) ++psoCreationCount_;
 
-	ribbonPipelines_[mode] = pipelineState;
+	auto& target = !bloomTargetEnabled ? ribbonSingleTargetPipelines_
+		: (bloomEnabled ? ribbonBloomPipelines_ : ribbonPipelines_);
+	target[mode] = pipelineState;
 }
 } // namespace KCE

@@ -22,6 +22,8 @@
 #include "manager/editor/DebugUIManager.h"
 #include "manager/editor/ConsoleLog.h"
 
+#include <Windows.h>
+
 #ifdef USE_IMGUI
 #include "ImGui/imgui_internal.h"
 
@@ -166,6 +168,11 @@ void Framework::Initialize()
 		clearColor
 	);
 
+	selectiveBloomRT_ = std::make_unique<RenderTexture>();
+	selectiveBloomRT_->Initialize(
+		dxCommon_.get(), srvManager_.get(), winApp_->GetClientWidth(), winApp_->GetClientHeight(),
+		DXGI_FORMAT_R16G16B16A16_FLOAT, Vector4{ 0.0f, 0.0f, 0.0f, 0.0f });
+
 	// ブラー用レンダーターゲットの初期化（ピンポンバッファとして使用）
 	for (int i = 0; i < kBlurRenderTargetCount; i++)
 	{
@@ -195,6 +202,24 @@ void Framework::Initialize()
 		blurRT_[0].get(),
 		blurRT_[1].get()
 	);
+	// 自動試験・ヘッドレス構成でもBloom OFF経路を明示的に選択可能にする。
+	// 未指定時は従来互換のONを維持する。
+	char bloomEnabled[8] = {};
+	const DWORD bloomEnabledLength = GetEnvironmentVariableA(
+		"KCE_BLOOM_ENABLED", bloomEnabled, static_cast<DWORD>(sizeof(bloomEnabled)));
+	if (bloomEnabledLength > 0 && bloomEnabledLength < sizeof(bloomEnabled))
+	{
+		postProcessManager_->bloomEffect_->SetEnabled(
+			!(bloomEnabledLength == 1 && bloomEnabled[0] == '0'));
+	}
+	char bloomMode[16] = {};
+	const DWORD bloomModeLength = GetEnvironmentVariableA(
+		"KCE_BLOOM_MODE", bloomMode, static_cast<DWORD>(sizeof(bloomMode)));
+	if (bloomModeLength > 0 && bloomModeLength < sizeof(bloomMode))
+	{
+		postProcessManager_->SetSelectiveBloomModeEnabled(
+			_stricmp(bloomMode, "LEGACY") != 0);
+	}
 
 	/*----- その他の初期化 -----*/
 
@@ -232,6 +257,7 @@ void Framework::Initialize()
 		// 各種レンダーターゲットをリサイズする
 		renderTexture_->Resize(width, height);
 		brightPassRT_->Resize(width, height);
+		selectiveBloomRT_->Resize(width, height);
 		for (int i = 0; i < kBlurRenderTargetCount; i++)
 		{
 			blurRT_[i]->Resize(width, height);
@@ -262,10 +288,6 @@ void Framework::Finalize()
 
 	imguiManager_->Finalize();
 	imguiManager_.reset();
-	TextureManager::GetInstance()->Finalize();
-	dxCommon_.reset();
-	spriteCommon_.reset();
-	objectCommon_.reset();
 	ModelManager::GetInstance()->Finalize();
 	SkinnedModelManager::GetInstance()->Finalize();
 	ParticleManager::GetInstance()->Finalize();
@@ -274,19 +296,19 @@ void Framework::Finalize()
 	Input::GetInstance()->Finalize();
 	lightManager_.reset();
 	LineManager::GetInstance()->Finalize();
-	renderTexture_.reset();
-	postProcessManager_.reset();
-	brightPassRT_.reset();
-
-	// ブラー用レンダーターゲットの解放
-	for (int i = 0; i < kBlurRenderTargetCount; i++)
-	{
-		blurRT_[i].reset();
-	}
 
 	// シャドウマップ関連の解放
 	shadowMapPipeline_.reset();
 	shadowMapManager_.reset();
+	postProcessManager_.reset();
+	renderTexture_.reset();
+	brightPassRT_.reset();
+	selectiveBloomRT_.reset();
+	for (int i = 0; i < kBlurRenderTargetCount; i++) blurRT_[i].reset();
+	spriteCommon_.reset();
+	objectCommon_.reset();
+	TextureManager::GetInstance()->Finalize();
+	dxCommon_.reset();
 
 	GameObjectEditor::GetInstance()->Finalize();
 	JsonEditor::GetInstance()->Finalize();
@@ -375,6 +397,7 @@ void Framework::Run()
 
 	// メインループ開始ログ
 	KCE::Logger::Log("\n/******* Start Main Loop *******/\n\n");
+	bool isMainWindowShown = false;
 
 	// メインループ
 	while (true)
@@ -390,6 +413,14 @@ void Framework::Run()
 
 		// 描画
 		Draw();
+
+		// 最初のPresentまで完了した内容を持つウィンドウだけを公開する。
+		// 初期化直後の未描画バックバッファが一瞬表示されることを防ぐ。
+		if (!isMainWindowShown)
+		{
+			winApp_->Show();
+			isMainWindowShown = true;
+		}
 	}
 
 	// メインループ終了ログ

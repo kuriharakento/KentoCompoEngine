@@ -2,6 +2,8 @@
 
 #include "SpriteCommon.h"
 #include "manager/graphics/TextureManager.h"
+#include <algorithm>
+#include <cmath>
 
 namespace KCE
 {
@@ -32,6 +34,7 @@ void Sprite::Initialize(SpriteCommon* spriteCommon, const std::string& textureFi
 
 	// 頂点データを作成する
 	CreateVertexData();
+	SetEmissiveTexture("");
 
 	// スプライトのサイズをテクスチャと合わせる
 	AdjustTextureSize();
@@ -62,9 +65,36 @@ void Sprite::Draw()
 
 	// ShaderResourceViewの設定
 	spriteCommon_->GetDXCommon()->GetCommandList()->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetSrvHandleGPU(textureIndex_));
+	spriteCommon_->GetDXCommon()->GetCommandList()->SetGraphicsRootDescriptorTable(4, TextureManager::GetInstance()->GetSrvHandleGPU(emissiveTextureIndex_));
 
 	// 描画コマンドを発行（インデックス数分描画）
 	spriteCommon_->GetDXCommon()->GetCommandList()->DrawIndexedInstanced(kIndexCount, 1, 0, 0, 0);
+}
+
+void Sprite::DrawSelectiveBloom()
+{
+	spriteCommon_->CommonRenderingSetting(true);
+	Draw();
+}
+
+void Sprite::SetEmissiveTexture(const std::string& filePath)
+{
+	emissiveTexturePath_ = filePath;
+	const std::string fallback = "./Resources/textures/emissive_black_1x1.png";
+	const std::string path = filePath.empty() || !TextureManager::GetInstance()->CheckTextureExists(filePath) ? fallback : filePath;
+	TextureManager::GetInstance()->LoadTextureLinear(path);
+	emissiveTextureIndex_ = TextureManager::GetInstance()->GetLinearTextureIndexByFilePath(path);
+}
+
+void Sprite::SetEmissiveSettings(const EmissiveSettings& settings)
+{
+	EmissiveSettings normalized;
+	if (!TryNormalizeEmissiveSettings(settings, normalized)) return;
+	emissiveSettings_ = normalized;
+	materialData_->emissiveColorIntensity = { emissiveSettings_.color.x, emissiveSettings_.color.y, emissiveSettings_.color.z, emissiveSettings_.intensity };
+	materialData_->emissiveEnabled = emissiveSettings_.enabled ? 1u : 0u;
+	materialData_->emissiveSource = static_cast<uint32_t>(emissiveSettings_.source);
+	materialData_->bloomContribution = emissiveSettings_.bloomContribution;
 }
 
 void Sprite::SetTexture(const std::string& filePath)
@@ -114,6 +144,7 @@ void Sprite::CreateVertexData()
 	materialData_->color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 	materialData_->enableLighting = false;
 	materialData_->uvTransform = MakeIdentity4x4();
+	SetEmissiveSettings(EmissiveSettings{});
 
 	// VertexResourceにデータを書き込むためのアドレスを取得
 	vertexResource_->Map(

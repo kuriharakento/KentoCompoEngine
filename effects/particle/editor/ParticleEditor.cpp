@@ -2,6 +2,8 @@
 #include "effects/particle/ParticleEffect.h"
 #include "effects/particle/ParticleEmitter.h"
 #include "effects/particle/ParticleManager.h"
+#include "base/PathManager.h"
+#include "effects/particle/diagnostics/ParticleDiagnostics.h"
 #include "effects/particle/renderer/SpriteRenderer.h"
 #include "effects/particle/renderer/TrailRenderer.h"
 #include "effects/particle/renderer/MeshRenderer.h"
@@ -28,6 +30,7 @@
 #include "time/Timer.h"
 #include <filesystem>
 #include <algorithm>
+#include <type_traits>
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
@@ -90,19 +93,31 @@ void ParticleEditor::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)
 void ParticleEditor::DrawImGui()
 {
 #ifdef USE_IMGUI
+	if (!currentEffect_ || selectedEmitterIndex_ < 0 ||
+		static_cast<size_t>(selectedEmitterIndex_) >= currentEffect_->GetEmitterCount() ||
+		!currentEffect_->GetEmitter(static_cast<size_t>(selectedEmitterIndex_)))
+	{
+		selectedEmitterIndex_ = -1;
+		selectedModuleIndex_ = -1;
+		showAddModuleDialog_ = false;
+	}
 	// メニューバー描画
-	DrawMenuBar();
+	ImGui::PushID(this);
+	ImGui::PushID("MenuBar"); DrawMenuBar(); ImGui::PopID();
 
 	// エフェクト全体のパネル
-	DrawEffectPanel();
-	DrawPreviewPanel();
-	DrawEmitterPanel();
+	ImGui::PushID("EffectPanel"); DrawEffectPanel(); ImGui::PopID();
+	ImGui::PushID("PreviewPanel"); DrawPreviewPanel(); ImGui::PopID();
+	ImGui::PushID("EmitterPanel"); DrawEmitterPanel(); ImGui::PopID();
 	
 	// エミッター選択時のみモジュールとレンダラーを表示
 	if (selectedEmitterIndex_ >= 0)
 	{
-		DrawModulePanel();
-		DrawRendererPanel();
+		auto* selectedEmitter = currentEffect_->GetEmitter(static_cast<size_t>(selectedEmitterIndex_));
+		ImGui::PushID(selectedEmitter);
+		ImGui::PushID("ModulePanel"); DrawModulePanel(); ImGui::PopID();
+		ImGui::PushID("RendererPanel"); DrawRendererPanel(); ImGui::PopID();
+		ImGui::PopID();
 	}
 
 	// エミッター追加ダイアログ
@@ -116,6 +131,7 @@ void ParticleEditor::DrawImGui()
 	{
 		AddModuleDialog(currentEffect_->GetEmitter(static_cast<size_t>(selectedEmitterIndex_)));
 	}
+	ImGui::PopID();
 #endif
 }
 
@@ -402,6 +418,9 @@ void ParticleEditor::NewEffect()
 	if (currentEffect_)
 	{
 		ParticleManager::GetInstance()->RemoveEffect(currentEffect_);
+		// エディタは同一エフェクトを使い回さないため、プールに退避したまま
+		// GPUディスクリプタ/バッファを保持し続けないよう即座に解放する。
+		ParticleManager::GetInstance()->PurgeEffectPools();
 		currentEffect_ = nullptr;
 	}
 
@@ -424,7 +443,29 @@ void ParticleEditor::NewEffect()
 	strcpy_s(effectNameBuffer_, "NewEffect");
 }
 
-void ParticleEditor::LoadEffect(const std::string& path)
+void ParticleEditor::CloseCurrentEffect()
+{
+	currentEffect_ = nullptr;
+	selectedEmitterIndex_ = -1;
+	selectedModuleIndex_ = -1;
+	effectPath_.clear();
+	strcpy_s(effectNameBuffer_, "");
+}
+
+bool ParticleEditor::SelectEmitter(size_t index)
+{
+	if (!currentEffect_ || index >= currentEffect_->GetEmitterCount() || !currentEffect_->GetEmitter(index))
+	{
+		selectedEmitterIndex_ = -1;
+		selectedModuleIndex_ = -1;
+		return false;
+	}
+	selectedEmitterIndex_ = static_cast<int>(index);
+	selectedModuleIndex_ = -1;
+	return true;
+}
+
+bool ParticleEditor::LoadEffect(const std::string& path)
 {
 	// ファイルからエフェクトを読み込み
 	auto effect = ParticleEffect::LoadFromFile(path);
@@ -434,6 +475,9 @@ void ParticleEditor::LoadEffect(const std::string& path)
 		if (currentEffect_)
 		{
 			ParticleManager::GetInstance()->RemoveEffect(currentEffect_);
+			// エディタは同一エフェクトを使い回さないため、プールに退避したまま
+			// GPUディスクリプタ/バッファを保持し続けないよう即座に解放する。
+			ParticleManager::GetInstance()->PurgeEffectPools();
 		}
 
 		// エディタ用なので自動削除しない
@@ -445,12 +489,24 @@ void ParticleEditor::LoadEffect(const std::string& path)
 		// マネージャーに登録してポインタを保持
 		currentEffect_ = effect.get();
 		ParticleManager::GetInstance()->AddEffect(std::move(effect));
+		operationSucceeded_ = true;
+		operationStatus_ = "Loaded: " + path;
+		return true;
 	}
+	operationSucceeded_ = false;
+	operationStatus_ = "Load failed: " + path + " (invalid JSON, unsupported value, missing file, or resource initialization failure)";
+	return false;
 }
 
-void ParticleEditor::SaveEffect(const std::string& path)
+bool ParticleEditor::SaveEffect(const std::string& path)
 {
-	if (currentEffect_)
+	if (!currentEffect_)
+	{
+		operationSucceeded_ = false;
+		operationStatus_ = "Save failed: no effect is open";
+		return false;
+	}
+	try
 	{
 		// 編集中の名前をエフェクトに反映
 		if (effectNameBuffer_[0] != '\0')
@@ -462,18 +518,36 @@ void ParticleEditor::SaveEffect(const std::string& path)
 		std::string savePath = path;
 		if (savePath.empty())
 		{
-			// Resources/json/particle フォルダにエフェクト名で保存
-			std::filesystem::path dir("Resources/json/particle");
-			if (!std::filesystem::exists(dir))
+			// Particle JSON is stored below Resources/json/particles.
+			std::filesystem::path dir = PathManager::ResolveApplicationResource("json/particles");
+			std::error_code directoryError;
+			std::filesystem::create_directories(dir, directoryError);
+			if (directoryError)
 			{
-				std::filesystem::create_directories(dir);
+				operationSucceeded_ = false;
+				operationStatus_ = "Save failed: cannot create directory " + dir.string();
+				return false;
 			}
 			savePath = (dir / (currentEffect_->GetName() + ".json")).string();
 		}
 		
 		// ファイルに保存
-		currentEffect_->SaveToFile(savePath);
+		if (!currentEffect_->SaveToFile(savePath))
+		{
+			operationSucceeded_ = false;
+			operationStatus_ = "Save failed: " + savePath;
+			return false;
+		}
 		effectPath_ = savePath;
+		operationSucceeded_ = true;
+		operationStatus_ = "Saved: " + savePath;
+		return true;
+	}
+	catch (const std::exception& error)
+	{
+		operationSucceeded_ = false;
+		operationStatus_ = std::string("Save failed: ") + error.what();
+		return false;
 	}
 }
 
@@ -482,6 +556,11 @@ void ParticleEditor::DrawMenuBar()
 {
 	if (ImGui::CollapsingHeader("Menu / Operations", ImGuiTreeNodeFlags_DefaultOpen))
 	{
+		if (!operationStatus_.empty())
+		{
+			const ImVec4 color = operationSucceeded_ ? ImVec4(0.35f, 0.9f, 0.45f, 1.0f) : ImVec4(1.0f, 0.35f, 0.3f, 1.0f);
+			ImGui::TextColored(color, "%s", operationStatus_.c_str());
+		}
 		if (ImGui::Button("New Effect")) { NewEffect(); }
 		ImGui::SameLine();
 		if (ImGui::Button("Save")) { SaveEffect(effectPath_); }
@@ -495,22 +574,46 @@ void ParticleEditor::DrawMenuBar()
 		}
 		if (ImGui::BeginPopup("LoadEffectPopup"))
 		{
-			std::filesystem::path dir("Resources/Json/particle");
-			if (std::filesystem::exists(dir))
+			struct ParticleJsonEntry
 			{
-				for (const auto& entry : std::filesystem::directory_iterator(dir))
+				std::filesystem::path path;
+				std::string label;
+			};
+			std::vector<ParticleJsonEntry> particleFiles;
+			const std::filesystem::path directories[] = {
+				PathManager::ResolveApplicationResource("json/particles"),
+				PathManager::ResolveApplicationResource("json/particle"), // legacy singular path
+				PathManager::ResolveApplicationResource("particles")     // legacy root path
+			};
+			for (const auto& dir : directories)
+			{
+				std::error_code iteratorError;
+				if (!std::filesystem::is_directory(dir, iteratorError)) continue;
+				for (std::filesystem::recursive_directory_iterator it(
+					dir, std::filesystem::directory_options::skip_permission_denied, iteratorError), end;
+					it != end; it.increment(iteratorError))
 				{
-					if (entry.path().extension() == ".json")
-					{
-						std::string filename = entry.path().filename().string();
-						if (ImGui::Selectable(filename.c_str()))
-						{
-							LoadEffect(entry.path().string());
-						}
-					}
+					if (iteratorError) { iteratorError.clear(); continue; }
+					if (!it->is_regular_file(iteratorError) || it->path().extension() != ".json") continue;
+					const auto relative = std::filesystem::relative(it->path(), dir, iteratorError);
+					particleFiles.push_back({ it->path(), iteratorError ? it->path().filename().generic_string() : relative.generic_string() });
+					iteratorError.clear();
 				}
 			}
-			else
+			std::sort(particleFiles.begin(), particleFiles.end(), [](const ParticleJsonEntry& a, const ParticleJsonEntry& b)
+			{
+				return a.label < b.label;
+			});
+			particleFiles.erase(std::unique(particleFiles.begin(), particleFiles.end(), [](const ParticleJsonEntry& a, const ParticleJsonEntry& b)
+			{
+				std::error_code error;
+				return std::filesystem::equivalent(a.path, b.path, error) && !error;
+			}), particleFiles.end());
+			for (const auto& entry : particleFiles)
+			{
+				if (ImGui::Selectable(entry.label.c_str())) LoadEffect(entry.path.string());
+			}
+			if (particleFiles.empty())
 			{
 				ImGui::TextDisabled("(No particle files found)");
 			}
@@ -537,6 +640,16 @@ void ParticleEditor::DrawEffectPanel()
 {
 	if (ImGui::CollapsingHeader("Effect", ImGuiTreeNodeFlags_DefaultOpen))
 	{
+		const auto& runtime = ParticleDiagnostics::GetInstance()->GetRuntimeCounters();
+		if (ImGui::TreeNode("Runtime Diagnostics"))
+		{
+			ImGui::Text("Pure GPU emitters: %llu", static_cast<unsigned long long>(runtime.pureGpuEmitters));
+			ImGui::Text("Hybrid GPU emitters: %llu", static_cast<unsigned long long>(runtime.hybridGpuEmitters));
+			ImGui::Text("Packed module ops: %llu", static_cast<unsigned long long>(runtime.moduleOperations));
+			ImGui::Text("Curve/gradient LUT samples: %llu", static_cast<unsigned long long>(runtime.lutSamples));
+			ImGui::Text("Estimated descriptors: %llu / %u", static_cast<unsigned long long>(runtime.estimatedDescriptors), SrvManager::kMaxSRVCount);
+			ImGui::TreePop();
+		}
 		// エフェクト名
 		ImGui::Text("Name:");
 		ImGui::SameLine(80);
@@ -708,7 +821,7 @@ void ParticleEditor::DrawPreviewPanel()
 		for (size_t i = 0; i < emitterCount; ++i)
 		{
 			const auto* emitter = currentEffect_->GetEmitter(i);
-			if (emitter) totalParticles += static_cast<uint32_t>(emitter->GetParticles().size());
+			if (emitter) totalParticles += emitter->GetActiveParticleCount();
 		}
 		ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.5f, 1.0f), "Total Particles: %u", totalParticles);
 
@@ -731,7 +844,7 @@ void ParticleEditor::DrawPreviewPanel()
 			ImGui::SameLine();
 			ImGui::Text("%-20s", emitter->GetName().c_str());
 			ImGui::SameLine();
-			ImGui::TextDisabled("Particles: %d", static_cast<int>(emitter->GetParticles().size()));
+			ImGui::TextDisabled("Particles: %d", static_cast<int>(emitter->GetActiveParticleCount()));
 
 			// 行の右端にRestart/Stopボタン
 			ImGui::SameLine(ImGui::GetWindowWidth() - 100.0f);
@@ -772,6 +885,7 @@ void ParticleEditor::DrawEmitterPanel()
 		for (size_t i = 0; i < currentEffect_->GetEmitterCount(); ++i)
 		{
 			auto* emitter = currentEffect_->GetEmitter(i);
+			if (!emitter) continue;
 			bool isSelected = (selectedEmitterIndex_ == static_cast<int>(i));
 
 			ImGui::PushID(static_cast<int>(i));
@@ -845,9 +959,9 @@ void ParticleEditor::DrawEmitterPanel()
 
 			// Max Particles
 			int maxP = static_cast<int>(emitter->GetMaxParticles());
-			if (ImGui::InputInt("Max Particles", &maxP))
+			if (ImGui::InputInt("Max Particles", &maxP, 100, 1000))
 			{
-				emitter->SetMaxParticles(static_cast<uint32_t>((std::max)(100, maxP)));
+				emitter->SetMaxParticles(static_cast<uint32_t>((std::clamp)(maxP, 1, 1000000)));
 			}
 
 			// Simulation Mode
@@ -907,6 +1021,47 @@ void ParticleEditor::DrawEmitterPanel()
 				emitter->SetFollowEmitterIndex(emitterIndices[currentSelection]);
 			}
 			ImGui::SetItemTooltip("Select another emitter to follow within this effect");
+
+			ImGui::Separator();
+			ImGui::Text("Pure GPU Event Source:");
+			std::vector<const char*> eventSourceNames{ "None" };
+			std::vector<int> eventSourceIndices{ -1 };
+			for (int i = 0; i < selectedEmitterIndex_; ++i)
+			{
+				if (auto* source = currentEffect_->GetEmitter(static_cast<size_t>(i)))
+				{
+					eventSourceNames.push_back(source->GetName().c_str());
+					eventSourceIndices.push_back(i);
+				}
+			}
+			int eventSourceSelection = 0;
+			for (size_t i = 0; i < eventSourceIndices.size(); ++i)
+			{
+				if (eventSourceIndices[i] == emitter->GetGPUEventSourceEmitterIndex()) eventSourceSelection = static_cast<int>(i);
+			}
+			if (ImGui::Combo("Event Source##gpuEvent", &eventSourceSelection, eventSourceNames.data(), static_cast<int>(eventSourceNames.size())))
+			{
+				emitter->SetGPUEventSourceEmitterIndex(eventSourceIndices[eventSourceSelection]);
+			}
+			if (emitter->GetGPUEventSourceEmitterIndex() >= 0)
+			{
+				const char* triggers[] = { "On Spawn", "On Death" };
+				int trigger = static_cast<int>(emitter->GetGPUEventTrigger());
+				if (trigger < 0 || trigger > 1) trigger = 1;
+				if (ImGui::Combo("Event Trigger##gpuEvent", &trigger, triggers, 2)) emitter->SetGPUEventTrigger(static_cast<uint32_t>(trigger));
+				ImGui::TextDisabled("Collision GPU events are unavailable until a GPU collision producer is enabled.");
+				float probability = emitter->GetGPUEventProbability();
+				if (ImGui::SliderFloat("Probability##gpuEvent", &probability, 0.0f, 1.0f)) emitter->SetGPUEventProbability(probability);
+				bool inheritVelocity = emitter->GetGPUEventInheritVelocity();
+				float velocityScale = emitter->GetGPUEventVelocityScale();
+				if (ImGui::Checkbox("Inherit Velocity##gpuEvent", &inheritVelocity) ||
+					(inheritVelocity && ImGui::DragFloat("Velocity Scale##gpuEvent", &velocityScale, 0.05f)))
+				{
+					emitter->SetGPUEventVelocityInheritance(inheritVelocity, velocityScale);
+				}
+				bool inheritColor = emitter->GetGPUEventInheritColor();
+				if (ImGui::Checkbox("Inherit Color##gpuEvent", &inheritColor)) emitter->SetGPUEventInheritColor(inheritColor);
+			}
 
 			// Simulation Space
 			const char* spaces[] = { "World", "Local" };
@@ -1028,8 +1183,127 @@ void ParticleEditor::DrawModulePanel()
 	if (!emitter) return;
 
 	// Active Particles表示（シンプルに）
-	ImGui::Text("Active Particles: %d", static_cast<int>(emitter->GetParticles().size()));
+	ImGui::Text("Active Particles: %d", static_cast<int>(emitter->GetActiveParticleCount()));
 	ImGui::Separator();
+	if (ImGui::CollapsingHeader("Emitter Parameters"))
+	{
+		auto& values = emitter->GetParameterStore().GetValues();
+		std::string removeName;
+		for (auto& [name, value] : values)
+		{
+			ImGui::PushID(name.c_str());
+			ImGui::TextUnformatted(name.c_str()); ImGui::SameLine(180.0f);
+			std::visit([&](auto& typedValue)
+			{
+				using T = std::decay_t<decltype(typedValue)>;
+				if constexpr (std::is_same_v<T, float>) ImGui::DragFloat("##value", &typedValue, 0.01f);
+				else if constexpr (std::is_same_v<T, uint32_t>) { int v = static_cast<int>(typedValue); if (ImGui::InputInt("##value", &v)) typedValue = static_cast<uint32_t>((std::max)(0, v)); }
+				else if constexpr (std::is_same_v<T, int32_t>) ImGui::InputInt("##value", &typedValue);
+				else if constexpr (std::is_same_v<T, bool>) ImGui::Checkbox("##value", &typedValue);
+				else if constexpr (std::is_same_v<T, Vector3>) ImGui::DragFloat3("##value", &typedValue.x, 0.01f);
+				else if constexpr (std::is_same_v<T, Vector4>) ImGui::DragFloat4("##value", &typedValue.x, 0.01f);
+				else if constexpr (std::is_same_v<T, std::string>) ImGui::TextDisabled("%s", typedValue.c_str());
+			}, value);
+			ImGui::SameLine(); if (ImGui::SmallButton("x")) removeName = name;
+			ImGui::PopID();
+		}
+		if (!removeName.empty()) emitter->GetParameterStore().Remove(removeName);
+		static char newParameterName[96] = "User.Value";
+		ImGui::InputText("##newParameter", newParameterName, sizeof(newParameterName)); ImGui::SameLine();
+		if (ImGui::Button("Add Float") && newParameterName[0] != '\0') emitter->GetParameterStore().Set(newParameterName, 0.0f);
+		ImGui::SameLine(); if (ImGui::Button("Add Vector3") && newParameterName[0] != '\0') emitter->GetParameterStore().Set(newParameterName, Vector3{});
+		ImGui::SameLine(); if (ImGui::Button("Add Color") && newParameterName[0] != '\0') emitter->GetParameterStore().Set(newParameterName, Vector4{1,1,1,1});
+	}
+	if (ImGui::CollapsingHeader("Dynamic Inputs"))
+	{
+		std::string removeModule, removeParameter;
+		for (const auto& stored : emitter->GetDynamicBindings())
+		{
+			DynamicParameterBinding binding = stored;
+			ImGui::PushID((binding.moduleId + "." + binding.parameterId).c_str());
+			ImGui::SeparatorText((binding.moduleId + "." + binding.parameterId).c_str());
+			const char* modes[] = { "Constant", "Random Range", "Curve", "Emitter Parameter" };
+			int mode = static_cast<int>(binding.mode);
+			bool changed = ImGui::Combo("Mode", &mode, modes, IM_ARRAYSIZE(modes));
+			binding.mode = static_cast<DynamicBindingMode>(mode);
+			if (binding.mode == DynamicBindingMode::EmitterParameter)
+			{
+				std::vector<std::string> candidates;
+				for (const auto& [name, parameterValue] : emitter->GetParameterStore().GetValues())
+					if (parameterValue.index() == binding.fallback.index()) candidates.push_back(name);
+				std::sort(candidates.begin(), candidates.end());
+				const char* preview = binding.emitterParameter.empty() ? "(Select Parameter)" : binding.emitterParameter.c_str();
+				if (ImGui::BeginCombo("Parameter", preview))
+				{
+					for (const auto& candidate : candidates) if (ImGui::Selectable(candidate.c_str(), candidate == binding.emitterParameter)) { binding.emitterParameter = candidate; changed = true; }
+					ImGui::EndCombo();
+				}
+			}
+			else if (binding.mode == DynamicBindingMode::RandomRange)
+			{
+				std::visit([&](auto& minimum)
+				{
+					using T = std::decay_t<decltype(minimum)>;
+					if (auto* maximum = std::get_if<T>(&binding.maximum))
+					{
+						if constexpr (std::is_same_v<T, float>) { changed |= ImGui::DragFloat("Minimum", &minimum, 0.01f); changed |= ImGui::DragFloat("Maximum", maximum, 0.01f); }
+						else if constexpr (std::is_same_v<T, Vector3>) { changed |= ImGui::DragFloat3("Minimum", &minimum.x, 0.01f); changed |= ImGui::DragFloat3("Maximum", &maximum->x, 0.01f); }
+						else if constexpr (std::is_same_v<T, Vector4>) { changed |= ImGui::DragFloat4("Minimum", &minimum.x, 0.01f); changed |= ImGui::DragFloat4("Maximum", &maximum->x, 0.01f); }
+					}
+				}, binding.minimum);
+			}
+			else if (binding.mode == DynamicBindingMode::Curve)
+			{
+				ImGui::Text("Curve keys: %d", static_cast<int>(binding.keys.size()));
+				int removeKey = -1;
+				for (size_t keyIndex = 0; keyIndex < binding.keys.size(); ++keyIndex)
+				{
+					ImGui::PushID(static_cast<int>(keyIndex));
+					changed |= ImGui::SliderFloat("Time", &binding.keys[keyIndex].time, 0.0f, 1.0f);
+					if (binding.type == ModuleParameterType::Float) changed |= ImGui::DragFloat("Value", &binding.keys[keyIndex].value.x, 0.01f);
+					else if (binding.type == ModuleParameterType::Vector3) changed |= ImGui::DragFloat3("Value", &binding.keys[keyIndex].value.x, 0.01f);
+					else if (binding.type == ModuleParameterType::Vector4) changed |= ImGui::DragFloat4("Value", &binding.keys[keyIndex].value.x, 0.01f);
+					if (ImGui::SmallButton("Delete Key")) removeKey = static_cast<int>(keyIndex);
+					ImGui::PopID();
+				}
+				if (removeKey >= 0) { binding.keys.erase(binding.keys.begin() + removeKey); changed = true; }
+				if (binding.keys.size() < 1024 && ImGui::Button("Add Key")) { binding.keys.push_back({ binding.keys.empty() ? 0.0f : 1.0f, {} }); changed = true; }
+			}
+			else
+			{
+				std::visit([&](auto& fallback)
+				{
+					using T = std::decay_t<decltype(fallback)>;
+					if constexpr (std::is_same_v<T, float>) changed |= ImGui::DragFloat("Value", &fallback, 0.01f);
+					else if constexpr (std::is_same_v<T, Vector3>) changed |= ImGui::DragFloat3("Value", &fallback.x, 0.01f);
+					else if constexpr (std::is_same_v<T, Vector4>) changed |= ImGui::DragFloat4("Value", &fallback.x, 0.01f);
+				}, binding.fallback);
+			}
+			if (changed) emitter->SetDynamicBinding(std::move(binding));
+			if (ImGui::SmallButton("Remove Binding")) { removeModule = stored.moduleId; removeParameter = stored.parameterId; }
+			ImGui::PopID();
+		}
+		if (!removeModule.empty()) emitter->RemoveDynamicBinding(removeModule, removeParameter);
+		if (selectedModuleIndex_ >= 0)
+		{
+			if (const auto* selected = emitter->GetModule(static_cast<size_t>(selectedModuleIndex_)))
+			{
+				if (const auto* descriptor = ModuleDescriptorRegistry::GetInstance().Find(selected->GetName()))
+				{
+					for (const auto& schema : descriptor->parameters)
+					{
+						if (!schema.dynamicInput || emitter->FindDynamicBinding(descriptor->id, schema.id)) continue;
+						if (ImGui::Button(("Add " + descriptor->id + "." + schema.id).c_str()))
+						{
+							DynamicParameterBinding binding; binding.moduleId = descriptor->id; binding.parameterId = schema.id;
+							binding.type = schema.type; binding.fallback = schema.defaultValue; binding.minimum = schema.defaultValue; binding.maximum = schema.defaultValue;
+							emitter->SetDynamicBinding(std::move(binding));
+						}
+					}
+				}
+			}
+		}
+	}
 
 	// モジュールリスト（Spawn/Updateで分離）
 	if (ImGui::CollapsingHeader("Modules", ImGuiTreeNodeFlags_DefaultOpen))
@@ -1219,6 +1493,24 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 	};
 
 	ImGui::Text("Module: %s", module->GetName());
+	if (const auto* descriptor = ModuleDescriptorRegistry::GetInstance().Find(module->GetName()))
+	{
+		ImGui::SameLine();
+		ImGui::TextDisabled("v%u | %s | kernel: %s", descriptor->version,
+			descriptor->pureGpuSupported ? "Pure GPU" : "CPU/Hybrid",
+			descriptor->kernelId.empty() ? "none" : descriptor->kernelId.c_str());
+		if (!descriptor->requiredAttributes.empty() && ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::TextUnformatted("Required attributes:");
+			for (const auto& attribute : descriptor->requiredAttributes) ImGui::BulletText("%s", attribute.c_str());
+			ImGui::EndTooltip();
+		}
+	}
+	else
+	{
+		ImGui::TextColored(ImVec4(1.0f, 0.25f, 0.2f, 1.0f), "Unregistered module: playback is rejected");
+	}
 	ImGui::Separator();
 
 	// 各モジュールタイプごとにキャスト
@@ -1250,6 +1542,14 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 		float max = m->GetMaxLifetime();
 		if (ImGui::DragFloat("Min Lifetime", &min, 0.01f, 0.01f, 100.0f)) { m->SetMinLifetime(min); }
 		if (ImGui::DragFloat("Max Lifetime", &max, 0.01f, 0.01f, 100.0f)) { m->SetMaxLifetime(max); }
+	}
+	else if (auto* m = dynamic_cast<InitialPositionModule*>(module))
+	{
+		Vector3 minOffset = m->GetMinOffset();
+		Vector3 maxOffset = m->GetMaxOffset();
+		bool changed = ImGui::DragFloat3("Min Offset", &minOffset.x, 0.1f);
+		changed |= ImGui::DragFloat3("Max Offset", &maxOffset.x, 0.1f);
+		if (changed) m->SetOffsetRange(minOffset, maxOffset);
 	}
 	else if (auto* m = dynamic_cast<InitialVelocityModule*>(module))
 	{
@@ -1297,6 +1597,32 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 	}
 	else if (auto* m = dynamic_cast<ColorFadeModule*>(module))
 	{
+		bool useGradient = m->HasGradient();
+		if (ImGui::Checkbox("Use Gradient", &useGradient))
+		{
+			if (useGradient)
+			{
+				ColorGradient gradient; gradient.AddKey(0.0f, m->GetStartColor()); gradient.AddKey(1.0f, m->GetEndColor()); m->SetGradient(gradient);
+			}
+			else m->ClearGradient();
+		}
+		if (m->HasGradient())
+		{
+			auto& keys = m->GetGradient().keys;
+			int removeKey = -1;
+			for (size_t i = 0; i < keys.size(); ++i)
+			{
+				ImGui::PushID(static_cast<int>(i));
+				ImGui::SetNextItemWidth(90.0f); ImGui::DragFloat("Time", &keys[i].time, 0.005f, 0.0f, 1.0f); ImGui::SameLine();
+				ImGui::ColorEdit4("Color", &keys[i].color.x, ImGuiColorEditFlags_NoInputs); ImGui::SameLine();
+				if (ImGui::SmallButton("x")) removeKey = static_cast<int>(i);
+				ImGui::PopID();
+			}
+			if (removeKey >= 0 && keys.size() > 1) keys.erase(keys.begin() + removeKey);
+			if (ImGui::Button("Add Gradient Key") && keys.size() < 64) m->GetGradient().AddKey(0.5f, m->GetGradient().Evaluate(0.5f));
+			std::sort(keys.begin(), keys.end(), [](const auto& a, const auto& b) { return a.time < b.time; });
+			return;
+		}
 		bool useInitial = m->GetUseInitialColor();
 		if (ImGui::Checkbox("Use Initial Color", &useInitial)) 
 		{ 
@@ -1324,6 +1650,50 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 
 		EasingType easing = m->GetEasingType();
 		if (DrawEasingCombo("Easing Type", &easing)) { m->SetEasingType(easing); }
+		bool useCurve = m->HasCurve();
+		if (ImGui::Checkbox("Use Interpolation Curve", &useCurve))
+		{
+			if (useCurve) { AnimationCurve curve; curve.AddKey(0.0f, 0.0f); curve.AddKey(1.0f, 1.0f); m->SetCurve(curve); }
+			else m->ClearCurve();
+		}
+		if (m->HasCurve())
+		{
+			auto& keys = m->GetCurve().keys;
+			int removeKey = -1;
+			for (size_t i = 0; i < keys.size(); ++i)
+			{
+				ImGui::PushID(static_cast<int>(i));
+				ImGui::SetNextItemWidth(90.0f); ImGui::DragFloat("Time", &keys[i].time, 0.005f, 0.0f, 1.0f); ImGui::SameLine();
+				ImGui::SetNextItemWidth(110.0f); ImGui::DragFloat("Value", &keys[i].value, 0.01f); ImGui::SameLine();
+				if (ImGui::SmallButton("x")) removeKey = static_cast<int>(i);
+				ImGui::PopID();
+			}
+			if (removeKey >= 0 && keys.size() > 1) keys.erase(keys.begin() + removeKey);
+			if (ImGui::Button("Add Curve Key") && keys.size() < 64) m->GetCurve().AddKey(0.5f, m->GetCurve().Evaluate(0.5f));
+			std::sort(keys.begin(), keys.end(), [](const auto& a, const auto& b) { return a.time < b.time; });
+		}
+	}
+	else if (auto* m = dynamic_cast<RibbonInterpolationModule*>(module))
+	{
+		float maxDistance = m->GetMaxDistance();
+		if (ImGui::DragFloat("Max Segment Distance", &maxDistance, 0.01f, 0.001f, 1000.0f))
+		{
+			m->SetMaxDistance((std::max)(0.001f, maxDistance));
+		}
+	}
+	else if (auto* m = dynamic_cast<MultiSourceRibbonModule*>(module))
+	{
+		float spawnRate = m->GetSpawnRate();
+		float lifetime = m->GetParticleLifetime();
+		float minMoveDistance = m->GetMinMoveDistance();
+		Vector4 color = m->GetInitialColor();
+		bool onlyWhenMoving = m->GetSpawnOnlyWhenMoving();
+		if (ImGui::DragFloat("Spawn Rate", &spawnRate, 0.1f, 0.0f, 100000.0f)) m->SetSpawnRate((std::max)(0.0f, spawnRate));
+		if (ImGui::DragFloat("Particle Lifetime", &lifetime, 0.01f, 0.001f, 1000.0f)) m->SetParticleLifetime((std::max)(0.001f, lifetime));
+		if (ImGui::ColorEdit4("Initial Color", &color.x)) m->SetInitialColor(color);
+		if (ImGui::Checkbox("Spawn Only When Moving", &onlyWhenMoving)) m->SetSpawnOnlyWhenMoving(onlyWhenMoving);
+		if (ImGui::DragFloat("Minimum Move Distance", &minMoveDistance, 0.001f, 0.0f, 1000.0f)) m->SetMinMoveDistance((std::max)(0.0f, minMoveDistance));
+		ImGui::TextDisabled("Registered runtime sources: %llu", static_cast<unsigned long long>(m->GetSourceCount()));
 	}
 	else if (auto* m = dynamic_cast<TextureSheetModule*>(module))
 	{
@@ -1835,7 +2205,7 @@ void ParticleEditor::DrawRendererPanel()
 		if (renderer)
 		{
 			const char* typeNames[] = { "Sprite", "Trail", "Mesh" };
-			int currentType = static_cast<int>(renderer->GetType());
+			int currentType = (std::clamp)(static_cast<int>(renderer->GetType()), 0, 2);
 			if (ImGui::Combo("Type", &currentType, typeNames, 3))
 			{
 				RendererType newType = static_cast<RendererType>(currentType);
@@ -1883,10 +2253,38 @@ void ParticleEditor::DrawRendererPanel()
 				"ColorBurn",
 				"ColorDodge"
 			};
-			int currentBlend = static_cast<int>(renderer->GetBlendMode());
+			int currentBlend = (std::clamp)(static_cast<int>(renderer->GetBlendMode()), 0, IM_ARRAYSIZE(blendModes) - 1);
 			if (ImGui::Combo("Blend Mode", &currentBlend, blendModes, IM_ARRAYSIZE(blendModes)))
 			{
 				renderer->SetBlendMode(static_cast<BlendMode>(currentBlend));
+			}
+
+			ImGui::SeparatorText("Selective Bloom");
+			EmissiveSettings emissive = renderer->GetEmissiveSettings();
+			if (ImGui::Checkbox("Enabled##Emissive", &emissive.enabled)) renderer->SetEmissiveEnabled(emissive.enabled);
+			const char* emissiveSources[] = { "Uniform", "Base Texture Mask", "Emissive Texture" };
+			int emissiveSource = static_cast<int>(emissive.source);
+			if (ImGui::Combo("Source##Emissive", &emissiveSource, emissiveSources, IM_ARRAYSIZE(emissiveSources)))
+			{
+				renderer->SetEmissiveSource(static_cast<EmissiveSource>(emissiveSource));
+			}
+			float emissiveColor[3] = { emissive.color.x, emissive.color.y, emissive.color.z };
+			if (ImGui::ColorEdit3("Color##Emissive", emissiveColor, ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_Float))
+			{
+				renderer->SetEmissiveColor({ emissiveColor[0], emissiveColor[1], emissiveColor[2] });
+			}
+			if (ImGui::DragFloat("Intensity##Emissive", &emissive.intensity, 0.05f, 0.0f, 64.0f)) renderer->SetEmissiveIntensity(emissive.intensity);
+			if (ImGui::SliderFloat("Bloom Contribution##Emissive", &emissive.bloomContribution, 0.0f, 1.0f)) renderer->SetBloomContribution(emissive.bloomContribution);
+			if (emissive.source == EmissiveSource::EmissiveTexture)
+			{
+				std::string emissivePath = renderer->GetEmissiveTexturePath();
+				char emissivePathBuffer[512] = {};
+				strncpy_s(emissivePathBuffer, emissivePath.c_str(), _TRUNCATE);
+				if (ImGui::InputText("Texture##Emissive", emissivePathBuffer, sizeof(emissivePathBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+				{
+					renderer->SetEmissiveTexture(emissivePathBuffer);
+				}
+				ImGui::TextDisabled("Linear color; empty or load failure uses black.");
 			}
 
 			// Sprite Renderer特有の設定
@@ -1901,7 +2299,8 @@ void ParticleEditor::DrawRendererPanel()
 					ImGui::Text("Texture:");
 
 					// 現在のテクスチャを取得（表示用）
-					static int selectedTextureIdx = 0;
+					auto currentTexture = std::find(texturePaths.begin(), texturePaths.end(), spriteRenderer->GetTexturePath());
+					int selectedTextureIdx = currentTexture == texturePaths.end() ? 0 : static_cast<int>(std::distance(texturePaths.begin(), currentTexture));
 
 					if (ImGui::BeginCombo("##Texture", texturePaths.empty() ? "(None)" : texturePaths[selectedTextureIdx].c_str()))
 					{
@@ -2032,7 +2431,8 @@ void ParticleEditor::DrawRendererPanel()
 					ImGui::Separator();
 					ImGui::Text("Texture:");
 
-					static int selectedTrailTextureIdx = 0;
+					auto currentTexture = std::find(texturePaths.begin(), texturePaths.end(), trailRenderer->GetTexturePath());
+					int selectedTrailTextureIdx = currentTexture == texturePaths.end() ? 0 : static_cast<int>(std::distance(texturePaths.begin(), currentTexture));
 
 					if (ImGui::BeginCombo("##TrailTexture", texturePaths.empty() ? "(None)" : texturePaths[selectedTrailTextureIdx].c_str()))
 					{
@@ -2229,7 +2629,8 @@ void ParticleEditor::DrawRendererPanel()
 				{
 					ImGui::Text("Texture:");
 
-					static int selectedMeshTextureIdx = 0;
+					auto currentTexture = std::find(texturePaths.begin(), texturePaths.end(), meshRenderer->GetTexturePath());
+					int selectedMeshTextureIdx = currentTexture == texturePaths.end() ? 0 : static_cast<int>(std::distance(texturePaths.begin(), currentTexture));
 
 					if (ImGui::BeginCombo("##MeshTexture", texturePaths.empty() ? "(None)" : texturePaths[selectedMeshTextureIdx].c_str()))
 					{
@@ -2278,9 +2679,6 @@ void ParticleEditor::DrawRendererPanel()
 	}
 }
 
-void ParticleEditor::DrawCurveEditor() { /* TODO: Advanced curve editing */ }
-void ParticleEditor::DrawGradientEditor() { /* TODO: Gradient color editing */ }
-
 void ParticleEditor::AddEmitterDialog()
 {
 	ImGui::OpenPopup("Add Emitter");
@@ -2322,6 +2720,37 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 
 	if (ImGui::BeginPopupModal("Add Module", &showAddModuleDialog_, ImGuiWindowFlags_AlwaysAutoResize))
 	{
+		static int registryCategory = 0;
+		static int registrySelection = 0;
+		ImGui::RadioButton("Spawn", &registryCategory, 0); ImGui::SameLine();
+		ImGui::RadioButton("Update", &registryCategory, 1);
+		const ModulePhase selectedPhase = registryCategory == 0 ? ModulePhase::Spawn : ModulePhase::Update;
+		std::vector<const ModuleDescriptor*> available;
+		for (const auto& descriptor : ModuleDescriptorRegistry::GetInstance().GetDescriptors())
+		{
+			if (descriptor.phase == selectedPhase && descriptor.factory) available.push_back(&descriptor);
+		}
+		if (registrySelection >= static_cast<int>(available.size())) registrySelection = 0;
+		std::vector<const char*> names;
+		for (const auto* descriptor : available) names.push_back(descriptor->displayName.c_str());
+		ImGui::SetNextItemWidth(260.0f);
+		if (!names.empty()) ImGui::Combo("Module", &registrySelection, names.data(), static_cast<int>(names.size()));
+		if (!available.empty())
+		{
+			const auto* descriptor = available[registrySelection];
+			ImGui::TextDisabled("Stage: %s | v%u | %s", registryCategory == 0 ? "Particle Spawn" : "Particle Update",
+				descriptor->version, descriptor->pureGpuSupported ? "Pure GPU" : "Hybrid fallback");
+			if (ImGui::Button("Add"))
+			{
+				emitter->AddModule(descriptor->factory());
+				showAddModuleDialog_ = false;
+			}
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel")) showAddModuleDialog_ = false;
+		ImGui::EndPopup();
+		return;
+
 		static int selectedCategory = 0; // 0=Spawn, 1=Update
 		ImGui::RadioButton("Spawn", &selectedCategory, 0);
 		ImGui::SameLine();

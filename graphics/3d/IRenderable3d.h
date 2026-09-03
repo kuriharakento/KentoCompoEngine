@@ -155,6 +155,8 @@ public:
 	 * @brief ライティングの有効/無効の取得
 	 */
 	virtual bool IsEnableLighting() const = 0;
+	virtual void SetEmissiveSettings(const EmissiveSettings& settings) = 0;
+	virtual EmissiveSettings GetEmissiveSettings() const = 0;
 
 	// ======================================
 	// レンダリングタイプ操作

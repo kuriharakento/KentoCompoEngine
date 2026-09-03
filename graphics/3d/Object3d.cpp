@@ -133,6 +133,7 @@ void Object3d::Draw()
 	// 3Dモデルが割り当てられていれば描画する
 	if(model_)
 	{
+		object3dCommon_->SetBloomPipeline(model_->GetEmissiveSettings().enabled);
 		model_->Draw();
 	}
 }

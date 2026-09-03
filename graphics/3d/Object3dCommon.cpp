@@ -8,7 +8,7 @@
 namespace KCE
 {
 // ルートパラメータ数（カスケードシャドウ用に追加）
-constexpr int kRootParameterCount = 16;
+constexpr int kRootParameterCount = 17;
 // 入力要素数
 constexpr int kInputElementCount = 3;
 // ディスクリプタレンジ数
@@ -28,7 +28,19 @@ void Object3dCommon::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)
 	CreateRootSignature();
 
 	// グラフィックスパイプラインの生成
-	CreateGraphicsPipelineState();
+	CreateGraphicsPipelineState(false, true);
+	CreateGraphicsPipelineState(true, true);
+	CreateGraphicsPipelineState(false, false);
+}
+
+void Object3dCommon::SetBloomPipeline(bool bloomEnabled)
+{
+	ID3D12PipelineState* pipeline = singleTargetGraphicsPipelineState_.Get();
+	if (selectiveBloomOutputEnabled_)
+	{
+		pipeline = bloomEnabled ? bloomGraphicsPipelineState_.Get() : graphicsPipelineState_.Get();
+	}
+	dxCommon_->GetCommandList()->SetPipelineState(pipeline);
 }
 
 void Object3dCommon::CommonRenderingSetting()
@@ -37,7 +49,8 @@ void Object3dCommon::CommonRenderingSetting()
 	dxCommon_->GetCommandList()->SetGraphicsRootSignature(rootSignature_.Get());
 
 	// グラフィックスパイプラインステートをセット
-	dxCommon_->GetCommandList()->SetPipelineState(graphicsPipelineState_.Get());
+	dxCommon_->GetCommandList()->SetPipelineState(
+		selectiveBloomOutputEnabled_ ? graphicsPipelineState_.Get() : singleTargetGraphicsPipelineState_.Get());
 
 	// プリミティブトポロジーをセット（三角形リスト）
 	dxCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -189,6 +202,16 @@ void Object3dCommon::CreateRootSignature()
 	rootParameters[15].DescriptorTable.pDescriptorRanges = descriptorRangeCascade3;
 	rootParameters[15].DescriptorTable.NumDescriptorRanges = _countof(descriptorRangeCascade3);
 
+	D3D12_DESCRIPTOR_RANGE descriptorRangeEmissive[kDescriptorRangeCount] = {};
+	descriptorRangeEmissive[0].BaseShaderRegister = 2;
+	descriptorRangeEmissive[0].NumDescriptors = 1;
+	descriptorRangeEmissive[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	descriptorRangeEmissive[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	rootParameters[16].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[16].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[16].DescriptorTable.pDescriptorRanges = descriptorRangeEmissive;
+	rootParameters[16].DescriptorTable.NumDescriptorRanges = _countof(descriptorRangeEmissive);
+
 	// サンプラーの設定
 	D3D12_STATIC_SAMPLER_DESC staticSamplers[kStaticSamplerCount] = {};
 	// サンプラー0: 通常テクスチャ用
@@ -234,7 +257,7 @@ void Object3dCommon::CreateRootSignature()
 	assert(SUCCEEDED(hr));
 }
 
-void Object3dCommon::CreateGraphicsPipelineState()
+void Object3dCommon::CreateGraphicsPipelineState(bool bloomEnabled, bool bloomTargetEnabled)
 {
 	// ルートシグネチャの生成
 	CreateRootSignature();
@@ -273,6 +296,15 @@ void Object3dCommon::CreateGraphicsPipelineState()
 	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
 	blendDesc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
 	blendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
+	blendDesc.IndependentBlendEnable = TRUE;
+	blendDesc.RenderTarget[1].RenderTargetWriteMask = bloomEnabled ? D3D12_COLOR_WRITE_ENABLE_ALL : 0;
+	blendDesc.RenderTarget[1].BlendEnable = bloomEnabled ? TRUE : FALSE;
+	blendDesc.RenderTarget[1].SrcBlend = D3D12_BLEND_ONE;
+	blendDesc.RenderTarget[1].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+	blendDesc.RenderTarget[1].BlendOp = D3D12_BLEND_OP_ADD;
+	blendDesc.RenderTarget[1].SrcBlendAlpha = D3D12_BLEND_ONE;
+	blendDesc.RenderTarget[1].DestBlendAlpha = D3D12_BLEND_ONE;
+	blendDesc.RenderTarget[1].BlendOpAlpha = D3D12_BLEND_OP_ADD;
 
 	// RasterizerStateの設定
 	D3D12_RASTERIZER_DESC rasterizerDesc{};
@@ -284,7 +316,10 @@ void Object3dCommon::CreateGraphicsPipelineState()
 	Microsoft::WRL::ComPtr<IDxcBlob> vertexShaderBlob = dxCommon_->CompileSharder(L"Resources/shaders/Object3d.VS.hlsl", L"vs_6_0");
 	assert(vertexShaderBlob != nullptr);
 
-	Microsoft::WRL::ComPtr<IDxcBlob> pixelShaderBlob = dxCommon_->CompileSharder(L"Resources/shaders/Object3d.PS.hlsl", L"ps_6_0");
+	const wchar_t* pixelShaderPath = bloomTargetEnabled
+		? L"Resources/shaders/Object3d.PS.hlsl"
+		: L"Resources/shaders/Object3dSingleTarget.PS.hlsl";
+	Microsoft::WRL::ComPtr<IDxcBlob> pixelShaderBlob = dxCommon_->CompileSharder(pixelShaderPath, L"ps_6_0");
 	assert(pixelShaderBlob != nullptr);
 
 
@@ -306,14 +341,20 @@ void Object3dCommon::CreateGraphicsPipelineState()
 	graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
 	// レンダーターゲットの設定
-	graphicsPipelineStateDesc.NumRenderTargets = 1;
+	graphicsPipelineStateDesc.NumRenderTargets = bloomTargetEnabled ? 2 : 1;
 	graphicsPipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	if (bloomTargetEnabled)
+	{
+		graphicsPipelineStateDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	}
 	graphicsPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	graphicsPipelineStateDesc.SampleDesc.Count = 1;
 	graphicsPipelineStateDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 
 	// パイプラインステートを生成
-	hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&graphicsPipelineState_));
+	auto& target = !bloomTargetEnabled ? singleTargetGraphicsPipelineState_
+		: (bloomEnabled ? bloomGraphicsPipelineState_ : graphicsPipelineState_);
+	hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&target));
 	assert(SUCCEEDED(hr));
 }
 } // namespace KCE

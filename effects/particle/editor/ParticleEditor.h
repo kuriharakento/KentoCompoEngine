@@ -79,22 +79,30 @@ public:
 	void NewEffect();
 
 	/**
+	 * @brief 現在のエフェクトを閉じる（ポインタを安全に切り離す）
+	 */
+	void CloseCurrentEffect();
+
+	/**
 	 * @brief エフェクトを読み込み
 	 * @param path JSONファイルパス
 	 */
-	void LoadEffect(const std::string& path);
+	bool LoadEffect(const std::string& path);
 
 	/**
 	 * @brief エフェクトを保存
 	 * @param path 保存先JSONファイルパス
 	 */
-	void SaveEffect(const std::string& path);
+	bool SaveEffect(const std::string& path);
 
 	/**
 	 * @brief 編集中のエフェクトを取得
 	 * @return 現在のエフェクト（nullptrの可能性あり）
 	 */
 	ParticleEffect* GetCurrentEffect() const { return currentEffect_; }
+
+	/** Inspectorで表示するEmitterを安全に選択する。範囲外なら選択解除。 */
+	bool SelectEmitter(size_t index);
 
 private:
 	/**
@@ -126,16 +134,6 @@ private:
 	 * @brief プレビューパネルを描画
 	 */
 	void DrawPreviewPanel();
-
-	/**
-	 * @brief カーブエディタを描画
-	 */
-	void DrawCurveEditor();
-
-	/**
-	 * @brief グラデーションエディタを描画
-	 */
-	void DrawGradientEditor();
 
 	/**
 	 * @brief モジュールのプロパティUIを描画
@@ -182,6 +180,8 @@ private:
 	Vector3 previewTargetPos_ = {};          // ダミーの現在位置
 
 	std::string effectPath_;
+	std::string operationStatus_;
+	bool operationSucceeded_ = true;
 	char effectNameBuffer_[256] = {};
 	char emitterNameBuffer_[256] = {};
 

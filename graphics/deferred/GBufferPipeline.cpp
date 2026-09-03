@@ -39,7 +39,9 @@ void GBufferPipeline::CreateRootSignature()
 	textureRange.RegisterSpace = 0;
 	textureRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-	D3D12_ROOT_PARAMETER rootParams[4] = {};
+	D3D12_DESCRIPTOR_RANGE emissiveTextureRange = textureRange;
+	emissiveTextureRange.BaseShaderRegister = 1;
+	D3D12_ROOT_PARAMETER rootParams[5] = {};
 
 	// TransformationMatrix
 	rootParams[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
@@ -64,6 +66,11 @@ void GBufferPipeline::CreateRootSignature()
 	rootParams[3].DescriptorTable.NumDescriptorRanges = 1;
 	rootParams[3].DescriptorTable.pDescriptorRanges = &textureRange;
 	rootParams[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+	rootParams[4].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParams[4].DescriptorTable.NumDescriptorRanges = 1;
+	rootParams[4].DescriptorTable.pDescriptorRanges = &emissiveTextureRange;
+	rootParams[4].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 	// サンプラー
 	D3D12_STATIC_SAMPLER_DESC sampler = {};
@@ -205,7 +212,7 @@ void GBufferPipeline::CreatePipelineState()
 	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;   // Albedo
 	psoDesc.RTVFormats[1] = DXGI_FORMAT_R10G10B10A2_UNORM; // Normal
 	psoDesc.RTVFormats[2] = DXGI_FORMAT_R8G8B8A8_UNORM;   // Material
-	psoDesc.RTVFormats[3] = DXGI_FORMAT_R8G8B8A8_UNORM;   // Emissive
+	psoDesc.RTVFormats[3] = DXGI_FORMAT_R16G16B16A16_FLOAT; // HDR Emissive
 	psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
 	psoDesc.SampleDesc.Count = 1;

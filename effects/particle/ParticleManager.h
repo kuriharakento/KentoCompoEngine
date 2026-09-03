@@ -11,6 +11,7 @@
 #include <string>
 #include <unordered_map>
 #include "ParticleEmitter.h"
+#include "effects/particle/diagnostics/ParticleDiagnostics.h"
 
 namespace KCE
 {
@@ -19,6 +20,7 @@ class SrvManager;
 class CameraManager;
 class ParticlePipelineManager;
 class ParticleEffect;
+class GPUSimulator;
 
 /**
  * @brief パーティクルマネージャー
@@ -139,11 +141,18 @@ public:
 	 */
 	void RemoveEffect(ParticleEffect* effect);
 
+	/** プール中のEffectをGPU fence完了後に実破棄する。 */
+	void PurgeEffectPools();
+	size_t GetPooledEffectCount() const;
+
 	/**
 	 * @brief レンダラーを遅延破棄キュー（ゴミ箱）に追加
 	 * @param renderer 破棄するレンダラー
 	 */
 	void AddRendererToTrashBin(std::unique_ptr<IRenderer> renderer);
+
+	/** GPUが旧bufferを参照している間、Simulatorの破棄を次フレームまで遅延する。 */
+	void AddSimulatorToTrashBin(std::unique_ptr<GPUSimulator> simulator);
 
 	//===== アクセサ =====//
 
@@ -173,7 +182,7 @@ public:
 
 private:
 	ParticleManager() = default;
-	~ParticleManager() = default;
+	~ParticleManager();
 	ParticleManager(const ParticleManager&) = delete;
 	ParticleManager& operator=(const ParticleManager&) = delete;
 
@@ -190,7 +199,12 @@ private:
 	std::unordered_map<std::string, std::vector<std::unique_ptr<ParticleEffect>>> effectPools_;
 
 	// 遅延破棄するレンダラーリスト（GPU使用中のリソース安全破棄用）
-	std::vector<std::unique_ptr<IRenderer>> rendererTrashBin_;
+	struct RetiredRenderer { uint64_t fenceValue; std::unique_ptr<IRenderer> resource; };
+	struct RetiredSimulator { uint64_t fenceValue; std::unique_ptr<GPUSimulator> resource; };
+	struct RetiredEffect { uint64_t fenceValue; std::unique_ptr<ParticleEffect> resource; };
+	std::vector<RetiredRenderer> rendererTrashBin_;
+	std::vector<RetiredSimulator> simulatorTrashBin_;
+	std::vector<RetiredEffect> effectTrashBin_;
 
 	// 直接追加されたエミッター（後方互換用）
 	std::vector<std::unique_ptr<ParticleEmitter>> emitters_;

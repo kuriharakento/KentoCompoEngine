@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <algorithm>
+#include <cmath>
 
 #include "math/MatrixFunc.h"
 #include "math/Vector2.h"
@@ -63,8 +65,51 @@ struct Material
     // 反射率
 	float reflectivity;
     // パディング（アラインメント用）
-    float padding2[2];
+	float padding2[2];
+	// Selective Bloom parameters (HDR color.xyz + intensity.w).
+	Vector4 emissiveColorIntensity = { 1.0f, 1.0f, 1.0f, 1.0f };
+	uint32_t emissiveEnabled = 0;
+	uint32_t emissiveSource = 0;
+	float bloomContribution = 1.0f;
+	float emissivePadding = 0.0f;
 };
+
+enum class EmissiveSource : uint32_t
+{
+	Uniform = 0,
+	BaseTextureMask = 1,
+	EmissiveTexture = 2,
+};
+
+struct EmissiveSettings
+{
+	bool enabled = false;
+	EmissiveSource source = EmissiveSource::Uniform;
+	Vector3 color = { 1.0f, 1.0f, 1.0f };
+	float intensity = 1.0f;
+	float bloomContribution = 1.0f;
+};
+
+inline bool TryNormalizeEmissiveSettings(const EmissiveSettings& input, EmissiveSettings& output)
+{
+	const auto source = static_cast<uint32_t>(input.source);
+	if (source > static_cast<uint32_t>(EmissiveSource::EmissiveTexture) ||
+		!std::isfinite(input.color.x) || !std::isfinite(input.color.y) || !std::isfinite(input.color.z) ||
+		!std::isfinite(input.intensity) || !std::isfinite(input.bloomContribution))
+	{
+		return false;
+	}
+
+	output = input;
+	output.color = {
+		(std::clamp)(input.color.x, 0.0f, 16.0f),
+		(std::clamp)(input.color.y, 0.0f, 16.0f),
+		(std::clamp)(input.color.z, 0.0f, 16.0f)
+	};
+	output.intensity = (std::clamp)(input.intensity, 0.0f, 64.0f);
+	output.bloomContribution = (std::clamp)(input.bloomContribution, 0.0f, 1.0f);
+	return true;
+}
 
 /**
  * @brief 座標変換行列データ
@@ -137,6 +182,8 @@ struct MaterialData
     std::string textureFilePath;
     // テクスチャインデックス
     uint32_t textureIndex = 0;
+	std::string emissiveTextureFilePath;
+	uint32_t emissiveTextureIndex = 0;
 };
 
 /**

@@ -201,6 +201,8 @@ const SkinnedModelSharedResource* SkinnedModelManager::LoadModel(const std::stri
         aiString name; if(aiMat->Get(AI_MATKEY_NAME, name)==AI_SUCCESS) mat.name = name.C_Str();
         if(aiMat->GetTextureCount(aiTextureType_DIFFUSE)>0)
         { aiString path; aiMat->GetTexture(aiTextureType_DIFFUSE,0,&path); mat.textureFilePath = path.C_Str(); }
+		if(aiMat->GetTextureCount(aiTextureType_EMISSIVE)>0)
+		{ aiString path; aiMat->GetTexture(aiTextureType_EMISSIVE,0,&path); mat.emissiveTextureFilePath = path.C_Str(); }
         sharedResource->modelData.materials.push_back(mat);
     }
     std::string basePath = directoryPath + "/" + filename + "/";
@@ -209,6 +211,10 @@ const SkinnedModelSharedResource* SkinnedModelManager::LoadModel(const std::stri
         std::string fullTex = mat.textureFilePath.empty() ? kDefaultTexturePath : basePath + mat.textureFilePath;
         TextureManager::GetInstance()->LoadTexture(fullTex);
         mat.textureIndex = TextureManager::GetInstance()->GetTextureIndexByFilePath(fullTex);
+		std::string fullEmissive = mat.emissiveTextureFilePath.empty() || !TextureManager::GetInstance()->CheckTextureExists(basePath + mat.emissiveTextureFilePath)
+			? "./Resources/textures/emissive_black_1x1.png" : basePath + mat.emissiveTextureFilePath;
+		TextureManager::GetInstance()->LoadTextureLinear(fullEmissive);
+		mat.emissiveTextureIndex = TextureManager::GetInstance()->GetLinearTextureIndexByFilePath(fullEmissive);
     }
 
     // --- メッシュ ---

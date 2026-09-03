@@ -16,6 +16,7 @@ class SrvManager;
 class RenderTexture  
 {  
 public:
+	~RenderTexture();
     /**
      * @brief 初期化
      * @param dxCommon DirectXCommonへのポインタ
@@ -43,6 +44,8 @@ public:
      * @brief レンダリング終了
      */
     void EndRender();
+	/** 診断・特殊パス用に明示的なresource stateへ遷移する。 */
+	void TransitionTo(D3D12_RESOURCE_STATES state);
 
     /**
      * @brief ImGui用の描画前処理
@@ -86,6 +89,10 @@ public:
      * @return SRVインデックス
      */
     uint32_t GetSRVIndex() const { return srvIndex_; }
+	uint32_t GetWidth() const { return width_; }
+	uint32_t GetHeight() const { return height_; }
+	DXGI_FORMAT GetFormat() const { return format_; }
+	D3D12_RESOURCE_STATES GetCurrentState() const { return currentState_; }
 
 private:
     // DirectXCommonへのポインタ
@@ -99,7 +106,7 @@ private:
     // RTVハンドル
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle_{};
     // SRVインデックス
-    uint32_t srvIndex_ = 0;
+    uint32_t srvIndex_ = UINT32_MAX;
     // テクスチャフォーマット
     DXGI_FORMAT format_ = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
     // クリアカラー
@@ -113,3 +120,4 @@ private:
 
 };
 } // namespace KCE
+class SrvManager;

@@ -6,6 +6,7 @@
 #include "manager/graphics/TextureManager.h"
 #include "base/DirectXCommon.h"
 #include "time/TimeManager.h"
+#include "effects/particle/diagnostics/ParticleDiagnostics.h"
 #include <cmath>
 #include <algorithm>
 
@@ -35,7 +36,8 @@ void TrailRenderer::Initialize(const std::string& texturePath)
 	std::string path = texturePath.empty() ? "./Resources/uvChecker.png" : texturePath;
 	texturePath_ = path;
 	TextureManager::GetInstance()->LoadTexture(path);
-	textureIndex_ = TextureManager::GetInstance()->GetTextureIndexByFilePath(path);
+	TextureManager::GetInstance()->TryGetTextureIndexByFilePath(path, textureIndex_);
+	SetEmissiveTexture("");
 
 	auto* pm = ParticleManager::GetInstance();
 	InitializeBuffers(pm->GetDxCommon(), pm->GetSrvManager());
@@ -63,17 +65,56 @@ void TrailRenderer::InitializeBuffers(DirectXCommon* dxCommon, SrvManager* /*srv
 	viewProjResource_ = dxCommon->CreateBufferResource(sizeof(Matrix4x4));
 	viewProjResource_->Map(0, nullptr, reinterpret_cast<void**>(&viewProjData_));
 	*viewProjData_ = MakeIdentity4x4();
+
+	D3D12_INDIRECT_ARGUMENT_DESC argument{};
+	argument.Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW;
+	D3D12_COMMAND_SIGNATURE_DESC signature{};
+	signature.ByteStride = sizeof(D3D12_DRAW_ARGUMENTS);
+	signature.NumArgumentDescs = 1;
+	signature.pArgumentDescs = &argument;
+	dxCommon->GetDevice()->CreateCommandSignature(&signature, nullptr, IID_PPV_ARGS(&drawCommandSignature_));
+}
+
+void TrailRenderer::SetGPURibbonMode(bool enable, ID3D12Resource* vertexBuffer,
+	ID3D12Resource* drawArguments, uint32_t maxVertices)
+{
+	gpuRibbonMode_ = enable && vertexBuffer && drawArguments && drawCommandSignature_;
+	gpuVertexBuffer_ = gpuRibbonMode_ ? vertexBuffer : nullptr;
+	gpuDrawArguments_ = gpuRibbonMode_ ? drawArguments : nullptr;
+	gpuMaxVertices_ = gpuRibbonMode_ ? maxVertices : 0;
 }
 
 void TrailRenderer::SetTexture(const std::string& texturePath)
 {
+	auto* textures = TextureManager::GetInstance();
+	textures->LoadTexture(texturePath);
+	uint32_t newIndex = SrvManager::kInvalidSrvIndex;
+	if (!textures->TryGetTextureIndexByFilePath(texturePath, newIndex)) return;
 	texturePath_ = texturePath;
-	TextureManager::GetInstance()->LoadTexture(texturePath);
-	textureIndex_ = TextureManager::GetInstance()->GetTextureIndexByFilePath(texturePath);
+	textureIndex_ = newIndex;
+}
+
+void TrailRenderer::SetEmissiveTexture(const std::string& texturePath)
+{
+	emissiveTexturePath_ = texturePath;
+	const std::string fallback = "./Resources/textures/emissive_black_1x1.png";
+	const std::string path = emissiveTexturePath_.empty() || !TextureManager::GetInstance()->CheckTextureExists(emissiveTexturePath_) ? fallback : emissiveTexturePath_;
+	TextureManager::GetInstance()->LoadTextureLinear(path);
+	emissiveTextureIndex_ = TextureManager::GetInstance()->GetLinearTextureIndexByFilePath(path);
 }
 
 void TrailRenderer::Update(const std::vector<Particle>& particles, CameraManager* camera)
 {
+	ParticleScopeTimer timer(ParticleProfileScope::RendererUpdatePerCall);
+	if (gpuRibbonMode_)
+	{
+		if (viewProjData_ && camera && camera->GetActiveCamera())
+		{
+			*viewProjData_ = Multiply(camera->GetActiveCamera()->GetViewMatrix(), camera->GetActiveCamera()->GetProjectionMatrix());
+		}
+		return;
+	}
+
 	// デルタタイム取得
 	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
 	lastDeltaTime_ = deltaTime;
@@ -747,18 +788,26 @@ void TrailRenderer::InterpolateSegments(
 
 void TrailRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
+	if (!srvManager || !srvManager->IsAllocated(textureIndex_)) return;
+	ParticleScopeTimer timer(ParticleProfileScope::RendererDrawRecordingPerCall);
+
 	if (materialData_)
 	{
 		materialData_->color = tintColor_;
+		materialData_->emissiveColorIntensity = { emissiveSettings_.color.x, emissiveSettings_.color.y, emissiveSettings_.color.z, emissiveSettings_.intensity };
+		materialData_->emissiveEnabled = emissiveSettings_.enabled ? 1u : 0u;
+		materialData_->emissiveSource = static_cast<uint32_t>(emissiveSettings_.source);
+		materialData_->bloomContribution = emissiveSettings_.bloomContribution;
 	}
 
-	if (vertexCount_ < 4) return;
+	if (!gpuRibbonMode_ && vertexCount_ < 4) return;
+	if (gpuRibbonMode_ && (!gpuVertexBuffer_ || !gpuDrawArguments_ || !drawCommandSignature_)) return;
 
 	auto commandList = dxCommon->GetCommandList();
 	auto pipelineManager = ParticleManager::GetInstance()->GetPipelineManager();
 
 	// リボン用パイプラインを使用
-	commandList->SetPipelineState(pipelineManager->GetRibbonPipelineState(blendMode_));
+	commandList->SetPipelineState(pipelineManager->GetRibbonPipelineState(blendMode_, emissiveSettings_.enabled));
 	commandList->SetGraphicsRootSignature(pipelineManager->GetRibbonRootSignature());
 
 	// プリミティブトポロジ設定
@@ -766,7 +815,16 @@ void TrailRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 
 	// 頂点バッファ設定
 	D3D12_VERTEX_BUFFER_VIEW vbView = vertexBufferView_;
-	vbView.SizeInBytes = sizeof(TrailVertex) * vertexCount_;
+	if (gpuRibbonMode_)
+	{
+		vbView.BufferLocation = gpuVertexBuffer_->GetGPUVirtualAddress();
+		vbView.StrideInBytes = sizeof(TrailVertex);
+		vbView.SizeInBytes = sizeof(TrailVertex) * gpuMaxVertices_;
+	}
+	else
+	{
+		vbView.SizeInBytes = sizeof(TrailVertex) * vertexCount_;
+	}
 	commandList->IASetVertexBuffers(0, 1, &vbView);
 
 	// ビュープロジェクション行列 (Slot 0)
@@ -777,8 +835,16 @@ void TrailRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 
 	// テクスチャ (Slot 2)
 	commandList->SetGraphicsRootDescriptorTable(2, srvManager->GetGPUDescriptorHandle(textureIndex_));
+	commandList->SetGraphicsRootDescriptorTable(3, srvManager->GetGPUDescriptorHandle(emissiveTextureIndex_));
 
 	// 描画
-	commandList->DrawInstanced(vertexCount_, 1, 0, 0);
+	if (gpuRibbonMode_)
+	{
+		commandList->ExecuteIndirect(drawCommandSignature_.Get(), 1, gpuDrawArguments_, 0, nullptr, 0);
+	}
+	else
+	{
+		commandList->DrawInstanced(vertexCount_, 1, 0, 0);
+	}
 }
 } // namespace KCE

@@ -150,6 +150,8 @@ void DeferredRenderer::UpdateLightBuffer(LightManager* lightManager, ShadowMapMa
 
 void DeferredRenderer::ExecuteLightPass(
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,
+	D3D12_CPU_DESCRIPTOR_HANDLE bloomRtvHandle,
+	bool bloomTargetEnabled,
 	CameraManager* cameraManager,
 	LightManager* lightManager,
 	ShadowMapManager* shadowMapManager
@@ -162,7 +164,8 @@ void DeferredRenderer::ExecuteLightPass(
 	UpdateLightBuffer(lightManager, shadowMapManager);
 
 	// レンダーターゲット設定
-	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+	const D3D12_CPU_DESCRIPTOR_HANDLE renderTargets[] = { rtvHandle, bloomRtvHandle };
+	commandList->OMSetRenderTargets(bloomTargetEnabled ? 2u : 1u, renderTargets, FALSE, nullptr);
 
 	// ビューポート設定
 	D3D12_VIEWPORT viewport = {};
@@ -178,7 +181,7 @@ void DeferredRenderer::ExecuteLightPass(
 	commandList->RSSetScissorRects(1, &scissorRect);
 
 	// パイプライン設定
-	lightPassPipeline_->SetPipeline();
+	lightPassPipeline_->SetPipeline(bloomTargetEnabled);
 
 	// CBV設定
 	// 0: CameraData

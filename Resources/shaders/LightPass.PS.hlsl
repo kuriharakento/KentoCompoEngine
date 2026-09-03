@@ -322,8 +322,17 @@ float3 CalculatePointLight(PointLight light, float3 worldPos, float3 normal, flo
     return albedo * NdotL * light.color.rgb * light.intensity * attenuation * shadow;
 }
 
-float4 main(PixelShaderInput input) : SV_TARGET
+struct LightPassOutput
 {
+    float4 sceneColor : SV_TARGET0;
+#ifndef KCE_BLOOM_TARGET_DISABLED
+    float4 bloomMask : SV_TARGET1;
+#endif
+};
+
+LightPassOutput main(PixelShaderInput input)
+{
+	LightPassOutput output;
     // G-Bufferからデータ取得
     float4 albedoMetal = gAlbedo.Sample(gSampler, input.texcoord);
     float4 normalData = gNormal.Sample(gSampler, input.texcoord);
@@ -333,7 +342,11 @@ float4 main(PixelShaderInput input) : SV_TARGET
     // 背景をスキップ（環境光の明るさに同期）
     if (depth >= 1.0f)
     {
-        return float4(float3(0.1f, 0.1f, 0.15f) * ambientColor.rgb, 1.0f);
+		output.sceneColor = float4(float3(0.1f, 0.1f, 0.15f) * ambientColor.rgb, 1.0f);
+#ifndef KCE_BLOOM_TARGET_DISABLED
+		output.bloomMask = 0.0f;
+#endif
+		return output;
     }
     
     float3 albedo = albedoMetal.rgb;
@@ -369,6 +382,13 @@ float4 main(PixelShaderInput input) : SV_TARGET
     }
     
     float3 finalColor = ambient + directional + spotContribution + pointContribution;
-    
-    return float4(finalColor, 1.0f);
+	float4 emissiveData = gEmissive.Sample(gSampler, input.texcoord);
+	float3 emissive = all(isfinite(emissiveData.rgb)) ? clamp(emissiveData.rgb, 0.0f, 64.0f) : 0.0f;
+	float contribution = isfinite(emissiveData.a) ? saturate(emissiveData.a) : 0.0f;
+
+	output.sceneColor = float4(finalColor + emissive, 1.0f);
+#ifndef KCE_BLOOM_TARGET_DISABLED
+	output.bloomMask = float4(emissive * contribution, contribution);
+#endif
+	return output;
 }

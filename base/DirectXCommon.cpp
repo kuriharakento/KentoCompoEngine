@@ -4,6 +4,9 @@
 #include <format>
 #include <thread>
 #include <filesystem>
+#include <fstream>
+#include <cstdlib>
+#include <algorithm>
 
 //自作クラス
 #include "base/Logger.h"
@@ -28,6 +31,15 @@ using namespace Microsoft::WRL;
 
 // スワップチェインのバッファ数
 constexpr UINT kSwapChainBufferCount = 2;
+
+bool IsEnvironmentEnabled(const char* name)
+{
+	char* value = nullptr;
+	size_t length = 0;
+	const bool enabled = _dupenv_s(&value, &length, name) == 0 && value != nullptr;
+	std::free(value);
+	return enabled;
+}
 // RTV用ディスクリプタ数
 constexpr UINT kRtvDescriptorCount = 2;
 // DSV用ディスクリプタ数
@@ -49,6 +61,13 @@ void DirectXCommon::Initialize(WinApp* winApp)
 	assert(winApp);
 	//引数をメンバ変数に記録
 	winApp_ = winApp;
+	char vsyncValue[8] = {};
+	const DWORD vsyncLength = GetEnvironmentVariableA(
+		"KCE_VSYNC", vsyncValue, static_cast<DWORD>(sizeof(vsyncValue)));
+	if (vsyncLength > 0 && vsyncLength < sizeof(vsyncValue))
+	{
+		vsyncEnabled_ = !(vsyncLength == 1 && vsyncValue[0] == '0');
+	}
 
 	/*--------------[ 初期化 ]-----------------*/
 	//FPS固定初期化
@@ -168,7 +187,13 @@ void DirectXCommon::PostDraw()
 	/*--------------[ GPU画面の交換を通知 ]-----------------*/
 
 	//GPUとOSに画面の交換を行うように通知する
-	swapChain_->Present(1, 0);
+	hr = swapChain_->Present(vsyncEnabled_ ? 1u : 0u, 0);
+	if (FAILED(hr))
+	{
+		const HRESULT removedReason = device_ ? device_->GetDeviceRemovedReason() : E_FAIL;
+		Logger::Log("DirectXCommon::PostDraw Present failed. hr=" + std::to_string(static_cast<long>(hr)) +
+			" deviceRemovedReason=" + std::to_string(static_cast<long>(removedReason)) + "\n", Logger::LogLevel::Error);
+	}
 
 	/*--------------[ Fenceの値を更新 ]-----------------*/
 
@@ -200,9 +225,37 @@ void DirectXCommon::PostDraw()
 		CloseHandle(fenceEvent);
 	}
 
+#ifdef _DEBUG
+	if (IsEnvironmentEnabled("KCE_D3D12_CAPTURE_ERRORS"))
+	{
+		Microsoft::WRL::ComPtr<ID3D12InfoQueue> infoQueue;
+		if (SUCCEEDED(device_->QueryInterface(IID_PPV_ARGS(&infoQueue))))
+		{
+			std::ofstream log("./application/Resources/test-results/particles/particle_d3d12_errors.txt", std::ios::app);
+			const UINT64 count = infoQueue->GetNumStoredMessagesAllowedByRetrievalFilter();
+			for (UINT64 i = 0; i < count; ++i)
+			{
+				SIZE_T size = 0;
+				infoQueue->GetMessage(i, nullptr, &size);
+				std::vector<unsigned char> storage(size);
+				auto* message = reinterpret_cast<D3D12_MESSAGE*>(storage.data());
+				if (SUCCEEDED(infoQueue->GetMessage(i, message, &size)) &&
+					message->Severity <= D3D12_MESSAGE_SEVERITY_WARNING)
+				{
+					log << "severity=" << message->Severity << " id=" << message->ID << " " << message->pDescription << '\n';
+				}
+			}
+			infoQueue->ClearStoredMessages();
+		}
+	}
+#endif
+
 	/*--------------[ FPS固定 ]-----------------*/
 
-	UpdateFixFPS();
+	if (vsyncEnabled_)
+	{
+		UpdateFixFPS();
+	}
 
 	/*--------------[ コマンドアロケータのリセット ]-----------------*/
 
@@ -215,6 +268,12 @@ void DirectXCommon::PostDraw()
 	hr = commandList_->Reset(commandAllocator_.Get(), nullptr);
 	assert(SUCCEEDED(hr));
 
+}
+
+bool DirectXCommon::GetTimestampFrequency(uint64_t& frequency) const
+{
+	frequency = 0;
+	return commandQueue_ && SUCCEEDED(commandQueue_->GetTimestampFrequency(&frequency)) && frequency != 0;
 }
 
 void DirectXCommon::ExecuteAndWait()
@@ -383,6 +442,14 @@ void DirectXCommon::InitializeDevice()
 		//ソフトウェアアダプタでなければ採用！
 		if (!(adapterDesc.Flags & DXGI_ADAPTER_FLAG3_SOFTWARE))
 		{
+			adapterName_ = KCE::StringUtility::ConvertString(adapterDesc.Description);
+			LARGE_INTEGER driverVersion{};
+			if (SUCCEEDED(useAdapter->CheckInterfaceSupport(__uuidof(IDXGIDevice), &driverVersion)))
+			{
+				driverVersion_ = std::format("{}.{}.{}.{}",
+					HIWORD(driverVersion.HighPart), LOWORD(driverVersion.HighPart),
+					HIWORD(driverVersion.LowPart), LOWORD(driverVersion.LowPart));
+			}
 			//採用したアダプタの情報をログに出力。wstringの方なので注意
 			KCE::Logger::Log(KCE::StringUtility::ConvertString(std::format(L"Use Adapter:{}\n", adapterDesc.Description)));
 			break;
@@ -423,10 +490,12 @@ void DirectXCommon::InitializeDevice()
 	Microsoft::WRL::ComPtr<ID3D12InfoQueue> infoQueue = nullptr;
 	if (SUCCEEDED(device_->QueryInterface(IID_PPV_ARGS(&infoQueue))))
 	{
+		const bool captureErrors = IsEnvironmentEnabled("KCE_D3D12_CAPTURE_ERRORS");
+		if (captureErrors) std::ofstream("./application/Resources/test-results/particles/particle_d3d12_errors.txt", std::ios::trunc);
 		//やばいエラー時に止まる
-		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
+		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, !captureErrors);
 		//エラー時に止まる
-		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
+		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, !captureErrors);
 		//警告時に止まる
 		//infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
 
@@ -783,6 +852,52 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileSharder(const std::wstrin
 		}
 	}
 
+	// DXIL disk cache. The key includes the target/profile and every HLSL file
+	// timestamp in the shader directory so include-file edits invalidate it.
+	std::filesystem::path shaderCachePath;
+	try
+	{
+		std::string cacheKey = std::filesystem::absolute(targetPath).lexically_normal().string();
+		cacheKey += KCE::StringUtility::ConvertString(profile);
+		const auto shaderDir = std::filesystem::path(targetPath).parent_path();
+		std::vector<std::filesystem::path> shaderDependencies;
+		for (const auto& entry : std::filesystem::directory_iterator(shaderDir))
+		{
+			if (!entry.is_regular_file() || entry.path().extension() != L".hlsl") continue;
+			shaderDependencies.push_back(entry.path());
+		}
+		std::sort(shaderDependencies.begin(), shaderDependencies.end());
+		for (const auto& dependency : shaderDependencies)
+		{
+			cacheKey += dependency.filename().string();
+			cacheKey += std::to_string(std::filesystem::file_size(dependency));
+			cacheKey += std::to_string(std::filesystem::last_write_time(dependency).time_since_epoch().count());
+		}
+		const size_t cacheHash = std::hash<std::string>{}(cacheKey);
+		std::filesystem::path cacheDir = std::filesystem::path("generated") / "cache" / "shaders";
+		std::filesystem::create_directories(cacheDir);
+		shaderCachePath = cacheDir / (std::to_string(cacheHash) + ".dxil");
+		if (std::filesystem::exists(shaderCachePath))
+		{
+			IDxcBlobEncoding* cachedEncoding = nullptr;
+			if (SUCCEEDED(dxcUtils_->LoadFile(shaderCachePath.c_str(), nullptr, &cachedEncoding)) && cachedEncoding)
+			{
+				Microsoft::WRL::ComPtr<IDxcBlob> cachedBlob;
+				cachedEncoding->QueryInterface(IID_PPV_ARGS(&cachedBlob));
+				cachedEncoding->Release();
+				if (cachedBlob)
+				{
+					KCE::Logger::Log("Shader cache hit: " + shaderCachePath.string() + "\n");
+					return cachedBlob;
+				}
+			}
+		}
+	}
+	catch (const std::filesystem::filesystem_error&)
+	{
+		shaderCachePath.clear();
+	}
+
 	//hlslファイルを読む
 	IDxcBlobEncoding* shaderSource = nullptr;
 	HRESULT hr = dxcUtils_->LoadFile(targetPath.c_str(), nullptr, &shaderSource);
@@ -837,6 +952,11 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileSharder(const std::wstrin
 	IDxcBlob* shaderBlob = nullptr;
 	hr = shaderResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
 	assert(SUCCEEDED(hr));
+	if (!shaderCachePath.empty() && shaderBlob)
+	{
+		std::ofstream cacheFile(shaderCachePath, std::ios::binary | std::ios::trunc);
+		if (cacheFile) cacheFile.write(static_cast<const char*>(shaderBlob->GetBufferPointer()), static_cast<std::streamsize>(shaderBlob->GetBufferSize()));
+	}
 	//成功したログを出す
 	KCE::Logger::Log(KCE::StringUtility::ConvertString(std::format(L"Compile Succeeded, path:{}, profile:{}\n", filePath, profile)));
 	//もう使わないリソースを解放

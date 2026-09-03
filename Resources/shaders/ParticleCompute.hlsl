@@ -2,7 +2,7 @@
  * ParticleCompute.hlsl
  * GPUパーティクルシミュレーション用 Compute Shader
  * 
- * C++側のParticle構造体と完全に同じレイアウト (112 bytes, 16-byte aligned)
+ * C++側のParticle構造体と完全に同じレイアウト (128 bytes, 16-byte aligned)
  */
 
 // パーティクル構造体（C++Particle構造体と完全一致 - 128 bytes）
@@ -47,6 +47,11 @@ cbuffer Constants : register(b0)
     float totalTime;
     uint particleCount;
     uint maxParticles;
+    float gpuRibbonWidth; uint gpuRibbonWidthFade; uint gpuRibbonAlphaFade; uint gpuRibbonGroupCount;
+    float gpuSpawnRate; uint gpuBurstCount; float gpuBurstInterval; float gpuBurstDelay;
+    int gpuBurstLoops; uint gpuEmitterIsEmitting; uint gpuEmitterReset; uint paddingEmitterState;
+    uint hasGpuEventSource; uint gpuEventTrigger; float gpuEventProbability; uint gpuEventInheritVelocity;
+    float gpuEventVelocityScale; uint gpuEventInheritColor; float gpuSpawnLifetime; uint paddingGpuEvent;
     
     float3 emitterPosition;
     uint isBillboard;
@@ -124,13 +129,70 @@ cbuffer Constants : register(b0)
     uint hasFaceVelocity;
     uint faceVelocityUse2D;
     float2 paddingFaceVelocity;
+	uint hasTextureSheet;
+	uint textureSheetColumns;
+	uint textureSheetRows;
+	uint paddingTextureSheet;
+
+    uint pureGpuEnabled;
+    uint spawnCount;
+    uint spawnSerialBase;
+    uint spawnSeed;
+    float3 initialVelocityMin; float initialLifetimeMin;
+    float3 initialVelocityMax; float initialLifetimeMax;
+    float3 initialScaleMin; float paddingPure0;
+    float3 initialScaleMax; float paddingPure1;
+    float4 initialColorMin;
+    float4 initialColorMax;
+    uint hasSpawnShape; uint spawnShapeType; uint spawnLocation; uint spawnEmitFromSurface;
+    float spawnInnerRadius; float spawnOuterRadius; float spawnInitialSpeed; float spawnArcRadians;
+    float3 spawnBoxSize; float spawnConeHeight;
+    float3 spawnLineStart; float paddingShape0;
+    float3 spawnLineEnd; float paddingShape1;
 };
 
 // パーティクルバッファ (UAV)
 RWStructuredBuffer<Particle> particles : register(u0);
+RWByteAddressBuffer spawnCounter : register(u1);
+struct EmitterState
+{
+    float rateAccumulator; float burstElapsed; uint burstLoop; uint burstFired;
+    uint spawnCount; uint regularSpawnCount; uint eventSpawnCount; uint spawnSerialBase;
+    uint totalSpawned; uint rateSpawnCount; uint2 padding;
+};
+RWStructuredBuffer<EmitterState> emitterState : register(u2);
+struct ParticleEvent
+{
+    float3 position; uint type;
+    float3 velocity; uint particleId;
+    float4 color;
+};
+RWStructuredBuffer<ParticleEvent> particleEvents : register(u3);
+RWByteAddressBuffer eventCounter : register(u4);
+StructuredBuffer<ParticleEvent> sourceEvents : register(t0);
+ByteAddressBuffer sourceEventCounter : register(t1);
+ByteAddressBuffer moduleProgram : register(t2);
+StructuredBuffer<float4> moduleLut : register(t3);
+
+float4 SampleModuleLut(uint offset, uint count, float ratio)
+{
+    if (count == 0u) return 0.0f;
+    float coordinate = saturate(ratio) * float(count - 1u);
+    uint lower = (uint)floor(coordinate);
+    uint upper = min(lower + 1u, count - 1u);
+    return lerp(moduleLut[offset + lower], moduleLut[offset + upper], coordinate - float(lower));
+}
 
 // フラグ定数
 static const uint FLAG_ALIVE = 1 << 0;
+
+bool IsFiniteParticle(Particle p)
+{
+    return all(isfinite(p.position)) && all(isfinite(p.velocity)) &&
+        all(isfinite(p.scale)) && all(isfinite(p.rotation)) &&
+        all(isfinite(p.color)) && all(isfinite(p.initialColor)) &&
+        isfinite(p.age) && isfinite(p.lifetime) && isfinite(p.ribbonWidth);
+}
 static const uint FLAG_RIBBON_HEAD = 1 << 1;
 
 // イージング関数
@@ -169,23 +231,219 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         return;
     
     Particle p = particles[index];
+
+    // Retire existing particles before dead-slot allocation. This permits a
+    // slot that expires in this dispatch to be reused immediately instead of
+    // introducing a whole-frame gap at low frame rates.
+    if ((p.flags & FLAG_ALIVE) != 0u)
+    {
+        p.age += deltaTime;
+        if (p.age >= p.lifetime)
+        {
+            uint deathEventIndex;
+            eventCounter.InterlockedAdd(0, 1, deathEventIndex);
+            if (deathEventIndex < maxParticles)
+            {
+                ParticleEvent deathEvent;
+                deathEvent.position = p.position;
+                deathEvent.type = 1;
+                deathEvent.velocity = p.velocity;
+                deathEvent.particleId = p.id;
+                deathEvent.color = p.color;
+                particleEvents[deathEventIndex] = deathEvent;
+            }
+            p.flags &= ~FLAG_ALIVE;
+            particles[index] = p;
+        }
+    }
     
-    // 死亡パーティクルはスキップ
+    // Pure GPU mode claims dead slots atomically. No particle snapshot is
+    // read back to the CPU and no particle payload is uploaded per frame.
     if ((p.flags & FLAG_ALIVE) == 0)
-        return;
-    
-    // 年齢を更新
-    p.age += deltaTime;
+    {
+        if (pureGpuEnabled == 0 || emitterState[0].spawnCount == 0)
+            return;
+
+        uint claim;
+        spawnCounter.InterlockedAdd(0, 1, claim);
+        if (claim >= emitterState[0].spawnCount)
+            return;
+
+        uint serial = emitterState[0].spawnSerialBase + claim;
+        float rx = DeterministicRandom(serial, spawnSeed + 1);
+        float ry = DeterministicRandom(serial, spawnSeed + 2);
+        float rz = DeterministicRandom(serial, spawnSeed + 3);
+        float rl = DeterministicRandom(serial, spawnSeed + 4);
+        float rsx = DeterministicRandom(serial, spawnSeed + 5);
+        float rsy = DeterministicRandom(serial, spawnSeed + 6);
+        float rsz = DeterministicRandom(serial, spawnSeed + 7);
+
+        p.position = emitterPosition;
+        p.velocity = lerp(initialVelocityMin, initialVelocityMax, float3(rx, ry, rz));
+
+        if (hasSpawnShape != 0)
+        {
+            float3 offset = 0.0f;
+            float3 direction = float3(0, 1, 0);
+            float a = DeterministicRandom(serial, spawnSeed + 12);
+            float b = DeterministicRandom(serial, spawnSeed + 13);
+            float c = DeterministicRandom(serial, spawnSeed + 14);
+            if (spawnShapeType == 1) // Sphere
+            {
+                float theta = a * 6.283185307f;
+                float cosPhi = b * 2.0f - 1.0f;
+                float sinPhi = sqrt(saturate(1.0f - cosPhi * cosPhi));
+                float radius = spawnLocation == 1 ? spawnOuterRadius : lerp(spawnInnerRadius, spawnOuterRadius, c);
+                direction = float3(sinPhi * cos(theta), cosPhi, sinPhi * sin(theta));
+                offset = direction * radius;
+            }
+            else if (spawnShapeType == 2) // Circle
+            {
+                float angle = a * spawnArcRadians;
+                float radius = (spawnLocation == 1 || spawnLocation == 2) ? spawnOuterRadius : lerp(spawnInnerRadius, spawnOuterRadius, b);
+                direction = float3(cos(angle), 0, sin(angle));
+                offset = direction * radius;
+            }
+            else if (spawnShapeType == 3) // Box
+            {
+                float3 halfSize = spawnBoxSize * 0.5f;
+                offset = (float3(a, b, c) * 2.0f - 1.0f) * halfSize;
+                if (spawnLocation == 1 || spawnLocation == 2)
+                {
+                    uint axis = serial % 3;
+                    float signValue = DeterministicRandom(serial, spawnSeed + 15) < 0.5f ? -1.0f : 1.0f;
+                    direction = 0.0f;
+                    if (axis == 0) { offset.x = halfSize.x * signValue; direction.x = signValue; if (spawnLocation == 2) offset.y = halfSize.y * (b < 0.5f ? -1.0f : 1.0f); }
+                    else if (axis == 1) { offset.y = halfSize.y * signValue; direction.y = signValue; if (spawnLocation == 2) offset.z = halfSize.z * (b < 0.5f ? -1.0f : 1.0f); }
+                    else { offset.z = halfSize.z * signValue; direction.z = signValue; if (spawnLocation == 2) offset.x = halfSize.x * (b < 0.5f ? -1.0f : 1.0f); }
+                }
+            }
+            else if (spawnShapeType == 4) // Cone
+            {
+                float angle = a * spawnArcRadians;
+                float heightT = b;
+                float radius = spawnOuterRadius * (1.0f - heightT);
+                offset = float3(cos(angle) * radius, heightT * spawnConeHeight, sin(angle) * radius);
+                float3 coneDirection = float3(cos(angle) * spawnConeHeight, spawnOuterRadius, sin(angle) * spawnConeHeight);
+                float coneLengthSq = dot(coneDirection, coneDirection);
+                direction = coneLengthSq > 0.000001f ? coneDirection * rsqrt(coneLengthSq) : float3(0, 1, 0);
+            }
+            else if (spawnShapeType == 5) // Line
+            {
+                offset = lerp(spawnLineStart, spawnLineEnd, a);
+                direction = normalize(spawnLineEnd - spawnLineStart + float3(0, 0.00001f, 0));
+            }
+            p.position += offset;
+            if (spawnEmitFromSurface != 0 && spawnInitialSpeed > 0.0f)
+                p.velocity = direction * spawnInitialSpeed;
+        }
+        p.scale = lerp(initialScaleMin, initialScaleMax, float3(rsx, rsy, rsz));
+        p.rotation = float4(0, 0, 0, 1);
+        p.color = lerp(initialColorMin, initialColorMax,
+            float4(DeterministicRandom(serial, spawnSeed + 8), DeterministicRandom(serial, spawnSeed + 9), DeterministicRandom(serial, spawnSeed + 10), DeterministicRandom(serial, spawnSeed + 11)));
+        p.initialColor = p.color;
+        p.lifetime = max(lerp(initialLifetimeMin, initialLifetimeMax, rl), 0.001f);
+        // SpawnRate represents births distributed across this frame. Giving
+        // each regular claim a sub-frame age keeps rate*lifetime stable even
+        // when a frame contains a large spawn batch.
+        p.age = claim < emitterState[0].rateSpawnCount && emitterState[0].rateSpawnCount > 0u
+            ? min(deltaTime, max(p.lifetime, 0.001f)) * ((float(claim) + 0.5f) / float(emitterState[0].rateSpawnCount))
+            : 0.0f;
+        p.ribbonWidth = 1.0f;
+        p.flags = FLAG_ALIVE;
+        p.id = serial;
+        p.ribbonId = gpuRibbonGroupCount > 1u ? serial % gpuRibbonGroupCount : 0u;
+        p.spriteIndex = 0;
+
+        if (hasGpuEventSource != 0 && claim >= emitterState[0].regularSpawnCount)
+        {
+            uint wanted = claim - emitterState[0].regularSpawnCount;
+            uint sourceCount = min(sourceEventCounter.Load(0), maxParticles);
+            [loop]
+            for (uint sourceIndex = 0; sourceIndex < sourceCount; ++sourceIndex)
+            {
+                ParticleEvent sourceEvent = sourceEvents[sourceIndex];
+                bool matches = sourceEvent.type == gpuEventTrigger &&
+                    DeterministicRandom(sourceEvent.particleId, 17) <= gpuEventProbability;
+                if (!matches) continue;
+                if (wanted == 0)
+                {
+                    p.position = sourceEvent.position;
+                    if (gpuEventInheritVelocity != 0) p.velocity = sourceEvent.velocity * gpuEventVelocityScale;
+                    if (gpuEventInheritColor != 0) { p.color = sourceEvent.color; p.initialColor = sourceEvent.color; }
+                    break;
+                }
+                wanted--;
+            }
+        }
+
+        uint eventIndex;
+        eventCounter.InterlockedAdd(0, 1, eventIndex);
+        if (eventIndex < maxParticles)
+        {
+            ParticleEvent spawnEvent;
+            spawnEvent.position = p.position;
+            spawnEvent.type = 0;
+            spawnEvent.velocity = p.velocity;
+            spawnEvent.particleId = p.id;
+            spawnEvent.color = p.color;
+            particleEvents[eventIndex] = spawnEvent;
+        }
+    }
     
     // 寿命チェック
     if (p.age >= p.lifetime)
     {
+        uint eventIndex;
+        eventCounter.InterlockedAdd(0, 1, eventIndex);
+        if (eventIndex < maxParticles)
+        {
+            ParticleEvent deathEvent;
+            deathEvent.position = p.position;
+            deathEvent.type = 1;
+            deathEvent.velocity = p.velocity;
+            deathEvent.particleId = p.id;
+            deathEvent.color = p.color;
+            particleEvents[eventIndex] = deathEvent;
+        }
         p.flags &= ~FLAG_ALIVE;
         particles[index] = p;
         return;
     }
     
     float lifeRatio = saturate(p.age / p.lifetime);
+
+    // Data-driven packed module program. Records are 64 bytes and may be
+    // extended without changing the particle constant-buffer ABI.
+    uint moduleCount = min(moduleProgram.Load(0), 255u);
+    [loop]
+    for (uint moduleIndex = 0; moduleIndex < moduleCount; ++moduleIndex)
+    {
+        uint baseAddress = 16u + moduleIndex * 64u;
+        uint opcode = moduleProgram.Load(baseAddress);
+        if (opcode == 1u) // Drag
+        {
+            float minimumDrag = asfloat(moduleProgram.Load(baseAddress + 4u));
+            float maximumDrag = asfloat(moduleProgram.Load(baseAddress + 8u));
+            float randomValue = DeterministicRandom(p.id, moduleIndex);
+            p.velocity *= saturate(1.0f - lerp(minimumDrag, maximumDrag, randomValue) * deltaTime);
+        }
+        else if (opcode == 2u) // VelocityOverLifetime
+        {
+            float multiplier = lerp(asfloat(moduleProgram.Load(baseAddress + 4u)), asfloat(moduleProgram.Load(baseAddress + 8u)), lifeRatio);
+            p.velocity *= 1.0f - (1.0f - multiplier) * deltaTime;
+        }
+        else if (opcode == 3u) // Noise
+        {
+            float strength = asfloat(moduleProgram.Load(baseAddress + 4u));
+            float frequency = asfloat(moduleProgram.Load(baseAddress + 8u));
+            float noiseTime = p.age * frequency;
+            float particleOffset = float(p.id);
+            p.velocity += float3(sin(noiseTime * 2.0f + particleOffset * 0.1f),
+                sin(noiseTime * 2.3f + particleOffset * 0.2f),
+                sin(noiseTime * 2.7f + particleOffset * 0.3f)) * strength * deltaTime;
+        }
+    }
 
     // 1. DragModule (空気抵抗)
     if (hasDrag != 0)
@@ -222,6 +480,74 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     
     // 位置を更新
     p.position += p.velocity * deltaTime;
+
+    bool programHasColorFade = false;
+    [loop]
+    for (uint postModuleIndex = 0; postModuleIndex < moduleCount; ++postModuleIndex)
+    {
+        uint baseAddress = 16u + postModuleIndex * 64u;
+        uint opcode = moduleProgram.Load(baseAddress);
+        if (opcode == 4u) // ColorFade
+        {
+            programHasColorFade = true;
+            uint useInitial = moduleProgram.Load(baseAddress + 4u);
+            uint easing = moduleProgram.Load(baseAddress + 8u);
+            float4 startColor = float4(asfloat(moduleProgram.Load(baseAddress + 12u)), asfloat(moduleProgram.Load(baseAddress + 16u)), asfloat(moduleProgram.Load(baseAddress + 20u)), asfloat(moduleProgram.Load(baseAddress + 24u)));
+            float4 endColor = float4(asfloat(moduleProgram.Load(baseAddress + 28u)), asfloat(moduleProgram.Load(baseAddress + 32u)), asfloat(moduleProgram.Load(baseAddress + 36u)), asfloat(moduleProgram.Load(baseAddress + 40u)));
+            uint hasGradient = moduleProgram.Load(baseAddress + 44u);
+            p.color = hasGradient != 0u
+                ? SampleModuleLut(moduleProgram.Load(baseAddress + 48u), moduleProgram.Load(baseAddress + 52u), lifeRatio)
+                : lerp(useInitial != 0u ? p.initialColor : startColor, endColor, ApplyEasing(easing, lifeRatio));
+        }
+        else if (opcode == 5u) // ScaleOverLifetime
+        {
+            uint easing = moduleProgram.Load(baseAddress + 4u);
+            float3 startScale = float3(asfloat(moduleProgram.Load(baseAddress + 8u)), asfloat(moduleProgram.Load(baseAddress + 12u)), asfloat(moduleProgram.Load(baseAddress + 16u)));
+            float3 endScale = float3(asfloat(moduleProgram.Load(baseAddress + 20u)), asfloat(moduleProgram.Load(baseAddress + 24u)), asfloat(moduleProgram.Load(baseAddress + 28u)));
+            float interpolation = moduleProgram.Load(baseAddress + 32u) != 0u
+                ? SampleModuleLut(moduleProgram.Load(baseAddress + 36u), moduleProgram.Load(baseAddress + 40u), lifeRatio).x
+                : ApplyEasing(easing, lifeRatio);
+            p.scale = lerp(startScale, endScale, interpolation);
+        }
+        else if (opcode == 6u) // StretchByVelocity
+        {
+            float stretch = clamp(1.0f + length(p.velocity) * asfloat(moduleProgram.Load(baseAddress + 4u)),
+                asfloat(moduleProgram.Load(baseAddress + 8u)), asfloat(moduleProgram.Load(baseAddress + 12u)));
+            p.scale.y = stretch;
+            if (moduleProgram.Load(baseAddress + 16u) != 0u) { float shrink = rsqrt(max(stretch, 0.0001f)); p.scale.x = shrink; p.scale.z = shrink; }
+        }
+        else if (opcode == 7u) // FaceVelocity
+        {
+            if (dot(p.velocity, p.velocity) > 0.0001f)
+            {
+                if (moduleProgram.Load(baseAddress + 4u) != 0u) p.rotation.z = atan2(p.velocity.y, p.velocity.x) - 1.57079633f;
+                else { float3 direction = normalize(p.velocity); p.rotation.x = -atan2(direction.y, length(direction.xz)); p.rotation.y = atan2(direction.x, direction.z); p.rotation.z = 0.0f; }
+            }
+        }
+        else if (opcode == 8u) // RotationOverLifetime
+        {
+            float speed = lerp(asfloat(moduleProgram.Load(baseAddress + 4u)), asfloat(moduleProgram.Load(baseAddress + 8u)), ApplyEasing(moduleProgram.Load(baseAddress + 12u), lifeRatio));
+            p.rotation.z += speed * deltaTime * 0.01745329252f;
+        }
+        else if (opcode == 9u) // AlphaFade
+        {
+            float fadeT = lifeRatio;
+            uint easeIn = moduleProgram.Load(baseAddress + 12u), easeOut = moduleProgram.Load(baseAddress + 16u);
+            if (easeIn != 0u && easeOut != 0u) fadeT = fadeT * fadeT * (3.0f - 2.0f * fadeT);
+            else if (easeIn != 0u) fadeT *= fadeT;
+            else if (easeOut != 0u) fadeT = 1.0f - (1.0f - fadeT) * (1.0f - fadeT);
+            p.color.a = lerp(asfloat(moduleProgram.Load(baseAddress + 4u)), asfloat(moduleProgram.Load(baseAddress + 8u)), fadeT);
+        }
+        else if (opcode == 10u) // Flicker
+        {
+            float flickerTime = p.age * asfloat(moduleProgram.Load(baseAddress + 4u));
+            if (moduleProgram.Load(baseAddress + 16u) != 0u) flickerTime += float(p.id) * 0.1f;
+            float value = moduleProgram.Load(baseAddress + 20u) != 0u
+                ? (sin(flickerTime * 2.0f) + sin(flickerTime * 3.7f) + 2.0f) * 0.25f
+                : (sin(flickerTime * 6.2831853f) + 1.0f) * 0.5f;
+            p.color.a = lerp(asfloat(moduleProgram.Load(baseAddress + 8u)), asfloat(moduleProgram.Load(baseAddress + 12u)), value);
+        }
+    }
     
     // 2. ColorFadeModule
     if (hasColorFade != 0)
@@ -230,7 +556,7 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         float4 effectiveStart = (colorFadeUseInitial != 0) ? p.initialColor : colorFadeStart;
         p.color = lerp(effectiveStart, colorFadeEnd, t);
     }
-    else
+    else if (!programHasColorFade)
     {
         // デフォルトのカラーフェード（寿命に応じてアルファを減少）
         p.color.a = saturate(1.0f - lifeRatio);
@@ -332,6 +658,14 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         p.color.a = flickerMinAlpha + (flickerMaxAlpha - flickerMinAlpha) * alphaVal;
     }
     
+    // Never allow NaN/Inf payloads to reach SV_Position. Undefined rasterizer
+    // input can produce a transient full-screen triangle on some drivers.
+    if (!IsFiniteParticle(p))
+    {
+        p = (Particle)0;
+        p.lifetime = 1.0f;
+    }
+
     // 結果を書き戻し
     particles[index] = p;
 }

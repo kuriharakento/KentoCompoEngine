@@ -152,7 +152,7 @@ public:
 	/**
 	 * @brief JSONファイルに保存
 	 */
-	void SaveToFile(const std::string& jsonPath);
+	bool SaveToFile(const std::string& jsonPath);
 
 	//===== マルチソース管理API（バッチング用） =====//
 

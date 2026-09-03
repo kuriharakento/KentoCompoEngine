@@ -1,4 +1,6 @@
 #include "SrvManager.h"
+#include "base/Logger.h"
+#include <algorithm>
 
 namespace KCE
 {
@@ -7,8 +9,10 @@ constexpr UINT kCubemapMostDetailedMip = 0;        // キューブマップの�
 constexpr float kCubemapMinLODClamp = 0.0f;        // キューブマップの最小LODクランプ値
 constexpr UINT kDescriptorHeapCount = 1;           // セットするディスクリプタヒープ数
 
-// 最大SRV数（512個：一般的なゲームで十分な数、GPUメモリ効率のバランス）
-const uint32_t SrvManager::kMaxSRVCount = 512;
+// Particle GPU runtime may consume up to 20 descriptors per emitter. 4096
+// keeps the 100-emitter stress preset viable while remaining far below the
+// D3D12 shader-visible CBV/SRV/UAV heap hardware tier limits.
+const uint32_t SrvManager::kMaxSRVCount = 4096;
 
 void SrvManager::Initialize(DirectXCommon* dxCommon)
 {
@@ -19,46 +23,109 @@ void SrvManager::Initialize(DirectXCommon* dxCommon)
 	descriptorHeap_ = dxCommon->CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, kMaxSRVCount, true);
 	// ディスクリプタ1個分のサイズを取得（GPU依存のため実行時に取得）
 	descriptorSize_ = dxCommon->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	useIndex_ = 0;
+	activeCount_ = 0;
+	freeList_.clear();
+	allocated_.assign(kMaxSRVCount, 0);
 
 }
 
 uint32_t SrvManager::Allocate()
 {
-	// フリーリストに空きがあればそれを使う
-	if (!freeList_.empty())
-	{
-		uint32_t index = freeList_.back();
-		freeList_.pop_back();
-		return index;
-	}
-
-	// 最大SRV数を超えていないかチェック（オーバーフロー防止）
-	assert(useIndex_ < kMaxSRVCount);
-
-	// 返却用にインデックスを保存
-	int index = useIndex_;
-	// 次回確保用にインデックスを進める
-	useIndex_++;
-	// 確保したインデックスを返す
+	uint32_t index = kInvalidSrvIndex;
+	if (!TryAllocate(index)) Logger::Log("SrvManager descriptor heap exhausted\n", Logger::LogLevel::Error);
 	return index;
 }
 
-void SrvManager::Free(uint32_t index)
+bool SrvManager::TryAllocate(uint32_t& outIndex)
 {
+	outIndex = kInvalidSrvIndex;
+	if (!freeList_.empty())
+	{
+		const uint32_t index = freeList_.back();
+		freeList_.pop_back();
+		if (index >= kMaxSRVCount || allocated_[index] != 0) return false;
+		allocated_[index] = 1;
+		++activeCount_;
+		outIndex = index;
+		return true;
+	}
+	if (useIndex_ >= kMaxSRVCount) return false;
+	outIndex = useIndex_++;
+	allocated_[outIndex] = 1;
+	++activeCount_;
+	return true;
+}
+
+bool SrvManager::Free(uint32_t index)
+{
+	if (index >= kMaxSRVCount || allocated_.empty() || allocated_[index] == 0)
+	{
+		Logger::Log("SrvManager rejected invalid or duplicate descriptor free\n", Logger::LogLevel::Error);
+		return false;
+	}
+	allocated_[index] = 0;
+	--activeCount_;
 	freeList_.push_back(index);
+	return true;
 }
 
 uint32_t SrvManager::AllocateRange(uint32_t count)
 {
-	// 連続確保後も最大SRV数を超えないかチェック
-	assert(useIndex_ + count <= kMaxSRVCount);
-
-	// 連続するSRVの開始インデックスを保存
-	uint32_t startIndex = useIndex_;
-	// 指定数だけインデックスを進める
-	useIndex_ += count;
-
+	uint32_t startIndex = kInvalidSrvIndex;
+	if (!TryAllocateRange(count, startIndex)) Logger::Log("SrvManager contiguous descriptor allocation failed\n", Logger::LogLevel::Error);
 	return startIndex;
+}
+
+bool SrvManager::TryAllocateRange(uint32_t count, uint32_t& outStartIndex)
+{
+	outStartIndex = kInvalidSrvIndex;
+	if (count == 0 || count > kMaxSRVCount || allocated_.size() != kMaxSRVCount) return false;
+
+	uint32_t runStart = 0;
+	uint32_t runLength = 0;
+	for (uint32_t index = 0; index < kMaxSRVCount; ++index)
+	{
+		if (allocated_[index] == 0)
+		{
+			if (runLength == 0) runStart = index;
+			if (++runLength == count)
+			{
+				for (uint32_t slot = runStart; slot < runStart + count; ++slot) allocated_[slot] = 1;
+				activeCount_ += count;
+				useIndex_ = (std::max)(useIndex_, runStart + count);
+				freeList_.erase(std::remove_if(freeList_.begin(), freeList_.end(),
+					[runStart, count](uint32_t slot) { return slot >= runStart && slot < runStart + count; }), freeList_.end());
+				outStartIndex = runStart;
+				return true;
+			}
+		}
+		else
+		{
+			runLength = 0;
+		}
+	}
+	return false;
+}
+
+bool SrvManager::FreeRange(uint32_t startIndex, uint32_t count)
+{
+	if (count == 0 || startIndex >= kMaxSRVCount || count > kMaxSRVCount - startIndex) return false;
+	for (uint32_t index = startIndex; index < startIndex + count; ++index)
+	{
+		if (!IsAllocated(index))
+		{
+			Logger::Log("SrvManager rejected partially unallocated descriptor range free\n", Logger::LogLevel::Error);
+			return false;
+		}
+	}
+	for (uint32_t index = startIndex; index < startIndex + count; ++index)
+	{
+		allocated_[index] = 0;
+		freeList_.push_back(index);
+	}
+	activeCount_ -= count;
+	return true;
 }
 
 void SrvManager::CreateSRVforTexture2D(uint32_t srvIndex, ID3D12Resource* pResource, DXGI_FORMAT format, UINT mipLevels)
@@ -140,7 +207,7 @@ void SrvManager::SetGraphicsRootDescriptorTableRange(UINT RootParameterIndex, ui
 bool SrvManager::IsMaxSRVCount()
 {
 	// 現在のインデックスが最大数以上なら最大に達している
-	return useIndex_ >= kMaxSRVCount;
+	return activeCount_ >= kMaxSRVCount;
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE SrvManager::GetCPUDescriptorHandle(uint32_t index)

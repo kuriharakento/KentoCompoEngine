@@ -156,6 +156,7 @@ void SkinnedObject3d::Draw()
 	}
 
 	// モデルを描画
+	object3dCommon_->SetBloomPipeline(model_->GetEmissiveSettings().enabled);
 	model_->Draw();
 }
 

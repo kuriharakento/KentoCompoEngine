@@ -8,12 +8,18 @@
  */
 #include "math/Vector3.h"
 #include "math/Vector4.h"
+#include "effects/particle/module/ModuleRuntime.h"
 #include <vector>
 #include <cstdlib>
 #include <algorithm>
 
 namespace KCE
 {
+inline float DynamicInputRandom01(uint32_t seed)
+{
+	seed ^= seed >> 16; seed *= 0x7feb352du; seed ^= seed >> 15; seed *= 0x846ca68bu; seed ^= seed >> 16;
+	return static_cast<float>(seed & 0x00ffffffu) / static_cast<float>(0x01000000u);
+}
 /**
  * @brief アニメーションカーブ（キーフレーム補間）
  */
@@ -50,7 +56,8 @@ struct AnimationCurve
 		{
 			if (t >= keys[i].time && t <= keys[i + 1].time)
 			{
-				float localT = (t - keys[i].time) / (keys[i + 1].time - keys[i].time);
+				const float span = keys[i + 1].time - keys[i].time;
+				float localT = span > 0.0f ? (t - keys[i].time) / span : 0.0f;
 				return keys[i].value + (keys[i + 1].value - keys[i].value) * localT;
 			}
 		}
@@ -60,6 +67,8 @@ struct AnimationCurve
 
 	void AddKey(float time, float value)
 	{
+		time = std::clamp(time, 0.0f, 1.0f);
+		for (auto& key : keys) if (key.time == time) { key.value = value; return; }
 		keys.push_back({ time, value });
 		std::sort(keys.begin(), keys.end(), [](const Key& a, const Key& b) {
 			return a.time < b.time;
@@ -101,7 +110,8 @@ struct ColorGradient
 		{
 			if (t >= keys[i].time && t <= keys[i + 1].time)
 			{
-				float localT = (t - keys[i].time) / (keys[i + 1].time - keys[i].time);
+				const float span = keys[i + 1].time - keys[i].time;
+				float localT = span > 0.0f ? (t - keys[i].time) / span : 0.0f;
 				Vector4 result;
 				result.x = keys[i].color.x + (keys[i + 1].color.x - keys[i].color.x) * localT;
 				result.y = keys[i].color.y + (keys[i + 1].color.y - keys[i].color.y) * localT;
@@ -116,6 +126,8 @@ struct ColorGradient
 
 	void AddKey(float time, const Vector4& color)
 	{
+		time = std::clamp(time, 0.0f, 1.0f);
+		for (auto& key : keys) if (key.time == time) { key.color = color; return; }
 		keys.push_back({ time, color });
 		std::sort(keys.begin(), keys.end(), [](const Key& a, const Key& b) {
 			return a.time < b.time;
@@ -131,6 +143,7 @@ enum class DynamicInputMode
 	Constant,     // 固定値
 	RandomRange,  // ランダム範囲
 	Curve         // カーブ/グラデーション
+	,EmitterParameter // emitter/user parameter namespace binding
 };
 
 /**
@@ -142,16 +155,19 @@ public:
 	DynamicFloat() = default;
 	DynamicFloat(float constant) : constant_(constant), mode_(DynamicInputMode::Constant) {}
 
-	float Evaluate(float t = 0.0f) const
+	float Evaluate(float t = 0.0f, const ModuleParameterStore* parameters = nullptr, uint32_t seed = 0) const
 	{
 		switch (mode_)
 		{
 		case DynamicInputMode::Constant:
 			return constant_;
 		case DynamicInputMode::RandomRange:
-			return min_ + static_cast<float>(rand()) / RAND_MAX * (max_ - min_);
+			return min_ + DynamicInputRandom01(seed) * (max_ - min_);
 		case DynamicInputMode::Curve:
 			return curve_.Evaluate(t);
+		case DynamicInputMode::EmitterParameter:
+			if (parameters) if (const float* value = parameters->FindAs<float>(parameterName_)) return *value;
+			return constant_;
 		}
 		return constant_;
 	}
@@ -174,6 +190,11 @@ public:
 		mode_ = DynamicInputMode::Curve;
 		curve_ = curve;
 	}
+	void SetEmitterParameter(std::string name, float fallback = 0.0f)
+	{
+		mode_ = DynamicInputMode::EmitterParameter; parameterName_ = std::move(name); constant_ = fallback;
+	}
+	const std::string& GetEmitterParameter() const { return parameterName_; }
 
 	DynamicInputMode GetMode() const { return mode_; }
 	float GetConstant() const { return constant_; }
@@ -187,6 +208,7 @@ private:
 	float min_ = 0.0f;
 	float max_ = 1.0f;
 	AnimationCurve curve_;
+	std::string parameterName_;
 };
 
 /**
@@ -198,7 +220,7 @@ public:
 	DynamicVector3() = default;
 	DynamicVector3(const Vector3& constant) : constant_(constant), mode_(DynamicInputMode::Constant) {}
 
-	Vector3 Evaluate(float t = 0.0f) const
+	Vector3 Evaluate(float t = 0.0f, const ModuleParameterStore* parameters = nullptr, uint32_t seed = 0) const
 	{
 		switch (mode_)
 		{
@@ -207,9 +229,9 @@ public:
 		case DynamicInputMode::RandomRange:
 		{
 			Vector3 result;
-			result.x = min_.x + static_cast<float>(rand()) / RAND_MAX * (max_.x - min_.x);
-			result.y = min_.y + static_cast<float>(rand()) / RAND_MAX * (max_.y - min_.y);
-			result.z = min_.z + static_cast<float>(rand()) / RAND_MAX * (max_.z - min_.z);
+			result.x = min_.x + DynamicInputRandom01(seed) * (max_.x - min_.x);
+			result.y = min_.y + DynamicInputRandom01(seed ^ 0x9e3779b9u) * (max_.y - min_.y);
+			result.z = min_.z + DynamicInputRandom01(seed ^ 0x85ebca6bu) * (max_.z - min_.z);
 			return result;
 		}
 		case DynamicInputMode::Curve:
@@ -220,6 +242,9 @@ public:
 			result.z = curveZ_.Evaluate(t);
 			return result;
 		}
+		case DynamicInputMode::EmitterParameter:
+			if (parameters) if (const Vector3* value = parameters->FindAs<Vector3>(parameterName_)) return *value;
+			return constant_;
 		}
 		return constant_;
 	}
@@ -244,8 +269,19 @@ public:
 		curveY_ = y;
 		curveZ_ = z;
 	}
+	void SetEmitterParameter(std::string name, const Vector3& fallback = {})
+	{
+		mode_ = DynamicInputMode::EmitterParameter; parameterName_ = std::move(name); constant_ = fallback;
+	}
 
 	DynamicInputMode GetMode() const { return mode_; }
+	const Vector3& GetConstant() const { return constant_; }
+	const Vector3& GetMin() const { return min_; }
+	const Vector3& GetMax() const { return max_; }
+	const AnimationCurve& GetCurveX() const { return curveX_; }
+	const AnimationCurve& GetCurveY() const { return curveY_; }
+	const AnimationCurve& GetCurveZ() const { return curveZ_; }
+	const std::string& GetEmitterParameter() const { return parameterName_; }
 
 private:
 	DynamicInputMode mode_ = DynamicInputMode::Constant;
@@ -255,6 +291,7 @@ private:
 	AnimationCurve curveX_;
 	AnimationCurve curveY_;
 	AnimationCurve curveZ_;
+	std::string parameterName_;
 };
 
 /**
@@ -266,7 +303,7 @@ public:
 	DynamicColor() = default;
 	DynamicColor(const Vector4& constant) : constant_(constant), mode_(DynamicInputMode::Constant) {}
 
-	Vector4 Evaluate(float t = 0.0f) const
+	Vector4 Evaluate(float t = 0.0f, const ModuleParameterStore* parameters = nullptr, uint32_t seed = 0) const
 	{
 		switch (mode_)
 		{
@@ -275,14 +312,17 @@ public:
 		case DynamicInputMode::RandomRange:
 		{
 			Vector4 result;
-			result.x = min_.x + static_cast<float>(rand()) / RAND_MAX * (max_.x - min_.x);
-			result.y = min_.y + static_cast<float>(rand()) / RAND_MAX * (max_.y - min_.y);
-			result.z = min_.z + static_cast<float>(rand()) / RAND_MAX * (max_.z - min_.z);
-			result.w = min_.w + static_cast<float>(rand()) / RAND_MAX * (max_.w - min_.w);
+			result.x = min_.x + DynamicInputRandom01(seed) * (max_.x - min_.x);
+			result.y = min_.y + DynamicInputRandom01(seed ^ 0x9e3779b9u) * (max_.y - min_.y);
+			result.z = min_.z + DynamicInputRandom01(seed ^ 0x85ebca6bu) * (max_.z - min_.z);
+			result.w = min_.w + DynamicInputRandom01(seed ^ 0xc2b2ae35u) * (max_.w - min_.w);
 			return result;
 		}
 		case DynamicInputMode::Curve:
 			return gradient_.Evaluate(t);
+		case DynamicInputMode::EmitterParameter:
+			if (parameters) if (const Vector4* value = parameters->FindAs<Vector4>(parameterName_)) return *value;
+			return constant_;
 		}
 		return constant_;
 	}
@@ -305,9 +345,17 @@ public:
 		mode_ = DynamicInputMode::Curve;
 		gradient_ = gradient;
 	}
+	void SetEmitterParameter(std::string name, const Vector4& fallback = { 1, 1, 1, 1 })
+	{
+		mode_ = DynamicInputMode::EmitterParameter; parameterName_ = std::move(name); constant_ = fallback;
+	}
 
 	DynamicInputMode GetMode() const { return mode_; }
+	const Vector4& GetConstant() const { return constant_; }
+	const Vector4& GetMin() const { return min_; }
+	const Vector4& GetMax() const { return max_; }
 	const ColorGradient& GetGradient() const { return gradient_; }
+	const std::string& GetEmitterParameter() const { return parameterName_; }
 
 private:
 	DynamicInputMode mode_ = DynamicInputMode::Constant;
@@ -315,5 +363,6 @@ private:
 	Vector4 min_ = {};
 	Vector4 max_ = { 1, 1, 1, 1 };
 	ColorGradient gradient_;
+	std::string parameterName_;
 };
 } // namespace KCE

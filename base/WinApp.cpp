@@ -40,6 +40,7 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 		{
 			uint32_t width = LOWORD(lparam);
 			uint32_t height = HIWORD(lparam);
+			if (width == 0 || height == 0 || (width == winApp->width_ && height == winApp->height_)) return 0;
 			winApp->width_ = width;
 			winApp->height_ = height;
 			if (winApp->resizeCallback_)
@@ -48,6 +49,11 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 			}
 		}
 		return 0;
+
+	case WM_ERASEBKGND:
+		// D3D12 owns every presented pixel. Letting DefWindowProc erase the client
+		// area can expose a blank frame while the GPU is under heavy particle load.
+		return 1;
 
 	case WM_DESTROY:
 		// ウィンドウ破棄時に終了メッセージを送信
@@ -83,17 +89,26 @@ void WinApp::Initialize()
 	// ウィンドウクラスを登録
 	RegisterClass(&wc_);
 
+	// 通常起動は生成時点から最大化状態にする。性能試験ではモニターの
+	// taskbar/work-areaに左右されず、正確な1920x1080 clientを使用する。
+	char fixed1080p[8] = {};
+	const DWORD fixed1080pLength = GetEnvironmentVariableA(
+		"KCE_FIXED_1080P", fixed1080p, static_cast<DWORD>(sizeof(fixed1080p)));
+	const bool useFixed1080p = fixed1080pLength > 0 && fixed1080pLength < sizeof(fixed1080p) &&
+		!(fixed1080pLength == 1 && fixed1080p[0] == '0');
+	const DWORD windowStyle = WS_OVERLAPPEDWINDOW | (useFixed1080p ? 0 : WS_MAXIMIZE);
+
 	// ウィンドウサイズを表す構造体にクライアント領域を入れる
 	RECT wrc = { 0,0,static_cast<LONG>(width_),static_cast<LONG>(height_) };
 
 	// クライアント領域をもとに実際のサイズにwrcを変更
-	AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
+	AdjustWindowRect(&wrc, windowStyle, false);
 
 	// ウィンドウの生成
 	hwnd_ = CreateWindow(
 		wc_.lpszClassName,
 		L"KentoCompo",
-		WS_OVERLAPPEDWINDOW,
+		windowStyle,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
 		wrc.right - wrc.left,
@@ -104,9 +119,20 @@ void WinApp::Initialize()
 		this
 	);
 
-	// ウィンドウを最大化表示（ボーダー付きフルスクリーン）
-	ShowWindow(hwnd_, SW_SHOWMAXIMIZED);
+}
 
+void WinApp::Show()
+{
+	if (hwnd_ == nullptr || IsWindowVisible(hwnd_))
+	{
+		return;
+	}
+
+	// GPUリソースとシーンの初期化完了後に初めて表示する。
+	// CreateWindow直後に表示すると、初回Presentまで未描画のクライアント領域が
+	// 一瞬露出し、画面全体が消えたように見えるため遅延させる。
+	ShowWindow(hwnd_, SW_SHOW);
+	UpdateWindow(hwnd_);
 }
 
 void WinApp::SetWindowTitle(const std::wstring& title)
@@ -124,20 +150,17 @@ void WinApp::Finalize()
 
 bool WinApp::ProcessMessage()
 {
-	MSG msg;
-	// メッセージがあれば処理
-	if(PeekMessage(&msg,nullptr,0,0,PM_REMOVE))
+	MSG msg{};
+	// Drain the queue every frame. Processing only one message per frame lets
+	// paint/resize/input messages accumulate when a heavy GPU workload lowers
+	// the frame rate, which can make the compositor temporarily show no client
+	// content and makes the application appear to flicker.
+	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 	{
+		if (msg.message == WM_QUIT) return true;
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
-
-	// 終了メッセージを受け取った場合はtrueを返す
-	if(msg.message == WM_QUIT)
-	{
-		return true;
-	}
-
 	return false;
 }
 

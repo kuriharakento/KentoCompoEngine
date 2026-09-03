@@ -10,6 +10,11 @@ struct Material
     float shininess;
     float reflectivity; // 反射率
     float2 pad2;
+    float4 emissiveColorIntensity;
+    uint emissiveEnabled;
+    uint emissiveSource;
+    float bloomContribution;
+    float emissivePadding;
 };
 
 // ディレクショナルライト
@@ -87,6 +92,7 @@ ConstantBuffer<CascadeShadowData> gCascadeShadowData : register(b7);
 
 Texture2D<float4> gTexture : register(t0);
 TextureCube<float4> gEnvironmentTexture : register(t1);
+Texture2D<float4> gEmissiveTexture : register(t2);
 Texture2D<float> gShadowMap : register(t5);
 // カスケードシャドウマップ（個別テクスチャ）
 Texture2D<float> gCascadeShadowMap0 : register(t6);
@@ -104,6 +110,9 @@ static const int PCF_SAMPLES = 1; // -1 to +1 = 3x3 samples
 struct PixelShaderOutput
 {
     float4 color : SV_TARGET0;
+#ifndef KCE_BLOOM_TARGET_DISABLED
+    float4 bloom : SV_TARGET1;
+#endif
 };
 
 // 効率化された照明計算関数
@@ -269,6 +278,17 @@ PixelShaderOutput main(VertexShaderOutput input)
     // テクスチャUVとカラーの取得（early out用に先に計算）
     float4 transformedUV = mul(float4(input.texcoord, 0.0f, 1.0f), gMaterial.uvTransform);
     float4 textureColor = gTexture.Sample(gSampler, transformedUV.xy);
+	float finalAlpha = saturate(gMaterial.color.a * textureColor.a);
+#ifndef KCE_BLOOM_TARGET_DISABLED
+	float3 emissiveMask = gMaterial.emissiveSource == 0 ? 1.0f.xxx :
+		(gMaterial.emissiveSource == 1 ? textureColor.rgb : gEmissiveTexture.Sample(gSampler, transformedUV.xy).rgb);
+	float3 emission = emissiveMask * gMaterial.emissiveColorIntensity.rgb * gMaterial.emissiveColorIntensity.a;
+	if (!all(isfinite(emission)) || !isfinite(gMaterial.bloomContribution)) emission = 0.0f;
+	emission = clamp(emission, 0.0f, 64.0f);
+	output.bloom = gMaterial.emissiveEnabled != 0
+		? float4(emission * finalAlpha * saturate(gMaterial.bloomContribution), finalAlpha)
+		: 0.0f;
+#endif
 
     // アルファテスト（early out）
     if (textureColor.a <= 0.5f)

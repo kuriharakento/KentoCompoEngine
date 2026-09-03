@@ -5,9 +5,12 @@
 #include "manager/scene/CameraManager.h"
 #include "manager/effect/ParticlePipelineManager.h"
 #include "effects/particle/renderer/IRenderer.h"
+#include "effects/particle/gpu/GPUSimulator.h"
 #include "time/TimeManager.h"
 #include "time/Timer.h"
 #include <algorithm>
+#include <chrono>
+#include "effects/particle/diagnostics/ParticleDiagnostics.h"
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
@@ -17,6 +20,8 @@
 
 namespace KCE
 {
+
+ParticleManager::~ParticleManager() = default;
 
 ParticleManager* ParticleManager::GetInstance()
 {
@@ -48,6 +53,8 @@ void ParticleManager::Finalize()
 	effects_.clear();
 	effectPools_.clear();
 	rendererTrashBin_.clear();
+	simulatorTrashBin_.clear();
+	effectTrashBin_.clear();
 	emitters_.clear();
 	effectDefinitions_.clear();
 	pipelineManager_.reset();
@@ -55,8 +62,19 @@ void ParticleManager::Finalize()
 
 void ParticleManager::Update(CameraManager* camera)
 {
-	// 前フレームの描画が完全に終わったため、ゴミ箱内の古いレンダラーを安全に破棄する
-	rendererTrashBin_.clear();
+	auto* diag = ParticleDiagnostics::GetInstance();
+	diag->EndFrameCounters();
+	diag->BeginFrameCounters();
+
+	ParticleScopeTimer timer(ParticleProfileScope::ManagerUpdate);
+
+	// Fence completion, rather than frame count, owns GPU resource lifetime.
+	// This remains correct when PostDraw stops waiting every frame or when
+	// multiple frames are in flight.
+	const uint64_t completedFence = dxCommon_ ? dxCommon_->GetCompletedFenceValue() : UINT64_MAX;
+	std::erase_if(rendererTrashBin_, [completedFence](const RetiredRenderer& retired) { return retired.fenceValue <= completedFence; });
+	std::erase_if(simulatorTrashBin_, [completedFence](const RetiredSimulator& retired) { return retired.fenceValue <= completedFence; });
+	std::erase_if(effectTrashBin_, [completedFence](const RetiredEffect& retired) { return retired.fenceValue <= completedFence; });
 
 	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
 	float unscaledDeltaTime = TimeManager::GetInstance().GetGameContext().realDeltaTime;
@@ -117,7 +135,7 @@ void ParticleManager::DrawImGui()
 			auto* emitter = effect->GetEmitter(i);
 			if (emitter)
 			{
-				totalParticles += static_cast<uint32_t>(emitter->GetParticles().size());
+				totalParticles += emitter->GetActiveParticleCount();
 				totalEmitters++;
 			}
 		}
@@ -126,7 +144,7 @@ void ParticleManager::DrawImGui()
 	// 直接追加されたエミッター
 	for (const auto& emitter : emitters_)
 	{
-		totalParticles += static_cast<uint32_t>(emitter->GetParticles().size());
+		totalParticles += emitter->GetActiveParticleCount();
 		totalEmitters++;
 	}
 
@@ -174,7 +192,7 @@ void ParticleManager::DrawImGui()
 					if (emitter)
 					{
 						ImGui::Text("  [%s] Particles: %d", emitter->GetName().c_str(),
-							static_cast<int>(emitter->GetParticles().size()));
+							static_cast<int>(emitter->GetActiveParticleCount()));
 					}
 				}
 
@@ -207,7 +225,7 @@ void ParticleManager::DrawImGui()
 					emitter->ClearParticles();
 				}
 
-				ImGui::Text("Particles: %d", static_cast<int>(emitter->GetParticles().size()));
+				ImGui::Text("Particles: %d", static_cast<int>(emitter->GetActiveParticleCount()));
 				ImGui::Text("Mode: %s", emitter->GetSimulationMode() == SimulationMode::GPU ? "GPU" : "CPU");
 
 				ImGui::TreePop();
@@ -434,6 +452,31 @@ void ParticleManager::Clear()
 	emitters_.clear();
 }
 
+size_t ParticleManager::GetPooledEffectCount() const
+{
+	size_t count = 0;
+	for (const auto& [name, pool] : effectPools_)
+	{
+		(void)name;
+		count += pool.size();
+	}
+	return count;
+}
+
+void ParticleManager::PurgeEffectPools()
+{
+	const uint64_t fence = dxCommon_ ? dxCommon_->GetNextFenceValue() : 0;
+	for (auto& [name, pool] : effectPools_)
+	{
+		(void)name;
+		for (auto& effect : pool)
+		{
+			if (effect) effectTrashBin_.push_back({ fence, std::move(effect) });
+		}
+	}
+	effectPools_.clear();
+}
+
 void ParticleManager::RemoveEffect(ParticleEffect* effect)
 {
 	for (auto it = effects_.begin(); it != effects_.end();)
@@ -442,7 +485,13 @@ void ParticleManager::RemoveEffect(ParticleEffect* effect)
 		{
 			std::string name = (*it)->GetName();
 			(*it)->ResetForPool();
-			effectPools_[name].push_back(std::move(*it));
+			auto& pool = effectPools_[name];
+			// Avoid unbounded descriptor retention when many one-shot asset names
+			// are created. Excess instances are retired behind the GPU fence.
+			if (pool.size() < 2 && GetPooledEffectCount() < 16)
+				pool.push_back(std::move(*it));
+			else
+				effectTrashBin_.push_back({ dxCommon_ ? dxCommon_->GetNextFenceValue() : 0, std::move(*it) });
 			effects_.erase(it);
 			break;
 		}
@@ -461,7 +510,11 @@ void ParticleManager::RemoveFinishedEffects()
 		{
 			std::string name = (*it)->GetName();
 			(*it)->ResetForPool();
-			effectPools_[name].push_back(std::move(*it));
+			auto& pool = effectPools_[name];
+			if (pool.size() < 2 && GetPooledEffectCount() < 16)
+				pool.push_back(std::move(*it));
+			else
+				effectTrashBin_.push_back({ dxCommon_ ? dxCommon_->GetNextFenceValue() : 0, std::move(*it) });
 			it = effects_.erase(it);
 		}
 		else
@@ -490,7 +543,11 @@ bool ParticleManager::RemoveEffect(const std::string& name)
 		{
 			std::string effectName = (*it)->GetName();
 			(*it)->ResetForPool();
-			effectPools_[effectName].push_back(std::move(*it));
+			auto& pool = effectPools_[effectName];
+			if (pool.size() < 2 && GetPooledEffectCount() < 16)
+				pool.push_back(std::move(*it));
+			else
+				effectTrashBin_.push_back({ dxCommon_ ? dxCommon_->GetNextFenceValue() : 0, std::move(*it) });
 			it = effects_.erase(it);
 			removed = true;
 		}
@@ -506,7 +563,15 @@ void ParticleManager::AddRendererToTrashBin(std::unique_ptr<IRenderer> renderer)
 {
 	if (renderer)
 	{
-		rendererTrashBin_.push_back(std::move(renderer));
+		rendererTrashBin_.push_back({ dxCommon_ ? dxCommon_->GetNextFenceValue() : 0, std::move(renderer) });
+	}
+}
+
+void ParticleManager::AddSimulatorToTrashBin(std::unique_ptr<GPUSimulator> simulator)
+{
+	if (simulator)
+	{
+		simulatorTrashBin_.push_back({ dxCommon_ ? dxCommon_->GetNextFenceValue() : 0, std::move(simulator) });
 	}
 }
 } // namespace KCE

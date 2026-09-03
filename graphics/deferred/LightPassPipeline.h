@@ -25,7 +25,7 @@ public:
 	/**
 	 * @brief パイプラインをセット
 	 */
-	void SetPipeline();
+	void SetPipeline(bool bloomTargetEnabled = true);
 
 	/**
 	 * @brief ルートシグネチャの取得
@@ -39,12 +39,13 @@ public:
 
 private:
 	void CreateRootSignature();
-	void CreatePipelineState();
+	void CreatePipelineState(bool bloomTargetEnabled);
 
 private:
 	DirectXCommon* dxCommon_ = nullptr;
 
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState_;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> singleTargetPipelineState_;
 };
 } // namespace KCE

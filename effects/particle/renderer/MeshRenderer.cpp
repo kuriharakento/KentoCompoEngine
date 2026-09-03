@@ -2,6 +2,7 @@
 #include "effects/particle/gpu/GPUParticlePipeline.h"
 #include "base/DirectXCommon.h"
 #include "base/GraphicsTypes.h"
+#include "base/Logger.h"
 #include "manager/system/SrvManager.h"
 #include "manager/scene/CameraManager.h"
 #include "base/Camera.h"
@@ -9,8 +10,11 @@
 #include "effects/particle/ParticleManager.h"
 #include "manager/graphics/TextureManager.h"
 #include "manager/effect/ParticlePipelineManager.h"
+#include "effects/particle/diagnostics/ParticleDiagnostics.h"
 #include <d3d12.h>
+#include <DirectXTex/d3dx12.h>
 #include <numbers>
+#include <cstddef>
 
 namespace KCE
 {
@@ -19,6 +23,11 @@ MeshRenderer::~MeshRenderer()
 	if (instanceResource_)
 	{
 		instanceResource_->Unmap(0, nullptr);
+	}
+	if (indexedDrawArgumentsUpload_ && indexedDrawArgumentsData_)
+	{
+		indexedDrawArgumentsUpload_->Unmap(0, nullptr);
+		indexedDrawArgumentsData_ = nullptr;
 	}
 	if (instanceSrvIndex_ != SrvManager::kInvalidSrvIndex)
 	{
@@ -82,7 +91,11 @@ void MeshRenderer::InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvMan
 	instanceResource_->Map(0, nullptr, reinterpret_cast<void**>(&instanceData_));
 
 	// SRVディスクリプタを確保
-	instanceSrvIndex_ = srvManager->Allocate();
+	if (!srvManager->TryAllocate(instanceSrvIndex_))
+	{
+		Logger::Log("MeshRenderer initialization failed: descriptor heap exhausted\n", Logger::LogLevel::Error);
+		return;
+	}
 
 	// 構造化バッファのSRVを作成
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
@@ -106,6 +119,32 @@ void MeshRenderer::InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvMan
 	materialData_->color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 	materialData_->uvTransform = MakeIdentity4x4();
 	materialData_->enableLighting = false;
+
+	D3D12_INDIRECT_ARGUMENT_DESC indirectArg{};
+	indirectArg.Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
+	D3D12_COMMAND_SIGNATURE_DESC signatureDesc{};
+	signatureDesc.ByteStride = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS);
+	signatureDesc.NumArgumentDescs = 1;
+	signatureDesc.pArgumentDescs = &indirectArg;
+	dxCommon->GetDevice()->CreateCommandSignature(&signatureDesc, nullptr, IID_PPV_ARGS(&indexedDrawCommandSignature_));
+
+	D3D12_RESOURCE_DESC argsDesc{};
+	argsDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	argsDesc.Width = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS);
+	argsDesc.Height = 1;
+	argsDesc.DepthOrArraySize = 1;
+	argsDesc.MipLevels = 1;
+	argsDesc.SampleDesc.Count = 1;
+	argsDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	D3D12_HEAP_PROPERTIES defaultHeap{};
+	defaultHeap.Type = D3D12_HEAP_TYPE_DEFAULT;
+	dxCommon->GetDevice()->CreateCommittedResource(&defaultHeap, D3D12_HEAP_FLAG_NONE, &argsDesc,
+		D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&indexedDrawArguments_));
+	D3D12_HEAP_PROPERTIES uploadHeap{};
+	uploadHeap.Type = D3D12_HEAP_TYPE_UPLOAD;
+	dxCommon->GetDevice()->CreateCommittedResource(&uploadHeap, D3D12_HEAP_FLAG_NONE, &argsDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&indexedDrawArgumentsUpload_));
+	indexedDrawArgumentsUpload_->Map(0, nullptr, reinterpret_cast<void**>(&indexedDrawArgumentsData_));
 }
 
 void MeshRenderer::CreatePrimitiveBuffers(DirectXCommon* dxCommon)
@@ -187,6 +226,8 @@ void MeshRenderer::CreatePrimitiveBuffers(DirectXCommon* dxCommon)
 
 void MeshRenderer::Update(const std::vector<Particle>& particles, CameraManager* camera)
 {
+	ParticleScopeTimer timer(ParticleProfileScope::RendererUpdatePerCall);
+
 	if (isGPUMode_)
 	{
 		instanceCount_ = 0;
@@ -256,6 +297,10 @@ void MeshRenderer::Update(const std::vector<Particle>& particles, CameraManager*
 
 void MeshRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
+	const uint32_t particleSrvIndex = isGPUMode_ ? gpuSrvIndex_ : instanceSrvIndex_;
+	if (!srvManager || !srvManager->IsAllocated(particleSrvIndex) || !srvManager->IsAllocated(textureIndex_)) return;
+	ParticleScopeTimer timer(ParticleProfileScope::RendererDrawRecordingPerCall);
+
 	// プリミティブバッファの作成/再作成（needsRebuild_時）
 	CreatePrimitiveBuffers(dxCommon);
 
@@ -266,7 +311,7 @@ void MeshRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 	// パイプラインステートの設定（ブレンドモード反映）
 	auto* pm = ParticleManager::GetInstance();
 	auto* plm = pm->GetPipelineManager();
-	dxCommon->GetCommandList()->SetPipelineState(plm->GetPipelineState(blendMode_));
+	dxCommon->GetCommandList()->SetPipelineState(plm->GetPipelineState(blendMode_, emissiveSettings_.enabled));
 	dxCommon->GetCommandList()->SetGraphicsRootSignature(plm->GetRootSignature()); // RootSignature Binding
 
 	dxCommon->GetCommandList()->IASetVertexBuffers(0, 1, &primitiveVertexView_);
@@ -277,6 +322,10 @@ void MeshRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 	if (materialData_)
 	{
 		materialData_->color = tintColor_;
+		materialData_->emissiveColorIntensity = { emissiveSettings_.color.x, emissiveSettings_.color.y, emissiveSettings_.color.z, emissiveSettings_.intensity };
+		materialData_->emissiveEnabled = emissiveSettings_.enabled ? 1u : 0u;
+		materialData_->emissiveSource = static_cast<uint32_t>(emissiveSettings_.source);
+		materialData_->bloomContribution = emissiveSettings_.bloomContribution;
 	}
 
 	// マテリアル (Slot 0 - CBV)
@@ -284,16 +333,40 @@ void MeshRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 
 	// テクスチャ (Slot 2)
 	dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(2, srvManager->GetGPUDescriptorHandle(textureIndex_));
+	dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(4, srvManager->GetGPUDescriptorHandle(emissiveTextureIndex_));
 
 	// インスタンシングデータ (Slot 1 - VertexShader用)
-	uint32_t index = isGPUMode_ ? gpuSrvIndex_ : instanceSrvIndex_;
-	dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(1, srvManager->GetGPUDescriptorHandle(index));
+	dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(1, srvManager->GetGPUDescriptorHandle(particleSrvIndex));
 
-	dxCommon->GetCommandList()->DrawIndexedInstanced(
-		static_cast<UINT>(primitiveMesh_.indices.size()),
-		drawCount,
-		0, 0, 0
-	);
+	auto* commandList = dxCommon->GetCommandList();
+	if (isGPUMode_ && gpuDrawArguments_ && indexedDrawCommandSignature_ && indexedDrawArgumentsData_)
+	{
+		*indexedDrawArgumentsData_ = { static_cast<UINT>(primitiveMesh_.indices.size()), 0, 0, 0, 0 };
+		if (indexedDrawArgumentsState_ != D3D12_RESOURCE_STATE_COPY_DEST)
+		{
+			D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+				indexedDrawArguments_.Get(), indexedDrawArgumentsState_, D3D12_RESOURCE_STATE_COPY_DEST);
+			commandList->ResourceBarrier(1, &barrier);
+		}
+		commandList->CopyBufferRegion(indexedDrawArguments_.Get(), 0, indexedDrawArgumentsUpload_.Get(), 0,
+			sizeof(D3D12_DRAW_INDEXED_ARGUMENTS));
+		D3D12_RESOURCE_BARRIER commonBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+			gpuDrawArguments_, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_COPY_SOURCE);
+		commandList->ResourceBarrier(1, &commonBarrier);
+		commandList->CopyBufferRegion(indexedDrawArguments_.Get(), offsetof(D3D12_DRAW_INDEXED_ARGUMENTS, InstanceCount),
+			gpuDrawArguments_, offsetof(D3D12_DRAW_ARGUMENTS, InstanceCount), sizeof(UINT));
+		D3D12_RESOURCE_BARRIER barriers[2] = {
+			CD3DX12_RESOURCE_BARRIER::Transition(gpuDrawArguments_, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT),
+			CD3DX12_RESOURCE_BARRIER::Transition(indexedDrawArguments_.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT)
+		};
+		commandList->ResourceBarrier(2, barriers);
+		indexedDrawArgumentsState_ = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+		commandList->ExecuteIndirect(indexedDrawCommandSignature_.Get(), 1, indexedDrawArguments_.Get(), 0, nullptr, 0);
+	}
+	else
+	{
+		commandList->DrawIndexedInstanced(static_cast<UINT>(primitiveMesh_.indices.size()), drawCount, 0, 0, 0);
+	}
 }
 
 void MeshRenderer::Initialize(const std::string& texturePath)
@@ -302,7 +375,8 @@ void MeshRenderer::Initialize(const std::string& texturePath)
 	std::string path = texturePath.empty() ? "./Resources/uvChecker.png" : texturePath;
 	texturePath_ = path;
 	TextureManager::GetInstance()->LoadTexture(path);
-	textureIndex_ = TextureManager::GetInstance()->GetTextureIndexByFilePath(path);
+	TextureManager::GetInstance()->TryGetTextureIndexByFilePath(path, textureIndex_);
+	SetEmissiveTexture("");
 
 	auto* pm = ParticleManager::GetInstance();
 	InitializeBuffers(pm->GetDxCommon(), pm->GetSrvManager());
@@ -313,15 +387,28 @@ void MeshRenderer::SetTexture(const std::string& texturePath)
 {
 	if (texturePath.empty()) return;
 
+	auto* textures = TextureManager::GetInstance();
+	textures->LoadTexture(texturePath);
+	uint32_t newIndex = SrvManager::kInvalidSrvIndex;
+	if (!textures->TryGetTextureIndexByFilePath(texturePath, newIndex)) return;
 	texturePath_ = texturePath;
-	TextureManager::GetInstance()->LoadTexture(texturePath);
-	textureIndex_ = TextureManager::GetInstance()->GetTextureIndexByFilePath(texturePath);
+	textureIndex_ = newIndex;
 }
 
-void MeshRenderer::SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count)
+void MeshRenderer::SetEmissiveTexture(const std::string& texturePath)
+{
+	emissiveTexturePath_ = texturePath;
+	const std::string fallback = "./Resources/textures/emissive_black_1x1.png";
+	const std::string path = emissiveTexturePath_.empty() || !TextureManager::GetInstance()->CheckTextureExists(emissiveTexturePath_) ? fallback : emissiveTexturePath_;
+	TextureManager::GetInstance()->LoadTextureLinear(path);
+	emissiveTextureIndex_ = TextureManager::GetInstance()->GetLinearTextureIndexByFilePath(path);
+}
+
+void MeshRenderer::SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count, ID3D12Resource* drawArguments)
 {
 	isGPUMode_ = enable;
 	gpuSrvIndex_ = srvIndex;
 	gpuParticleCount_ = count;
+	gpuDrawArguments_ = drawArguments;
 }
 } // namespace KCE

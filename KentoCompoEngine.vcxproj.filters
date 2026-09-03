@@ -261,6 +261,9 @@
     <ClCompile Include="effects\particle\ParticleManager.cpp">
       <Filter>effects\particle</Filter>
     </ClCompile>
+    <ClCompile Include="effects\particle\diagnostics\ParticleDiagnostics.cpp">
+      <Filter>effects\particle</Filter>
+    </ClCompile>
     <ClCompile Include="effects\particle\editor\ParticleEditor.cpp">
       <Filter>effects\particle\editor</Filter>
     </ClCompile>
@@ -273,6 +276,9 @@
     <ClCompile Include="effects\particle\module\spawn\SubEmitterModule.cpp">
       <Filter>effects\particle\module\spawn</Filter>
     </ClCompile>
+	<ClCompile Include="effects\particle\module\ModuleRuntime.cpp">
+	  <Filter>effects\particle\module</Filter>
+	</ClCompile>
     <ClCompile Include="effects\particle\primitive\PrimitiveGenerator.cpp">
       <Filter>effects\particle\primitive</Filter>
     </ClCompile>
@@ -641,6 +647,9 @@
     <ClInclude Include="effects\particle\ParticleManager.h">
       <Filter>effects\particle</Filter>
     </ClInclude>
+    <ClInclude Include="effects\particle\diagnostics\ParticleDiagnostics.h">
+      <Filter>effects\particle</Filter>
+    </ClInclude>
     <ClInclude Include="effects\particle\ParticleTypes.h">
       <Filter>effects\particle</Filter>
     </ClInclude>
@@ -659,6 +668,9 @@
     <ClInclude Include="effects\particle\module\IModule.h">
       <Filter>effects\particle\module</Filter>
     </ClInclude>
+	<ClInclude Include="effects\particle\module\ModuleRuntime.h">
+	  <Filter>effects\particle\module</Filter>
+	</ClInclude>
     <ClInclude Include="effects\particle\module\ModulePriorities.h">
       <Filter>effects\particle\module</Filter>
     </ClInclude>

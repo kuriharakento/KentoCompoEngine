@@ -20,4 +20,9 @@ enum class BlendMode
 	ColorBurn,    // カラーバーン（色を焼き込む）- コントラストを強調
 	ColorDodge    // カラードッジ（色を抜く・明るくする）- ハイライト効果に使用
 };
+
+inline bool IsValidBlendMode(BlendMode mode)
+{
+	return mode >= BlendMode::Alpha && mode <= BlendMode::ColorDodge;
+}
 } // namespace KCE

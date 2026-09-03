@@ -4,6 +4,8 @@
 #include <fstream>
 #include <sstream>
 #include <filesystem>
+#include <algorithm>
+#include <cmath>
 
 // math
 #include "base/GraphicsTypes.h"
@@ -107,6 +109,19 @@ void Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPat
 			TextureManager::GetInstance()->LoadTexture(kDefaultTexturePath);
 			material.textureIndex = TextureManager::GetInstance()->GetTextureIndexByFilePath(kDefaultTexturePath);
 		}
+		const std::string blackEmissivePath = "./Resources/textures/emissive_black_1x1.png";
+		if (!material.emissiveTextureFilePath.empty() && TextureManager::GetInstance()->CheckTextureExists(basePath + material.emissiveTextureFilePath))
+		{
+			const std::string fullEmissivePath = basePath + material.emissiveTextureFilePath;
+			material.emissiveTextureFilePath = fullEmissivePath;
+			TextureManager::GetInstance()->LoadTextureLinear(fullEmissivePath);
+			material.emissiveTextureIndex = TextureManager::GetInstance()->GetLinearTextureIndexByFilePath(fullEmissivePath);
+		}
+		else
+		{
+			TextureManager::GetInstance()->LoadTextureLinear(blackEmissivePath);
+			material.emissiveTextureIndex = TextureManager::GetInstance()->GetLinearTextureIndexByFilePath(blackEmissivePath);
+		}
 	}
 
 	// マテリアルがない場合はデフォルトマテリアルを作成
@@ -117,6 +132,8 @@ void Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPat
 		TextureManager::GetInstance()->LoadTexture(kDefaultTexturePath);
 		defaultMaterial.textureFilePath = kDefaultTexturePath;
 		defaultMaterial.textureIndex = TextureManager::GetInstance()->GetTextureIndexByFilePath(kDefaultTexturePath);
+		TextureManager::GetInstance()->LoadTextureLinear("./Resources/textures/emissive_black_1x1.png");
+		defaultMaterial.emissiveTextureIndex = TextureManager::GetInstance()->GetLinearTextureIndexByFilePath("./Resources/textures/emissive_black_1x1.png");
 		modelData_.materials.push_back(defaultMaterial);
 	}
 
@@ -142,6 +159,7 @@ void Model::Draw()
 
 		// テクスチャSRVをrootParameter[2]に設定
 		commandList->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetSrvHandleGPU(meshResource.textureIndex));
+		commandList->SetGraphicsRootDescriptorTable(16, TextureManager::GetInstance()->GetSrvHandleGPU(meshResource.emissiveTextureIndex));
 
 		// インデックス付き描画コマンドを発行
 		commandList->DrawIndexedInstanced(meshResource.indexCount, 1, 0, 0, 0);
@@ -184,6 +202,7 @@ void Model::DrawGBuffer()
 
 		// テクスチャSRVをrootParameter[3]に設定
 		commandList->SetGraphicsRootDescriptorTable(3, TextureManager::GetInstance()->GetSrvHandleGPU(meshResource.textureIndex));
+		commandList->SetGraphicsRootDescriptorTable(4, TextureManager::GetInstance()->GetSrvHandleGPU(meshResource.emissiveTextureIndex));
 
 		// インデックス付き描画コマンドを発行
 		commandList->DrawIndexedInstanced(meshResource.indexCount, 1, 0, 0, 0);
@@ -255,6 +274,12 @@ ModelData Model::LoadModelFile(const std::string& directoryPath, const std::stri
 			aiString textureFilePath;
 			aiMat->GetTexture(aiTextureType_DIFFUSE, 0, &textureFilePath);
 			material.textureFilePath = textureFilePath.C_Str();
+		}
+		if (aiMat->GetTextureCount(aiTextureType_EMISSIVE) > 0)
+		{
+			aiString emissiveTexturePath;
+			aiMat->GetTexture(aiTextureType_EMISSIVE, 0, &emissiveTexturePath);
+			material.emissiveTextureFilePath = emissiveTexturePath.C_Str();
 		}
 
 		modelData.materials.push_back(material);
@@ -373,6 +398,7 @@ void Model::CreateMeshResources()
 		if (mesh.materialIndex < modelData_.materials.size())
 		{
 			resource.textureIndex = modelData_.materials[mesh.materialIndex].textureIndex;
+			resource.emissiveTextureIndex = modelData_.materials[mesh.materialIndex].emissiveTextureIndex;
 		}
 	}
 }
@@ -396,6 +422,10 @@ void Model::CreateMaterialResources()
 		resource.gpuMaterial->uvTransform = MakeIdentity4x4();
 		resource.gpuMaterial->shininess = kDefaultShininess;
 		resource.gpuMaterial->reflectivity = kDefaultReflectivity;
+		resource.gpuMaterial->emissiveColorIntensity = { 1.0f, 1.0f, 1.0f, 1.0f };
+		resource.gpuMaterial->emissiveEnabled = 0;
+		resource.gpuMaterial->emissiveSource = static_cast<uint32_t>(EmissiveSource::Uniform);
+		resource.gpuMaterial->bloomContribution = 1.0f;
 	}
 }
 
@@ -470,6 +500,33 @@ void Model::SetShininess(float shininess)
 			resource.gpuMaterial->shininess = shininess;
 		}
 	}
+}
+
+void Model::SetEmissiveSettings(const EmissiveSettings& settings)
+{
+	EmissiveSettings normalized;
+	if (!TryNormalizeEmissiveSettings(settings, normalized)) return;
+	for (auto& resource : meshResources_)
+	{
+		if (!resource.gpuMaterial) continue;
+		resource.gpuMaterial->emissiveColorIntensity = { normalized.color.x, normalized.color.y, normalized.color.z, normalized.intensity };
+		resource.gpuMaterial->emissiveEnabled = normalized.enabled ? 1u : 0u;
+		resource.gpuMaterial->emissiveSource = static_cast<uint32_t>(normalized.source);
+		resource.gpuMaterial->bloomContribution = normalized.bloomContribution;
+	}
+}
+
+EmissiveSettings Model::GetEmissiveSettings() const
+{
+	EmissiveSettings result;
+	if (meshResources_.empty() || !meshResources_[0].gpuMaterial) return result;
+	const Material& material = *meshResources_[0].gpuMaterial;
+	result.enabled = material.emissiveEnabled != 0;
+	result.source = static_cast<EmissiveSource>(material.emissiveSource);
+	result.color = { material.emissiveColorIntensity.x, material.emissiveColorIntensity.y, material.emissiveColorIntensity.z };
+	result.intensity = material.emissiveColorIntensity.w;
+	result.bloomContribution = material.bloomContribution;
+	return result;
 }
 
 Vector3 Model::GetUVTranslate() const

@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <vector>
 #include <memory>
+#include <optional>
+#include <algorithm>
 
 // system
 #include "base/DirectXCommon.h"
@@ -46,6 +48,28 @@ public:
 	 * @details 読み込み済みの場合はスキップされる
 	 */
 	void LoadTexture(const std::string& filePath);
+	void LoadTextureLinear(const std::string& filePath);
+
+	/**
+	 * @brief テクスチャが存在するかどうかをチェックする（自動検索ルール対応）
+	 * @param filePath テクスチャファイルパス
+	 * @return 存在すればtrue
+	 */
+	bool CheckTextureExists(const std::string& filePath) const;
+
+	/**
+	 * @brief テクスチャがすでにロードされているかチェックする
+	 * @param filePath テクスチャファイルパス
+	 * @return ロード済みならtrue
+	 */
+	bool IsTextureLoaded(const std::string& filePath) const;
+
+	/**
+	 * @brief テクスチャファイルパスを解決する（自動検索ルール対応）
+	 * @param filePath 元のパス
+	 * @return 解決されたパス。見つからない場合はstd::nullopt
+	 */
+	std::optional<std::filesystem::path> ResolveTexturePath(const std::string& filePath) const;
 
 	/**
 	 * @brief 中間リソースを解放する
@@ -60,6 +84,8 @@ public: // アクセッサ
 	 * @return テクスチャインデックス
 	 */
 	uint32_t GetTextureIndexByFilePath(const std::string& filePath);
+	uint32_t GetLinearTextureIndexByFilePath(const std::string& filePath);
+	bool TryGetTextureIndexByFilePath(const std::string& filePath, uint32_t& outIndex) const;
 
 	/**
 	 * @brief インデックスからメタデータを取得
@@ -88,6 +114,7 @@ public: // アクセッサ
 	 * @return GPUディスクリプタハンドル
 	 */
 	D3D12_GPU_DESCRIPTOR_HANDLE GetSrvHandleGPU(const std::string& filePath) { return textureDatas_[NormalizePath(filePath)].srvHandleGPU; }
+	D3D12_GPU_DESCRIPTOR_HANDLE GetLinearSrvHandleGPU(const std::string& filePath) { return textureDatas_[NormalizePath(filePath) + "|linear"].srvHandleGPU; }
 
 	/**
 	 * @brief インデックスからGPU側のディスクリプタハンドルを取得
@@ -121,8 +148,10 @@ public: // アクセッサ
 		paths.reserve(textureDatas_.size());
 		for (const auto& pair : textureDatas_)
 		{
+			if (pair.first.ends_with("|linear")) continue;
 			paths.push_back(pair.first);
 		}
+		std::sort(paths.begin(), paths.end());
 		return paths;
 	}
 
@@ -150,6 +179,7 @@ private: // 構造体
 	std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> intermediateResources_;
 
 private: // メンバ関数
+	void LoadTextureInternal(const std::string& filePath, bool forceSrgb);
 	
 	/**
 	 * @brief パスを正規化する

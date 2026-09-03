@@ -258,6 +258,8 @@ public: // アクセッサ
 	 * @return 現在の色（RGBA）
 	 */
 	Vector4 GetColor() const { return renderable3d_ ? renderable3d_->GetColor() : Vector4(1,1,1,1); }
+	void SetEmissiveSettings(const EmissiveSettings& settings) { if (renderable3d_) renderable3d_->SetEmissiveSettings(settings); }
+	EmissiveSettings GetEmissiveSettings() const { return renderable3d_ ? renderable3d_->GetEmissiveSettings() : EmissiveSettings{}; }
 
 	// === タグ関連 ===
 	/**

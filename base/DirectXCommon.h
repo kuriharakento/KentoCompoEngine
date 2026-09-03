@@ -85,6 +85,11 @@ public:
 	 *          完了後は次フレーム用のリセットまで行う。
 	 */
 	void ExecuteAndWait();
+	uint64_t GetLastSubmittedFenceValue() const { return fenceValue_; }
+	uint64_t GetNextFenceValue() const { return fenceValue_ + 1; }
+	uint64_t GetCompletedFenceValue() const { return fence_ ? fence_->GetCompletedValue() : 0; }
+	/** Direct command queueのGPU timestamp周波数を取得する。 */
+	bool GetTimestampFrequency(uint64_t& frequency) const;
 
 	/**
 	 * @brief ウィンドウサイズ変更に伴うリサイズ処理を行う。
@@ -103,6 +108,9 @@ public:
 	 * @brief フルスクリーン状態かどうかを取得する。
 	 */
 	bool IsFullscreen() const;
+	bool IsVSyncEnabled() const { return vsyncEnabled_; }
+	const std::string& GetAdapterName() const { return adapterName_; }
+	const std::string& GetDriverVersion() const { return driverVersion_; }
 
 public:
 	/**
@@ -331,6 +339,9 @@ private:
 	DWORD savedWindowStyle_ = 0;
 	WINDOWPLACEMENT savedWindowPlacement_ = { sizeof(WINDOWPLACEMENT) };
 	bool isFullscreen_ = false;
+	bool vsyncEnabled_ = true;
+	std::string adapterName_;
+	std::string driverVersion_ = "unknown";
 	// FPS固定用の基準時間
 	std::chrono::steady_clock::time_point reference_;
 	// レンダーテクスチャのクリア値

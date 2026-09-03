@@ -44,6 +44,7 @@ public:
 		uint32_t materialIndex = 0;
 		// テクスチャインデックス
 		uint32_t textureIndex = 0;
+		uint32_t emissiveTextureIndex = 0;
 		// GPU用マテリアルデータへのポインタ
 		Material* gpuMaterial = nullptr;
 	};
@@ -140,6 +141,8 @@ public: // アクセッサ
 	 * @param shininess 反射強度
 	 */
 	void SetShininess(float shininess);
+	void SetEmissiveSettings(const EmissiveSettings& settings);
+	EmissiveSettings GetEmissiveSettings() const;
 
 	/**
 	 * @brief 反射強度の取得（最初のマテリアル）

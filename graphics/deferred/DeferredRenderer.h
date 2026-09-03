@@ -39,6 +39,8 @@ public:
 	void EndGeometryPass();
 	void ExecuteLightPass(
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,
+		D3D12_CPU_DESCRIPTOR_HANDLE bloomRtvHandle,
+		bool bloomTargetEnabled,
 		CameraManager* cameraManager,
 		LightManager* lightManager,
 		ShadowMapManager* shadowMapManager

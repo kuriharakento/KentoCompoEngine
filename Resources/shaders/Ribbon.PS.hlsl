@@ -12,14 +12,23 @@ cbuffer Material : register(b0)
     int useTextureColor;
     float2 materialPadding;
     float4x4 uvTransform;
+    float4 emissiveColorIntensity;
+    uint emissiveEnabled;
+    uint emissiveSource;
+    float bloomContribution;
+    float emissivePadding;
 }
 
 Texture2D<float4> gTexture : register(t0);
+Texture2D<float4> gEmissiveTexture : register(t1);
 SamplerState gSampler : register(s0);
 
 struct PixelShaderOutput
 {
     float4 color : SV_TARGET0;
+#ifndef KCE_BLOOM_TARGET_DISABLED
+	float4 bloom : SV_TARGET1;
+#endif
 };
 
 PixelShaderOutput main(VertexShaderOutput input)
@@ -60,6 +69,19 @@ PixelShaderOutput main(VertexShaderOutput input)
     // A = finalAlpha
     output.color.rgb = baseColor * finalAlpha;
     output.color.a = finalAlpha;
+#ifndef KCE_BLOOM_TARGET_DISABLED
+	float3 emissiveMask = emissiveSource == 0 ? 1.0f.xxx :
+		(emissiveSource == 1 ? textureColor.rgb : gEmissiveTexture.Sample(gSampler, transformedUV.xy).rgb);
+	float3 emission = emissiveMask * emissiveColorIntensity.rgb * emissiveColorIntensity.a;
+	if (!all(isfinite(emission)) || !isfinite(bloomContribution))
+	{
+		emission = 0.0f;
+	}
+	emission = clamp(emission, 0.0f, 64.0f);
+	output.bloom = emissiveEnabled != 0
+		? float4(emission * finalAlpha * saturate(bloomContribution), finalAlpha)
+		: 0.0f;
+#endif
     
     return output;
 }

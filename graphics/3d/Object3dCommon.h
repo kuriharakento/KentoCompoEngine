@@ -26,6 +26,8 @@ public: // メンバ関数
 	 * @details ルートシグネチャ、パイプラインステート、環境マップを設定する
 	 */
 	void CommonRenderingSetting();
+	void SetBloomPipeline(bool bloomEnabled);
+	void SetSelectiveBloomOutputEnabled(bool enabled) { selectiveBloomOutputEnabled_ = enabled; }
 
 public: // アクセッサ
 	/**
@@ -75,7 +77,7 @@ private: // メンバ関数
 	 * @brief グラフィックスパイプラインステートの生成
 	 * @details 3Dオブジェクト用のパイプラインステートを構築する
 	 */
-	void CreateGraphicsPipelineState();
+	void CreateGraphicsPipelineState(bool bloomEnabled, bool bloomTargetEnabled);
 
 private: // メンバ変数
 	// デフォルトカメラ
@@ -94,6 +96,9 @@ private: // メンバ変数
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_ = nullptr;
 	// グラフィックスパイプラインステート
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState_ = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> bloomGraphicsPipelineState_ = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> singleTargetGraphicsPipelineState_ = nullptr;
+	bool selectiveBloomOutputEnabled_ = true;
 
 };
 } // namespace KCE

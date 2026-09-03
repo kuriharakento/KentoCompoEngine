@@ -1,4 +1,6 @@
 #include "SkinnedModel.h"
+#include <algorithm>
+#include <cmath>
 #include <cassert>
 #include <Windows.h>
 #include <cstring>
@@ -48,6 +50,7 @@ void SkinnedModel::Draw()
 		commandList->IASetIndexBuffer(&meshResource.indexBufferView);
 		commandList->SetGraphicsRootConstantBufferView(0, meshResource.materialBuffer->GetGPUVirtualAddress());
 		commandList->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetSrvHandleGPU(meshResource.textureIndex));
+		commandList->SetGraphicsRootDescriptorTable(16, TextureManager::GetInstance()->GetSrvHandleGPU(meshResource.emissiveTextureIndex));
 		commandList->DrawIndexedInstanced(meshResource.indexCount, 1, 0, 0, 0);
 	}
 }
@@ -74,6 +77,7 @@ void SkinnedModel::DrawGBuffer()
 		commandList->IASetIndexBuffer(&meshResource.indexBufferView);
 		commandList->SetGraphicsRootConstantBufferView(2, meshResource.materialBuffer->GetGPUVirtualAddress());
 		commandList->SetGraphicsRootDescriptorTable(3, TextureManager::GetInstance()->GetSrvHandleGPU(meshResource.textureIndex));
+		commandList->SetGraphicsRootDescriptorTable(4, TextureManager::GetInstance()->GetSrvHandleGPU(meshResource.emissiveTextureIndex));
 		commandList->DrawIndexedInstanced(meshResource.indexCount, 1, 0, 0, 0);
 	}
 }
@@ -101,6 +105,7 @@ void SkinnedModel::CreateMeshResources()
 		if (modelMeshData.materialIndex < sharedResource_->modelData.materials.size())
 		{
 			resource.textureIndex = sharedResource_->modelData.materials[modelMeshData.materialIndex].textureIndex;
+			resource.emissiveTextureIndex = sharedResource_->modelData.materials[modelMeshData.materialIndex].emissiveTextureIndex;
 		}
 	}
 }
@@ -119,6 +124,10 @@ void SkinnedModel::CreateMaterialResources()
 		resource.gpuMaterial->uvTransform = MakeIdentity4x4();
 		resource.gpuMaterial->shininess = kDefaultShininess;
 		resource.gpuMaterial->reflectivity = kDefaultReflectivity;
+		resource.gpuMaterial->emissiveColorIntensity = { 1.0f, 1.0f, 1.0f, 1.0f };
+		resource.gpuMaterial->emissiveEnabled = 0;
+		resource.gpuMaterial->emissiveSource = static_cast<uint32_t>(EmissiveSource::Uniform);
+		resource.gpuMaterial->bloomContribution = 1.0f;
 	}
 }
 
@@ -212,5 +221,32 @@ void SkinnedModel::SetEnableLighting(bool enable)
 			resource.gpuMaterial->enableLighting = enable;
 		}
 	}
+}
+
+void SkinnedModel::SetEmissiveSettings(const EmissiveSettings& settings)
+{
+	EmissiveSettings normalized;
+	if (!TryNormalizeEmissiveSettings(settings, normalized)) return;
+	for (auto& resource : meshResources_)
+	{
+		if (!resource.gpuMaterial) continue;
+		resource.gpuMaterial->emissiveColorIntensity = { normalized.color.x, normalized.color.y, normalized.color.z, normalized.intensity };
+		resource.gpuMaterial->emissiveEnabled = normalized.enabled ? 1u : 0u;
+		resource.gpuMaterial->emissiveSource = static_cast<uint32_t>(normalized.source);
+		resource.gpuMaterial->bloomContribution = normalized.bloomContribution;
+	}
+}
+
+EmissiveSettings SkinnedModel::GetEmissiveSettings() const
+{
+	EmissiveSettings result;
+	if (meshResources_.empty() || !meshResources_[0].gpuMaterial) return result;
+	const Material& material = *meshResources_[0].gpuMaterial;
+	result.enabled = material.emissiveEnabled != 0;
+	result.source = static_cast<EmissiveSource>(material.emissiveSource);
+	result.color = { material.emissiveColorIntensity.x, material.emissiveColorIntensity.y, material.emissiveColorIntensity.z };
+	result.intensity = material.emissiveColorIntensity.w;
+	result.bloomContribution = material.bloomContribution;
+	return result;
 }
 } // namespace KCE

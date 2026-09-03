@@ -28,10 +28,16 @@ cbuffer Material : register(b2)
     float shininess;
     float reflectivity;
     float2 pad2;
+    float4 emissiveColorIntensity;
+    uint emissiveEnabled;
+    uint emissiveSource;
+    float bloomContribution;
+    float emissivePadding;
 };
 
 // テクスチャ
 Texture2D<float4> gTexture : register(t0);
+Texture2D<float4> gEmissiveTexture : register(t1);
 SamplerState gSampler : register(s0);
 
 // 法線をエンコード（-1,1 -> 0,1）
@@ -67,8 +73,12 @@ GBufferOutput main(PixelShaderInput input)
     float ao = 1.0f;
     output.material = float4(roughness, ao, 0.0f, 0.0f);
     
-    // Emissive
-    output.emissive = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    float3 emissiveMask = emissiveSource == 0 ? 1.0f.xxx :
+		(emissiveSource == 1 ? texColor.rgb : gEmissiveTexture.Sample(gSampler, transformedUV.xy).rgb);
+    float3 emissive = emissiveMask * emissiveColorIntensity.rgb * emissiveColorIntensity.a;
+    if (!all(isfinite(emissive)) || !isfinite(bloomContribution)) emissive = 0.0f;
+    emissive = clamp(emissive, 0.0f, 64.0f);
+    output.emissive = emissiveEnabled != 0 ? float4(emissive, saturate(bloomContribution)) : 0.0f;
     
     return output;
 }

@@ -26,6 +26,24 @@ class RenderTexture;
 class PostProcessManager
 {
 public:
+	struct BloomGpuTimings
+	{
+		double maskMs = 0.0;
+		double sourceExtractionMs = 0.0;
+		double blurHorizontalMs = 0.0;
+		double blurVerticalMs = 0.0;
+		double compositeMs = 0.0;
+		bool valid = false;
+	};
+	struct BloomMaskDiagnostic
+	{
+		uint64_t requestId = 0;
+		double averageRgbEnergy = 0.0;
+		double maxRgbEnergy = 0.0;
+		uint64_t nonZeroPixels = 0;
+		bool finite = false;
+		bool valid = false;
+	};
     /**
      * @brief コンストラクタ
      */
@@ -50,7 +68,20 @@ public:
      * @param inputTexture 入力テクスチャ
      * @details ブルームが有効な場合はマルチパス処理、それ以外はシングルパス処理を行う
      */
-    void Draw(RenderTexture* inputTexture, RenderTexture* outputRT = nullptr);
+    void Draw(RenderTexture* inputTexture, RenderTexture* outputRT = nullptr, RenderTexture* selectiveBloomSource = nullptr);
+
+	/** Bloomのマルチパスが現在有効かを返す。 */
+	bool IsBloomEnabled() const { return bloomEffect_ && bloomEffect_->IsEnabled(); }
+	bool IsSelectiveBloomEnabled() const { return IsBloomEnabled() && selectiveBloomModeEnabled_; }
+	void SetSelectiveBloomModeEnabled(bool enabled) { selectiveBloomModeEnabled_ = enabled; }
+	/** Bloom Mask生成を含む当該フレームのGPU計測を開始する。 */
+	void BeginBloomGpuFrame(bool bloomEnabled, bool selectiveBloomEnabled);
+	/** Deferred/Forward/ParticleによるBloom Mask生成区間を終了する。 */
+	void EndBloomMaskGpuScope();
+	const BloomGpuTimings& GetBloomGpuTimings() const { return bloomGpuTimings_; }
+	void RequestBloomMaskDiagnostic(uint64_t requestId);
+	void CaptureRequestedBloomMask(RenderTexture* bloomMask);
+	const BloomMaskDiagnostic& GetBloomMaskDiagnostic() const { return bloomMaskDiagnostic_; }
 
     /**
      * @brief ブライトパスレンダリング
@@ -152,13 +183,19 @@ private:
      * @brief ブルーム付きレンダリング
      * @param inputTexture 入力テクスチャ
      */
-    void RenderWithBloom(RenderTexture* inputTexture, RenderTexture* outputRT = nullptr);
+    void RenderWithBloom(RenderTexture* inputTexture, RenderTexture* outputRT = nullptr, RenderTexture* selectiveBloomSource = nullptr);
 
     /**
      * @brief ブルーム用レンダーターゲットが設定されているかチェック
      * @return 設定されている場合true
      */
     bool HasBloomRenderTargets() const;
+	void InitializeBloomGpuTiming();
+	void CollectBloomGpuTimings();
+	void WriteBloomGpuTimingReport() const;
+	void WriteTimestamp(uint32_t queryIndex);
+	void ResolveBloomGpuTimestamps();
+	void CollectBloomMaskDiagnostic();
 
 private:
     DirectXCommon* dxCommon_ = nullptr;  // DirectXCommonへのポインタ
@@ -185,6 +222,36 @@ private:
 
     PostEffectParams params_;    // 現在のエフェクトパラメータ
     PostEffectParams preParams_; // 前フレームのエフェクトパラメータ
+
+	static constexpr uint32_t kBloomTimestampCount = 10;
+	Microsoft::WRL::ComPtr<ID3D12QueryHeap> bloomTimestampQueryHeap_;
+	Microsoft::WRL::ComPtr<ID3D12Resource> bloomTimestampReadback_;
+	uint64_t bloomTimestampFrequency_ = 0;
+	BloomGpuTimings bloomGpuTimings_{};
+	bool bloomGpuTimingActive_ = false;
+	bool bloomGpuFrameEnabled_ = false;
+	bool bloomGpuFrameSelective_ = false;
+	bool bloomTimestampResolvedEnabled_ = false;
+	bool bloomTimestampResolvedSelective_ = false;
+	bool bloomMaskGpuScopeEnded_ = false;
+	bool bloomTimestampResolvePending_ = false;
+	bool bloomGpuTimingTestEnabled_ = false;
+	uint64_t bloomGpuTimingSampleCount_ = 0;
+	uint64_t bloomGpuTimingObservedFrameCount_ = 0;
+	double bloomGpuTimingMaskSumMs_ = 0.0;
+	double bloomGpuTimingSourceExtractionSumMs_ = 0.0;
+	double bloomGpuTimingBlurHorizontalSumMs_ = 0.0;
+	double bloomGpuTimingBlurVerticalSumMs_ = 0.0;
+	double bloomGpuTimingCompositeSumMs_ = 0.0;
+	bool selectiveBloomModeEnabled_ = true;
+	Microsoft::WRL::ComPtr<ID3D12Resource> bloomMaskDiagnosticReadback_;
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT bloomMaskDiagnosticFootprint_{};
+	UINT64 bloomMaskDiagnosticBufferSize_ = 0;
+	uint64_t bloomMaskDiagnosticRequestedId_ = 0;
+	uint64_t bloomMaskDiagnosticPendingId_ = 0;
+	bool bloomMaskDiagnosticRequested_ = false;
+	bool bloomMaskDiagnosticPending_ = false;
+	BloomMaskDiagnostic bloomMaskDiagnostic_{};
 
     
 };

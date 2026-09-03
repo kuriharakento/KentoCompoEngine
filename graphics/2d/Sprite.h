@@ -125,6 +125,10 @@ public: // アクセッサ
 	 * @param color 新しい色（RGBA）
 	 */
 	void SetColor(const Vector4& color) { materialData_->color = color; }
+	void SetEmissiveSettings(const EmissiveSettings& settings);
+	EmissiveSettings GetEmissiveSettings() const { return emissiveSettings_; }
+	void SetEmissiveTexture(const std::string& filePath);
+	void DrawSelectiveBloom();
 
 	/**
 	 * @brief サイズの設定
@@ -202,6 +206,9 @@ private: // 描画用変数
 
 	// マテリアルデータへのポインタ
 	Material* materialData_ = nullptr;
+	EmissiveSettings emissiveSettings_{};
+	uint32_t emissiveTextureIndex_ = 0;
+	std::string emissiveTexturePath_;
 	// 頂点データへのポインタ
 	VertexData* vertexData_ = nullptr;
 	// インデックスデータへのポインタ

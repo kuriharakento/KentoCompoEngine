@@ -1,6 +1,7 @@
 #include "RenderTexture.h"
 
 #include <cassert>
+#include <stdexcept>
 #include "DirectXTex/d3dx12.h"
 // system
 #include "DirectXCommon.h"
@@ -12,6 +13,15 @@ namespace KCE
 constexpr UINT kRtvDescriptorCount = 1;
 // ミップレベル数
 constexpr UINT kMipLevels = 1;
+
+RenderTexture::~RenderTexture()
+{
+	if (srvManager_ && srvIndex_ != SrvManager::kInvalidSrvIndex)
+	{
+		srvManager_->Free(srvIndex_);
+		srvIndex_ = SrvManager::kInvalidSrvIndex;
+	}
+}
 
 
 void RenderTexture::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, uint32_t width, uint32_t height, DXGI_FORMAT format, const Vector4& clearColor)
@@ -55,6 +65,7 @@ void RenderTexture::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, 
         &clear,
         IID_PPV_ARGS(&texture_));
     assert(SUCCEEDED(hr));
+	if (FAILED(hr)) throw std::runtime_error("RenderTexture resource creation failed");
 
     // RTV用ディスクリプタヒープの生成
     rtvHeap_ = dxCommon_->CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, kRtvDescriptorCount, false);
@@ -64,9 +75,14 @@ void RenderTexture::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, 
     dxCommon_->GetDevice()->CreateRenderTargetView(texture_.Get(), nullptr, rtvHandle_);
 
     // SRVの確保と生成
-    if (srvIndex_ == 0)
+    if (srvIndex_ == SrvManager::kInvalidSrvIndex)
     {
-        srvIndex_ = srvManager_->Allocate();
+		if (!srvManager_->TryAllocate(srvIndex_))
+		{
+			texture_.Reset();
+			rtvHeap_.Reset();
+			throw std::runtime_error("RenderTexture SRV descriptor allocation failed");
+		}
     }
     srvManager_->CreateSRVforTexture2D(srvIndex_, texture_.Get(), format, kMipLevels);
 
@@ -117,6 +133,17 @@ void RenderTexture::EndRender() {
         dxCommon_->GetCommandList()->ResourceBarrier(1, &barrier);
         currentState_ = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
     }
+}
+
+void RenderTexture::TransitionTo(D3D12_RESOURCE_STATES state)
+{
+	if (!texture_ || currentState_ == state)
+	{
+		return;
+	}
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(texture_.Get(), currentState_, state);
+	dxCommon_->GetCommandList()->ResourceBarrier(1, &barrier);
+	currentState_ = state;
 }
 
 void RenderTexture::PreDrawForImGui()
@@ -177,6 +204,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE RenderTexture::GetCPUHandle() const
 
 void RenderTexture::Resize(uint32_t width, uint32_t height)
 {
+	if (width == 0 || height == 0 || (width == width_ && height == height_)) return;
 	width_ = width;
 	height_ = height;
 
@@ -215,6 +243,7 @@ void RenderTexture::Resize(uint32_t width, uint32_t height)
 		&clear,
 		IID_PPV_ARGS(&texture_));
 	assert(SUCCEEDED(hr));
+	if (FAILED(hr)) throw std::runtime_error("RenderTexture resize resource creation failed");
 
 	// RTVの再生成
 	dxCommon_->GetDevice()->CreateRenderTargetView(texture_.Get(), nullptr, rtvHandle_);

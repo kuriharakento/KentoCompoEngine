@@ -36,6 +36,8 @@ public:
 	 * @param texturePath テクスチャファイルパス
 	 */
 	void SetTexture(const std::string& texturePath) override;
+	void SetEmissiveTexture(const std::string& texturePath) override;
+	std::string GetEmissiveTexturePath() const override { return emissiveTexturePath_; }
 
 	/**
 	 * @brief パーティクルデータを更新
@@ -79,7 +81,7 @@ public:
 	 * @param srvIndex GPUパーティクルバッファのSRVインデックス
 	 * @param count GPUパーティクル数
 	 */
-	void SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count) override; 
+	void SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count, ID3D12Resource* drawArguments = nullptr) override;
 
 private:
 	/**
@@ -110,6 +112,8 @@ private:
 
 	//===== 描画設定 =====//
 	uint32_t textureIndex_ = 0;                                 ///< テクスチャのSRVインデックス
+	uint32_t emissiveTextureIndex_ = 0;
+	std::string emissiveTexturePath_;
 	uint32_t instancingSrvIndex_ = SrvManager::kInvalidSrvIndex; ///< インスタンシングバッファのSRVインデックス（未確保=kInvalidSrvIndex）
 	uint32_t instanceCount_ = 0;                                ///< 描画するインスタンス数
 	bool isBillboard_ = true;                                   ///< ビルボード有効フラグ
@@ -122,6 +126,8 @@ public:
 	bool isGPUMode_ = false;                                    ///< GPUシミュレーションモードフラグ
 	uint32_t gpuSrvIndex_ = 0;                                  ///< GPUパーティクルバッファのSRVインデックス
 	uint32_t gpuParticleCount_ = 0;                             ///< GPUパーティクル数
+	ID3D12Resource* gpuDrawArguments_ = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12CommandSignature> drawCommandSignature_;
 	Vector4 tintColor_ = { 1.0f, 1.0f, 1.0f, 1.0f };
 };
 } // namespace KCE

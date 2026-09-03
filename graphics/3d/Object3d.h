@@ -250,6 +250,8 @@ public: /*========[ セッター ]========*/
 	 * @param shininess 新しい反射強度
 	 */
 	void SetShininess(float shininess) const { model_->SetShininess(shininess); }
+	void SetEmissiveSettings(const EmissiveSettings& settings) override { if (model_) model_->SetEmissiveSettings(settings); }
+	EmissiveSettings GetEmissiveSettings() const override { return model_ ? model_->GetEmissiveSettings() : EmissiveSettings{}; }
 
 	/**
 	 * @brief ディレクショナルライトカラーの設定

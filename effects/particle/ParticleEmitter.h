@@ -11,6 +11,7 @@
 #include <string>
 #include "Particle.h"
 #include "ParticleTypes.h"
+#include "effects/particle/module/ModuleRuntime.h"
 #include <base/GraphicsTypes.h>
 
 namespace KCE
@@ -34,6 +35,7 @@ struct ParticleContext
 	Transform* followTarget = nullptr;
 	uint32_t spawnCount = 0;
 	uint32_t maxParticles = 1000;
+	const ModuleParameterStore* parameters = nullptr;
 };
 
 /**
@@ -74,6 +76,23 @@ public:
 	// 同じエフェクト内の別エミッターを追従 (-1 = 追従しない)
 	void SetFollowEmitterIndex(int index) { followEmitterIndex_ = index; }
 	int GetFollowEmitterIndex() const { return followEmitterIndex_; }
+	void SetGPUEventSourceEmitterIndex(int index) { gpuEventSourceEmitterIndex_ = index; }
+	int GetGPUEventSourceEmitterIndex() const { return gpuEventSourceEmitterIndex_; }
+	bool SetGPUEventTrigger(uint32_t trigger)
+	{
+		if (trigger > 1) return false; // Collision has no Pure GPU producer yet.
+		gpuEventTrigger_ = trigger;
+		return true;
+	}
+	uint32_t GetGPUEventTrigger() const { return gpuEventTrigger_; }
+	void SetGPUEventProbability(float value) { gpuEventProbability_ = value; }
+	float GetGPUEventProbability() const { return gpuEventProbability_; }
+	void SetGPUEventVelocityInheritance(bool enabled, float scale) { gpuEventInheritVelocity_ = enabled; gpuEventVelocityScale_ = scale; }
+	bool GetGPUEventInheritVelocity() const { return gpuEventInheritVelocity_; }
+	float GetGPUEventVelocityScale() const { return gpuEventVelocityScale_; }
+	void SetGPUEventInheritColor(bool enabled) { gpuEventInheritColor_ = enabled; }
+	bool GetGPUEventInheritColor() const { return gpuEventInheritColor_; }
+	void BindGPUEventSource(ParticleEmitter* source);
 	
 	// 追従対象のエミッター位置を設定（ParticleEffectから呼ばれる）
 	void SetFollowEmitterPosition(const Vector3& pos) { followEmitterPosition_ = pos; followingEmitter_ = true; }
@@ -133,6 +152,7 @@ public:
 
 	std::vector<Particle>& GetParticles() { return particles_; }
 	const std::vector<Particle>& GetParticles() const { return particles_; }
+	uint32_t GetActiveParticleCount() const;
 
 	void SpawnParticle(const Particle& particle);
 
@@ -179,6 +199,13 @@ public:
 	 */
 	IModule* GetModuleByName(const std::string& name);
 	const IModule* GetModuleByName(const std::string& name) const;
+	const CompiledEmitter& GetCompiledEmitter() const { return compiledEmitter_; }
+	ModuleParameterStore& GetParameterStore() { return parameterStore_; }
+	const ModuleParameterStore& GetParameterStore() const { return parameterStore_; }
+	bool SetDynamicBinding(DynamicParameterBinding binding);
+	bool RemoveDynamicBinding(const std::string& moduleId, const std::string& parameterId);
+	const DynamicParameterBinding* FindDynamicBinding(const std::string& moduleId, const std::string& parameterId) const;
+	const std::vector<DynamicParameterBinding>& GetDynamicBindings() const { return dynamicBindings_; }
 
 	void RemoveModule(size_t index);
 	void MoveModuleUp(size_t index);
@@ -190,10 +217,12 @@ private:
 	void UpdateCPU(float deltaTime);
 	void UpdateGPU(float deltaTime, CameraManager* camera);
 	void UpdateGPUSpawns(float deltaTime);
+	void UpdatePureGPULifecycle(float deltaTime);
 	void RemoveDeadParticles();
 	void ExecuteSpawnModules(ParticleContext& context);
 	void ExecuteUpdateModules(ParticleContext& context);
 	void SortModulesByPriority();
+	void ApplyDynamicBindings();
 
 private:
 	//===== 基本情報 =====//
@@ -213,12 +242,22 @@ private:
 	Vector3 followOffset_ = {};                     ///< 追従時のオフセット
 	Transform* followTarget_ = nullptr;             ///< 追従対象のTransform（外部オブジェクト追従）
 	int followEmitterIndex_ = -1;                   ///< 同じエフェクト内の別エミッターインデックス（-1:追従なし）
+	int gpuEventSourceEmitterIndex_ = -1;           ///< GPU event source（同一Effect内、sourceは前方index）
+	uint32_t gpuEventTrigger_ = 1;                  ///< 0=Spawn, 1=Death, 2=Collision
+	float gpuEventProbability_ = 1.0f;
+	bool gpuEventInheritVelocity_ = false;
+	float gpuEventVelocityScale_ = 1.0f;
+	bool gpuEventInheritColor_ = false;
 	Vector3 followEmitterPosition_ = {};            ///< 追従対象エミッターの位置（ParticleEffectが設定）
 	bool followingEmitter_ = false;                 ///< エミッター追従中フラグ
 
 	//===== 内部状態 =====//
 	uint32_t nextParticleId_ = 0;                   ///< 次に生成するパーティクルのID
 	bool modulesSorted_ = false;                    ///< モジュールが優先度順にソート済みか
+	CompiledEmitter compiledEmitter_;               ///< registryで検証・コンパイル済みの実行stack
+	bool compiledEmitterDirty_ = true;
+	ModuleParameterStore parameterStore_;           ///< emitter/user typed parameter namespace
+	std::vector<DynamicParameterBinding> dynamicBindings_;
 	bool enabled_ = true;                           ///< エミッター有効フラグ
 
 	//===== ライフサイクル設定 =====//
@@ -234,6 +273,7 @@ private:
 	bool isEmitting_ = true;                        ///< パーティクル生成中か
 	bool delayElapsed_ = false;                     ///< 遅延経過済みか
 	bool isPaused_ = false;                         ///< 一時停止中か
+	bool pureGpuLoopResetRequested_ = true;          ///< GPU EmitterStateを次回prepareでリセット
 
 	//===== 移動検出 =====//
 	bool spawnOnlyWhenMoving_ = false;              ///< 移動時のみパーティクル生成するか

@@ -571,6 +571,14 @@ bool GameObject::SaveJson(const std::string& path) const
 
 	// 1. GameObject 自身のパラメータをシリアライズ
 	nlohmann::json json = JsonEditableBase::Serialize();
+	const EmissiveSettings emissive = GetEmissiveSettings();
+	const char* emissiveSource = emissive.source == EmissiveSource::BaseTextureMask ? "BaseTextureMask" :
+		(emissive.source == EmissiveSource::EmissiveTexture ? "EmissiveTexture" : "Uniform");
+	json["material"]["emissive"] = {
+		{"enabled", emissive.enabled}, {"source", emissiveSource},
+		{"color", {{"r", emissive.color.x}, {"g", emissive.color.y}, {"b", emissive.color.z}}},
+		{"intensity", emissive.intensity}, {"bloomContribution", emissive.bloomContribution}
+	};
 
 	// 2. 各コンポーネントのJSONをシリアライズして追加
 	nlohmann::json compJson = nlohmann::json::object();
@@ -628,6 +636,26 @@ bool GameObject::LoadJson(const std::string& path)
 
 	// 1. GameObject 自身のパラメータを復元
 	JsonEditableBase::Deserialize(json);
+	if (json.contains("material") && json["material"].is_object() && json["material"].contains("emissive"))
+	{
+		const auto& node = json["material"]["emissive"];
+		if (!node.is_object()) return false;
+		EmissiveSettings emissive;
+		emissive.enabled = node.value("enabled", false);
+		const std::string source = node.value("source", "Uniform");
+		if (source == "Uniform") emissive.source = EmissiveSource::Uniform;
+		else if (source == "BaseTextureMask") emissive.source = EmissiveSource::BaseTextureMask;
+		else if (source == "EmissiveTexture") emissive.source = EmissiveSource::EmissiveTexture;
+		else return false;
+		if (node.contains("color") && node["color"].is_object())
+		{
+			const auto& color = node["color"];
+			emissive.color = { color.value("r", 1.0f), color.value("g", 1.0f), color.value("b", 1.0f) };
+		}
+		emissive.intensity = node.value("intensity", 1.0f);
+		emissive.bloomContribution = node.value("bloomContribution", 1.0f);
+		SetEmissiveSettings(emissive);
+	}
 
 	// 2. 各コンポーネントのパラメータを復元
 	if (json.contains("components") && json["components"].is_object())
@@ -663,6 +691,19 @@ void GameObject::DrawImGui()
 
 	// 自身のプロパティ（TransformやName）を描画
 	JsonEditableBase::DrawImGui();
+	if (renderable3d_ && ImGui::CollapsingHeader("Selective Bloom"))
+	{
+		EmissiveSettings emissive = GetEmissiveSettings();
+		bool changed = ImGui::Checkbox("Enabled##GameObjectEmissive", &emissive.enabled);
+		const char* sources[] = { "Uniform", "Base Texture Mask", "Emissive Texture" };
+		int source = static_cast<int>(emissive.source);
+		changed |= ImGui::Combo("Source##GameObjectEmissive", &source, sources, IM_ARRAYSIZE(sources));
+		emissive.source = static_cast<EmissiveSource>((std::clamp)(source, 0, 2));
+		changed |= ImGui::ColorEdit3("Color##GameObjectEmissive", &emissive.color.x, ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_Float);
+		changed |= ImGui::DragFloat("Intensity##GameObjectEmissive", &emissive.intensity, 0.05f, 0.0f, 64.0f);
+		changed |= ImGui::SliderFloat("Bloom Contribution##GameObjectEmissive", &emissive.bloomContribution, 0.0f, 1.0f);
+		if (changed) SetEmissiveSettings(emissive);
+	}
 
 	// 各コンポーネントのプロパティを描画
 	for (const auto& [compName, comp] : components_)

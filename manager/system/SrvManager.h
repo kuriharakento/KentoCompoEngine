@@ -11,7 +11,7 @@ namespace KCE
  * 描画パイプラインへのバインディングを担当します。
  * 
  * 主な機能:
- * - ディスクリプタヒープの管理（最大512個のSRV）
+ * - ディスクリプタヒープの管理（最大4096個のSRV/UAV）
  * - 2Dテクスチャ、キューブマップテクスチャのSRV作成
  * - Structured Buffer（インスタンシング等）のSRV作成
  * - CPUハンドル（SRV作成時）とGPUハンドル（シェーダーバインド時）の取得
@@ -38,6 +38,7 @@ public:
 	 * @note 最大SRV数に達している場合はアサートで停止します
 	 */
 	uint32_t Allocate();
+	bool TryAllocate(uint32_t& outIndex);
 
 	/**
 	 * @brief 連続するSRVインデックスを確保する
@@ -50,6 +51,8 @@ public:
 	 * @note 最大SRV数を超える場合はアサートで停止します
 	 */
 	uint32_t AllocateRange(uint32_t count);
+	bool TryAllocateRange(uint32_t count, uint32_t& outStartIndex);
+	bool FreeRange(uint32_t startIndex, uint32_t count);
 
 	/**
 	 * @brief 2DテクスチャのSRVを作成する
@@ -133,10 +136,9 @@ public:
 	 * @brief 現在アクティブなSRV数を取得する（解放済みを差し引いた実使用数）
 	 * @return useIndex_ - freeList_.size()
 	 */
-	uint32_t GetActiveSRVCount() const
-	{
-		return useIndex_ - static_cast<uint32_t>(freeList_.size());
-	}
+	uint32_t GetActiveSRVCount() const { return activeCount_; }
+	uint32_t GetAvailableSRVCount() const { return kMaxSRVCount - activeCount_; }
+	bool IsAllocated(uint32_t index) const { return index < allocated_.size() && allocated_[index] != 0; }
 
 	/**
 	 * @brief SRV数が最大に達しているか確認する
@@ -176,7 +178,7 @@ public: // アクセッサ
 	D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(uint32_t index);
 
 public:
-	// 最大SRV数（512個：一般的なゲームで十分な数、GPUメモリ効率のバランス）
+	// 最大SRV/UAV数（GPU particle stress presetを含む）
 	static const uint32_t kMaxSRVCount;
 	// 「未確保」を表す番兵値。各クラスのSRVフィールドはこの値で初期化する
 	static constexpr uint32_t kInvalidSrvIndex = UINT32_MAX;
@@ -194,13 +196,15 @@ private:
 
 	// 解放済みインデックスリスト
 	std::vector<uint32_t> freeList_;
+	std::vector<uint8_t> allocated_;
+	uint32_t activeCount_ = 0;
 
 public:
 	/**
 	 * @brief SRVインデックスを解放する
 	 * @param index 解放するSRVインデックス
 	 */
-	void Free(uint32_t index);
+	bool Free(uint32_t index);
 
 
 };
