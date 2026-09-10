@@ -23,6 +23,7 @@
 #include "manager/editor/ConsoleLog.h"
 #include "graphics/RenderFormats.h"
 #include "graphics/shader/ShaderHotReload.h"
+#include "graphics/pipeline/StandardRenderPasses.h"
 // editor
 #include "editor/EditorContext.h"
 #include "editor/SceneViewContext.h"
@@ -248,6 +249,14 @@ void Framework::Initialize()
 	// Skyboxの初期化
 	skybox_ = std::make_unique<Skybox>();
 
+	// 描画パイプラインの構築。
+	// 描画順はここに集約されており、アプリ側の Draw() には展開しない。
+	renderPipeline_ = std::make_unique<RenderPipeline>();
+	BuildStandardRenderPipeline(*renderPipeline_);
+#ifdef USE_IMGUI
+	renderPipeline_->RegisterDebugUI();
+#endif
+
 	// ウィンドウのリサイズコールバックを登録する
 	winApp_->SetResizeCallback([this](uint32_t width, uint32_t height) {
 		// GPUのコマンド完了を待機する
@@ -330,6 +339,9 @@ void Framework::Finalize()
 	shadowMapPipeline_.reset();
 	shadowMapManager_.reset();
 
+	// パスは各マネージャーを参照するだけで所有しないため、解放順は問わない
+	renderPipeline_.reset();
+
 	GameObjectEditor::GetInstance()->Finalize();
 	JsonEditor::GetInstance()->Finalize();
 }
@@ -382,29 +394,43 @@ void Framework::Update()
 	JsonEditor::GetInstance()->RenderEditUI();
 }
 
+RenderPassContext Framework::MakeRenderPassContext(RenderTexture* outputTarget) const
+{
+	RenderPassContext ctx;
+	ctx.dxCommon = dxCommon_.get();
+	ctx.srvManager = srvManager_.get();
+	ctx.cameraManager = cameraManager_.get();
+	ctx.lightManager = lightManager_.get();
+	ctx.sceneManager = sceneManager_.get();
+	ctx.skybox = skybox_.get();
+	ctx.objectCommon = objectCommon_.get();
+	ctx.spriteCommon = spriteCommon_.get();
+	ctx.shadowMapManager = shadowMapManager_.get();
+	ctx.shadowMapPipeline = shadowMapPipeline_.get();
+	ctx.shadowNearPlane = shadowNearPlane_;
+	ctx.shadowFarPlane = shadowFarPlane_;
+	ctx.deferredRenderer = deferredRenderer_.get();
+	ctx.sceneColor = renderTexture_.get();
+	ctx.outputTarget = outputTarget;
+	ctx.postProcessManager = postProcessManager_.get();
+	return ctx;
+}
+
+void Framework::ExecuteRenderPipeline(RenderTexture* outputTarget)
+{
+	if (!renderPipeline_)
+	{
+		return;
+	}
+
+	renderPipeline_->Execute(MakeRenderPassContext(outputTarget));
+}
+
 void Framework::Draw3DSetting()
 {
-	// 3Dオブジェクト描画の共通設定
-	objectCommon_->CommonRenderingSetting();
-
-	// カスケードシャドウマップのグローバル設定
-	if (shadowMapManager_ && shadowMapManager_->HasCascadeShadowMaps())
-	{
-		auto* commandList = dxCommon_->GetCommandList();
-		auto& cascadeShadowMap = shadowMapManager_->GetCascadeShadowMap();
-		
-		// 4つのカスケードシャドウマップSRVをバインド（ルートパラメータ12-15 = t6-t9）
-		srvManager_->SetGraphicsRootDescriptorTable(12, cascadeShadowMap.srvIndices[0]);
-		srvManager_->SetGraphicsRootDescriptorTable(13, cascadeShadowMap.srvIndices[1]);
-		srvManager_->SetGraphicsRootDescriptorTable(14, cascadeShadowMap.srvIndices[2]);
-		srvManager_->SetGraphicsRootDescriptorTable(15, cascadeShadowMap.srvIndices[3]);
-		
-		// カスケードシャドウデータCBV（ルートパラメータ11 = b7）をバインド
-		D3D12_GPU_VIRTUAL_ADDRESS cascadeDataAddr = lightManager_->GetCascadeShadowDataGPUAddress();
-		if (cascadeDataAddr != 0) {
-			commandList->SetGraphicsRootConstantBufferView(11, cascadeDataAddr);
-		}
-	}
+	// 実体はフォワードパスと共有する。ここで二重に書くと、
+	// ルートパラメータ番号を変えたときに片方だけ直し忘れる。
+	ApplyCommon3DRenderingSetting(MakeRenderPassContext(nullptr));
 }
 
 
@@ -412,8 +438,7 @@ void Framework::Draw3DSetting()
 
 void Framework::Draw2DSetting()
 {
-	// スプライト描画の共通設定
-	spriteCommon_->CommonRenderingSetting();
+	ApplyCommon2DRenderingSetting(MakeRenderPassContext(nullptr));
 }
 
 void Framework::Run()

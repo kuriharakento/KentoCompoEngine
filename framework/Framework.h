@@ -23,6 +23,8 @@
 #include "graphics/shadow/ShadowMapPipeline.h"
 // deferred
 #include "graphics/deferred/DeferredRenderer.h"
+// render pipeline
+#include "graphics/pipeline/RenderPipeline.h"
 
 namespace KCE
 {
@@ -80,6 +82,38 @@ public: // メンバ関数
 	 * @details FPSとメモリ使用量を表示する
 	 */
 	void ShowPerformanceInfo();
+
+	/**
+	 * @brief 描画パイプラインを実行する
+	 *
+	 * @details シャドウからポストプロセス、2Dまでを一括で描く。
+	 *          派生クラスの Draw() はこれを1回呼ぶだけでよい。
+	 *          パスの構成を変えたい場合は GetRenderPipeline() から差し込む。
+	 *
+	 * @param outputTarget ポストプロセスの出力先。
+	 *                     nullptr の場合はバックバッファへ直接描く。
+	 *                     エディタではシーンをImGuiに表示するため
+	 *                     レンダーターゲットを渡す。
+	 */
+	void ExecuteRenderPipeline(RenderTexture* outputTarget);
+
+	/**
+	 * @brief 描画パイプラインを取得する
+	 * @details 新しいパスを差し込むときに使う。
+	 * @return パイプライン
+	 */
+	RenderPipeline* GetRenderPipeline() { return renderPipeline_.get(); }
+
+	/**
+	 * @brief シャドウマップの描画範囲を設定する
+	 * @param nearPlane ニアクリップ距離
+	 * @param farPlane ファークリップ距離
+	 */
+	void SetShadowRange(float nearPlane, float farPlane)
+	{
+		shadowNearPlane_ = nearPlane;
+		shadowFarPlane_ = farPlane;
+	}
 
 	/**
 	 * @brief 終了リクエストがあるか
@@ -140,5 +174,19 @@ protected: // メンバ変数
 	std::unique_ptr<ShadowMapPipeline> shadowMapPipeline_;
 	// ディファードレンダラー
 	std::unique_ptr<DeferredRenderer> deferredRenderer_;
+	// 描画パイプライン（差し替え可能なパスの列）
+	std::unique_ptr<RenderPipeline> renderPipeline_;
+	// シャドウマップのニアクリップ距離
+	float shadowNearPlane_ = 0.1f;
+	// シャドウマップのファークリップ距離
+	float shadowFarPlane_ = 200.0f;
+
+private:
+	/**
+	 * @brief 描画パスへ渡すコンテキストを組み立てる
+	 * @param outputTarget ポストプロセスの出力先
+	 * @return 組み立てられたコンテキスト
+	 */
+	RenderPassContext MakeRenderPassContext(RenderTexture* outputTarget) const;
 };
 } // namespace KCE

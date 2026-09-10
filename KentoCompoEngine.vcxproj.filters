@@ -115,6 +115,9 @@
     <Filter Include="graphics\deferred">
       <UniqueIdentifier>{0447F050-59CE-B6CE-C68A-260CF06D550F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="graphics\pipeline">
+      <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A409}</UniqueIdentifier>
+    </Filter>
     <Filter Include="graphics\shader">
       <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A408}</UniqueIdentifier>
     </Filter>
@@ -512,6 +515,12 @@
     </ClCompile>
     <ClCompile Include="graphics\shader\ShaderHotReload.cpp">
       <Filter>graphics\shader</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\pipeline\RenderPipeline.cpp">
+      <Filter>graphics\pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\pipeline\StandardRenderPasses.cpp">
+      <Filter>graphics\pipeline</Filter>
     </ClCompile>
     <ClCompile Include="core\Guid.cpp">
       <Filter>core</Filter>
@@ -1069,6 +1078,18 @@
     </ClInclude>
     <ClInclude Include="graphics\shader\ShaderHotReload.h">
       <Filter>graphics\shader</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\pipeline\IRenderPass.h">
+      <Filter>graphics\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\pipeline\RenderPassContext.h">
+      <Filter>graphics\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\pipeline\RenderPipeline.h">
+      <Filter>graphics\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\pipeline\StandardRenderPasses.h">
+      <Filter>graphics\pipeline</Filter>
     </ClInclude>
     <ClInclude Include="core\Guid.h">
       <Filter>core</Filter>
