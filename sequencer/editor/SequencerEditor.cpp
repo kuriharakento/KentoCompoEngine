@@ -29,6 +29,7 @@ bool SequencerEditor::HasInstance()
 #include <cstdio>
 
 #include "ImGuizmo/ImGuizmo.h"
+#include "base/Logger.h"
 #include "editor/EditorContext.h"
 #include "editor/SceneViewContext.h"
 #include "editor/SelectionContext.h"
@@ -183,6 +184,13 @@ void SequencerEditor::Initialize(CameraManager* cameraManager, LightManager* lig
 	sequence_.AddBinding(binding);
 
 	player_.SetSequence(&sequence_);
+
+	// エディタでの再生中はイベントの発火を画面とログに出して確認できるようにする
+	player_.SetEventCallback([this](const std::string& eventName)
+	{
+		statusMessage_ = "Event: " + eventName;
+		Logger::Log("Sequencer Event: " + eventName + "\n");
+	});
 
 	DebugUIManager* debugUI = DebugUIManager::GetInstance();
 	debugUI->RegisterDebugUI(this, "Sequencer", [this]() { DrawTimelineWindow(); }, DebugUIArea::Project);
@@ -933,6 +941,12 @@ void SequencerEditor::DrawBezierEditor()
 		return;
 	}
 
+	// イベントのように補間を持たないキーには、補間の編集UIを出さない
+	if (!channel->HasInterpolation())
+	{
+		return;
+	}
+
 	const size_t trackIndex = static_cast<size_t>(selected.trackIndex);
 	const size_t keyIndex = static_cast<size_t>(selected.keyIndex);
 	InterpolationMode& interp = channel->GetKeyInterp(keyIndex);
@@ -1038,7 +1052,7 @@ void SequencerEditor::DrawTrackInspector(size_t trackIndex)
 	BindingType bindingType;
 	if (!GetBindingTypeForTrack(*track, bindingType))
 	{
-		ImGui::TextDisabled("このトラックは役を使いません（画面全体に作用します）");
+		ImGui::TextDisabled("このトラックは役を使いません");
 		return;
 	}
 

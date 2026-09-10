@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "audio/Audio.h"
+#include "sequencer/track/EventTrack.h"
 #include "time/TimeManager.h"
 
 namespace KCE
@@ -39,6 +40,8 @@ void SequencePlayer::Play()
 	state_ = PlaybackState::Playing;
 	StartAudio(0.0f);
 	ApplyTime(time_);
+	// 0 秒ちょうどに置かれたイベントも開始時に発火させる
+	FireEvents(-1.0f, 0.0f, false);
 }
 
 void SequencePlayer::Resume()
@@ -122,7 +125,10 @@ void SequencePlayer::SkipToEnd()
 	}
 
 	// 純関数契約のおかげで、末尾を一度評価するだけで最終状態になる
+	const float skippedFrom = time_;
 	Seek(GetDuration());
+	// 飛ばした範囲のうち、進行に必要なイベント（fireOnSkip）だけを発火する
+	FireEvents(skippedFrom, GetDuration(), true);
 	state_ = PlaybackState::Stopped;
 	StopAudio();
 
@@ -139,6 +145,7 @@ void SequencePlayer::Update()
 	}
 
 	const float duration = GetDuration();
+	const float previousTime = time_;
 	float newTime = time_;
 
 	if (IsAudioDriven())
@@ -177,7 +184,40 @@ void SequencePlayer::Update()
 		}
 	}
 
-	ApplyTime((std::max)(newTime, 0.0f));
+	const float appliedTime = (std::max)(newTime, 0.0f);
+	ApplyTime(appliedTime);
+
+	// 状態を適用した後で、このフレームに通過したイベントを発火する
+	// （ゲーム側がイベントの時点の状態を見られるように）
+	if (appliedTime >= previousTime)
+	{
+		FireEvents(previousTime, appliedTime, false);
+	}
+	else
+	{
+		// ループで先頭へ折り返した
+		FireEvents(previousTime, duration, false);
+		FireEvents(-1.0f, appliedTime, false);
+	}
+}
+
+void SequencePlayer::FireEvents(float from, float to, bool skipping)
+{
+	if (!sequence_ || !eventCallback_)
+	{
+		return;
+	}
+
+	for (const auto& track : sequence_->GetTracks())
+	{
+		const auto* eventTrack = dynamic_cast<const EventTrack*>(track.get());
+		if (!eventTrack || eventTrack->IsMuted())
+		{
+			continue;
+		}
+		eventTrack->ForEachEventInRange(from, to, skipping,
+			[this](const SequenceEvent& event) { eventCallback_(event.name); });
+	}
 }
 
 void SequencePlayer::EvaluateCurrentTime()

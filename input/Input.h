@@ -249,6 +249,38 @@ public:
     bool IsUICapturingMouse() const;
 
     /**
+     * @brief ゲーム操作のロックを設定
+     *
+     * ロック中は PushKey / TriggerKey / マウス / ゲームパッドの入力がすべて
+     * 「押されていない」になります。カットシーン中にプレイヤーを動かさないために使います
+     * （SEQUENCER_PLAN 7.7）。スキップ操作などシステム側の入力は *Raw 系で読みます。
+     * @param locked ロックするならtrue
+     */
+    void SetGameplayLocked(bool locked);
+
+    /**
+     * @brief ゲーム操作がロックされているか
+     * @return ロック中ならtrue
+     */
+    bool IsGameplayLocked() const { return gameplayLocked_; }
+
+    /**
+     * @brief ロックの影響を受けずに、キーが押された瞬間かチェック
+     * @details カットシーンのスキップなど、ロック中でも受け付けたいシステムの入力用。
+     * @param keyNumber DirectInputのキーコード（DIK_*定数）
+     * @return キーが押された瞬間の場合true
+     */
+    bool TriggerKeyRaw(BYTE keyNumber) const;
+
+    /**
+     * @brief ロックの影響を受けずに、ゲームパッドのボタンが押された瞬間かチェック
+     * @param gamepadIndex ゲームパッドのインデックス（0〜3）
+     * @param buttonCode XInputのボタンコード（XINPUT_GAMEPAD_*定数）
+     * @return ボタンが押された瞬間の場合true
+     */
+    bool IsButtonTriggeredRaw(DWORD gamepadIndex, DWORD buttonCode) const;
+
+    /**
      * @brief マウスの固定状態を設定
      * 
      * 有効にするとマウスカーソルがウィンドウ中央に固定され、
@@ -321,6 +353,11 @@ private:
     POINT mousePos_;           // マウスの現在座標
     bool isMouseLockEnabled_ = false; // マウス固定フラグ
     bool isUICaptureEnabled_ = true;  // エディタUIによる入力横取りの有効フラグ
+    bool gameplayLocked_ = false;     // ゲーム操作のロック（カットシーン中など）
+    BYTE rawKey_[256] = {};           // ロック前のキーボード状態（システム入力用）
+    BYTE rawKeyPre_[256] = {};        // ロック前の前フレームのキーボード状態
+    WORD rawGamepadButtons_[XUSER_MAX_COUNT] = {};    // ロック前のゲームパッドのボタン
+    WORD rawGamepadButtonsPre_[XUSER_MAX_COUNT] = {}; // ロック前の前フレームのボタン
     bool isMouseVisible_ = true;      // マウス表示フラグ
     bool preMouseVisible_ = true;     // 前フレームのマウス表示状態
 

@@ -1,5 +1,7 @@
 #include "sequencer/core/BindingContext.h"
 
+#include "math/MatrixFunc.h"
+
 namespace KCE
 {
 namespace
@@ -54,6 +56,37 @@ const std::string& BindingContext::GetLightName(const std::string& role) const
 {
 	const auto it = lightNames_.find(role);
 	return it != lightNames_.end() ? it->second : kEmptyLightName;
+}
+
+Vector3 BindingContext::ApplyOriginToPoint(const Vector3& localPosition) const
+{
+	if (!origin_.enabled)
+	{
+		return localPosition;
+	}
+
+	// 行ベクトル規約（v * M）で Y 軸回りに回してから平行移動する。
+	// エンジンの MakeRotateYMatrix と同じ向きになるよう、行列から直接計算する
+	const Matrix4x4 rotation = MakeRotateYMatrix(origin_.yaw);
+	const Vector3 rotated = {
+		localPosition.x * rotation.m[0][0] + localPosition.y * rotation.m[1][0] + localPosition.z * rotation.m[2][0],
+		localPosition.x * rotation.m[0][1] + localPosition.y * rotation.m[1][1] + localPosition.z * rotation.m[2][1],
+		localPosition.x * rotation.m[0][2] + localPosition.y * rotation.m[1][2] + localPosition.z * rotation.m[2][2],
+	};
+	return rotated + origin_.position;
+}
+
+Quaternion BindingContext::ApplyOriginToRotation(const Quaternion& localRotation) const
+{
+	if (!origin_.enabled)
+	{
+		return localRotation;
+	}
+
+	// クォータニオンの積の順序の規約に依存しないよう、行列で合成してから戻す。
+	// 行ベクトル規約なので「ローカルの回転 → 原点の回転」の順に掛ける
+	const Matrix4x4 combined = Multiply(localRotation.ToMatrix(), MakeRotateYMatrix(origin_.yaw));
+	return Quaternion::FromMatrix(combined);
 }
 
 void BindingContext::Clear()

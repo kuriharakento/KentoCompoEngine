@@ -39,6 +39,13 @@ public:
 	virtual InterpolationMode& GetKeyInterp(size_t index) = 0;
 	virtual BezierHandle& GetKeyBezier(size_t index) = 0;
 
+	/**
+	 * @brief キーの間を補間するチャンネルか
+	 * @details イベントのように「その時刻に起きるだけ」のキーは補間を持たない。
+	 *          偽を返すチャンネルには、エディタは補間とベジェの編集UIを出さない。
+	 */
+	virtual bool HasInterpolation() const { return true; }
+
 	bool IsEmpty() const { return GetKeyCount() == 0; }
 
 	/**

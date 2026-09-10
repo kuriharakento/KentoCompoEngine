@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include <string>
 
 #include "sequencer/core/BindingContext.h"
@@ -137,7 +138,24 @@ public:
 	 */
 	float GetDuration() const;
 
+	/** @brief イベントを受け取るコールバック。引数はイベント名 */
+	using EventCallback = std::function<void(const std::string& eventName)>;
+
+	/**
+	 * @brief EventTrack のイベントを受け取るコールバックを設定する
+	 * @details 再生中に時刻を通過したときと、スキップ時（fireOnSkip のもの）に呼ばれる。
+	 *          スクラブ（Seek）では呼ばれない。
+	 */
+	void SetEventCallback(EventCallback callback) { eventCallback_ = std::move(callback); }
+
 private:
+	/**
+	 * @brief (from, to] の範囲にあるイベントを発火する
+	 * @param from 範囲の始まり（含まない）
+	 * @param to 範囲の終わり（含む）
+	 * @param skipping スキップによる発火なら真
+	 */
+	void FireEvents(float from, float to, bool skipping);
 	/**
 	 * @brief 時刻を適用し、シーケンスを評価する
 	 * @param time 適用する時刻（秒）
@@ -169,5 +187,7 @@ private:
 	bool hasCapturedState_ = false;
 	// 音声を再生中かどうか
 	bool audioStarted_ = false;
+	// イベントの受け取り先
+	EventCallback eventCallback_;
 };
 } // namespace KCE

@@ -35,13 +35,14 @@ void CameraTrack::Evaluate(float time, const BindingContext& ctx)
 
 	// キーを持たないチャンネルには触れない。
 	// 触れてしまうと「位置だけ演出する」トラックが画角を初期値に戻してしまう。
+	// 原点が設定されていれば（カットシーンを現在地で再生する場合）、その位置と向きへ移す
 	if (!positionCurve_.IsEmpty())
 	{
-		camera->SetTranslate(positionCurve_.Evaluate(time));
+		camera->SetTranslate(ctx.ApplyOriginToPoint(positionCurve_.Evaluate(time)));
 	}
 	if (!rotationCurve_.IsEmpty())
 	{
-		camera->SetRotateQuaternion(rotationCurve_.Evaluate(time).Normalized());
+		camera->SetRotateQuaternion(ctx.ApplyOriginToRotation(rotationCurve_.Evaluate(time).Normalized()));
 	}
 	if (!fovCurve_.IsEmpty())
 	{

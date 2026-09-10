@@ -3,6 +3,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include "math/Quaternion.h"
+#include "math/Vector3.h"
+
 namespace KCE
 {
 class Camera;
@@ -32,6 +35,23 @@ struct BindingDefinition
 	std::string role;							  //!< 役の名前（例: "Target", "MainCam"）
 	BindingType type = BindingType::GameObject;	  //!< 割り当てられる実体の型
 	std::string description;					  //!< エディタに表示する説明（任意）
+};
+
+/**
+ * @brief シーケンスを置く原点
+ *
+ * @details SEQUENCER_PLAN 7.7「現在地を原点とする相対座標シーケンス」。
+ *          「被弾リアクション」のカメラワークを原点まわりで作っておけば、
+ *          どこにいる敵に対しても、その位置と向きに合わせて再生できる。
+ *          向きは水平（Y 軸回り）のみ。演出で傾いた原点が要る場面はまず無いため。
+ */
+struct SequenceOrigin
+{
+	bool enabled = false;
+	// 原点の位置（ワールド）
+	Vector3 position{};
+	// 原点の向き（Y 軸回り、ラジアン）
+	float yaw = 0.0f;
 };
 
 /**
@@ -107,6 +127,29 @@ public:
 	void SetBeamRenderer(BeamRenderer* beamRenderer) { beamRenderer_ = beamRenderer; }
 	BeamRenderer* GetBeamRenderer() const { return beamRenderer_; }
 
+	// --- 原点 ---
+
+	/**
+	 * @brief シーケンスを置く原点を設定する
+	 * @details エディタでは常に無効（ワールド座標のまま）で作る。
+	 */
+	void SetOrigin(const SequenceOrigin& origin) { origin_ = origin; }
+	const SequenceOrigin& GetOrigin() const { return origin_; }
+
+	/**
+	 * @brief シーケンス内の位置を、原点を適用したワールドの位置へ変換する
+	 * @param localPosition シーケンス内の位置
+	 * @return ワールドの位置。原点が無効ならそのまま
+	 */
+	Vector3 ApplyOriginToPoint(const Vector3& localPosition) const;
+
+	/**
+	 * @brief シーケンス内の回転を、原点の向きを適用したワールドの回転へ変換する
+	 * @param localRotation シーケンス内の回転
+	 * @return ワールドの回転。原点が無効ならそのまま
+	 */
+	Quaternion ApplyOriginToRotation(const Quaternion& localRotation) const;
+
 	/**
 	 * @brief 役の割り当てを全て解除する
 	 * @details 共有システム（LightManager / PostProcessManager）は解除しない。
@@ -127,5 +170,6 @@ private:
 	PostProcessManager* postProcessManager_ = nullptr;
 	FogRenderer* fogRenderer_ = nullptr;
 	BeamRenderer* beamRenderer_ = nullptr;
+	SequenceOrigin origin_;
 };
 } // namespace KCE

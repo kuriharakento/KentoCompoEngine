@@ -35,6 +35,7 @@
 #include "editor/command/CommandHistory.h"
 // sequencer
 #include "sequencer/editor/SequencerEditor.h"
+#include "sequencer/runtime/CutsceneManager.h"
 
 #ifdef USE_IMGUI
 #include "ImGui/imgui_internal.h"
@@ -289,6 +290,14 @@ void Framework::Initialize()
 	// シーケンサのトラックからフォグの濃さとビームの明るさを動かせるようにする。
 	// シーケンサの初期化はこれらより前なので、ここで後から渡す
 	SequencerEditor::GetInstance()->SetAtmosphere(fogRenderer_.get(), beamRenderer_.get());
+
+	// ゲームからカットシーンを再生する窓口
+	CutsceneManager* cutscene = CutsceneManager::GetInstance();
+	cutscene->Initialize(cameraManager_.get(), lightManager_.get(), postProcessManager_.get());
+	cutscene->SetAtmosphere(fogRenderer_.get(), beamRenderer_.get());
+#ifdef USE_IMGUI
+	cutscene->RegisterDebugUI();
+#endif
 	// Skyboxの初期化
 	skybox_ = std::make_unique<Skybox>();
 
@@ -352,6 +361,7 @@ void Framework::Finalize()
 
 	// エディタ層は、登録先の DebugUIManager より先に片付ける
 	ShaderHotReload::GetInstance()->Finalize();
+	CutsceneManager::GetInstance()->Finalize();
 	SequencerEditor::GetInstance()->Finalize();
 	SceneViewContext::GetInstance()->Finalize();
 	SelectionContext::GetInstance()->Finalize();
@@ -437,6 +447,9 @@ void Framework::Update()
 
 	// 演出シーケンサの更新。カメラの行列を作る前にトラックを評価しておく必要がある。
 	SequencerEditor::GetInstance()->Update();
+
+	// ゲームから再生されたカットシーンの更新（カメラのブレンドもここで行う）
+	CutsceneManager::GetInstance()->Update();
 
 	// カメラの更新
 	cameraManager_->Update();

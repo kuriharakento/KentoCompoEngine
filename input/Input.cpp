@@ -173,7 +173,7 @@ void Input::Update() {
         mouseButtons_[2] = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) ? 1 : 0; // 右ボタン
 
         // ImGuiのウィンドウやギズモを操作している間はゲーム側にクリックを渡さない
-        if (IsUICapturingMouse()) {
+        if (IsUICapturingMouse() || gameplayLocked_) {
             for (int i = 0; i < kMouseButtonCount; ++i) {
                 mouseButtons_[i] = 0;
             }
@@ -226,6 +226,15 @@ void Input::Update() {
         if (IsUICapturingKeyboard()) {
             memset(key_, 0, sizeof(key_));
         }
+
+        // ロック前の状態を残しておく。カットシーンのスキップなど、
+        // ロック中でも受け付けたいシステムの入力はこちらを読む
+        memcpy(rawKeyPre_, rawKey_, sizeof(rawKey_));
+        memcpy(rawKey_, key_, sizeof(key_));
+
+        if (gameplayLocked_) {
+            memset(key_, 0, sizeof(key_));
+        }
     }
 
     // ゲームパッドの状態を更新（XInput）
@@ -246,6 +255,17 @@ void Input::Update() {
                 gamepads_[i].isConnected = false;
                 ZeroMemory(&gamepads_[i].state, sizeof(XINPUT_STATE));
                 ZeroMemory(&gamepads_[i].prevState, sizeof(XINPUT_STATE));
+            }
+        }
+
+        // ロック前のボタンを残してから、ロック中はゲームが読む状態を空にする
+        for (DWORD i = 0; i < kMaxGamepadCount; ++i) {
+            rawGamepadButtonsPre_[i] = rawGamepadButtons_[i];
+            rawGamepadButtons_[i] = gamepads_[i].isConnected ? gamepads_[i].state.Gamepad.wButtons : 0;
+
+            if (gameplayLocked_) {
+                ZeroMemory(&gamepads_[i].state.Gamepad, sizeof(XINPUT_GAMEPAD));
+                ZeroMemory(&gamepads_[i].prevState.Gamepad, sizeof(XINPUT_GAMEPAD));
             }
         }
     }
@@ -506,5 +526,30 @@ bool Input::IsUICapturingMouse() const
 #else
 	return false;
 #endif
+}
+
+void Input::SetGameplayLocked(bool locked)
+{
+	if (gameplayLocked_ && !locked)
+	{
+		// ロック中に押しっぱなしだったキーが、解除した瞬間に
+		// 「押された瞬間」と判定されないよう、前フレームの状態を実際の状態で埋める
+		memcpy(keyPre_, rawKey_, sizeof(rawKey_));
+	}
+	gameplayLocked_ = locked;
+}
+
+bool Input::TriggerKeyRaw(BYTE keyNumber) const
+{
+	return (rawKey_[keyNumber] & 0x80) && !(rawKeyPre_[keyNumber] & 0x80);
+}
+
+bool Input::IsButtonTriggeredRaw(DWORD gamepadIndex, DWORD buttonCode) const
+{
+	if (gamepadIndex >= kMaxGamepadCount)
+	{
+		return false;
+	}
+	return (rawGamepadButtons_[gamepadIndex] & buttonCode) && !(rawGamepadButtonsPre_[gamepadIndex] & buttonCode);
 }
 } // namespace KCE

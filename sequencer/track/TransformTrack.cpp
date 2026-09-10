@@ -31,13 +31,14 @@ void TransformTrack::Evaluate(float time, const BindingContext& ctx)
 	}
 
 	// キーを持たないチャンネルには触れない（位置だけ動かすトラックでスケールを壊さないため）
+	// 原点が設定されていれば（カットシーンを現在地で再生する場合）、その位置と向きへ移す
 	if (!positionCurve_.IsEmpty())
 	{
-		object->SetPosition(positionCurve_.Evaluate(time));
+		object->SetPosition(ctx.ApplyOriginToPoint(positionCurve_.Evaluate(time)));
 	}
 	if (!rotationCurve_.IsEmpty())
 	{
-		object->SetRotation(rotationCurve_.Evaluate(time).Normalized().ToEuler());
+		object->SetRotation(ctx.ApplyOriginToRotation(rotationCurve_.Evaluate(time).Normalized()).ToEuler());
 	}
 	if (!scaleCurve_.IsEmpty())
 	{
