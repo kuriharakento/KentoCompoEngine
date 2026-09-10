@@ -47,7 +47,31 @@ cbuffer PostEffectParams : register(b0)
     float2 invScreenSize;
     float bloomThresholdKnee;
     float bloomMix;
+
+    // Tonemap
+    int tonemapEnabled;
+    float tonemapExposure;
+    int tonemapMode;
+    float pad5;
 };
+
+// ACES のフィルミックカーブ近似（Krzysztof Narkowicz）
+// ハイライトの立ち上がりが自然で、白飽和したときの色転びが少ない
+float3 tonemapACES(float3 color)
+{
+    const float a = 2.51;
+    const float b = 0.03;
+    const float c = 2.43;
+    const float d = 0.59;
+    const float e = 0.14;
+    return saturate((color * (a * color + b)) / (color * (c * color + d) + e));
+}
+
+// Reinhard。素直だがハイライトが眠くなりやすい
+float3 tonemapReinhard(float3 color)
+{
+    return color / (1.0 + color);
+}
 
 // 最適化されたランダム関数
 float fastRandom(float2 uv)
@@ -141,6 +165,15 @@ PixelShaderOutput main(VertexShaderOutput input)
         color += bloom * bloomIntensity;
     }
     
+    // トーンマップ（HDR → LDR）
+    // メインRTがHDRになったため、ここを通らないと1.0を超えた輝度がそのまま出る。
+    // 出力先はsRGBフォーマットなので、リニアのまま書き込めばよい。
+    if (tonemapEnabled != 0)
+    {
+        color *= tonemapExposure;
+        color = (tonemapMode == 0) ? tonemapACES(color) : tonemapReinhard(color);
+    }
+
     PixelShaderOutput output;
     output.color = float4(color, baseColor.a);
     return output;

@@ -1,3 +1,4 @@
+#include "graphics/RenderFormats.h"
 #include "LightPassPipeline.h"
 #include "base/DirectXCommon.h"
 #include "base/Logger.h"
@@ -262,7 +263,7 @@ void LightPassPipeline::CreatePipelineState()
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
 	psoDesc.NumRenderTargets = 1;
-	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	psoDesc.RTVFormats[0] = kSceneColorFormat;
 	psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 
 	psoDesc.SampleDesc.Count = 1;

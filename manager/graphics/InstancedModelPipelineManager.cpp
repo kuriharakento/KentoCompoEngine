@@ -1,3 +1,4 @@
+#include "graphics/RenderFormats.h"
 #include "InstancedModelPipelineManager.h"
 #include "base/Logger.h"
 #include "externals/DirectXTex/d3dx12.h"
@@ -142,7 +143,7 @@ void InstancedModelPipelineManager::CreatePipeline()
 	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 	psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	psoDesc.NumRenderTargets = 1;
-	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	psoDesc.RTVFormats[0] = kSceneColorFormat;
 	psoDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 	psoDesc.SampleDesc.Count = 1;
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;

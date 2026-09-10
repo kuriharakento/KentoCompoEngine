@@ -504,6 +504,9 @@
     <ClCompile Include="time\TimerManager.cpp">
       <Filter>time</Filter>
     </ClCompile>
+    <ClCompile Include="effects\postprocess\TonemapEffect.cpp">
+      <Filter>effects\postprocess</Filter>
+    </ClCompile>
     <ClCompile Include="core\Guid.cpp">
       <Filter>core</Filter>
     </ClCompile>
@@ -1051,6 +1054,12 @@
     </ClInclude>
     <ClInclude Include="time\TimerManager.h">
       <Filter>time</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\postprocess\TonemapEffect.h">
+      <Filter>effects\postprocess</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\RenderFormats.h">
+      <Filter>graphics</Filter>
     </ClInclude>
     <ClInclude Include="core\Guid.h">
       <Filter>core</Filter>

@@ -9,6 +9,7 @@
 #include "effects/postprocess/CRTEffect.h"
 #include "effects/postprocess/GrayscaleEffect.h"
 #include "effects/postprocess/NoiseEffect.h"
+#include "effects/postprocess/TonemapEffect.h"
 #include "effects/postprocess/VignetteEffect.h"
 
 namespace KCE
@@ -91,11 +92,26 @@ public:
      */
     void Resize(uint32_t width, uint32_t height);
 
+#ifdef USE_IMGUI
+    /**
+     * @brief デバッグUIを登録する
+     * @details トーンマップの露出やブルームの閾値は、実際の絵を見ながらでないと
+     *          決められないため、調整用のUIを用意する。
+     */
+    void RegisterDebugUI();
+
+    /**
+     * @brief デバッグUIを描画する
+     */
+    void DrawImGui();
+#endif
+
     std::unique_ptr<GrayscaleEffect> grayscaleEffect_; // グレースケールエフェクト
     std::unique_ptr<VignetteEffect> vignetteEffect_;   // ビネットエフェクト
     std::unique_ptr<NoiseEffect> noiseEffect_;         // ノイズエフェクト
     std::unique_ptr<CRTEffect> crtEffect_;             // CRTエフェクト
     std::unique_ptr<BloomEffect> bloomEffect_;         // ブルームエフェクト
+    std::unique_ptr<TonemapEffect> tonemapEffect_;     // トーンマップ（HDR→LDR）
 
     /**
      * @brief ブライトパスパラメータ

@@ -1,3 +1,4 @@
+#include "graphics/RenderFormats.h"
 #include "PostProcessManager.h"
 
 #include "DirectXTex/d3dx12.h"
@@ -6,6 +7,10 @@
 #include "engine/base/DirectXCommon.h"
 #include "manager/system/SrvManager.h"
 #include "base/RenderTexture.h"
+#ifdef USE_IMGUI
+#include "externals/imgui/imgui.h"
+#include "manager/editor/DebugUIManager.h"
+#endif
 
 namespace KCE
 {
@@ -32,6 +37,7 @@ void PostProcessManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvMana
 	noiseEffect_ = std::make_unique<NoiseEffect>();
 	crtEffect_ = std::make_unique<CRTEffect>();
 	bloomEffect_ = std::make_unique<BloomEffect>();
+	tonemapEffect_ = std::make_unique<TonemapEffect>();
 
 	// ブルームの初期テクセルサイズを設定
 	bloomEffect_->SetInvScreenSize({ 1.0f / width, 1.0f / height });
@@ -97,7 +103,7 @@ void PostProcessManager::SetupPipeline(const std::wstring& vsPath, const std::ws
 	psoDesc.VS = { vs->GetBufferPointer(), vs->GetBufferSize() };
 	psoDesc.PS = { ps->GetBufferPointer(), ps->GetBufferSize() };
 	psoDesc.pRootSignature = rootSignature_.Get();
-	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	psoDesc.RTVFormats[0] = kDisplayColorFormat;
 	psoDesc.NumRenderTargets = 1;
 	psoDesc.SampleDesc.Count = 1;
 	psoDesc.SampleMask = UINT_MAX;
@@ -152,7 +158,7 @@ void PostProcessManager::CreateBloomPipelines()
 		psoDesc.VS = { vs->GetBufferPointer(), vs->GetBufferSize() };
 		psoDesc.PS = { ps->GetBufferPointer(), ps->GetBufferSize() };
 		psoDesc.pRootSignature = bloomRootSignature_.Get();
-		psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;  // HDRフォーマット
+		psoDesc.RTVFormats[0] = kBloomBufferFormat;
 		psoDesc.NumRenderTargets = 1;
 		psoDesc.SampleDesc.Count = 1;
 		psoDesc.SampleMask = UINT_MAX;
@@ -179,7 +185,7 @@ void PostProcessManager::CreateBloomPipelines()
 		psoDesc.VS = { vs->GetBufferPointer(), vs->GetBufferSize() };
 		psoDesc.PS = { ps->GetBufferPointer(), ps->GetBufferSize() };
 		psoDesc.pRootSignature = bloomRootSignature_.Get();
-		psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		psoDesc.RTVFormats[0] = kBloomBufferFormat;
 		psoDesc.NumRenderTargets = 1;
 		psoDesc.SampleDesc.Count = 1;
 		psoDesc.SampleMask = UINT_MAX;
@@ -340,6 +346,7 @@ void PostProcessManager::RenderFinalComposite(RenderTexture* sceneTexture, Rende
 	noiseEffect_->ApplyEffect(params_);
 	crtEffect_->ApplyEffect(params_);
 	bloomEffect_->ApplyEffect(params_);
+	tonemapEffect_->ApplyEffect(params_);
 
 	// 定数バッファを更新
 	UpdateConstantBuffer();
@@ -455,6 +462,7 @@ void PostProcessManager::RenderSinglePass(RenderTexture* inputTexture, RenderTex
 	noiseEffect_->ApplyEffect(params_);
 	crtEffect_->ApplyEffect(params_);
 	bloomEffect_->ApplyEffect(params_);
+	tonemapEffect_->ApplyEffect(params_);
 
 	// 定数バッファを更新
 	UpdateConstantBuffer();
@@ -508,4 +516,77 @@ void PostProcessManager::UpdateConstantBuffer()
 	// 前フレームのパラメータを更新
 	preParams_ = params_;
 }
+
+#ifdef USE_IMGUI
+void PostProcessManager::RegisterDebugUI()
+{
+	DebugUIManager::GetInstance()->RegisterDebugUI(
+		this, "Post Process", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+}
+
+void PostProcessManager::DrawImGui()
+{
+	if (ImGui::CollapsingHeader("Tonemap", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		bool enabled = tonemapEffect_->IsEnabled();
+		if (ImGui::Checkbox("Enabled##Tonemap", &enabled))
+		{
+			tonemapEffect_->SetEnabled(enabled);
+		}
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("メインRTはHDRです。無効にすると 1.0 を超えた輝度が\nそのまま出力されるため、確認用途以外では有効のままにしてください");
+		}
+
+		int mode = static_cast<int>(tonemapEffect_->GetMode());
+		if (ImGui::Combo("Mode##Tonemap", &mode, "ACES\0Reinhard\0"))
+		{
+			tonemapEffect_->SetMode(static_cast<TonemapMode>(mode));
+		}
+
+		float exposure = tonemapEffect_->GetExposure();
+		if (ImGui::DragFloat("Exposure", &exposure, 0.01f, 0.01f, 16.0f, "%.2f"))
+		{
+			tonemapEffect_->SetExposure(exposure);
+		}
+	}
+
+	if (ImGui::CollapsingHeader("Bloom"))
+	{
+		bool enabled = bloomEffect_->IsEnabled();
+		if (ImGui::Checkbox("Enabled##Bloom", &enabled))
+		{
+			bloomEffect_->SetEnabled(enabled);
+		}
+
+		float threshold = bloomEffect_->GetThreshold();
+		if (ImGui::DragFloat("Threshold", &threshold, 0.01f, 0.0f, 16.0f, "%.2f"))
+		{
+			bloomEffect_->SetThreshold(threshold);
+		}
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("HDR化したので 1.0 を超える閾値にも意味があります");
+		}
+
+		float intensity = bloomEffect_->GetIntensity();
+		if (ImGui::DragFloat("Intensity", &intensity, 0.01f, 0.0f, 8.0f, "%.2f"))
+		{
+			bloomEffect_->SetIntensity(intensity);
+		}
+
+		float knee = bloomEffect_->GetThresholdKnee();
+		if (ImGui::DragFloat("Threshold Knee", &knee, 0.01f, 0.0f, 1.0f, "%.2f"))
+		{
+			bloomEffect_->SetThresholdKnee(knee);
+		}
+
+		float radius = bloomEffect_->GetRadius();
+		if (ImGui::DragFloat("Radius", &radius, 0.1f, 0.0f, 64.0f, "%.1f"))
+		{
+			bloomEffect_->SetRadius(radius);
+		}
+	}
+}
+#endif
 } // namespace KCE

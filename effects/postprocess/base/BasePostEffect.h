@@ -99,6 +99,17 @@ struct alignas(16) PostEffectParams
 	// オリジナル画像とBloom画像の合成比率 (1.0f: Bloomを完全に適用)
 	float bloomMix;
 
+	/** @brief トーンマップ */
+	// トーンマップ有効フラグ (0: 無効、1: 有効)
+	// メインRTがHDRになったため、最終段でLDRへ落とすこの処理が前提になる
+	int tonemapEnabled;
+	// 露出。トーンマップ前に色へ乗算する
+	float tonemapExposure;
+	// トーンマップの種類 (0: ACES、1: Reinhard)
+	int tonemapMode;
+	// 16バイトアラインメント用パディング
+	float pad5;
+
 	/**
 	 * @brief パラメータの等価比較演算子
 	 * @param other 比較対象のパラメータ
@@ -133,7 +144,10 @@ struct alignas(16) PostEffectParams
 			bloomRadius == other.bloomRadius &&
 			invScreenSize == other.invScreenSize &&
 			bloomThresholdKnee == other.bloomThresholdKnee &&
-			bloomMix == other.bloomMix;
+			bloomMix == other.bloomMix &&
+			tonemapEnabled == other.tonemapEnabled &&
+			tonemapExposure == other.tonemapExposure &&
+			tonemapMode == other.tonemapMode;
 	}
 
 	/**

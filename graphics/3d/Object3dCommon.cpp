@@ -1,3 +1,4 @@
+#include "graphics/RenderFormats.h"
 #include "Object3dCommon.h"
 
 #include <cassert>
@@ -307,7 +308,7 @@ void Object3dCommon::CreateGraphicsPipelineState()
 
 	// レンダーターゲットの設定
 	graphicsPipelineStateDesc.NumRenderTargets = 1;
-	graphicsPipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	graphicsPipelineStateDesc.RTVFormats[0] = kSceneColorFormat;
 	graphicsPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	graphicsPipelineStateDesc.SampleDesc.Count = 1;
 	graphicsPipelineStateDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;

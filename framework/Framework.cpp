@@ -21,6 +21,7 @@
 #include "manager/graphics/SkinningPipelineManager.h"
 #include "manager/editor/DebugUIManager.h"
 #include "manager/editor/ConsoleLog.h"
+#include "graphics/RenderFormats.h"
 // editor
 #include "editor/EditorContext.h"
 #include "editor/SceneViewContext.h"
@@ -151,13 +152,14 @@ void Framework::Initialize()
 	// メインレンダーテクスチャの初期化
 	renderTexture_ = std::make_unique<RenderTexture>();
 	Vector4 clearColor = { kClearColorR, kClearColorG, kClearColorB, kClearColorA };
-	// DXGI_FORMAT_R8G8B8A8_UNORM_SRGB: 標準的なsRGBフォーマット
+	// HDR。1.0を超える輝度を保持したままポストプロセスへ渡し、
+	// 最終段のトーンマップでLDRへ落とす。
 	renderTexture_->Initialize(
 		dxCommon_.get(),
 		srvManager_.get(),
 		winApp_->GetClientWidth(),
 		winApp_->GetClientHeight(),
-		DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
+		kSceneColorFormat,
 		clearColor
 	);
 
@@ -169,7 +171,7 @@ void Framework::Initialize()
 		srvManager_.get(),
 		winApp_->GetClientWidth(),
 		winApp_->GetClientHeight(),
-		DXGI_FORMAT_R16G16B16A16_FLOAT,
+		kBloomBufferFormat,
 		clearColor
 	);
 
@@ -182,7 +184,7 @@ void Framework::Initialize()
 			srvManager_.get(),
 			winApp_->GetClientWidth(),
 			winApp_->GetClientHeight(),
-			DXGI_FORMAT_R16G16B16A16_FLOAT,
+			kBloomBufferFormat,
 			clearColor
 		);
 	}
@@ -202,6 +204,9 @@ void Framework::Initialize()
 		blurRT_[0].get(),
 		blurRT_[1].get()
 	);
+#ifdef USE_IMGUI
+	postProcessManager_->RegisterDebugUI();
+#endif
 
 	/*----- その他の初期化 -----*/
 
@@ -294,6 +299,12 @@ void Framework::Finalize()
 	lightManager_.reset();
 	LineManager::GetInstance()->Finalize();
 	renderTexture_.reset();
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance() && postProcessManager_)
+	{
+		DebugUIManager::GetInstance()->UnregisterDebugUI(postProcessManager_.get());
+	}
+#endif
 	postProcessManager_.reset();
 	brightPassRT_.reset();
 
