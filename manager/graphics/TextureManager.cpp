@@ -111,6 +111,8 @@ void TextureManager::LoadTexture(const std::string& filePath)
 		// 代替テクスチャ自身の失敗時は再帰せず、未登録のまま戻す。
 		if (normalizedPath == fallbackPath)
 		{
+			// アセット単体の破損ではなく既定リソースが無い状態なので、原因が分かるように別で知らせる
+			Logger::Log("エンジンの既定リソース " + kFallbackTexturePath + " を読み込めない。読めなかったテクスチャの代わりが無いので、表示が崩れる\n", Logger::LogLevel::Error);
 			return;
 		}
 		LoadTexture(kFallbackTexturePath);
@@ -247,6 +249,12 @@ uint32_t TextureManager::GetTextureIndexByFilePath(const std::string& filePath)
 		// 次回以降はログも再検索もせず同じ代替テクスチャを返す。
 		filePathToIndex_[normalizedPath] = fallback->second;
 		return fallback->second;
+	}
+
+	// 代替も無いときは index 0（ImGui のフォント）を返すしかない。落とさない代わりに、何が起きているかを1回だけ出しておく
+	if (failedTexturePaths_.insert("<fallback-missing>").second)
+	{
+		Logger::Log("代替テクスチャ " + kFallbackTexturePath + " が無いため index 0 を返す。既定リソースが揃っているか確認して\n", Logger::LogLevel::Error);
 	}
 	return 0;
 }
