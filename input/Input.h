@@ -363,6 +363,7 @@ private:
 
     BYTE mouseButtons_[3] = {};     // マウスボタン状態（左:0, 中:1, 右:2）
     BYTE mouseButtonsPre_[3] = {};  // 前フレームのマウスボタン状態
+    BYTE rawMouseButtons_[sizeof(mouseButtons_)] = {}; // ロック前のマウスボタン（解除した瞬間の誤判定を防ぐ）
 
     float deadZone_; // アナログスティックのデッドゾーン閾値
 

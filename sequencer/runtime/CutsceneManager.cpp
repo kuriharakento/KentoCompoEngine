@@ -250,8 +250,9 @@ void CutsceneManager::Update()
 		return;
 	}
 
-	// 編集モードでゲーム時間が止まっていても、カットシーンの経過は実時間で測る
-	const float deltaTime = TimeManager::GetInstance().GetGameContext().realDeltaTime;
+	// 編集モードでゲーム時間が止まっていても、カットシーンの経過は実時間で測る。
+	// ゲーム側の realDeltaTime は一時停止中に 0 になるので、止まらない UI 側の時間を使う
+	const float deltaTime = TimeManager::GetInstance().GetUIContext().realDeltaTime;
 	stateTime_ += deltaTime;
 
 	if (state_ == State::Playing)

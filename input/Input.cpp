@@ -172,6 +172,9 @@ void Input::Update() {
         mouseButtons_[1] = (GetAsyncKeyState(VK_MBUTTON) & 0x8000) ? 1 : 0; // 中ボタン
         mouseButtons_[2] = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) ? 1 : 0; // 右ボタン
 
+        // ロックを解除した瞬間に押しっぱなしのボタンを「押された瞬間」にしないよう、消す前の状態を残す
+        memcpy(rawMouseButtons_, mouseButtons_, sizeof(mouseButtons_));
+
         // ImGuiのウィンドウやギズモを操作している間はゲーム側にクリックを渡さない
         if (IsUICapturingMouse() || gameplayLocked_) {
             for (int i = 0; i < kMouseButtonCount; ++i) {
@@ -535,6 +538,15 @@ void Input::SetGameplayLocked(bool locked)
 		// ロック中に押しっぱなしだったキーが、解除した瞬間に
 		// 「押された瞬間」と判定されないよう、前フレームの状態を実際の状態で埋める
 		memcpy(keyPre_, rawKey_, sizeof(rawKey_));
+
+		// ゲームパッドとマウスは次の Update で「今の状態」が前フレームへ写されるので、
+		// 今の状態のほうを実際の値に戻しておく。これが無いと START でスキップした直後に
+		// START を押しっぱなしだと、ゲーム側にポーズの入力として届いてしまう
+		for (DWORD i = 0; i < kMaxGamepadCount; ++i)
+		{
+			gamepads_[i].state.Gamepad.wButtons = rawGamepadButtons_[i];
+		}
+		memcpy(mouseButtons_, rawMouseButtons_, sizeof(mouseButtons_));
 	}
 	gameplayLocked_ = locked;
 }
