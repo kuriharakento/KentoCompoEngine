@@ -755,6 +755,128 @@ D3D12_GPU_DESCRIPTOR_HANDLE DirectXCommon::GetGPUDescriptorHandle(Microsoft::WRL
 	return handleGPU;
 }
 
+std::wstring DirectXCommon::ResolveShaderPath(const std::wstring& filePath)
+{
+	if (std::filesystem::exists(filePath))
+	{
+		return filePath;
+	}
+
+	// 作業ディレクトリの違いを吸収するため、既知の場所を順に探す
+	const std::wstring filename = std::filesystem::path(filePath).filename().wstring();
+	const std::vector<std::wstring> searchPaths = {
+		L"engine/Resources/shaders/" + filename,
+		L"Resources/shaders/" + filename,
+		L"../Resources/shaders/" + filename
+	};
+
+	for (const auto& path : searchPaths)
+	{
+		if (std::filesystem::exists(path))
+		{
+			return path;
+		}
+	}
+
+	return filePath;
+}
+
+Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::TryCompileShader(const std::wstring& filePath, const wchar_t* profile, std::string* outError)
+{
+	const std::wstring targetPath = ResolveShaderPath(filePath);
+
+	if (!std::filesystem::exists(targetPath))
+	{
+		if (outError)
+		{
+			*outError = KCE::StringUtility::ConvertString(targetPath) + " が見つかりません";
+		}
+		return nullptr;
+	}
+
+	IDxcBlobEncoding* shaderSource = nullptr;
+	HRESULT hr = dxcUtils_->LoadFile(targetPath.c_str(), nullptr, &shaderSource);
+	if (FAILED(hr) || shaderSource == nullptr)
+	{
+		if (outError)
+		{
+			*outError = KCE::StringUtility::ConvertString(targetPath) + " を読み込めません";
+		}
+		return nullptr;
+	}
+
+	DxcBuffer shaderSourceBuffer;
+	shaderSourceBuffer.Ptr = shaderSource->GetBufferPointer();
+	shaderSourceBuffer.Size = shaderSource->GetBufferSize();
+	shaderSourceBuffer.Encoding = DXC_CP_UTF8;
+
+	LPCWSTR arguments[] = {
+		targetPath.c_str(),
+		L"-E", L"main",
+		L"-T", profile,
+		L"-Zi", L"-Qembed_debug",
+		L"-Od",
+		L"-Zpr",
+	};
+
+	IDxcResult* shaderResult = nullptr;
+	hr = dxcCompiler_->Compile(
+		&shaderSourceBuffer,
+		arguments,
+		_countof(arguments),
+		includeHandler_.Get(),
+		IID_PPV_ARGS(&shaderResult)
+	);
+
+	if (FAILED(hr) || shaderResult == nullptr)
+	{
+		shaderSource->Release();
+		if (outError)
+		{
+			*outError = "DXCの起動に失敗しました";
+		}
+		return nullptr;
+	}
+
+	// コンパイルエラーはメッセージとして返す。ここで落とすと、
+	// 書きかけのシェーダーを保存した瞬間にアプリが終了してしまう。
+	IDxcBlobUtf8* shaderError = nullptr;
+	shaderResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&shaderError), nullptr);
+	if (shaderError != nullptr && shaderError->GetStringLength() != 0)
+	{
+		if (outError)
+		{
+			*outError = shaderError->GetStringPointer();
+		}
+		shaderError->Release();
+		shaderSource->Release();
+		shaderResult->Release();
+		return nullptr;
+	}
+	if (shaderError != nullptr)
+	{
+		shaderError->Release();
+	}
+
+	IDxcBlob* shaderBlob = nullptr;
+	hr = shaderResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
+	shaderSource->Release();
+	shaderResult->Release();
+
+	if (FAILED(hr) || shaderBlob == nullptr)
+	{
+		if (outError)
+		{
+			*outError = "コンパイル結果を取得できませんでした";
+		}
+		return nullptr;
+	}
+
+	Microsoft::WRL::ComPtr<IDxcBlob> result;
+	result.Attach(shaderBlob);
+	return result;
+}
+
 Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileSharder(const std::wstring& filePath, const wchar_t* profile)
 {
 	/** @brief 1. HLSLファイルを読む */
@@ -763,25 +885,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileSharder(const std::wstrin
 	KCE::Logger::Log(KCE::StringUtility::ConvertString(std::format(L"Begin CompileSharder, path:{}, profile:{}\n", filePath, profile)));
 
 	// ファイルが存在しない場合の自動検索処理
-	std::wstring targetPath = filePath;
-	if (!std::filesystem::exists(targetPath))
-	{
-		std::wstring filename = std::filesystem::path(filePath).filename().wstring();
-		std::vector<std::wstring> searchPaths = {
-			L"engine/Resources/shaders/" + filename,
-			L"Resources/shaders/" + filename,
-			L"../Resources/shaders/" + filename
-		};
-
-		for (const auto& path : searchPaths)
-		{
-			if (std::filesystem::exists(path))
-			{
-				targetPath = path;
-				break;
-			}
-		}
-	}
+	std::wstring targetPath = ResolveShaderPath(filePath);
 
 	//hlslファイルを読む
 	IDxcBlobEncoding* shaderSource = nullptr;

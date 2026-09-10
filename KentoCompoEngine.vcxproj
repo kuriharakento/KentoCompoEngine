@@ -122,6 +122,7 @@
     <ClCompile Include="time\TimerManager.cpp" />
     <ClCompile Include="core\Guid.cpp" />
     <ClCompile Include="effects\postprocess\TonemapEffect.cpp" />
+    <ClCompile Include="graphics\shader\ShaderHotReload.cpp" />
     <ClCompile Include="editor\EditorContext.cpp" />
     <ClCompile Include="editor\SceneViewContext.cpp" />
     <ClCompile Include="editor\SelectionContext.cpp" />
@@ -313,6 +314,7 @@
     <ClInclude Include="core\Guid.h" />
     <ClInclude Include="effects\postprocess\TonemapEffect.h" />
     <ClInclude Include="graphics\RenderFormats.h" />
+    <ClInclude Include="graphics\shader\ShaderHotReload.h" />
     <ClInclude Include="core\SchemaVersion.h" />
     <ClInclude Include="editor\EditorContext.h" />
     <ClInclude Include="editor\SceneViewContext.h" />

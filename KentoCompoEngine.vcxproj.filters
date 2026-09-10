@@ -115,6 +115,9 @@
     <Filter Include="graphics\deferred">
       <UniqueIdentifier>{0447F050-59CE-B6CE-C68A-260CF06D550F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="graphics\shader">
+      <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A408}</UniqueIdentifier>
+    </Filter>
     <Filter Include="graphics\shadow">
       <UniqueIdentifier>{8D1D023A-4247-AF54-F5C8-42FC7426344F}</UniqueIdentifier>
     </Filter>
@@ -506,6 +509,9 @@
     </ClCompile>
     <ClCompile Include="effects\postprocess\TonemapEffect.cpp">
       <Filter>effects\postprocess</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\shader\ShaderHotReload.cpp">
+      <Filter>graphics\shader</Filter>
     </ClCompile>
     <ClCompile Include="core\Guid.cpp">
       <Filter>core</Filter>
@@ -1060,6 +1066,9 @@
     </ClInclude>
     <ClInclude Include="graphics\RenderFormats.h">
       <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\shader\ShaderHotReload.h">
+      <Filter>graphics\shader</Filter>
     </ClInclude>
     <ClInclude Include="core\Guid.h">
       <Filter>core</Filter>

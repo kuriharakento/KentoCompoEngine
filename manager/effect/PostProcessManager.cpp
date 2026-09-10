@@ -23,6 +23,9 @@ void PostProcessManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvMana
 	// 引数をメンバ変数に記録
 	dxCommon_ = dxCommon;
 	srvManager_ = srvManager;
+	// ホットリロードで再コンパイルするために保持しておく
+	vsPath_ = vsPath;
+	psPath_ = psPath;
 
 	// パイプライン作成
 	SetupPipeline(vsPath, psPath);
@@ -515,6 +518,78 @@ void PostProcessManager::UpdateConstantBuffer()
 
 	// 前フレームのパラメータを更新
 	preParams_ = params_;
+}
+
+bool PostProcessManager::ReloadShaders(std::string& outError)
+{
+	// まず全てのシェーダーをコンパイルし、1つでも失敗したら何も差し替えない。
+	// 途中まで差し替えると、パスの一部だけ古いままの中途半端な状態になる。
+	auto finalVS = dxCommon_->TryCompileShader(vsPath_, L"vs_6_0", &outError);
+	if (!finalVS) { return false; }
+
+	auto finalPS = dxCommon_->TryCompileShader(psPath_, L"ps_6_0", &outError);
+	if (!finalPS) { return false; }
+
+	auto postVS = dxCommon_->TryCompileShader(L"Resources/shaders/PostEffect.VS.hlsl", L"vs_6_0", &outError);
+	if (!postVS) { return false; }
+
+	auto brightPS = dxCommon_->TryCompileShader(L"Resources/shaders/BrightPass.PS.hlsl", L"ps_6_0", &outError);
+	if (!brightPS) { return false; }
+
+	auto blurPS = dxCommon_->TryCompileShader(L"Resources/shaders/GaussianBlur.PS.hlsl", L"ps_6_0", &outError);
+	if (!blurPS) { return false; }
+
+	// PSOの共通設定。ルートシグネチャは変わらないため作り直さない。
+	auto makePsoDesc = [](ID3D12RootSignature* rootSignature, IDxcBlob* vs, IDxcBlob* ps, DXGI_FORMAT rtvFormat)
+	{
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC desc{};
+		desc.VS = { vs->GetBufferPointer(), vs->GetBufferSize() };
+		desc.PS = { ps->GetBufferPointer(), ps->GetBufferSize() };
+		desc.pRootSignature = rootSignature;
+		desc.RTVFormats[0] = rtvFormat;
+		desc.NumRenderTargets = 1;
+		desc.SampleDesc.Count = 1;
+		desc.SampleMask = UINT_MAX;
+		desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		desc.InputLayout = { nullptr, 0 };
+		desc.DepthStencilState.DepthEnable = FALSE;
+		desc.DepthStencilState.StencilEnable = FALSE;
+		desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
+		desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+		desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+		return desc;
+	};
+
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> newFinalPSO;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> newBrightPassPSO;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> newBlurPSO;
+
+	auto finalDesc = makePsoDesc(rootSignature_.Get(), finalVS.Get(), finalPS.Get(), kDisplayColorFormat);
+	if (FAILED(dxCommon_->GetDevice()->CreateGraphicsPipelineState(&finalDesc, IID_PPV_ARGS(&newFinalPSO))))
+	{
+		outError = "最終合成パイプラインの生成に失敗しました";
+		return false;
+	}
+
+	auto brightDesc = makePsoDesc(bloomRootSignature_.Get(), postVS.Get(), brightPS.Get(), kBloomBufferFormat);
+	if (FAILED(dxCommon_->GetDevice()->CreateGraphicsPipelineState(&brightDesc, IID_PPV_ARGS(&newBrightPassPSO))))
+	{
+		outError = "ブライトパスパイプラインの生成に失敗しました";
+		return false;
+	}
+
+	auto blurDesc = makePsoDesc(bloomRootSignature_.Get(), postVS.Get(), blurPS.Get(), kBloomBufferFormat);
+	if (FAILED(dxCommon_->GetDevice()->CreateGraphicsPipelineState(&blurDesc, IID_PPV_ARGS(&newBlurPSO))))
+	{
+		outError = "ブラーパスパイプラインの生成に失敗しました";
+		return false;
+	}
+
+	// ここまで来たら全て成功しているので、まとめて差し替える
+	pipelineState_ = newFinalPSO;
+	brightPassPSO_ = newBrightPassPSO;
+	blurPSO_ = newBlurPSO;
+	return true;
 }
 
 #ifdef USE_IMGUI

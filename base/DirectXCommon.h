@@ -66,6 +66,29 @@ public:
 	Microsoft::WRL::ComPtr<IDxcBlob> CompileSharder(const std::wstring& filePath, const wchar_t* profile);
 
 	/**
+	 * @brief シェーダーをコンパイルする（失敗しても落ちない版）
+	 *
+	 * @details CompileSharder() はコンパイルエラーで assert して停止する。
+	 *          起動時はそれでよいが、ホットリロードでは書きかけのシェーダーを
+	 *          保存した瞬間にアプリが落ちてしまい使い物にならない。
+	 *          こちらは失敗を戻り値とエラーメッセージで返す。
+	 *
+	 * @param filePath コンパイルするHLSLのパス
+	 * @param profile シェーダープロファイル（例: L"ps_6_0"）
+	 * @param outError 失敗時のエラーメッセージの出力先（任意）
+	 * @return コンパイル結果のバイナリ。失敗した場合は nullptr
+	 */
+	Microsoft::WRL::ComPtr<IDxcBlob> TryCompileShader(const std::wstring& filePath, const wchar_t* profile, std::string* outError = nullptr);
+
+	/**
+	 * @brief シェーダーの実体があるパスを解決する
+	 * @details 作業ディレクトリの違いを吸収するための探索を行う。
+	 * @param filePath 指定されたパス
+	 * @return 見つかったパス。見つからなければ引数をそのまま返す
+	 */
+	static std::wstring ResolveShaderPath(const std::wstring& filePath);
+
+	/**
 	 * @brief ディスクリプタヒープの生成
 	 * @param heapType ヒープタイプ
 	 * @param numDescriptor ディスクリプタ数

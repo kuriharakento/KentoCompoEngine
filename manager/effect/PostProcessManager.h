@@ -92,6 +92,18 @@ public:
      */
     void Resize(uint32_t width, uint32_t height);
 
+    /**
+     * @brief シェーダーを再コンパイルしてパイプラインを作り直す
+     *
+     * @details ホットリロードから呼ばれる。コンパイルに失敗した場合は
+     *          既存のパイプラインを一切触らずに偽を返す。
+     *          作りかけの状態で差し替えると絵が消えてしまう。
+     *
+     * @param outError 失敗理由の出力先
+     * @return 全てのシェーダーのコンパイルに成功したら真
+     */
+    bool ReloadShaders(std::string& outError);
+
 #ifdef USE_IMGUI
     /**
      * @brief デバッグUIを登録する
@@ -193,6 +205,9 @@ private:
     Microsoft::WRL::ComPtr<ID3D12PipelineState> brightPassPSO_;      // ブライトパス用パイプラインステート
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> bloomRootSignature_; // ブルーム用ルートシグネチャ
     Microsoft::WRL::ComPtr<ID3D12PipelineState> blurPSO_;            // ブラー用パイプラインステート
+
+    std::wstring vsPath_;  // 最終合成の頂点シェーダーのパス（ホットリロード用）
+    std::wstring psPath_;  // 最終合成のピクセルシェーダーのパス（ホットリロード用）
     Microsoft::WRL::ComPtr<ID3D12Resource> brightPassConstantBuffer_; // ブライトパス用定数バッファ
     Microsoft::WRL::ComPtr<ID3D12Resource> blurConstantBuffer_;      // ブラー用定数バッファ
 

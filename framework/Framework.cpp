@@ -22,6 +22,7 @@
 #include "manager/editor/DebugUIManager.h"
 #include "manager/editor/ConsoleLog.h"
 #include "graphics/RenderFormats.h"
+#include "graphics/shader/ShaderHotReload.h"
 // editor
 #include "editor/EditorContext.h"
 #include "editor/SceneViewContext.h"
@@ -208,6 +209,16 @@ void Framework::Initialize()
 	postProcessManager_->RegisterDebugUI();
 #endif
 
+	// シェーダーのホットリロード。以降パスを足していく作業で、
+	// シェーダー1行のために再起動しなくて済むようにする。
+	ShaderHotReload* shaderHotReload = ShaderHotReload::GetInstance();
+	shaderHotReload->Initialize(dxCommon_.get());
+	shaderHotReload->Register(postProcessManager_.get(), "PostProcess",
+		[this](std::string& outError) { return postProcessManager_->ReloadShaders(outError); });
+#ifdef USE_IMGUI
+	shaderHotReload->RegisterDebugUI();
+#endif
+
 	/*----- その他の初期化 -----*/
 
 	// JSONエディターの初期化
@@ -272,6 +283,7 @@ void Framework::Finalize()
 	sceneManager_.reset();
 
 	// エディタ層は、登録先の DebugUIManager より先に片付ける
+	ShaderHotReload::GetInstance()->Finalize();
 	SequencerEditor::GetInstance()->Finalize();
 	SceneViewContext::GetInstance()->Finalize();
 	SelectionContext::GetInstance()->Finalize();
@@ -347,6 +359,9 @@ void Framework::Update()
 
 	// タイマーマネージャーの更新
 	TimerManager::GetInstance().Update();
+
+	// シェーダーの更新を検出してリロードする
+	ShaderHotReload::GetInstance()->Update();
 
 	// 演出シーケンサの更新。カメラの行列を作る前にトラックを評価しておく必要がある。
 	SequencerEditor::GetInstance()->Update();
