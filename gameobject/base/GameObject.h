@@ -18,6 +18,8 @@
 #include "jsonEditor/JsonEditableBase.h"
 // core
 #include "core/Guid.h"
+// graphics
+#include "graphics/view/RenderLayer.h"
 
 namespace KCE
 {
@@ -304,6 +306,21 @@ public: // アクセッサ
 	 */
 	void SetGuid(const Guid& guid) { guid_ = guid; }
 
+	// === 描画レイヤー関連 ===
+	/**
+	 * @brief 描画レイヤーの設定
+	 * @details ビューごとに描く対象を絞り込むために使う。
+	 *          ビューのマスクとビット積が0になるオブジェクトは、そのビューには描かれない。
+	 * @param layer 所属させるレイヤー（MakeRenderLayerMask で作る）
+	 */
+	void SetRenderLayer(RenderLayerMask layer) { renderLayer_ = layer; }
+
+	/**
+	 * @brief 描画レイヤーの取得
+	 * @return 所属レイヤー
+	 */
+	RenderLayerMask GetRenderLayer() const { return renderLayer_; }
+
 	// === アクティブ状態関連 ===
 	/**
 	 * @brief アクティブ状態の設定
@@ -440,6 +457,8 @@ private:
 	std::string name_ = "";
 	// 安定ID。生成時に自動採番し、シーンのロード時のみ保存値で上書きする
 	Guid guid_ = Guid::Generate();
+	// 所属する描画レイヤー。ビューごとの描き分けに使う
+	RenderLayerMask renderLayer_ = kRenderLayerDefault;
 	// アクティブ状態フラグ
 	bool isActive_;
 	// 破棄保留中フラグ

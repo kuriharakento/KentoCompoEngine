@@ -8,6 +8,8 @@
 #include "graphics/3d/Object3dCommon.h"
 #include "graphics/3d/Skybox.h"
 #include "graphics/deferred/DeferredRenderer.h"
+#include "graphics/deferred/GBuffer.h"
+#include "graphics/view/RenderView.h"
 #include "graphics/shadow/ShadowMapPipeline.h"
 #include "manager/effect/PostProcessManager.h"
 #include "manager/graphics/LineManager.h"
@@ -176,30 +178,40 @@ void ShadowMapPass::Execute(const RenderPassContext& ctx)
 
 void GBufferPass::Execute(const RenderPassContext& ctx)
 {
-	if (!ctx.deferredRenderer)
+	if (!ctx.deferredRenderer || !ctx.view)
 	{
 		return;
 	}
 
-	ctx.deferredRenderer->BeginGeometryPass();
+	ctx.deferredRenderer->BeginGeometryPass(ctx.view->GetGBuffer());
 	ctx.sceneManager->DrawGBuffer();
-	ctx.deferredRenderer->EndGeometryPass();
+	ctx.deferredRenderer->EndGeometryPass(ctx.view->GetGBuffer());
 }
 
 void LightingPass::Execute(const RenderPassContext& ctx)
 {
-	if (!ctx.deferredRenderer || !ctx.sceneColor)
+	if (!ctx.deferredRenderer || !ctx.view || !ctx.view->IsValid())
 	{
 		return;
 	}
 
+	RenderTexture* sceneColor = ctx.view->GetSceneColor();
+
 	// ここでシーン用レンダーターゲットへの描画を開始する。
 	// 以降のフォワード系パスは同じターゲットへ描き足していく。
-	ctx.sceneColor->BeginRender();
+	sceneColor->BeginRender();
+
+	// ビューにカメラが割り当てられていなければアクティブカメラで描く
+	Camera* camera = ctx.view->GetCamera();
+	if (!camera && ctx.cameraManager)
+	{
+		camera = ctx.cameraManager->GetActiveCamera();
+	}
 
 	ctx.deferredRenderer->ExecuteLightPass(
-		ctx.sceneColor->GetRTVHandle(),
-		ctx.cameraManager,
+		ctx.view->GetGBuffer(),
+		camera,
+		sceneColor->GetRTVHandle(),
 		ctx.lightManager,
 		ctx.shadowMapManager);
 }
@@ -210,22 +222,23 @@ void LightingPass::Execute(const RenderPassContext& ctx)
 
 void ForwardPass::Execute(const RenderPassContext& ctx)
 {
-	if (!ctx.deferredRenderer || !ctx.sceneColor)
+	if (!ctx.view || !ctx.view->IsValid())
 	{
 		return;
 	}
 
 	auto* commandList = ctx.dxCommon->GetCommandList();
+	GBuffer* gBuffer = ctx.view->GetGBuffer();
 
 	// 3D共通設定
 	ApplyCommon3DRenderingSetting(ctx);
 
 	// 深度バッファを書き込み可能状態に遷移する
-	ctx.deferredRenderer->GetGBuffer()->TransitionDepthToDepthWrite();
+	gBuffer->TransitionDepthToDepthWrite();
 
 	// シーン用レンダーターゲットとG-Bufferの深度を束ねる
-	auto dsvHandle = ctx.deferredRenderer->GetGBuffer()->GetDSVHandle();
-	auto rtvHandle = ctx.sceneColor->GetRTVHandle();
+	auto dsvHandle = gBuffer->GetDSVHandle();
+	auto rtvHandle = ctx.view->GetSceneColor()->GetRTVHandle();
 	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
 	// シャドウマップリソースをバインドする
@@ -275,21 +288,30 @@ void ParticlePass::Execute(const RenderPassContext& ctx)
 
 void SceneColorResolvePass::Execute(const RenderPassContext& ctx)
 {
-	if (!ctx.deferredRenderer || !ctx.sceneColor)
+	if (!ctx.view || !ctx.view->IsValid())
 	{
 		return;
 	}
 
 	// 深度バッファをSRV状態へ戻す
-	ctx.deferredRenderer->GetGBuffer()->TransitionDepthToSRV();
+	ctx.view->GetGBuffer()->TransitionDepthToSRV();
 
 	// シーン用レンダーターゲットを読める状態にする
-	ctx.sceneColor->EndRender();
+	ctx.view->GetSceneColor()->EndRender();
 }
 
 ///=============================================================================
 ///						ポストプロセスと2D
 ///=============================================================================
+
+void SubViewRenderPass::Execute(const RenderPassContext& ctx)
+{
+	(void)ctx;
+	if (callback_)
+	{
+		callback_();
+	}
+}
 
 void BackBufferPreparePass::Execute(const RenderPassContext& ctx)
 {
@@ -299,13 +321,13 @@ void BackBufferPreparePass::Execute(const RenderPassContext& ctx)
 
 void PostProcessPass::Execute(const RenderPassContext& ctx)
 {
-	if (!ctx.postProcessManager || !ctx.sceneColor)
+	if (!ctx.postProcessManager || !ctx.view || !ctx.view->IsValid())
 	{
 		return;
 	}
 
 	// 出力先が nullptr の場合はバックバッファへ直接描かれる
-	ctx.postProcessManager->Draw(ctx.sceneColor, ctx.outputTarget);
+	ctx.postProcessManager->Draw(ctx.view->GetSceneColor(), ctx.outputTarget);
 }
 
 void Sprite2DPass::Execute(const RenderPassContext& ctx)
@@ -341,8 +363,22 @@ void BuildStandardRenderPipeline(RenderPipeline& pipeline)
 	pipeline.AddPass(std::make_unique<SkyboxPass>());
 	pipeline.AddPass(std::make_unique<ParticlePass>());
 	pipeline.AddPass(std::make_unique<SceneColorResolvePass>());
+	pipeline.AddPass(std::make_unique<SubViewRenderPass>());
 	pipeline.AddPass(std::make_unique<BackBufferPreparePass>());
 	pipeline.AddPass(std::make_unique<PostProcessPass>());
 	pipeline.AddPass(std::make_unique<Sprite2DPass>());
+}
+
+void BuildSceneOnlyRenderPipeline(RenderPipeline& pipeline)
+{
+	pipeline.Clear();
+
+	// シャドウマップは本編のパイプラインが作ったものをそのまま使う
+	pipeline.AddPass(std::make_unique<GBufferPass>());
+	pipeline.AddPass(std::make_unique<LightingPass>());
+	pipeline.AddPass(std::make_unique<ForwardPass>());
+	pipeline.AddPass(std::make_unique<SkyboxPass>());
+	pipeline.AddPass(std::make_unique<ParticlePass>());
+	pipeline.AddPass(std::make_unique<SceneColorResolvePass>());
 }
 } // namespace KCE

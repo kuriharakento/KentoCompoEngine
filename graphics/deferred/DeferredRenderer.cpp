@@ -10,7 +10,7 @@
 
 namespace KCE
 {
-void DeferredRenderer::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, uint32_t width, uint32_t height)
+void DeferredRenderer::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
 	assert(dxCommon);
 	assert(srvManager);
@@ -18,9 +18,8 @@ void DeferredRenderer::Initialize(DirectXCommon* dxCommon, SrvManager* srvManage
 	dxCommon_ = dxCommon;
 	srvManager_ = srvManager;
 
-	// G-Buffer
-	gBuffer_ = std::make_unique<GBuffer>();
-	gBuffer_->Initialize(dxCommon, srvManager, width, height);
+	// G-Buffer はビュー（RenderView）が持つ。
+	// 解像度ごとに必要なので共有できないが、パイプラインは共有できる。
 
 	// パイプライン
 	gBufferPipeline_ = std::make_unique<GBufferPipeline>();
@@ -34,11 +33,6 @@ void DeferredRenderer::Initialize(DirectXCommon* dxCommon, SrvManager* srvManage
 	CreateLightBuffer();
 
 	KCE::Logger::Log("DeferredRenderer initialized\n");
-}
-
-void DeferredRenderer::Resize(uint32_t width, uint32_t height)
-{
-	gBuffer_->Resize(width, height);
 }
 
 void DeferredRenderer::CreateCameraBuffer()
@@ -59,23 +53,24 @@ void DeferredRenderer::CreateLightBuffer()
 	}
 }
 
-void DeferredRenderer::BeginGeometryPass()
+void DeferredRenderer::BeginGeometryPass(GBuffer* gBuffer)
 {
-	gBuffer_->BeginGeometryPass();
+	if (!gBuffer) return;
+
+	gBuffer->BeginGeometryPass();
 	gBufferPipeline_->SetPipeline();
 }
 
-void DeferredRenderer::EndGeometryPass()
+void DeferredRenderer::EndGeometryPass(GBuffer* gBuffer)
 {
-	gBuffer_->EndGeometryPass();
+	if (!gBuffer) return;
+
+	gBuffer->EndGeometryPass();
 }
 
-void DeferredRenderer::UpdateCameraBuffer(CameraManager* cameraManager)
+void DeferredRenderer::UpdateCameraBuffer(Camera* camera)
 {
-	if (!cameraManager || !cameraData_) return;
-
-	Camera* camera = cameraManager->GetActiveCamera();
-	if (!camera) return;
+	if (!camera || !cameraData_) return;
 
 	cameraData_->worldPos = camera->GetTranslate();
 	cameraData_->viewMatrix = camera->GetViewMatrix();
@@ -149,32 +144,38 @@ void DeferredRenderer::UpdateLightBuffer(LightManager* lightManager, ShadowMapMa
 }
 
 void DeferredRenderer::ExecuteLightPass(
+	GBuffer* gBuffer,
+	Camera* camera,
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,
-	CameraManager* cameraManager,
 	LightManager* lightManager,
 	ShadowMapManager* shadowMapManager
 )
 {
+	if (!gBuffer || !lightManager)
+	{
+		return;
+	}
+
 	auto* commandList = dxCommon_->GetCommandList();
 
 	// バッファ更新
-	UpdateCameraBuffer(cameraManager);
+	UpdateCameraBuffer(camera);
 	UpdateLightBuffer(lightManager, shadowMapManager);
 
 	// レンダーターゲット設定
 	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
-	// ビューポート設定
+	// ビューポート設定。ビューごとに解像度が違うため、G-Bufferの大きさに従う。
 	D3D12_VIEWPORT viewport = {};
-	viewport.Width = static_cast<float>(gBuffer_->GetWidth());
-	viewport.Height = static_cast<float>(gBuffer_->GetHeight());
+	viewport.Width = static_cast<float>(gBuffer->GetWidth());
+	viewport.Height = static_cast<float>(gBuffer->GetHeight());
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 	commandList->RSSetViewports(1, &viewport);
 
 	D3D12_RECT scissorRect = {};
-	scissorRect.right = static_cast<LONG>(gBuffer_->GetWidth());
-	scissorRect.bottom = static_cast<LONG>(gBuffer_->GetHeight());
+	scissorRect.right = static_cast<LONG>(gBuffer->GetWidth());
+	scissorRect.bottom = static_cast<LONG>(gBuffer->GetHeight());
 	commandList->RSSetScissorRects(1, &scissorRect);
 
 	// パイプライン設定
@@ -191,7 +192,7 @@ void DeferredRenderer::ExecuteLightPass(
 	commandList->SetGraphicsRootConstantBufferView(3, lightBuffer_->GetGPUVirtualAddress());
 
 	// 4: G-Buffer SRV Table
-	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = srvManager_->GetGPUDescriptorHandle(gBuffer_->GetSRVIndex(0));
+	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = srvManager_->GetGPUDescriptorHandle(gBuffer->GetSRVIndex(0));
 	commandList->SetGraphicsRootDescriptorTable(4, srvHandle);
 
 	// 5-8: Cascade Shadow Maps

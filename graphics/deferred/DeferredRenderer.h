@@ -18,6 +18,7 @@ class SrvManager;
 class LightManager;
 class ShadowMapManager;
 class CameraManager;
+class Camera;
 
 /**
  * @brief ディファードレンダラークラス
@@ -33,23 +34,49 @@ public:
 	DeferredRenderer() = default;
 	~DeferredRenderer() = default;
 
-	void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, uint32_t width, uint32_t height);
-	void Resize(uint32_t width, uint32_t height);
-	void BeginGeometryPass();
-	void EndGeometryPass();
+	/**
+	 * @brief 初期化する
+	 * @details G-Buffer は所有しない。解像度ごとに必要になるため、
+	 *          ビュー（RenderView）が持つ。ここが持つのは
+	 *          全ビューで共有できるパイプラインステートと定数バッファだけ。
+	 * @param dxCommon DirectXCommonへのポインタ
+	 * @param srvManager SrvManagerへのポインタ
+	 */
+	void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager);
+
+	/**
+	 * @brief G-Bufferパスを開始する
+	 * @param gBuffer 描き込み先のG-Buffer
+	 */
+	void BeginGeometryPass(GBuffer* gBuffer);
+
+	/**
+	 * @brief G-Bufferパスを終了する
+	 * @param gBuffer 対象のG-Buffer
+	 */
+	void EndGeometryPass(GBuffer* gBuffer);
+
+	/**
+	 * @brief ライトパスを実行する
+	 * @param gBuffer 読み込むG-Buffer
+	 * @param camera このビューを描くカメラ
+	 * @param rtvHandle 出力先のRTVハンドル
+	 * @param lightManager ライト管理
+	 * @param shadowMapManager シャドウマップ管理
+	 */
 	void ExecuteLightPass(
+		GBuffer* gBuffer,
+		Camera* camera,
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,
-		CameraManager* cameraManager,
 		LightManager* lightManager,
 		ShadowMapManager* shadowMapManager
 	);
 
 	GBufferPipeline* GetGBufferPipeline() { return gBufferPipeline_.get(); }
-	GBuffer* GetGBuffer() { return gBuffer_.get(); }
 
 private:
 	void CreateCameraBuffer();
-	void UpdateCameraBuffer(CameraManager* cameraManager);
+	void UpdateCameraBuffer(Camera* camera);
 	void CreateLightBuffer();
 	void UpdateLightBuffer(LightManager* lightManager, ShadowMapManager* shadowMapManager);
 
@@ -57,7 +84,6 @@ private:
 	DirectXCommon* dxCommon_ = nullptr;
 	SrvManager* srvManager_ = nullptr;
 
-	std::unique_ptr<GBuffer> gBuffer_;
 	std::unique_ptr<GBufferPipeline> gBufferPipeline_;
 	std::unique_ptr<LightPassPipeline> lightPassPipeline_;
 

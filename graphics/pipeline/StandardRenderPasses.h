@@ -1,4 +1,7 @@
 #pragma once
+#include <functional>
+#include <utility>
+
 #include "graphics/pipeline/IRenderPass.h"
 #include "graphics/pipeline/RenderPipeline.h"
 
@@ -108,6 +111,32 @@ public:
 };
 
 /**
+ * @brief 登録されたサブビューを描くパス
+ *
+ * @details 中継映像やカメラプレビューは、本編のシャドウマップを共有するため
+ *          シャドウパスより後に描く必要がある。一方でポストプロセスより前に
+ *          置かないと、レンダーターゲットの状態を踏み荒らしてしまう。
+ *          その両方を満たす位置がここになる。
+ *
+ *          実際の描画は Framework が持つため、コールバックとして受け取る。
+ */
+class SubViewRenderPass : public IRenderPass
+{
+public:
+	const char* GetName() const override { return "SubViews"; }
+	void Execute(const RenderPassContext& ctx) override;
+
+	/**
+	 * @brief サブビューを描くコールバックを設定する
+	 * @param callback 登録済みのサブビューを順に描く処理
+	 */
+	void SetCallback(std::function<void()> callback) { callback_ = std::move(callback); }
+
+private:
+	std::function<void()> callback_;
+};
+
+/**
  * @brief バックバッファを描画可能な状態にするパス
  *
  * @details 出力先がバックバッファのときだけ動く。
@@ -161,4 +190,17 @@ public:
  * @param pipeline 組み立て先のパイプライン。既存のパスは破棄される
  */
 void BuildStandardRenderPipeline(RenderPipeline& pipeline);
+
+/**
+ * @brief サブビュー用にシーンだけを描くパイプラインを組み立てる
+ *
+ * @details 中継映像・カメラプレビュー・反射など、
+ *          「シーンをレンダーターゲットに焼くだけ」のビュー向け。
+ *
+ *          シャドウマップは本編と共有するのでここには含めない。
+ *          ポストプロセスと2Dも含まない。必要ならビューごとに足すこと。
+ *
+ * @param pipeline 組み立て先のパイプライン。既存のパスは破棄される
+ */
+void BuildSceneOnlyRenderPipeline(RenderPipeline& pipeline);
 } // namespace KCE

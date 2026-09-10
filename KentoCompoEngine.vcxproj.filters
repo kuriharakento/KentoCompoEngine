@@ -118,6 +118,9 @@
     <Filter Include="graphics\pipeline">
       <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A409}</UniqueIdentifier>
     </Filter>
+    <Filter Include="graphics\view">
+      <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A40A}</UniqueIdentifier>
+    </Filter>
     <Filter Include="graphics\shader">
       <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A408}</UniqueIdentifier>
     </Filter>
@@ -521,6 +524,9 @@
     </ClCompile>
     <ClCompile Include="graphics\pipeline\StandardRenderPasses.cpp">
       <Filter>graphics\pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\view\RenderView.cpp">
+      <Filter>graphics\view</Filter>
     </ClCompile>
     <ClCompile Include="core\Guid.cpp">
       <Filter>core</Filter>
@@ -1090,6 +1096,12 @@
     </ClInclude>
     <ClInclude Include="graphics\pipeline\StandardRenderPasses.h">
       <Filter>graphics\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\view\RenderLayer.h">
+      <Filter>graphics\view</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\view\RenderView.h">
+      <Filter>graphics\view</Filter>
     </ClInclude>
     <ClInclude Include="core\Guid.h">
       <Filter>core</Filter>

@@ -126,6 +126,12 @@ void GameObjectManager::Draw3D(CameraManager* camera)
 	{
 		if (obj->IsActive())
 		{
+			// 現在描いているビューの対象でなければ飛ばす
+			if (!IsVisibleInLayerMask(obj->GetRenderLayer(), renderLayerMask_))
+			{
+				continue;
+			}
+
 			// Renderable3dが存在し、かつRenderingTypeがDeferredの場合は、DrawGBufferで描画されるためDraw3Dでは描画しない
 			if (auto* renderable = obj->GetRenderable3d())
 			{
@@ -167,6 +173,12 @@ void GameObjectManager::DrawGBuffer(CameraManager* camera)
 	{
 		if (obj->IsActive())
 		{
+			// 現在描いているビューの対象でなければ飛ばす
+			if (!IsVisibleInLayerMask(obj->GetRenderLayer(), renderLayerMask_))
+			{
+				continue;
+			}
+
 			// Renderable3dが存在し、かつRenderingTypeがDeferredのもののみ描画する
 			if (auto* renderable = obj->GetRenderable3d())
 			{

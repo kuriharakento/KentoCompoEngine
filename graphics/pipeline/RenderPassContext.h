@@ -9,6 +9,7 @@ class LightManager;
 class Object3dCommon;
 class PostProcessManager;
 class RenderTexture;
+class RenderView;
 class SceneManager;
 class ShadowMapManager;
 class ShadowMapPipeline;
@@ -58,12 +59,16 @@ struct RenderPassContext
 	// --- ディファード ---
 	DeferredRenderer* deferredRenderer = nullptr;
 
-	// --- レンダーターゲット ---
+	// --- ビュー ---
 	/**
-	 * @brief シーンを描くHDRのレンダーターゲット
-	 * @details ライトパスからパーティクルまでがここへ描き込む。
+	 * @brief 今描いている視点
+	 *
+	 * @details カメラ・G-Buffer・出力先・描画対象フィルタを束ねたもの。
+	 *          パスはここからカメラとレンダーターゲットを取る。
+	 *          同じパイプラインを別のビューに対して走らせることで、
+	 *          中継映像やカメラプレビューを作れる。
 	 */
-	RenderTexture* sceneColor = nullptr;
+	RenderView* view = nullptr;
 
 	/**
 	 * @brief ポストプロセスの出力先
@@ -85,7 +90,7 @@ struct RenderPassContext
 	 */
 	bool IsValid() const
 	{
-		return dxCommon != nullptr && srvManager != nullptr && sceneManager != nullptr && sceneColor != nullptr;
+		return dxCommon != nullptr && srvManager != nullptr && sceneManager != nullptr && view != nullptr;
 	}
 };
 } // namespace KCE

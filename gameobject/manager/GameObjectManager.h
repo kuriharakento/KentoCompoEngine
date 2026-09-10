@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "core/Guid.h"
+#include "graphics/view/RenderLayer.h"
 
 namespace KCE
 {
@@ -129,6 +130,25 @@ public:
 	 */
 	const std::vector<GameObject*>& GetGameObjects() const { return gameObjects_; }
 
+	/**
+	 * @brief これから描くビューのレイヤーマスクを設定する
+	 *
+	 * @details Draw3D / DrawGBuffer は、このマスクに合致するオブジェクトだけを描く。
+	 *          描画経路は SceneManager からアプリのシーンを経由するため、
+	 *          引数で引き回すにはアプリ側のシーンを全て書き換える必要がある。
+	 *          ビューの描画は必ずパイプラインが順番に行うので、
+	 *          描画の直前に設定して直後に戻す運用にしている。
+	 *
+	 * @param mask 描画対象のレイヤー集合
+	 */
+	void SetRenderLayerMask(RenderLayerMask mask) { renderLayerMask_ = mask; }
+
+	/**
+	 * @brief 現在の描画対象レイヤーマスク
+	 * @return レイヤーマスク
+	 */
+	RenderLayerMask GetRenderLayerMask() const { return renderLayerMask_; }
+
 public:
 	~GameObjectManager() = default;
 
@@ -148,6 +168,9 @@ private:
 
 	// 管理しているGameObjectのリスト（非所有ポインタ）
 	std::vector<GameObject*> gameObjects_;
+
+	// 現在描いているビューの描画対象レイヤー
+	RenderLayerMask renderLayerMask_ = kRenderLayerAll;
 
 	// 動的に作成され、マネージャーが所有するGameObjectのリスト
 	std::vector<std::unique_ptr<GameObject>> dynamicGameObjects_;

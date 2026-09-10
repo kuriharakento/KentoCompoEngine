@@ -25,6 +25,8 @@
 #include "graphics/deferred/DeferredRenderer.h"
 // render pipeline
 #include "graphics/pipeline/RenderPipeline.h"
+// view
+#include "graphics/view/RenderView.h"
 
 namespace KCE
 {
@@ -105,6 +107,50 @@ public: // メンバ関数
 	RenderPipeline* GetRenderPipeline() { return renderPipeline_.get(); }
 
 	/**
+	 * @brief 本編を描くビューを取得する
+	 * @return メインビュー
+	 */
+	RenderView* GetMainView() { return mainView_.get(); }
+
+	/**
+	 * @brief サブビューを1つ描く
+	 *
+	 * @details ステージモニターへの中継映像、カメラプレビュー小窓、
+	 *          床の平面反射などに使う。シーンだけを描き、
+	 *          結果は view->GetSceneColor() に残る。
+	 *
+	 *          シャドウマップは本編のパイプラインが作ったものを共有するので、
+	 *          必ずメインの ExecuteRenderPipeline() より後に呼ぶこと。
+	 *
+	 *          ビューにカメラが設定されている場合、描画の間だけ
+	 *          アクティブカメラを差し替える。既存の描画経路は一様に
+	 *          アクティブカメラを見るため、この方法が最も影響が小さい。
+	 *
+	 * @param view 描画するビュー
+	 */
+	void RenderSubView(RenderView* view);
+
+	/**
+	 * @brief 毎フレーム描くサブビューを登録する
+	 *
+	 * @details 登録されたビューは、本編のシーンを描き終えた後・
+	 *          ポストプロセスの前に描かれる。この位置なら
+	 *          本編のシャドウマップを共有でき、かつ
+	 *          レンダーターゲットの状態を踏み荒らさない。
+	 *
+	 *          所有権は持たない。ビューを破棄する前に必ず登録を解除すること。
+	 *
+	 * @param view 登録するビュー
+	 */
+	void RegisterSubView(RenderView* view);
+
+	/**
+	 * @brief サブビューの登録を解除する
+	 * @param view 解除するビュー
+	 */
+	void UnregisterSubView(RenderView* view);
+
+	/**
 	 * @brief シャドウマップの描画範囲を設定する
 	 * @param nearPlane ニアクリップ距離
 	 * @param farPlane ファークリップ距離
@@ -158,8 +204,8 @@ protected: // メンバ変数
 	std::unique_ptr<SceneFactory> sceneFactory_;
 	// ライトマネージャー
 	std::unique_ptr<LightManager> lightManager_;
-	// レンダーテクスチャ
-	std::unique_ptr<RenderTexture> renderTexture_;
+	// 本編を描くビュー（カメラ・G-Buffer・シーンカラーを束ねたもの）
+	std::unique_ptr<RenderView> mainView_;
 	// ポストプロセスマネージャー
 	std::unique_ptr<PostProcessManager> postProcessManager_;
 	// Skybox
@@ -176,6 +222,10 @@ protected: // メンバ変数
 	std::unique_ptr<DeferredRenderer> deferredRenderer_;
 	// 描画パイプライン（差し替え可能なパスの列）
 	std::unique_ptr<RenderPipeline> renderPipeline_;
+	// サブビュー用の、シーンだけを描くパイプライン
+	std::unique_ptr<RenderPipeline> subViewPipeline_;
+	// 毎フレーム描くサブビュー（所有しない）
+	std::vector<RenderView*> subViews_;
 	// シャドウマップのニアクリップ距離
 	float shadowNearPlane_ = 0.1f;
 	// シャドウマップのファークリップ距離
@@ -187,6 +237,6 @@ private:
 	 * @param outputTarget ポストプロセスの出力先
 	 * @return 組み立てられたコンテキスト
 	 */
-	RenderPassContext MakeRenderPassContext(RenderTexture* outputTarget) const;
+	RenderPassContext MakeRenderPassContext(RenderView* view, RenderTexture* outputTarget) const;
 };
 } // namespace KCE

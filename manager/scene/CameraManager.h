@@ -49,7 +49,33 @@ public:
      * @brief 現在のアクティブカメラを取得
      * @return アクティブカメラへのポインタ
      */
-	Camera* GetActiveCamera() { return activeCamera_; }
+	Camera* GetActiveCamera() { return renderCameraOverride_ ? renderCameraOverride_ : activeCamera_; }
+
+	/**
+	 * @brief 描画中だけアクティブカメラを差し替える
+	 *
+	 * @details サブビュー（中継映像、カメラプレビュー、反射）を描くときに使う。
+	 *          既存の描画経路は一様に GetActiveCamera() からカメラを引くため、
+	 *          呼び出し側を全て書き換えるより、描画の間だけ差し替えるほうが安全。
+	 *
+	 *          @b 必ず ClearRenderCameraOverride() と対で使うこと。
+	 *          差し替えたまま更新処理へ抜けると、ゲームのロジックが
+	 *          サブビューのカメラを見てしまう。
+	 *
+	 * @param camera 差し替えるカメラ。nullptr なら差し替えない
+	 */
+	void SetRenderCameraOverride(Camera* camera) { renderCameraOverride_ = camera; }
+
+	/**
+	 * @brief 描画用のカメラ差し替えを解除する
+	 */
+	void ClearRenderCameraOverride() { renderCameraOverride_ = nullptr; }
+
+	/**
+	 * @brief 差し替えを無視して、本来のアクティブカメラを取得する
+	 * @return アクティブカメラ
+	 */
+	Camera* GetPrimaryCamera() const { return activeCamera_; }
 
 	/**
 	 * @brief 現在のアクティブカメラの名前を取得
@@ -76,6 +102,9 @@ private:
 
     // 現在のアクティブカメラへのポインタ
     Camera* activeCamera_ = nullptr;
+
+    // 描画中だけアクティブカメラを差し替えるためのポインタ
+    Camera* renderCameraOverride_ = nullptr;
 
 	// 現在のアクティブカメラの名前
 	std::string activeCameraName_;

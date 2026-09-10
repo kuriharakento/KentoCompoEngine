@@ -1,5 +1,7 @@
 #include "Framework.h"
 
+#include <algorithm>
+
 #include "audio/Audio.h"
 #include "base/Logger.h"
 #include "input/Input.h"
@@ -24,6 +26,8 @@
 #include "graphics/RenderFormats.h"
 #include "graphics/shader/ShaderHotReload.h"
 #include "graphics/pipeline/StandardRenderPasses.h"
+#include "graphics/view/RenderView.h"
+#include "gameobject/manager/GameObjectManager.h"
 // editor
 #include "editor/EditorContext.h"
 #include "editor/SceneViewContext.h"
@@ -151,19 +155,7 @@ void Framework::Initialize()
 
 	/*----- レンダーテクスチャ・ポストプロセスの初期化 -----*/
 
-	// メインレンダーテクスチャの初期化
-	renderTexture_ = std::make_unique<RenderTexture>();
 	Vector4 clearColor = { kClearColorR, kClearColorG, kClearColorB, kClearColorA };
-	// HDR。1.0を超える輝度を保持したままポストプロセスへ渡し、
-	// 最終段のトーンマップでLDRへ落とす。
-	renderTexture_->Initialize(
-		dxCommon_.get(),
-		srvManager_.get(),
-		winApp_->GetClientWidth(),
-		winApp_->GetClientHeight(),
-		kSceneColorFormat,
-		clearColor
-	);
 
 	// ブライトパス用レンダーターゲットの初期化
 	brightPassRT_ = std::make_unique<RenderTexture>();
@@ -242,9 +234,25 @@ void Framework::Initialize()
 	shadowMapPipeline_ = std::make_unique<ShadowMapPipeline>();
 	shadowMapPipeline_->Initialize(dxCommon_.get());
 
-	// ディファードレンダラーの初期化
+	// ディファードレンダラーの初期化。
+	// G-Buffer は持たず、パイプラインステートだけを全ビューで共有する。
 	deferredRenderer_ = std::make_unique<DeferredRenderer>();
-	deferredRenderer_->Initialize(dxCommon_.get(), srvManager_.get(), winApp_->GetClientWidth(), winApp_->GetClientHeight());
+	deferredRenderer_->Initialize(dxCommon_.get(), srvManager_.get());
+
+	// 本編を描くビューの初期化。
+	// G-Bufferとシーンカラー（HDR）をまとめて持つ。
+	mainView_ = std::make_unique<RenderView>();
+	mainView_->Initialize(
+		dxCommon_.get(),
+		srvManager_.get(),
+		"Main",
+		winApp_->GetClientWidth(),
+		winApp_->GetClientHeight());
+	// 本編のビューはカメラを固定しない。
+	// アクティブカメラは実行中に切り替わる（デバッグカメラ、シーケンサの編集用カメラなど）ため、
+	// 固定するとその切り替えに追従できなくなる。
+	// カメラ未設定のビューは、描画時にアクティブカメラを使う。
+	mainView_->SetCamera(nullptr);
 
 	// Skyboxの初期化
 	skybox_ = std::make_unique<Skybox>();
@@ -257,6 +265,23 @@ void Framework::Initialize()
 	renderPipeline_->RegisterDebugUI();
 #endif
 
+	// サブビュー（中継映像、カメラプレビュー、反射）用のパイプライン。
+	// シャドウマップは本編と共有するため含めない。
+	subViewPipeline_ = std::make_unique<RenderPipeline>();
+	BuildSceneOnlyRenderPipeline(*subViewPipeline_);
+
+	// 本編のパイプラインからサブビューの描画を呼べるようにする
+	if (auto* subViewPass = dynamic_cast<SubViewRenderPass*>(renderPipeline_->FindPass("SubViews")))
+	{
+		subViewPass->SetCallback([this]()
+		{
+			for (RenderView* view : subViews_)
+			{
+				RenderSubView(view);
+			}
+		});
+	}
+
 	// ウィンドウのリサイズコールバックを登録する
 	winApp_->SetResizeCallback([this](uint32_t width, uint32_t height) {
 		// GPUのコマンド完了を待機する
@@ -265,8 +290,10 @@ void Framework::Initialize()
 		// DirectXCommon をリサイズする
 		dxCommon_->Resize(width, height);
 
+		// 本編のビューをリサイズする（G-Bufferとシーンカラーがまとめて作り直される）
+		mainView_->Resize(width, height);
+
 		// 各種レンダーターゲットをリサイズする
-		renderTexture_->Resize(width, height);
 		brightPassRT_->Resize(width, height);
 		for (int i = 0; i < kBlurRenderTargetCount; i++)
 		{
@@ -275,9 +302,6 @@ void Framework::Initialize()
 
 		// ポストプロセスマネージャーをリサイズする
 		postProcessManager_->Resize(width, height);
-
-		// ディファードレンダラーをリサイズする
-		deferredRenderer_->Resize(width, height);
 
 		// 派生クラス用のリサイズ通知
 		OnResize(width, height);
@@ -319,7 +343,7 @@ void Framework::Finalize()
 	Input::GetInstance()->Finalize();
 	lightManager_.reset();
 	LineManager::GetInstance()->Finalize();
-	renderTexture_.reset();
+	mainView_.reset();
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance() && postProcessManager_)
 	{
@@ -341,6 +365,7 @@ void Framework::Finalize()
 
 	// パスは各マネージャーを参照するだけで所有しないため、解放順は問わない
 	renderPipeline_.reset();
+	subViewPipeline_.reset();
 
 	GameObjectEditor::GetInstance()->Finalize();
 	JsonEditor::GetInstance()->Finalize();
@@ -394,7 +419,7 @@ void Framework::Update()
 	JsonEditor::GetInstance()->RenderEditUI();
 }
 
-RenderPassContext Framework::MakeRenderPassContext(RenderTexture* outputTarget) const
+RenderPassContext Framework::MakeRenderPassContext(RenderView* view, RenderTexture* outputTarget) const
 {
 	RenderPassContext ctx;
 	ctx.dxCommon = dxCommon_.get();
@@ -410,7 +435,7 @@ RenderPassContext Framework::MakeRenderPassContext(RenderTexture* outputTarget) 
 	ctx.shadowNearPlane = shadowNearPlane_;
 	ctx.shadowFarPlane = shadowFarPlane_;
 	ctx.deferredRenderer = deferredRenderer_.get();
-	ctx.sceneColor = renderTexture_.get();
+	ctx.view = view;
 	ctx.outputTarget = outputTarget;
 	ctx.postProcessManager = postProcessManager_.get();
 	return ctx;
@@ -418,19 +443,72 @@ RenderPassContext Framework::MakeRenderPassContext(RenderTexture* outputTarget) 
 
 void Framework::ExecuteRenderPipeline(RenderTexture* outputTarget)
 {
-	if (!renderPipeline_)
+	if (!renderPipeline_ || !mainView_)
 	{
 		return;
 	}
 
-	renderPipeline_->Execute(MakeRenderPassContext(outputTarget));
+	// 本編は全レイヤーを描く
+	if (GameObjectManager::HasInstance())
+	{
+		GameObjectManager::GetInstance()->SetRenderLayerMask(mainView_->GetLayerMask());
+	}
+
+	renderPipeline_->Execute(MakeRenderPassContext(mainView_.get(), outputTarget));
+}
+
+void Framework::RegisterSubView(RenderView* view)
+{
+	if (!view || std::find(subViews_.begin(), subViews_.end(), view) != subViews_.end())
+	{
+		return;
+	}
+	subViews_.push_back(view);
+}
+
+void Framework::UnregisterSubView(RenderView* view)
+{
+	subViews_.erase(std::remove(subViews_.begin(), subViews_.end(), view), subViews_.end());
+}
+
+void Framework::RenderSubView(RenderView* view)
+{
+	if (!subViewPipeline_ || !view || !view->IsEnabled() || !view->IsValid())
+	{
+		return;
+	}
+
+	Camera* camera = view->GetCamera();
+	if (camera && camera != cameraManager_->GetPrimaryCamera())
+	{
+		// サブビュー専用のカメラは CameraManager::Update() の対象外なので、
+		// 行列がこのフレームの値になるようここで更新する。
+		camera->Update();
+	}
+
+	// 描画の間だけアクティブカメラと描画対象レイヤーを差し替える
+	cameraManager_->SetRenderCameraOverride(camera);
+	if (GameObjectManager::HasInstance())
+	{
+		GameObjectManager::GetInstance()->SetRenderLayerMask(view->GetLayerMask());
+	}
+
+	// サブビューはシーンを焼くだけなので、ポストプロセスの出力先は持たない
+	subViewPipeline_->Execute(MakeRenderPassContext(view, nullptr));
+
+	// 差し替えたままにするとゲームのロジックがサブビューのカメラを見てしまう
+	cameraManager_->ClearRenderCameraOverride();
+	if (GameObjectManager::HasInstance())
+	{
+		GameObjectManager::GetInstance()->SetRenderLayerMask(kRenderLayerAll);
+	}
 }
 
 void Framework::Draw3DSetting()
 {
 	// 実体はフォワードパスと共有する。ここで二重に書くと、
 	// ルートパラメータ番号を変えたときに片方だけ直し忘れる。
-	ApplyCommon3DRenderingSetting(MakeRenderPassContext(nullptr));
+	ApplyCommon3DRenderingSetting(MakeRenderPassContext(mainView_.get(), nullptr));
 }
 
 
@@ -438,7 +516,7 @@ void Framework::Draw3DSetting()
 
 void Framework::Draw2DSetting()
 {
-	ApplyCommon2DRenderingSetting(MakeRenderPassContext(nullptr));
+	ApplyCommon2DRenderingSetting(MakeRenderPassContext(mainView_.get(), nullptr));
 }
 
 void Framework::Run()
