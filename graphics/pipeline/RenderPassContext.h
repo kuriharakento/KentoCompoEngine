@@ -4,7 +4,9 @@ namespace KCE
 {
 class CameraManager;
 class DeferredRenderer;
+class BeamRenderer;
 class DirectXCommon;
+class FogRenderer;
 class FrameConstantAllocator;
 class LightManager;
 class Object3dCommon;
@@ -93,6 +95,12 @@ struct RenderPassContext
 	 *          複数ビューで描いたとき最後に書いた値で全ビューが描かれる。
 	 */
 	FrameConstantAllocator* frameConstantAllocator = nullptr;
+
+	// --- 大気 ---
+	//! 大気フォグ
+	FogRenderer* fogRenderer = nullptr;
+	//! スポットライトのビーム
+	BeamRenderer* beamRenderer = nullptr;
 
 	/**
 	 * @brief 最低限の要素が揃っているか

@@ -263,6 +263,19 @@ void Framework::Initialize()
 	// カメラ未設定のビューは、描画時にアクティブカメラを使う。
 	mainView_->SetCamera(nullptr);
 
+	// 大気（フォグとビーム）。ビームは空気中の粒子が前提なので、両方そろえて入れる
+	fogRenderer_ = std::make_unique<FogRenderer>();
+	fogRenderer_->Initialize(dxCommon_.get(), srvManager_.get());
+	beamRenderer_ = std::make_unique<BeamRenderer>();
+	beamRenderer_->Initialize(dxCommon_.get(), srvManager_.get());
+	shaderHotReload->Register(fogRenderer_.get(), "Fog",
+		[this](std::string& outError) { return fogRenderer_->ReloadShaders(outError); });
+	shaderHotReload->Register(beamRenderer_.get(), "Beam",
+		[this](std::string& outError) { return beamRenderer_->ReloadShaders(outError); });
+#ifdef USE_IMGUI
+	fogRenderer_->RegisterDebugUI();
+	beamRenderer_->RegisterDebugUI(lightManager_.get());
+#endif
 	// Skyboxの初期化
 	skybox_ = std::make_unique<Skybox>();
 
@@ -448,6 +461,8 @@ RenderPassContext Framework::MakeRenderPassContext(RenderView* view, RenderTextu
 	ctx.outputTarget = outputTarget;
 	ctx.postProcessManager = postProcessManager_.get();
 	ctx.frameConstantAllocator = frameConstantAllocator_.get();
+	ctx.fogRenderer = fogRenderer_.get();
+	ctx.beamRenderer = beamRenderer_.get();
 	return ctx;
 }
 

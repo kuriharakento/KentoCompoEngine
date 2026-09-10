@@ -97,6 +97,29 @@ public:
 };
 
 /**
+ * @brief 大気フォグのパス
+ * @details 不透明物と Skybox を描いた後、半透明の前に置く。
+ *          半透明（煙やガラス）が霧の中に沈み、ビームは霧の手前に光って見える並びになる。
+ */
+class FogPass : public IRenderPass
+{
+public:
+	const char* GetName() const override { return "Fog"; }
+	void Execute(const RenderPassContext& ctx) override;
+};
+
+/**
+ * @brief スポットライトのビームのパス
+ * @details 加算合成なので描画順に依存しないが、半透明の上に光が乗るよう半透明の後に置く。
+ */
+class BeamPass : public IRenderPass
+{
+public:
+	const char* GetName() const override { return "Beams"; }
+	void Execute(const RenderPassContext& ctx) override;
+};
+
+/**
  * @brief シーン用レンダーターゲットへの描画を終えるパス
  * @details 深度をSRV状態へ戻し、シーン用レンダーターゲットを
  *          シェーダーリソースとして読める状態にする。

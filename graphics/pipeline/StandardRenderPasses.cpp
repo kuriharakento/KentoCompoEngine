@@ -9,6 +9,8 @@
 #include "graphics/3d/Skybox.h"
 #include "graphics/deferred/DeferredRenderer.h"
 #include "graphics/deferred/GBuffer.h"
+#include "graphics/atmosphere/BeamRenderer.h"
+#include "graphics/atmosphere/FogRenderer.h"
 #include "graphics/view/RenderView.h"
 #include "graphics/shadow/ShadowMapPipeline.h"
 #include "manager/effect/PostProcessManager.h"
@@ -307,6 +309,36 @@ void TransparentPass::Execute(const RenderPassContext& ctx)
 	ParticleManager::GetInstance()->Draw();
 }
 
+void FogPass::Execute(const RenderPassContext& ctx)
+{
+	if (!ctx.fogRenderer || !ctx.view || !ctx.view->IsValid() || !ctx.cameraManager)
+	{
+		return;
+	}
+
+	// サブビューの描画中はアクティブカメラが差し替わっているので、そのビューのカメラになる
+	ctx.fogRenderer->Draw(
+		ctx.cameraManager->GetActiveCamera(),
+		ctx.view->GetGBuffer(),
+		ctx.view->GetSceneColor()->GetRTVHandle(),
+		ctx.frameConstantAllocator);
+}
+
+void BeamPass::Execute(const RenderPassContext& ctx)
+{
+	if (!ctx.beamRenderer || !ctx.view || !ctx.view->IsValid() || !ctx.cameraManager)
+	{
+		return;
+	}
+
+	ctx.beamRenderer->Draw(
+		ctx.cameraManager->GetActiveCamera(),
+		ctx.view->GetGBuffer(),
+		ctx.view->GetSceneColor()->GetRTVHandle(),
+		ctx.lightManager,
+		ctx.frameConstantAllocator);
+}
+
 void SceneColorResolvePass::Execute(const RenderPassContext& ctx)
 {
 	if (!ctx.view || !ctx.view->IsValid())
@@ -382,7 +414,9 @@ void BuildStandardRenderPipeline(RenderPipeline& pipeline)
 	pipeline.AddPass(std::make_unique<LightingPass>());
 	pipeline.AddPass(std::make_unique<ForwardOpaquePass>());
 	pipeline.AddPass(std::make_unique<SkyboxPass>());
+	pipeline.AddPass(std::make_unique<FogPass>());
 	pipeline.AddPass(std::make_unique<TransparentPass>());
+	pipeline.AddPass(std::make_unique<BeamPass>());
 	pipeline.AddPass(std::make_unique<SceneColorResolvePass>());
 	pipeline.AddPass(std::make_unique<SubViewRenderPass>());
 	pipeline.AddPass(std::make_unique<BackBufferPreparePass>());
@@ -399,7 +433,9 @@ void BuildSceneOnlyRenderPipeline(RenderPipeline& pipeline)
 	pipeline.AddPass(std::make_unique<LightingPass>());
 	pipeline.AddPass(std::make_unique<ForwardOpaquePass>());
 	pipeline.AddPass(std::make_unique<SkyboxPass>());
+	pipeline.AddPass(std::make_unique<FogPass>());
 	pipeline.AddPass(std::make_unique<TransparentPass>());
+	pipeline.AddPass(std::make_unique<BeamPass>());
 	pipeline.AddPass(std::make_unique<SceneColorResolvePass>());
 }
 } // namespace KCE

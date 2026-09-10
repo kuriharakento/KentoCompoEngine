@@ -118,6 +118,9 @@
     <Filter Include="graphics\pipeline">
       <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A409}</UniqueIdentifier>
     </Filter>
+    <Filter Include="graphics\atmosphere">
+      <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A40B}</UniqueIdentifier>
+    </Filter>
     <Filter Include="graphics\view">
       <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A40A}</UniqueIdentifier>
     </Filter>
@@ -530,6 +533,12 @@
     </ClCompile>
     <ClCompile Include="graphics\view\RenderView.cpp">
       <Filter>graphics\view</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\atmosphere\BeamRenderer.cpp">
+      <Filter>graphics\atmosphere</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\atmosphere\FogRenderer.cpp">
+      <Filter>graphics\atmosphere</Filter>
     </ClCompile>
     <ClCompile Include="core\Guid.cpp">
       <Filter>core</Filter>
@@ -1117,6 +1126,12 @@
     </ClInclude>
     <ClInclude Include="graphics\view\RenderView.h">
       <Filter>graphics\view</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\atmosphere\BeamRenderer.h">
+      <Filter>graphics\atmosphere</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\atmosphere\FogRenderer.h">
+      <Filter>graphics\atmosphere</Filter>
     </ClInclude>
     <ClInclude Include="core\Guid.h">
       <Filter>core</Filter>

@@ -28,6 +28,9 @@
 // view
 #include "graphics/view/RenderView.h"
 #include "graphics/FrameConstantAllocator.h"
+// atmosphere
+#include "graphics/atmosphere/BeamRenderer.h"
+#include "graphics/atmosphere/FogRenderer.h"
 
 namespace KCE
 {
@@ -222,6 +225,10 @@ protected: // メンバ変数
 	std::unique_ptr<ShadowMapPipeline> shadowMapPipeline_;
 	// ディファードレンダラー
 	std::unique_ptr<DeferredRenderer> deferredRenderer_;
+	// 大気フォグ
+	std::unique_ptr<FogRenderer> fogRenderer_;
+	// スポットライトのビーム
+	std::unique_ptr<BeamRenderer> beamRenderer_;
 	// 描画パイプライン（差し替え可能なパスの列）
 	std::unique_ptr<RenderPipeline> renderPipeline_;
 	// サブビュー用の、シーンだけを描くパイプライン
