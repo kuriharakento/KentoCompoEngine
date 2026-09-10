@@ -7,6 +7,8 @@ namespace KCE
 {
 class Camera;
 class GameObject;
+class BeamRenderer;
+class FogRenderer;
 class LightManager;
 class PostProcessManager;
 
@@ -99,6 +101,12 @@ public:
 	void SetPostProcessManager(PostProcessManager* postProcessManager) { postProcessManager_ = postProcessManager; }
 	PostProcessManager* GetPostProcessManager() const { return postProcessManager_; }
 
+	void SetFogRenderer(FogRenderer* fogRenderer) { fogRenderer_ = fogRenderer; }
+	FogRenderer* GetFogRenderer() const { return fogRenderer_; }
+
+	void SetBeamRenderer(BeamRenderer* beamRenderer) { beamRenderer_ = beamRenderer; }
+	BeamRenderer* GetBeamRenderer() const { return beamRenderer_; }
+
 	/**
 	 * @brief 役の割り当てを全て解除する
 	 * @details 共有システム（LightManager / PostProcessManager）は解除しない。
@@ -117,5 +125,7 @@ private:
 	std::unordered_map<std::string, std::string> lightNames_;
 	LightManager* lightManager_ = nullptr;
 	PostProcessManager* postProcessManager_ = nullptr;
+	FogRenderer* fogRenderer_ = nullptr;
+	BeamRenderer* beamRenderer_ = nullptr;
 };
 } // namespace KCE

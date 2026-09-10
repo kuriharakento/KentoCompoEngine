@@ -13,8 +13,10 @@
 
 namespace KCE
 {
+class BeamRenderer;
 class Camera;
 class CameraManager;
+class FogRenderer;
 class LightManager;
 class PostProcessManager;
 
@@ -82,6 +84,12 @@ public:
 	 * @param camera 対象のカメラ
 	 */
 	void SetSequenceCamera(Camera* camera);
+
+	/**
+	 * @brief トラックが駆動する大気（フォグとビーム）を設定する
+	 * @details 大気はシーケンサより後に作られるため、初期化とは別に渡す。
+	 */
+	void SetAtmosphere(FogRenderer* fogRenderer, BeamRenderer* beamRenderer);
 
 public:
 	~SequencerEditor() = default;
@@ -230,6 +238,11 @@ public:
 	Sequence& GetSequence() { return sequence_; }
 	SequencePlayer& GetPlayer() { return player_; }
 	void SetSequenceCamera(Camera* camera) { (void)camera; }
+	void SetAtmosphere(FogRenderer* fogRenderer, BeamRenderer* beamRenderer)
+	{
+		player_.GetBindingContext().SetFogRenderer(fogRenderer);
+		player_.GetBindingContext().SetBeamRenderer(beamRenderer);
+	}
 
 public:
 	~SequencerEditor() = default;

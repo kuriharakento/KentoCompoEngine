@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+#include "graphics/atmosphere/BeamRenderer.h"
 #include "manager/scene/LightManager.h"
 #include "sequencer/core/CurveSerialization.h"
 
@@ -45,7 +46,7 @@ size_t LightTrack::GetChannelCount() const
 	// 種類ごとに意味を持つカーブだけを見せる。平行光源にコーン角は無い
 	switch (kind_)
 	{
-	case LightTrackKind::Spot:  return 3; // 色・強さ・コーン角
+	case LightTrackKind::Spot:  return 4; // 色・強さ・コーン角・ビーム
 	case LightTrackKind::Point: return 3; // 色・強さ・半径
 	default:                    return 2; // 色・強さ
 	}
@@ -57,6 +58,7 @@ ICurveChannel* LightTrack::GetChannel(size_t index)
 	if (index == 1) { return &intensityChannel_; }
 	if (index == 2 && kind_ == LightTrackKind::Spot) { return &coneAngleChannel_; }
 	if (index == 2 && kind_ == LightTrackKind::Point) { return &radiusChannel_; }
+	if (index == 3 && kind_ == LightTrackKind::Spot) { return &beamChannel_; }
 	return nullptr;
 }
 
@@ -108,6 +110,15 @@ void LightTrack::Evaluate(float time, const BindingContext& ctx)
 		if (!colorCurve_.IsEmpty()) { lightManager->SetSpotLightColor(name, colorCurve_.Evaluate(time)); }
 		if (!intensityCurve_.IsEmpty()) { lightManager->SetSpotLightIntensity(name, intensityCurve_.Evaluate(time)); }
 		if (!coneAngleCurve_.IsEmpty()) { lightManager->SetSpotLightCosAngle(name, std::cos(coneAngleCurve_.Evaluate(time))); }
+		// ビームはカーブを持つ間だけ出す。有効化はカーブの有無だけで決まるので純関数契約は保たれる
+		if (!beamCurve_.IsEmpty())
+		{
+			if (BeamRenderer* beam = ctx.GetBeamRenderer())
+			{
+				beam->SetBeamEnabled(name, true);
+				beam->SetBeamScale(name, beamCurve_.Evaluate(time));
+			}
+		}
 		break;
 
 	case LightTrackKind::Point:
@@ -144,6 +155,11 @@ void LightTrack::CaptureState(const BindingContext& ctx)
 		capturedColor_ = lightManager->GetSpotLightColor(name);
 		capturedIntensity_ = lightManager->GetSpotLightIntensity(name);
 		capturedCosAngle_ = lightManager->GetSpotLightCosAngle(name);
+		if (BeamRenderer* beam = ctx.GetBeamRenderer())
+		{
+			capturedBeamEnabled_ = beam->IsBeamEnabled(name);
+			capturedBeamScale_ = beam->GetBeamScale(name);
+		}
 		break;
 	case LightTrackKind::Point:
 		capturedColor_ = lightManager->GetPointLightColor(name);
@@ -173,6 +189,11 @@ void LightTrack::RestoreState(const BindingContext& ctx)
 		lightManager->SetSpotLightColor(name, capturedColor_);
 		lightManager->SetSpotLightIntensity(name, capturedIntensity_);
 		lightManager->SetSpotLightCosAngle(name, capturedCosAngle_);
+		if (BeamRenderer* beam = ctx.GetBeamRenderer())
+		{
+			beam->SetBeamEnabled(name, capturedBeamEnabled_);
+			beam->SetBeamScale(name, capturedBeamScale_);
+		}
 		break;
 	case LightTrackKind::Point:
 		lightManager->SetPointLightColor(name, capturedColor_);
@@ -205,6 +226,11 @@ bool LightTrack::RecordKey(float time, const BindingContext& ctx)
 		colorChannel_.SetKey(time, lightManager->GetSpotLightColor(name));
 		intensityChannel_.SetKey(time, lightManager->GetSpotLightIntensity(name));
 		coneAngleChannel_.SetKey(time, CosToAngle(lightManager->GetSpotLightCosAngle(name)));
+		if (BeamRenderer* beam = ctx.GetBeamRenderer())
+		{
+			// ビームが出ていなければ 0 として記録する
+			beamChannel_.SetKey(time, beam->IsBeamEnabled(name) ? beam->GetBeamScale(name) : 0.0f);
+		}
 		break;
 	case LightTrackKind::Point:
 		colorChannel_.SetKey(time, lightManager->GetPointLightColor(name));
@@ -228,6 +254,7 @@ nlohmann::json LightTrack::Serialize() const
 	json["intensity"] = SerializeCurve(intensityCurve_);
 	json["coneAngle"] = SerializeCurve(coneAngleCurve_);
 	json["radius"] = SerializeCurve(radiusCurve_);
+	json["beam"] = SerializeCurve(beamCurve_);
 	return json;
 }
 
@@ -244,6 +271,7 @@ bool LightTrack::Deserialize(const nlohmann::json& json)
 	if (json.contains("intensity")) { DeserializeCurve(json["intensity"], intensityCurve_); }
 	if (json.contains("coneAngle")) { DeserializeCurve(json["coneAngle"], coneAngleCurve_); }
 	if (json.contains("radius")) { DeserializeCurve(json["radius"], radiusCurve_); }
+	if (json.contains("beam")) { DeserializeCurve(json["beam"], beamCurve_); }
 	return true;
 }
 

@@ -130,6 +130,17 @@ public: // アクセッサ
 	}
 
 	/**
+	 * @brief アウトラインの強さを設定する（0 で無効）
+	 */
+	void SetOutlineStrength(float strength)
+	{
+		for (auto& resource : meshResources_)
+		{
+			if (resource.gpuMaterial) { resource.gpuMaterial->outlineStrength = strength; }
+		}
+	}
+
+	/**
 	 * @brief リムライトの強さを設定する（0 で無効）
 	 */
 	void SetRimStrength(float strength)

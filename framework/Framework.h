@@ -31,6 +31,8 @@
 // atmosphere
 #include "graphics/atmosphere/BeamRenderer.h"
 #include "graphics/atmosphere/FogRenderer.h"
+// npr
+#include "graphics/npr/OutlineRenderer.h"
 
 namespace KCE
 {
@@ -229,6 +231,8 @@ protected: // メンバ変数
 	std::unique_ptr<FogRenderer> fogRenderer_;
 	// スポットライトのビーム
 	std::unique_ptr<BeamRenderer> beamRenderer_;
+	// アウトライン（輪郭線）
+	std::unique_ptr<OutlineRenderer> outlineRenderer_;
 	// 描画パイプライン（差し替え可能なパスの列）
 	std::unique_ptr<RenderPipeline> renderPipeline_;
 	// サブビュー用の、シーンだけを描くパイプライン

@@ -97,6 +97,17 @@ public:
 };
 
 /**
+ * @brief アウトライン（輪郭線）のパス
+ * @details 不透明物を描いた後に置く。フォグより前なので、遠くの線は霧に沈む。
+ */
+class OutlinePass : public IRenderPass
+{
+public:
+	const char* GetName() const override { return "Outline"; }
+	void Execute(const RenderPassContext& ctx) override;
+};
+
+/**
  * @brief 大気フォグのパス
  * @details 不透明物と Skybox を描いた後、半透明の前に置く。
  *          半透明（煙やガラス）が霧の中に沈み、ビームは霧の手前に光って見える並びになる。

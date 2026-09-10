@@ -23,7 +23,8 @@ cbuffer Material : register(b2)
 {
     float4 materialColor;
     int enableLighting;
-    float3 pad1;
+    float outlineStrength; // アウトラインの強さ（旧 pad1.x の位置）
+    float2 pad1;
     float4x4 uvTransform;
     float shininess;
     float reflectivity;
@@ -71,7 +72,8 @@ GBufferOutput main(PixelShaderInput input)
     output.material = float4(roughness, ao, saturate(toonAmount), saturate(rimStrength));
     
     // Emissive
-    output.emissive = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    // 発光は未使用。アルファにアウトラインの強さを載せ、アウトラインのパスが読む
+    output.emissive = float4(0.0f, 0.0f, 0.0f, saturate(outlineStrength));
     
     return output;
 }

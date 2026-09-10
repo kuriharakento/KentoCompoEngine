@@ -5,7 +5,8 @@ struct Material
 {
     float4 color;
     int enableLighting;
-    float3 padding;
+    float outlineStrength; // アウトラインの強さ（旧 padding.x。フォワード描画ではまだ使わない）
+    float2 padding;
     float4x4 uvTransform;
     float shininess;
     float reflectivity; // 反射率

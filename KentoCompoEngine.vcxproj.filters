@@ -118,6 +118,9 @@
     <Filter Include="graphics\pipeline">
       <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A409}</UniqueIdentifier>
     </Filter>
+    <Filter Include="graphics\npr">
+      <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A40C}</UniqueIdentifier>
+    </Filter>
     <Filter Include="graphics\atmosphere">
       <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A40B}</UniqueIdentifier>
     </Filter>
@@ -539,6 +542,9 @@
     </ClCompile>
     <ClCompile Include="graphics\atmosphere\FogRenderer.cpp">
       <Filter>graphics\atmosphere</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\npr\OutlineRenderer.cpp">
+      <Filter>graphics\npr</Filter>
     </ClCompile>
     <ClCompile Include="core\Guid.cpp">
       <Filter>core</Filter>
@@ -1132,6 +1138,9 @@
     </ClInclude>
     <ClInclude Include="graphics\atmosphere\FogRenderer.h">
       <Filter>graphics\atmosphere</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\npr\OutlineRenderer.h">
+      <Filter>graphics\npr</Filter>
     </ClInclude>
     <ClInclude Include="core\Guid.h">
       <Filter>core</Filter>

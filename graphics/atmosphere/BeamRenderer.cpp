@@ -76,6 +76,12 @@ bool BeamRenderer::IsBeamEnabled(const std::string& lightName) const
 	return it != beamEnabled_.end() && it->second;
 }
 
+float BeamRenderer::GetBeamScale(const std::string& lightName) const
+{
+	const auto it = beamScale_.find(lightName);
+	return it != beamScale_.end() ? it->second : 1.0f;
+}
+
 void BeamRenderer::CreateConeMesh()
 {
 	// 側面だけの円錐。底面は光の出口なので塞がない。
@@ -273,7 +279,7 @@ void BeamRenderer::Draw(Camera* camera, GBuffer* gBuffer, D3D12_CPU_DESCRIPTOR_H
 		constants.direction = gpu.direction.Normalize();
 		MakeOrthonormalBasis(constants.direction, constants.axisX, constants.axisY);
 		constants.radius = radius;
-		constants.intensity = gpu.intensity * settings_.intensity;
+		constants.intensity = gpu.intensity * settings_.intensity * GetBeamScale(name);
 		constants.fadeDistance = settings_.fadeDistance;
 		constants.color = { gpu.color.x, gpu.color.y, gpu.color.z };
 		constants.edgePower = settings_.edgePower;
@@ -328,11 +334,20 @@ void BeamRenderer::DrawImGui()
 	for (const auto& [name, light] : debugLightManager_->GetSpotLights())
 	{
 		(void)light;
+		ImGui::PushID(name.c_str());
 		bool enabled = IsBeamEnabled(name);
-		if (ImGui::Checkbox(name.c_str(), &enabled))
+		if (ImGui::Checkbox("##enabled", &enabled))
 		{
 			beamEnabled_[name] = enabled;
 		}
+		ImGui::SameLine();
+		float scale = GetBeamScale(name);
+		ImGui::SetNextItemWidth(120.0f);
+		if (ImGui::DragFloat(name.c_str(), &scale, 0.01f, 0.0f, 10.0f, "x%.2f"))
+		{
+			beamScale_[name] = scale;
+		}
+		ImGui::PopID();
 	}
 }
 #endif

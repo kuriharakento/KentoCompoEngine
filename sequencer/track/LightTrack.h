@@ -78,6 +78,9 @@ private:
 	CurveChannel<float> intensityChannel_{ "Intensity", &intensityCurve_ };
 	CurveChannel<float> coneAngleChannel_{ "Cone Angle", &coneAngleCurve_ };
 	CurveChannel<float> radiusChannel_{ "Radius", &radiusCurve_ };
+	// スポットのみ: ビームの明るさの倍率。カーブを持つ間だけビームを出す
+	FloatCurve beamCurve_;
+	CurveChannel<float> beamChannel_{ "Beam", &beamCurve_ };
 
 	// --- 状態の退避 ---
 	bool hasCapturedState_ = false;
@@ -85,5 +88,7 @@ private:
 	float capturedIntensity_ = 0.0f;
 	float capturedCosAngle_ = 0.0f;
 	float capturedRadius_ = 0.0f;
+	bool capturedBeamEnabled_ = false;
+	float capturedBeamScale_ = 1.0f;
 };
 } // namespace KCE

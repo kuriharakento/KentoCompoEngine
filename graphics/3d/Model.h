@@ -156,6 +156,13 @@ public: // アクセッサ
 	void SetRimStrength(float strength);
 
 	/**
+	 * @brief アウトラインの強さを設定する
+	 * @details ディファードで描くオブジェクトにだけ効く（G-Buffer 経由で線を描くため）。
+	 * @param strength 強さ（0 で無効）
+	 */
+	void SetOutlineStrength(float strength);
+
+	/**
 	 * @brief 反射強度の取得（最初のマテリアル）
 	 * @return 現在の反射強度
 	 */

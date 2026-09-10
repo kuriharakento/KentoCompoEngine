@@ -276,6 +276,19 @@ void Framework::Initialize()
 	fogRenderer_->RegisterDebugUI();
 	beamRenderer_->RegisterDebugUI(lightManager_.get());
 #endif
+
+	// アウトライン（輪郭線）
+	outlineRenderer_ = std::make_unique<OutlineRenderer>();
+	outlineRenderer_->Initialize(dxCommon_.get(), srvManager_.get());
+	shaderHotReload->Register(outlineRenderer_.get(), "Outline",
+		[this](std::string& outError) { return outlineRenderer_->ReloadShaders(outError); });
+#ifdef USE_IMGUI
+	outlineRenderer_->RegisterDebugUI();
+#endif
+
+	// シーケンサのトラックからフォグの濃さとビームの明るさを動かせるようにする。
+	// シーケンサの初期化はこれらより前なので、ここで後から渡す
+	SequencerEditor::GetInstance()->SetAtmosphere(fogRenderer_.get(), beamRenderer_.get());
 	// Skyboxの初期化
 	skybox_ = std::make_unique<Skybox>();
 
@@ -463,6 +476,7 @@ RenderPassContext Framework::MakeRenderPassContext(RenderView* view, RenderTextu
 	ctx.frameConstantAllocator = frameConstantAllocator_.get();
 	ctx.fogRenderer = fogRenderer_.get();
 	ctx.beamRenderer = beamRenderer_.get();
+	ctx.outlineRenderer = outlineRenderer_.get();
 	return ctx;
 }
 

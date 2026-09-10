@@ -91,6 +91,7 @@ void DeferredRenderer::DrawImGui()
 	ImGui::SeparatorText("全オブジェクトへ適用（確認用）");
 	ImGui::DragFloat("Toon Amount", &previewToonAmount_, 0.01f, 0.0f, 1.0f, "%.2f");
 	ImGui::DragFloat("Rim Strength", &previewRimStrength_, 0.01f, 0.0f, 1.0f, "%.2f");
+	ImGui::DragFloat("Outline Strength", &previewOutlineStrength_, 0.01f, 0.0f, 1.0f, "%.2f");
 	if (ImGui::Button("Apply to All Objects") && GameObjectManager::HasInstance())
 	{
 		for (GameObject* object : GameObjectManager::GetInstance()->GetGameObjects())
@@ -99,6 +100,7 @@ void DeferredRenderer::DrawImGui()
 			{
 				renderable->SetToonAmount(previewToonAmount_);
 				renderable->SetRimStrength(previewRimStrength_);
+				renderable->SetOutlineStrength(previewOutlineStrength_);
 			}
 		}
 	}

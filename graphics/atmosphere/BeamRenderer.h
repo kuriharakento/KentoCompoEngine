@@ -113,6 +113,20 @@ public:
 	bool IsBeamEnabled(const std::string& lightName) const;
 
 	/**
+	 * @brief スポットライトごとのビームの明るさの倍率を設定する
+	 * @details 全体の明るさ（Settings::intensity）に掛かる。シーケンサの Light トラックから動かす。
+	 * @param lightName スポットライトの名前
+	 * @param scale 倍率（既定 1）
+	 */
+	void SetBeamScale(const std::string& lightName, float scale) { beamScale_[lightName] = scale; }
+
+	/**
+	 * @brief スポットライトごとのビームの明るさの倍率
+	 * @return 倍率。設定されていなければ 1
+	 */
+	float GetBeamScale(const std::string& lightName) const;
+
+	/**
 	 * @brief シェーダーを再コンパイルしてパイプラインを作り直す（ホットリロード用）
 	 */
 	bool ReloadShaders(std::string& outError);
@@ -142,6 +156,8 @@ private:
 	Settings settings_;
 	// スポットライト名 → ビームを描くか
 	std::unordered_map<std::string, bool> beamEnabled_;
+	// スポットライト名 → ビームの明るさの倍率
+	std::unordered_map<std::string, float> beamScale_;
 
 #ifdef USE_IMGUI
 	// デバッグUIでライトの一覧を出すための参照

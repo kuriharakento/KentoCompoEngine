@@ -183,6 +183,13 @@ public:
 	 */
 	virtual void SetRimStrength(float strength) { (void)strength; }
 
+	/**
+	 * @brief アウトラインの強さを設定する
+	 * @details ディファードで描くオブジェクトにだけ効く。
+	 * @param strength 強さ（0 で無効）
+	 */
+	virtual void SetOutlineStrength(float strength) { (void)strength; }
+
 	virtual RenderQueue GetRenderQueue() const = 0;
 	virtual void SetRenderQueue(RenderQueue queue) = 0;
 

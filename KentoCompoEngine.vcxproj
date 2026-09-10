@@ -128,6 +128,7 @@
     <ClCompile Include="graphics\view\RenderView.cpp" />
     <ClCompile Include="graphics\atmosphere\BeamRenderer.cpp" />
     <ClCompile Include="graphics\atmosphere\FogRenderer.cpp" />
+    <ClCompile Include="graphics\npr\OutlineRenderer.cpp" />
     <ClCompile Include="graphics\shader\ShaderHotReload.cpp" />
     <ClCompile Include="editor\EditorContext.cpp" />
     <ClCompile Include="editor\SceneViewContext.cpp" />
@@ -332,6 +333,7 @@
     <ClInclude Include="graphics\view\RenderView.h" />
     <ClInclude Include="graphics\atmosphere\BeamRenderer.h" />
     <ClInclude Include="graphics\atmosphere\FogRenderer.h" />
+    <ClInclude Include="graphics\npr\OutlineRenderer.h" />
     <ClInclude Include="graphics\shader\ShaderHotReload.h" />
     <ClInclude Include="core\SchemaVersion.h" />
     <ClInclude Include="editor\EditorContext.h" />

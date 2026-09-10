@@ -195,6 +195,7 @@ public: // アクセッサ
 	void SetEnableLighting(bool enable) override;
 	void SetToonAmount(float amount) override { if (model_) model_->SetToonAmount(amount); }
 	void SetRimStrength(float strength) override { if (model_) model_->SetRimStrength(strength); }
+	void SetOutlineStrength(float strength) override { if (model_) model_->SetOutlineStrength(strength); }
 
 	/**
 	 * @brief ライティングの有効/無効の取得

@@ -11,6 +11,7 @@
 #include "graphics/deferred/GBuffer.h"
 #include "graphics/atmosphere/BeamRenderer.h"
 #include "graphics/atmosphere/FogRenderer.h"
+#include "graphics/npr/OutlineRenderer.h"
 #include "graphics/view/RenderView.h"
 #include "graphics/shadow/ShadowMapPipeline.h"
 #include "manager/effect/PostProcessManager.h"
@@ -309,6 +310,20 @@ void TransparentPass::Execute(const RenderPassContext& ctx)
 	ParticleManager::GetInstance()->Draw();
 }
 
+void OutlinePass::Execute(const RenderPassContext& ctx)
+{
+	if (!ctx.outlineRenderer || !ctx.view || !ctx.view->IsValid() || !ctx.cameraManager)
+	{
+		return;
+	}
+
+	ctx.outlineRenderer->Draw(
+		ctx.cameraManager->GetActiveCamera(),
+		ctx.view->GetGBuffer(),
+		ctx.view->GetSceneColor()->GetRTVHandle(),
+		ctx.frameConstantAllocator);
+}
+
 void FogPass::Execute(const RenderPassContext& ctx)
 {
 	if (!ctx.fogRenderer || !ctx.view || !ctx.view->IsValid() || !ctx.cameraManager)
@@ -414,6 +429,7 @@ void BuildStandardRenderPipeline(RenderPipeline& pipeline)
 	pipeline.AddPass(std::make_unique<LightingPass>());
 	pipeline.AddPass(std::make_unique<ForwardOpaquePass>());
 	pipeline.AddPass(std::make_unique<SkyboxPass>());
+	pipeline.AddPass(std::make_unique<OutlinePass>());
 	pipeline.AddPass(std::make_unique<FogPass>());
 	pipeline.AddPass(std::make_unique<TransparentPass>());
 	pipeline.AddPass(std::make_unique<BeamPass>());
@@ -433,6 +449,7 @@ void BuildSceneOnlyRenderPipeline(RenderPipeline& pipeline)
 	pipeline.AddPass(std::make_unique<LightingPass>());
 	pipeline.AddPass(std::make_unique<ForwardOpaquePass>());
 	pipeline.AddPass(std::make_unique<SkyboxPass>());
+	pipeline.AddPass(std::make_unique<OutlinePass>());
 	pipeline.AddPass(std::make_unique<FogPass>());
 	pipeline.AddPass(std::make_unique<TransparentPass>());
 	pipeline.AddPass(std::make_unique<BeamPass>());

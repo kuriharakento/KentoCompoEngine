@@ -399,6 +399,7 @@ void Model::CreateMaterialResources()
 		// 既定は従来のライティング。既存のモデルの見た目を変えないため
 		resource.gpuMaterial->toonAmount = 0.0f;
 		resource.gpuMaterial->rimStrength = 0.0f;
+		resource.gpuMaterial->outlineStrength = 0.0f;
 	}
 }
 
@@ -482,6 +483,17 @@ void Model::SetToonAmount(float amount)
 		if (resource.gpuMaterial)
 		{
 			resource.gpuMaterial->toonAmount = amount;
+		}
+	}
+}
+
+void Model::SetOutlineStrength(float strength)
+{
+	for (auto& resource : meshResources_)
+	{
+		if (resource.gpuMaterial)
+		{
+			resource.gpuMaterial->outlineStrength = strength;
 		}
 	}
 }

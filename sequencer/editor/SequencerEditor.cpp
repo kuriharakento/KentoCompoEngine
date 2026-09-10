@@ -215,6 +215,12 @@ void SequencerEditor::SetSequenceCamera(Camera* camera)
 	player_.GetBindingContext().BindCamera(kCameraRole, camera);
 }
 
+void SequencerEditor::SetAtmosphere(FogRenderer* fogRenderer, BeamRenderer* beamRenderer)
+{
+	player_.GetBindingContext().SetFogRenderer(fogRenderer);
+	player_.GetBindingContext().SetBeamRenderer(beamRenderer);
+}
+
 Camera* SequencerEditor::GetSequenceCamera() const
 {
 	return player_.GetBindingContext().GetCamera(kCameraRole);

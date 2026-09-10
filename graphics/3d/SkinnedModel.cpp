@@ -122,6 +122,7 @@ void SkinnedModel::CreateMaterialResources()
 		// 既定は従来のライティング。既存のモデルの見た目を変えないため
 		resource.gpuMaterial->toonAmount = 0.0f;
 		resource.gpuMaterial->rimStrength = 0.0f;
+		resource.gpuMaterial->outlineStrength = 0.0f;
 	}
 }
 

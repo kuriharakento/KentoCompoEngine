@@ -54,8 +54,11 @@ struct Material
     Vector4 color;
     // ライティングの有効無効
     int32_t enableLighting;
+    // アウトラインの強さ（0 で無効）。以前のパディング位置を使っているので
+    // 構造体の大きさとオフセットは変わらない
+    float outlineStrength;
     // パディング（アラインメント用）
-    float padding[3];
+    float padding[2];
     // UV変換行列
     Matrix4x4 uvTransform;
     // 反射強度

@@ -10,6 +10,7 @@ class FogRenderer;
 class FrameConstantAllocator;
 class LightManager;
 class Object3dCommon;
+class OutlineRenderer;
 class PostProcessManager;
 class RenderTexture;
 class RenderView;
@@ -101,6 +102,10 @@ struct RenderPassContext
 	FogRenderer* fogRenderer = nullptr;
 	//! スポットライトのビーム
 	BeamRenderer* beamRenderer = nullptr;
+
+	// --- NPR ---
+	//! アウトライン（輪郭線）
+	OutlineRenderer* outlineRenderer = nullptr;
 
 	/**
 	 * @brief 最低限の要素が揃っているか

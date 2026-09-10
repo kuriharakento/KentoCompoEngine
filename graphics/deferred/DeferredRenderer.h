@@ -179,6 +179,7 @@ private:
 	// 確認用に全オブジェクトへ適用する値（デバッグUI）
 	float previewToonAmount_ = 1.0f;
 	float previewRimStrength_ = 0.3f;
+	float previewOutlineStrength_ = 1.0f;
 
 	// トゥーン（NPR）の全体設定
 	ToonSettingsForGPU toonSettings_{};

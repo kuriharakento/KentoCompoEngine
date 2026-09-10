@@ -1,5 +1,6 @@
 #include "sequencer/track/PostProcessTrack.h"
 
+#include "graphics/atmosphere/FogRenderer.h"
 #include "manager/effect/PostProcessManager.h"
 #include "sequencer/core/CurveSerialization.h"
 
@@ -21,12 +22,23 @@ ICurveChannel* PostProcessTrack::GetChannel(size_t index)
 	case 2:  return &bloomThresholdChannel_;
 	case 3:  return &vignetteIntensityChannel_;
 	case 4:  return &grayscaleIntensityChannel_;
+	case 5:  return &fogDensityChannel_;
 	default: return nullptr;
 	}
 }
 
 void PostProcessTrack::Evaluate(float time, const BindingContext& ctx)
 {
+	// フォグは PostProcessManager とは別のシステムなので先に扱う
+	if (!fogDensityCurve_.IsEmpty())
+	{
+		if (FogRenderer* fog = ctx.GetFogRenderer())
+		{
+			fog->GetSettings().enabled = true;
+			fog->GetSettings().density = fogDensityCurve_.Evaluate(time);
+		}
+	}
+
 	PostProcessManager* post = ctx.GetPostProcessManager();
 	if (!post)
 	{
@@ -53,6 +65,12 @@ void PostProcessTrack::Evaluate(float time, const BindingContext& ctx)
 
 void PostProcessTrack::CaptureState(const BindingContext& ctx)
 {
+	if (FogRenderer* fog = ctx.GetFogRenderer())
+	{
+		capturedFogEnabled_ = fog->GetSettings().enabled;
+		capturedFogDensity_ = fog->GetSettings().density;
+	}
+
 	PostProcessManager* post = ctx.GetPostProcessManager();
 	if (!post)
 	{
@@ -85,6 +103,12 @@ void PostProcessTrack::RestoreState(const BindingContext& ctx)
 	post->vignetteEffect_->SetEnabled(capturedVignetteEnabled_);
 	post->grayscaleEffect_->SetIntensity(capturedGrayscaleIntensity_);
 	post->grayscaleEffect_->SetEnabled(capturedGrayscaleEnabled_);
+
+	if (FogRenderer* fog = ctx.GetFogRenderer())
+	{
+		fog->GetSettings().enabled = capturedFogEnabled_;
+		fog->GetSettings().density = capturedFogDensity_;
+	}
 }
 
 bool PostProcessTrack::RecordKey(float time, const BindingContext& ctx)
@@ -100,6 +124,11 @@ bool PostProcessTrack::RecordKey(float time, const BindingContext& ctx)
 	bloomThresholdChannel_.SetKey(time, post->bloomEffect_->GetThreshold());
 	vignetteIntensityChannel_.SetKey(time, post->vignetteEffect_->GetIntensity());
 	grayscaleIntensityChannel_.SetKey(time, post->grayscaleEffect_->GetIntensity());
+	if (FogRenderer* fog = ctx.GetFogRenderer())
+	{
+		// フォグが無効なら濃さ 0 として記録する
+		fogDensityChannel_.SetKey(time, fog->GetSettings().enabled ? fog->GetSettings().density : 0.0f);
+	}
 	return true;
 }
 
@@ -112,6 +141,7 @@ nlohmann::json PostProcessTrack::Serialize() const
 	json["bloomThreshold"] = SerializeCurve(bloomThresholdCurve_);
 	json["vignetteIntensity"] = SerializeCurve(vignetteIntensityCurve_);
 	json["grayscaleIntensity"] = SerializeCurve(grayscaleIntensityCurve_);
+	json["fogDensity"] = SerializeCurve(fogDensityCurve_);
 	return json;
 }
 
@@ -128,6 +158,7 @@ bool PostProcessTrack::Deserialize(const nlohmann::json& json)
 	if (json.contains("bloomThreshold")) { DeserializeCurve(json["bloomThreshold"], bloomThresholdCurve_); }
 	if (json.contains("vignetteIntensity")) { DeserializeCurve(json["vignetteIntensity"], vignetteIntensityCurve_); }
 	if (json.contains("grayscaleIntensity")) { DeserializeCurve(json["grayscaleIntensity"], grayscaleIntensityCurve_); }
+	if (json.contains("fogDensity")) { DeserializeCurve(json["fogDensity"], fogDensityCurve_); }
 	return true;
 }
 } // namespace KCE

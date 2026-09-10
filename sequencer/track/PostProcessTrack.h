@@ -38,7 +38,7 @@ public:
 
 private:
 	/** @brief チャンネル数 */
-	static constexpr size_t kChannelCount = 5;
+	static constexpr size_t kChannelCount = 6;
 
 	FloatCurve exposureCurve_;
 	FloatCurve bloomIntensityCurve_;
@@ -51,6 +51,9 @@ private:
 	CurveChannel<float> bloomThresholdChannel_{ "Bloom Threshold", &bloomThresholdCurve_ };
 	CurveChannel<float> vignetteIntensityChannel_{ "Vignette", &vignetteIntensityCurve_ };
 	CurveChannel<float> grayscaleIntensityChannel_{ "Grayscale", &grayscaleIntensityCurve_ };
+	// 大気フォグの濃さ。カーブを持つ間だけフォグを有効にする
+	FloatCurve fogDensityCurve_;
+	CurveChannel<float> fogDensityChannel_{ "Fog Density", &fogDensityCurve_ };
 
 	// --- 状態の退避 ---
 	bool hasCapturedState_ = false;
@@ -61,5 +64,7 @@ private:
 	bool capturedVignetteEnabled_ = false;
 	float capturedGrayscaleIntensity_ = 0.0f;
 	bool capturedGrayscaleEnabled_ = false;
+	bool capturedFogEnabled_ = false;
+	float capturedFogDensity_ = 0.0f;
 };
 } // namespace KCE
