@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #include "effects/postprocess/IPostEffect.h"
 #include "math/Vector2.h"
 #include "math/Vector3.h"
@@ -90,7 +91,13 @@ struct alignas(16) PostEffectParams
 	// Bloomのぼかし半径
 	float bloomRadius;
 	// 16バイトアラインメント用パディング
-	float pad4[3];
+	//
+	// HLSL側は float3 pad4 → float2 invScreenSize と並んでいるが、
+	// HLSLの定数バッファでは変数が16バイト境界をまたぐことを許さないため、
+	// invScreenSize は pad4 の直後（156）ではなく次の境界（160）へ送られる。
+	// C++側は詰めて配置されるので、ここで4バイト分を明示的に埋めないと
+	// これ以降の全フィールドが4バイトずれて読まれる。
+	float pad4[4];
 
 	// 画面サイズの逆数 (シェーダー内でのUV計算用)
 	Vector2 invScreenSize;
@@ -160,6 +167,29 @@ struct alignas(16) PostEffectParams
 		return !(*this == other);
 	}
 };
+
+// HLSL側の cbuffer PostEffectParams（PostEffect.PS.hlsl）と
+// バイト単位で一致していることを検証する。
+//
+// ここがずれると、シェーダーは隣のフィールドの値を読むことになる。
+// コンパイルも実行も通ってしまい、絵が真っ暗になる・エフェクトが効かない
+// といった形でしか現れないため、必ず静的に検証しておくこと。
+// フィールドを足すときは、この一覧にも追記する。
+static_assert(offsetof(PostEffectParams, grayscaleIntensity) == 0, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, vignetteEnabled) == 16, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, vignetteColor) == 32, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, noiseEnabled) == 48, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, luminanceAffect) == 64, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, crtEnabled) == 80, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, distortionEnabled) == 96, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, bloomEnabled) == 128, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, invScreenSize) == 160, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, bloomThresholdKnee) == 168, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, bloomMix) == 172, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, tonemapEnabled) == 176, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, tonemapExposure) == 180, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, tonemapMode) == 184, "HLSLのレイアウトと一致していません");
+static_assert(sizeof(PostEffectParams) == 192, "HLSLのレイアウトと一致していません");
 
 /**
  * @brief ポストエフェクトの基底クラス
