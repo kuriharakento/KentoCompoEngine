@@ -1,6 +1,7 @@
 #include "GameObjectManager.h"
 #include "engine/gameobject/base/GameObject.h"
 #include <algorithm>
+#include "manager/scene/CameraManager.h"
 #include "manager/editor/GameObjectEditor.h"
 
 namespace KCE
@@ -135,13 +136,93 @@ void GameObjectManager::Draw3D(CameraManager* camera)
 			// Renderable3dが存在し、かつRenderingTypeがDeferredの場合は、DrawGBufferで描画されるためDraw3Dでは描画しない
 			if (auto* renderable = obj->GetRenderable3d())
 			{
-				if (renderable->GetRenderingType() == RenderingType::Deferred)
+				if (renderable->GetRenderQueue() != RenderQueue::Opaque || renderable->GetRenderingType() == RenderingType::Deferred)
 				{
 					continue;
 				}
 			}
 			obj->Draw3D(camera);
 		}
+	}
+}
+
+void GameObjectManager::DrawTransparent(CameraManager* camera, const std::vector<Object3d*>& sceneObjects)
+{
+	if (!camera || !camera->GetActiveCamera())
+	{
+		return;
+	}
+	const Vector3 cameraPosition = camera->GetActiveCamera()->GetTranslate();
+	struct Entry
+	{
+		IRenderable3d* object;
+		float distanceSquared;
+	};
+	std::vector<Entry> entries;
+	std::vector<GameObject*> roots;
+	for (auto* obj : gameObjects_)
+	{
+		while (obj->GetParent())
+		{
+			obj = obj->GetParent();
+		}
+		if (std::find(roots.begin(), roots.end(), obj) == roots.end())
+		{
+			roots.push_back(obj);
+		}
+	}
+	// 親を先に更新し、未登録の子も一度だけ収集して全体でソートする。
+	const auto collect = [&](const auto& self, GameObject* obj) -> void
+	{
+		if (!obj->IsActive())
+		{
+			return;
+		}
+		auto* renderable = obj->GetRenderable3d();
+		if (renderable)
+		{
+			obj->UpdateTransform(camera);
+			if (IsVisibleInLayerMask(obj->GetRenderLayer(), renderLayerMask_) &&
+				renderable->GetRenderQueue() == RenderQueue::Transparent)
+			{
+				const auto world = obj->GetWorldMatrix();
+				const Vector3 offset{ world.m[3][0] - cameraPosition.x, world.m[3][1] - cameraPosition.y, world.m[3][2] - cameraPosition.z };
+				entries.push_back({ renderable, offset.x * offset.x + offset.y * offset.y + offset.z * offset.z });
+			}
+		}
+		for (const auto& [name, child] : obj->GetChildren())
+		{
+			if (child)
+			{
+				self(self, child.get());
+			}
+		}
+	};
+	for (auto* root : roots)
+	{
+		collect(collect, root);
+	}
+	// シーンへ直接登録されたオブジェクトも同じキューでソートする。
+	for (auto* object : sceneObjects)
+	{
+		if (!object || object->GetRenderQueue() != RenderQueue::Transparent ||
+			std::any_of(entries.begin(), entries.end(), [object](const Entry& entry) { return entry.object == object; }))
+		{
+			continue;
+		}
+		object->Update(0.0f, camera->GetActiveCamera());
+		const auto world = object->GetWorldMatrix();
+		const Vector3 offset{ world.m[3][0] - cameraPosition.x, world.m[3][1] - cameraPosition.y, world.m[3][2] - cameraPosition.z };
+		entries.push_back({ object, offset.x * offset.x + offset.y * offset.y + offset.z * offset.z });
+	}
+	std::stable_sort(entries.begin(), entries.end(), [](const Entry& a, const Entry& b)
+	{
+		return a.distanceSquared > b.distanceSquared;
+	});
+	for (const auto& entry : entries)
+	{
+		// 子の再帰描画を避け、収集したオブジェクト単位の順序を維持する。
+		entry.object->Draw();
 	}
 }
 
@@ -182,7 +263,7 @@ void GameObjectManager::DrawGBuffer(CameraManager* camera)
 			// Renderable3dが存在し、かつRenderingTypeがDeferredのもののみ描画する
 			if (auto* renderable = obj->GetRenderable3d())
 			{
-				if (renderable->GetRenderingType() != RenderingType::Deferred)
+				if (renderable->GetRenderQueue() != RenderQueue::Opaque || renderable->GetRenderingType() != RenderingType::Deferred)
 				{
 					continue;
 				}

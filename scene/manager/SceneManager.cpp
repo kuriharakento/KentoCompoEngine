@@ -81,6 +81,11 @@ void SceneManager::Update()
 	currentScene_->Update();
 }
 
+void SceneManager::DrawTransparent()
+{
+	currentScene_->DrawTransparent(context_.cameraManager);
+}
+
 void SceneManager::Draw3D()
 {
 	currentScene_->Draw3D();

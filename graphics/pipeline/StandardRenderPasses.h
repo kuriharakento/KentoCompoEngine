@@ -67,10 +67,10 @@ public:
  * @details 深度バッファを書き込み可能に戻し、シーン用レンダーターゲットと
  *          G-Bufferの深度を束ねてから、フォワード対象とデバッグラインを描く。
  */
-class ForwardPass : public IRenderPass
+class ForwardOpaquePass : public IRenderPass
 {
 public:
-	const char* GetName() const override { return "Forward"; }
+	const char* GetName() const override { return "ForwardOpaque"; }
 	void Execute(const RenderPassContext& ctx) override;
 };
 
@@ -85,15 +85,14 @@ public:
 };
 
 /**
- * @brief パーティクル描画パス
- * @details 現状は半透明のソートを持たないため、常に最後に描かれる。
- *          ビーム・煙・ガラスが同居する演出では破綻するので、
- *          不透明パスと半透明パスの分離が別途必要になる。
+ * @brief 半透明描画パス
+ * @details オブジェクトを遠い順に描いた後、パーティクルを描く。
+ *          パーティクル内部のソートはこのパスでは行わない。
  */
-class ParticlePass : public IRenderPass
+class TransparentPass : public IRenderPass
 {
 public:
-	const char* GetName() const override { return "Particle"; }
+	const char* GetName() const override { return "Transparent"; }
 	void Execute(const RenderPassContext& ctx) override;
 };
 
@@ -184,8 +183,8 @@ public:
  * @brief 標準的な描画順でパイプラインを組み立てる
  *
  * @details 既存の描画順をそのまま並べたもの。
- *          シャドウ → G-Buffer → ライト → フォワード → Skybox →
- *          パーティクル → 解決 → ポストプロセス → 2D。
+ *          シャドウ → G-Buffer → ライト → 不透明フォワード → Skybox →
+ *          半透明（パーティクルを含む） → 解決 → ポストプロセス → 2D。
  *
  * @param pipeline 組み立て先のパイプライン。既存のパスは破棄される
  */

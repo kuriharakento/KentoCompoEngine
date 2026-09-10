@@ -136,7 +136,14 @@ void SkinnedObject3d::Draw()
 	DispatchSkinning();
 
 	// グラフィックスパイプラインを設定（コンピュートシェーダー後のリセット）
-	object3dCommon_->CommonRenderingSetting();
+	if (renderQueue_ == RenderQueue::Transparent)
+	{
+		object3dCommon_->TransparentRenderingSetting();
+	}
+	else
+	{
+		object3dCommon_->CommonRenderingSetting();
+	}
 
 	auto* commandList = object3dCommon_->GetDXCommon()->GetCommandList();
 

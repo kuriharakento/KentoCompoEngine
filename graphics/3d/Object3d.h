@@ -311,6 +311,9 @@ public: /*========[ セッター ]========*/
 	 * @brief レンダリングタイプの取得
 	 * @return レンダリングタイプ
 	 */
+	RenderQueue GetRenderQueue() const override { return renderQueue_; }
+	void SetRenderQueue(RenderQueue queue) override { renderQueue_ = queue; }
+
 	RenderingType GetRenderingType() const override { return renderingType_; }
 
 	/**
@@ -396,6 +399,7 @@ private: /*========[ メンバ変数 ]========*/
 	Transform transform_;
 
 	// レンダリングタイプ
+	RenderQueue renderQueue_ = RenderQueue::Opaque;
 	RenderingType renderingType_ = RenderingType::Deferred;
 };
 } // namespace KCE

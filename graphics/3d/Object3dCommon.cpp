@@ -50,6 +50,12 @@ void Object3dCommon::CommonRenderingSetting()
 	);
 }
 
+void Object3dCommon::TransparentRenderingSetting()
+{
+	CommonRenderingSetting();
+	dxCommon_->GetCommandList()->SetPipelineState(transparentPipelineState_.Get());
+}
+
 void Object3dCommon::CreateRootSignature()
 {
 	// 通常テクスチャ用ディスクリプタレンジの設定
@@ -315,6 +321,11 @@ void Object3dCommon::CreateGraphicsPipelineState()
 
 	// パイプラインステートを生成
 	hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&graphicsPipelineState_));
+	assert(SUCCEEDED(hr));
+
+	// 既存の合成方法とシェーダーを保ち、半透明だけ深度書き込みを止める。
+	graphicsPipelineStateDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+	hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&transparentPipelineState_));
 	assert(SUCCEEDED(hr));
 }
 } // namespace KCE

@@ -162,7 +162,11 @@ void GameObject::Draw3D(CameraManager* camera)
 	// Transform情報をObject3Dに適用（親子関係を考慮）
 	ApplyTransformToObject3D(camera);
 
-	renderable3d_->Draw();
+	// 子の再帰描画でも半透明を不透明パスへ混ぜない。
+	if (renderable3d_->GetRenderQueue() == RenderQueue::Opaque)
+	{
+		renderable3d_->Draw();
+	}
 
 	// 子オブジェクトの描画
 	for (auto& [name, child] : children_)
@@ -260,7 +264,10 @@ void GameObject::DrawGBuffer(CameraManager* camera)
 	}
 
 	// renderable3dを通してG-Bufferへの描画を行う
-	renderable3d_->DrawGBuffer();
+	if (renderable3d_->GetRenderQueue() == RenderQueue::Opaque)
+	{
+		renderable3d_->DrawGBuffer();
+	}
 
 	// 子オブジェクトのGBuffer描画
 	for (auto& [name, child] : children_)

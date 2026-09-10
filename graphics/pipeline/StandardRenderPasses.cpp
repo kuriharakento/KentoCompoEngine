@@ -220,7 +220,7 @@ void LightingPass::Execute(const RenderPassContext& ctx)
 ///						フォワードレンダリング
 ///=============================================================================
 
-void ForwardPass::Execute(const RenderPassContext& ctx)
+void ForwardOpaquePass::Execute(const RenderPassContext& ctx)
 {
 	if (!ctx.view || !ctx.view->IsValid())
 	{
@@ -280,9 +280,25 @@ void SkyboxPass::Execute(const RenderPassContext& ctx)
 	}
 }
 
-void ParticlePass::Execute(const RenderPassContext& ctx)
+void TransparentPass::Execute(const RenderPassContext& ctx)
 {
-	(void)ctx;
+	if (!ctx.view || !ctx.view->IsValid() || !ctx.objectCommon)
+	{
+		return;
+	}
+
+	// 現在のビューへ再バインドする。シーン描画中の深度はDEPTH_WRITE状態で、
+	// 書き込みの有無はPSOで制御する。SRVからの遷移をここで重複させない。
+	auto rtv = ctx.view->GetSceneColor()->GetRTVHandle();
+	auto dsv = ctx.view->GetGBuffer()->GetDSVHandle();
+	ctx.dxCommon->GetCommandList()->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
+	ApplyCommon3DRenderingSetting(ctx);
+	ctx.objectCommon->TransparentRenderingSetting();
+	if (ctx.lightManager)
+	{
+		ctx.dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(kRootParamShadowMatrix, ctx.lightManager->GetShadowMatrixGPUAddress());
+	}
+	ctx.sceneManager->DrawTransparent();
 	ParticleManager::GetInstance()->Draw();
 }
 
@@ -359,9 +375,9 @@ void BuildStandardRenderPipeline(RenderPipeline& pipeline)
 	pipeline.AddPass(std::make_unique<ShadowMapPass>());
 	pipeline.AddPass(std::make_unique<GBufferPass>());
 	pipeline.AddPass(std::make_unique<LightingPass>());
-	pipeline.AddPass(std::make_unique<ForwardPass>());
+	pipeline.AddPass(std::make_unique<ForwardOpaquePass>());
 	pipeline.AddPass(std::make_unique<SkyboxPass>());
-	pipeline.AddPass(std::make_unique<ParticlePass>());
+	pipeline.AddPass(std::make_unique<TransparentPass>());
 	pipeline.AddPass(std::make_unique<SceneColorResolvePass>());
 	pipeline.AddPass(std::make_unique<SubViewRenderPass>());
 	pipeline.AddPass(std::make_unique<BackBufferPreparePass>());
@@ -376,9 +392,9 @@ void BuildSceneOnlyRenderPipeline(RenderPipeline& pipeline)
 	// シャドウマップは本編のパイプラインが作ったものをそのまま使う
 	pipeline.AddPass(std::make_unique<GBufferPass>());
 	pipeline.AddPass(std::make_unique<LightingPass>());
-	pipeline.AddPass(std::make_unique<ForwardPass>());
+	pipeline.AddPass(std::make_unique<ForwardOpaquePass>());
 	pipeline.AddPass(std::make_unique<SkyboxPass>());
-	pipeline.AddPass(std::make_unique<ParticlePass>());
+	pipeline.AddPass(std::make_unique<TransparentPass>());
 	pipeline.AddPass(std::make_unique<SceneColorResolvePass>());
 }
 } // namespace KCE

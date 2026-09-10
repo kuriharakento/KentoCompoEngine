@@ -12,6 +12,7 @@ class GameObject;
 class CameraManager;
 class Camera;
 class Object3dCommon;
+class Object3d;
 class LightManager;
 
 /**
@@ -62,6 +63,9 @@ public:
 	 * @param camera カメラ管理クラス
 	 */
 	void Draw3D(CameraManager* camera);
+
+	/** @brief 現在のビューに見える半透明を距離の降順で描く */
+	void DrawTransparent(CameraManager* camera, const std::vector<Object3d*>& sceneObjects = {});
 
 	/**
 	 * @brief 2D描画

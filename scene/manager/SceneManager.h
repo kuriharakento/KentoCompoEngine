@@ -25,6 +25,7 @@ public: //メンバ関数
 	void Update();
 	//描画
 	void Draw3D();
+	void DrawTransparent();
 	void Draw2D();
 	//シャドウ描画
 	void DrawShadow();

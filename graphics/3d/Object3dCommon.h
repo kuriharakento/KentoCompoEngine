@@ -27,6 +27,9 @@ public: // メンバ関数
 	 */
 	void CommonRenderingSetting();
 
+	/** @brief 共通バインドを維持して深度を書かない半透明PSOを設定する */
+	void TransparentRenderingSetting();
+
 public: // アクセッサ
 	/**
 	 * @brief DirectXCommonの取得
@@ -94,6 +97,7 @@ private: // メンバ変数
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_ = nullptr;
 	// グラフィックスパイプラインステート
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState_ = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> transparentPipelineState_ = nullptr;
 
 };
 } // namespace KCE

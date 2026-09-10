@@ -17,6 +17,13 @@ enum class RenderingType {
 	Forward,  // フォワードレンダリング（Forwardパス）
 };
 
+/** @brief 半透明は不透明と分けて奥から描くための描画キュー */
+enum class RenderQueue
+{
+	Opaque,      //!< 不透明。深度書き込みON
+	Transparent, //!< 半透明。深度書き込みOFF
+};
+
 /**
  * @brief 3D描画オブジェクトの共通インターフェース
  * @details Object3dとSkinnedObject3dの共通操作を定義する。
@@ -163,6 +170,9 @@ public:
 	/**
 	 * @brief レンダリングタイプの取得
 	 */
+	virtual RenderQueue GetRenderQueue() const = 0;
+	virtual void SetRenderQueue(RenderQueue queue) = 0;
+
 	virtual RenderingType GetRenderingType() const = 0;
 
 	/**

@@ -1,6 +1,7 @@
 #pragma once
 #include "engine/scene/interface/ISceneState.h"
 #include <vector>
+#include "gameobject/manager/GameObjectManager.h"
 #include <memory>
 #include <string>
 #include <cassert>
@@ -64,7 +65,7 @@ public:
         for (auto* object : objects_)
         {
             // Forwardパスでは、Forwardタイプのオブジェクトのみを描画
-            if (object->GetRenderingType() == RenderingType::Forward)
+            if (object->GetRenderQueue() == RenderQueue::Opaque && object->GetRenderingType() == RenderingType::Forward)
             {
                 object->Draw();
             }
@@ -75,6 +76,12 @@ public:
      * @brief 2D描画。2Dは実装依存（スプライトなど）。
      */
     virtual void Draw2D() = 0;
+
+	/** @brief 半透明描画をシーンから管理オブジェクトへ通す */
+	virtual void DrawTransparent(CameraManager* camera)
+	{
+		GameObjectManager::GetInstance()->DrawTransparent(camera, objects_);
+	}
     
     /**
      * @brief シャドウ描画。
@@ -98,7 +105,7 @@ public:
         for (auto* object : objects_)
         {
             // G-Bufferパスでは、Deferredタイプのオブジェクトのみを描画
-            if (object->GetRenderingType() == RenderingType::Deferred)
+            if (object->GetRenderQueue() == RenderQueue::Opaque && object->GetRenderingType() == RenderingType::Deferred)
             {
                 object->DrawGBuffer();
             }
