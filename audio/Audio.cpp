@@ -583,7 +583,11 @@ void Audio::PlayWave(SoundData* soundData, bool loop)
 	}
 	if (FAILED(hr))
 	{
-		Logger::Log("音声のSourceVoiceを作成できませんでした。\n", Logger::LogLevel::Error);
+		// ポインタ版は名前を持たないので、失敗の種類ごとに1回だけ出す
+		if (reportedPlaybackErrors_.insert("<CreateSourceVoice>").second)
+		{
+			Logger::Log("音声のSourceVoiceを作成できませんでした。\n", Logger::LogLevel::Error);
+		}
 		return;
 	}
 
@@ -596,14 +600,20 @@ void Audio::PlayWave(SoundData* soundData, bool loop)
 	hr = sourceVoice->SubmitSourceBuffer(&buffer);
 	if (FAILED(hr))
 	{
-		Logger::Log("音声バッファを送信できませんでした。\n", Logger::LogLevel::Error);
+		if (reportedPlaybackErrors_.insert("<SubmitSourceBuffer>").second)
+		{
+			Logger::Log("音声バッファを送信できませんでした。\n", Logger::LogLevel::Error);
+		}
 		sourceVoice->DestroyVoice();
 		return;
 	}
 	hr = sourceVoice->Start();
 	if (FAILED(hr))
 	{
-		Logger::Log("音声の再生を開始できませんでした。\n", Logger::LogLevel::Error);
+		if (reportedPlaybackErrors_.insert("<Start>").second)
+		{
+			Logger::Log("音声の再生を開始できませんでした。\n", Logger::LogLevel::Error);
+		}
 		sourceVoice->DestroyVoice();
 	}
 }

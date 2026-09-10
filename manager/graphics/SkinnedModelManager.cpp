@@ -79,10 +79,10 @@ const SkinnedModelSharedResource* SkinnedModelManager::LoadModel(const std::stri
     {
         return it->second.get();
     }
-	if (failedModelPaths_.contains(fullPath))
-	{
-		return nullptr;
-	}
+    if (failedModelPaths_.contains(fullPath))
+    {
+        return nullptr;
+    }
 
     // 新規ロード
     auto sharedResource = std::make_unique<SkinnedModelSharedResource>();
@@ -95,7 +95,7 @@ const SkinnedModelSharedResource* SkinnedModelManager::LoadModel(const std::stri
     if (!scene || !scene->HasMeshes())
     {
         KCE::Logger::Log("スキニングモデルを読み込めませんでした: " + fullPath + " (" + importer.GetErrorString() + ")\n", Logger::LogLevel::Error);
-		failedModelPaths_.insert(fullPath);
+        failedModelPaths_.insert(fullPath);
         return nullptr;
     }
 
@@ -233,7 +233,7 @@ const SkinnedModelSharedResource* SkinnedModelManager::LoadModel(const std::stri
             if (mesh->mFaces[f].mNumIndices != 3)
             {
                 Logger::Log("三角形ではない面が含まれるためスキニングモデルを読み込めませんでした: " + fullPath + "\n", Logger::LogLevel::Error);
-				failedModelPaths_.insert(fullPath);
+                failedModelPaths_.insert(fullPath);
                 return nullptr;
             }
             for(int idx=0; idx<3; ++idx) md.indices.push_back(mesh->mFaces[f].mIndices[idx]);
