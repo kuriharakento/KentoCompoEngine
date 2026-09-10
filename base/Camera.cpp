@@ -57,7 +57,21 @@ void Camera::Update()
 	}
 
 	// ワールド行列の更新
-	worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate + shakeOffset_);
+	const Vector3 eyePosition = transform_.translate + shakeOffset_;
+	if (useQuaternionRotation_)
+	{
+		// クォータニオンの回転行列をそのまま使う。
+		// オイラー角に落としてから MakeAffineMatrix に渡すと、
+		// 特異点付近で補間結果と食い違うため経由しない。
+		worldMatrix_ = Multiply(
+			Multiply(MakeScaleMatrix(transform_.scale), rotationQuaternion_.ToMatrix()),
+			MakeTranslateMatrix(eyePosition)
+		);
+	}
+	else
+	{
+		worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, eyePosition);
+	}
 	// ビュー行列の更新
 	viewMatrix_ = Inverse(worldMatrix_);
 	// 透視投影行列の更新
@@ -70,7 +84,7 @@ void Camera::Update()
 	{
 		constantData_->view = viewMatrix_;
 		constantData_->projection = projectionMatrix_;
-		constantData_->eye = transform_.translate + shakeOffset_;
+		constantData_->eye = eyePosition;
 		constantData_->padding = 0.0f;
 	}
 }

@@ -227,6 +227,28 @@ public:
 	KCE::Vector2 GetMousePosition() const;
 
     /**
+     * @brief エディタUIによる入力の横取りを有効にするか設定
+     *
+     * 有効な場合、ImGuiがキーボード／マウスを掴んでいる間、
+     * PushKey等はすべて「押されていない」を返します。
+     * テキスト入力中にゲームが動いてしまう問題を防ぎます。
+     * @param enabled 有効にする場合true（既定は有効）
+     */
+    void SetUICaptureEnabled(bool enabled) { isUICaptureEnabled_ = enabled; }
+
+    /**
+     * @brief エディタUIがキーボードを掴んでいるかチェック
+     * @return ImGuiがキーボード入力を必要としている場合true
+     */
+    bool IsUICapturingKeyboard() const;
+
+    /**
+     * @brief エディタUIがマウスを掴んでいるかチェック
+     * @return ImGuiがマウス入力を必要としている場合true
+     */
+    bool IsUICapturingMouse() const;
+
+    /**
      * @brief マウスの固定状態を設定
      * 
      * 有効にするとマウスカーソルがウィンドウ中央に固定され、
@@ -298,6 +320,7 @@ private:
     int lastMouseY_ = 0;       // 前フレームのマウスY座標
     POINT mousePos_;           // マウスの現在座標
     bool isMouseLockEnabled_ = false; // マウス固定フラグ
+    bool isUICaptureEnabled_ = true;  // エディタUIによる入力横取りの有効フラグ
     bool isMouseVisible_ = true;      // マウス表示フラグ
     bool preMouseVisible_ = true;     // 前フレームのマウス表示状態
 

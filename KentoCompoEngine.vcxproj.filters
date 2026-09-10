@@ -166,6 +166,27 @@
     <Filter Include="time">
       <UniqueIdentifier>{07CC694B-9B3F-C636-710F-A08B6922C42B}</UniqueIdentifier>
     </Filter>
+    <Filter Include="core">
+      <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A401}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="editor">
+      <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A402}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="editor\command">
+      <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A403}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sequencer">
+      <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A404}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sequencer\core">
+      <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A405}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sequencer\editor">
+      <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A406}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sequencer\track">
+      <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A407}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="animation\Animator.cpp">
@@ -482,6 +503,45 @@
     </ClCompile>
     <ClCompile Include="time\TimerManager.cpp">
       <Filter>time</Filter>
+    </ClCompile>
+    <ClCompile Include="core\Guid.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="editor\EditorContext.cpp">
+      <Filter>editor</Filter>
+    </ClCompile>
+    <ClCompile Include="editor\SceneViewContext.cpp">
+      <Filter>editor</Filter>
+    </ClCompile>
+    <ClCompile Include="editor\SelectionContext.cpp">
+      <Filter>editor</Filter>
+    </ClCompile>
+    <ClCompile Include="editor\command\CommandHistory.cpp">
+      <Filter>editor\command</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\core\BindingContext.cpp">
+      <Filter>sequencer\core</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\core\ITrack.cpp">
+      <Filter>sequencer\core</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\core\Sequence.cpp">
+      <Filter>sequencer\core</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\core\SequencePlayer.cpp">
+      <Filter>sequencer\core</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\core\TrackFactory.cpp">
+      <Filter>sequencer\core</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\editor\SequencerCommands.cpp">
+      <Filter>sequencer\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\editor\SequencerEditor.cpp">
+      <Filter>sequencer\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\track\CameraTrack.cpp">
+      <Filter>sequencer\track</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -991,6 +1051,63 @@
     </ClInclude>
     <ClInclude Include="time\TimerManager.h">
       <Filter>time</Filter>
+    </ClInclude>
+    <ClInclude Include="core\Guid.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\SchemaVersion.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="editor\EditorContext.h">
+      <Filter>editor</Filter>
+    </ClInclude>
+    <ClInclude Include="editor\SceneViewContext.h">
+      <Filter>editor</Filter>
+    </ClInclude>
+    <ClInclude Include="editor\SelectionContext.h">
+      <Filter>editor</Filter>
+    </ClInclude>
+    <ClInclude Include="editor\command\CommandHistory.h">
+      <Filter>editor\command</Filter>
+    </ClInclude>
+    <ClInclude Include="editor\command\CompositeCommand.h">
+      <Filter>editor\command</Filter>
+    </ClInclude>
+    <ClInclude Include="editor\command\ICommand.h">
+      <Filter>editor\command</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\core\BindingContext.h">
+      <Filter>sequencer\core</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\core\Curve.h">
+      <Filter>sequencer\core</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\core\CurveSerialization.h">
+      <Filter>sequencer\core</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\core\CurveTypes.h">
+      <Filter>sequencer\core</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\core\ITrack.h">
+      <Filter>sequencer\core</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\core\Sequence.h">
+      <Filter>sequencer\core</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\core\SequencePlayer.h">
+      <Filter>sequencer\core</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\core\TrackFactory.h">
+      <Filter>sequencer\core</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\editor\SequencerCommands.h">
+      <Filter>sequencer\editor</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\editor\SequencerEditor.h">
+      <Filter>sequencer\editor</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\track\CameraTrack.h">
+      <Filter>sequencer\track</Filter>
     </ClInclude>
     <ClInclude Include="scene\interface\ISceneState.h" />
   </ItemGroup>

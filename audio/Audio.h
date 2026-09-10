@@ -71,6 +71,18 @@ struct SoundData
 	SoundGroup group;
 };
 
+/**
+ * @brief 1つのソースボイスの再生位置を追跡するための情報
+ * @details SamplesPlayed はボイス生成からの累積値であり、シークしても巻き戻らない。
+ *          そのため「直前にどこから再生を始めたか」を自前で覚えておき、差分で位置を求める。
+ */
+struct PlaybackTracking
+{
+	uint64_t baseSamplesPlayed = 0; //!< 再生開始／シーク時点の SamplesPlayed
+	uint64_t startSample = 0;		//!< そのとき再生を開始したバッファ内サンプル位置
+	bool loop = false;				//!< ループ再生かどうか
+};
+
 struct FadeData
 {
 	IXAudio2SourceVoice* sourceVoice;
@@ -151,6 +163,43 @@ public:
 	bool IsPaused(const std::string& name) const;
 	bool IsLoaded(const std::string& name) const;
 
+	// --- 再生位置（シーケンサの時間の権威） ---
+
+	/**
+	 * @brief 現在の再生位置を秒で取得する
+	 * @details SEQUENCER_PLAN 3.8。deltaTime の積算は数分の楽曲で必ずズレるため、
+	 *          演出の時刻はこの値を権威とする。
+	 *          IXAudio2SourceVoice::GetState() の SamplesPlayed から算出し、
+	 *          Seek() で設定した開始位置を加味する。ループ時は長さで折り返す。
+	 * @param name 再生中の音声名
+	 * @return 再生位置（秒）。再生していない場合は0
+	 */
+	float GetPlayPosition(const std::string& name) const;
+
+	/**
+	 * @brief 再生位置を指定秒に移動する
+	 * @details PCMを全展開済みという特性を活かし、SubmitSourceBuffer の PlayBegin で
+	 *          任意位置から再投入する。再生中でなければ何もしない。
+	 * @param name 再生中の音声名
+	 * @param seconds 移動先の位置（秒）。範囲外はクランプされる
+	 * @return シークに成功したら真
+	 */
+	bool Seek(const std::string& name, float seconds);
+
+	/**
+	 * @brief 音声の総再生時間を秒で取得する
+	 * @param name 読み込み済みの音声名
+	 * @return 総再生時間（秒）。未読み込みなら0
+	 */
+	float GetDuration(const std::string& name) const;
+
+	/**
+	 * @brief 音声のサンプリングレートを取得する
+	 * @param name 読み込み済みの音声名
+	 * @return サンプリングレート（Hz）。未読み込みなら0
+	 */
+	uint32_t GetSampleRate(const std::string& name) const;
+
 	void SetReverbEnabled(bool enabled);
 	bool IsReverbEnabled() const;
 	void SetReverbPreset(ReverbPreset preset);
@@ -172,6 +221,14 @@ private:
 	void InitializeEffect();
 	bool DecodeAudioFile(const std::filesystem::path& path, SoundGroup group, SoundData& output);
 	void RemoveFromGroupMap(IXAudio2SourceVoice* sourceVoice);
+
+	/**
+	 * @brief 音声データの総サンプル数を求める
+	 * @param soundData 対象の音声データ
+	 * @return サンプル数。ブロックアラインが0なら0
+	 */
+	static uint64_t GetTotalSampleCount(const SoundData& soundData);
+
 	float ClampVolume(float volume) const;
 	float ClampPitch(float pitch) const;
 	void UpdateReverbVolume();
@@ -190,6 +247,7 @@ private:
 	std::unordered_map<std::string, IXAudio2SourceVoice*> sourceVoiceMap_;
 	std::unordered_map<SoundGroup, std::vector<IXAudio2SourceVoice*>> groupVoicesMap_;
 	std::unordered_map<std::string, bool> pausedMap_;
+	std::unordered_map<std::string, PlaybackTracking> playbackTrackingMap_;
 	std::vector<FadeData> fadeList_;
 	std::unordered_map<IXAudio2SourceVoice*, bool> fadeOutStopMap_;
 

@@ -1,5 +1,6 @@
 #include "GameObject.h"
 #include "base/PathManager.h"
+#include "core/SchemaVersion.h"
 #include "engine/gameobject/manager/GameObjectManager.h"
 
 #include "engine/graphics/3d/Object3dCommon.h"
@@ -585,7 +586,12 @@ bool GameObject::SaveJson(const std::string& path) const
 
 	json["components"] = compJson;
 
-	// 3. ファイルに出力
+	// 3. スキーマバージョンと安定IDを付与する
+	//    バージョンはフォーマット変更時に既存データを読み分けるために必須。
+	json["version"] = kGameObjectSchemaVersion;
+	json["guid"] = guid_.ToString();
+
+	// 4. ファイルに出力
 	std::ofstream ofs(fullPath);
 	if (!ofs)
 	{
@@ -628,6 +634,17 @@ bool GameObject::LoadJson(const std::string& path)
 
 	// 1. GameObject 自身のパラメータを復元
 	JsonEditableBase::Deserialize(json);
+
+	// 保存されていた安定IDを復元する。
+	// guid を持たない旧データは、コンストラクタで採番済みのものをそのまま使う。
+	if (json.contains("guid") && json["guid"].is_string())
+	{
+		Guid loadedGuid;
+		if (Guid::TryParse(json["guid"].get<std::string>(), loadedGuid))
+		{
+			guid_ = loadedGuid;
+		}
+	}
 
 	// 2. 各コンポーネントのパラメータを復元
 	if (json.contains("components") && json["components"].is_object())

@@ -6,6 +6,10 @@
 #include <cstring>
 #include <thread>
 
+#ifdef USE_IMGUI
+#include "externals/imgui/imgui.h"
+#endif
+
 namespace KCE
 {
 #pragma comment(lib, "dinput8.lib")
@@ -168,6 +172,13 @@ void Input::Update() {
         mouseButtons_[1] = (GetAsyncKeyState(VK_MBUTTON) & 0x8000) ? 1 : 0; // 中ボタン
         mouseButtons_[2] = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) ? 1 : 0; // 右ボタン
 
+        // ImGuiのウィンドウやギズモを操作している間はゲーム側にクリックを渡さない
+        if (IsUICapturingMouse()) {
+            for (int i = 0; i < kMouseButtonCount; ++i) {
+                mouseButtons_[i] = 0;
+            }
+        }
+
         // マウス固定が有効な場合、位置をウィンドウの中央にリセット
         if (isMouseLockEnabled_) {
             ClientToScreen(hwnd, &center);
@@ -207,6 +218,12 @@ void Input::Update() {
         result = keyboard_->GetDeviceState(sizeof(key_), key_);
         if (FAILED(result)) {
             // 取得失敗時はキー状態をクリア
+            memset(key_, 0, sizeof(key_));
+        }
+
+        // エディタのテキスト入力中などにゲーム側が反応しないようにする。
+        // これが無いと、名前の入力中に移動キーでキャラが動いてしまう。
+        if (IsUICapturingKeyboard()) {
             memset(key_, 0, sizeof(key_));
         }
     }
@@ -463,5 +480,31 @@ float Input::GetMouseY() const
 Vector2 Input::GetMousePosition() const
 {
 	return Vector2{ GetMouseX(), GetMouseY() };
+}
+
+bool Input::IsUICapturingKeyboard() const
+{
+#ifdef USE_IMGUI
+	if (!isUICaptureEnabled_ || !ImGui::GetCurrentContext())
+	{
+		return false;
+	}
+	return ImGui::GetIO().WantCaptureKeyboard;
+#else
+	return false;
+#endif
+}
+
+bool Input::IsUICapturingMouse() const
+{
+#ifdef USE_IMGUI
+	if (!isUICaptureEnabled_ || !ImGui::GetCurrentContext())
+	{
+		return false;
+	}
+	return ImGui::GetIO().WantCaptureMouse;
+#else
+	return false;
+#endif
 }
 } // namespace KCE

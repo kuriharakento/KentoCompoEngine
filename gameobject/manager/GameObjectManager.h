@@ -3,6 +3,8 @@
 #include <string>
 #include <memory>
 
+#include "core/Guid.h"
+
 namespace KCE
 {
 class GameObject;
@@ -91,6 +93,15 @@ public:
 	 * @return 最初に見つかったGameObject。無ければnullptr
 	 */
 	GameObject* Find(const std::string& name) const;
+
+	/**
+	 * @brief GUIDでGameObjectを検索
+	 * @details 演出データからの参照はこちらを使う。名前引きと違い、改名や
+	 *          同名オブジェクトの追加で参照が壊れることがない。
+	 * @param guid 検索するGUID
+	 * @return 見つかったGameObject。無ければnullptr
+	 */
+	GameObject* FindByGuid(const Guid& guid) const;
 
 	/**
 	 * @brief 指定した名前のGameObjectをすべて検索

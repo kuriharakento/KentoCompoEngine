@@ -16,6 +16,8 @@
 #include "engine/gameobject/component/base/ICollisionComponent.h"
 // json
 #include "jsonEditor/JsonEditableBase.h"
+// core
+#include "core/Guid.h"
 
 namespace KCE
 {
@@ -285,6 +287,23 @@ public: // アクセッサ
 	 */
 	std::string GetName() const { return name_; }
 
+	// === GUID関連 ===
+	/**
+	 * @brief 安定IDの取得
+	 * @details 演出データなど外部からの参照は、名前ではなくこのGUIDで行う。
+	 *          名前は改名・重複で壊れるため表示専用とする。
+	 * @return このオブジェクトのGUID
+	 */
+	const Guid& GetGuid() const { return guid_; }
+
+	/**
+	 * @brief 安定IDの設定
+	 * @details シーンのロード時に、保存されていたGUIDを復元するために使う。
+	 *          通常の生成時はコンストラクタが自動採番するので呼ぶ必要はない。
+	 * @param guid 復元するGUID
+	 */
+	void SetGuid(const Guid& guid) { guid_ = guid; }
+
 	// === アクティブ状態関連 ===
 	/**
 	 * @brief アクティブ状態の設定
@@ -417,8 +436,10 @@ private:
 	// === オブジェクト基本情報 ===
 	// オブジェクトのタグ（分類用）
 	std::string tag_;
-	// オブジェクトの名前（識別用）
+	// オブジェクトの名前（識別用・表示専用）
 	std::string name_ = "";
+	// 安定ID。生成時に自動採番し、シーンのロード時のみ保存値で上書きする
+	Guid guid_ = Guid::Generate();
 	// アクティブ状態フラグ
 	bool isActive_;
 	// 破棄保留中フラグ

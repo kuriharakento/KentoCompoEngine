@@ -226,6 +226,7 @@ void Audio::Finalize()
 	}
 	sourceVoiceMap_.clear();
 	pausedMap_.clear();
+	playbackTrackingMap_.clear();
 	groupVoicesMap_.clear();
 
 	// vectorのデストラクタにより自動解放されるためループ削除
@@ -302,6 +303,7 @@ void Audio::Update()
 					}
 					RemoveFromGroupMap(fade.sourceVoice);
 					pausedMap_.erase(fade.name);
+					playbackTrackingMap_.erase(fade.name);
 				}
 				fadeOutStopMap_.erase(fade.sourceVoice);
 			}
@@ -558,6 +560,7 @@ void Audio::PlayWave(const std::string& name, bool loop)
 		RemoveFromGroupMap(voiceIt->second);
 		sourceVoiceMap_.erase(voiceIt);
 		pausedMap_.erase(name);
+		playbackTrackingMap_.erase(name);
 	}
 
 	SoundData& soundData = it->second;
@@ -600,6 +603,176 @@ void Audio::PlayWave(const std::string& name, bool loop)
 	sourceVoiceMap_[name] = sourceVoice;
 	groupVoicesMap_[soundData.group].push_back(sourceVoice);
 	pausedMap_[name] = false;
+
+	// 再生位置の基準を初期化する。新規ボイスなので SamplesPlayed は0から始まる。
+	PlaybackTracking tracking;
+	tracking.baseSamplesPlayed = 0;
+	tracking.startSample = 0;
+	tracking.loop = loop;
+	playbackTrackingMap_[name] = tracking;
+}
+
+uint64_t Audio::GetTotalSampleCount(const SoundData& soundData)
+{
+	const uint32_t blockAlign = soundData.wfex.nBlockAlign;
+	if (blockAlign == 0)
+	{
+		return 0;
+	}
+	return static_cast<uint64_t>(soundData.bufferSize) / blockAlign;
+}
+
+float Audio::GetDuration(const std::string& name) const
+{
+	auto it = soundDataMap_.find(name);
+	if (it == soundDataMap_.end())
+	{
+		return 0.0f;
+	}
+
+	const uint32_t sampleRate = it->second.wfex.nSamplesPerSec;
+	if (sampleRate == 0)
+	{
+		return 0.0f;
+	}
+
+	return static_cast<float>(GetTotalSampleCount(it->second)) / static_cast<float>(sampleRate);
+}
+
+uint32_t Audio::GetSampleRate(const std::string& name) const
+{
+	auto it = soundDataMap_.find(name);
+	if (it == soundDataMap_.end())
+	{
+		return 0;
+	}
+	return it->second.wfex.nSamplesPerSec;
+}
+
+float Audio::GetPlayPosition(const std::string& name) const
+{
+	auto voiceIt = sourceVoiceMap_.find(name);
+	auto soundIt = soundDataMap_.find(name);
+	auto trackingIt = playbackTrackingMap_.find(name);
+	if (voiceIt == sourceVoiceMap_.end() || soundIt == soundDataMap_.end() || trackingIt == playbackTrackingMap_.end())
+	{
+		return 0.0f;
+	}
+
+	const uint32_t sampleRate = soundIt->second.wfex.nSamplesPerSec;
+	if (sampleRate == 0)
+	{
+		return 0.0f;
+	}
+
+	XAUDIO2_VOICE_STATE state = {};
+	voiceIt->second->GetState(&state);
+
+	const PlaybackTracking& tracking = trackingIt->second;
+
+	// SamplesPlayed はボイス生成からの累積。ストリーム終端で0に戻る実装があるため、
+	// 基準より小さくなった場合は基準からのやり直しとみなす。
+	const uint64_t playedSinceBase =
+		state.SamplesPlayed >= tracking.baseSamplesPlayed ? state.SamplesPlayed - tracking.baseSamplesPlayed : 0;
+
+	uint64_t positionSample = tracking.startSample + playedSinceBase;
+
+	const uint64_t totalSamples = GetTotalSampleCount(soundIt->second);
+	if (totalSamples > 0)
+	{
+		if (tracking.loop)
+		{
+			// ループ時は曲頭に折り返す
+			positionSample %= totalSamples;
+		}
+		else if (positionSample > totalSamples)
+		{
+			positionSample = totalSamples;
+		}
+	}
+
+	return static_cast<float>(positionSample) / static_cast<float>(sampleRate);
+}
+
+bool Audio::Seek(const std::string& name, float seconds)
+{
+	auto voiceIt = sourceVoiceMap_.find(name);
+	auto soundIt = soundDataMap_.find(name);
+	auto trackingIt = playbackTrackingMap_.find(name);
+	if (voiceIt == sourceVoiceMap_.end() || soundIt == soundDataMap_.end() || trackingIt == playbackTrackingMap_.end())
+	{
+		return false;
+	}
+
+	SoundData& soundData = soundIt->second;
+	const uint32_t sampleRate = soundData.wfex.nSamplesPerSec;
+	const uint64_t totalSamples = GetTotalSampleCount(soundData);
+	if (sampleRate == 0 || totalSamples == 0)
+	{
+		return false;
+	}
+
+	// 移動先をバッファ内に収める
+	if (seconds < 0.0f)
+	{
+		seconds = 0.0f;
+	}
+	uint64_t targetSample = static_cast<uint64_t>(seconds * static_cast<float>(sampleRate));
+	if (targetSample >= totalSamples)
+	{
+		targetSample = totalSamples - 1;
+	}
+
+	IXAudio2SourceVoice* sourceVoice = voiceIt->second;
+	PlaybackTracking& tracking = trackingIt->second;
+
+	// 現在のバッファを捨てて、目的位置から再投入する
+	HRESULT hr = sourceVoice->Stop(0);
+	if (FAILED(hr))
+	{
+		return false;
+	}
+	sourceVoice->FlushSourceBuffers();
+
+	XAUDIO2_BUFFER buffer = {};
+	buffer.AudioBytes = soundData.bufferSize;
+	buffer.pAudioData = soundData.buffer.data();
+	buffer.Flags = XAUDIO2_END_OF_STREAM;
+	buffer.PlayBegin = static_cast<UINT32>(targetSample);
+	buffer.PlayLength = static_cast<UINT32>(totalSamples - targetSample);
+	if (tracking.loop)
+	{
+		// ループは曲全体を対象にする。シーク位置から末尾までを繰り返すのは意図しない挙動のため。
+		buffer.LoopBegin = 0;
+		buffer.LoopLength = static_cast<UINT32>(totalSamples);
+		buffer.LoopCount = XAUDIO2_LOOP_INFINITE;
+	}
+
+	hr = sourceVoice->SubmitSourceBuffer(&buffer);
+	if (FAILED(hr))
+	{
+		return false;
+	}
+
+	// 位置計算の基準を今の SamplesPlayed に更新する
+	XAUDIO2_VOICE_STATE state = {};
+	sourceVoice->GetState(&state);
+	tracking.baseSamplesPlayed = state.SamplesPlayed;
+	tracking.startSample = targetSample;
+
+	// ポーズ中にシークした場合は停止状態を維持する
+	auto pausedIt = pausedMap_.find(name);
+	const bool isPaused = pausedIt != pausedMap_.end() && pausedIt->second;
+	if (!isPaused)
+	{
+		hr = sourceVoice->Start(0);
+		if (FAILED(hr))
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 void Audio::StopWave(const std::string& name)
@@ -616,6 +789,7 @@ void Audio::StopWave(const std::string& name)
 	RemoveFromGroupMap(it->second);
 	sourceVoiceMap_.erase(it);
 	pausedMap_.erase(name);
+	playbackTrackingMap_.erase(name);
 }
 
 void Audio::StopGroup(SoundGroup group)
@@ -639,6 +813,7 @@ void Audio::StopGroup(SoundGroup group)
 		auto soundIt = soundDataMap_.find(mapIt->first);
 		if (soundIt != soundDataMap_.end() && soundIt->second.group == group)
 		{
+			playbackTrackingMap_.erase(mapIt->first);
 			pausedMap_.erase(mapIt->first);
 			mapIt = sourceVoiceMap_.erase(mapIt);
 		}
@@ -662,6 +837,7 @@ void Audio::StopAll()
 	}
 	sourceVoiceMap_.clear();
 	pausedMap_.clear();
+	playbackTrackingMap_.clear();
 
 	for (auto& pair : groupVoicesMap_)
 	{

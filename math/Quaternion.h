@@ -93,6 +93,98 @@ struct Quaternion
     }
 
     /**
+     * @brief 回転行列からクォータニオンを復元する
+     *
+     * @details ToMatrix() の逆変換。ギズモが返してくるワールド行列から
+     *          回転だけを取り出すために使う。
+     *          引数の回転部は正規直交であること（スケールを含まないこと）。
+     * @param matrix 回転行列
+     * @return 復元されたクォータニオン
+     */
+    static Quaternion FromMatrix(const Matrix4x4& matrix)
+    {
+        // 数値誤差に強いよう、対角成分の中で最大のものを基準に解く
+        const float trace = matrix.m[0][0] + matrix.m[1][1] + matrix.m[2][2];
+
+        if (trace > 0.0f)
+        {
+            const float s = std::sqrt(trace + 1.0f) * 2.0f;
+            return Quaternion(
+                (matrix.m[1][2] - matrix.m[2][1]) / s,
+                (matrix.m[2][0] - matrix.m[0][2]) / s,
+                (matrix.m[0][1] - matrix.m[1][0]) / s,
+                0.25f * s
+            ).Normalized();
+        }
+
+        if (matrix.m[0][0] > matrix.m[1][1] && matrix.m[0][0] > matrix.m[2][2])
+        {
+            const float s = std::sqrt(1.0f + matrix.m[0][0] - matrix.m[1][1] - matrix.m[2][2]) * 2.0f;
+            return Quaternion(
+                0.25f * s,
+                (matrix.m[0][1] + matrix.m[1][0]) / s,
+                (matrix.m[2][0] + matrix.m[0][2]) / s,
+                (matrix.m[1][2] - matrix.m[2][1]) / s
+            ).Normalized();
+        }
+
+        if (matrix.m[1][1] > matrix.m[2][2])
+        {
+            const float s = std::sqrt(1.0f + matrix.m[1][1] - matrix.m[0][0] - matrix.m[2][2]) * 2.0f;
+            return Quaternion(
+                (matrix.m[0][1] + matrix.m[1][0]) / s,
+                0.25f * s,
+                (matrix.m[1][2] + matrix.m[2][1]) / s,
+                (matrix.m[2][0] - matrix.m[0][2]) / s
+            ).Normalized();
+        }
+
+        const float s = std::sqrt(1.0f + matrix.m[2][2] - matrix.m[0][0] - matrix.m[1][1]) * 2.0f;
+        return Quaternion(
+            (matrix.m[2][0] + matrix.m[0][2]) / s,
+            (matrix.m[1][2] + matrix.m[2][1]) / s,
+            0.25f * s,
+            (matrix.m[0][1] - matrix.m[1][0]) / s
+        ).Normalized();
+    }
+
+    /**
+     * @brief オイラー角に変換（FromEulerの逆変換）
+     *
+     * @details FromEuler と同じ XYZ 順の規約で復元する。
+     *          エディタでの数値表示・入力のためのものであり、
+     *          補間には使わないこと（オイラー角のまま補間するとジンバルロックで破綻する）。
+     *          真上・真下を向いた特異点では Z 回転に縮退する。
+     * @return オイラー角（ラジアン）
+     */
+    Vector3 ToEuler() const
+    {
+        // 行ベクトル規約で R = Rx * Ry * Rz を展開すると
+        //   m[0][2] = -sin(y),  m[1][2] = sin(x)cos(y),  m[2][2] = cos(x)cos(y)
+        //   m[0][0] = cos(y)cos(z),  m[0][1] = cos(y)sin(z)
+        // となる。これを ToMatrix() の各成分に置き換えて解く。
+        Vector3 euler{};
+
+        float sinY = 2.0f * (w * y - x * z);
+        sinY = sinY < -1.0f ? -1.0f : (sinY > 1.0f ? 1.0f : sinY);
+
+        if (std::abs(sinY) >= 0.99999f)
+        {
+            // 特異点（Y が ±90 度）。cos(y) が 0 になり X と Z が区別できなくなるので、
+            // Z を 0 に固定して X に回転をまとめる。
+            euler.x = std::atan2(2.0f * (w * x - y * z), 1.0f - 2.0f * (x * x + z * z));
+            euler.y = std::copysign(3.14159265358979323846f * 0.5f, sinY);
+            euler.z = 0.0f;
+            return euler;
+        }
+
+        euler.x = std::atan2(2.0f * (y * z + w * x), 1.0f - 2.0f * (x * x + y * y));
+        euler.y = std::asin(sinY);
+        euler.z = std::atan2(2.0f * (x * y + w * z), 1.0f - 2.0f * (y * y + z * z));
+        return euler;
+    }
+
+    /**
      * @brief 球面線形補間（Slerp）
      * @param a 開始クォータニオン
      * @param b 終了クォータニオン

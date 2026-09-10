@@ -120,6 +120,19 @@
     <ClCompile Include="time\TimeManager.cpp" />
     <ClCompile Include="time\Timer.cpp" />
     <ClCompile Include="time\TimerManager.cpp" />
+    <ClCompile Include="core\Guid.cpp" />
+    <ClCompile Include="editor\EditorContext.cpp" />
+    <ClCompile Include="editor\SceneViewContext.cpp" />
+    <ClCompile Include="editor\SelectionContext.cpp" />
+    <ClCompile Include="editor\command\CommandHistory.cpp" />
+    <ClCompile Include="sequencer\core\BindingContext.cpp" />
+    <ClCompile Include="sequencer\core\ITrack.cpp" />
+    <ClCompile Include="sequencer\core\Sequence.cpp" />
+    <ClCompile Include="sequencer\core\SequencePlayer.cpp" />
+    <ClCompile Include="sequencer\core\TrackFactory.cpp" />
+    <ClCompile Include="sequencer\editor\SequencerCommands.cpp" />
+    <ClCompile Include="sequencer\editor\SequencerEditor.cpp" />
+    <ClCompile Include="sequencer\track\CameraTrack.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="animation\Animator.h" />
@@ -296,6 +309,25 @@
     <ClInclude Include="time\TimeManager.h" />
     <ClInclude Include="time\Timer.h" />
     <ClInclude Include="time\TimerManager.h" />
+    <ClInclude Include="core\Guid.h" />
+    <ClInclude Include="core\SchemaVersion.h" />
+    <ClInclude Include="editor\EditorContext.h" />
+    <ClInclude Include="editor\SceneViewContext.h" />
+    <ClInclude Include="editor\SelectionContext.h" />
+    <ClInclude Include="editor\command\CommandHistory.h" />
+    <ClInclude Include="editor\command\CompositeCommand.h" />
+    <ClInclude Include="editor\command\ICommand.h" />
+    <ClInclude Include="sequencer\core\BindingContext.h" />
+    <ClInclude Include="sequencer\core\Curve.h" />
+    <ClInclude Include="sequencer\core\CurveSerialization.h" />
+    <ClInclude Include="sequencer\core\CurveTypes.h" />
+    <ClInclude Include="sequencer\core\ITrack.h" />
+    <ClInclude Include="sequencer\core\Sequence.h" />
+    <ClInclude Include="sequencer\core\SequencePlayer.h" />
+    <ClInclude Include="sequencer\core\TrackFactory.h" />
+    <ClInclude Include="sequencer\editor\SequencerCommands.h" />
+    <ClInclude Include="sequencer\editor\SequencerEditor.h" />
+    <ClInclude Include="sequencer\track\CameraTrack.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>
@@ -347,7 +379,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..\;$(ProjectDir)externals\;$(ProjectDir)externals\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..\;$(ProjectDir)externals\;$(ProjectDir)externals\ImGui;$(ProjectDir)externals\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>/utf-8 /FS /Zc:enumTypes- %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -372,7 +404,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..\;$(ProjectDir)externals\;$(ProjectDir)externals\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..\;$(ProjectDir)externals\;$(ProjectDir)externals\ImGui;$(ProjectDir)externals\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalOptions>/utf-8 /FS /Zc:enumTypes- %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>

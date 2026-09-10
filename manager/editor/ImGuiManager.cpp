@@ -3,6 +3,9 @@
 #include "externals/imgui/imgui.h"
 #include "externals/imgui/imgui_impl_win32.h"
 #include "externals/imgui/imgui_impl_dx12.h"
+#ifdef USE_IMGUI
+#include "externals/ImGuizmo/ImGuizmo.h"
+#endif
 
 //system
 #include "base/PathManager.h"
@@ -156,6 +159,9 @@ void ImGuiManager::Begin()
 	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
+
+	// ギズモのフレーム開始。ImGui::NewFrame() の後に毎フレーム呼ぶ必要がある。
+	ImGuizmo::BeginFrame();
 #endif
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 #include "base/GraphicsTypes.h"
 #include "base/WinApp.h"
+#include "math/Quaternion.h"
 #include <d3d12.h>
 #include <wrl/client.h>
 
@@ -118,9 +119,47 @@ public:
 
 	/**
 	 * @brief 回転を設定
+	 * @details オイラー角で設定する。以降はオイラー角モードで動作する。
 	 * @param rotate 回転
 	 */
-	void SetRotate(const Vector3& rotate) { transform_.rotate = rotate; }
+	void SetRotate(const Vector3& rotate)
+	{
+		transform_.rotate = rotate;
+		useQuaternionRotation_ = false;
+	}
+
+	/**
+	 * @brief 回転をクォータニオンで設定
+	 *
+	 * @details シーケンサのカメラトラックはこちらを使う。
+	 *          カットをまたぐ大きな回転をオイラー角のまま補間すると
+	 *          ジンバルロックや最短経路の取り違えで破綻するため、
+	 *          補間はクォータニオンで行い、結果をそのまま行列に落とす。
+	 * @param rotation 回転クォータニオン
+	 */
+	void SetRotateQuaternion(const Quaternion& rotation)
+	{
+		rotationQuaternion_ = rotation;
+		useQuaternionRotation_ = true;
+		// オイラー角のゲッタとインスペクタ表示を一致させておく
+		transform_.rotate = rotation.ToEuler();
+	}
+
+	/**
+	 * @brief 回転をクォータニオンで取得
+	 * @details オイラー角モードの場合は現在のオイラー角から変換して返す。
+	 * @return 回転クォータニオン
+	 */
+	Quaternion GetRotateQuaternion() const
+	{
+		return useQuaternionRotation_ ? rotationQuaternion_ : Quaternion::FromEuler(transform_.rotate);
+	}
+
+	/**
+	 * @brief クォータニオン回転モードかどうか
+	 * @return クォータニオンで回転している場合true
+	 */
+	bool IsUsingQuaternionRotation() const { return useQuaternionRotation_; }
 
 public:
 	/**
@@ -156,6 +195,11 @@ private:
 		{ 0.0f,0.0f,0.0f },
 		{ 0.0f,4.0f,-10.0f },
 	};
+
+	// クォータニオンによる回転（useQuaternionRotation_ が真のときに使う）
+	Quaternion rotationQuaternion_ = Quaternion::Identity();
+	// 回転をクォータニオンで扱うかどうか
+	bool useQuaternionRotation_ = false;
 
 	// ワールド行列
 	Matrix4x4 worldMatrix_;

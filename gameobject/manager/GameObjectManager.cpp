@@ -197,6 +197,23 @@ GameObject* GameObjectManager::Find(const std::string& name) const
 	return nullptr;
 }
 
+GameObject* GameObjectManager::FindByGuid(const Guid& guid) const
+{
+	if (!guid.IsValid())
+	{
+		return nullptr;
+	}
+
+	for (auto* obj : gameObjects_)
+	{
+		if (obj->GetGuid() == guid)
+		{
+			return obj;
+		}
+	}
+	return nullptr;
+}
+
 std::vector<GameObject*> GameObjectManager::FindAll(const std::string& name) const
 {
 	std::vector<GameObject*> result;

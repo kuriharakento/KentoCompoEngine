@@ -21,6 +21,13 @@
 #include "manager/graphics/SkinningPipelineManager.h"
 #include "manager/editor/DebugUIManager.h"
 #include "manager/editor/ConsoleLog.h"
+// editor
+#include "editor/EditorContext.h"
+#include "editor/SceneViewContext.h"
+#include "editor/SelectionContext.h"
+#include "editor/command/CommandHistory.h"
+// sequencer
+#include "sequencer/editor/SequencerEditor.h"
 
 #ifdef USE_IMGUI
 #include "ImGui/imgui_internal.h"
@@ -204,6 +211,10 @@ void Framework::Initialize()
 	// GameObjectエディターの初期化
 	GameObjectEditor::GetInstance()->Initialize();
 
+	// 演出シーケンサの初期化。編集用カメラをここで追加するため、
+	// カメラマネージャーの初期化より後に行う。
+	SequencerEditor::GetInstance()->Initialize(cameraManager_.get());
+
 	// シャドウマップマネージャーの初期化
 	shadowMapManager_ = std::make_unique<ShadowMapManager>();
 	shadowMapManager_->Initialize(dxCommon_.get(), srvManager_.get());
@@ -254,6 +265,14 @@ void Framework::Finalize()
 	/*----- 終了処理（初期化の逆順で解放） -----*/
 
 	sceneManager_.reset();
+
+	// エディタ層は、登録先の DebugUIManager より先に片付ける
+	SequencerEditor::GetInstance()->Finalize();
+	SceneViewContext::GetInstance()->Finalize();
+	SelectionContext::GetInstance()->Finalize();
+	CommandHistory::GetInstance()->Finalize();
+	EditorContext::GetInstance()->Finalize();
+
 	Audio::GetInstance()->Finalize();
 	winApp_->Finalize();
 	winApp_.reset();
@@ -317,6 +336,9 @@ void Framework::Update()
 
 	// タイマーマネージャーの更新
 	TimerManager::GetInstance().Update();
+
+	// 演出シーケンサの更新。カメラの行列を作る前にトラックを評価しておく必要がある。
+	SequencerEditor::GetInstance()->Update();
 
 	// カメラの更新
 	cameraManager_->Update();
