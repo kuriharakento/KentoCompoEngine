@@ -122,6 +122,7 @@
     <ClCompile Include="time\TimerManager.cpp" />
     <ClCompile Include="core\Guid.cpp" />
     <ClCompile Include="effects\postprocess\TonemapEffect.cpp" />
+    <ClCompile Include="graphics\FrameConstantAllocator.cpp" />
     <ClCompile Include="graphics\pipeline\RenderPipeline.cpp" />
     <ClCompile Include="graphics\pipeline\StandardRenderPasses.cpp" />
     <ClCompile Include="graphics\view\RenderView.cpp" />
@@ -319,6 +320,7 @@
     <ClInclude Include="graphics\RenderFormats.h" />
     <ClInclude Include="graphics\pipeline\IRenderPass.h" />
     <ClInclude Include="graphics\pipeline\RenderPassContext.h" />
+    <ClInclude Include="graphics\FrameConstantAllocator.h" />
     <ClInclude Include="graphics\pipeline\RenderPipeline.h" />
     <ClInclude Include="graphics\pipeline\StandardRenderPasses.h" />
     <ClInclude Include="graphics\view\RenderLayer.h" />

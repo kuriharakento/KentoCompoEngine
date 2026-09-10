@@ -8,6 +8,8 @@
 #include "manager/scene/LightManager.h"
 #include "manager/system/SrvManager.h"
 #include "engine/manager/graphics/ShadowMapManager.h"
+#include "graphics/FrameConstantAllocator.h"
+#include "manager/scene/CameraManager.h"
 
 namespace KCE
 {
@@ -90,15 +92,18 @@ void Object3d::Update(float deltaTime, Camera* camera)
 void Object3d::Draw()
 {
 	auto* commandList = object3dCommon_->GetDXCommon()->GetCommandList();
+	D3D12_GPU_VIRTUAL_ADDRESS transformAddress = 0;
+	D3D12_GPU_VIRTUAL_ADDRESS cameraAddress = 0;
+	if (!AllocateViewConstants(transformAddress, &cameraAddress)) return;
 
 	// 座標変換行列CBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(1, wvpResource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(1, transformAddress);
 
 	// 平行光源CBufferの場所を設定
 	commandList->SetGraphicsRootConstantBufferView(3, directionalLightResource_->GetGPUVirtualAddress());
 
 	// カメラCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(4, cameraResource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(4, cameraAddress);
 
 	// ライトマネージャーがあればライトの描画を行う
 	LightManager* activeLightManager = lightManager_ ? lightManager_ : object3dCommon_->GetDefaultLightManager();
@@ -165,10 +170,12 @@ void Object3d::DrawShadowOnly()
 	if (!model_) return;
 
 	auto* commandList = object3dCommon_->GetDXCommon()->GetCommandList();
+	D3D12_GPU_VIRTUAL_ADDRESS transformAddress = 0;
+	if (!AllocateViewConstants(transformAddress, nullptr)) return;
 
 	// ワールド行列を設定（ルートパラメータ1）
 	// TransformationMatrix構造体を渡す（シェーダー側でgWVPをスキップしてgWorldを使用）
-	commandList->SetGraphicsRootConstantBufferView(1, wvpResource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(1, transformAddress);
 
 	// モデルの頂点バッファを設定して描画
 	model_->DrawShadow();
@@ -180,12 +187,15 @@ void Object3d::DrawGBuffer()
 	if (!model_) return;
 
 	auto* commandList = object3dCommon_->GetDXCommon()->GetCommandList();
+	D3D12_GPU_VIRTUAL_ADDRESS transformAddress = 0;
+	D3D12_GPU_VIRTUAL_ADDRESS cameraAddress = 0;
+	if (!AllocateViewConstants(transformAddress, &cameraAddress)) return;
 
 	// 座標変換行列CBufferの場所を設定（ルートパラメータ0: TransformationMatrix）
-	commandList->SetGraphicsRootConstantBufferView(0, wvpResource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(0, transformAddress);
 
 	// カメラCBufferの場所を設定（ルートパラメータ1: Camera）
-	commandList->SetGraphicsRootConstantBufferView(1, cameraResource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(1, cameraAddress);
 
 	// モデルをG-Buffer用に描画（ルートパラメータ2=Material、3=Textureはモデル内で設定）
 	model_->DrawGBuffer();
@@ -193,6 +203,39 @@ void Object3d::DrawGBuffer()
 
 
 /** @brief その他関数の処理 */
+
+bool Object3d::AllocateViewConstants(D3D12_GPU_VIRTUAL_ADDRESS& transformAddress, D3D12_GPU_VIRTUAL_ADDRESS* cameraAddress)
+{
+	auto* allocator = object3dCommon_->GetFrameConstantAllocator();
+	if (!allocator || !transformationMatrixData_) return false;
+
+	Camera* drawCamera = camera_;
+	if (auto* cameraManager = object3dCommon_->GetCameraManager())
+	{
+		drawCamera = cameraManager->GetActiveCamera();
+	}
+
+	TransformationMatrix constants = *transformationMatrixData_;
+	if (drawCamera)
+	{
+		constants.WVP = constants.World * drawCamera->GetViewProjectionMatrix();
+	}
+	auto transformAllocation = allocator->Allocate(sizeof(constants));
+	if (!transformAllocation.cpuAddress) return false;
+	*static_cast<TransformationMatrix*>(transformAllocation.cpuAddress) = constants;
+	transformAddress = transformAllocation.gpuAddress;
+
+	if (cameraAddress)
+	{
+		auto cameraAllocation = allocator->Allocate(sizeof(CameraForGPU));
+		if (!cameraAllocation.cpuAddress) return false;
+		CameraForGPU cameraConstants{};
+		if (drawCamera) cameraConstants.worldPos = drawCamera->GetTranslate();
+		*static_cast<CameraForGPU*>(cameraAllocation.cpuAddress) = cameraConstants;
+		*cameraAddress = cameraAllocation.gpuAddress;
+	}
+	return true;
+}
 
 void Object3d::UpdateMatrix(Camera* camera)
 {

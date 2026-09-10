@@ -181,7 +181,6 @@ void GameObjectManager::DrawTransparent(CameraManager* camera, const std::vector
 		auto* renderable = obj->GetRenderable3d();
 		if (renderable)
 		{
-			obj->UpdateTransform(camera);
 			if (IsVisibleInLayerMask(obj->GetRenderLayer(), renderLayerMask_) &&
 				renderable->GetRenderQueue() == RenderQueue::Transparent)
 			{
@@ -210,7 +209,6 @@ void GameObjectManager::DrawTransparent(CameraManager* camera, const std::vector
 		{
 			continue;
 		}
-		object->Update(0.0f, camera->GetActiveCamera());
 		const auto world = object->GetWorldMatrix();
 		const Vector3 offset{ world.m[3][0] - cameraPosition.x, world.m[3][1] - cameraPosition.y, world.m[3][2] - cameraPosition.z };
 		entries.push_back({ object, offset.x * offset.x + offset.y * offset.y + offset.z * offset.z });

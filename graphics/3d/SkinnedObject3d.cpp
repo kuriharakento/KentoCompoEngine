@@ -6,6 +6,8 @@
 #include "manager/system/SrvManager.h"
 #include "manager/graphics/ModelManager.h"
 #include "manager/scene/LightManager.h"
+#include "graphics/FrameConstantAllocator.h"
+#include "manager/scene/CameraManager.h"
 
 namespace KCE
 {
@@ -146,15 +148,18 @@ void SkinnedObject3d::Draw()
 	}
 
 	auto* commandList = object3dCommon_->GetDXCommon()->GetCommandList();
+	D3D12_GPU_VIRTUAL_ADDRESS transformAddress = 0;
+	D3D12_GPU_VIRTUAL_ADDRESS cameraAddress = 0;
+	if (!AllocateViewConstants(transformAddress, &cameraAddress)) return;
 
 	// WVP行列を設定
-	commandList->SetGraphicsRootConstantBufferView(1, wvpResource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(1, transformAddress);
 
 	// ディレクショナルライトを設定
 	commandList->SetGraphicsRootConstantBufferView(3, directionalLightResource_->GetGPUVirtualAddress());
 
 	// カメラ情報を設定
-	commandList->SetGraphicsRootConstantBufferView(4, cameraResource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(4, cameraAddress);
 
 	// ライトマネージャーの描画（ルートパラメータ5,6,7等の設定）
 	if (lightManager_)
@@ -174,10 +179,12 @@ void SkinnedObject3d::DrawShadowOnly()
 	}
 
 	auto* commandList = object3dCommon_->GetDXCommon()->GetCommandList();
+	D3D12_GPU_VIRTUAL_ADDRESS transformAddress = 0;
+	if (!AllocateViewConstants(transformAddress, nullptr)) return;
 
 	// WVP行列（TransformationMatrix）を設定（ルートパラメータ1）
 	// シャドウマップパイプラインではWorld行列を使用する
-	commandList->SetGraphicsRootConstantBufferView(1, wvpResource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(1, transformAddress);
 
 	// モデルを描画
 	model_->DrawShadow();
@@ -194,12 +201,15 @@ void SkinnedObject3d::DrawGBuffer()
 	}
 
 	auto* commandList = object3dCommon_->GetDXCommon()->GetCommandList();
+	D3D12_GPU_VIRTUAL_ADDRESS transformAddress = 0;
+	D3D12_GPU_VIRTUAL_ADDRESS cameraAddress = 0;
+	if (!AllocateViewConstants(transformAddress, &cameraAddress)) return;
 
 	// WVP行列を設定
-	commandList->SetGraphicsRootConstantBufferView(0, wvpResource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(0, transformAddress);
 
 	// カメラ情報を設定
-	commandList->SetGraphicsRootConstantBufferView(1, cameraResource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(1, cameraAddress);
 
 	// モデルを描画
 	model_->DrawGBuffer();
@@ -326,6 +336,38 @@ bool SkinnedObject3d::IsEnableLighting() const
 void SkinnedObject3d::UpdateTransform()
 {
 	worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
+}
+
+bool SkinnedObject3d::AllocateViewConstants(D3D12_GPU_VIRTUAL_ADDRESS& transformAddress, D3D12_GPU_VIRTUAL_ADDRESS* cameraAddress)
+{
+	auto* allocator = object3dCommon_->GetFrameConstantAllocator();
+	if (!allocator) return false;
+
+	Camera* drawCamera = camera_;
+	if (auto* cameraManager = object3dCommon_->GetCameraManager())
+	{
+		drawCamera = cameraManager->GetActiveCamera();
+	}
+
+	TransformationMatrix constants{};
+	constants.World = worldMatrix_;
+	constants.WVP = drawCamera ? worldMatrix_ * drawCamera->GetViewProjectionMatrix() : worldMatrix_;
+	constants.WorldInverseTranspose = MathUtils::Transpose(Inverse(worldMatrix_));
+	auto transformAllocation = allocator->Allocate(sizeof(constants));
+	if (!transformAllocation.cpuAddress) return false;
+	*static_cast<TransformationMatrix*>(transformAllocation.cpuAddress) = constants;
+	transformAddress = transformAllocation.gpuAddress;
+
+	if (cameraAddress)
+	{
+		auto cameraAllocation = allocator->Allocate(sizeof(CameraForGPU));
+		if (!cameraAllocation.cpuAddress) return false;
+		CameraForGPU cameraConstants{};
+		if (drawCamera) cameraConstants.worldPos = drawCamera->GetTranslate();
+		*static_cast<CameraForGPU*>(cameraAllocation.cpuAddress) = cameraConstants;
+		*cameraAddress = cameraAllocation.gpuAddress;
+	}
+	return true;
 }
 
 void SkinnedObject3d::UpdateWorldMatrix()

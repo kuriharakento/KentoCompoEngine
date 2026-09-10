@@ -54,6 +54,8 @@ constexpr float kClearColorA = 1.0f;
 // デフォルトのカメラ位置
 constexpr float kDefaultCameraY = 1.0f;
 constexpr float kDefaultCameraZ = -10.0f;
+// 2048回の描画でWVPとカメラ定数をそれぞれ確保できる容量。
+constexpr size_t kFrameConstantBufferCapacity = 2048 * 2 * D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
 
 void Framework::Initialize()
 {
@@ -92,6 +94,9 @@ void Framework::Initialize()
 	// 3Dオブジェクト共通部の初期化
 	objectCommon_ = std::make_unique<Object3dCommon>();
 	objectCommon_->Initialize(dxCommon_.get(), srvManager_.get());
+	frameConstantAllocator_ = std::make_unique<FrameConstantAllocator>();
+	frameConstantAllocator_->Initialize(dxCommon_.get(), kFrameConstantBufferCapacity);
+	objectCommon_->SetFrameConstantAllocator(frameConstantAllocator_.get());
 
 	// 3Dモデルマネージャーの初期化
 	ModelManager::GetInstance()->Initialize(dxCommon_.get());
@@ -137,6 +142,7 @@ void Framework::Initialize()
 
 	// 3Dオブジェクト共通部に初期カメラをセット
 	objectCommon_->SetDefaultCamera(cameraManager_->GetActiveCamera());
+	objectCommon_->SetCameraManager(cameraManager_.get());
 
 	// シーンファクトリーの初期化
 	sceneFactory_ = std::make_unique<SceneFactory>();
@@ -447,6 +453,8 @@ void Framework::ExecuteRenderPipeline(RenderTexture* outputTarget)
 	{
 		return;
 	}
+	// PostDrawで前フレームのGPU完了を待つため、ここで同じ領域を再利用できる。
+	frameConstantAllocator_->BeginFrame();
 
 	// 本編は全レイヤーを描く
 	if (GameObjectManager::HasInstance())

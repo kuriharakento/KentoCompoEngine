@@ -6,6 +6,8 @@ namespace KCE
 {
 class SrvManager;
 class LightManager;
+class CameraManager;
+class FrameConstantAllocator;
 
 /**
  * @brief 3Dオブジェクト共通部クラス
@@ -66,6 +68,10 @@ public: // アクセッサ
 	 * @return デフォルトライトマネージャへのポインタ
 	 */
 	LightManager* GetDefaultLightManager() const { return defaultLightManager_; }
+	void SetFrameConstantAllocator(FrameConstantAllocator* allocator) { frameConstantAllocator_ = allocator; }
+	FrameConstantAllocator* GetFrameConstantAllocator() const { return frameConstantAllocator_; }
+	void SetCameraManager(CameraManager* cameraManager) { cameraManager_ = cameraManager; }
+	CameraManager* GetCameraManager() const { return cameraManager_; }
 
 private: // メンバ関数
 	/**
@@ -92,6 +98,8 @@ private: // メンバ変数
 
 	// デフォルトライトマネージャ
 	LightManager* defaultLightManager_ = nullptr;
+	FrameConstantAllocator* frameConstantAllocator_ = nullptr;
+	CameraManager* cameraManager_ = nullptr;
 
 	// ルートシグネチャ
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_ = nullptr;

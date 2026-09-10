@@ -27,6 +27,7 @@
 #include "graphics/pipeline/RenderPipeline.h"
 // view
 #include "graphics/view/RenderView.h"
+#include "graphics/FrameConstantAllocator.h"
 
 namespace KCE
 {
@@ -196,6 +197,7 @@ protected: // メンバ変数
 	std::unique_ptr<SpriteCommon> spriteCommon_;
 	// 3Dオブジェクト共通部
 	std::unique_ptr<Object3dCommon> objectCommon_;
+	std::unique_ptr<FrameConstantAllocator> frameConstantAllocator_;
 	// カメラマネージャー
 	std::unique_ptr<CameraManager> cameraManager_;
 	// シーンマネージャー

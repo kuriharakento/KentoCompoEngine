@@ -238,6 +238,7 @@ public: // アクセッサ
 	void SetDirectionalLightIntensity(float intensity) { directionalLight_.intensity = intensity; }
 
 private:
+	bool AllocateViewConstants(D3D12_GPU_VIRTUAL_ADDRESS& transformAddress, D3D12_GPU_VIRTUAL_ADDRESS* cameraAddress);
 	/**
 	 * @brief 座標変換行列の更新
 	 */

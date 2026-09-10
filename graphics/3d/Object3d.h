@@ -329,6 +329,7 @@ public: /*========[ セッター ]========*/
 	bool GetCastShadow() const { return castShadow_; }
 
 private: /*========[ プライベートメンバ関数  ]========*/
+	bool AllocateViewConstants(D3D12_GPU_VIRTUAL_ADDRESS& transformAddress, D3D12_GPU_VIRTUAL_ADDRESS* cameraAddress);
 
 	/**
 	 * @brief 座標変換行列の生成

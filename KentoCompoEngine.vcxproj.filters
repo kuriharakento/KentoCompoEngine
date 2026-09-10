@@ -519,6 +519,9 @@
     <ClCompile Include="graphics\shader\ShaderHotReload.cpp">
       <Filter>graphics\shader</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\FrameConstantAllocator.cpp">
+      <Filter>graphics</Filter>
+    </ClCompile>
     <ClCompile Include="graphics\pipeline\RenderPipeline.cpp">
       <Filter>graphics\pipeline</Filter>
     </ClCompile>
@@ -1084,6 +1087,9 @@
     </ClInclude>
     <ClInclude Include="graphics\shader\ShaderHotReload.h">
       <Filter>graphics\shader</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\FrameConstantAllocator.h">
+      <Filter>graphics</Filter>
     </ClInclude>
     <ClInclude Include="graphics\pipeline\IRenderPass.h">
       <Filter>graphics\pipeline</Filter>
