@@ -76,7 +76,13 @@ void LightPassPipeline::CreateRootSignature()
 		pointRanges[i].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 	}
 
-	D3D12_ROOT_PARAMETER rootParams[19] = {};  // 4 CBVs + 1 GBuffer + 4 Cascade + 8 Spot + 2 Point = 19
+	// 4 CBVs + 1 GBuffer + 4 Cascade + 8 Spot + 2 Point + 1 ToonSettings = 20
+	D3D12_ROOT_PARAMETER rootParams[20] = {};
+
+	// 19: トゥーン（NPR）の全体設定（b4）
+	rootParams[19].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParams[19].Descriptor.ShaderRegister = 4;
+	rootParams[19].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 	// CBVs (0-3)
 	for (int i = 0; i < 4; ++i)

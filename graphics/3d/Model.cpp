@@ -396,6 +396,9 @@ void Model::CreateMaterialResources()
 		resource.gpuMaterial->uvTransform = MakeIdentity4x4();
 		resource.gpuMaterial->shininess = kDefaultShininess;
 		resource.gpuMaterial->reflectivity = kDefaultReflectivity;
+		// 既定は従来のライティング。既存のモデルの見た目を変えないため
+		resource.gpuMaterial->toonAmount = 0.0f;
+		resource.gpuMaterial->rimStrength = 0.0f;
 	}
 }
 
@@ -468,6 +471,28 @@ void Model::SetShininess(float shininess)
 		if (resource.gpuMaterial)
 		{
 			resource.gpuMaterial->shininess = shininess;
+		}
+	}
+}
+
+void Model::SetToonAmount(float amount)
+{
+	for (auto& resource : meshResources_)
+	{
+		if (resource.gpuMaterial)
+		{
+			resource.gpuMaterial->toonAmount = amount;
+		}
+	}
+}
+
+void Model::SetRimStrength(float strength)
+{
+	for (auto& resource : meshResources_)
+	{
+		if (resource.gpuMaterial)
+		{
+			resource.gpuMaterial->rimStrength = strength;
 		}
 	}
 }

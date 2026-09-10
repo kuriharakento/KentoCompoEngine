@@ -244,6 +244,9 @@ void Framework::Initialize()
 	// G-Buffer は持たず、パイプラインステートだけを全ビューで共有する。
 	deferredRenderer_ = std::make_unique<DeferredRenderer>();
 	deferredRenderer_->Initialize(dxCommon_.get(), srvManager_.get());
+#ifdef USE_IMGUI
+	deferredRenderer_->RegisterDebugUI();
+#endif
 
 	// 本編を描くビューの初期化。
 	// G-Bufferとシーンカラー（HDR）をまとめて持つ。

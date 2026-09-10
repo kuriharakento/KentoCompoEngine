@@ -31,8 +31,39 @@ public:
 	static constexpr uint32_t kMaxSpotLights = 8;
 	static constexpr uint32_t kMaxPointLights = 2;
 
+	/**
+	 * @brief トゥーン（NPR）の全体設定。LightPass.PS.hlsl の cbuffer ToonSettings と一致させる
+	 * @details 素材ごとの値（効き具合・リムの強さ）は Material 側に持つ。
+	 *          ここは画面全体で共通の塗り分け方。
+	 */
+	struct ToonSettingsForGPU
+	{
+		// 明部と暗部の境界（NdotL）
+		float threshold = 0.5f;
+		// 境界のぼかし幅
+		float softness = 0.05f;
+		// リムの鋭さ
+		float rimPower = 4.0f;
+		float padding = 0.0f;
+		// 暗部に乗算する色（rgb）。黒で落とすとアニメ調の絵では濁るため、少し色味を残す
+		Vector4 shadowTint = { 0.55f, 0.5f, 0.65f, 1.0f };
+		// リムの色（rgb）
+		Vector4 rimColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+	};
+	static_assert(sizeof(ToonSettingsForGPU) == 48, "ToonSettings のサイズがシェーダー側と一致しません");
+
 	DeferredRenderer() = default;
-	~DeferredRenderer() = default;
+	~DeferredRenderer();
+
+	/** @brief トゥーンの全体設定を取得する（演出から動かすために公開） */
+	ToonSettingsForGPU& GetToonSettings() { return toonSettings_; }
+
+#ifdef USE_IMGUI
+	/** @brief トゥーンの全体設定を調整するデバッグUIを登録する */
+	void RegisterDebugUI();
+	/** @brief デバッグUIを描画する */
+	void DrawImGui();
+#endif
 
 	/**
 	 * @brief 初期化する
@@ -144,5 +175,14 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> lightBuffer_;
 	LightBufferForGPU* lightBufferData_ = nullptr;
+
+	// 確認用に全オブジェクトへ適用する値（デバッグUI）
+	float previewToonAmount_ = 1.0f;
+	float previewRimStrength_ = 0.3f;
+
+	// トゥーン（NPR）の全体設定
+	ToonSettingsForGPU toonSettings_{};
+	Microsoft::WRL::ComPtr<ID3D12Resource> toonBuffer_;
+	ToonSettingsForGPU* toonData_ = nullptr;
 };
 } // namespace KCE

@@ -6,6 +6,12 @@
 #include "manager/scene/CameraManager.h"
 #include "base/Camera.h"
 #include "base/Logger.h"
+#ifdef USE_IMGUI
+#include "externals/imgui/imgui.h"
+#include "gameobject/base/GameObject.h"
+#include "gameobject/manager/GameObjectManager.h"
+#include "manager/editor/DebugUIManager.h"
+#endif
 #include <cassert>
 
 namespace KCE
@@ -32,8 +38,76 @@ void DeferredRenderer::Initialize(DirectXCommon* dxCommon, SrvManager* srvManage
 	CreateCameraBuffer();
 	CreateLightBuffer();
 
+	// トゥーン（NPR）の全体設定
+	toonBuffer_ = dxCommon_->CreateBufferResource(sizeof(ToonSettingsForGPU));
+	toonBuffer_->Map(0, nullptr, reinterpret_cast<void**>(&toonData_));
+	*toonData_ = toonSettings_;
+
 	KCE::Logger::Log("DeferredRenderer initialized\n");
 }
+
+DeferredRenderer::~DeferredRenderer()
+{
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance())
+	{
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
+}
+
+#ifdef USE_IMGUI
+void DeferredRenderer::RegisterDebugUI()
+{
+	DebugUIManager::GetInstance()->RegisterDebugUI(
+		this, "NPR Shading", [this]() { DrawImGui(); }, DebugUIArea::Inspector);
+}
+
+void DeferredRenderer::DrawImGui()
+{
+	ImGui::TextDisabled("トゥーンの効き具合とリムの強さは素材ごと（SetToonAmount / SetRimStrength）");
+	ImGui::TextDisabled("ここはディファード描画の全体設定。フォワード描画は既定値を使う");
+	ImGui::Separator();
+
+	ImGui::DragFloat("Threshold", &toonSettings_.threshold, 0.005f, 0.0f, 1.0f, "%.3f");
+	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("明部と暗部の境界（NdotL）"); }
+	ImGui::DragFloat("Softness", &toonSettings_.softness, 0.002f, 0.0f, 0.5f, "%.3f");
+	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("境界のぼかし幅。0 でくっきり、大きいほど柔らかい"); }
+	ImGui::ColorEdit3("Shadow Tint", &toonSettings_.shadowTint.x);
+	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("暗部に乗算する色。黒で落とすと濁るので、少し色味を残す"); }
+
+	ImGui::Separator();
+	ImGui::ColorEdit3("Rim Color", &toonSettings_.rimColor.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+	ImGui::DragFloat("Rim Power", &toonSettings_.rimPower, 0.05f, 0.5f, 16.0f, "%.2f");
+	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("大きいほど輪郭の細い範囲だけが光る"); }
+
+	if (ImGui::Button("Reset"))
+	{
+		toonSettings_ = ToonSettingsForGPU{};
+	}
+
+	// 素材の既定は効き具合0（従来の見た目）なので、そのままでは違いを確認できない。
+	// 見比べるために、シーンの全オブジェクトへまとめて適用できるようにしておく。
+	ImGui::SeparatorText("全オブジェクトへ適用（確認用）");
+	ImGui::DragFloat("Toon Amount", &previewToonAmount_, 0.01f, 0.0f, 1.0f, "%.2f");
+	ImGui::DragFloat("Rim Strength", &previewRimStrength_, 0.01f, 0.0f, 1.0f, "%.2f");
+	if (ImGui::Button("Apply to All Objects") && GameObjectManager::HasInstance())
+	{
+		for (GameObject* object : GameObjectManager::GetInstance()->GetGameObjects())
+		{
+			if (IRenderable3d* renderable = object ? object->GetRenderable3d() : nullptr)
+			{
+				renderable->SetToonAmount(previewToonAmount_);
+				renderable->SetRimStrength(previewRimStrength_);
+			}
+		}
+	}
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("モデルは共有されうるため、同じモデルを使う他のオブジェクトにも効きます");
+	}
+}
+#endif
 
 void DeferredRenderer::CreateCameraBuffer()
 {
@@ -231,6 +305,13 @@ void DeferredRenderer::ExecuteLightPass(
 			srvManager_->SetGraphicsRootDescriptorTable(17 + pointIndex, shadowMap.srvIndex);
 		}
 		++pointIndex;
+	}
+
+	// 19: トゥーン（NPR）の全体設定
+	if (toonData_)
+	{
+		*toonData_ = toonSettings_;
+		commandList->SetGraphicsRootConstantBufferView(19, toonBuffer_->GetGPUVirtualAddress());
 	}
 
 	// フルスクリーンクワッド描画

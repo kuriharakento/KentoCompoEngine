@@ -62,9 +62,14 @@ struct Material
     float shininess;
     // 反射率
 	float reflectivity;
-    // パディング（アラインメント用）
-    float padding2[2];
+    // トゥーンの効き具合（0: 従来のライティング、1: 完全なトゥーン）
+    // 以前のパディング位置を使っているので、構造体の大きさとオフセットは変わらない。
+    // シェーダー側（GBufferPass / Object3d / InstancedObject3d）も同じ位置を使う。
+    float toonAmount;
+    // リムライトの強さ（0 で無効）
+    float rimStrength;
 };
+static_assert(sizeof(Material) == 112, "Material のサイズがシェーダー側と一致しません");
 
 /**
  * @brief 座標変換行列データ

@@ -9,7 +9,8 @@ struct Material
     float4x4 uvTransform;
     float shininess;
     float reflectivity; // 反射率
-    float2 pad2;
+    float toonAmount;   // トゥーンの効き具合（旧 pad2.x の位置。C++ の Material と一致させる）
+    float rimStrength;  // リムライトの強さ（旧 pad2.y の位置）
 };
 
 // ディレクショナルライト

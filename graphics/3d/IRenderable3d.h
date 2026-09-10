@@ -170,6 +170,19 @@ public:
 	/**
 	 * @brief レンダリングタイプの取得
 	 */
+	/**
+	 * @brief トゥーンの効き具合を設定する
+	 * @details NPR シェーディング（SEQUENCER_PLAN 7.1）。0 で従来のライティング、1 で完全なトゥーン。
+	 * @param amount 効き具合（0〜1）
+	 */
+	virtual void SetToonAmount(float amount) { (void)amount; }
+
+	/**
+	 * @brief リムライトの強さを設定する
+	 * @param strength 強さ（0 で無効）
+	 */
+	virtual void SetRimStrength(float strength) { (void)strength; }
+
 	virtual RenderQueue GetRenderQueue() const = 0;
 	virtual void SetRenderQueue(RenderQueue queue) = 0;
 

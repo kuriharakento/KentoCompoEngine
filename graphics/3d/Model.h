@@ -142,6 +142,20 @@ public: // アクセッサ
 	void SetShininess(float shininess);
 
 	/**
+	 * @brief トゥーンの効き具合を設定する
+	 * @details 0 で従来のライティング、1 で完全なトゥーン。
+	 *          モデルは ModelManager で共有されうるため、同じモデルを使う全オブジェクトに効く。
+	 * @param amount 効き具合（0〜1）
+	 */
+	void SetToonAmount(float amount);
+
+	/**
+	 * @brief リムライトの強さを設定する
+	 * @param strength 強さ（0 で無効）
+	 */
+	void SetRimStrength(float strength);
+
+	/**
 	 * @brief 反射強度の取得（最初のマテリアル）
 	 * @return 現在の反射強度
 	 */

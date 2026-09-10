@@ -27,7 +27,8 @@ cbuffer Material : register(b2)
     float4x4 uvTransform;
     float shininess;
     float reflectivity;
-    float2 pad2;
+    float toonAmount;   // トゥーンの効き具合（旧 pad2.x の位置）
+    float rimStrength;  // リムライトの強さ（旧 pad2.y の位置）
 };
 
 // テクスチャ
@@ -65,7 +66,9 @@ GBufferOutput main(PixelShaderInput input)
     // Material properties
     float roughness = 1.0f - saturate(shininess / 256.0f);
     float ao = 1.0f;
-    output.material = float4(roughness, ao, 0.0f, 0.0f);
+    // B と A は未使用だったので、トゥーンの効き具合とリムの強さを載せる。
+    // ライトパスはこれを見て、ピクセルごとにライティングの方式を切り替える。
+    output.material = float4(roughness, ao, saturate(toonAmount), saturate(rimStrength));
     
     // Emissive
     output.emissive = float4(0.0f, 0.0f, 0.0f, 0.0f);

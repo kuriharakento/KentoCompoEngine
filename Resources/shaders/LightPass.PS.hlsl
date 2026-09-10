@@ -112,6 +112,19 @@ cbuffer LightBuffer : register(b3)
     PointLight pointLights[MAX_POINT_LIGHTS];
 };
 
+#include "Toon.hlsli"
+
+// トゥーン（NPR）の全体設定。C++ 側の ToonSettingsForGPU と一致させること
+cbuffer ToonSettings : register(b4)
+{
+    float toonThreshold;   // 明暗の境界（NdotL）
+    float toonSoftness;    // 境界のぼかし幅
+    float rimPower;        // リムの鋭さ（大きいほど輪郭の細い範囲だけ光る）
+    float toonPadding;
+    float4 toonShadowTint; // 暗部に乗算する色（rgb）
+    float4 rimColor;       // リムの色（rgb）
+};
+
 // 法線デコード
 float3 DecodeNormal(float3 encoded)
 {
@@ -262,7 +275,7 @@ float CalculatePointShadow(float3 worldPos, int lightIndex, float3 lightPos, flo
 }
 
 // スポットライトの減衰計算
-float3 CalculateSpotLight(SpotLight light, float3 worldPos, float3 normal, float3 albedo, int lightIndex)
+float3 CalculateSpotLight(SpotLight light, float3 worldPos, float3 normal, float3 albedo, int lightIndex, float toonAmount)
 {
     float3 lightVec = light.position - worldPos;
     float dist = length(lightVec);
@@ -292,11 +305,14 @@ float3 CalculateSpotLight(SpotLight light, float3 worldPos, float3 normal, float
         shadow = CalculateSpotShadow(worldPos, lightIndex, light.shadowViewProj, normal, lightDir);
     }
     
-    return albedo * NdotL * light.color.rgb * light.intensity * attenuation * spotFactor * shadow;
+    // 距離とコーンの減衰は光の届き方なのでトゥーンでも滑らかなまま残し、
+    // 面の向きによる明暗（NdotL）と影だけを塗り分ける
+    float3 lightColor = light.color.rgb * light.intensity * attenuation * spotFactor;
+    return ToonDiffuse(albedo, lightColor, NdotL, shadow, toonAmount, toonThreshold, toonSoftness, toonShadowTint.rgb);
 }
 
 // ポイントライトの計算
-float3 CalculatePointLight(PointLight light, float3 worldPos, float3 normal, float3 albedo, int lightIndex)
+float3 CalculatePointLight(PointLight light, float3 worldPos, float3 normal, float3 albedo, int lightIndex, float toonAmount)
 {
     float3 lightVec = light.position - worldPos;
     float dist = length(lightVec);
@@ -319,7 +335,8 @@ float3 CalculatePointLight(PointLight light, float3 worldPos, float3 normal, flo
         shadow = CalculatePointShadow(worldPos, lightIndex, light.position, light.radius);
     }
     
-    return albedo * NdotL * light.color.rgb * light.intensity * attenuation * shadow;
+    float3 lightColor = light.color.rgb * light.intensity * attenuation;
+    return ToonDiffuse(albedo, lightColor, NdotL, shadow, toonAmount, toonThreshold, toonSoftness, toonShadowTint.rgb);
 }
 
 float4 main(PixelShaderInput input) : SV_TARGET
@@ -339,6 +356,9 @@ float4 main(PixelShaderInput input) : SV_TARGET
     float3 albedo = albedoMetal.rgb;
     float3 normal = normalize(DecodeNormal(normalData.rgb));
     float ao = materialData.g;
+    // G-Buffer の Material RT の B/A に、素材ごとのトゥーンの効き具合とリムの強さが入っている
+    float toonAmount = materialData.b;
+    float rimStrength = materialData.a;
     
     float3 worldPos = ReconstructWorldPosition(input.texcoord, depth);
     
@@ -352,23 +372,28 @@ float4 main(PixelShaderInput input) : SV_TARGET
     float3 lightDir = normalize(-dirLightDirection);
     float NdotL = max(dot(normal, lightDir), 0.0f);
     float dirShadow = CalculateCascadeShadow(worldPos, viewDepth);
-    float3 directional = albedo * NdotL * dirLightColor.rgb * dirLightIntensity * dirShadow;
-    
+    float3 directional = ToonDiffuse(albedo, dirLightColor.rgb * dirLightIntensity, NdotL, dirShadow,
+                                     toonAmount, toonThreshold, toonSoftness, toonShadowTint.rgb);
+
     // スポットライト
     float3 spotContribution = float3(0, 0, 0);
     for (int s = 0; s < numSpotLights && s < MAX_SPOT_LIGHTS; ++s)
     {
-        spotContribution += CalculateSpotLight(spotLights[s], worldPos, normal, albedo, s);
+        spotContribution += CalculateSpotLight(spotLights[s], worldPos, normal, albedo, s, toonAmount);
     }
-    
+
     // ポイントライト
     float3 pointContribution = float3(0, 0, 0);
     for (int p = 0; p < numPointLights && p < MAX_POINT_LIGHTS; ++p)
     {
-        pointContribution += CalculatePointLight(pointLights[p], worldPos, normal, albedo, p);
+        pointContribution += CalculatePointLight(pointLights[p], worldPos, normal, albedo, p, toonAmount);
     }
-    
-    float3 finalColor = ambient + directional + spotContribution + pointContribution;
+
+    // リムライト。素材の rimStrength が 0 なら何も足さない
+    float3 toEye = normalize(cameraWorldPos - worldPos);
+    float3 rim = RimLight(normal, toEye, rimStrength, rimColor.rgb, rimPower);
+
+    float3 finalColor = ambient + directional + spotContribution + pointContribution + rim;
     
     return float4(finalColor, 1.0f);
 }

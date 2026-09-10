@@ -118,6 +118,28 @@ public: // アクセッサ
 	 */
 	void SetEnableLighting(bool enable);
 
+	/**
+	 * @brief トゥーンの効き具合を設定する（0: 従来、1: 完全なトゥーン）
+	 */
+	void SetToonAmount(float amount)
+	{
+		for (auto& resource : meshResources_)
+		{
+			if (resource.gpuMaterial) { resource.gpuMaterial->toonAmount = amount; }
+		}
+	}
+
+	/**
+	 * @brief リムライトの強さを設定する（0 で無効）
+	 */
+	void SetRimStrength(float strength)
+	{
+		for (auto& resource : meshResources_)
+		{
+			if (resource.gpuMaterial) { resource.gpuMaterial->rimStrength = strength; }
+		}
+	}
+
 private: // メンバ関数
 	/**
 	 * @brief メッシュリソースの生成

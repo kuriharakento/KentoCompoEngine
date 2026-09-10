@@ -193,6 +193,8 @@ public: // アクセッサ
 	 * @brief ライティングの有効/無効の設定
 	 */
 	void SetEnableLighting(bool enable) override;
+	void SetToonAmount(float amount) override { if (model_) model_->SetToonAmount(amount); }
+	void SetRimStrength(float strength) override { if (model_) model_->SetRimStrength(strength); }
 
 	/**
 	 * @brief ライティングの有効/無効の取得

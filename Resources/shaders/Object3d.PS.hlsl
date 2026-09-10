@@ -9,8 +9,11 @@ struct Material
     float4x4 uvTransform;
     float shininess;
     float reflectivity; // 反射率
-    float2 pad2;
+    float toonAmount;   // トゥーンの効き具合（旧 pad2.x の位置。C++ の Material と一致させる）
+    float rimStrength;  // リムライトの強さ（旧 pad2.y の位置）
 };
+
+#include "Toon.hlsli"
 
 // ディレクショナルライト
 struct DirectionalLight
@@ -307,8 +310,9 @@ PixelShaderOutput main(VertexShaderOutput input)
     /*-----[ ディレクショナルライト ]-----*/
     float3 lightDir = normalize(-gDirectionalLight.direction);
     float NdotL = CalculateHalfLambert(normal, lightDir);
-    // シャドウを適用
-    float3 diffuse = baseColor * gDirectionalLight.color.rgb * NdotL * gDirectionalLight.intensity * shadow;
+    // シャドウを適用。トゥーンの全体設定はフォワードではルートシグネチャを変えずに済むよう既定値を使う
+    float3 diffuse = ToonDiffuse(baseColor, gDirectionalLight.color.rgb * gDirectionalLight.intensity, NdotL, shadow,
+                                 gMaterial.toonAmount, kDefaultToonThreshold, kDefaultToonSoftness, kDefaultToonShadowTint);
     float3 specular = CalculateSpecular(normal, lightDir, toEye, gDirectionalLight.color.rgb, gDirectionalLight.intensity, gMaterial.shininess) * shadow;
 
     /*-----[ ポイントライトの合計（最適化されたループ）]-----*/
@@ -371,6 +375,9 @@ PixelShaderOutput main(VertexShaderOutput input)
 
     // ライティング結果の合成
     float3 litColor = diffuse + specular + totalPointDiffuse + totalPointSpecular + totalSpotDiffuse + totalSpotSpecular;
+
+    // リムライト。素材の rimStrength が 0 なら何も足さない
+    litColor += RimLight(normal, toEye, gMaterial.rimStrength, kDefaultRimColor, kDefaultRimPower);
 
     // 環境マッピング（reflectivityが0でない場合のみ）
     float3 finalColor = litColor;

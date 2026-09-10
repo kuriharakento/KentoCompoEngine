@@ -119,6 +119,9 @@ void SkinnedModel::CreateMaterialResources()
 		resource.gpuMaterial->uvTransform = MakeIdentity4x4();
 		resource.gpuMaterial->shininess = kDefaultShininess;
 		resource.gpuMaterial->reflectivity = kDefaultReflectivity;
+		// 既定は従来のライティング。既存のモデルの見た目を変えないため
+		resource.gpuMaterial->toonAmount = 0.0f;
+		resource.gpuMaterial->rimStrength = 0.0f;
 	}
 }
 
