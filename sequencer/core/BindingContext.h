@@ -7,6 +7,8 @@ namespace KCE
 {
 class Camera;
 class GameObject;
+class LightManager;
+class PostProcessManager;
 
 /**
  * @brief 役（ロール）に割り当てられる実体の型
@@ -87,8 +89,19 @@ public:
 	 */
 	const std::string& GetLightName(const std::string& role) const;
 
+	// --- 役を持たない共有システム ---
+	// ライトは名前で、ポストプロセスは画面全体で1つなので、
+	// 実体へ届くためのシステムもコンテキスト経由で渡す。
+
+	void SetLightManager(LightManager* lightManager) { lightManager_ = lightManager; }
+	LightManager* GetLightManager() const { return lightManager_; }
+
+	void SetPostProcessManager(PostProcessManager* postProcessManager) { postProcessManager_ = postProcessManager; }
+	PostProcessManager* GetPostProcessManager() const { return postProcessManager_; }
+
 	/**
-	 * @brief 割り当てを全て解除する
+	 * @brief 役の割り当てを全て解除する
+	 * @details 共有システム（LightManager / PostProcessManager）は解除しない。
 	 */
 	void Clear();
 
@@ -102,5 +115,7 @@ private:
 	std::unordered_map<std::string, GameObject*> gameObjects_;
 	std::unordered_map<std::string, Camera*> cameras_;
 	std::unordered_map<std::string, std::string> lightNames_;
+	LightManager* lightManager_ = nullptr;
+	PostProcessManager* postProcessManager_ = nullptr;
 };
 } // namespace KCE

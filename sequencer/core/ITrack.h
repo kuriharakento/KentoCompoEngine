@@ -5,6 +5,7 @@
 #include <nlohmann/json.hpp>
 
 #include "sequencer/core/BindingContext.h"
+#include "sequencer/core/CurveChannel.h"
 
 namespace KCE
 {
@@ -111,12 +112,50 @@ public:
 	 */
 	virtual bool Deserialize(const nlohmann::json& json) = 0;
 
+	// --- カーブの共通窓口（エディタ用） ---
+
+	/**
+	 * @brief このトラックが持つカーブの本数
+	 * @details エディタはトラックの種類を問わず、この窓口だけでキーを編集する。
+	 * @return チャンネル数
+	 */
+	virtual size_t GetChannelCount() const { return 0; }
+
+	/**
+	 * @brief カーブを1本取得する
+	 * @param index チャンネル番号
+	 * @return チャンネル。範囲外なら nullptr
+	 */
+	virtual ICurveChannel* GetChannel(size_t index) { (void)index; return nullptr; }
+
+	/**
+	 * @brief 対象の現在の状態を、指定時刻のキーとして全チャンネルに打つ
+	 * @details エディタの「キーを打つ」操作の実体。対象が見つからなければ何もしない。
+	 * @param time キーを打つ時刻（秒）
+	 * @param ctx バインディングコンテキスト
+	 * @return キーを打てたら真
+	 */
+	virtual bool RecordKey(float time, const BindingContext& ctx) { (void)time; (void)ctx; return false; }
+
+	/**
+	 * @brief このトラックが値を持つ最後の時刻（全チャンネルの最大）
+	 * @return 終了時刻（秒）
+	 */
+	float GetChannelsEndTime();
+
+	/**
+	 * @brief 指定時刻付近のキーを全チャンネルから削除する
+	 * @return 1つでも削除したら真
+	 */
+	bool RemoveKeysAt(float time, float tolerance);
+
 #ifdef USE_IMGUI
 	/**
 	 * @brief インスペクタにこのトラックのプロパティを描画する
 	 * @details 編集はすべて CommandHistory 経由で行うこと。
+	 * @return プロパティが変わったら真（呼び出し側がコマンドとして履歴に積む）
 	 */
-	virtual void DrawInspector() {}
+	virtual bool DrawInspector() { return false; }
 #endif
 
 	// --- 共通プロパティ ---

@@ -139,6 +139,9 @@
     <ClCompile Include="sequencer\editor\SequencerCommands.cpp" />
     <ClCompile Include="sequencer\editor\SequencerEditor.cpp" />
     <ClCompile Include="sequencer\track\CameraTrack.cpp" />
+    <ClCompile Include="sequencer\track\LightTrack.cpp" />
+    <ClCompile Include="sequencer\track\PostProcessTrack.cpp" />
+    <ClCompile Include="sequencer\track\TransformTrack.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="animation\Animator.h" />
@@ -344,6 +347,10 @@
     <ClInclude Include="sequencer\editor\SequencerCommands.h" />
     <ClInclude Include="sequencer\editor\SequencerEditor.h" />
     <ClInclude Include="sequencer\track\CameraTrack.h" />
+    <ClInclude Include="sequencer\track\LightTrack.h" />
+    <ClInclude Include="sequencer\track\PostProcessTrack.h" />
+    <ClInclude Include="sequencer\track\TransformTrack.h" />
+    <ClInclude Include="sequencer\core\CurveChannel.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>

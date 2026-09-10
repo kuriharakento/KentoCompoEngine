@@ -228,7 +228,7 @@ void Framework::Initialize()
 
 	// 演出シーケンサの初期化。編集用カメラをここで追加するため、
 	// カメラマネージャーの初期化より後に行う。
-	SequencerEditor::GetInstance()->Initialize(cameraManager_.get());
+	SequencerEditor::GetInstance()->Initialize(cameraManager_.get(), lightManager_.get(), postProcessManager_.get());
 
 	// シャドウマップマネージャーの初期化
 	shadowMapManager_ = std::make_unique<ShadowMapManager>();

@@ -10,6 +10,42 @@ void ITrack::SerializeCommon(nlohmann::json& json) const
 	json["muted"] = muted_;
 }
 
+float ITrack::GetChannelsEndTime()
+{
+	float end = 0.0f;
+	for (size_t c = 0; c < GetChannelCount(); ++c)
+	{
+		ICurveChannel* channel = GetChannel(c);
+		if (channel && !channel->IsEmpty())
+		{
+			// キーは時刻順に並んでいるので末尾が最大
+			const float last = channel->GetKeyTime(channel->GetKeyCount() - 1);
+			end = last > end ? last : end;
+		}
+	}
+	return end;
+}
+
+bool ITrack::RemoveKeysAt(float time, float tolerance)
+{
+	bool removed = false;
+	for (size_t c = 0; c < GetChannelCount(); ++c)
+	{
+		ICurveChannel* channel = GetChannel(c);
+		if (!channel)
+		{
+			continue;
+		}
+		const int index = channel->FindKeyAt(time, tolerance);
+		if (index >= 0)
+		{
+			channel->RemoveKey(static_cast<size_t>(index));
+			removed = true;
+		}
+	}
+	return removed;
+}
+
 void ITrack::DeserializeCommon(const nlohmann::json& json)
 {
 	// 欠けている項目は既定値のままにする。壊れたJSONで落とさないことを優先する。

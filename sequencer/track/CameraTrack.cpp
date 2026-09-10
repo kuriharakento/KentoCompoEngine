@@ -1,14 +1,9 @@
 #include "sequencer/track/CameraTrack.h"
 
 #include <algorithm>
-#include <cmath>
 
 #include "base/Camera.h"
 #include "sequencer/core/CurveSerialization.h"
-
-#ifdef USE_IMGUI
-#include "externals/imgui/imgui.h"
-#endif
 
 namespace KCE
 {
@@ -18,18 +13,15 @@ CameraTrack::CameraTrack()
 	SetBindingRole("MainCam");
 }
 
-template<class T>
-int CameraTrack::FindKeyIndexAt(const Curve<T>& curve, float time, float tolerance)
+ICurveChannel* CameraTrack::GetChannel(size_t index)
 {
-	const auto& keys = curve.GetKeys();
-	for (size_t i = 0; i < keys.size(); ++i)
+	switch (index)
 	{
-		if (std::abs(keys[i].time - time) <= tolerance)
-		{
-			return static_cast<int>(i);
-		}
+	case 0:  return &positionChannel_;
+	case 1:  return &rotationChannel_;
+	case 2:  return &fovChannel_;
+	default: return nullptr;
 	}
-	return -1;
 }
 
 void CameraTrack::Evaluate(float time, const BindingContext& ctx)
@@ -105,88 +97,18 @@ void CameraTrack::RestoreState(const BindingContext& ctx)
 	camera->SetFovY(capturedFov_);
 }
 
-void CameraTrack::AddKeyFromCamera(float time, const Camera* camera, bool withPosition, bool withRotation, bool withFov)
+bool CameraTrack::RecordKey(float time, const BindingContext& ctx)
 {
+	const Camera* camera = ctx.GetCamera(GetBindingRole());
 	if (!camera)
 	{
-		return;
+		return false;
 	}
 
-	// 同じ時刻に打ち直した場合は上書きする。わずかな浮動小数の差で
-	// キーが二重に増えるのを防ぐため、1ミリ秒を一致とみなす。
-	constexpr float kSameTimeTolerance = 0.001f;
-
-	if (withPosition)
-	{
-		const int existing = FindKeyIndexAt(positionCurve_, time, kSameTimeTolerance);
-		if (existing >= 0)
-		{
-			positionCurve_.GetKey(static_cast<size_t>(existing)).value = camera->GetTranslate();
-		}
-		else
-		{
-			positionCurve_.AddKey(time, camera->GetTranslate());
-		}
-	}
-
-	if (withRotation)
-	{
-		const int existing = FindKeyIndexAt(rotationCurve_, time, kSameTimeTolerance);
-		if (existing >= 0)
-		{
-			rotationCurve_.GetKey(static_cast<size_t>(existing)).value = camera->GetRotateQuaternion();
-		}
-		else
-		{
-			rotationCurve_.AddKey(time, camera->GetRotateQuaternion());
-		}
-	}
-
-	if (withFov)
-	{
-		const int existing = FindKeyIndexAt(fovCurve_, time, kSameTimeTolerance);
-		if (existing >= 0)
-		{
-			fovCurve_.GetKey(static_cast<size_t>(existing)).value = camera->GetFovY();
-		}
-		else
-		{
-			fovCurve_.AddKey(time, camera->GetFovY());
-		}
-	}
-}
-
-bool CameraTrack::RemoveKeysAt(float time, float tolerance)
-{
-	bool removed = false;
-
-	const int positionIndex = FindKeyIndexAt(positionCurve_, time, tolerance);
-	if (positionIndex >= 0)
-	{
-		positionCurve_.RemoveKey(static_cast<size_t>(positionIndex));
-		removed = true;
-	}
-
-	const int rotationIndex = FindKeyIndexAt(rotationCurve_, time, tolerance);
-	if (rotationIndex >= 0)
-	{
-		rotationCurve_.RemoveKey(static_cast<size_t>(rotationIndex));
-		removed = true;
-	}
-
-	const int fovIndex = FindKeyIndexAt(fovCurve_, time, tolerance);
-	if (fovIndex >= 0)
-	{
-		fovCurve_.RemoveKey(static_cast<size_t>(fovIndex));
-		removed = true;
-	}
-
-	return removed;
-}
-
-bool CameraTrack::IsEmpty() const
-{
-	return positionCurve_.IsEmpty() && rotationCurve_.IsEmpty() && fovCurve_.IsEmpty();
+	positionChannel_.SetKey(time, camera->GetTranslate());
+	rotationChannel_.SetKey(time, camera->GetRotateQuaternion());
+	fovChannel_.SetKey(time, camera->GetFovY());
+	return true;
 }
 
 nlohmann::json CameraTrack::Serialize() const
@@ -225,15 +147,4 @@ bool CameraTrack::Deserialize(const nlohmann::json& json)
 
 	return true;
 }
-
-#ifdef USE_IMGUI
-void CameraTrack::DrawInspector()
-{
-	ImGui::Text("Binding Role: %s", GetBindingRole().c_str());
-	ImGui::Text("Position keys: %zu", positionCurve_.GetKeyCount());
-	ImGui::Text("Rotation keys: %zu", rotationCurve_.GetKeyCount());
-	ImGui::Text("FOV keys: %zu", fovCurve_.GetKeyCount());
-	ImGui::Text("End time: %.3f s", GetEndTime());
-}
-#endif
 } // namespace KCE

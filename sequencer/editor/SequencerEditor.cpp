@@ -33,9 +33,13 @@ bool SequencerEditor::HasInstance()
 #include "editor/SceneViewContext.h"
 #include "editor/SelectionContext.h"
 #include "editor/command/CommandHistory.h"
+#include "gameobject/base/GameObject.h"
+#include "gameobject/manager/GameObjectManager.h"
 #include "manager/editor/DebugUIManager.h"
+#include "manager/scene/LightManager.h"
+#include "sequencer/core/TrackFactory.h"
 #include "sequencer/editor/SequencerCommands.h"
-#include "sequencer/track/CameraTrack.h"
+#include "sequencer/track/LightTrack.h"
 
 namespace KCE
 {
@@ -48,120 +52,47 @@ const char* const kEditorCameraName = "SequencerEditorCamera";
 /** @brief シーケンスが駆動するカメラの名前 */
 const char* const kSequenceCameraName = "SequencerCamera";
 
-/** @brief カメラトラックのチャンネル数（位置・回転・画角） */
-constexpr int kCameraChannelCount = 3;
-/** @brief チャンネルの表示名 */
-const char* const kCameraChannelNames[kCameraChannelCount] = { "Position", "Rotation", "FOV" };
-
 /** @brief キーのマーカーの半径（ピクセル） */
 constexpr float kKeyMarkerRadius = 5.0f;
 /** @brief キーを掴めるとみなす距離（ピクセル） */
 constexpr float kKeyGrabRadius = 7.0f;
-/** @brief 削除時に同一時刻とみなす許容差（秒） */
-constexpr float kKeyDeleteTolerance = 0.005f;
 
 /**
- * @brief チャンネルのキー数を返す
+ * @brief トラックがタイムライン上で占める行数
+ * @details チャンネル1本につき1行。チャンネルを持たないトラックも1行は確保する。
  */
-size_t GetChannelKeyCount(const CameraTrack& track, int channel)
+size_t GetRowCount(ITrack* track)
 {
-	switch (channel)
-	{
-	case 0:  return track.GetPositionCurve().GetKeyCount();
-	case 1:  return track.GetRotationCurve().GetKeyCount();
-	case 2:  return track.GetFovCurve().GetKeyCount();
-	default: return 0;
-	}
+	return (std::max)(track->GetChannelCount(), static_cast<size_t>(1));
 }
 
 /**
- * @brief チャンネル内のキーの時刻を返す
+ * @brief 選択中のキーが指すチャンネルを取得する
+ * @return チャンネル。選択がキーでない、または範囲外なら nullptr
  */
-float GetChannelKeyTime(const CameraTrack& track, int channel, int keyIndex)
+ICurveChannel* GetSelectedChannel(Sequence& sequence, const SelectionItem& item)
 {
-	const size_t index = static_cast<size_t>(keyIndex);
-	if (keyIndex < 0 || index >= GetChannelKeyCount(track, channel))
-	{
-		return 0.0f;
-	}
-
-	switch (channel)
-	{
-	case 0:  return track.GetPositionCurve().GetKey(index).time;
-	case 1:  return track.GetRotationCurve().GetKey(index).time;
-	case 2:  return track.GetFovCurve().GetKey(index).time;
-	default: return 0.0f;
-	}
-}
-
-/**
- * @brief チャンネル内のキーの時刻を変更する
- * @return 移動後のキーのインデックス
- */
-int SetChannelKeyTime(CameraTrack& track, int channel, int keyIndex, float newTime)
-{
-	const size_t index = static_cast<size_t>(keyIndex);
-	if (keyIndex < 0 || index >= GetChannelKeyCount(track, channel))
-	{
-		return keyIndex;
-	}
-
-	switch (channel)
-	{
-	case 0:  return static_cast<int>(track.GetPositionCurve().MoveKey(index, newTime));
-	case 1:  return static_cast<int>(track.GetRotationCurve().MoveKey(index, newTime));
-	case 2:  return static_cast<int>(track.GetFovCurve().MoveKey(index, newTime));
-	default: return keyIndex;
-	}
-}
-
-/**
- * @brief チャンネル内のキーのベジェ制御点への参照を返す
- * @return 参照。範囲外なら nullptr
- */
-BezierHandle* GetChannelKeyBezier(CameraTrack& track, int channel, int keyIndex)
-{
-	const size_t index = static_cast<size_t>(keyIndex);
-	if (keyIndex < 0 || index >= GetChannelKeyCount(track, channel))
+	if (item.kind != SelectionKind::SequenceKey || item.trackIndex < 0 || item.channelIndex < 0)
 	{
 		return nullptr;
 	}
-
-	switch (channel)
-	{
-	case 0:  return &track.GetPositionCurve().GetKey(index).bezier;
-	case 1:  return &track.GetRotationCurve().GetKey(index).bezier;
-	case 2:  return &track.GetFovCurve().GetKey(index).bezier;
-	default: return nullptr;
-	}
-}
-
-/**
- * @brief チャンネル内のキーの補間モードへの参照を返す
- * @return 参照。範囲外なら nullptr
- */
-InterpolationMode* GetChannelKeyInterp(CameraTrack& track, int channel, int keyIndex)
-{
-	const size_t index = static_cast<size_t>(keyIndex);
-	if (keyIndex < 0 || index >= GetChannelKeyCount(track, channel))
+	ITrack* track = sequence.GetTrack(static_cast<size_t>(item.trackIndex));
+	if (!track)
 	{
 		return nullptr;
 	}
-
-	switch (channel)
+	ICurveChannel* channel = track->GetChannel(static_cast<size_t>(item.channelIndex));
+	if (!channel || item.keyIndex < 0 || static_cast<size_t>(item.keyIndex) >= channel->GetKeyCount())
 	{
-	case 0:  return &track.GetPositionCurve().GetKey(index).interp;
-	case 1:  return &track.GetRotationCurve().GetKey(index).interp;
-	case 2:  return &track.GetFovCurve().GetKey(index).interp;
-	default: return nullptr;
+		return nullptr;
 	}
+	return channel;
 }
 
 /**
- * @brief 現在選択されているキーを取得する
- * @return 選択がキーでなければ kind == None のアイテム
+ * @brief 現在の主選択を取得する
  */
-const SelectionItem& GetSelectedKey()
+const SelectionItem& GetPrimarySelection()
 {
 	return SelectionContext::GetInstance()->GetPrimary();
 }
@@ -175,9 +106,43 @@ void FormatTime(char* buffer, size_t bufferSize, float seconds)
 	const float rest = seconds - static_cast<float>(minutes * 60);
 	std::snprintf(buffer, bufferSize, "%02d:%06.3f", minutes, rest);
 }
+
+/**
+ * @brief トラック種別から、役に割り当てる実体の型を決める
+ * @return 役を持たないトラック（PostProcess）なら偽
+ */
+bool GetBindingTypeForTrack(const ITrack& track, BindingType& outType)
+{
+	switch (track.GetType())
+	{
+	case TrackType::Camera:    outType = BindingType::Camera; return true;
+	case TrackType::Transform: outType = BindingType::GameObject; return true;
+	case TrackType::Light:     outType = BindingType::Light; return true;
+	default:                   return false;
+	}
+}
+
+/**
+ * @brief トラックへの編集を1コマンドとして履歴に積む
+ * @details 編集前にスナップショットを取り、edit を実行し、変化があれば積む。
+ * @return 変化があれば真
+ */
+template<class EditFunc>
+bool ExecuteTrackEdit(Sequence& sequence, size_t trackIndex, const char* name, EditFunc edit)
+{
+	auto command = std::make_unique<TrackEditCommand>(&sequence, trackIndex, name);
+	edit();
+	command->CaptureAfter();
+	if (!command->HasChanged())
+	{
+		return false;
+	}
+	CommandHistory::GetInstance()->Execute(std::move(command));
+	return true;
+}
 } // namespace
 
-void SequencerEditor::Initialize(CameraManager* cameraManager)
+void SequencerEditor::Initialize(CameraManager* cameraManager, LightManager* lightManager, PostProcessManager* postProcessManager)
 {
 	if (initialized_)
 	{
@@ -185,6 +150,8 @@ void SequencerEditor::Initialize(CameraManager* cameraManager)
 	}
 
 	cameraManager_ = cameraManager;
+	lightManager_ = lightManager;
+	postProcessManager_ = postProcessManager;
 	sequenceCameraName_ = kSequenceCameraName;
 	editorCameraName_ = kEditorCameraName;
 
@@ -203,6 +170,10 @@ void SequencerEditor::Initialize(CameraManager* cameraManager)
 
 		SetSequenceCamera(cameraManager_->GetCamera(sequenceCameraName_));
 	}
+
+	// ライト・ポストプロセスは役を持たない共有システムとして渡す
+	player_.GetBindingContext().SetLightManager(lightManager_);
+	player_.GetBindingContext().SetPostProcessManager(postProcessManager_);
 
 	// シーケンスは必ず MainCam の役を要求する
 	BindingDefinition binding;
@@ -230,7 +201,11 @@ void SequencerEditor::Finalize()
 
 	player_.SetSequence(nullptr);
 	sequence_.Clear();
+	previewObjectBindings_.clear();
+	previewLightBindings_.clear();
 	cameraManager_ = nullptr;
+	lightManager_ = nullptr;
+	postProcessManager_ = nullptr;
 	initialized_ = false;
 	instance_.reset();
 }
@@ -245,6 +220,23 @@ Camera* SequencerEditor::GetSequenceCamera() const
 	return player_.GetBindingContext().GetCamera(kCameraRole);
 }
 
+void SequencerEditor::ApplyPreviewBindings()
+{
+	BindingContext& ctx = player_.GetBindingContext();
+
+	// GameObject は GUID から毎フレーム引き直す。破棄されていれば割り当ては外れる
+	for (const auto& [role, guid] : previewObjectBindings_)
+	{
+		GameObject* object = GameObjectManager::HasInstance() ? GameObjectManager::GetInstance()->FindByGuid(guid) : nullptr;
+		ctx.BindGameObject(role, object);
+	}
+
+	for (const auto& [role, lightName] : previewLightBindings_)
+	{
+		ctx.BindLight(role, lightName);
+	}
+}
+
 void SequencerEditor::Update()
 {
 	if (!initialized_)
@@ -252,9 +244,21 @@ void SequencerEditor::Update()
 		return;
 	}
 
+	ApplyPreviewBindings();
 	HandleShortcuts();
 	UpdateEditorCameraFly();
 	player_.Update();
+}
+
+int SequencerEditor::GetSelectedTrackIndex() const
+{
+	const SelectionItem& selected = GetPrimarySelection();
+	if ((selected.kind == SelectionKind::SequenceKey || selected.kind == SelectionKind::SequenceTrack) &&
+		selected.trackIndex >= 0 && static_cast<size_t>(selected.trackIndex) < sequence_.GetTrackCount())
+	{
+		return selected.trackIndex;
+	}
+	return -1;
 }
 
 ///=============================================================================
@@ -337,9 +341,17 @@ void SequencerEditor::DrawToolbar()
 	}
 
 	// --- 2行目: 編集操作 ---
-	if (ImGui::Button("Add Camera Track"))
+	size_t typeCount = 0;
+	const char* const* typeNames = TrackFactory::GetCreatableTypeNames(typeCount);
+	ImGui::SetNextItemWidth(120.0f);
+	ImGui::Combo("##TrackType", &addTrackTypeIndex_, typeNames, static_cast<int>(typeCount));
+	ImGui::SameLine();
+	if (ImGui::Button("Add Track"))
 	{
-		AddCameraTrack();
+		if (addTrackTypeIndex_ >= 0 && static_cast<size_t>(addTrackTypeIndex_) < typeCount)
+		{
+			AddTrack(typeNames[addTrackTypeIndex_]);
+		}
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Add Key (K)"))
@@ -567,8 +579,10 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
 	SelectionContext* selection = SelectionContext::GetInstance();
 	const float left = canvasMin.x + view_.headerWidth;
+	const int selectedTrack = GetSelectedTrackIndex();
 
 	float rowY = canvasMin.y + view_.rulerHeight;
+	size_t globalRow = 0;
 
 	for (size_t trackIndex = 0; trackIndex < sequence_.GetTrackCount(); ++trackIndex)
 	{
@@ -578,63 +592,60 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 			continue;
 		}
 
-		auto* cameraTrack = dynamic_cast<CameraTrack*>(track);
-		const int channelCount = cameraTrack ? kCameraChannelCount : 1;
-
-		for (int channel = 0; channel < channelCount; ++channel)
+		const size_t rowCount = GetRowCount(track);
+		for (size_t row = 0; row < rowCount; ++row, ++globalRow)
 		{
 			const float rowTop = rowY;
 			const float rowBottom = rowY + view_.trackHeight;
 			const float rowCenter = (rowTop + rowBottom) * 0.5f;
+			ICurveChannel* channel = track->GetChannel(row);
 
-			// 行の背景。1行おきに明度を変えて追いやすくする
-			const bool isEvenRow = ((trackIndex * kCameraChannelCount + channel) % 2) == 0;
-			drawList->AddRectFilled(
-				ImVec2(canvasMin.x, rowTop),
-				ImVec2(canvasMin.x + canvasSize.x, rowBottom),
-				isEvenRow ? IM_COL32(30, 30, 34, 255) : IM_COL32(34, 34, 39, 255));
+			// 行の背景。選択中のトラックは明るくし、それ以外は1行おきに明度を変える
+			ImU32 background = (globalRow % 2 == 0) ? IM_COL32(30, 30, 34, 255) : IM_COL32(34, 34, 39, 255);
+			if (static_cast<int>(trackIndex) == selectedTrack)
+			{
+				background = IM_COL32(44, 48, 62, 255);
+			}
+			drawList->AddRectFilled(ImVec2(canvasMin.x, rowTop), ImVec2(canvasMin.x + canvasSize.x, rowBottom), background);
 
 			// トラック名欄
 			char headerLabel[128];
-			if (cameraTrack)
+			if (channel)
 			{
-				std::snprintf(headerLabel, sizeof(headerLabel), "%s / %s", track->GetName().c_str(), kCameraChannelNames[channel]);
+				std::snprintf(headerLabel, sizeof(headerLabel), "%s / %s", track->GetName().c_str(), channel->GetName());
 			}
 			else
 			{
 				std::snprintf(headerLabel, sizeof(headerLabel), "%s", track->GetName().c_str());
 			}
-
 			drawList->AddText(
 				ImVec2(canvasMin.x + 6.0f, rowCenter - ImGui::GetTextLineHeight() * 0.5f),
 				track->IsMuted() ? IM_COL32(110, 110, 115, 255) : IM_COL32(215, 215, 225, 255),
 				headerLabel);
 
-			// ミュートの切り替えボタン。チャンネル0の行にだけ置く
-			if (channel == 0)
+			// ミュートの切り替えボタン。先頭の行にだけ置く
+			if (row == 0)
 			{
 				ImGui::SetCursorScreenPos(ImVec2(canvasMin.x + view_.headerWidth - 30.0f, rowTop + 2.0f));
 				ImGui::PushID(static_cast<int>(trackIndex));
 				if (ImGui::SmallButton(track->IsMuted() ? "M" : "-"))
 				{
-					track->SetMuted(!track->IsMuted());
+					ExecuteTrackEdit(sequence_, trackIndex, "Toggle Mute", [track]() { track->SetMuted(!track->IsMuted()); });
 					player_.EvaluateCurrentTime();
 				}
 				ImGui::PopID();
 			}
 
-			if (!cameraTrack)
+			if (!channel)
 			{
 				rowY = rowBottom;
 				continue;
 			}
 
-			// キーの描画とヒット判定
-			const size_t keyCount = GetChannelKeyCount(*cameraTrack, channel);
-			for (size_t keyIndex = 0; keyIndex < keyCount; ++keyIndex)
+			// キーの描画
+			for (size_t keyIndex = 0; keyIndex < channel->GetKeyCount(); ++keyIndex)
 			{
-				const float keyTime = GetChannelKeyTime(*cameraTrack, channel, static_cast<int>(keyIndex));
-				const float x = TimeToPixel(keyTime, left);
+				const float x = TimeToPixel(channel->GetKeyTime(keyIndex), left);
 				if (x < left - kKeyMarkerRadius || x > canvasMin.x + canvasSize.x + kKeyMarkerRadius)
 				{
 					continue;
@@ -643,7 +654,7 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 				SelectionItem item;
 				item.kind = SelectionKind::SequenceKey;
 				item.trackIndex = static_cast<int>(trackIndex);
-				item.channelIndex = channel;
+				item.channelIndex = static_cast<int>(row);
 				item.keyIndex = static_cast<int>(keyIndex);
 
 				const bool isSelected = selection->IsSelected(item);
@@ -662,55 +673,70 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 		}
 	}
 
-	// --- キーの選択とドラッグ ---
+	// --- クリックによる選択 ---
 	const ImVec2 mousePos = ImGui::GetIO().MousePos;
-	const bool mouseInCanvas =
-		mousePos.x >= left && mousePos.x <= canvasMin.x + canvasSize.x &&
-		mousePos.y >= canvasMin.y + view_.rulerHeight && mousePos.y <= canvasMin.y + canvasSize.y;
+	const float rowsTop = canvasMin.y + view_.rulerHeight;
+	const bool mouseInRows =
+		mousePos.x >= canvasMin.x && mousePos.x <= canvasMin.x + canvasSize.x &&
+		mousePos.y >= rowsTop && mousePos.y <= canvasMin.y + canvasSize.y;
+	const bool mouseInHeader = mouseInRows && mousePos.x < left;
 
-	if (mouseInCanvas && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !draggingPlayhead_)
+	// ミュートボタンなど他のウィジェットを押した場合は選択を変えない
+	if (mouseInRows && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !draggingPlayhead_ && !ImGui::IsAnyItemHovered())
 	{
-		// クリック位置に最も近いキーを拾う
-		float bestDistance = kKeyGrabRadius;
-		SelectionItem bestItem;
-
-		float searchRowY = canvasMin.y + view_.rulerHeight;
-		for (size_t trackIndex = 0; trackIndex < sequence_.GetTrackCount(); ++trackIndex)
+		// クリックした行がどのトラックのどのチャンネルかを求める
+		int hitTrack = -1;
+		int hitChannel = -1;
+		float searchRowY = rowsTop;
+		for (size_t trackIndex = 0; trackIndex < sequence_.GetTrackCount() && hitTrack < 0; ++trackIndex)
 		{
-			auto* cameraTrack = dynamic_cast<CameraTrack*>(sequence_.GetTrack(trackIndex));
-			const int channelCount = cameraTrack ? kCameraChannelCount : 1;
-
-			for (int channel = 0; channel < channelCount; ++channel)
+			ITrack* track = sequence_.GetTrack(trackIndex);
+			if (!track) { continue; }
+			for (size_t row = 0; row < GetRowCount(track); ++row)
 			{
-				const float rowCenter = searchRowY + view_.trackHeight * 0.5f;
-				searchRowY += view_.trackHeight;
-
-				if (!cameraTrack || std::abs(mousePos.y - rowCenter) > view_.trackHeight * 0.5f)
+				if (mousePos.y >= searchRowY && mousePos.y < searchRowY + view_.trackHeight)
 				{
-					continue;
+					hitTrack = static_cast<int>(trackIndex);
+					hitChannel = static_cast<int>(row);
+					break;
 				}
+				searchRowY += view_.trackHeight;
+			}
+		}
 
-				const size_t keyCount = GetChannelKeyCount(*cameraTrack, channel);
-				for (size_t keyIndex = 0; keyIndex < keyCount; ++keyIndex)
+		SelectionItem picked;
+		if (hitTrack >= 0 && !mouseInHeader)
+		{
+			// その行で最も近いキーを拾う
+			ITrack* track = sequence_.GetTrack(static_cast<size_t>(hitTrack));
+			ICurveChannel* channel = track ? track->GetChannel(static_cast<size_t>(hitChannel)) : nullptr;
+			float bestDistance = kKeyGrabRadius;
+			for (size_t keyIndex = 0; channel && keyIndex < channel->GetKeyCount(); ++keyIndex)
+			{
+				const float distance = std::abs(TimeToPixel(channel->GetKeyTime(keyIndex), left) - mousePos.x);
+				if (distance < bestDistance)
 				{
-					const float keyTime = GetChannelKeyTime(*cameraTrack, channel, static_cast<int>(keyIndex));
-					const float distance = std::abs(TimeToPixel(keyTime, left) - mousePos.x);
-					if (distance < bestDistance)
-					{
-						bestDistance = distance;
-						bestItem.kind = SelectionKind::SequenceKey;
-						bestItem.trackIndex = static_cast<int>(trackIndex);
-						bestItem.channelIndex = channel;
-						bestItem.keyIndex = static_cast<int>(keyIndex);
-					}
+					bestDistance = distance;
+					picked.kind = SelectionKind::SequenceKey;
+					picked.trackIndex = hitTrack;
+					picked.channelIndex = hitChannel;
+					picked.keyIndex = static_cast<int>(keyIndex);
 				}
 			}
 		}
 
-		if (bestItem.kind == SelectionKind::SequenceKey)
+		if (picked.kind == SelectionKind::SequenceKey)
 		{
-			selection->Select(bestItem);
+			selection->Select(picked);
 			draggingKey_ = true;
+		}
+		else if (hitTrack >= 0)
+		{
+			// キーの無い所をクリックしたらトラックを選ぶ。インスペクタで役を割り当てるため
+			SelectionItem trackItem;
+			trackItem.kind = SelectionKind::SequenceTrack;
+			trackItem.trackIndex = hitTrack;
+			selection->Select(trackItem);
 		}
 		else
 		{
@@ -718,33 +744,27 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 		}
 	}
 
+	// --- キーのドラッグ ---
 	if (draggingKey_ && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
 	{
-		const SelectionItem& selected = GetSelectedKey();
-		if (selected.kind == SelectionKind::SequenceKey)
+		const SelectionItem selected = GetPrimarySelection();
+		if (ICurveChannel* channel = GetSelectedChannel(sequence_, selected))
 		{
-			auto* cameraTrack = dynamic_cast<CameraTrack*>(sequence_.GetTrack(static_cast<size_t>(selected.trackIndex)));
-			if (cameraTrack)
+			const float newTime = (std::max)(SnapTime(PixelToTime(mousePos.x, left)), 0.0f);
+
+			// ドラッグ中は毎フレームコマンドを発行し、MergeWith で1つにまとめる。
+			// 履歴が1ドラッグ1件になり、Undo1回で掴む前の位置に戻る。
+			size_t newIndex = static_cast<size_t>(selected.keyIndex);
+			const bool changed = ExecuteTrackEdit(sequence_, static_cast<size_t>(selected.trackIndex), "Move Key",
+				[&]() { newIndex = channel->MoveKey(static_cast<size_t>(selected.keyIndex), newTime); });
+
+			if (changed)
 			{
-				const float newTime = (std::max)(SnapTime(PixelToTime(mousePos.x, left)), 0.0f);
-
-				// ドラッグ中は毎フレームコマンドを発行し、MergeWith で1つにまとめる。
-				// 履歴が1ドラッグ1件になり、Undo1回で掴む前の位置に戻る。
-				auto command = std::make_unique<TrackEditCommand>(&sequence_, static_cast<size_t>(selected.trackIndex), "Move Key");
-				const int newIndex = SetChannelKeyTime(*cameraTrack, selected.channelIndex, selected.keyIndex, newTime);
-				command->CaptureAfter();
-
-				if (command->HasChanged())
-				{
-					CommandHistory::GetInstance()->Execute(std::move(command));
-
-					// 時刻の変更で並び順が変わりうるので、選択のインデックスを追従させる
-					SelectionItem updated = selected;
-					updated.keyIndex = newIndex;
-					selection->Select(updated);
-
-					player_.EvaluateCurrentTime();
-				}
+				// 時刻の変更で並び順が変わりうるので、選択のインデックスを追従させる
+				SelectionItem updated = selected;
+				updated.keyIndex = static_cast<int>(newIndex);
+				selection->Select(updated);
+				player_.EvaluateCurrentTime();
 			}
 		}
 	}
@@ -890,6 +910,7 @@ void SequencerEditor::DrawTimelineWindow()
 	DrawPlayhead(canvasMin, canvasSize);
 
 	// キャンバス領域を確保しておかないと、後続のUIが重なって描かれる
+	ImGui::SetCursorScreenPos(canvasMin);
 	ImGui::Dummy(canvasSize);
 }
 
@@ -899,98 +920,63 @@ void SequencerEditor::DrawTimelineWindow()
 
 void SequencerEditor::DrawBezierEditor()
 {
-	const SelectionItem& selected = GetSelectedKey();
-	if (selected.kind != SelectionKind::SequenceKey)
+	const SelectionItem selected = GetPrimarySelection();
+	ICurveChannel* channel = GetSelectedChannel(sequence_, selected);
+	if (!channel)
 	{
 		return;
 	}
 
-	auto* cameraTrack = dynamic_cast<CameraTrack*>(sequence_.GetTrack(static_cast<size_t>(selected.trackIndex)));
-	if (!cameraTrack)
-	{
-		return;
-	}
+	const size_t trackIndex = static_cast<size_t>(selected.trackIndex);
+	const size_t keyIndex = static_cast<size_t>(selected.keyIndex);
+	InterpolationMode& interp = channel->GetKeyInterp(keyIndex);
+	BezierHandle& bezier = channel->GetKeyBezier(keyIndex);
 
-	InterpolationMode* interp = GetChannelKeyInterp(*cameraTrack, selected.channelIndex, selected.keyIndex);
-	BezierHandle* bezier = GetChannelKeyBezier(*cameraTrack, selected.channelIndex, selected.keyIndex);
-	if (!interp || !bezier)
-	{
-		return;
-	}
+	ImGui::SeparatorText("Interpolation (このキーから次のキーまで)");
 
-	ImGui::SeparatorText("Interpolation (このキーから次のキューまで)");
-
-	int interpIndex = static_cast<int>(*interp);
+	int interpIndex = static_cast<int>(interp);
 	if (ImGui::Combo("Mode", &interpIndex, "Constant\0Linear\0Bezier\0"))
 	{
-		auto command = std::make_unique<TrackEditCommand>(&sequence_, static_cast<size_t>(selected.trackIndex), "Change Interpolation");
-		*interp = static_cast<InterpolationMode>(interpIndex);
-		command->CaptureAfter();
-		if (command->HasChanged())
-		{
-			CommandHistory::GetInstance()->Execute(std::move(command));
-			player_.EvaluateCurrentTime();
-		}
+		ExecuteTrackEdit(sequence_, trackIndex, "Change Interpolation", [&]() { interp = static_cast<InterpolationMode>(interpIndex); });
+		player_.EvaluateCurrentTime();
 	}
 
-	if (*interp != InterpolationMode::Bezier)
+	if (interp != InterpolationMode::Bezier)
 	{
 		return;
 	}
 
 	// プリセット
-	if (ImGui::Button("Ease In-Out"))
+	struct Preset { const char* label; EasingType type; };
+	static const Preset kPresets[] = {
+		{ "Ease In-Out", EasingType::EaseInOutCubic },
+		{ "Ease Out", EasingType::EaseOutCubic },
+		{ "Ease In", EasingType::EaseInCubic },
+		{ "Linear", EasingType::Linear },
+	};
+	for (size_t i = 0; i < sizeof(kPresets) / sizeof(kPresets[0]); ++i)
 	{
-		auto command = std::make_unique<TrackEditCommand>(&sequence_, static_cast<size_t>(selected.trackIndex), "Set Easing Preset");
-		*bezier = EasingTypeToBezier(EasingType::EaseInOutCubic);
-		command->CaptureAfter();
-		if (command->HasChanged())
+		if (i > 0) { ImGui::SameLine(); }
+		if (ImGui::Button(kPresets[i].label))
 		{
-			CommandHistory::GetInstance()->Execute(std::move(command));
-			player_.EvaluateCurrentTime();
-		}
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Ease Out"))
-	{
-		auto command = std::make_unique<TrackEditCommand>(&sequence_, static_cast<size_t>(selected.trackIndex), "Set Easing Preset");
-		*bezier = EasingTypeToBezier(EasingType::EaseOutCubic);
-		command->CaptureAfter();
-		if (command->HasChanged())
-		{
-			CommandHistory::GetInstance()->Execute(std::move(command));
-			player_.EvaluateCurrentTime();
-		}
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Linear"))
-	{
-		auto command = std::make_unique<TrackEditCommand>(&sequence_, static_cast<size_t>(selected.trackIndex), "Set Easing Preset");
-		*bezier = EasingTypeToBezier(EasingType::Linear);
-		command->CaptureAfter();
-		if (command->HasChanged())
-		{
-			CommandHistory::GetInstance()->Execute(std::move(command));
+			ExecuteTrackEdit(sequence_, trackIndex, "Set Easing Preset", [&]() { bezier = EasingTypeToBezier(kPresets[i].type); });
 			player_.EvaluateCurrentTime();
 		}
 	}
 
 	// 数値でのハンドル編集
-	float handle[4] = { bezier->x1, bezier->y1, bezier->x2, bezier->y2 };
+	float handle[4] = { bezier.x1, bezier.y1, bezier.x2, bezier.y2 };
 	if (ImGui::DragFloat4("cubic-bezier", handle, 0.01f, -2.0f, 3.0f, "%.3f"))
 	{
-		auto command = std::make_unique<TrackEditCommand>(&sequence_, static_cast<size_t>(selected.trackIndex), "Edit Bezier Handle");
-		// x は単調でなければ解が一意に定まらないため 0〜1 に制限する
-		bezier->x1 = std::clamp(handle[0], 0.0f, 1.0f);
-		bezier->y1 = handle[1];
-		bezier->x2 = std::clamp(handle[2], 0.0f, 1.0f);
-		bezier->y2 = handle[3];
-		command->CaptureAfter();
-		if (command->HasChanged())
+		ExecuteTrackEdit(sequence_, trackIndex, "Edit Bezier Handle", [&]()
 		{
-			CommandHistory::GetInstance()->Execute(std::move(command));
-			player_.EvaluateCurrentTime();
-		}
+			// x は単調でなければ解が一意に定まらないため 0〜1 に制限する
+			bezier.x1 = std::clamp(handle[0], 0.0f, 1.0f);
+			bezier.y1 = handle[1];
+			bezier.x2 = std::clamp(handle[2], 0.0f, 1.0f);
+			bezier.y2 = handle[3];
+		});
+		player_.EvaluateCurrentTime();
 	}
 
 	// カーブのプレビュー
@@ -1005,7 +991,7 @@ void SequencerEditor::DrawBezierEditor()
 	for (int i = 1; i <= kPreviewSegments; ++i)
 	{
 		const float t = static_cast<float>(i) / static_cast<float>(kPreviewSegments);
-		const float value = ApplyBezierEasing(*bezier, t);
+		const float value = ApplyBezierEasing(bezier, t);
 		const ImVec2 point(graphMin.x + t * graphSize, graphMin.y + graphSize - value * graphSize);
 		drawList->AddLine(previousPoint, point, IM_COL32(120, 200, 255, 255), 1.5f);
 		previousPoint = point;
@@ -1013,101 +999,214 @@ void SequencerEditor::DrawBezierEditor()
 	ImGui::Dummy(ImVec2(graphSize, graphSize));
 }
 
-void SequencerEditor::DrawInspectorWindow()
+void SequencerEditor::DrawTrackInspector(size_t trackIndex)
 {
-	const SelectionItem& selected = GetSelectedKey();
-	if (selected.kind != SelectionKind::SequenceKey)
-	{
-		ImGui::TextDisabled("タイムラインでキーを選択してください");
-		return;
-	}
-
-	auto* cameraTrack = dynamic_cast<CameraTrack*>(sequence_.GetTrack(static_cast<size_t>(selected.trackIndex)));
-	if (!cameraTrack)
-	{
-		ImGui::TextDisabled("選択中のトラックが見つかりません");
-		return;
-	}
-
-	if (selected.channelIndex < 0 || selected.channelIndex >= kCameraChannelCount)
+	ITrack* track = sequence_.GetTrack(trackIndex);
+	if (!track)
 	{
 		return;
 	}
 
-	ImGui::Text("Track: %s", cameraTrack->GetName().c_str());
-	ImGui::Text("Channel: %s", kCameraChannelNames[selected.channelIndex]);
-	ImGui::Text("Key: %d", selected.keyIndex);
+	ImGui::SeparatorText("Track");
+	ImGui::Text("Type: %s", track->GetTypeName());
 
-	float keyTime = GetChannelKeyTime(*cameraTrack, selected.channelIndex, selected.keyIndex);
-	if (ImGui::DragFloat("Time", &keyTime, 0.01f, 0.0f, 3600.0f, "%.3f s"))
+	// 名前
+	char nameBuffer[128];
+	std::snprintf(nameBuffer, sizeof(nameBuffer), "%s", track->GetName().c_str());
+	if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer)))
 	{
-		auto command = std::make_unique<TrackEditCommand>(&sequence_, static_cast<size_t>(selected.trackIndex), "Set Key Time");
-		const int newIndex = SetChannelKeyTime(*cameraTrack, selected.channelIndex, selected.keyIndex, keyTime);
-		command->CaptureAfter();
-		if (command->HasChanged())
+		const std::string newName = nameBuffer;
+		ExecuteTrackEdit(sequence_, trackIndex, "Rename Track", [&]() { track->SetName(newName); });
+	}
+
+	// トラック固有の設定。変更はコマンドとして積む
+	{
+		bool changed = false;
+		ExecuteTrackEdit(sequence_, trackIndex, "Edit Track Settings", [&]() { changed = track->DrawInspector(); });
+		if (changed)
 		{
-			CommandHistory::GetInstance()->Execute(std::move(command));
-			SelectionItem updated = selected;
-			updated.keyIndex = newIndex;
-			SelectionContext::GetInstance()->Select(updated);
 			player_.EvaluateCurrentTime();
 		}
 	}
 
-	// チャンネルごとの値の編集
-	const size_t index = static_cast<size_t>(selected.keyIndex);
-	if (selected.channelIndex == 0 && index < cameraTrack->GetPositionCurve().GetKeyCount())
+	BindingType bindingType;
+	if (!GetBindingTypeForTrack(*track, bindingType))
 	{
-		Vector3& value = cameraTrack->GetPositionCurve().GetKey(index).value;
-		float components[3] = { value.x, value.y, value.z };
-		if (ImGui::DragFloat3("Position", components, 0.05f))
-		{
-			auto command = std::make_unique<TrackEditCommand>(&sequence_, static_cast<size_t>(selected.trackIndex), "Edit Key Value");
-			value = { components[0], components[1], components[2] };
-			command->CaptureAfter();
-			if (command->HasChanged())
-			{
-				CommandHistory::GetInstance()->Execute(std::move(command));
-				player_.EvaluateCurrentTime();
-			}
-		}
+		ImGui::TextDisabled("このトラックは役を使いません（画面全体に作用します）");
+		return;
 	}
-	else if (selected.channelIndex == 1 && index < cameraTrack->GetRotationCurve().GetKeyCount())
+
+	// ライトトラックの平行光源は名前を使わない
+	if (auto* lightTrack = dynamic_cast<LightTrack*>(track))
 	{
-		Quaternion& value = cameraTrack->GetRotationCurve().GetKey(index).value;
-		// 入力はオイラー角で受けるが、保持と補間はクォータニオンのまま行う
-		Vector3 euler = value.ToEuler();
-		float components[3] = { euler.x, euler.y, euler.z };
-		if (ImGui::DragFloat3("Rotation (rad)", components, 0.01f))
+		if (lightTrack->GetKind() == LightTrackKind::Directional)
 		{
-			auto command = std::make_unique<TrackEditCommand>(&sequence_, static_cast<size_t>(selected.trackIndex), "Edit Key Value");
-			value = Quaternion::FromEuler({ components[0], components[1], components[2] });
-			command->CaptureAfter();
-			if (command->HasChanged())
-			{
-				CommandHistory::GetInstance()->Execute(std::move(command));
-				player_.EvaluateCurrentTime();
-			}
-		}
-	}
-	else if (selected.channelIndex == 2 && index < cameraTrack->GetFovCurve().GetKeyCount())
-	{
-		float& value = cameraTrack->GetFovCurve().GetKey(index).value;
-		float fov = value;
-		if (ImGui::DragFloat("FOV (rad)", &fov, 0.005f, 0.05f, 3.0f, "%.3f"))
-		{
-			auto command = std::make_unique<TrackEditCommand>(&sequence_, static_cast<size_t>(selected.trackIndex), "Edit Key Value");
-			value = fov;
-			command->CaptureAfter();
-			if (command->HasChanged())
-			{
-				CommandHistory::GetInstance()->Execute(std::move(command));
-				player_.EvaluateCurrentTime();
-			}
+			ImGui::TextDisabled("平行光源はシーンに1つなので役を使いません");
+			return;
 		}
 	}
 
-	DrawBezierEditor();
+	ImGui::SeparatorText("Binding");
+
+	// 役の名前
+	char roleBuffer[64];
+	std::snprintf(roleBuffer, sizeof(roleBuffer), "%s", track->GetBindingRole().c_str());
+	if (ImGui::InputText("Role", roleBuffer, sizeof(roleBuffer)))
+	{
+		const std::string newRole = roleBuffer;
+		ExecuteTrackEdit(sequence_, trackIndex, "Change Role", [&]() { track->SetBindingRole(newRole); });
+	}
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("シーケンスは実体ではなく役を指します。\n再生時に役へ実体を割り当てることで、同じ演出を別の対象に使い回せます");
+	}
+
+	const std::string& role = track->GetBindingRole();
+	if (role.empty())
+	{
+		return;
+	}
+
+	// 役の定義をシーケンスへ登録しておく（再生側が何を割り当てればよいか分かるように）
+	BindingDefinition definition;
+	definition.role = role;
+	definition.type = bindingType;
+	sequence_.AddBinding(definition);
+
+	ImGui::TextDisabled("プレビュー用の割り当て（エディタのみ・保存されません）");
+
+	switch (bindingType)
+	{
+	case BindingType::Camera:
+		ImGui::TextDisabled("カメラの役 \"%s\" はシーケンスカメラに割り当て済みです", kCameraRole);
+		break;
+
+	case BindingType::GameObject:
+	{
+		const auto it = previewObjectBindings_.find(role);
+		GameObject* current = (it != previewObjectBindings_.end() && GameObjectManager::HasInstance())
+			? GameObjectManager::GetInstance()->FindByGuid(it->second)
+			: nullptr;
+
+		if (ImGui::BeginCombo("Preview Object", current ? current->GetName().c_str() : "(未割り当て)"))
+		{
+			if (ImGui::Selectable("(未割り当て)", current == nullptr))
+			{
+				previewObjectBindings_.erase(role);
+				player_.GetBindingContext().BindGameObject(role, nullptr);
+			}
+			if (GameObjectManager::HasInstance())
+			{
+				for (GameObject* object : GameObjectManager::GetInstance()->GetGameObjects())
+				{
+					if (!object) { continue; }
+					// 同名オブジェクトを区別できるよう、GUID を ID に使う
+					ImGui::PushID(object->GetGuid().ToString().c_str());
+					if (ImGui::Selectable(object->GetName().c_str(), object == current))
+					{
+						previewObjectBindings_[role] = object->GetGuid();
+						ApplyPreviewBindings();
+						player_.EvaluateCurrentTime();
+					}
+					ImGui::PopID();
+				}
+			}
+			ImGui::EndCombo();
+		}
+		break;
+	}
+
+	case BindingType::Light:
+	{
+		auto* lightTrack = dynamic_cast<LightTrack*>(track);
+		const auto it = previewLightBindings_.find(role);
+		const std::string current = (it != previewLightBindings_.end()) ? it->second : std::string();
+
+		if (ImGui::BeginCombo("Preview Light", current.empty() ? "(未割り当て)" : current.c_str()))
+		{
+			if (ImGui::Selectable("(未割り当て)", current.empty()))
+			{
+				previewLightBindings_.erase(role);
+				player_.GetBindingContext().BindLight(role, "");
+			}
+			if (lightManager_ && lightTrack)
+			{
+				// 種類に合ったライトだけを並べる
+				auto listLights = [&](const auto& lights)
+				{
+					for (const auto& [name, light] : lights)
+					{
+						(void)light;
+						if (ImGui::Selectable(name.c_str(), name == current))
+						{
+							previewLightBindings_[role] = name;
+							ApplyPreviewBindings();
+							player_.EvaluateCurrentTime();
+						}
+					}
+				};
+				if (lightTrack->GetKind() == LightTrackKind::Spot)
+				{
+					listLights(lightManager_->GetSpotLights());
+				}
+				else
+				{
+					listLights(lightManager_->GetPointLights());
+				}
+			}
+			ImGui::EndCombo();
+		}
+		break;
+	}
+	}
+}
+
+void SequencerEditor::DrawInspectorWindow()
+{
+	const int trackIndex = GetSelectedTrackIndex();
+	if (trackIndex < 0)
+	{
+		ImGui::TextDisabled("タイムラインでトラックまたはキーを選択してください");
+		return;
+	}
+
+	const SelectionItem selected = GetPrimarySelection();
+	if (ICurveChannel* channel = GetSelectedChannel(sequence_, selected))
+	{
+		const size_t keyIndex = static_cast<size_t>(selected.keyIndex);
+
+		ImGui::SeparatorText("Key");
+		ImGui::Text("Channel: %s  /  Key: %zu", channel->GetName(), keyIndex);
+
+		float keyTime = channel->GetKeyTime(keyIndex);
+		if (ImGui::DragFloat("Time", &keyTime, 0.01f, 0.0f, 3600.0f, "%.3f s"))
+		{
+			size_t newIndex = keyIndex;
+			if (ExecuteTrackEdit(sequence_, static_cast<size_t>(trackIndex), "Set Key Time",
+				[&]() { newIndex = channel->MoveKey(keyIndex, (std::max)(keyTime, 0.0f)); }))
+			{
+				SelectionItem updated = selected;
+				updated.keyIndex = static_cast<int>(newIndex);
+				SelectionContext::GetInstance()->Select(updated);
+				player_.EvaluateCurrentTime();
+			}
+		}
+		else
+		{
+			// 値の型ごとの編集UIはチャンネル自身が描く
+			bool changed = false;
+			ExecuteTrackEdit(sequence_, static_cast<size_t>(trackIndex), "Edit Key Value",
+				[&]() { changed = channel->DrawKeyValueEditor(keyIndex); });
+			if (changed)
+			{
+				player_.EvaluateCurrentTime();
+			}
+
+			DrawBezierEditor();
+		}
+	}
+
+	DrawTrackInspector(static_cast<size_t>(trackIndex));
 }
 
 ///=============================================================================
@@ -1177,12 +1276,27 @@ void SequencerEditor::DrawSceneOverlay()
 ///						操作
 ///=============================================================================
 
-void SequencerEditor::AddCameraTrack()
+void SequencerEditor::AddTrack(const std::string& typeName)
 {
-	auto command = std::make_unique<SequenceStructureCommand>(&sequence_, "Add Camera Track");
+	auto command = std::make_unique<SequenceStructureCommand>(&sequence_, "Add " + typeName + " Track");
 
-	auto track = std::make_unique<CameraTrack>();
-	track->SetBindingRole(kCameraRole);
+	TrackPtr track = TrackFactory::Create(typeName);
+	if (!track)
+	{
+		statusMessage_ = "未知のトラック種別です: " + typeName;
+		return;
+	}
+
+	// 役の定義も同時に登録しておく（再生側が何を割り当てればよいか分かるように）
+	BindingType bindingType;
+	if (GetBindingTypeForTrack(*track, bindingType) && !track->GetBindingRole().empty())
+	{
+		BindingDefinition definition;
+		definition.role = track->GetBindingRole();
+		definition.type = bindingType;
+		sequence_.AddBinding(definition);
+	}
+
 	sequence_.AddTrack(std::move(track));
 
 	command->CaptureAfter();
@@ -1190,88 +1304,70 @@ void SequencerEditor::AddCameraTrack()
 	{
 		CommandHistory::GetInstance()->Execute(std::move(command));
 	}
+
+	// 追加したトラックを選び、そのままインスペクタで役を割り当てられるようにする
+	SelectionItem item;
+	item.kind = SelectionKind::SequenceTrack;
+	item.trackIndex = static_cast<int>(sequence_.GetTrackCount() - 1);
+	SelectionContext::GetInstance()->Select(item);
 }
 
 void SequencerEditor::AddKeyAtCurrentTime()
 {
-	Camera* camera = GetSequenceCamera();
-	if (!camera)
+	// 対象トラックを決める。選択中のトラック（キー）があればそれ、無ければ先頭のトラック
+	int trackIndex = GetSelectedTrackIndex();
+	if (trackIndex < 0 && sequence_.GetTrackCount() > 0)
 	{
-		statusMessage_ = "シーケンスカメラが割り当てられていません";
-		return;
+		trackIndex = 0;
 	}
 
-	// 対象トラックを決める。選択中のキーがあればそのトラック、無ければ最初のカメラトラック。
-	size_t targetIndex = 0;
-	CameraTrack* targetTrack = nullptr;
-
-	const SelectionItem& selected = GetSelectedKey();
-	if (selected.kind == SelectionKind::SequenceKey && selected.trackIndex >= 0)
+	if (trackIndex < 0)
 	{
-		targetIndex = static_cast<size_t>(selected.trackIndex);
-		targetTrack = dynamic_cast<CameraTrack*>(sequence_.GetTrack(targetIndex));
-	}
-
-	if (!targetTrack)
-	{
-		for (size_t i = 0; i < sequence_.GetTrackCount(); ++i)
-		{
-			if (auto* track = dynamic_cast<CameraTrack*>(sequence_.GetTrack(i)))
-			{
-				targetIndex = i;
-				targetTrack = track;
-				break;
-			}
-		}
-	}
-
-	if (!targetTrack)
-	{
-		// トラックが1本も無い状態でキーを打とうとした場合は、先に作ってしまう
-		AddCameraTrack();
-		targetIndex = sequence_.GetTrackCount() - 1;
-		targetTrack = dynamic_cast<CameraTrack*>(sequence_.GetTrack(targetIndex));
-		if (!targetTrack)
+		// トラックが1本も無い状態でキーを打とうとした場合は、カメラトラックを作る
+		AddTrack("Camera");
+		trackIndex = static_cast<int>(sequence_.GetTrackCount()) - 1;
+		if (trackIndex < 0)
 		{
 			return;
 		}
 	}
 
-	auto command = std::make_unique<TrackEditCommand>(&sequence_, targetIndex, "Add Camera Key");
-	targetTrack->AddKeyFromCamera(SnapTime(player_.GetTime()), camera);
-	command->CaptureAfter();
-
-	if (command->HasChanged())
+	ITrack* track = sequence_.GetTrack(static_cast<size_t>(trackIndex));
+	if (!track)
 	{
-		CommandHistory::GetInstance()->Execute(std::move(command));
+		return;
+	}
+
+	bool recorded = false;
+	const float time = SnapTime(player_.GetTime());
+	const bool changed = ExecuteTrackEdit(sequence_, static_cast<size_t>(trackIndex), "Add Key",
+		[&]() { recorded = track->RecordKey(time, player_.GetBindingContext()); });
+
+	if (!recorded)
+	{
+		statusMessage_ = "キーを打てません: \"" + track->GetName() + "\" の対象が割り当てられていません";
+		return;
+	}
+
+	if (changed)
+	{
 		player_.EvaluateCurrentTime();
-		statusMessage_ = "キーを追加しました";
+		statusMessage_ = "キーを追加しました: " + track->GetName();
 	}
 }
 
 void SequencerEditor::DeleteSelectedKey()
 {
-	const SelectionItem& selected = GetSelectedKey();
-	if (selected.kind != SelectionKind::SequenceKey)
+	const SelectionItem selected = GetPrimarySelection();
+	ICurveChannel* channel = GetSelectedChannel(sequence_, selected);
+	if (!channel)
 	{
 		return;
 	}
 
-	auto* cameraTrack = dynamic_cast<CameraTrack*>(sequence_.GetTrack(static_cast<size_t>(selected.trackIndex)));
-	if (!cameraTrack)
+	if (ExecuteTrackEdit(sequence_, static_cast<size_t>(selected.trackIndex), "Delete Key",
+		[&]() { channel->RemoveKey(static_cast<size_t>(selected.keyIndex)); }))
 	{
-		return;
-	}
-
-	const float keyTime = GetChannelKeyTime(*cameraTrack, selected.channelIndex, selected.keyIndex);
-
-	auto command = std::make_unique<TrackEditCommand>(&sequence_, static_cast<size_t>(selected.trackIndex), "Delete Key");
-	cameraTrack->RemoveKeysAt(keyTime, kKeyDeleteTolerance);
-	command->CaptureAfter();
-
-	if (command->HasChanged())
-	{
-		CommandHistory::GetInstance()->Execute(std::move(command));
 		SelectionContext::GetInstance()->ClearSelection();
 		player_.EvaluateCurrentTime();
 	}

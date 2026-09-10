@@ -1,7 +1,9 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <unordered_map>
 
+#include "core/Guid.h"
 #include "sequencer/core/Sequence.h"
 #include "sequencer/core/SequencePlayer.h"
 
@@ -13,6 +15,8 @@ namespace KCE
 {
 class Camera;
 class CameraManager;
+class LightManager;
+class PostProcessManager;
 
 #ifdef USE_IMGUI
 
@@ -36,9 +40,9 @@ struct TimelineViewState
 /**
  * @brief 演出シーケンサのエディタUI
  *
- * @details SEQUENCER_PLAN 8.1 の Phase 0「縦切り1本」に対応する。
- *          「楽曲を再生しながら、ベジェカーブで加減速するカメラを1カット分、
- *          ギズモで置いて、Undoできて、JSONに保存できる」までを担う。
+ * @details キーの編集はトラックの種類を問わず ICurveChannel だけを通して行う。
+ *          トラックを1種類足しても、このクラスを書き換えずに済むようにするため
+ *          （SEQUENCER_PLAN Phase 6「カーブ編集の共通化」）。
  *
  *          編集はすべて CommandHistory 経由、選択はすべて SelectionContext 経由で行う。
  *          このクラス内に独自の選択状態や独自の履歴を持たせないこと。
@@ -52,8 +56,10 @@ public:
 	/**
 	 * @brief 初期化してデバッグUIを登録する
 	 * @param cameraManager 編集用カメラの追加先。nullptrならカメラ操作機能は無効になる
+	 * @param lightManager ライトトラックが駆動するライト管理
+	 * @param postProcessManager ポストプロセストラックが駆動するポストプロセス
 	 */
-	void Initialize(CameraManager* cameraManager);
+	void Initialize(CameraManager* cameraManager, LightManager* lightManager, PostProcessManager* postProcessManager);
 
 	/**
 	 * @brief 終了処理
@@ -92,7 +98,7 @@ private:
 
 	/** @brief タイムラインウィンドウ（Projectエリア） */
 	void DrawTimelineWindow();
-	/** @brief インスペクタ（Inspectorエリア）。選択中のキーとカーブを編集する */
+	/** @brief インスペクタ（Inspectorエリア）。選択中のトラック・キーを編集する */
 	void DrawInspectorWindow();
 	/** @brief シーンへのオーバーレイ（Sceneエリア）。ギズモを描く */
 	void DrawSceneOverlay();
@@ -107,21 +113,32 @@ private:
 	void DrawPlayhead(const ImVec2& canvasMin, const ImVec2& canvasSize);
 	/** @brief 選択中のキーのベジェハンドルを編集するUI */
 	void DrawBezierEditor();
+	/** @brief トラック自体の設定（名前・役・プレビュー用の割り当て） */
+	void DrawTrackInspector(size_t trackIndex);
 
 	// --- 操作 ---
 
 	/** @brief キーボードショートカットを処理する */
 	void HandleShortcuts();
-	/** @brief 現在のカメラ状態を現在時刻にキーとして打つ */
+	/** @brief 対象の現在の状態を、現在時刻にキーとして打つ */
 	void AddKeyAtCurrentTime();
 	/** @brief 選択中のキーを削除する */
 	void DeleteSelectedKey();
-	/** @brief カメラトラックを追加する */
-	void AddCameraTrack();
+	/** @brief 指定種別のトラックを追加する */
+	void AddTrack(const std::string& typeName);
 	/** @brief 編集用カメラを自由移動させる */
 	void UpdateEditorCameraFly();
 	/** @brief 現在のプレビュー対象に応じてアクティブカメラを切り替える */
 	void ApplyActiveCamera();
+	/**
+	 * @brief プレビュー用の割り当てをバインディングコンテキストへ反映する
+	 * @details GameObject は GUID で覚えておき、毎フレーム引き直す。
+	 *          ポインタで覚えると、対象が破棄されたときにダングリングする。
+	 */
+	void ApplyPreviewBindings();
+
+	/** @brief 選択から、操作対象のトラック番号を求める。無ければ -1 */
+	int GetSelectedTrackIndex() const;
 
 	// --- 座標変換 ---
 
@@ -144,10 +161,22 @@ private:
 
 	// カメラの追加先
 	CameraManager* cameraManager_ = nullptr;
+	// ライトトラックの駆動先
+	LightManager* lightManager_ = nullptr;
+	// ポストプロセストラックの駆動先
+	PostProcessManager* postProcessManager_ = nullptr;
 	// シーケンスが駆動するカメラの名前
 	std::string sequenceCameraName_;
 	// 編集用の自由移動カメラの名前
 	std::string editorCameraName_;
+
+	// エディタでのプレビュー用の割り当て（役 → GameObject の GUID）
+	std::unordered_map<std::string, Guid> previewObjectBindings_;
+	// エディタでのプレビュー用の割り当て（役 → ライト名）
+	std::unordered_map<std::string, std::string> previewLightBindings_;
+
+	// 「トラックを追加」で選んでいる種別
+	int addTrackTypeIndex_ = 0;
 
 	// シーケンスカメラ視点でプレビューするか
 	bool previewThroughSequenceCamera_ = false;
@@ -189,7 +218,12 @@ public:
 	static SequencerEditor* GetInstance();
 	static bool HasInstance();
 
-	void Initialize(CameraManager* cameraManager) { (void)cameraManager; }
+	void Initialize(CameraManager* cameraManager, LightManager* lightManager, PostProcessManager* postProcessManager)
+	{
+		(void)cameraManager;
+		(void)lightManager;
+		(void)postProcessManager;
+	}
 	void Finalize() {}
 	void Update() {}
 
