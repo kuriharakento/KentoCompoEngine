@@ -30,7 +30,7 @@ void ModelManager::Finalize()
 void ModelManager::LoadModel(const std::string& filePath, const std::string& modelType)
 {
 	// 読み込み済みモデルを検索
-	if(models_.contains(filePath))
+	if(models_.contains(filePath) || failedModels_.contains(filePath + modelType))
 	{
 		// 読み込み済みなら早期リターン
 		return;
@@ -38,7 +38,12 @@ void ModelManager::LoadModel(const std::string& filePath, const std::string& mod
 
 	// モデルの生成とファイル読み込み、初期化
 	std::unique_ptr<Model> model = std::make_unique<Model>();
-	model->Initialize(modelCommon_.get(), "Resources/models", filePath,modelType);
+	if (!model->Initialize(modelCommon_.get(), "Resources/models", filePath, modelType))
+	{
+		// 読み込みに失敗したモデルは登録せず、FindModelでnullptrを返せるようにする。
+		failedModels_.insert(filePath + modelType);
+		return;
+	}
 
 	// モデルをmapコンテナに格納する（キャッシング）
 	models_.insert(std::make_pair(filePath, std::move(model)));

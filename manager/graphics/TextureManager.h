@@ -4,6 +4,7 @@
 #include <string>
 #include <wrl.h>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <memory>
 
@@ -145,6 +146,8 @@ private: // 構造体
 	std::unordered_map<std::string, uint32_t> filePathToIndex_;
 	// インデックスからファイルパスを取得するマップ
 	std::unordered_map<uint32_t, std::string> indexToFilePath_;
+	// 同じ壊れたパスを毎フレーム再試行してログを埋めないために記録する。
+	std::unordered_set<std::string> failedTexturePaths_;
 
 	// ロード中の中間リソース（GPU転送完了後に ClearIntermediateResources で解放する）
 	std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> intermediateResources_;

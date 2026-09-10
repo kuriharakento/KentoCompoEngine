@@ -1,6 +1,7 @@
 #include "Audio.h"
 
 #include "base/PathManager.h"
+#include "base/Logger.h"
 #include <algorithm>
 #include <cassert>
 #include <cstring>
@@ -317,35 +318,74 @@ void Audio::Update()
 
 SoundData Audio::LoadWave(const char* filename)
 {
+	SoundData soundData = {};
+	const auto logFailure = [this, filename](const std::string& reason)
+	{
+		// 更新処理から繰り返し呼ばれても、同じファイルの失敗は一度だけ知らせる。
+		if (reportedLoadErrors_.insert(filename).second)
+		{
+			Logger::Log(reason + filename + "\n", Logger::LogLevel::Error);
+		}
+	};
 	std::ifstream file(filename, std::ios::binary);
-	assert(file.is_open());
+	if (!file.is_open())
+	{
+		logFailure("音声ファイルを開けませんでした: ");
+		return soundData;
+	}
 
-	RiffHeader riff;
-	file.read(reinterpret_cast<char*>(&riff), sizeof(riff));
-	assert(strncmp(riff.chunk.id, "RIFF", 4) == 0);
-	assert(strncmp(riff.type, "WAVE", 4) == 0);
+	RiffHeader riff{};
+	if (!file.read(reinterpret_cast<char*>(&riff), sizeof(riff)) ||
+		strncmp(riff.chunk.id, "RIFF", 4) != 0 || strncmp(riff.type, "WAVE", 4) != 0)
+	{
+		logFailure("WAVヘッダーを読み取れませんでした: ");
+		return soundData;
+	}
 
 	FormatChunk format = {};
-	file.read(reinterpret_cast<char*>(&format), sizeof(ChunkHeader));
-	assert(strncmp(format.chunk.id, "fmt ", 4) == 0);
-	assert(format.chunk.size <= sizeof(format.fmt));
-	file.read(reinterpret_cast<char*>(&format.fmt), format.chunk.size);
+	if (!file.read(reinterpret_cast<char*>(&format), sizeof(ChunkHeader)) ||
+		strncmp(format.chunk.id, "fmt ", 4) != 0 || format.chunk.size > sizeof(format.fmt) ||
+		!file.read(reinterpret_cast<char*>(&format.fmt), format.chunk.size))
+	{
+		logFailure("WAVフォーマットを読み取れませんでした: ");
+		return soundData;
+	}
 
 	ChunkHeader data;
-	file.read(reinterpret_cast<char*>(&data), sizeof(data));
+	if (!file.read(reinterpret_cast<char*>(&data), sizeof(data)))
+	{
+		logFailure("WAVデータを読み取れませんでした: ");
+		return soundData;
+	}
 
 	if (strncmp(data.id, "JUNK", 4) == 0)
 	{
 		file.seekg(data.size, std::ios::cur);
 		file.read(reinterpret_cast<char*>(&data), sizeof(data));
 	}
-	assert(strncmp(data.id, "data", 4) == 0);
+	if (!file || strncmp(data.id, "data", 4) != 0 || data.size < 0)
+	{
+		logFailure("WAVのdataチャンクを読み取れませんでした: ");
+		return soundData;
+	}
+	const std::streampos dataStart = file.tellg();
+	file.seekg(0, std::ios::end);
+	const std::streampos fileEnd = file.tellg();
+	file.seekg(dataStart);
+	if (dataStart < 0 || fileEnd < dataStart || static_cast<uint64_t>(data.size) > static_cast<uint64_t>(fileEnd - dataStart))
+	{
+		logFailure("WAVの音声データが途中で切れています: ");
+		return soundData;
+	}
 
 	std::vector<BYTE> buffer(data.size);
-	file.read(reinterpret_cast<char*>(buffer.data()), data.size);
+	if (!file.read(reinterpret_cast<char*>(buffer.data()), data.size))
+	{
+		logFailure("WAVの音声データが途中で切れています: ");
+		return soundData;
+	}
 	file.close();
 
-	SoundData soundData = {};
 	soundData.wfex = format.fmt;
 	soundData.buffer = std::move(buffer);
 	soundData.bufferSize = data.size;
@@ -379,6 +419,10 @@ void Audio::Load(const std::string& name, const std::string& filename, SoundGrou
 	if (DecodeAudioFile(resolved, group, soundData))
 	{
 		soundDataMap_[name] = std::move(soundData);
+	}
+	else if (reportedLoadErrors_.insert(resolved.string()).second)
+	{
+		Logger::Log("音声ファイルを読み込めませんでした: " + resolved.string() + "\n", Logger::LogLevel::Error);
 	}
 }
 
@@ -506,6 +550,14 @@ bool Audio::DecodeAudioFile(const std::filesystem::path& path, SoundGroup group,
 
 void Audio::PlayWave(SoundData* soundData, bool loop)
 {
+	if (!soundData || soundData->buffer.empty())
+	{
+		if (reportedPlaybackErrors_.insert("<invalid SoundData>").second)
+		{
+			Logger::Log("音声データが無効なため再生できませんでした。\n", Logger::LogLevel::Error);
+		}
+		return;
+	}
 	IXAudio2SourceVoice* sourceVoice;
 	HRESULT hr;
 
@@ -529,7 +581,11 @@ void Audio::PlayWave(SoundData* soundData, bool loop)
 	{
 		hr = xAudio2_->CreateSourceVoice(&sourceVoice, &soundData->wfex);
 	}
-	assert(SUCCEEDED(hr));
+	if (FAILED(hr))
+	{
+		Logger::Log("音声のSourceVoiceを作成できませんでした。\n", Logger::LogLevel::Error);
+		return;
+	}
 
 	XAUDIO2_BUFFER buffer = {};
 	buffer.AudioBytes = soundData->bufferSize;
@@ -538,9 +594,18 @@ void Audio::PlayWave(SoundData* soundData, bool loop)
 	buffer.LoopCount = loop ? XAUDIO2_LOOP_INFINITE : 0;
 
 	hr = sourceVoice->SubmitSourceBuffer(&buffer);
-	assert(SUCCEEDED(hr));
+	if (FAILED(hr))
+	{
+		Logger::Log("音声バッファを送信できませんでした。\n", Logger::LogLevel::Error);
+		sourceVoice->DestroyVoice();
+		return;
+	}
 	hr = sourceVoice->Start();
-	assert(SUCCEEDED(hr));
+	if (FAILED(hr))
+	{
+		Logger::Log("音声の再生を開始できませんでした。\n", Logger::LogLevel::Error);
+		sourceVoice->DestroyVoice();
+	}
 }
 
 void Audio::PlayWave(const std::string& name, bool loop)
@@ -548,6 +613,10 @@ void Audio::PlayWave(const std::string& name, bool loop)
 	auto it = soundDataMap_.find(name);
 	if (it == soundDataMap_.end())
 	{
+		if (reportedPlaybackErrors_.insert(name).second)
+		{
+			Logger::Log("登録されていない音声は再生できません: " + name + "\n", Logger::LogLevel::Error);
+		}
 		return;
 	}
 
@@ -587,7 +656,11 @@ void Audio::PlayWave(const std::string& name, bool loop)
 	{
 		hr = xAudio2_->CreateSourceVoice(&sourceVoice, &soundData.wfex);
 	}
-	assert(SUCCEEDED(hr));
+	if (FAILED(hr))
+	{
+		Logger::Log("音声のSourceVoiceを作成できませんでした: " + name + "\n", Logger::LogLevel::Error);
+		return;
+	}
 
 	XAUDIO2_BUFFER buffer = {};
 	buffer.AudioBytes = soundData.bufferSize;
@@ -596,9 +669,19 @@ void Audio::PlayWave(const std::string& name, bool loop)
 	buffer.LoopCount = loop ? XAUDIO2_LOOP_INFINITE : 0;
 
 	hr = sourceVoice->SubmitSourceBuffer(&buffer);
-	assert(SUCCEEDED(hr));
+	if (FAILED(hr))
+	{
+		Logger::Log("音声バッファを送信できませんでした: " + name + "\n", Logger::LogLevel::Error);
+		sourceVoice->DestroyVoice();
+		return;
+	}
 	hr = sourceVoice->Start(0);
-	assert(SUCCEEDED(hr));
+	if (FAILED(hr))
+	{
+		Logger::Log("音声の再生を開始できませんでした: " + name + "\n", Logger::LogLevel::Error);
+		sourceVoice->DestroyVoice();
+		return;
+	}
 
 	sourceVoiceMap_[name] = sourceVoice;
 	groupVoicesMap_[soundData.group].push_back(sourceVoice);

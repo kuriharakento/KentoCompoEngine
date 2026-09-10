@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <unordered_set>
 #include <wrl.h>
 #include <d3d12.h>
 
@@ -75,5 +76,7 @@ private:
 
     // キャッシュ (パスをキーにする)
     std::map<std::string, std::unique_ptr<SkinnedModelSharedResource>> modelCache_;
+    // 読み込み失敗を記録し、描画更新から同じパスが来ても再試行しない。
+    std::unordered_set<std::string> failedModelPaths_;
 };
 } // namespace KCE

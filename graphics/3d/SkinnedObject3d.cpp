@@ -282,12 +282,17 @@ void SkinnedObject3d::SetModel(const std::string& filePath, const std::string& m
 {
 	// モデルを作成して初期化
 	auto model = std::make_unique<SkinnedModel>();
-	model->Initialize(
+	if (!model->Initialize(
 		ModelManager::GetInstance()->GetModelCommon(),
 		"Resources/models",
 		filePath,
 		modelType
-	);
+	))
+	{
+		// 読み込みに失敗したモデルは保持せず、既存の描画時nullptr判定でスキップする。
+		model_.reset();
+		return;
+	}
 
 	// モデルを設定
 	SetModel(std::move(model));

@@ -35,7 +35,7 @@ public:
 	 * @param filename モデルファイル名
 	 * @param modelType モデルファイルの拡張子
 	 */
-	void Initialize(ModelCommon* modelCommon, const std::string& directoryPath,
+	bool Initialize(ModelCommon* modelCommon, const std::string& directoryPath,
 		const std::string& filename, const std::string& modelType);
 
 	/**

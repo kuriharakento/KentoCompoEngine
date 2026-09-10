@@ -204,7 +204,7 @@ private:
      * @brief JSONファイルからフォントメトリクスを読み込む
      * @param jsonPath JSONファイルパス
      */
-    void LoadFontMetrics(const std::string& jsonPath);
+    bool LoadFontMetrics(const std::string& jsonPath);
 
     /**
      * @brief SetText / DrawText のタイミングで必要分のスプライトを確保する

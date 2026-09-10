@@ -10,6 +10,7 @@
 #endif // USE_IMGUI
 
 #include "base/PathManager.h"
+#include "base/Logger.h"
 
 namespace KCE
 {
@@ -38,7 +39,11 @@ void FontSprite::Initialize(SpriteCommon* spriteCommon, const std::string& fontN
     const std::string jsonPath = metricsFile.string();
 
     // JSONからフォントメトリクスを読み込む
-    LoadFontMetrics(jsonPath);
+    if (!LoadFontMetrics(jsonPath))
+    {
+        // メトリクスがない状態ではスプライトを作らず、文字の描画を止める。
+        isVisible_ = false;
+    }
 
 #ifdef USE_IMGUI
     std::string windowName = "Font Sprite: " + fontName;
@@ -56,42 +61,55 @@ FontSprite::~FontSprite()
 #endif
 }
 
-void FontSprite::LoadFontMetrics(const std::string& jsonPath)
+bool FontSprite::LoadFontMetrics(const std::string& jsonPath)
 {
     std::ifstream file(jsonPath);
     if (!file.is_open())
     {
-        assert(false && "Failed to open font metrics JSON");
-        return;
+        Logger::Log("フォントメトリクスを開けませんでした: " + jsonPath + "\n", Logger::LogLevel::Error);
+        return false;
     }
 
-    json jsonData;
-    file >> jsonData;
-
-    // JSON形式: { "A": { "x": 0, "y": 0, "w": 64, "h": 64, "u": 0.0, "v": 0.0, "uw": 0.0625, "vh": 0.0625 }, ... }
-    for (auto& [key, value] : jsonData.items())
+    try
     {
-        if (key.length() == 1)
+        json jsonData;
+        file >> jsonData;
+        std::unordered_map<char, CharInfo> loadedMetrics;
+
+        // JSON形式: { "A": { "x": 0, "y": 0, "w": 64, "h": 64, "u": 0.0, "v": 0.0, "uw": 0.0625, "vh": 0.0625 }, ... }
+        for (auto& [key, value] : jsonData.items())
         {
-            char ch = key[0];
-            CharInfo info;
-            info.x = value["x"];
-            info.y = value["y"];
-            info.w = value["w"];
-            info.h = value["h"];
-            info.u = value["u"];
-            info.v = value["v"];
-            info.uw = value["uw"];
-            info.vh = value["vh"];
-
-            charMetrics_[ch] = info;
-
-            // セルサイズを最初の文字から取得
-            if (cellSize_ == 64.0f)
+            if (key.length() == 1)
             {
-                cellSize_ = static_cast<float>(info.w);
+                char ch = key[0];
+                CharInfo info;
+                info.x = value.at("x");
+                info.y = value.at("y");
+                info.w = value.at("w");
+                info.h = value.at("h");
+                info.u = value.at("u");
+                info.v = value.at("v");
+                info.uw = value.at("uw");
+                info.vh = value.at("vh");
+                loadedMetrics[ch] = info;
             }
         }
+
+        if (loadedMetrics.empty())
+        {
+            Logger::Log("フォントメトリクスに文字情報がありません: " + jsonPath + "\n", Logger::LogLevel::Error);
+            return false;
+        }
+
+        charMetrics_ = std::move(loadedMetrics);
+        cellSize_ = static_cast<float>(charMetrics_.begin()->second.w);
+        return true;
+    }
+    catch (const std::exception& error)
+    {
+        Logger::Log("フォントメトリクスを読み取れませんでした: " + jsonPath + " (" + error.what() + ")\n", Logger::LogLevel::Error);
+        charMetrics_.clear();
+        return false;
     }
 }
 

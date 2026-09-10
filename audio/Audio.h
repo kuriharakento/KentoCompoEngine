@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <wrl.h>
 #include <xaudio2fx.h>
@@ -248,6 +249,8 @@ private:
 	std::unordered_map<SoundGroup, std::vector<IXAudio2SourceVoice*>> groupVoicesMap_;
 	std::unordered_map<std::string, bool> pausedMap_;
 	std::unordered_map<std::string, PlaybackTracking> playbackTrackingMap_;
+	std::unordered_set<std::string> reportedLoadErrors_;
+	std::unordered_set<std::string> reportedPlaybackErrors_;
 	std::vector<FadeData> fadeList_;
 	std::unordered_map<IXAudio2SourceVoice*, bool> fadeOutStopMap_;
 

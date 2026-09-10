@@ -66,7 +66,7 @@ public:
 	 * @param filename モデルファイル名
 	 * @param modelType モデルファイルの拡張子（.obj, .fbxなど）
 	 */
-	void Initialize(ModelCommon* modelCommon,const std::string& directoryPath, const std::string& filename, const std::string& modelType);
+	bool Initialize(ModelCommon* modelCommon, const std::string& directoryPath, const std::string& filename, const std::string& modelType);
 
 	/**
 	 * @brief 描画

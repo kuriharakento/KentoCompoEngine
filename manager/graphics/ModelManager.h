@@ -2,6 +2,7 @@
 #include <map>
 #include <string>
 #include <memory>
+#include <unordered_set>
 
 // system
 #include "graphics/3d/Model.h"
@@ -76,5 +77,7 @@ private: /*========[ メンバ変数 ]========*/
 
 	// モデルデータのキャッシュ（ファイルパス -> モデル）
 	std::map<std::string, std::unique_ptr<Model>> models_;
+	// 壊れたモデルを毎フレーム読み直して同じログを繰り返さないために記録する。
+	std::unordered_set<std::string> failedModels_;
 };
 } // namespace KCE

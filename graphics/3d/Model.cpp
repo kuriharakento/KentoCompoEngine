@@ -12,6 +12,7 @@
 #include <assimp/postprocess.h>
 // manager
 #include "base/PathManager.h"
+#include "base/Logger.h"
 #include "manager/graphics/TextureManager.h"
 
 namespace KCE
@@ -46,7 +47,7 @@ Model::Model(const Model& other)
 	CreateMaterialResources();
 }
 
-void Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPath, const std::string& filename, const std::string& modelType)
+bool Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPath, const std::string& filename, const std::string& modelType)
 {
 	modelCommon_ = modelCommon;
 
@@ -84,6 +85,11 @@ void Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPat
 
 	// モデルの読み込み
 	modelData_ = LoadModelFile(resolvedDirectoryPath, objFilePath);
+	// 壊れたモデルからGPUリソースを作らず、マネージャーにも登録させない。
+	if (modelData_.meshes.empty())
+	{
+		return false;
+	}
 
 	// モデルのベースパス
 	std::string basePath = resolvedDirectoryPath + "/" + filename + "/";
@@ -122,6 +128,7 @@ void Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPat
 
 	// 描画設定の初期化
 	InitializeRenderingSettings();
+	return true;
 }
 
 void Model::Draw()
@@ -195,7 +202,11 @@ MaterialData Model::LoadMaterialTemplateFile(const std::string& directoryPath, c
 	MaterialData materialData;
 	std::string line;
 	std::ifstream file(directoryPath + "/" + filename);
-	assert(file.is_open());
+	if (!file.is_open())
+	{
+		Logger::Log("マテリアルファイルを開けませんでした: " + directoryPath + "/" + filename + "\n", Logger::LogLevel::Error);
+		return materialData;
+	}
 
 	// ファイルを1行ずつ読み込み
 	while (std::getline(file, line))
@@ -229,8 +240,11 @@ ModelData Model::LoadModelFile(const std::string& directoryPath, const std::stri
 		aiProcess_FlipWindingOrder | aiProcess_FlipUVs | aiProcess_Triangulate);
 	
 	// シーンの検証
-	assert(scene != nullptr && "Failed to load model file");
-	assert(scene->HasMeshes() && "Model has no meshes");
+	if (!scene || !scene->HasMeshes())
+	{
+		Logger::Log("モデルファイルを読み込めませんでした: " + filePath + " (" + importer.GetErrorString() + ")\n", Logger::LogLevel::Error);
+		return modelData;
+	}
 
 	// マテリアルの解析（先に読み込む）
 	for (uint32_t materialIndex = 0; materialIndex < scene->mNumMaterials; ++materialIndex)
@@ -309,7 +323,11 @@ ModelData Model::LoadModelFile(const std::string& directoryPath, const std::stri
 		{
 			aiFace& face = mesh->mFaces[faceIndex];
 			// 三角形のみ対応（aiProcess_Triangulateで保証）
-			assert(face.mNumIndices == kTriangleVertices);
+			if (face.mNumIndices != kTriangleVertices)
+			{
+				Logger::Log("三角形ではない面が含まれるためモデルを読み込めませんでした: " + filePath + "\n", Logger::LogLevel::Error);
+				return {};
+			}
 
 			for (uint32_t i = 0; i < face.mNumIndices; ++i)
 			{

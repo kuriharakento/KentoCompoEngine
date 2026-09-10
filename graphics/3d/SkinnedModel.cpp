@@ -24,17 +24,22 @@ SkinnedModel::SkinnedModel(const SkinnedModel& other)
 	CreateSkinningBuffers();
 }
 
-void SkinnedModel::Initialize(ModelCommon* modelCommon, const std::string& directoryPath,
+bool SkinnedModel::Initialize(ModelCommon* modelCommon, const std::string& directoryPath,
 	const std::string& filename, const std::string& modelType)
 {
 	modelCommon_ = modelCommon;
 
 	// マネージャーから共有リソースを取得
 	sharedResource_ = SkinnedModelManager::GetInstance()->LoadModel(directoryPath, filename, modelType);
-	assert(sharedResource_ && "Failed to load skinned model from manager");
+	if (!sharedResource_)
+	{
+		// マネージャーがパス付きで記録済みなので、ここでは失敗だけを呼び出し側へ返す。
+		return false;
+	}
 
 	// 描画設定の初期化
 	InitializeRenderingSettings();
+	return true;
 }
 
 void SkinnedModel::Draw()

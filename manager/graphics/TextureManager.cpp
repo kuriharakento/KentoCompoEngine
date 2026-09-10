@@ -6,10 +6,15 @@
 // system
 #include "base/PathManager.h"
 #include "base/StringUtility.h"
+#include "base/Logger.h"
 #include "externals/DirectXTex/d3dx12.h"
 
 namespace KCE
 {
+namespace
+{
+const std::string kFallbackTexturePath = "textures/white1x1.png";
+}
 // SRVインデックスの開始番号の実体（ImGuiが0番を使用するため、1番から開始）
 uint32_t TextureManager::kSRVIndexTop = 1;
 
@@ -48,7 +53,7 @@ void TextureManager::LoadTexture(const std::string& filePath)
 	std::string normalizedPath = NormalizePath(filePath);
 
 	/*--------------[ 読み込み済みテクスチャを検索 ]-----------------*/
-	if (textureDatas_.contains(normalizedPath))
+	if (textureDatas_.contains(normalizedPath) || filePathToIndex_.contains(normalizedPath) || failedTexturePaths_.contains(normalizedPath))
 	{
 		// 読み込み済みなら何もしない
 		return;
@@ -96,6 +101,25 @@ void TextureManager::LoadTexture(const std::string& filePath)
 	}
 
 	HRESULT hr;
+	const auto useFallback = [&]()
+	{
+		if (failedTexturePaths_.insert(normalizedPath).second)
+		{
+			Logger::Log("テクスチャを読み込めませんでした: " + filePath + "\n", Logger::LogLevel::Error);
+		}
+		const std::string fallbackPath = NormalizePath(kFallbackTexturePath);
+		// 代替テクスチャ自身の失敗時は再帰せず、未登録のまま戻す。
+		if (normalizedPath == fallbackPath)
+		{
+			return;
+		}
+		LoadTexture(kFallbackTexturePath);
+		auto fallback = filePathToIndex_.find(fallbackPath);
+		if (fallback != filePathToIndex_.end())
+		{
+			filePathToIndex_[normalizedPath] = fallback->second;
+		}
+	};
 
 	// ファイル形式に応じて読み込み方法を変更
 	if (targetPath.ends_with(L".dds"))
@@ -118,7 +142,11 @@ void TextureManager::LoadTexture(const std::string& filePath)
 			image
 		);
 	}
-	assert(SUCCEEDED(hr));
+	if (FAILED(hr))
+	{
+		useFallback();
+		return;
+	}
 
 	/*--------------[ ミップマップの作成 ]-----------------*/
 
@@ -140,7 +168,11 @@ void TextureManager::LoadTexture(const std::string& filePath)
 			mipImages
 		);
 	}
-	assert(SUCCEEDED(hr));
+	if (FAILED(hr))
+	{
+		useFallback();
+		return;
+	}
 
 	/*--------------[ テクスチャデータを追加 ]-----------------*/
 
@@ -198,8 +230,25 @@ uint32_t TextureManager::GetTextureIndexByFilePath(const std::string& filePath)
 	// パスを正規化
 	std::string normalizedPath = NormalizePath(filePath);
 	// ファイルパスが登録されているか確認
-	assert(filePathToIndex_.contains(normalizedPath));
-	return filePathToIndex_[normalizedPath];
+	auto found = filePathToIndex_.find(normalizedPath);
+	if (found != filePathToIndex_.end())
+	{
+		return found->second;
+	}
+
+	if (failedTexturePaths_.insert(normalizedPath).second)
+	{
+		Logger::Log("未登録のテクスチャが指定されました: " + filePath + "\n", Logger::LogLevel::Error);
+	}
+	LoadTexture(kFallbackTexturePath);
+	const auto fallback = filePathToIndex_.find(NormalizePath(kFallbackTexturePath));
+	if (fallback != filePathToIndex_.end())
+	{
+		// 次回以降はログも再検索もせず同じ代替テクスチャを返す。
+		filePathToIndex_[normalizedPath] = fallback->second;
+		return fallback->second;
+	}
+	return 0;
 }
 
 const DirectX::TexMetadata& TextureManager::GetMetadata(uint32_t textureIndex)
