@@ -444,6 +444,7 @@ RenderPassContext Framework::MakeRenderPassContext(RenderView* view, RenderTextu
 	ctx.view = view;
 	ctx.outputTarget = outputTarget;
 	ctx.postProcessManager = postProcessManager_.get();
+	ctx.frameConstantAllocator = frameConstantAllocator_.get();
 	return ctx;
 }
 

@@ -8,6 +8,7 @@ namespace KCE
 {
 class Camera;
 class DirectXCommon;
+class FrameConstantAllocator;
 
 /**
  * @brief スカイボックスクラス
@@ -42,9 +43,23 @@ public:
 
 	/**
 	 * @brief 描画
-	 * @details スカイボックスをコマンドリストに描画する
+	 * @details Update() で書いた行列で描く。複数ビューでは正しく描けないため、
+	 *          描画パイプラインからは Draw(Camera*, FrameConstantAllocator*) を使うこと。
 	 */
 	void Draw();
+
+	/**
+	 * @brief 指定したカメラの行列で描画する
+	 *
+	 * @details 描画のたびに行列をそのフレーム専用の定数領域へ書いてバインドする。
+	 *          定数バッファを1つだけ持つ方式だと、本編とサブビューの両方で描いたとき
+	 *          GPU の実行時点では最後に書いた行列しか残らず、両ビューが同じ向きで描かれる。
+	 *          引数のどちらかが nullptr の場合は Update() で書いた行列で描く。
+	 *
+	 * @param camera このビューのカメラ
+	 * @param allocator フレーム単位の定数割り当て器
+	 */
+	void Draw(Camera* camera, FrameConstantAllocator* allocator);
 
 	/**
 	 * @brief テクスチャの設定
@@ -56,6 +71,14 @@ public:
 	}
 
 private:
+	/**
+	 * @brief カメラから座標変換行列を作る
+	 * @details ビュー行列の平行移動を消し、カメラが動いても空が追従しないようにする。
+	 * @param camera 対象のカメラ
+	 * @return 座標変換行列
+	 */
+	TransformationMatrix ComputeTransform(const Camera* camera) const;
+
 	/**
 	 * @brief モデルデータの作成
 	 * @param textureFilePath テクスチャのファイルパス

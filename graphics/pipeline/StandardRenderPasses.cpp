@@ -274,10 +274,15 @@ void ForwardOpaquePass::Execute(const RenderPassContext& ctx)
 
 void SkyboxPass::Execute(const RenderPassContext& ctx)
 {
-	if (ctx.skybox)
+	if (!ctx.skybox)
 	{
-		ctx.skybox->Draw();
+		return;
 	}
+
+	// サブビューの描画中はアクティブカメラが差し替わっているので、
+	// ここで引けばそのビューのカメラになる
+	Camera* camera = ctx.cameraManager ? ctx.cameraManager->GetActiveCamera() : nullptr;
+	ctx.skybox->Draw(camera, ctx.frameConstantAllocator);
 }
 
 void TransparentPass::Execute(const RenderPassContext& ctx)

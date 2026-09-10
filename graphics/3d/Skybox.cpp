@@ -4,6 +4,7 @@
 // system
 #include "base/Logger.h"
 #include "base/Camera.h"
+#include "graphics/FrameConstantAllocator.h"
 #include "manager/graphics/TextureManager.h"
 // math
 #include "math/VectorColorCodes.h"
@@ -78,10 +79,10 @@ void Skybox::Initialize(DirectXCommon* dxCommon, const std::string& textureFileP
 	transform_.scale = { kDefaultSkyboxScale, kDefaultSkyboxScale, kDefaultSkyboxScale };
 }
 
-void Skybox::Update(Camera* camera)
+TransformationMatrix Skybox::ComputeTransform(const Camera* camera) const
 {
 	// スカイボックスのワールド行列を計算
-	Matrix4x4 worldMatrix = MakeAffineMatrix(
+	const Matrix4x4 worldMatrix = MakeAffineMatrix(
 		transform_.scale,
 		transform_.rotate,
 		transform_.translate
@@ -94,13 +95,65 @@ void Skybox::Update(Camera* camera)
 	viewMatrix.m[kViewMatrixPosIndex][2] = 0.0f;
 
 	// 座標変換行列を計算
-	Matrix4x4 projectionMatrix = camera->GetProjectionMatrix();
-	Matrix4x4 viewProjectionMatrix = Multiply(viewMatrix, projectionMatrix);
-	Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, viewProjectionMatrix);
+	const Matrix4x4 projectionMatrix = camera->GetProjectionMatrix();
+	const Matrix4x4 viewProjectionMatrix = Multiply(viewMatrix, projectionMatrix);
 
-	wvpData_->WVP = worldViewProjectionMatrix;
-	wvpData_->World = worldMatrix;
-	wvpData_->WorldInverseTranspose = MathUtils::Transpose(Inverse(worldMatrix));
+	TransformationMatrix result{};
+	result.WVP = Multiply(worldMatrix, viewProjectionMatrix);
+	result.World = worldMatrix;
+	result.WorldInverseTranspose = MathUtils::Transpose(Inverse(worldMatrix));
+	return result;
+}
+
+void Skybox::Update(Camera* camera)
+{
+	if (!camera || !wvpData_)
+	{
+		return;
+	}
+	*wvpData_ = ComputeTransform(camera);
+}
+
+void Skybox::Draw(Camera* camera, FrameConstantAllocator* allocator)
+{
+	if (!camera || !allocator)
+	{
+		Draw();
+		return;
+	}
+
+	// このビューのカメラで行列を作り、フレーム専用の領域へ書く
+	auto allocation = allocator->Allocate(sizeof(TransformationMatrix));
+	if (!allocation.cpuAddress)
+	{
+		// 容量不足。割り当て器側でログを出しているので、ここでは描画を諦める
+		return;
+	}
+	*static_cast<TransformationMatrix*>(allocation.cpuAddress) = ComputeTransform(camera);
+
+	// ルートシグネチャの設定
+	dxCommon_->GetCommandList()->SetGraphicsRootSignature(rootSignature_.Get());
+
+	// パイプラインステートの設定
+	dxCommon_->GetCommandList()->SetPipelineState(pipelineState_.Get());
+
+	// トポロジの設定（三角形リスト）
+	dxCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// 頂点バッファの設定
+	dxCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView_);
+
+	// 座標変換CBufferの設定（このビュー専用の領域）
+	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, allocation.gpuAddress);
+
+	// マテリアルCBufferの設定
+	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, materialResource_->GetGPUVirtualAddress());
+
+	// テクスチャのSRVを設定
+	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetSrvHandleGPU(textureIndex_));
+
+	// 描画コマンドを発行
+	dxCommon_->GetCommandList()->DrawInstanced(UINT(vertexCount_), 1, 0, 0);
 }
 
 void Skybox::Draw()

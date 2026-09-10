@@ -5,6 +5,7 @@ namespace KCE
 class CameraManager;
 class DeferredRenderer;
 class DirectXCommon;
+class FrameConstantAllocator;
 class LightManager;
 class Object3dCommon;
 class PostProcessManager;
@@ -83,6 +84,15 @@ struct RenderPassContext
 
 	// --- ポストプロセス ---
 	PostProcessManager* postProcessManager = nullptr;
+
+	// --- 定数 ---
+	/**
+	 * @brief フレーム単位の定数割り当て器
+	 * @details ビューごとに値が変わる定数（WVP など）は、ここから描画のたびに
+	 *          新しい領域を切り出して書く。定数バッファを1つだけ持つと、
+	 *          複数ビューで描いたとき最後に書いた値で全ビューが描かれる。
+	 */
+	FrameConstantAllocator* frameConstantAllocator = nullptr;
 
 	/**
 	 * @brief 最低限の要素が揃っているか
