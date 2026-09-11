@@ -59,13 +59,15 @@ constexpr DebugUIWindowConfig kWindowConfigs[] = {
 	{"Sequencer Inspector", "Sequencer", DebugUIDockLocation::RightTop, true, false},
 	{"Camera Manager", "Scene", DebugUIDockLocation::RightTop, true, false},
 	{"Light Manager", "Scene", DebugUIDockLocation::RightTop, true, false},
-	{"Cutscene", "Sequencer", DebugUIDockLocation::RightTop, true, false},
+	// Sequencer と一緒に使うので、下の段の隣のタブに置く
+	{"Cutscene", "Sequencer", DebugUIDockLocation::Bottom, true, false},
 	{"Post Process", "Rendering", DebugUIDockLocation::RightBottom, true, false},
 	{"Atmosphere Fog", "Rendering", DebugUIDockLocation::RightBottom, true, false},
 	{"Light Beams", "Rendering", DebugUIDockLocation::RightBottom, true, false},
 	{"Outline", "Rendering", DebugUIDockLocation::RightBottom, true, false},
 	{"NPR Shading", "Rendering", DebugUIDockLocation::RightBottom, true, false},
-	{"Render Pipeline", "Rendering", DebugUIDockLocation::RightBottom, true, false},
+	// 描画の不具合を切り分けるときの道具なので、右下のタブを増やさないよう下の段に置く
+	{"Render Pipeline", "Rendering", DebugUIDockLocation::Bottom, true, false},
 	{"Sequencer", "Sequencer", DebugUIDockLocation::Bottom, true, false},
 	{"Console", "System", DebugUIDockLocation::Bottom, true, false},
 	{"Shader Hot Reload", "Rendering", DebugUIDockLocation::Bottom, true, false},
