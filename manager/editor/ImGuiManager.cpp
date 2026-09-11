@@ -13,9 +13,67 @@
 #include "manager/system/SrvManager.h"
 #include <fstream>
 #include <filesystem>
+#include <Windows.h>
 
 namespace KCE
 {
+#ifdef USE_IMGUI
+namespace
+{
+// FiraMono は欧文だけなので、日本語はここに並べた Windows のフォントを上から探して重ねる
+constexpr const wchar_t* kJapaneseFontFiles[] = { L"YuGothM.ttc", L"meiryo.ttc", L"BIZ-UDGothicR.ttc", L"msgothic.ttc" };
+
+// ImGui の日本語の範囲に入っていないが、UI の文字列で使っている文字
+constexpr const char* kExtraGlyphs = "閾";
+
+/**
+ * @brief Windows の日本語フォントを、今のフォントに重ねて足す。
+ * @param io ImGui の IO
+ * @param fontSize 重ねる先と同じ大きさ
+ * @return 重ねられたら true。フォントが見つからなければ false（欧文だけで続ける）
+ */
+bool MergeJapaneseSystemFont(ImGuiIO& io, float fontSize)
+{
+	wchar_t windowsDirectory[MAX_PATH] = {};
+	const UINT length = GetWindowsDirectoryW(windowsDirectory, MAX_PATH);
+	if (length == 0 || length >= MAX_PATH)
+	{
+		return false;
+	}
+
+	for (const wchar_t* fileName : kJapaneseFontFiles)
+	{
+		const std::filesystem::path fontPath = std::filesystem::path(windowsDirectory) / L"Fonts" / fileName;
+		if (!std::filesystem::exists(fontPath))
+		{
+			continue;
+		}
+
+		// 範囲はフォントアトラスを作るときまで読まれるので、関数を抜けても残るよう static で持つ
+		static ImVector<ImWchar> ranges;
+		if (ranges.empty())
+		{
+			ImFontGlyphRangesBuilder builder;
+			builder.AddRanges(io.Fonts->GetGlyphRangesJapanese());
+			builder.AddText(kExtraGlyphs);
+			builder.BuildRanges(&ranges);
+		}
+
+		// 重ねる先のフォントが無いと MergeMode が効かないので、そのときは既定のフォントを先に入れる
+		if (io.Fonts->Fonts.empty())
+		{
+			io.Fonts->AddFontDefault();
+		}
+
+		ImFontConfig config;
+		config.MergeMode = true;
+		return io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), fontSize, &config, ranges.Data) != nullptr;
+	}
+	return false;
+}
+} // namespace
+#endif
+
 void ImGuiManager::Initialize([[maybe_unused]] WinApp* winApp, [[maybe_unused]] DirectXCommon* dxCommon, [[maybe_unused]] SrvManager* srvManager)
 {
 #ifdef USE_IMGUI
@@ -123,6 +181,9 @@ void ImGuiManager::Initialize([[maybe_unused]] WinApp* winApp, [[maybe_unused]] 
 			io.FontDefault = myFont;
 		}
 	}
+
+	// FiraMono には日本語の文字が入っていないので、Windows の日本語フォントを重ねる
+	MergeJapaneseSystemFont(io, fontSize);
 
 	// SRVの確保とインデックスの取得
 	uint32_t srvIndex = srvManager_->Allocate();
