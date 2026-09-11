@@ -2,6 +2,9 @@
 // 単位円錐（頂点が原点、+Z に長さ1、底面の半径1）を、ライトの位置・向き・広がりに合わせて置く。
 #include "Beam.hlsli"
 
+// これより短い法線は向きが決まらないとみなす（長さの2乗）
+static const float kMinNormalLengthSq = 1.0e-12f;
+
 struct BeamVertexInput
 {
     float3 position : POSITION0;
@@ -25,7 +28,12 @@ BeamVertexOutput main(BeamVertexInput input)
 
     output.position = mul(float4(world, 1.0f), viewProjection);
     // カメラは回転と平行移動だけなので、ビュー行列の 3x3 部分で向きを変換できる
-    output.viewNormal = normalize(mul(normal, (float3x3)viewMatrix));
+    // 円錐の先端（local が原点）では法線がゼロベクトルになり、normalize が NaN を返す。
+    // NaN は補間で側面全体に広がって、加算しても真っ黒に塗りつぶすので、先端では軸と逆向きを代わりに使う
+    float3 viewNormal = mul(normal, (float3x3)viewMatrix);
+    output.viewNormal = (dot(viewNormal, viewNormal) > kMinNormalLengthSq)
+                      ? normalize(viewNormal)
+                      : mul(-beamDirection, (float3x3)viewMatrix);
     output.viewPosition = mul(float4(world, 1.0f), viewMatrix).xyz;
     output.along = local.z;
     return output;

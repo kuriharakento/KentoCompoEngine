@@ -5,6 +5,9 @@
 //   3. 壁や床に近いほど暗い（深度フェード）
 #include "Beam.hlsli"
 
+// これより短い法線は向きが決まらないとみなす（長さの2乗）
+static const float kMinNormalLengthSq = 1.0e-12f;
+
 Texture2D<float> gDepth : register(t0);
 SamplerState gPointSampler : register(s0);
 
@@ -26,7 +29,9 @@ float4 main(BeamVertexOutput input) : SV_TARGET
     // 2. 円錐の縁ほど暗くする。視線と面が向き合う（筋の中心）ほど明るい。
     //    ビュー空間ではカメラが原点にいるので、視線は「-位置」
     float3 toEye = normalize(-input.viewPosition);
-    float facing = abs(dot(normalize(input.viewNormal), toEye));
+    // 補間された法線がほぼゼロのときも NaN にしない（NaN は加算しても画面を黒く塗る）
+    float3 viewNormal = (dot(input.viewNormal, input.viewNormal) > kMinNormalLengthSq) ? normalize(input.viewNormal) : toEye;
+    float facing = abs(dot(viewNormal, toEye));
     float edgeFade = pow(facing, edgePower);
 
     // 3. 壁や床の手前で消す。後ろに回った部分（差が負）は描かない
