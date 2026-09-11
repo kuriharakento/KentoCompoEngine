@@ -1278,6 +1278,9 @@ void SequencerEditor::DrawSceneOverlay()
 		return;
 	}
 
+	// CameraManager はアクティブなカメラしか行列を作り直さない。シーケンスのカメラはアクティブでないので、
+	// ここで作り直さないとギズモで動かしても古い行列のまま描かれて、元の位置に戻って見える
+	targetCamera->Update();
 	Matrix4x4 world = targetCamera->GetWorldMatrix();
 
 	// カメラは拡大縮小しないので、回転以外は移動として扱う
