@@ -411,7 +411,7 @@ void SequencerEditor::DrawToolbar()
 
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(120.0f);
-	ImGui::Combo("Gizmo", &gizmoOperation_, "Translate\0Rotate\0");
+	ImGui::Combo("Gizmo", &gizmoOperation_, "Translate\0Rotate\0Scale\0");
 	ImGui::SameLine();
 	ImGui::Checkbox("World", &gizmoWorldSpace_);
 	ImGui::SameLine();
@@ -1244,14 +1244,7 @@ void SequencerEditor::DrawSceneOverlay()
 	Camera* viewCamera = SceneViewContext::GetInstance()->GetCamera();
 	Camera* targetCamera = GetSequenceCamera();
 
-	if (!rect.IsValid() || !viewCamera || !targetCamera)
-	{
-		return;
-	}
-
-	// シーケンスカメラ視点で見ているときは、自分自身をギズモで動かすことになり
-	// 操作が成立しないので描かない
-	if (previewThroughSequenceCamera_ || viewCamera == targetCamera)
+	if (!rect.IsValid() || !viewCamera)
 	{
 		return;
 	}
@@ -1264,9 +1257,31 @@ void SequencerEditor::DrawSceneOverlay()
 	// このエンジンの Matrix4x4 と並びが一致するため、そのまま渡せる。
 	const Matrix4x4 view = viewCamera->GetViewMatrix();
 	const Matrix4x4 projection = viewCamera->GetProjectionMatrix();
+
+	// GameObject を選んでいれば、シーケンスカメラよりそちらを優先して動かす
+	if (GameObject* object = SelectionContext::GetInstance()->GetPrimaryGameObject())
+	{
+		DrawObjectGizmo(object, view, projection);
+		return;
+	}
+	gizmoWasUsing_ = false;
+
+	if (!targetCamera)
+	{
+		return;
+	}
+
+	// シーケンスカメラ視点で見ているときは、自分自身をギズモで動かすことになり
+	// 操作が成立しないので描かない
+	if (previewThroughSequenceCamera_ || viewCamera == targetCamera)
+	{
+		return;
+	}
+
 	Matrix4x4 world = targetCamera->GetWorldMatrix();
 
-	const ImGuizmo::OPERATION operation = (gizmoOperation_ == 0) ? ImGuizmo::TRANSLATE : ImGuizmo::ROTATE;
+	// カメラは拡大縮小しないので、回転以外は移動として扱う
+	const ImGuizmo::OPERATION operation = (gizmoOperation_ == 1) ? ImGuizmo::ROTATE : ImGuizmo::TRANSLATE;
 	const ImGuizmo::MODE mode = gizmoWorldSpace_ ? ImGuizmo::WORLD : ImGuizmo::LOCAL;
 
 	if (ImGuizmo::Manipulate(&view.m[0][0], &projection.m[0][0], operation, mode, &world.m[0][0]))
@@ -1290,6 +1305,68 @@ void SequencerEditor::DrawSceneOverlay()
 		targetCamera->SetTranslate(position);
 		targetCamera->SetRotateQuaternion(Quaternion::FromMatrix(rotationMatrix));
 	}
+}
+
+void SequencerEditor::DrawObjectGizmo(GameObject* object, const Matrix4x4& view, const Matrix4x4& projection)
+{
+	// これより小さい拡大率は潰れたとみなす。軸の正規化で NaN を出さないため
+	constexpr float kMinGizmoScale = 1.0e-4f;
+
+	Transform before;
+	before.scale = object->GetScale();
+	before.rotate = object->GetRotation();
+	before.translate = object->GetPosition();
+	Matrix4x4 world = MakeAffineMatrix(before.scale, before.rotate, before.translate);
+
+	ImGuizmo::OPERATION operation = ImGuizmo::TRANSLATE;
+	if (gizmoOperation_ == 1)
+	{
+		operation = ImGuizmo::ROTATE;
+	}
+	else if (gizmoOperation_ == 2)
+	{
+		operation = ImGuizmo::SCALE;
+	}
+	// 拡大縮小はオブジェクト自身の軸に沿ってしかできないので、ワールド指定でもローカルで出す
+	const ImGuizmo::MODE mode = (gizmoWorldSpace_ && operation != ImGuizmo::SCALE) ? ImGuizmo::WORLD : ImGuizmo::LOCAL;
+
+	const bool changed = ImGuizmo::Manipulate(&view.m[0][0], &projection.m[0][0], operation, mode, &world.m[0][0]);
+
+	// 掴んだ瞬間に番号を進めて、ドラッグ1回ごとに別の Undo にする
+	const bool isUsing = ImGuizmo::IsUsing();
+	if (isUsing && !gizmoWasUsing_)
+	{
+		++gizmoDragId_;
+	}
+	gizmoWasUsing_ = isUsing;
+
+	if (!changed)
+	{
+		return;
+	}
+
+	// 行列から位置・拡大率・回転を取り出す。
+	// 回転はエンジンのオイラー角の規約にそろえるため、クォータニオンを経由する
+	const auto length = [](const Vector3& v) { return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z); };
+	const Vector3 axisX = { world.m[0][0], world.m[0][1], world.m[0][2] };
+	const Vector3 axisY = { world.m[1][0], world.m[1][1], world.m[1][2] };
+	const Vector3 axisZ = { world.m[2][0], world.m[2][1], world.m[2][2] };
+
+	Transform after;
+	after.translate = { world.m[3][0], world.m[3][1], world.m[3][2] };
+	after.scale = { length(axisX), length(axisY), length(axisZ) };
+	if (after.scale.x < kMinGizmoScale || after.scale.y < kMinGizmoScale || after.scale.z < kMinGizmoScale)
+	{
+		return;
+	}
+
+	Matrix4x4 rotationMatrix = MakeIdentity4x4();
+	rotationMatrix.m[0][0] = axisX.x / after.scale.x; rotationMatrix.m[0][1] = axisX.y / after.scale.x; rotationMatrix.m[0][2] = axisX.z / after.scale.x;
+	rotationMatrix.m[1][0] = axisY.x / after.scale.y; rotationMatrix.m[1][1] = axisY.y / after.scale.y; rotationMatrix.m[1][2] = axisY.z / after.scale.y;
+	rotationMatrix.m[2][0] = axisZ.x / after.scale.z; rotationMatrix.m[2][1] = axisZ.y / after.scale.z; rotationMatrix.m[2][2] = axisZ.z / after.scale.z;
+	after.rotate = Quaternion::FromMatrix(rotationMatrix).ToEuler();
+
+	CommandHistory::GetInstance()->Execute(std::make_unique<GameObjectTransformCommand>(object->GetGuid(), before, after, gizmoDragId_));
 }
 
 ///=============================================================================

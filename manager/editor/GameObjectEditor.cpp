@@ -3,6 +3,7 @@
 #include "engine/gameobject/base/GameObject.h"
 #include "engine/gameobject/manager/GameObjectManager.h"
 #include "manager/editor/DebugUIManager.h"
+#include "editor/SelectionContext.h"
 #include "externals/imgui/imgui.h"
 #include <filesystem>
 #include <fstream>
@@ -84,6 +85,8 @@ void GameObjectEditor::DrawImGui()
 		if (newObj)
 		{
 			selected_ = newObj;
+			// シーン上のギズモは選択の一元管理（SelectionContext）を見るので、そちらにも伝える
+			SelectionContext::GetInstance()->SelectGameObject(newObj);
 		}
 	}
 
@@ -101,6 +104,8 @@ void GameObjectEditor::DrawImGui()
 		if (ImGui::Selectable(label.c_str(), isSelected))
 		{
 			selected_ = obj;
+			// シーン上のギズモは選択の一元管理（SelectionContext）を見るので、そちらにも伝える
+			SelectionContext::GetInstance()->SelectGameObject(obj);
 		}
 	}
 	ImGui::EndChild();
@@ -296,6 +301,8 @@ void GameObjectEditor::DrawImGui()
 						if (newObj->LoadJson(fileToLoad))
 						{
 							selected_ = newObj;
+							// シーン上のギズモは選択の一元管理（SelectionContext）を見るので、そちらにも伝える
+							SelectionContext::GetInstance()->SelectGameObject(newObj);
 						}
 						else
 						{

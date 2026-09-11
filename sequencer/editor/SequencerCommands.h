@@ -3,6 +3,9 @@
 
 #include <nlohmann/json.hpp>
 
+#include <cstdint>
+#include "base/GraphicsTypes.h"
+#include "core/Guid.h"
 #include "editor/command/ICommand.h"
 #include "sequencer/core/Sequence.h"
 
@@ -73,6 +76,46 @@ private:
 	nlohmann::json before_;
 	nlohmann::json after_;
 	bool hasAfter_ = false;
+};
+
+/**
+ * @brief GameObject の位置・回転・スケールを変えるコマンド
+ *
+ * @details シーン上のギズモでオブジェクトを動かしたときに使う。
+ *          対象はポインタではなく GUID で持つ。Undo するまでにオブジェクトが消えていたら何もしない。
+ *          ドラッグ中は毎フレーム発行し、同じドラッグ（dragId が同じ）どうしを MergeWith で1つにまとめる。
+ */
+class GameObjectTransformCommand : public ICommand
+{
+public:
+	/**
+	 * @brief コンストラクタ
+	 * @param guid 対象の GameObject の GUID
+	 * @param before 動かす前の Transform
+	 * @param after 動かした後の Transform
+	 * @param dragId 同じドラッグかを見分ける番号。同じ番号どうしだけ統合する
+	 */
+	GameObjectTransformCommand(const Guid& guid, const Transform& before, const Transform& after, uint32_t dragId);
+
+	void Execute() override;
+	void Undo() override;
+	std::string GetName() const override { return "Move GameObject"; }
+
+	/**
+	 * @brief 同じオブジェクトの同じドラッグなら、動かした後の値だけ引き継いで1つにまとめる
+	 * @param next 後続のコマンド
+	 * @return 統合したら真
+	 */
+	bool MergeWith(const ICommand* next) override;
+
+private:
+	// GUID からオブジェクトを引き直して Transform を書き込む
+	void Apply(const Transform& transform) const;
+
+	Guid guid_{};
+	Transform before_{};
+	Transform after_{};
+	uint32_t dragId_ = 0;
 };
 
 /**

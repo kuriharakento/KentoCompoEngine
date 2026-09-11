@@ -3,6 +3,8 @@
 #include <utility>
 
 #include "base/Logger.h"
+#include "gameobject/base/GameObject.h"
+#include "gameobject/manager/GameObjectManager.h"
 
 namespace KCE
 {
@@ -129,5 +131,47 @@ void SequenceStructureCommand::Undo()
 	{
 		sequence_->Deserialize(before_);
 	}
+}
+
+GameObjectTransformCommand::GameObjectTransformCommand(const Guid& guid, const Transform& before, const Transform& after, uint32_t dragId)
+	: guid_(guid), before_(before), after_(after), dragId_(dragId)
+{
+}
+
+void GameObjectTransformCommand::Execute()
+{
+	Apply(after_);
+}
+
+void GameObjectTransformCommand::Undo()
+{
+	Apply(before_);
+}
+
+bool GameObjectTransformCommand::MergeWith(const ICommand* next)
+{
+	const auto* other = dynamic_cast<const GameObjectTransformCommand*>(next);
+	if (!other || other->guid_ != guid_ || other->dragId_ != dragId_)
+	{
+		return false;
+	}
+
+	// 動かす前は最初のもののまま、動かした後だけ最新にする
+	after_ = other->after_;
+	return true;
+}
+
+void GameObjectTransformCommand::Apply(const Transform& transform) const
+{
+	// Undo するまでに消えていることがあるので、毎回 GUID で引き直す
+	GameObject* object = GameObjectManager::HasInstance() ? GameObjectManager::GetInstance()->FindByGuid(guid_) : nullptr;
+	if (!object)
+	{
+		return;
+	}
+
+	object->SetPosition(transform.translate);
+	object->SetRotation(transform.rotate);
+	object->SetScale(transform.scale);
 }
 } // namespace KCE
