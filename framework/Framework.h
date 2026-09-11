@@ -36,6 +36,11 @@
 #include "graphics/atmosphere/FogRenderer.h"
 // npr
 #include "graphics/npr/OutlineRenderer.h"
+// screen quality
+#include "graphics/atmosphere/VolumetricLightRenderer.h"
+#include "graphics/postfx/DepthOfFieldRenderer.h"
+#include "graphics/postfx/FxaaRenderer.h"
+#include "graphics/view/PlanarReflection.h"
 
 namespace KCE
 {
@@ -250,6 +255,14 @@ protected: // メンバ変数
 	std::unique_ptr<BeamRenderer> beamRenderer_;
 	// アウトライン（輪郭線）
 	std::unique_ptr<OutlineRenderer> outlineRenderer_;
+	// FXAA（トーンマップ後のジャギーを均す）
+	std::unique_ptr<FxaaRenderer> fxaaRenderer_;
+	// 被写界深度
+	std::unique_ptr<DepthOfFieldRenderer> depthOfFieldRenderer_;
+	// スポットライトのボリュメトリック（レイマーチ）
+	std::unique_ptr<VolumetricLightRenderer> volumetricLightRenderer_;
+	// 床の平面反射。サブビューは Framework（ISubViewProvider）が持つ
+	std::unique_ptr<PlanarReflection> planarReflection_;
 	// 描画パイプライン（差し替え可能なパスの列）
 	std::unique_ptr<RenderPipeline> renderPipeline_;
 	// サブビュー用の、シーンだけを描くパイプライン

@@ -12,6 +12,9 @@ class SpriteCommon;
 class Object3dCommon;
 class ShadowMapManager;
 class ISubViewProvider;
+class DepthOfFieldRenderer;
+class VolumetricLightRenderer;
+class PlanarReflection;
 
 /**
  * @brief 各シーンで共有するコンテキスト情報。
@@ -30,5 +33,9 @@ struct SceneContext
 	ShadowMapManager* shadowMapManager = nullptr;
 	// サブビュー（モニター映像など）の作成元
 	ISubViewProvider* subViewProvider = nullptr;
+	// 画の質。シーンごとに入れたり切ったりする
+	DepthOfFieldRenderer* depthOfField = nullptr;
+	VolumetricLightRenderer* volumetricLight = nullptr;
+	PlanarReflection* planarReflection = nullptr;
 };
 } // namespace KCE

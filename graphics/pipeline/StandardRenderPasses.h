@@ -170,6 +170,38 @@ private:
 };
 
 /**
+ * @brief 床の平面反射を足すパス
+ * @details 床の上に霧が掛かるよう、フォグより前に置く。
+ */
+class ReflectionPass : public IRenderPass
+{
+public:
+	const char* GetName() const override { return "Reflection"; }
+	void Execute(const RenderPassContext& ctx) override;
+};
+
+/**
+ * @brief スポットライトのボリュメトリック（レイマーチ）を足すパス
+ */
+class VolumetricLightPass : public IRenderPass
+{
+public:
+	const char* GetName() const override { return "VolumetricLight"; }
+	void Execute(const RenderPassContext& ctx) override;
+};
+
+/**
+ * @brief 被写界深度のパス
+ * @details シーンカラーが読める状態（解決の後）で、ポストプロセスより前に置く。
+ */
+class DepthOfFieldPass : public IRenderPass
+{
+public:
+	const char* GetName() const override { return "DepthOfField"; }
+	void Execute(const RenderPassContext& ctx) override;
+};
+
+/**
  * @brief バックバッファを描画可能な状態にするパス
  *
  * @details 出力先がバックバッファのときだけ動く。

@@ -51,6 +51,12 @@ public: //アクセッサ
 	ShadowMapManager* GetShadowMapManager() const { return context_.shadowMapManager; }
 	//サブビューの作成元の取得
 	ISubViewProvider* GetSubViewProvider() const { return context_.subViewProvider; }
+	//被写界深度の取得
+	DepthOfFieldRenderer* GetDepthOfField() const { return context_.depthOfField; }
+	//ボリュメトリックの取得
+	VolumetricLightRenderer* GetVolumetricLight() const { return context_.volumetricLight; }
+	//床の平面反射の取得
+	PlanarReflection* GetPlanarReflection() const { return context_.planarReflection; }
 
 private: //メンバ関数
 	//次のシーンが予約されているか

@@ -21,6 +21,10 @@ class Skybox;
 class SpriteCommon;
 class SrvManager;
 class TextOverlay;
+class FxaaRenderer;
+class DepthOfFieldRenderer;
+class VolumetricLightRenderer;
+class PlanarReflection;
 
 /**
  * @brief 描画パスが1フレームの実行に必要とするものをまとめた入れ物
@@ -111,6 +115,16 @@ struct RenderPassContext
 	// --- 文字 ---
 	//! 歌詞テロップと会話枠（2D の一番手前）
 	TextOverlay* textOverlay = nullptr;
+
+	// --- 画の質 ---
+	//! トーンマップ後のジャギーを均す
+	FxaaRenderer* fxaaRenderer = nullptr;
+	//! 被写界深度（ポストプロセスの前）
+	DepthOfFieldRenderer* depthOfFieldRenderer = nullptr;
+	//! スポットライトのボリュメトリック
+	VolumetricLightRenderer* volumetricLightRenderer = nullptr;
+	//! 床の平面反射
+	PlanarReflection* planarReflection = nullptr;
 
 	/**
 	 * @brief 最低限の要素が揃っているか

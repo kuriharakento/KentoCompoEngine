@@ -127,6 +127,9 @@
     <Filter Include="graphics\view">
       <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A40A}</UniqueIdentifier>
     </Filter>
+    <Filter Include="graphics\postfx">
+      <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A40D}</UniqueIdentifier>
+    </Filter>
     <Filter Include="graphics\shader">
       <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A408}</UniqueIdentifier>
     </Filter>
@@ -539,6 +542,21 @@
     </ClCompile>
     <ClCompile Include="graphics\view\RenderView.cpp">
       <Filter>graphics\view</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\view\PlanarReflection.cpp">
+      <Filter>graphics\view</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\postfx\FullscreenPass.cpp">
+      <Filter>graphics\postfx</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\postfx\FxaaRenderer.cpp">
+      <Filter>graphics\postfx</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\postfx\DepthOfFieldRenderer.cpp">
+      <Filter>graphics\postfx</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\atmosphere\VolumetricLightRenderer.cpp">
+      <Filter>graphics\atmosphere</Filter>
     </ClCompile>
     <ClCompile Include="graphics\2d\GlyphAtlas.cpp">
       <Filter>graphics\2d</Filter>
@@ -1159,6 +1177,21 @@
     </ClInclude>
     <ClInclude Include="graphics\view\RenderView.h">
       <Filter>graphics\view</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\view\PlanarReflection.h">
+      <Filter>graphics\view</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\postfx\FullscreenPass.h">
+      <Filter>graphics\postfx</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\postfx\FxaaRenderer.h">
+      <Filter>graphics\postfx</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\postfx\DepthOfFieldRenderer.h">
+      <Filter>graphics\postfx</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\atmosphere\VolumetricLightRenderer.h">
+      <Filter>graphics\atmosphere</Filter>
     </ClInclude>
     <ClInclude Include="graphics\2d\GlyphAtlas.h">
       <Filter>graphics\2d</Filter>

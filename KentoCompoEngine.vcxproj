@@ -130,6 +130,11 @@
     <ClCompile Include="graphics\pipeline\StandardRenderPasses.cpp" />
     <ClCompile Include="graphics\view\RenderView.cpp" />
     <ClCompile Include="graphics\view\StageMonitor.cpp" />
+    <ClCompile Include="graphics\view\PlanarReflection.cpp" />
+    <ClCompile Include="graphics\postfx\FullscreenPass.cpp" />
+    <ClCompile Include="graphics\postfx\FxaaRenderer.cpp" />
+    <ClCompile Include="graphics\postfx\DepthOfFieldRenderer.cpp" />
+    <ClCompile Include="graphics\atmosphere\VolumetricLightRenderer.cpp" />
     <ClCompile Include="graphics\atmosphere\BeamRenderer.cpp" />
     <ClCompile Include="graphics\atmosphere\FogRenderer.cpp" />
     <ClCompile Include="graphics\npr\OutlineRenderer.cpp" />
@@ -341,6 +346,11 @@
     <ClInclude Include="graphics\view\ISubViewProvider.h" />
     <ClInclude Include="graphics\view\RenderView.h" />
     <ClInclude Include="graphics\view\StageMonitor.h" />
+    <ClInclude Include="graphics\view\PlanarReflection.h" />
+    <ClInclude Include="graphics\postfx\FullscreenPass.h" />
+    <ClInclude Include="graphics\postfx\FxaaRenderer.h" />
+    <ClInclude Include="graphics\postfx\DepthOfFieldRenderer.h" />
+    <ClInclude Include="graphics\atmosphere\VolumetricLightRenderer.h" />
     <ClInclude Include="graphics\2d\GlyphAtlas.h" />
     <ClInclude Include="graphics\2d\TextOverlay.h" />
     <ClInclude Include="graphics\2d\TextSprite.h" />

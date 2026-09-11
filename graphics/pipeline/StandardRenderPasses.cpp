@@ -12,6 +12,10 @@
 #include "graphics/deferred/GBuffer.h"
 #include "graphics/atmosphere/BeamRenderer.h"
 #include "graphics/atmosphere/FogRenderer.h"
+#include "graphics/atmosphere/VolumetricLightRenderer.h"
+#include "graphics/postfx/DepthOfFieldRenderer.h"
+#include "graphics/postfx/FxaaRenderer.h"
+#include "graphics/view/PlanarReflection.h"
 #include "graphics/npr/OutlineRenderer.h"
 #include "graphics/view/RenderView.h"
 #include "graphics/shadow/ShadowMapPipeline.h"
@@ -370,6 +374,46 @@ void SceneColorResolvePass::Execute(const RenderPassContext& ctx)
 	ctx.view->GetSceneColor()->EndRender();
 }
 
+void ReflectionPass::Execute(const RenderPassContext& ctx)
+{
+	if (!ctx.planarReflection || !ctx.view || !ctx.view->IsValid() || !ctx.cameraManager)
+	{
+		return;
+	}
+	ctx.planarReflection->Composite(
+		ctx.cameraManager->GetActiveCamera(),
+		ctx.view->GetGBuffer(),
+		ctx.view->GetSceneColor()->GetRTVHandle(),
+		ctx.frameConstantAllocator);
+}
+
+void VolumetricLightPass::Execute(const RenderPassContext& ctx)
+{
+	if (!ctx.volumetricLightRenderer || !ctx.view || !ctx.view->IsValid() || !ctx.cameraManager)
+	{
+		return;
+	}
+	ctx.volumetricLightRenderer->Draw(
+		ctx.cameraManager->GetActiveCamera(),
+		ctx.view->GetGBuffer(),
+		ctx.view->GetSceneColor()->GetRTVHandle(),
+		ctx.view->GetWidth(),
+		ctx.view->GetHeight(),
+		ctx.lightManager,
+		ctx.shadowMapManager,
+		ctx.beamRenderer,
+		ctx.frameConstantAllocator);
+}
+
+void DepthOfFieldPass::Execute(const RenderPassContext& ctx)
+{
+	if (!ctx.depthOfFieldRenderer || !ctx.view || !ctx.view->IsValid() || !ctx.cameraManager)
+	{
+		return;
+	}
+	ctx.depthOfFieldRenderer->Draw(ctx.cameraManager->GetActiveCamera(), ctx.view, ctx.frameConstantAllocator);
+}
+
 ///=============================================================================
 ///						ポストプロセスと2D
 ///=============================================================================
@@ -396,8 +440,14 @@ void PostProcessPass::Execute(const RenderPassContext& ctx)
 		return;
 	}
 
+	// FXAA を掛けるときは、一度 FXAA の入力へ描かせてから、均しながら本来の出力先へ書く。
 	// 出力先が nullptr の場合はバックバッファへ直接描かれる
-	ctx.postProcessManager->Draw(ctx.view->GetSceneColor(), ctx.outputTarget);
+	const bool useFxaa = ctx.fxaaRenderer && ctx.fxaaRenderer->IsActive();
+	ctx.postProcessManager->Draw(ctx.view->GetSceneColor(), useFxaa ? ctx.fxaaRenderer->GetInputTarget() : ctx.outputTarget);
+	if (useFxaa)
+	{
+		ctx.fxaaRenderer->Apply(ctx.outputTarget, ctx.frameConstantAllocator);
+	}
 }
 
 void Sprite2DPass::Execute(const RenderPassContext& ctx)
@@ -440,10 +490,15 @@ void BuildStandardRenderPipeline(RenderPipeline& pipeline)
 	pipeline.AddPass(std::make_unique<OutlinePass>());
 	pipeline.AddPass(std::make_unique<ForwardOpaquePass>());
 	pipeline.AddPass(std::make_unique<SkyboxPass>());
+	// 反射は床の面の上なので霧より前、光の筋は空気なので半透明とビームの後
+	pipeline.AddPass(std::make_unique<ReflectionPass>());
 	pipeline.AddPass(std::make_unique<FogPass>());
 	pipeline.AddPass(std::make_unique<TransparentPass>());
 	pipeline.AddPass(std::make_unique<BeamPass>());
+	pipeline.AddPass(std::make_unique<VolumetricLightPass>());
 	pipeline.AddPass(std::make_unique<SceneColorResolvePass>());
+	// 被写界深度は光の筋や反射も含めてぼかしたいので、シーンが出来上がってから
+	pipeline.AddPass(std::make_unique<DepthOfFieldPass>());
 	pipeline.AddPass(std::make_unique<SubViewRenderPass>());
 	pipeline.AddPass(std::make_unique<BackBufferPreparePass>());
 	pipeline.AddPass(std::make_unique<PostProcessPass>());

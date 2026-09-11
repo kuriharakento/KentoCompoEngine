@@ -285,6 +285,35 @@ void Framework::Initialize()
 	beamRenderer_->RegisterDebugUI(lightManager_.get());
 #endif
 
+	// 画の質（アンチエイリアス・被写界深度・ボリュメトリック・床反射）
+	{
+		const uint32_t width = winApp_->GetClientWidth();
+		const uint32_t height = winApp_->GetClientHeight();
+		fxaaRenderer_ = std::make_unique<FxaaRenderer>();
+		fxaaRenderer_->Initialize(dxCommon_.get(), srvManager_.get(), width, height);
+		depthOfFieldRenderer_ = std::make_unique<DepthOfFieldRenderer>();
+		depthOfFieldRenderer_->Initialize(dxCommon_.get(), srvManager_.get(), width, height);
+		volumetricLightRenderer_ = std::make_unique<VolumetricLightRenderer>();
+		volumetricLightRenderer_->Initialize(dxCommon_.get(), srvManager_.get(), width, height);
+		planarReflection_ = std::make_unique<PlanarReflection>();
+		planarReflection_->Initialize(dxCommon_.get(), srvManager_.get(), this, cameraManager_.get(), width, height);
+
+		shaderHotReload->Register(fxaaRenderer_.get(), "FXAA",
+			[this](std::string& outError) { return fxaaRenderer_->ReloadShaders(outError); });
+		shaderHotReload->Register(depthOfFieldRenderer_.get(), "DepthOfField",
+			[this](std::string& outError) { return depthOfFieldRenderer_->ReloadShaders(outError); });
+		shaderHotReload->Register(volumetricLightRenderer_.get(), "VolumetricLight",
+			[this](std::string& outError) { return volumetricLightRenderer_->ReloadShaders(outError); });
+		shaderHotReload->Register(planarReflection_.get(), "Reflection",
+			[this](std::string& outError) { return planarReflection_->ReloadShaders(outError); });
+#ifdef USE_IMGUI
+		fxaaRenderer_->RegisterDebugUI();
+		depthOfFieldRenderer_->RegisterDebugUI();
+		volumetricLightRenderer_->RegisterDebugUI();
+		planarReflection_->RegisterDebugUI();
+#endif
+	}
+
 	// アウトライン（輪郭線）
 	outlineRenderer_ = std::make_unique<OutlineRenderer>();
 	outlineRenderer_->Initialize(dxCommon_.get(), srvManager_.get());
@@ -328,6 +357,11 @@ void Framework::Initialize()
 	{
 		subViewPass->SetCallback([this]()
 		{
+			// 反射用カメラは本編のカメラを鏡映したものなので、描く直前に合わせる
+			if (planarReflection_)
+			{
+				planarReflection_->SyncCamera(cameraManager_->GetActiveCamera());
+			}
 			for (RenderView* view : subViews_)
 			{
 				RenderSubView(view);
@@ -355,6 +389,12 @@ void Framework::Initialize()
 
 		// ポストプロセスマネージャーをリサイズする
 		postProcessManager_->Resize(width, height);
+
+		// 画面の大きさで作っているターゲットを持つもの
+		fxaaRenderer_->Resize(width, height);
+		depthOfFieldRenderer_->Resize(width, height);
+		volumetricLightRenderer_->Resize(width, height);
+		planarReflection_->Resize(width, height);
 
 		// 派生クラス用のリサイズ通知
 		OnResize(width, height);
@@ -420,6 +460,15 @@ void Framework::Finalize()
 	// パスは各マネージャーを参照するだけで所有しないため、解放順は問わない
 	renderPipeline_.reset();
 	subViewPipeline_.reset();
+	// 反射のサブビューは自分が持っているので、ビューを消す前に畳む
+	if (planarReflection_)
+	{
+		planarReflection_->Finalize();
+	}
+	planarReflection_.reset();
+	volumetricLightRenderer_.reset();
+	depthOfFieldRenderer_.reset();
+	fxaaRenderer_.reset();
 	subViews_.clear();
 	ownedSubViews_.clear();
 	// 文字の Sprite は GPU リソースを持つので、デバイスより先に畳む
@@ -505,6 +554,10 @@ RenderPassContext Framework::MakeRenderPassContext(RenderView* view, RenderTextu
 	ctx.beamRenderer = beamRenderer_.get();
 	ctx.outlineRenderer = outlineRenderer_.get();
 	ctx.textOverlay = textOverlay_.get();
+	ctx.fxaaRenderer = fxaaRenderer_.get();
+	ctx.depthOfFieldRenderer = depthOfFieldRenderer_.get();
+	ctx.volumetricLightRenderer = volumetricLightRenderer_.get();
+	ctx.planarReflection = planarReflection_.get();
 	return ctx;
 }
 
