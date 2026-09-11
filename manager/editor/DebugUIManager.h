@@ -10,6 +10,18 @@ struct ImGuiTextBuffer;
 namespace KCE
 {
 /**
+ * @brief 初期レイアウトで使うドッキング先
+ */
+enum class DebugUIDockLocation
+{
+	Left,
+	Center,
+	RightTop,
+	RightBottom,
+	Bottom
+};
+
+/**
  * @brief デバッグUIの表示エリア
  * @details 各エリアの使い分け：
  * - Hierarchy: 構成リスト、選択用（例: SceneManager）
@@ -33,6 +45,7 @@ struct DebugUI
 	std::string name;
 	std::function<void()> drawFunc;
 	DebugUIArea area;
+	DebugUIArea defaultArea;
 	bool visible = true; // Toolsメニューからの表示切替
 };
 #else
@@ -75,10 +88,16 @@ public:
 	bool HasVisibleDebugUI(DebugUIArea area) const;
 
 	/**
-	 * @brief Toolsメニュー用のサブメニューを描画する
-	 * @details ImGui::BeginMenu("Tools") の中から呼ぶこと
+	 * @brief Windowメニューへ登録済みUIの表示項目を描画する
 	 */
-	void DrawToolsMenu();
+	void DrawWindowMenu();
+
+	/**
+	 * @brief 指定した初期ドッキング先のウィンドウ名を返す
+	 * @param location ドッキング先
+	 * @return 登録済みウィンドウ名。Consoleも対象に含む
+	 */
+	std::vector<std::string> GetDockWindowNames(DebugUIDockLocation location) const;
 
 	void SetDebugUIArea(void* owner, DebugUIArea area);
 	void SetDebugUIArea(const std::string& name, DebugUIArea area);
@@ -90,7 +109,7 @@ public:
 	void SetShowInspector(bool show) { showInspector_ = show; }
 
 	bool IsShowConsole() const { return showConsole_; }
-	void SetShowConsole(bool show) { showConsole_ = show; }
+	void SetShowConsole(bool show);
 
 	bool IsShowProject() const { return showProject_; }
 	void SetShowProject(bool show) { showProject_ = show; }
@@ -128,7 +147,8 @@ public:
 	/**
 	 * @brief Toolsメニュー用のサブメニューを描画する（非ImGui時は何もしない）
 	 */
-	void DrawToolsMenu() {}
+	void DrawWindowMenu() {}
+	std::vector<std::string> GetDockWindowNames(DebugUIDockLocation location) const { return {}; }
 
 	void SetDebugUIArea(void* owner, DebugUIArea area) {}
 	void SetDebugUIArea(const std::string& name, DebugUIArea area) {}

@@ -39,6 +39,81 @@ bool DebugUIManager::HasInstance()
 static std::unordered_map<std::string, DebugUIManager::SavedUIState> s_savedStates;
 static float s_prevScale = 1.0f;
 
+namespace
+{
+struct DebugUIWindowConfig
+{
+	const char* name;
+	const char* category;
+	DebugUIDockLocation dockLocation;
+	bool visible;
+	bool prefixMatch;
+};
+
+constexpr DebugUIWindowConfig kWindowConfigs[] = {
+	{"GameObject List", "Scene", DebugUIDockLocation::Left, true, false},
+	{"SceneManager", "Scene", DebugUIDockLocation::Left, true, false},
+	{"Title Scene", "Scene", DebugUIDockLocation::Left, true, false},
+	{"Feature Check", "Scene", DebugUIDockLocation::Left, true, false},
+	{"GameObject Inspector", "Scene", DebugUIDockLocation::RightTop, true, false},
+	{"Sequencer Inspector", "Sequencer", DebugUIDockLocation::RightTop, true, false},
+	{"Camera Manager", "Scene", DebugUIDockLocation::RightTop, true, false},
+	{"Light Manager", "Scene", DebugUIDockLocation::RightTop, true, false},
+	{"Cutscene", "Sequencer", DebugUIDockLocation::RightTop, true, false},
+	{"Post Process", "Rendering", DebugUIDockLocation::RightBottom, true, false},
+	{"Atmosphere Fog", "Rendering", DebugUIDockLocation::RightBottom, true, false},
+	{"Light Beams", "Rendering", DebugUIDockLocation::RightBottom, true, false},
+	{"Outline", "Rendering", DebugUIDockLocation::RightBottom, true, false},
+	{"NPR Shading", "Rendering", DebugUIDockLocation::RightBottom, true, false},
+	{"Render Pipeline", "Rendering", DebugUIDockLocation::RightBottom, true, false},
+	{"Sequencer", "Sequencer", DebugUIDockLocation::Bottom, true, false},
+	{"Console", "System", DebugUIDockLocation::Bottom, true, false},
+	{"Shader Hot Reload", "Rendering", DebugUIDockLocation::Bottom, true, false},
+	{"Time Manager", "System", DebugUIDockLocation::RightTop, false, false},
+	{"Timer Manager", "System", DebugUIDockLocation::RightTop, false, false},
+	{"Debug Camera", "Scene", DebugUIDockLocation::RightTop, false, false},
+	{"TopDownCamera Settings", "Scene", DebugUIDockLocation::RightTop, false, false},
+	{"Audio Debug", "System", DebugUIDockLocation::Bottom, false, false},
+	{"JSON Editor", "System", DebugUIDockLocation::Bottom, false, false},
+	{"Particle Editor", "Effects", DebugUIDockLocation::RightTop, false, false},
+	{"Particle Manager", "Effects", DebugUIDockLocation::RightTop, false, false},
+	{"CollisionManager Colliders", "System", DebugUIDockLocation::Bottom, false, false},
+	{"Font Sprite:", "System", DebugUIDockLocation::Bottom, false, true},
+};
+
+const DebugUIWindowConfig* FindWindowConfig(const std::string& name)
+{
+	for (const auto& config : kWindowConfigs)
+	{
+		if ((!config.prefixMatch && name == config.name) ||
+			(config.prefixMatch && name.starts_with(config.name)))
+		{
+			return &config;
+		}
+	}
+	return nullptr;
+}
+
+DebugUIDockLocation GetAreaDockLocation(DebugUIArea area)
+{
+	switch (area)
+	{
+	case DebugUIArea::Hierarchy: return DebugUIDockLocation::Left;
+	case DebugUIArea::Inspector: return DebugUIDockLocation::RightTop;
+	case DebugUIArea::Console: return DebugUIDockLocation::Bottom;
+	case DebugUIArea::Scene: return DebugUIDockLocation::Center;
+	case DebugUIArea::Project: return DebugUIDockLocation::Bottom;
+	}
+	return DebugUIDockLocation::RightTop;
+}
+
+DebugUIDockLocation GetDockLocation(const DebugUI& ui)
+{
+	const auto* config = FindWindowConfig(ui.name);
+	return config ? config->dockLocation : GetAreaDockLocation(ui.area);
+}
+}
+
 void DebugUIManager::Initialize()
 {
 	debugUIs_.clear();
@@ -139,7 +214,8 @@ void DebugUIManager::RegisterDebugUI([[maybe_unused]] void* owner, [[maybe_unuse
 
 	// 新規登録（ロード済みの状態を優先）
 	DebugUIArea finalArea = area;
-	bool finalVisible = true;
+	const auto* config = FindWindowConfig(name);
+	bool finalVisible = config ? config->visible : true;
 
 	auto it = s_savedStates.find(name);
 	if (it != s_savedStates.end())
@@ -148,7 +224,7 @@ void DebugUIManager::RegisterDebugUI([[maybe_unused]] void* owner, [[maybe_unuse
 		finalVisible = it->second.visible;
 	}
 
-	list.push_back({name, drawFunc, finalArea, finalVisible});
+	list.push_back({name, drawFunc, finalArea, area, finalVisible});
 }
 
 void DebugUIManager::UnregisterDebugUI([[maybe_unused]] void* owner)
@@ -168,93 +244,48 @@ void DebugUIManager::Clear()
 
 void DebugUIManager::Draw()
 {
-	// 何もしない（主要ウィンドウ内の DrawArea で個別に描画されるため）
-}
-
-void DebugUIManager::DrawArea([[maybe_unused]] DebugUIArea area)
-{
-	std::vector<DebugUI*> areaUIs;
 	for (auto& [owner, list] : debugUIs_)
 	{
 		for (auto& ui : list)
 		{
-			if (ui.area == area && ui.visible)
+			// ギズモだけはScene画像と同じ描画リストが必要なので、Scene内で呼ぶ。
+			if (ui.name != "Sequencer Gizmo" && ui.visible)
 			{
-				areaUIs.push_back(&ui);
-			}
-		}
-	}
-
-	std::sort(areaUIs.begin(), areaUIs.end(), [](const DebugUI* lhs, const DebugUI* rhs) { return lhs->name < rhs->name; });
-	for (DebugUI* ui : areaUIs)
-	{
-		ImGui::PushID(ui);
-		ImGuiStorage* storage = ImGui::GetStateStorage();
-		const ImGuiID openId = ImGui::GetID("DebugUISectionOpen");
-		bool open = storage->GetBool(openId, true);
-
-		// SeparatorText の見た目を保ったまま、行全体を折り畳み操作にする。
-		const ImVec2 rowPos = ImGui::GetCursorScreenPos();
-		const float rowHeight = ImMax(ImGui::GetTextLineHeightWithSpacing(), 1.0f);
-		const float rowWidth = ImMax(ImGui::GetContentRegionAvail().x, 1.0f);
-		const ImRect separatorRect(rowPos, ImVec2(rowPos.x + rowWidth, rowPos.y + rowHeight));
-		const ImGuiID separatorId = ImGui::GetID("DebugUISeparator");
-		ImGui::ItemSize(separatorRect);
-		bool separatorHovered = false;
-		bool separatorHeld = false;
-		if (ImGui::ItemAdd(separatorRect, separatorId) && ImGui::ButtonBehavior(separatorRect, separatorId, &separatorHovered, &separatorHeld))
-		{
-			open = !open;
-			storage->SetBool(openId, open);
-		}
-
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		const ImU32 textColor = ImGui::GetColorU32(ImGuiCol_Text);
-		const ImU32 separatorColor = ImGui::GetColorU32(ImGuiCol_Separator);
-		if (separatorHovered)
-		{
-			drawList->AddRectFilled(rowPos, ImVec2(rowPos.x + rowWidth, rowPos.y + rowHeight), ImGui::GetColorU32(ImGuiCol_HeaderHovered));
-			ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-		}
-
-		const float arrowSize = ImGui::GetFontSize() * 0.70f;
-		const ImVec2 arrowPos(rowPos.x + 2.0f, rowPos.y + (rowHeight - arrowSize) * 0.5f);
-		ImGui::RenderArrow(drawList, arrowPos, textColor, open ? ImGuiDir_Down : ImGuiDir_Right, 0.70f);
-		const ImVec2 textPos(rowPos.x + ImGui::GetFontSize() + 6.0f, rowPos.y + (rowHeight - ImGui::GetFontSize()) * 0.5f);
-		drawList->AddText(textPos, textColor, ui->name.c_str());
-		const float lineStart = textPos.x + ImGui::CalcTextSize(ui->name.c_str()).x + 10.0f;
-		const float lineY = rowPos.y + rowHeight * 0.5f;
-		if (lineStart < rowPos.x + rowWidth)
-		{
-			drawList->AddLine(ImVec2(lineStart, lineY), ImVec2(rowPos.x + rowWidth, lineY), separatorColor);
-		}
-		if (ImGui::BeginPopupContextItem("DebugUIOptions"))
-		{
-			const char* areaNames[] = {"Hierarchy", "Inspector", "Console", "Scene", "Project"};
-			for (int i = 0; i < IM_ARRAYSIZE(areaNames); ++i)
-			{
-				if (ImGui::MenuItem(areaNames[i], nullptr, static_cast<int>(ui->area) == i))
+				const bool wasVisible = ui.visible;
+				if (ImGui::Begin(ui.name.c_str(), &ui.visible))
 				{
-					ui->area = static_cast<DebugUIArea>(i);
+					// 個別UIには手を入れず、ウィンドウ幅に合わせて長文を折り返す。
+					ImGui::PushTextWrapPos(0.0f);
+					ui.drawFunc();
+					ImGui::PopTextWrapPos();
+				}
+				ImGui::End();
+				if (wasVisible != ui.visible)
+				{
 					SaveLayout();
 				}
 			}
-			ImGui::Separator();
-			if (ImGui::MenuItem("Hide"))
-			{
-				ui->visible = false;
-				SaveLayout();
-			}
-			ImGui::EndPopup();
 		}
-		if (open && ui->drawFunc)
+	}
+}
+
+void DebugUIManager::DrawArea([[maybe_unused]] DebugUIArea area)
+{
+	if (area != DebugUIArea::Scene)
+	{
+		return;
+	}
+
+	for (auto& [owner, list] : debugUIs_)
+	{
+		for (auto& ui : list)
 		{
-			ImGui::Indent(4.0f);
-			ui->drawFunc();
-			ImGui::Unindent(4.0f);
+			if (ui.name == "Sequencer Gizmo" && ui.visible)
+			{
+				// 見出しや余白を足すと画像領域が広がってスクロールするので、そのまま重ねる。
+				ui.drawFunc();
+			}
 		}
-		ImGui::Dummy(ImVec2(0.0f, 4.0f));
-		ImGui::PopID();
 	}
 }
 
@@ -273,149 +304,95 @@ bool DebugUIManager::HasVisibleDebugUI(DebugUIArea area) const
 	return false;
 }
 
-void DebugUIManager::DrawToolsMenu()
+void DebugUIManager::DrawWindowMenu()
 {
-	// カテゴリ定義
-	struct Category
+	const auto drawCategory = [this](const char* category)
 	{
-		const char* label;
-		const char* names[8];
-	};
-
-	static const Category categories[] =
-		{
-			{"Engine", {"Performance", "Scene Manager", nullptr}},
-			{"Time", {"Time Manager", "Timer Manager", nullptr}},
-			{"Rendering", {"Light Manager", "Camera Manager", "Particle Manager", nullptr}},
-			{"Audio", {"Audio Debug", nullptr}},
-			{"Editor Tools", {"JSON Editor", "Font Sprite", nullptr}},
-			{"Effects", {"Scene Transition", nullptr}},
-			{"Scenes", {"Title Scene", nullptr}},
-		};
-
-	for (const auto& cat : categories)
-	{
-		// カテゴリ内の登録有無チェック
 		bool hasItem = false;
-		for (const auto& [owner, list] : debugUIs_)
+		for (const auto& config : kWindowConfigs)
 		{
-			for (const auto& ui : list)
+			if (strcmp(config.category, category) == 0 && strcmp(config.name, "Console") == 0)
 			{
-				for (int ni = 0; cat.names[ni] != nullptr; ++ni)
+				hasItem = true;
+			}
+			for (const auto& [owner, list] : debugUIs_)
+			{
+				for (const auto& ui : list)
 				{
-					if (ui.name == cat.names[ni])
+					if (strcmp(config.category, category) == 0 && FindWindowConfig(ui.name) == &config)
 					{
 						hasItem = true;
-						break;
 					}
 				}
-				if (hasItem)
-				{
-					break;
-				}
 			}
-			if (hasItem)
+		}
+		if (!hasItem || !ImGui::BeginMenu(category))
+		{
+			return;
+		}
+
+		for (const auto& config : kWindowConfigs)
+		{
+			if (strcmp(config.category, category) != 0)
 			{
-				break;
+				continue;
 			}
-		}
-
-		if (!hasItem)
-		{
-			continue;
-		}
-
-		if (ImGui::BeginMenu(cat.label))
-		{
+			if (strcmp(config.name, "Console") == 0)
+			{
+				if (ImGui::MenuItem("Console", nullptr, &showConsole_))
+				{
+					SaveLayout();
+				}
+				continue;
+			}
 			for (auto& [owner, list] : debugUIs_)
 			{
 				for (auto& ui : list)
 				{
-					for (int ni = 0; cat.names[ni] != nullptr; ++ni)
+					if (FindWindowConfig(ui.name) == &config && ImGui::MenuItem(ui.name.c_str(), nullptr, &ui.visible))
 					{
-						if (ui.name == cat.names[ni])
-						{
-							if (ImGui::MenuItem(ui.name.c_str(), nullptr, &ui.visible))
-							{
-								SaveLayout();
-							}
-							break;
-						}
+						SaveLayout();
 					}
 				}
 			}
-			ImGui::EndMenu();
 		}
-	}
+		ImGui::EndMenu();
+	};
 
-	// 未分類UIの収集
-	std::vector<DebugUI*> otherUIs;
-	for (auto& [owner, list] : debugUIs_)
+	for (size_t i = 0; i < IM_ARRAYSIZE(kWindowConfigs); ++i)
 	{
-		for (auto& ui : list)
+		bool alreadyDrawn = false;
+		for (size_t previous = 0; previous < i; ++previous)
 		{
-			bool classified = false;
-			for (const auto& cat : categories)
+			if (strcmp(kWindowConfigs[i].category, kWindowConfigs[previous].category) == 0)
 			{
-				for (int ni = 0; cat.names[ni] != nullptr; ++ni)
-				{
-					if (ui.name == cat.names[ni])
-					{
-						classified = true;
-						break;
-					}
-				}
-				if (classified)
-				{
-					break;
-				}
+				alreadyDrawn = true;
+				break;
 			}
-
-			if (!classified)
-			{
-				otherUIs.push_back(&ui);
-			}
+		}
+		if (!alreadyDrawn)
+		{
+			drawCategory(kWindowConfigs[i].category);
 		}
 	}
 
-	if (!otherUIs.empty())
+	bool hasOther = false;
+	for (const auto& [owner, list] : debugUIs_)
 	{
-		if (ImGui::BeginMenu("Others"))
+		for (const auto& ui : list)
 		{
-			for (auto* uiPtr : otherUIs)
-			{
-				if (ImGui::MenuItem(uiPtr->name.c_str(), nullptr, &uiPtr->visible))
-				{
-					SaveLayout();
-				}
-			}
-			ImGui::EndMenu();
+			hasOther |= FindWindowConfig(ui.name) == nullptr;
 		}
 	}
-
-	ImGui::Separator();
-
-	// エリア変更用サブメニュー
-	if (ImGui::BeginMenu("UI Area Settings"))
+	if (hasOther && ImGui::BeginMenu("Other"))
 	{
 		for (auto& [owner, list] : debugUIs_)
 		{
 			for (auto& ui : list)
 			{
-				if (ImGui::BeginMenu(ui.name.c_str()))
+				if (!FindWindowConfig(ui.name) && ImGui::MenuItem(ui.name.c_str(), nullptr, &ui.visible))
 				{
-					int currentArea = static_cast<int>(ui.area);
-					const char* areaNames[] = {"Hierarchy", "Inspector", "Console", "Scene", "Project"};
-					for (int i = 0; i < 5; ++i)
-					{
-						bool selected = (currentArea == i);
-						if (ImGui::MenuItem(areaNames[i], nullptr, &selected))
-						{
-							ui.area = static_cast<DebugUIArea>(i);
-							SaveLayout();
-						}
-					}
-					ImGui::EndMenu();
+					SaveLayout();
 				}
 			}
 		}
@@ -423,8 +400,40 @@ void DebugUIManager::DrawToolsMenu()
 	}
 }
 
+std::vector<std::string> DebugUIManager::GetDockWindowNames(DebugUIDockLocation location) const
+{
+	std::vector<std::string> names;
+	for (const auto& [owner, list] : debugUIs_)
+	{
+		for (const auto& ui : list)
+		{
+			if (ui.name != "Sequencer Gizmo" && GetDockLocation(ui) == location)
+			{
+				names.push_back(ui.name);
+			}
+		}
+	}
+	if (location == DebugUIDockLocation::Bottom)
+	{
+		names.push_back("Console");
+	}
+	std::sort(names.begin(), names.end());
+	return names;
+}
+
 void DebugUIManager::RequestLayoutReset()
 {
+	for (auto& [owner, list] : debugUIs_)
+	{
+		for (auto& ui : list)
+		{
+			const auto* config = FindWindowConfig(ui.name);
+			ui.area = ui.defaultArea;
+			ui.visible = config ? config->visible : true;
+		}
+	}
+	showConsole_ = true;
+	SaveLayout();
 	resetLayoutRequested_ = true;
 }
 
@@ -477,6 +486,15 @@ void DebugUIManager::SetDebugUIArea([[maybe_unused]] const std::string& name, [[
 	}
 }
 
+void DebugUIManager::SetShowConsole(bool show)
+{
+	if (showConsole_ != show)
+	{
+		showConsole_ = show;
+		SaveLayout();
+	}
+}
+
 void DebugUIManager::SaveLayout()
 {
 	// s_savedStatesの更新
@@ -487,6 +505,7 @@ void DebugUIManager::SaveLayout()
 			s_savedStates[ui.name] = {ui.area, ui.visible};
 		}
 	}
+	s_savedStates["Console"] = {DebugUIArea::Console, showConsole_};
 
 	ImGui::MarkIniSettingsDirty();
 	if (ImGui::GetIO().IniFilename != nullptr)
@@ -511,7 +530,8 @@ DebugUIManager::SavedUIState& DebugUIManager::GetOrAddLoadedState(const std::str
 	// デフォルト値
 	SavedUIState state;
 	state.area = DebugUIArea::Inspector;
-	state.visible = true;
+	const auto* config = FindWindowConfig(name);
+	state.visible = config ? config->visible : true;
 	s_savedStates[name] = state;
 	return s_savedStates[name];
 }
@@ -529,6 +549,7 @@ void DebugUIManager::WriteAllSettings(ImGuiTextBuffer* buf)
 				s_savedStates[ui.name] = {ui.area, ui.visible};
 			}
 		}
+		s_savedStates["Console"] = {DebugUIArea::Console, mgr->showConsole_};
 	}
 
 	// グローバル設定書き出し
@@ -565,6 +586,11 @@ void DebugUIManager::ApplyLoadedStatesToActiveUIs()
 				ui.visible = it->second.visible;
 			}
 		}
+	}
+	auto console = s_savedStates.find("Console");
+	if (console != s_savedStates.end())
+	{
+		showConsole_ = console->second.visible;
 	}
 }
 

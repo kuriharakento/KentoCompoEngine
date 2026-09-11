@@ -43,12 +43,18 @@ void GameObjectEditor::Initialize()
 	UpdateJsonFileList();
 
 #ifdef USE_IMGUI
-	// DebugUIManager に登録
+	// 一覧と詳細を別々にドッキングできるよう、同じ所有者で2つ登録する。
 	DebugUIManager::GetInstance()->RegisterDebugUI(
 		this,
-		"GameObject Editor",
-		[this]() { this->DrawImGui(); },
-		DebugUIArea::Project
+		"GameObject List",
+		[this]() { this->DrawListImGui(); },
+		DebugUIArea::Hierarchy
+	);
+	DebugUIManager::GetInstance()->RegisterDebugUI(
+		this,
+		"GameObject Inspector",
+		[this]() { this->DrawInspectorImGui(); },
+		DebugUIArea::Inspector
 	);
 #endif
 }
@@ -73,12 +79,9 @@ void GameObjectEditor::OnGameObjectRemoved(GameObject* gameObject)
 	}
 }
 
-void GameObjectEditor::DrawImGui()
+void GameObjectEditor::DrawListImGui()
 {
 #ifdef USE_IMGUI
-	// ------------------ 上部: GameObject List ------------------
-	ImGui::SeparatorText("GameObject List");
-
 	if (ImGui::Button("Create GameObject", ImVec2(-FLT_MIN, 0.0f)))
 	{
 		GameObject* newObj = GameObjectManager::GetInstance()->CreateGameObject("NewObject", "GameObject");
@@ -121,12 +124,12 @@ void GameObjectEditor::DrawImGui()
 		}
 	}
 
-	ImGui::Spacing();
-	ImGui::Separator();
-	ImGui::Spacing();
+#endif
+}
 
-	// ------------------ 下部: GameObject Details (プロパティ/コンポーネント) ------------------
-	ImGui::SeparatorText("GameObject Details");
+void GameObjectEditor::DrawInspectorImGui()
+{
+#ifdef USE_IMGUI
 
 	// スクロール可能な詳細領域（残り領域を全て使い、はみ出た場合はスクロールさせる）
 	ImGui::BeginChild("InspectorDetailsArea", ImVec2(0, -75.0f), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);

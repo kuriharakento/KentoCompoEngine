@@ -29,9 +29,14 @@ public:
 	void Finalize();
 
 	/**
-	 * @brief ImGuiによる編集UIを描画する
+	 * @brief GameObject一覧を描画する
 	 */
-	void DrawImGui();
+	void DrawListImGui();
+
+	/**
+	 * @brief 選択中GameObjectの詳細を描画する
+	 */
+	void DrawInspectorImGui();
 
 	/**
 	 * @brief GameObjectが削除された際に呼び出し、ポインタの安全性を担保する

@@ -100,10 +100,11 @@ void ConsoleLog::Draw([[maybe_unused]] bool* open)
 
 	// スクロール可能な子ウィンドウ領域
 	const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
-	ImGui::BeginChild("ScrollingRegion", ImVec2(0, -footer_height_to_reserve), false, ImGuiWindowFlags_HorizontalScrollbar);
+	ImGui::BeginChild("ScrollingRegion", ImVec2(0, -footer_height_to_reserve));
 
 	{
 		std::lock_guard<std::mutex> lock(mutex_);
+		ImGui::PushTextWrapPos(0.0f);
 		for (const auto& log : logs_)
 		{
 			ImVec4 color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // Default Info = White
@@ -119,6 +120,7 @@ void ConsoleLog::Draw([[maybe_unused]] bool* open)
 
 			ImGui::TextColored(color, "%s", log.message.c_str());
 		}
+		ImGui::PopTextWrapPos();
 	}
 
 	if (scroll_to_bottom || ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
