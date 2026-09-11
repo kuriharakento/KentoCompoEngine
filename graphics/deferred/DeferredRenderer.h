@@ -19,6 +19,7 @@ class LightManager;
 class ShadowMapManager;
 class CameraManager;
 class Camera;
+class FrameConstantAllocator;
 
 /**
  * @brief ディファードレンダラークラス
@@ -94,20 +95,23 @@ public:
 	 * @param rtvHandle 出力先のRTVハンドル
 	 * @param lightManager ライト管理
 	 * @param shadowMapManager シャドウマップ管理
+	 * @param allocator カメラ定数の書き込み先。nullptr なら共有バッファに書く（ビューが1つのときだけ正しい）
 	 */
 	void ExecuteLightPass(
 		GBuffer* gBuffer,
 		Camera* camera,
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,
 		LightManager* lightManager,
-		ShadowMapManager* shadowMapManager
+		ShadowMapManager* shadowMapManager,
+		FrameConstantAllocator* allocator = nullptr
 	);
 
 	GBufferPipeline* GetGBufferPipeline() { return gBufferPipeline_.get(); }
 
 private:
 	void CreateCameraBuffer();
-	void UpdateCameraBuffer(Camera* camera);
+	/** @return ライトパスに渡すカメラ定数の GPU アドレス */
+	D3D12_GPU_VIRTUAL_ADDRESS UpdateCameraBuffer(Camera* camera, FrameConstantAllocator* allocator);
 	void CreateLightBuffer();
 	void UpdateLightBuffer(LightManager* lightManager, ShadowMapManager* shadowMapManager);
 

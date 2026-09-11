@@ -119,6 +119,7 @@ bool GetBindingTypeForTrack(const ITrack& track, BindingType& outType)
 	case TrackType::Camera:    outType = BindingType::Camera; return true;
 	case TrackType::Transform: outType = BindingType::GameObject; return true;
 	case TrackType::Light:     outType = BindingType::Light; return true;
+	case TrackType::Screen:    outType = BindingType::GameObject; return true;
 	default:                   return false;
 	}
 }

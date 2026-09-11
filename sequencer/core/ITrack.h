@@ -20,6 +20,7 @@ enum class TrackType
 	Light,		 //!< ライトのパラメータ
 	PostProcess, //!< ポストプロセスのパラメータ
 	Event,		 //!< ゲーム側へのコールバック
+	Screen,		 //!< ステージの画面（モニター）
 	Unknown,	 //!< 未知（前方互換のためのプレースホルダ）
 };
 

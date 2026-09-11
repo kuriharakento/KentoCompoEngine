@@ -216,7 +216,8 @@ void LightingPass::Execute(const RenderPassContext& ctx)
 		camera,
 		sceneColor->GetRTVHandle(),
 		ctx.lightManager,
-		ctx.shadowMapManager);
+		ctx.shadowMapManager,
+		ctx.frameConstantAllocator);
 }
 
 ///=============================================================================

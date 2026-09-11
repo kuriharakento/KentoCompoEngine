@@ -228,6 +228,12 @@ public: // アクセッサ
 	 */
 	size_t GetMaterialCount() const { return modelData_.materials.size(); }
 
+	/**
+	 * @brief 全メッシュのテクスチャを差し替える（モニター映像など）
+	 * @param handle 差し替える SRV。ptr が 0 なら元のテクスチャに戻す
+	 */
+	void SetOverrideTexture(D3D12_GPU_DESCRIPTOR_HANDLE handle) { overrideTexture_ = handle; }
+
 private: // メンバ関数
 	/**
 	 * @brief メッシュリソースの生成
@@ -257,5 +263,11 @@ private:
 
 	// メッシュリソース（マルチメッシュ対応）
 	std::vector<MeshResource> meshResources_;
+
+	// 差し替えテクスチャ。ptr が 0 の間はマテリアルのテクスチャを使う
+	D3D12_GPU_DESCRIPTOR_HANDLE overrideTexture_{};
+
+	/** @brief このメッシュで使うテクスチャ（差し替えがあればそちら） */
+	D3D12_GPU_DESCRIPTOR_HANDLE GetTextureHandle(const MeshResource& meshResource) const;
 };
 } // namespace KCE

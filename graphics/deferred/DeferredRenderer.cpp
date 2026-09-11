@@ -6,6 +6,7 @@
 #include "manager/scene/CameraManager.h"
 #include "base/Camera.h"
 #include "base/Logger.h"
+#include "graphics/FrameConstantAllocator.h"
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
 #include "gameobject/base/GameObject.h"
@@ -144,17 +145,33 @@ void DeferredRenderer::EndGeometryPass(GBuffer* gBuffer)
 	gBuffer->EndGeometryPass();
 }
 
-void DeferredRenderer::UpdateCameraBuffer(Camera* camera)
+D3D12_GPU_VIRTUAL_ADDRESS DeferredRenderer::UpdateCameraBuffer(Camera* camera, FrameConstantAllocator* allocator)
 {
-	if (!camera || !cameraData_) return;
+	if (!camera || !cameraData_) return cameraBuffer_->GetGPUVirtualAddress();
 
-	cameraData_->worldPos = camera->GetTranslate();
-	cameraData_->viewMatrix = camera->GetViewMatrix();
-	cameraData_->projMatrix = camera->GetProjectionMatrix();
-	cameraData_->invViewMatrix = Inverse(cameraData_->viewMatrix);
-	cameraData_->invProjMatrix = Inverse(cameraData_->projMatrix);
-	cameraData_->nearPlane = 0.1f;
-	cameraData_->farPlane = 200.0f;
+	// サブビューも同じフレームでライトパスを回すので、1本のバッファに書くと
+	// GPU が読む前に後のビューのカメラで上書きされる。フレーム用の領域に書き分ける
+	CameraDataForGPU* data = cameraData_;
+	D3D12_GPU_VIRTUAL_ADDRESS address = cameraBuffer_->GetGPUVirtualAddress();
+	if (allocator)
+	{
+		auto allocation = allocator->Allocate(sizeof(CameraDataForGPU));
+		if (allocation.cpuAddress)
+		{
+			data = static_cast<CameraDataForGPU*>(allocation.cpuAddress);
+			address = allocation.gpuAddress;
+		}
+	}
+
+	data->worldPos = camera->GetTranslate();
+	data->padding0 = 0.0f;
+	data->viewMatrix = camera->GetViewMatrix();
+	data->projMatrix = camera->GetProjectionMatrix();
+	data->invViewMatrix = Inverse(data->viewMatrix);
+	data->invProjMatrix = Inverse(data->projMatrix);
+	data->nearPlane = 0.1f;
+	data->farPlane = 200.0f;
+	return address;
 }
 
 void DeferredRenderer::UpdateLightBuffer(LightManager* lightManager, ShadowMapManager* shadowMapManager)
@@ -224,7 +241,8 @@ void DeferredRenderer::ExecuteLightPass(
 	Camera* camera,
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,
 	LightManager* lightManager,
-	ShadowMapManager* shadowMapManager
+	ShadowMapManager* shadowMapManager,
+	FrameConstantAllocator* allocator
 )
 {
 	if (!gBuffer || !lightManager)
@@ -235,7 +253,7 @@ void DeferredRenderer::ExecuteLightPass(
 	auto* commandList = dxCommon_->GetCommandList();
 
 	// バッファ更新
-	UpdateCameraBuffer(camera);
+	const D3D12_GPU_VIRTUAL_ADDRESS cameraAddress = UpdateCameraBuffer(camera, allocator);
 	UpdateLightBuffer(lightManager, shadowMapManager);
 
 	// レンダーターゲット設定
@@ -259,7 +277,7 @@ void DeferredRenderer::ExecuteLightPass(
 
 	// CBV設定
 	// 0: CameraData
-	commandList->SetGraphicsRootConstantBufferView(0, cameraBuffer_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(0, cameraAddress);
 	// 1: DirectionalLightData
 	commandList->SetGraphicsRootConstantBufferView(1, lightManager->GetDirectionalLightGPUAddress());
 	// 2: CascadeShadowData

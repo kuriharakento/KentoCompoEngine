@@ -411,6 +411,8 @@ void Framework::Finalize()
 	// パスは各マネージャーを参照するだけで所有しないため、解放順は問わない
 	renderPipeline_.reset();
 	subViewPipeline_.reset();
+	subViews_.clear();
+	ownedSubViews_.clear();
 
 	GameObjectEditor::GetInstance()->Finalize();
 	JsonEditor::GetInstance()->Finalize();
@@ -523,6 +525,28 @@ void Framework::RegisterSubView(RenderView* view)
 void Framework::UnregisterSubView(RenderView* view)
 {
 	subViews_.erase(std::remove(subViews_.begin(), subViews_.end(), view), subViews_.end());
+}
+
+RenderView* Framework::CreateSubView(const std::string& name, uint32_t width, uint32_t height)
+{
+	auto view = std::make_unique<RenderView>();
+	view->Initialize(dxCommon_.get(), srvManager_.get(), name, width, height);
+	RenderView* raw = view.get();
+	ownedSubViews_.push_back(std::move(view));
+	RegisterSubView(raw);
+	return raw;
+}
+
+void Framework::DestroySubView(RenderView* view)
+{
+	if (!view)
+	{
+		return;
+	}
+	UnregisterSubView(view);
+	ownedSubViews_.erase(
+		std::remove_if(ownedSubViews_.begin(), ownedSubViews_.end(), [view](const std::unique_ptr<RenderView>& owned) { return owned.get() == view; }),
+		ownedSubViews_.end());
 }
 
 void Framework::RenderSubView(RenderView* view)

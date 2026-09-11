@@ -26,6 +26,7 @@
 // render pipeline
 #include "graphics/pipeline/RenderPipeline.h"
 // view
+#include "graphics/view/ISubViewProvider.h"
 #include "graphics/view/RenderView.h"
 #include "graphics/FrameConstantAllocator.h"
 // atmosphere
@@ -41,7 +42,7 @@ namespace KCE
  * @details ゲームエンジンの基盤となるクラス。
  *          初期化、更新、描画、終了処理の流れを管理する。
  */
-class Framework
+class Framework : public ISubViewProvider
 {
 public: // メンバ関数
 	/**
@@ -157,6 +158,16 @@ public: // メンバ関数
 	void UnregisterSubView(RenderView* view);
 
 	/**
+	 * @brief サブビューを作って登録する（所有は Framework）
+	 * @details 作りたてのシーンカラーはレンダーターゲット状態なので、
+	 *          一度描かれるまではテクスチャとして読まないこと。
+	 */
+	RenderView* CreateSubView(const std::string& name, uint32_t width, uint32_t height) override;
+
+	/** @brief CreateSubView で作ったビューを登録解除して破棄する */
+	void DestroySubView(RenderView* view) override;
+
+	/**
 	 * @brief シャドウマップの描画範囲を設定する
 	 * @param nearPlane ニアクリップ距離
 	 * @param farPlane ファークリップ距離
@@ -239,6 +250,8 @@ protected: // メンバ変数
 	std::unique_ptr<RenderPipeline> subViewPipeline_;
 	// 毎フレーム描くサブビュー（所有しない）
 	std::vector<RenderView*> subViews_;
+	// CreateSubView で作ったビュー（こちらは所有する）
+	std::vector<std::unique_ptr<RenderView>> ownedSubViews_;
 	// シャドウマップのニアクリップ距離
 	float shadowNearPlane_ = 0.1f;
 	// シャドウマップのファークリップ距離

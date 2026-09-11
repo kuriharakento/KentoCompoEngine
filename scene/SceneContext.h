@@ -11,6 +11,7 @@ class CameraManager;
 class SpriteCommon;
 class Object3dCommon;
 class ShadowMapManager;
+class ISubViewProvider;
 
 /**
  * @brief 各シーンで共有するコンテキスト情報。
@@ -27,5 +28,7 @@ struct SceneContext
 	PostProcessManager* postProcessManager = nullptr;
 	Skybox* skybox = nullptr;
 	ShadowMapManager* shadowMapManager = nullptr;
+	// サブビュー（モニター映像など）の作成元
+	ISubViewProvider* subViewProvider = nullptr;
 };
 } // namespace KCE

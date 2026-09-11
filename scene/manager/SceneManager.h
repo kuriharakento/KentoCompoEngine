@@ -49,6 +49,8 @@ public: //アクセッサ
 	PostProcessManager* GetPostProcessManager() const { return context_.postProcessManager; }
 	//シャドウマップマネージャーの取得
 	ShadowMapManager* GetShadowMapManager() const { return context_.shadowMapManager; }
+	//サブビューの作成元の取得
+	ISubViewProvider* GetSubViewProvider() const { return context_.subViewProvider; }
 
 private: //メンバ関数
 	//次のシーンが予約されているか

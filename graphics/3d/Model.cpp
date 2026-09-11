@@ -148,7 +148,7 @@ void Model::Draw()
 		commandList->SetGraphicsRootConstantBufferView(0, meshResource.materialBuffer->GetGPUVirtualAddress());
 
 		// テクスチャSRVをrootParameter[2]に設定
-		commandList->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetSrvHandleGPU(meshResource.textureIndex));
+		commandList->SetGraphicsRootDescriptorTable(2, GetTextureHandle(meshResource));
 
 		// インデックス付き描画コマンドを発行
 		commandList->DrawIndexedInstanced(meshResource.indexCount, 1, 0, 0, 0);
@@ -190,11 +190,20 @@ void Model::DrawGBuffer()
 		commandList->SetGraphicsRootConstantBufferView(2, meshResource.materialBuffer->GetGPUVirtualAddress());
 
 		// テクスチャSRVをrootParameter[3]に設定
-		commandList->SetGraphicsRootDescriptorTable(3, TextureManager::GetInstance()->GetSrvHandleGPU(meshResource.textureIndex));
+		commandList->SetGraphicsRootDescriptorTable(3, GetTextureHandle(meshResource));
 
 		// インデックス付き描画コマンドを発行
 		commandList->DrawIndexedInstanced(meshResource.indexCount, 1, 0, 0, 0);
 	}
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE Model::GetTextureHandle(const MeshResource& meshResource) const
+{
+	if (overrideTexture_.ptr != 0)
+	{
+		return overrideTexture_;
+	}
+	return TextureManager::GetInstance()->GetSrvHandleGPU(meshResource.textureIndex);
 }
 
 MaterialData Model::LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename)

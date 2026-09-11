@@ -540,6 +540,12 @@
     <ClCompile Include="graphics\view\RenderView.cpp">
       <Filter>graphics\view</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\view\StageMonitor.cpp">
+      <Filter>graphics\view</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\track\ScreenTrack.cpp">
+      <Filter>sequencer\track</Filter>
+    </ClCompile>
     <ClCompile Include="graphics\atmosphere\BeamRenderer.cpp">
       <Filter>graphics\atmosphere</Filter>
     </ClCompile>
@@ -1141,6 +1147,15 @@
     </ClInclude>
     <ClInclude Include="graphics\view\RenderView.h">
       <Filter>graphics\view</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\view\ISubViewProvider.h">
+      <Filter>graphics\view</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\view\StageMonitor.h">
+      <Filter>graphics\view</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\track\ScreenTrack.h">
+      <Filter>sequencer\track</Filter>
     </ClInclude>
     <ClInclude Include="graphics\atmosphere\BeamRenderer.h">
       <Filter>graphics\atmosphere</Filter>
