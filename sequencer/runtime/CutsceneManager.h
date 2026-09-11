@@ -14,6 +14,7 @@ class BeamRenderer;
 class Camera;
 class CameraManager;
 class FogRenderer;
+class TextOverlay;
 class LightManager;
 class PostProcessManager;
 
@@ -101,6 +102,9 @@ public:
 
 	/** @brief トラックが駆動する大気（フォグとビーム）を設定する */
 	void SetAtmosphere(FogRenderer* fogRenderer, BeamRenderer* beamRenderer);
+
+	/** @brief Text トラックの出力先を渡す（Framework 所有） */
+	void SetTextOverlay(TextOverlay* textOverlay);
 
 	void Finalize();
 

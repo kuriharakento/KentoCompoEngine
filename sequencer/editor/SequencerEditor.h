@@ -17,6 +17,7 @@ class BeamRenderer;
 class Camera;
 class CameraManager;
 class FogRenderer;
+class TextOverlay;
 class LightManager;
 class PostProcessManager;
 
@@ -90,6 +91,9 @@ public:
 	 * @details 大気はシーケンサより後に作られるため、初期化とは別に渡す。
 	 */
 	void SetAtmosphere(FogRenderer* fogRenderer, BeamRenderer* beamRenderer);
+
+	/** @brief Text トラックの出力先を渡す（Framework 所有） */
+	void SetTextOverlay(TextOverlay* textOverlay);
 
 public:
 	~SequencerEditor() = default;
@@ -254,6 +258,7 @@ public:
 		player_.GetBindingContext().SetFogRenderer(fogRenderer);
 		player_.GetBindingContext().SetBeamRenderer(beamRenderer);
 	}
+	void SetTextOverlay(TextOverlay* textOverlay) { player_.GetBindingContext().SetTextOverlay(textOverlay); }
 
 public:
 	~SequencerEditor() = default;

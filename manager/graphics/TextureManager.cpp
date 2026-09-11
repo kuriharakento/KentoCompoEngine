@@ -221,6 +221,30 @@ void TextureManager::LoadTexture(const std::string& filePath)
 	indexToFilePath_[textureData.srvIndex] = normalizedPath;
 }
 
+void TextureManager::LoadTextureFromImage(const std::string& key, const DirectX::ScratchImage& image)
+{
+	const std::string normalizedPath = NormalizePath(key);
+	if (textureDatas_.contains(normalizedPath) || filePathToIndex_.contains(normalizedPath))
+	{
+		return;
+	}
+	assert(!srvManager_->IsMaxSRVCount());
+
+	TextureData& textureData = textureDatas_[normalizedPath];
+	textureData.metadata = image.GetMetadata();
+	textureData.resource = dxCommon_->CreateTextureResource(textureData.metadata);
+	// 中間リソースは ClearIntermediateResources まで持っておく
+	intermediateResources_.push_back(UploadTextureData(textureData.resource, image));
+
+	textureData.srvIndex = srvManager_->Allocate();
+	srvManager_->CreateSRVforTexture2D(textureData.srvIndex, textureData.resource.Get(), textureData.metadata.format, static_cast<UINT>(textureData.metadata.mipLevels));
+	textureData.srvHandleCPU = srvManager_->GetCPUDescriptorHandle(textureData.srvIndex);
+	textureData.srvHandleGPU = srvManager_->GetGPUDescriptorHandle(textureData.srvIndex);
+
+	filePathToIndex_[normalizedPath] = textureData.srvIndex;
+	indexToFilePath_[textureData.srvIndex] = normalizedPath;
+}
+
 void TextureManager::ClearIntermediateResources()
 {
 	// 中間リソースを一括解放

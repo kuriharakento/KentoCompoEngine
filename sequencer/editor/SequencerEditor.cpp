@@ -230,6 +230,11 @@ void SequencerEditor::SetAtmosphere(FogRenderer* fogRenderer, BeamRenderer* beam
 	player_.GetBindingContext().SetBeamRenderer(beamRenderer);
 }
 
+void SequencerEditor::SetTextOverlay(TextOverlay* textOverlay)
+{
+	player_.GetBindingContext().SetTextOverlay(textOverlay);
+}
+
 Camera* SequencerEditor::GetSequenceCamera() const
 {
 	return player_.GetBindingContext().GetCamera(kCameraRole);

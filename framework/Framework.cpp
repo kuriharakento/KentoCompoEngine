@@ -92,6 +92,13 @@ void Framework::Initialize()
 	spriteCommon_ = std::make_unique<SpriteCommon>();
 	spriteCommon_->Initialize(dxCommon_.get());
 
+	// ゲーム内の日本語の文字。転送を今のコマンドに積むので、GPU の完了待ちより前に焼く
+	constexpr uint32_t kGlyphAtlasFontSize = 48;
+	glyphAtlas_ = std::make_unique<GlyphAtlas>();
+	glyphAtlas_->Build(kGlyphAtlasFontSize);
+	textOverlay_ = std::make_unique<TextOverlay>();
+	textOverlay_->Initialize(spriteCommon_.get(), glyphAtlas_.get());
+
 	// 3Dオブジェクト共通部の初期化
 	objectCommon_ = std::make_unique<Object3dCommon>();
 	objectCommon_->Initialize(dxCommon_.get(), srvManager_.get());
@@ -290,11 +297,13 @@ void Framework::Initialize()
 	// シーケンサのトラックからフォグの濃さとビームの明るさを動かせるようにする。
 	// シーケンサの初期化はこれらより前なので、ここで後から渡す
 	SequencerEditor::GetInstance()->SetAtmosphere(fogRenderer_.get(), beamRenderer_.get());
+	SequencerEditor::GetInstance()->SetTextOverlay(textOverlay_.get());
 
 	// ゲームからカットシーンを再生する窓口
 	CutsceneManager* cutscene = CutsceneManager::GetInstance();
 	cutscene->Initialize(cameraManager_.get(), lightManager_.get(), postProcessManager_.get());
 	cutscene->SetAtmosphere(fogRenderer_.get(), beamRenderer_.get());
+	cutscene->SetTextOverlay(textOverlay_.get());
 #ifdef USE_IMGUI
 	cutscene->RegisterDebugUI();
 #endif
@@ -413,6 +422,9 @@ void Framework::Finalize()
 	subViewPipeline_.reset();
 	subViews_.clear();
 	ownedSubViews_.clear();
+	// 文字の Sprite は GPU リソースを持つので、デバイスより先に畳む
+	textOverlay_.reset();
+	glyphAtlas_.reset();
 
 	GameObjectEditor::GetInstance()->Finalize();
 	JsonEditor::GetInstance()->Finalize();
@@ -492,6 +504,7 @@ RenderPassContext Framework::MakeRenderPassContext(RenderView* view, RenderTextu
 	ctx.fogRenderer = fogRenderer_.get();
 	ctx.beamRenderer = beamRenderer_.get();
 	ctx.outlineRenderer = outlineRenderer_.get();
+	ctx.textOverlay = textOverlay_.get();
 	return ctx;
 }
 

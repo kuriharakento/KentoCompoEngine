@@ -5,6 +5,7 @@
 #include "base/RenderTexture.h"
 #include "effects/particle/ParticleManager.h"
 #include "graphics/2d/SpriteCommon.h"
+#include "graphics/2d/TextOverlay.h"
 #include "graphics/3d/Object3dCommon.h"
 #include "graphics/3d/Skybox.h"
 #include "graphics/deferred/DeferredRenderer.h"
@@ -410,6 +411,12 @@ void Sprite2DPass::Execute(const RenderPassContext& ctx)
 
 	ApplyCommon2DRenderingSetting(ctx);
 	ctx.sceneManager->Draw2D();
+
+	// 歌詞や会話はシーンの 2D より手前に重ねる
+	if (ctx.textOverlay)
+	{
+		ctx.textOverlay->Draw();
+	}
 
 	if (ctx.outputTarget)
 	{

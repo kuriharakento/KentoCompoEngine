@@ -14,6 +14,7 @@ class BeamRenderer;
 class FogRenderer;
 class LightManager;
 class PostProcessManager;
+class TextOverlay;
 
 /**
  * @brief 役（ロール）に割り当てられる実体の型
@@ -127,6 +128,10 @@ public:
 	void SetBeamRenderer(BeamRenderer* beamRenderer) { beamRenderer_ = beamRenderer; }
 	BeamRenderer* GetBeamRenderer() const { return beamRenderer_; }
 
+	// 歌詞と会話の出力先。画面に1つ
+	void SetTextOverlay(TextOverlay* textOverlay) { textOverlay_ = textOverlay; }
+	TextOverlay* GetTextOverlay() const { return textOverlay_; }
+
 	// --- 原点 ---
 
 	/**
@@ -170,6 +175,7 @@ private:
 	PostProcessManager* postProcessManager_ = nullptr;
 	FogRenderer* fogRenderer_ = nullptr;
 	BeamRenderer* beamRenderer_ = nullptr;
+	TextOverlay* textOverlay_ = nullptr;
 	SequenceOrigin origin_;
 };
 } // namespace KCE

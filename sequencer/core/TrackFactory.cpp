@@ -5,6 +5,7 @@
 #include "sequencer/track/LightTrack.h"
 #include "sequencer/track/PostProcessTrack.h"
 #include "sequencer/track/ScreenTrack.h"
+#include "sequencer/track/TextTrack.h"
 #include "sequencer/track/TransformTrack.h"
 
 namespace KCE
@@ -19,6 +20,7 @@ const char* const kCreatableTypeNames[] = {
 	"PostProcess",
 	"Event",
 	"Screen",
+	"Text",
 };
 } // namespace
 
@@ -30,6 +32,7 @@ TrackPtr TrackFactory::Create(const std::string& typeName)
 	if (typeName == "PostProcess") { return std::make_unique<PostProcessTrack>(); }
 	if (typeName == "Event") { return std::make_unique<EventTrack>(); }
 	if (typeName == "Screen") { return std::make_unique<ScreenTrack>(); }
+	if (typeName == "Text") { return std::make_unique<TextTrack>(); }
 
 	// 未知の種別。新しいバージョンで保存されたデータを開いた場合に起きる。
 	// 落とさずに nullptr を返し、呼び出し側で読み飛ばす。
@@ -46,6 +49,7 @@ TrackPtr TrackFactory::Create(TrackType type)
 	case TrackType::PostProcess: return std::make_unique<PostProcessTrack>();
 	case TrackType::Event:       return std::make_unique<EventTrack>();
 	case TrackType::Screen:      return std::make_unique<ScreenTrack>();
+	case TrackType::Text:        return std::make_unique<TextTrack>();
 	default:                     return nullptr;
 	}
 }

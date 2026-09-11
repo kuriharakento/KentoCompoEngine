@@ -540,6 +540,18 @@
     <ClCompile Include="graphics\view\RenderView.cpp">
       <Filter>graphics\view</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\2d\GlyphAtlas.cpp">
+      <Filter>graphics\2d</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\2d\TextOverlay.cpp">
+      <Filter>graphics\2d</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\2d\TextSprite.cpp">
+      <Filter>graphics\2d</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\track\TextTrack.cpp">
+      <Filter>sequencer\track</Filter>
+    </ClCompile>
     <ClCompile Include="graphics\view\StageMonitor.cpp">
       <Filter>graphics\view</Filter>
     </ClCompile>
@@ -1147,6 +1159,18 @@
     </ClInclude>
     <ClInclude Include="graphics\view\RenderView.h">
       <Filter>graphics\view</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\2d\GlyphAtlas.h">
+      <Filter>graphics\2d</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\2d\TextOverlay.h">
+      <Filter>graphics\2d</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\2d\TextSprite.h">
+      <Filter>graphics\2d</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\track\TextTrack.h">
+      <Filter>sequencer\track</Filter>
     </ClInclude>
     <ClInclude Include="graphics\view\ISubViewProvider.h">
       <Filter>graphics\view</Filter>

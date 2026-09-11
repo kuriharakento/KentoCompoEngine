@@ -17,6 +17,8 @@
 // graphics
 #include "graphics/3d/Skybox.h"
 #include "graphics/2d/SpriteCommon.h"
+#include "graphics/2d/GlyphAtlas.h"
+#include "graphics/2d/TextOverlay.h"
 #include "graphics/3d/Object3dCommon.h"
 // shadow
 #include "manager/graphics/ShadowMapManager.h"
@@ -211,6 +213,10 @@ protected: // メンバ変数
 	std::unique_ptr<ImGuiManager> imguiManager_;
 	// スプライト共通部
 	std::unique_ptr<SpriteCommon> spriteCommon_;
+	// ゲーム内の日本語の文字（Windows のフォントから焼いたアトラス）
+	std::unique_ptr<GlyphAtlas> glyphAtlas_;
+	// 歌詞テロップと会話枠。シーケンサの Text トラックが中身を決める
+	std::unique_ptr<TextOverlay> textOverlay_;
 	// 3Dオブジェクト共通部
 	std::unique_ptr<Object3dCommon> objectCommon_;
 	std::unique_ptr<FrameConstantAllocator> frameConstantAllocator_;

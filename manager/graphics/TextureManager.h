@@ -49,6 +49,15 @@ public:
 	void LoadTexture(const std::string& filePath);
 
 	/**
+	 * @brief メモリ上の画像をテクスチャとして登録する（実行時に作った文字アトラスなど）
+	 * @details 転送は今のコマンドリストに積むので、初期化中（GPU の完了待ちより前）に呼ぶこと。
+	 *          同じ名前が登録済みなら何もしない。
+	 * @param key 登録名。以降は LoadTexture で読んだものと同じようにこの名前で引ける
+	 * @param image 画像。ミップは作らない（渡したものをそのまま使う）
+	 */
+	void LoadTextureFromImage(const std::string& key, const DirectX::ScratchImage& image);
+
+	/**
 	 * @brief 中間リソースを解放する
 	 * @details GPUへの転送完了を待機した後に呼び出すこと
 	 */

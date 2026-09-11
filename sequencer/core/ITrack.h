@@ -21,6 +21,7 @@ enum class TrackType
 	PostProcess, //!< ポストプロセスのパラメータ
 	Event,		 //!< ゲーム側へのコールバック
 	Screen,		 //!< ステージの画面（モニター）
+	Text,		 //!< 歌詞テロップ・会話
 	Unknown,	 //!< 未知（前方互換のためのプレースホルダ）
 };
 

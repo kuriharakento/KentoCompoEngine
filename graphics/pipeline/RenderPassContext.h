@@ -20,6 +20,7 @@ class ShadowMapPipeline;
 class Skybox;
 class SpriteCommon;
 class SrvManager;
+class TextOverlay;
 
 /**
  * @brief 描画パスが1フレームの実行に必要とするものをまとめた入れ物
@@ -106,6 +107,10 @@ struct RenderPassContext
 	// --- NPR ---
 	//! アウトライン（輪郭線）
 	OutlineRenderer* outlineRenderer = nullptr;
+
+	// --- 文字 ---
+	//! 歌詞テロップと会話枠（2D の一番手前）
+	TextOverlay* textOverlay = nullptr;
 
 	/**
 	 * @brief 最低限の要素が揃っているか

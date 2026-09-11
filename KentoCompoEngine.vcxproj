@@ -123,6 +123,9 @@
     <ClCompile Include="core\Guid.cpp" />
     <ClCompile Include="effects\postprocess\TonemapEffect.cpp" />
     <ClCompile Include="graphics\FrameConstantAllocator.cpp" />
+    <ClCompile Include="graphics\2d\GlyphAtlas.cpp" />
+    <ClCompile Include="graphics\2d\TextOverlay.cpp" />
+    <ClCompile Include="graphics\2d\TextSprite.cpp" />
     <ClCompile Include="graphics\pipeline\RenderPipeline.cpp" />
     <ClCompile Include="graphics\pipeline\StandardRenderPasses.cpp" />
     <ClCompile Include="graphics\view\RenderView.cpp" />
@@ -148,6 +151,7 @@
     <ClCompile Include="sequencer\track\LightTrack.cpp" />
     <ClCompile Include="sequencer\track\PostProcessTrack.cpp" />
     <ClCompile Include="sequencer\track\ScreenTrack.cpp" />
+    <ClCompile Include="sequencer\track\TextTrack.cpp" />
     <ClCompile Include="sequencer\track\TransformTrack.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -337,6 +341,9 @@
     <ClInclude Include="graphics\view\ISubViewProvider.h" />
     <ClInclude Include="graphics\view\RenderView.h" />
     <ClInclude Include="graphics\view\StageMonitor.h" />
+    <ClInclude Include="graphics\2d\GlyphAtlas.h" />
+    <ClInclude Include="graphics\2d\TextOverlay.h" />
+    <ClInclude Include="graphics\2d\TextSprite.h" />
     <ClInclude Include="graphics\atmosphere\BeamRenderer.h" />
     <ClInclude Include="graphics\atmosphere\FogRenderer.h" />
     <ClInclude Include="graphics\npr\OutlineRenderer.h" />
@@ -364,6 +371,7 @@
     <ClInclude Include="sequencer\track\LightTrack.h" />
     <ClInclude Include="sequencer\track\PostProcessTrack.h" />
     <ClInclude Include="sequencer\track\ScreenTrack.h" />
+    <ClInclude Include="sequencer\track\TextTrack.h" />
     <ClInclude Include="sequencer\track\TransformTrack.h" />
     <ClInclude Include="sequencer\core\CurveChannel.h" />
   </ItemGroup>
