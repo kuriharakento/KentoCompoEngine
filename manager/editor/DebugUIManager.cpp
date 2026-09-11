@@ -246,6 +246,32 @@ void DebugUIManager::Clear()
 
 void DebugUIManager::Draw()
 {
+	// 指定した場所に今ドッキングされているウィンドウを探して、そのドッキング先を返す。無ければ 0
+	const auto findDockIdForLocation = [this](DebugUIDockLocation location) -> ImGuiID
+	{
+		const auto dockIdOf = [](const char* name) -> ImGuiID
+		{
+			const ImGuiWindow* window = ImGui::FindWindowByName(name);
+			return window ? window->DockId : 0;
+		};
+		for (const auto& [otherOwner, otherList] : debugUIs_)
+		{
+			for (const auto& other : otherList)
+			{
+				if (other.name == "Sequencer Gizmo" || GetDockLocation(other) != location)
+				{
+					continue;
+				}
+				if (const ImGuiID dockId = dockIdOf(other.name.c_str()))
+				{
+					return dockId;
+				}
+			}
+		}
+		// Console はアプリ側で開くウィンドウなので、下の段の目印として別に見る
+		return (location == DebugUIDockLocation::Bottom) ? dockIdOf("Console") : 0;
+	};
+
 	for (auto& [owner, list] : debugUIs_)
 	{
 		for (auto& ui : list)
@@ -253,6 +279,23 @@ void DebugUIManager::Draw()
 			// ギズモだけはScene画像と同じ描画リストが必要なので、Scene内で呼ぶ。
 			if (ui.name != "Sequencer Gizmo" && ui.visible)
 			{
+				// シーンを切り替えたときなど、初期レイアウトの後に登録された UI は行き先を知らず、
+				// そのままだと左上に浮いて出る。初めて開くとき（imgui.ini に設定が無いとき）だけ、表で決めた場所へ入れる
+				const bool isFirstOpen = !ImGui::FindWindowByName(ui.name.c_str()) && !ImGui::FindWindowSettingsByID(ImHashStr(ui.name.c_str()));
+				if (isFirstOpen)
+				{
+					if (const ImGuiID dockId = findDockIdForLocation(GetDockLocation(ui)))
+					{
+						ImGui::SetNextWindowDockID(dockId, ImGuiCond_FirstUseEver);
+					}
+					else
+					{
+						// 同じ場所に目印が無ければ、左上ではなく画面の真ん中に出す
+						constexpr float kCenterPivot = 0.5f;
+						ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_FirstUseEver, ImVec2(kCenterPivot, kCenterPivot));
+					}
+				}
+
 				const bool wasVisible = ui.visible;
 				if (ImGui::Begin(ui.name.c_str(), &ui.visible))
 				{
