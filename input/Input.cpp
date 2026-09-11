@@ -1,6 +1,7 @@
 #include "input/Input.h"
 #include "base/WinApp.h"
 #include "base/Logger.h"
+#include "editor/SceneViewContext.h"
 
 #include <cassert>
 #include <cstring>
@@ -522,6 +523,12 @@ bool Input::IsUICapturingMouse() const
 {
 #ifdef USE_IMGUI
 	if (!isUICaptureEnabled_ || !ImGui::GetCurrentContext())
+	{
+		return false;
+	}
+	// シーン画像も ImGui のウィンドウの中なので、上にあるだけで WantCaptureMouse が立つ。
+	// そこはゲームの画面なので、デバッグカメラの右ドラッグなどが届くようにマウスはゲームへ渡す
+	if (SceneViewContext::HasInstance() && SceneViewContext::GetInstance()->IsHovered())
 	{
 		return false;
 	}

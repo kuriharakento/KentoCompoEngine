@@ -60,6 +60,19 @@ public:
 	Camera* GetCamera() const { return camera_; }
 
 	/**
+	 * @brief シーン画像の上にマウスがあるかを設定する
+	 * @param hovered アプリがシーン画像を描いた直後の ImGui::IsItemHovered() の結果
+	 */
+	void SetHovered(bool hovered) { hovered_ = hovered; }
+
+	/**
+	 * @brief シーン画像の上にマウスがあるか
+	 * @details Input はこれを見て、シーン画像の上ではマウスをゲーム側へ渡す。
+	 *          アプリが描いた後に更新されるので、次のフレームの Input::Update では1フレーム前の値になる。
+	 */
+	bool IsHovered() const { return hovered_; }
+
+	/**
 	 * @brief ギズモを描ける状態か
 	 * @return 矩形とカメラが揃っていれば真
 	 */
@@ -80,5 +93,7 @@ private:
 	SceneViewRect rect_;
 	// シーンを描いているカメラ
 	Camera* camera_ = nullptr;
+	// シーン画像の上にマウスがあるか
+	bool hovered_ = false;
 };
 } // namespace KCE
