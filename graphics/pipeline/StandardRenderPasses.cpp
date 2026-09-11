@@ -427,9 +427,11 @@ void BuildStandardRenderPipeline(RenderPipeline& pipeline)
 	pipeline.AddPass(std::make_unique<ShadowMapPass>());
 	pipeline.AddPass(std::make_unique<GBufferPass>());
 	pipeline.AddPass(std::make_unique<LightingPass>());
+	// 輪郭線は G-Buffer から拾うので、フォワード描画より前に引く。
+	// 後に引くと、G-Buffer に何も書かないフォワードの物体の上に、その奥の物体の線が透けて出る
+	pipeline.AddPass(std::make_unique<OutlinePass>());
 	pipeline.AddPass(std::make_unique<ForwardOpaquePass>());
 	pipeline.AddPass(std::make_unique<SkyboxPass>());
-	pipeline.AddPass(std::make_unique<OutlinePass>());
 	pipeline.AddPass(std::make_unique<FogPass>());
 	pipeline.AddPass(std::make_unique<TransparentPass>());
 	pipeline.AddPass(std::make_unique<BeamPass>());
@@ -447,9 +449,11 @@ void BuildSceneOnlyRenderPipeline(RenderPipeline& pipeline)
 	// シャドウマップは本編のパイプラインが作ったものをそのまま使う
 	pipeline.AddPass(std::make_unique<GBufferPass>());
 	pipeline.AddPass(std::make_unique<LightingPass>());
+	// 輪郭線は G-Buffer から拾うので、フォワード描画より前に引く。
+	// 後に引くと、G-Buffer に何も書かないフォワードの物体の上に、その奥の物体の線が透けて出る
+	pipeline.AddPass(std::make_unique<OutlinePass>());
 	pipeline.AddPass(std::make_unique<ForwardOpaquePass>());
 	pipeline.AddPass(std::make_unique<SkyboxPass>());
-	pipeline.AddPass(std::make_unique<OutlinePass>());
 	pipeline.AddPass(std::make_unique<FogPass>());
 	pipeline.AddPass(std::make_unique<TransparentPass>());
 	pipeline.AddPass(std::make_unique<BeamPass>());

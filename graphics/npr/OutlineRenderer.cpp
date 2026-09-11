@@ -160,8 +160,9 @@ void OutlineRenderer::Draw(Camera* camera, GBuffer* gBuffer, D3D12_CPU_DESCRIPTO
 
 	auto* commandList = dxCommon_->GetCommandList();
 
-	// 深度を読むために SRV へ切り替え、深度はバインドしない
-	gBuffer->TransitionDepthToSRV();
+	// ライティングの直後に呼ばれる前提。G-Buffer を描き終えた時点で深度は SRV になっているので、
+	// ここでは切り替えない（GBuffer の遷移は遷移前の状態を決め打ちしていて、二重に呼ぶと D3D12 のエラーになる）。
+	// 深度はバインドしない
 	commandList->OMSetRenderTargets(1, &sceneColorRtv, FALSE, nullptr);
 
 	commandList->SetGraphicsRootSignature(rootSignature_.Get());
@@ -171,8 +172,7 @@ void OutlineRenderer::Draw(Camera* camera, GBuffer* gBuffer, D3D12_CPU_DESCRIPTO
 	commandList->SetGraphicsRootDescriptorTable(kRootParamGBuffer, srvManager_->GetGPUDescriptorHandle(gBuffer->GetSRVIndex(0)));
 	commandList->DrawInstanced(3, 1, 0, 0);
 
-	// 後続のパスは深度を書き込み用として使うので戻す
-	gBuffer->TransitionDepthToDepthWrite();
+	// 深度を書き込み用へ戻すのは、次のフォワード描画のパスがやる
 }
 
 #ifdef USE_IMGUI
