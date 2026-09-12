@@ -20,6 +20,8 @@
 #include "graphics/npr/OutlineRenderer.h"
 #include "graphics/view/RenderView.h"
 #include "graphics/shadow/ShadowMapPipeline.h"
+#include "gameobject/base/GameObject.h"
+#include "gameobject/manager/GameObjectManager.h"
 #include "manager/effect/PostProcessManager.h"
 #include "manager/graphics/LineManager.h"
 #include "manager/graphics/ShadowMapManager.h"
@@ -40,6 +42,87 @@ constexpr UINT kRootParamCascadeShadowData = 11;
 constexpr UINT kRootParamCascadeShadowSrvBase = 12;
 /** @brief シャドウマップ描画時に行列を差すルートパラメータ番号 */
 constexpr UINT kRootParamShadowPassMatrix = 0;
+constexpr uint64_t kShadowHashOffset = 14695981039346656037ull;
+constexpr uint64_t kShadowHashPrime = 1099511628211ull;
+
+void HashShadowBytes(uint64_t& hash, const void* data, size_t size)
+{
+	const auto* bytes = static_cast<const uint8_t*>(data);
+	for (size_t index = 0; index < size; ++index)
+	{
+		hash ^= bytes[index];
+		hash *= kShadowHashPrime;
+	}
+}
+
+template<class Value>
+void HashShadowValue(uint64_t& hash, const Value& value)
+{
+	HashShadowBytes(hash, &value, sizeof(value));
+}
+
+void HashShadowCaster(uint64_t& hash, const GameObject& object, bool& hasAnimatedCaster)
+{
+	const auto* renderable = object.GetRenderable3d();
+	const bool isActive = object.IsActive() && !object.IsPendingDestroy();
+	bool castsShadow = renderable != nullptr;
+	if (const auto* object3d = object.GetObject3d())
+	{
+		castsShadow = object3d->GetCastShadow();
+	}
+
+	HashShadowValue(hash, &object);
+	HashShadowValue(hash, renderable);
+	HashShadowValue(hash, isActive);
+	HashShadowValue(hash, castsShadow);
+	if (isActive && castsShadow)
+	{
+		HashShadowValue(hash, object.GetPosition());
+		HashShadowValue(hash, object.GetRotation());
+		HashShadowValue(hash, object.GetScale());
+		HashShadowValue(hash, object.GetModel());
+		hasAnimatedCaster = hasAnimatedCaster || object.GetSkinnedObject3d() != nullptr;
+	}
+
+	for (const auto& [name, child] : object.GetChildren())
+	{
+		if (child)
+		{
+			HashShadowCaster(hash, *child, hasAnimatedCaster);
+		}
+	}
+}
+
+uint64_t GetShadowCasterState(bool& hasAnimatedCaster)
+{
+	uint64_t hash = kShadowHashOffset;
+	hasAnimatedCaster = false;
+	if (!GameObjectManager::HasInstance())
+	{
+		return hash;
+	}
+
+	const auto& objects = GameObjectManager::GetInstance()->GetGameObjects();
+	HashShadowValue(hash, objects.size());
+	for (const GameObject* object : objects)
+	{
+		if (object)
+		{
+			HashShadowCaster(hash, *object, hasAnimatedCaster);
+		}
+	}
+	return hash;
+}
+
+uint64_t GetSpotLightShadowState(const CPUSpotLight& light)
+{
+	uint64_t hash = kShadowHashOffset;
+	HashShadowValue(hash, light.gpuData.position);
+	HashShadowValue(hash, light.gpuData.direction);
+	HashShadowValue(hash, light.gpuData.distance);
+	HashShadowValue(hash, light.gpuData.cosAngle);
+	return hash;
+}
 /** @brief ポイントライトのキューブマップの面数 */
 constexpr uint32_t kPointLightFaceCount = 6;
 } // namespace
@@ -96,6 +179,7 @@ void ShadowMapPass::Execute(const RenderPassContext& ctx)
 	}
 
 	auto* commandList = ctx.dxCommon->GetCommandList();
+	ctx.shadowMapManager->BeginFrame();
 
 	// カスケードシャドウ行列を計算する
 	ctx.lightManager->UpdateCascadeShadowMatrices(
@@ -120,6 +204,8 @@ void ShadowMapPass::Execute(const RenderPassContext& ctx)
 	}
 
 	// スポットライトシャドウマップ描画
+	bool hasAnimatedCaster = false;
+	const uint64_t casterState = GetShadowCasterState(hasAnimatedCaster);
 	auto& spotLights = ctx.lightManager->GetSpotLights();
 	for (auto& [name, light] : spotLights)
 	{
@@ -131,6 +217,13 @@ void ShadowMapPass::Execute(const RenderPassContext& ctx)
 		if (!ctx.shadowMapManager->HasSpotLightShadowMap(name))
 		{
 			ctx.shadowMapManager->CreateSpotLightShadowMap(name);
+		}
+
+		const uint64_t lightState = GetSpotLightShadowState(light);
+		if (!hasAnimatedCaster &&
+			!ctx.shadowMapManager->NeedsSpotLightShadowRedraw(name, lightState, casterState))
+		{
+			continue;
 		}
 
 		ctx.shadowMapManager->BeginSpotLightShadowPass(name);
@@ -145,6 +238,7 @@ void ShadowMapPass::Execute(const RenderPassContext& ctx)
 
 		ctx.sceneManager->DrawShadow();
 		ctx.shadowMapManager->EndShadowPass();
+		ctx.shadowMapManager->MarkSpotLightShadowRedrawn(name, lightState, casterState);
 	}
 
 	// ポイントライトシャドウマップ描画（6面キューブマップ）

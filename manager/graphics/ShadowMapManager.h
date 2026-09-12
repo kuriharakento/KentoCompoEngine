@@ -1,6 +1,7 @@
 #pragma once
 #include <unordered_map>
 #include <string>
+#include <cstdint>
 #include <wrl.h>
 #include <d3d12.h>
 
@@ -94,6 +95,32 @@ public:
      * @brief 全シャドウマップの削除
      */
     void Clear();
+
+	/** @brief フレーム先頭でスポットライト影の更新数をリセットする */
+	void BeginFrame();
+
+	/**
+	 * @brief スポットライトの影を描き直す必要があるか調べる
+	 * @param name ライト名
+	 * @param lightState ライトの位置・向き・範囲・角度の指紋
+	 * @param casterState 影キャスター全体の指紋
+	 * @return 初回または前回から状態が変わっていればtrue
+	 */
+	bool NeedsSpotLightShadowRedraw(const std::string& name, uint64_t lightState, uint64_t casterState) const;
+
+	/**
+	 * @brief 描画を終えたスポットライトの状態を記録する
+	 * @param name ライト名
+	 * @param lightState ライト状態の指紋
+	 * @param casterState 影キャスター状態の指紋
+	 */
+	void MarkSpotLightShadowRedrawn(const std::string& name, uint64_t lightState, uint64_t casterState);
+
+	/** @brief 次のフレームですべてのスポットライト影を描き直す */
+	void InvalidateSpotLightShadows();
+
+	/** @brief このフレームで描き直したスポットライト影の数 */
+	uint32_t GetSpotLightShadowRedrawCount() const { return spotLightShadowRedrawCount_; }
 
 public: // ゲッター
     /**
@@ -226,6 +253,16 @@ private:
 
     // スポットライト用シャドウマップ（名前 -> シャドウマップ）
     std::unordered_map<std::string, ShadowMap> spotLightShadowMaps_;
+
+	struct SpotLightShadowCacheState
+	{
+		uint64_t lightState = 0;
+		uint64_t casterState = 0;
+		uint64_t invalidationGeneration = 0;
+	};
+	std::unordered_map<std::string, SpotLightShadowCacheState> spotLightShadowCache_;
+	uint64_t spotLightInvalidationGeneration_ = 1;
+	uint32_t spotLightShadowRedrawCount_ = 0;
 
     // ポイントライト用シャドウマップ（名前 -> シャドウマップ）
     std::unordered_map<std::string, PointLightShadowMap> pointLightShadowMaps_;

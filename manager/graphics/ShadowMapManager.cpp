@@ -4,9 +4,20 @@
 #include "DirectXTex/d3dx12.h"
 #include <cassert>
 
+#ifdef USE_IMGUI
+#include "externals/imgui/imgui.h"
+#include "manager/editor/DebugUIManager.h"
+#endif
+
 namespace KCE
 {
 ShadowMapManager::~ShadowMapManager() {
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance())
+	{
+		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+	}
+#endif
     // リソースはComPtrで自動解放されるため、特別な処理は不要
 }
 
@@ -36,6 +47,17 @@ void ShadowMapManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManage
     directionalLightShadowMap_.isEnabled = false;
     
     KCE::Logger::Log("ShadowMapManager initialized\n");
+
+#ifdef USE_IMGUI
+	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Shadow Maps", [this]()
+	{
+		ImGui::Text("Spot shadows redrawn this frame: %u", spotLightShadowRedrawCount_);
+		if (ImGui::Button("Redraw all spot shadows"))
+		{
+			InvalidateSpotLightShadows();
+		}
+	}, DebugUIArea::Inspector);
+#endif
 }
 
 void ShadowMapManager::CreateDirectionalLightShadowMap(uint32_t resolution) {
@@ -345,8 +367,37 @@ void ShadowMapManager::EndShadowPass() {
 
 void ShadowMapManager::Clear() {
     spotLightShadowMaps_.clear();
+	spotLightShadowCache_.clear();
+	InvalidateSpotLightShadows();
     pointLightShadowMaps_.clear();
     directionalLightShadowMap_.isEnabled = false;
+}
+
+void ShadowMapManager::BeginFrame()
+{
+	spotLightShadowRedrawCount_ = 0;
+}
+
+bool ShadowMapManager::NeedsSpotLightShadowRedraw(
+	const std::string& name, uint64_t lightState, uint64_t casterState) const
+{
+	auto it = spotLightShadowCache_.find(name);
+	return it == spotLightShadowCache_.end() ||
+		it->second.lightState != lightState ||
+		it->second.casterState != casterState ||
+		it->second.invalidationGeneration != spotLightInvalidationGeneration_;
+}
+
+void ShadowMapManager::MarkSpotLightShadowRedrawn(
+	const std::string& name, uint64_t lightState, uint64_t casterState)
+{
+	spotLightShadowCache_[name] = { lightState, casterState, spotLightInvalidationGeneration_ };
+	++spotLightShadowRedrawCount_;
+}
+
+void ShadowMapManager::InvalidateSpotLightShadows()
+{
+	++spotLightInvalidationGeneration_;
 }
 
 const ShadowMap& ShadowMapManager::GetSpotLightShadowMap(const std::string& name) const {
