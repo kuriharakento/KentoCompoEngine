@@ -217,6 +217,8 @@ private: // 描画用変数
 private: // メンバ変数
 	// テクスチャ番号
 	uint32_t textureIndex_ = 0;
+	// テクスチャ全体の大きさ（ピクセル）。UV の計算で毎フレーム使うので、差し替えたときに覚えておく
+	KCE::Vector2 textureDimension_ = { 1.0f, 1.0f };
 
 	// 座標
 	KCE::Vector2 position_ = { 0.0f,0.0f };
