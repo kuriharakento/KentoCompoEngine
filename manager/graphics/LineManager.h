@@ -11,6 +11,7 @@
 namespace KCE
 {
 class CameraManager;
+class FrameConstantAllocator;
 
 /**
  * @brief ライン描画マネージャークラス
@@ -31,6 +32,12 @@ public:
 	 * @param cameraManager カメラマネージャーへのポインタ
 	 */
     void Initialize(DirectXCommon* dxCommon,CameraManager* cameraManager);
+
+	/**
+	 * @brief ビューごとの頂点と行列を書く、フレーム単位の置き場を渡す
+	 * @param allocator 所有しない（Framework が先に死なない前提）
+	 */
+	void SetFrameConstantAllocator(FrameConstantAllocator* allocator) { frameConstantAllocator_ = allocator; }
 
 	/**
 	 * @brief ラインの描画処理
@@ -119,6 +126,8 @@ private:
     std::unique_ptr<Line> line_;             // Lineクラスのインスタンス
     DirectXCommon* dxCommon_ = nullptr;      // DirectXCommonへのポインタ
 	CameraManager* cameraManager_ = nullptr; // CameraManagerへのポインタ
+	// フレーム単位の置き場。所有しない
+	FrameConstantAllocator* frameConstantAllocator_ = nullptr;
 
 private:    // シングルトンインスタンス
 	static std::unique_ptr<LineManager> instance_;

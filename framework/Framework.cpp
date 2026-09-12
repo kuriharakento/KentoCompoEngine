@@ -166,6 +166,8 @@ void Framework::Initialize()
 
 	// ラインマネージャーの初期化
 	LineManager::GetInstance()->Initialize(dxCommon_.get(), cameraManager_.get());
+	// ラインもビューごとに頂点と行列を分けて書く（モニターや床の反射のカメラで上書きされないように）
+	LineManager::GetInstance()->SetFrameConstantAllocator(frameConstantAllocator_.get());
 
 	/*----- レンダーテクスチャ・ポストプロセスの初期化 -----*/
 

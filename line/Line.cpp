@@ -1,6 +1,7 @@
 #include "Line.h"
 #include "base/DirectXCommon.h"
 #include "base/Camera.h"
+#include "graphics/FrameConstantAllocator.h"
 
 namespace KCE
 {
@@ -113,6 +114,41 @@ void Line::Draw() {
 
     // 描画
     commandList->DrawInstanced(static_cast<UINT>(vertices_.size()), 1, 0, 0);
+}
+
+bool Line::DrawWithAllocator(Camera* camera, FrameConstantAllocator* allocator)
+{
+    if (vertices_.empty() || !camera || !allocator || vertices_.size() > kMaxVertexCount)
+    {
+        return false;
+    }
+
+    const size_t vertexBytes = sizeof(LineVertex) * vertices_.size();
+    auto vertexAllocation = allocator->Allocate(vertexBytes);
+    auto matrixAllocation = allocator->Allocate(sizeof(LineTransformationMatrix));
+    if (!vertexAllocation.cpuAddress || !matrixAllocation.cpuAddress)
+    {
+        return false;
+    }
+    std::memcpy(vertexAllocation.cpuAddress, vertices_.data(), vertexBytes);
+    LineTransformationMatrix matrix{};
+    matrix.World = MakeIdentity4x4();
+    matrix.WVP = matrix.World * camera->GetViewProjectionMatrix();
+    *static_cast<LineTransformationMatrix*>(matrixAllocation.cpuAddress) = matrix;
+
+    D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
+    vertexBufferView.BufferLocation = vertexAllocation.gpuAddress;
+    vertexBufferView.SizeInBytes = static_cast<UINT>(vertexBytes);
+    vertexBufferView.StrideInBytes = sizeof(LineVertex);
+
+    auto commandList = lineCommon_->GetDirectXCommon()->GetCommandList();
+    commandList->SetPipelineState(lineCommon_->GetPipelineState().Get());
+    commandList->SetGraphicsRootSignature(lineCommon_->GetRootSignature().Get());
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+    commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+    commandList->SetGraphicsRootConstantBufferView(0, matrixAllocation.gpuAddress);
+    commandList->DrawInstanced(static_cast<UINT>(vertices_.size()), 1, 0, 0);
+    return true;
 }
 
 void Line::Clear() {

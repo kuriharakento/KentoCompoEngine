@@ -72,6 +72,12 @@ void LineManager::RenderLines() {
 	{
 		return;
 	}
+	// ビューごとに頂点と行列を別の場所へ書いて描く。置き場が足りなければ従来の1本のバッファで描く
+	if (line_->DrawWithAllocator(cameraManager_->GetActiveCamera(), frameConstantAllocator_))
+	{
+		Clear();
+		return;
+	}
 	// 頂点データ、行列データの更新
     line_->Update(cameraManager_->GetActiveCamera());
 	// 描画

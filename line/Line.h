@@ -8,6 +8,7 @@
 namespace KCE
 {
 class Camera;
+class FrameConstantAllocator;
 
 /**
  * @brief ラインで描画する立方体
@@ -73,6 +74,16 @@ public:
 
     /** @brief 描くラインが無いか */
     bool IsEmpty() const { return vertices_.empty(); }
+
+    /**
+     * @brief 頂点と行列をフレームの置き場に書いて描く
+     * @details ラインはビュー（本編・モニター・床の反射）ごとに描かれる。自前の1本のバッファに書くと、
+     *          GPU が本編を描く前に後のビューのカメラと頂点で上書きされ、画面に貼り付いて見える。
+     * @param camera このビューのカメラ
+     * @param allocator フレーム単位の置き場
+     * @return 描けたら真。置き場が足りなければ偽（呼ぶ側は Update / Draw で描く）
+     */
+    bool DrawWithAllocator(Camera* camera, FrameConstantAllocator* allocator);
 
 private:
     void CreateVertexData();      // 頂点バッファの作成
