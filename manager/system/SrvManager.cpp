@@ -1,5 +1,7 @@
 #include "SrvManager.h"
 
+#include <algorithm>
+
 namespace KCE
 {
 // === 定数定義 ===
@@ -45,6 +47,10 @@ uint32_t SrvManager::Allocate()
 
 void SrvManager::Free(uint32_t index)
 {
+	if (index >= useIndex_ || std::find(freeList_.begin(), freeList_.end(), index) != freeList_.end())
+	{
+		return;
+	}
 	freeList_.push_back(index);
 }
 
@@ -139,8 +145,8 @@ void SrvManager::SetGraphicsRootDescriptorTableRange(UINT RootParameterIndex, ui
 
 bool SrvManager::IsMaxSRVCount()
 {
-	// 現在のインデックスが最大数以上なら最大に達している
-	return useIndex_ >= kMaxSRVCount;
+	// 末尾まで使っていても返却済みの番号があればまだ割り当てられる。
+	return freeList_.empty() && useIndex_ >= kMaxSRVCount;
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE SrvManager::GetCPUDescriptorHandle(uint32_t index)

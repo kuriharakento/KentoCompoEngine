@@ -5,6 +5,9 @@
 #include "externals/imgui/imgui.h"
 #include "effects/particle/ParticleManager.h"
 #include "manager/editor/DebugUIManager.h"
+#include "manager/graphics/ModelManager.h"
+#include "manager/graphics/TextureManager.h"
+#include "manager/system/SrvManager.h"
 
 namespace KCE
 {
@@ -32,6 +35,13 @@ void SceneManager::Initialize(const SceneContext& context)
 	// シーンマネージャーをデバッグUIに登録
 	DebugUIManager::GetInstance()->RegisterDebugUI(this, "SceneManager", [this]() {
 		ImGui::Text("CurrentScene: %s", currentSceneName_.c_str());
+		ImGui::Text("Textures: resident %zu / scene %zu",
+			TextureManager::GetInstance()->GetResidentTextureCount(),
+			TextureManager::GetInstance()->GetSceneTextureCount());
+		ImGui::Text("Models: resident %zu / scene %zu",
+			ModelManager::GetInstance()->GetResidentModelCount(),
+			ModelManager::GetInstance()->GetSceneModelCount());
+		ImGui::Text("Active SRVs: %u", context_.srvManager ? context_.srvManager->GetActiveSRVCount() : 0);
 
 		// 任意文字列によるシーン直接切り替え入力欄（末尾の "Scene" は自動付加）
 		static char inputSceneName[128] = "";
@@ -132,6 +142,14 @@ void SceneManager::ReserveNextScene()
 
 		// シーン切り替え時にパーティクルをすべてクリア
 		ParticleManager::GetInstance()->Clear();
+
+		// 旧シーンの描画がGPUで終わってから、参照されなくなった素材と番号を返す。
+		if (context_.dxCommon)
+		{
+			context_.dxCommon->ExecuteAndWait();
+			ModelManager::GetInstance()->ReleaseSceneResources();
+			TextureManager::GetInstance()->ReleaseSceneResources();
+		}
 
 		//シーンを切り替え
 		currentScene_ = std::move(nextScene_);

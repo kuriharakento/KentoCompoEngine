@@ -16,6 +16,8 @@ class DepthOfFieldRenderer;
 class VolumetricLightRenderer;
 class PlanarReflection;
 class Text3DRenderer;
+class DirectXCommon;
+class SrvManager;
 
 /**
  * @brief 各シーンで共有するコンテキスト情報。
@@ -40,5 +42,7 @@ struct SceneContext
 	PlanarReflection* planarReflection = nullptr;
 	// 3D 空間の文字の登録先
 	Text3DRenderer* text3D = nullptr;
+	DirectXCommon* dxCommon = nullptr;
+	SrvManager* srvManager = nullptr;
 };
 } // namespace KCE

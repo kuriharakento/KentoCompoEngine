@@ -11,6 +11,7 @@
 // system
 #include "base/DirectXCommon.h"
 #include "manager/system/SrvManager.h"
+#include "manager/graphics/ResourceLifetime.h"
 
 namespace KCE
 {
@@ -46,7 +47,13 @@ public:
 	 * @param filePath テクスチャファイルパス
 	 * @details 読み込み済みの場合はスキップされる
 	 */
-	void LoadTexture(const std::string& filePath);
+	void LoadTexture(const std::string& filePath, ResourceLifetime lifetime = ResourceLifetime::Scene);
+
+	/** @brief 読み込み済みテクスチャを常駐扱いへ昇格する */
+	void MarkResident(const std::string& filePath);
+
+	/** @brief シーン寿命のテクスチャと転送用中間リソースを解放する */
+	void ReleaseSceneResources();
 
 	/**
 	 * @brief 外で作ったテクスチャを登録する（実行時に書き換える文字アトラスなど）
@@ -63,6 +70,11 @@ public:
 	 * @details GPUへの転送完了を待機した後に呼び出すこと
 	 */
 	void ClearIntermediateResources();
+
+	/** @brief 常駐テクスチャ数を取得する */
+	size_t GetResidentTextureCount() const;
+	/** @brief シーン寿命のテクスチャ数を取得する */
+	size_t GetSceneTextureCount() const;
 
 public: // アクセッサ
 	/**
@@ -84,21 +96,21 @@ public: // アクセッサ
 	 * @param filePath テクスチャファイルパス
 	 * @return テクスチャのメタデータ
 	 */
-	const DirectX::TexMetadata& GetMetadata(const std::string& filePath) { return textureDatas_[NormalizePath(filePath)].metadata; }
+	const DirectX::TexMetadata& GetMetadata(const std::string& filePath);
 
 	/**
 	 * @brief SRVインデックスを取得
 	 * @param filePath テクスチャファイルパス
 	 * @return SRVインデックス
 	 */
-	uint32_t GetSRVIndex(const std::string& filePath) { return textureDatas_[NormalizePath(filePath)].srvIndex; }
+	uint32_t GetSRVIndex(const std::string& filePath) { return GetTextureIndexByFilePath(filePath); }
 
 	/**
 	 * @brief GPU側のディスクリプタハンドルを取得
 	 * @param filePath テクスチャファイルパス
 	 * @return GPUディスクリプタハンドル
 	 */
-	D3D12_GPU_DESCRIPTOR_HANDLE GetSrvHandleGPU(const std::string& filePath) { return textureDatas_[NormalizePath(filePath)].srvHandleGPU; }
+	D3D12_GPU_DESCRIPTOR_HANDLE GetSrvHandleGPU(const std::string& filePath) { return GetSrvHandleGPU(GetTextureIndexByFilePath(filePath)); }
 
 	/**
 	 * @brief インデックスからGPU側のディスクリプタハンドルを取得
@@ -113,7 +125,7 @@ public: // アクセッサ
 	 * @param filePath テクスチャファイルパス
 	 * @return CPUディスクリプタハンドル
 	 */
-	D3D12_CPU_DESCRIPTOR_HANDLE GetSrvHandleCPU(const std::string& filePath) { return textureDatas_[NormalizePath(filePath)].srvHandleCPU; }
+	D3D12_CPU_DESCRIPTOR_HANDLE GetSrvHandleCPU(const std::string& filePath) { return GetSrvHandleCPU(GetTextureIndexByFilePath(filePath)); }
 
 
 	/**
@@ -149,6 +161,7 @@ private: // 構造体
 		uint32_t srvIndex;                                    // SRVインデックス
 		D3D12_CPU_DESCRIPTOR_HANDLE srvHandleCPU;            // CPU側ディスクリプタハンドル
 		D3D12_GPU_DESCRIPTOR_HANDLE srvHandleGPU;            // GPU側ディスクリプタハンドル
+		ResourceLifetime lifetime = ResourceLifetime::Scene;
 	};
 
 	// テクスチャデータのキャッシュ（ファイルパス -> テクスチャデータ）

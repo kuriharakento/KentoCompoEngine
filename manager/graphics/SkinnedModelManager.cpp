@@ -212,7 +212,8 @@ const SkinnedModelSharedResource* SkinnedModelManager::LoadModel(const std::stri
     for (auto& mat : sharedResource->modelData.materials)
     {
         std::string fullTex = mat.textureFilePath.empty() ? kDefaultTexturePath : basePath + mat.textureFilePath;
-        TextureManager::GetInstance()->LoadTexture(fullTex);
+		// 共有モデルをキャッシュし続ける間は、覚えたSRV番号も有効に保つ。
+		TextureManager::GetInstance()->LoadTexture(fullTex, ResourceLifetime::Resident);
         mat.textureIndex = TextureManager::GetInstance()->GetTextureIndexByFilePath(fullTex);
     }
 

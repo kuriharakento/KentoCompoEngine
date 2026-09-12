@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <iterator>
 
 // system
 #include "base/PathManager.h"
@@ -47,7 +48,7 @@ void TextureManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)
 	textureDatas_.reserve(srvManager_->kMaxSRVCount);
 }
 
-void TextureManager::LoadTexture(const std::string& filePath)
+void TextureManager::LoadTexture(const std::string& filePath, ResourceLifetime lifetime)
 {
 	// パスを正規化（重複読み込み防止用）
 	std::string normalizedPath = NormalizePath(filePath);
@@ -55,7 +56,10 @@ void TextureManager::LoadTexture(const std::string& filePath)
 	/*--------------[ 読み込み済みテクスチャを検索 ]-----------------*/
 	if (textureDatas_.contains(normalizedPath) || filePathToIndex_.contains(normalizedPath) || failedTexturePaths_.contains(normalizedPath))
 	{
-		// 読み込み済みなら何もしない
+		if (lifetime == ResourceLifetime::Resident)
+		{
+			MarkResident(normalizedPath);
+		}
 		return;
 	}
 
@@ -115,7 +119,7 @@ void TextureManager::LoadTexture(const std::string& filePath)
 			Logger::Log("エンジンの既定リソース " + kFallbackTexturePath + " を読み込めない。読めなかったテクスチャの代わりが無いので、表示が崩れる\n", Logger::LogLevel::Error);
 			return;
 		}
-		LoadTexture(kFallbackTexturePath);
+		LoadTexture(kFallbackTexturePath, ResourceLifetime::Resident);
 		auto fallback = filePathToIndex_.find(fallbackPath);
 		if (fallback != filePathToIndex_.end())
 		{
@@ -185,6 +189,7 @@ void TextureManager::LoadTexture(const std::string& filePath)
 
 	textureData.metadata = mipImages.GetMetadata();
 	textureData.resource = dxCommon_->CreateTextureResource(textureData.metadata);
+	textureData.lifetime = lifetime;
 	// 中間リソースをリストに追加して保持（後でまとめて解放）
 	intermediateResources_.push_back(UploadTextureData(textureData.resource, mipImages));
 
@@ -233,6 +238,8 @@ void TextureManager::RegisterTexture(const std::string& key, Microsoft::WRL::Com
 	TextureData& textureData = textureDatas_[normalizedPath];
 	textureData.metadata = metadata;
 	textureData.resource = resource;
+	// 外から登録するアトラスなどは、登録元と寿命を合わせて常駐させる。
+	textureData.lifetime = ResourceLifetime::Resident;
 
 	textureData.srvIndex = srvManager_->Allocate();
 	srvManager_->CreateSRVforTexture2D(textureData.srvIndex, textureData.resource.Get(), textureData.metadata.format, static_cast<UINT>(textureData.metadata.mipLevels));
@@ -247,6 +254,52 @@ void TextureManager::ClearIntermediateResources()
 {
 	// 中間リソースを一括解放
 	intermediateResources_.clear();
+}
+
+void TextureManager::MarkResident(const std::string& filePath)
+{
+	auto it = textureDatas_.find(NormalizePath(filePath));
+	if (it != textureDatas_.end())
+	{
+		it->second.lifetime = ResourceLifetime::Resident;
+	}
+}
+
+void TextureManager::ReleaseSceneResources()
+{
+	for (auto textureIt = textureDatas_.begin(); textureIt != textureDatas_.end();)
+	{
+		if (textureIt->second.lifetime == ResourceLifetime::Resident)
+		{
+			++textureIt;
+			continue;
+		}
+
+		const uint32_t srvIndex = textureIt->second.srvIndex;
+		for (auto pathIt = filePathToIndex_.begin(); pathIt != filePathToIndex_.end();)
+		{
+			pathIt = pathIt->second == srvIndex ? filePathToIndex_.erase(pathIt) : std::next(pathIt);
+		}
+		indexToFilePath_.erase(srvIndex);
+		srvManager_->Free(srvIndex);
+		textureIt = textureDatas_.erase(textureIt);
+	}
+
+	// GPU待ちの直後なので、同じタイミングで転送用バッファも手放せる。
+	ClearIntermediateResources();
+}
+
+size_t TextureManager::GetResidentTextureCount() const
+{
+	return static_cast<size_t>(std::count_if(textureDatas_.begin(), textureDatas_.end(), [](const auto& item)
+	{
+		return item.second.lifetime == ResourceLifetime::Resident;
+	}));
+}
+
+size_t TextureManager::GetSceneTextureCount() const
+{
+	return textureDatas_.size() - GetResidentTextureCount();
 }
 
 uint32_t TextureManager::GetTextureIndexByFilePath(const std::string& filePath)
@@ -264,7 +317,7 @@ uint32_t TextureManager::GetTextureIndexByFilePath(const std::string& filePath)
 	{
 		Logger::Log("未登録のテクスチャが指定されました: " + filePath + "\n", Logger::LogLevel::Error);
 	}
-	LoadTexture(kFallbackTexturePath);
+	LoadTexture(kFallbackTexturePath, ResourceLifetime::Resident);
 	const auto fallback = filePathToIndex_.find(NormalizePath(kFallbackTexturePath));
 	if (fallback != filePathToIndex_.end())
 	{
@@ -287,6 +340,11 @@ const DirectX::TexMetadata& TextureManager::GetMetadata(uint32_t textureIndex)
 	assert(indexToFilePath_.contains(textureIndex));
 	const std::string& filePath = indexToFilePath_[textureIndex];
 	return textureDatas_.at(filePath).metadata;
+}
+
+const DirectX::TexMetadata& TextureManager::GetMetadata(const std::string& filePath)
+{
+	return GetMetadata(GetTextureIndexByFilePath(filePath));
 }
 
 [[nodiscard]]

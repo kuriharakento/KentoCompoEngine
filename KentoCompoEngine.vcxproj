@@ -308,6 +308,7 @@
     <ClInclude Include="manager\graphics\InstancedModelPipelineManager.h" />
     <ClInclude Include="manager\graphics\LineManager.h" />
     <ClInclude Include="manager\graphics\ModelManager.h" />
+	<ClInclude Include="manager\graphics\ResourceLifetime.h" />
     <ClInclude Include="manager\graphics\ShadowMapManager.h" />
     <ClInclude Include="manager\graphics\SkinnedModelManager.h" />
     <ClInclude Include="manager\graphics\SkinningPipelineManager.h" />

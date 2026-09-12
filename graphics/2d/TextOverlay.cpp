@@ -61,7 +61,8 @@ void TextOverlay::Initialize(SpriteCommon* spriteCommon, GlyphAtlas* atlas, Text
 	body_.SetFontSize(kBodyFontSize);
 	body_.SetMaxWidth(kBodyMaxWidth);
 
-	TextureManager::GetInstance()->LoadTexture(kBoxTexture);
+	// TextOverlay はシーンをまたいで使うので、会話枠も常駐させる。
+	TextureManager::GetInstance()->LoadTexture(kBoxTexture, ResourceLifetime::Resident);
 	dialogueBox_ = std::make_unique<Sprite>();
 	dialogueBox_->Initialize(spriteCommon, kBoxTexture);
 	dialogueBox_->SetPosition(kBoxPosition);

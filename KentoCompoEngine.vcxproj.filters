@@ -1076,6 +1076,9 @@
     <ClInclude Include="manager\graphics\ModelManager.h">
       <Filter>manager\graphics</Filter>
     </ClInclude>
+	<ClInclude Include="manager\graphics\ResourceLifetime.h">
+	  <Filter>manager\graphics</Filter>
+	</ClInclude>
     <ClInclude Include="manager\graphics\ShadowMapManager.h">
       <Filter>manager\graphics</Filter>
     </ClInclude>

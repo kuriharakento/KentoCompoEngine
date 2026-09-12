@@ -131,7 +131,7 @@ public:
 
 	/**
 	 * @brief 現在アクティブなSRV数を取得する（解放済みを差し引いた実使用数）
-	 * @return useIndex_ - freeList_.size()
+	 * @return 返却済みを除いたSRV数
 	 */
 	uint32_t GetActiveSRVCount() const
 	{
@@ -197,7 +197,8 @@ private:
 
 public:
 	/**
-	 * @brief SRVインデックスを解放する
+	 * @brief SRVインデックスを返却する
+	 * @details 範囲外または返却済みの番号は無視する。
 	 * @param index 解放するSRVインデックス
 	 */
 	void Free(uint32_t index);

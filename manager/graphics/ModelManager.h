@@ -7,6 +7,7 @@
 // system
 #include "graphics/3d/Model.h"
 #include "graphics/3d/ModelCommon.h"
+#include "manager/graphics/ResourceLifetime.h"
 
 namespace KCE
 {
@@ -42,7 +43,15 @@ public: /*========[ メンバ関数 ]========*/
 	 * @param modelType モデルのファイル形式（デフォルト: ".obj"）
 	 * @details 読み込み済みの場合はスキップされる
 	 */
-	void LoadModel(const std::string& filePath, const std::string& modelType = ".obj");
+	void LoadModel(const std::string& filePath, const std::string& modelType = ".obj", ResourceLifetime lifetime = ResourceLifetime::Scene);
+
+	/** @brief シーン寿命のモデルをまとめて解放する */
+	void ReleaseSceneResources();
+
+	/** @brief 常駐モデル数を取得する */
+	size_t GetResidentModelCount() const;
+	/** @brief シーン寿命のモデル数を取得する */
+	size_t GetSceneModelCount() const;
 
 	/**
 	 * @brief モデルの検索
@@ -76,7 +85,13 @@ private: /*========[ メンバ変数 ]========*/
 
 
 	// モデルデータのキャッシュ（ファイルパス -> モデル）
-	std::map<std::string, std::unique_ptr<Model>> models_;
+	struct ModelEntry
+	{
+		std::unique_ptr<Model> model;
+		ResourceLifetime lifetime = ResourceLifetime::Scene;
+	};
+	std::map<std::string, ModelEntry> models_;
+	std::map<std::string, std::string> knownModelTypes_;
 	// 壊れたモデルを毎フレーム読み直して同じログを繰り返さないために記録する。
 	std::unordered_set<std::string> failedModels_;
 };
