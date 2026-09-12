@@ -92,10 +92,10 @@ void Framework::Initialize()
 	spriteCommon_ = std::make_unique<SpriteCommon>();
 	spriteCommon_->Initialize(dxCommon_.get());
 
-	// ゲーム内の日本語の文字。転送を今のコマンドに積むので、GPU の完了待ちより前に焼く
+	// ゲーム内の日本語の文字（DirectWrite）。先に描く分の転送を今のコマンドに積むので、GPU の完了待ちより前に用意する
 	constexpr uint32_t kGlyphAtlasFontSize = 48;
 	glyphAtlas_ = std::make_unique<GlyphAtlas>();
-	glyphAtlas_->Build(kGlyphAtlasFontSize);
+	glyphAtlas_->Build(dxCommon_.get(), kGlyphAtlasFontSize);
 	textOverlay_ = std::make_unique<TextOverlay>();
 	textOverlay_->Initialize(spriteCommon_.get(), glyphAtlas_.get());
 
@@ -569,6 +569,11 @@ void Framework::ExecuteRenderPipeline(RenderTexture* outputTarget)
 	}
 	// PostDrawで前フレームのGPU完了を待つため、ここで同じ領域を再利用できる。
 	frameConstantAllocator_->BeginFrame();
+	// 前のフレームで描き足した文字の転送バッファは、もう GPU が使い終わっている
+	if (glyphAtlas_)
+	{
+		glyphAtlas_->BeginFrame();
+	}
 
 	// 本編は全レイヤーを描く
 	if (GameObjectManager::HasInstance())

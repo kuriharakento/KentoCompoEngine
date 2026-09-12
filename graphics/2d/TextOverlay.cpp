@@ -38,7 +38,7 @@ Vector4 WithAlpha(const Vector4& color, float alpha)
 TextOverlay::TextOverlay() = default;
 TextOverlay::~TextOverlay() = default;
 
-void TextOverlay::Initialize(SpriteCommon* spriteCommon, const GlyphAtlas* atlas)
+void TextOverlay::Initialize(SpriteCommon* spriteCommon, GlyphAtlas* atlas)
 {
 	lyric_.Initialize(spriteCommon, atlas);
 	lyric_.SetPosition(kLyricPosition);

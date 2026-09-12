@@ -221,20 +221,18 @@ void TextureManager::LoadTexture(const std::string& filePath)
 	indexToFilePath_[textureData.srvIndex] = normalizedPath;
 }
 
-void TextureManager::LoadTextureFromImage(const std::string& key, const DirectX::ScratchImage& image)
+void TextureManager::RegisterTexture(const std::string& key, Microsoft::WRL::ComPtr<ID3D12Resource> resource, const DirectX::TexMetadata& metadata)
 {
 	const std::string normalizedPath = NormalizePath(key);
-	if (textureDatas_.contains(normalizedPath) || filePathToIndex_.contains(normalizedPath))
+	if (!resource || textureDatas_.contains(normalizedPath) || filePathToIndex_.contains(normalizedPath))
 	{
 		return;
 	}
 	assert(!srvManager_->IsMaxSRVCount());
 
 	TextureData& textureData = textureDatas_[normalizedPath];
-	textureData.metadata = image.GetMetadata();
-	textureData.resource = dxCommon_->CreateTextureResource(textureData.metadata);
-	// 中間リソースは ClearIntermediateResources まで持っておく
-	intermediateResources_.push_back(UploadTextureData(textureData.resource, image));
+	textureData.metadata = metadata;
+	textureData.resource = resource;
 
 	textureData.srvIndex = srvManager_->Allocate();
 	srvManager_->CreateSRVforTexture2D(textureData.srvIndex, textureData.resource.Get(), textureData.metadata.format, static_cast<UINT>(textureData.metadata.mipLevels));
