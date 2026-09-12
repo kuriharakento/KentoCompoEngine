@@ -203,7 +203,8 @@ void TextureManager::LoadTexture(const std::string& filePath, ResourceLifetime l
 
 	/*--------------[ SRVの生成 ]-----------------*/
 
-	textureData.srvIndex = srvManager_->Allocate();
+	// テクスチャは1枚ずつ参照されるので、返却済みの番号を使い回してよい
+	textureData.srvIndex = srvManager_->AllocateReusable();
 
 	if(textureData.metadata.IsCubemap())
 	{
@@ -241,7 +242,7 @@ void TextureManager::RegisterTexture(const std::string& key, Microsoft::WRL::Com
 	// 外から登録するアトラスなどは、登録元と寿命を合わせて常駐させる。
 	textureData.lifetime = ResourceLifetime::Resident;
 
-	textureData.srvIndex = srvManager_->Allocate();
+	textureData.srvIndex = srvManager_->AllocateReusable();
 	srvManager_->CreateSRVforTexture2D(textureData.srvIndex, textureData.resource.Get(), textureData.metadata.format, static_cast<UINT>(textureData.metadata.mipLevels));
 	textureData.srvHandleCPU = srvManager_->GetCPUDescriptorHandle(textureData.srvIndex);
 	textureData.srvHandleGPU = srvManager_->GetGPUDescriptorHandle(textureData.srvIndex);
