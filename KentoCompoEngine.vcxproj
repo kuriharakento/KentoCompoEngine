@@ -129,6 +129,7 @@
     <ClCompile Include="graphics\2d\GlyphAtlas.cpp" />
     <ClCompile Include="graphics\2d\TextOverlay.cpp" />
     <ClCompile Include="graphics\2d\TextSprite.cpp" />
+    <ClCompile Include="graphics\2d\TextSpritePipeline.cpp" />
     <ClCompile Include="graphics\pipeline\RenderPipeline.cpp" />
     <ClCompile Include="graphics\pipeline\StandardRenderPasses.cpp" />
     <ClCompile Include="graphics\view\RenderView.cpp" />
@@ -357,6 +358,7 @@
     <ClInclude Include="graphics\2d\GlyphAtlas.h" />
     <ClInclude Include="graphics\2d\TextOverlay.h" />
     <ClInclude Include="graphics\2d\TextSprite.h" />
+    <ClInclude Include="graphics\2d\TextSpritePipeline.h" />
     <ClInclude Include="graphics\text\TextMesh3D.h" />
     <ClInclude Include="graphics\text\Text3DRenderer.h" />
     <ClInclude Include="sequencer\track\Text3DTrack.h" />

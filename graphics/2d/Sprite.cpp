@@ -170,13 +170,11 @@ void Sprite::UpdateVertexData()
 		bottom = temp;
 	}
 
-	// テクスチャのメタデータを取得してUV座標を計算
-	const DirectX::TexMetadata& metadata =
-		TextureManager::GetInstance()->GetMetadata(textureIndex_);
-	float tex_left = textureLeftTop_.x / metadata.width;
-	float tex_right = (textureLeftTop_.x + textureSize_.x) / metadata.width;
-	float tex_top = textureLeftTop_.y / metadata.height;
-	float tex_bottom = (textureLeftTop_.y + textureSize_.y) / metadata.height;
+	// UV座標を計算（テクスチャの大きさは差し替えたときに覚えたものを使う）
+	float tex_left = textureLeftTop_.x / textureDimension_.x;
+	float tex_right = (textureLeftTop_.x + textureSize_.x) / textureDimension_.x;
+	float tex_top = textureLeftTop_.y / textureDimension_.y;
+	float tex_bottom = (textureLeftTop_.y + textureSize_.y) / textureDimension_.y;
 
 	// 頂点データの座標を設定
 	vertexData_[0].position = { left, bottom, kDefaultZ, kDefaultW };
@@ -235,9 +233,10 @@ void Sprite::AdjustTextureSize()
 
 	// テクスチャのサイズを取得
 	textureSize_ = KCE::Vector2(
-		static_cast<float>(metadata.width), 
+		static_cast<float>(metadata.width),
 		static_cast<float>(metadata.height)
 	);
+	textureDimension_ = textureSize_;
 
 	// 画像サイズをテクスチャサイズに合わせる
 	size_ = textureSize_;

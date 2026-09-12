@@ -55,8 +55,18 @@ bool StageMonitor::Initialize(ISubViewProvider* provider, CameraManager* cameraM
 	view_->SetCamera(camera_);
 	// 画面自身を映すと、読んでいるテクスチャに描くことになる
 	view_->SetLayerMask(kRenderLayerAll & ~kScreenLayer);
+	// モニターは毎フレーム描き直さなくても分からないので、テレビの速さに間引く
+	SetFramesPerSecond(kDefaultFramesPerSecond);
 	updateCount_ = 0;
 	return true;
+}
+
+void StageMonitor::SetFramesPerSecond(float framesPerSecond)
+{
+	if (view_)
+	{
+		view_->SetUpdateInterval(framesPerSecond > 0.0f ? 1.0f / framesPerSecond : 0.0f);
+	}
 }
 
 void StageMonitor::SetScreen(GameObject* screen)

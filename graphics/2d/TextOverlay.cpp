@@ -1,6 +1,7 @@
 #include "graphics/2d/TextOverlay.h"
 
 #include "graphics/2d/Sprite.h"
+#include "graphics/2d/SpriteCommon.h"
 #include "manager/graphics/TextureManager.h"
 
 namespace KCE
@@ -38,23 +39,24 @@ Vector4 WithAlpha(const Vector4& color, float alpha)
 TextOverlay::TextOverlay() = default;
 TextOverlay::~TextOverlay() = default;
 
-void TextOverlay::Initialize(SpriteCommon* spriteCommon, GlyphAtlas* atlas)
+void TextOverlay::Initialize(SpriteCommon* spriteCommon, GlyphAtlas* atlas, TextSpritePipeline* textPipeline)
 {
-	lyric_.Initialize(spriteCommon, atlas);
+	spriteCommon_ = spriteCommon;
+	lyric_.Initialize(textPipeline, atlas);
 	lyric_.SetPosition(kLyricPosition);
 	lyric_.SetFontSize(kLyricFontSize);
 	lyric_.SetAlign(TextAlign::Center);
 
-	lyricShadow_.Initialize(spriteCommon, atlas);
+	lyricShadow_.Initialize(textPipeline, atlas);
 	lyricShadow_.SetPosition({ kLyricPosition.x + kLyricShadowOffset.x, kLyricPosition.y + kLyricShadowOffset.y });
 	lyricShadow_.SetFontSize(kLyricFontSize);
 	lyricShadow_.SetAlign(TextAlign::Center);
 
-	speaker_.Initialize(spriteCommon, atlas);
+	speaker_.Initialize(textPipeline, atlas);
 	speaker_.SetPosition(kSpeakerPosition);
 	speaker_.SetFontSize(kSpeakerFontSize);
 
-	body_.Initialize(spriteCommon, atlas);
+	body_.Initialize(textPipeline, atlas);
 	body_.SetPosition(kBodyPosition);
 	body_.SetFontSize(kBodyFontSize);
 	body_.SetMaxWidth(kBodyMaxWidth);
@@ -123,6 +125,11 @@ void TextOverlay::Draw()
 	{
 		if (dialogueBox_)
 		{
+			// 先に描いた歌詞で文字用の設定になっているので、Sprite 用に戻してから描く
+			if (spriteCommon_)
+			{
+				spriteCommon_->CommonRenderingSetting();
+			}
 			dialogueBox_->Draw();
 		}
 		speaker_.Draw();

@@ -102,10 +102,11 @@ public: // アクセッサ
 
 	/**
 	 * @brief インデックスからGPU側のディスクリプタハンドルを取得
-	 * @param textureIndex テクスチャインデックス
+	 * @param textureIndex テクスチャインデックス（SRV の番号と同じ）
 	 * @return GPUディスクリプタハンドル
+	 * @details 描くたびに呼ばれるので、文字列のマップを引かずに SRV の番号から直接計算する
 	 */
-	D3D12_GPU_DESCRIPTOR_HANDLE GetSrvHandleGPU(uint32_t textureIndex) { return textureDatas_[indexToFilePath_[textureIndex]].srvHandleGPU; }
+	D3D12_GPU_DESCRIPTOR_HANDLE GetSrvHandleGPU(uint32_t textureIndex) { return srvManager_->GetGPUDescriptorHandle(textureIndex); }
 
 	/**
 	 * @brief CPU側のディスクリプタハンドルを取得

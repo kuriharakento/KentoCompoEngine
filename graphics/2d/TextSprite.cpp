@@ -2,7 +2,6 @@
 
 #include "base/StringUtility.h"
 #include "graphics/2d/GlyphAtlas.h"
-#include "graphics/2d/Sprite.h"
 
 namespace KCE
 {
@@ -20,9 +19,9 @@ bool SameVector(const Vector4& a, const Vector4& b) { return a.x == b.x && a.y =
 TextSprite::TextSprite() = default;
 TextSprite::~TextSprite() = default;
 
-void TextSprite::Initialize(SpriteCommon* spriteCommon, GlyphAtlas* atlas)
+void TextSprite::Initialize(TextSpritePipeline* pipeline, GlyphAtlas* atlas)
 {
-	spriteCommon_ = spriteCommon;
+	pipeline_ = pipeline;
 	atlas_ = atlas;
 	dirty_ = true;
 }
@@ -75,28 +74,17 @@ void TextSprite::Draw()
 	{
 		Layout();
 	}
-	for (size_t i = 0; i < activeCount_; ++i)
+	if (pipeline_ && !instances_.empty())
 	{
-		sprites_[i]->Draw();
+		pipeline_->Draw(instances_.data(), instances_.size());
 	}
-}
-
-Sprite* TextSprite::AcquireSprite()
-{
-	if (activeCount_ == sprites_.size())
-	{
-		auto sprite = std::make_unique<Sprite>();
-		sprite->Initialize(spriteCommon_, GlyphAtlas::kTextureKey);
-		sprites_.push_back(std::move(sprite));
-	}
-	return sprites_[activeCount_++].get();
 }
 
 void TextSprite::Layout()
 {
 	dirty_ = false;
-	activeCount_ = 0;
-	if (!spriteCommon_ || !atlas_ || !atlas_->IsReady() || atlas_->GetFontPixelSize() <= 0.0f)
+	instances_.clear();
+	if (!atlas_ || !atlas_->IsReady() || atlas_->GetFontPixelSize() <= 0.0f)
 	{
 		return;
 	}
@@ -104,6 +92,7 @@ void TextSprite::Layout()
 	const float scale = fontSize_ / atlas_->GetFontPixelSize();
 	const float lineHeight = atlas_->GetLineHeight() * scale;
 	const float ascent = atlas_->GetAscent() * scale;
+	const float inverseTextureSize = 1.0f / static_cast<float>(GlyphAtlas::kTextureSize);
 	// 初めて使う文字はここで描き足される
 	const auto findGlyph = [&](wchar_t c)
 	{
@@ -171,14 +160,15 @@ void TextSprite::Layout()
 			// 空白など絵の無い文字は送るだけ
 			if (glyph->width > 0.0f && glyph->height > 0.0f)
 			{
-				Sprite* sprite = AcquireSprite();
-				sprite->SetTextureLeftTop({ glyph->x, glyph->y });
-				sprite->SetTextureSize({ glyph->width, glyph->height });
-				sprite->SetSize({ glyph->width * scale, glyph->height * scale });
-				sprite->SetAnchorPoint({ 0.0f, 0.0f });
-				sprite->SetPosition({ x + glyph->offsetX * scale, baseline + glyph->offsetY * scale });
-				sprite->SetColor(color_);
-				sprite->Update();
+				TextSpritePipeline::Instance instance;
+				instance.rect = { x + glyph->offsetX * scale, baseline + glyph->offsetY * scale, glyph->width * scale, glyph->height * scale };
+				instance.uvRect = {
+					glyph->x * inverseTextureSize,
+					glyph->y * inverseTextureSize,
+					(glyph->x + glyph->width) * inverseTextureSize,
+					(glyph->y + glyph->height) * inverseTextureSize };
+				instance.color = color_;
+				instances_.push_back(instance);
 			}
 			x += glyph->advance * scale;
 		}

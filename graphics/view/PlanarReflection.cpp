@@ -78,6 +78,8 @@ bool PlanarReflection::Initialize(DirectXCommon* dxCommon, SrvManager* srvManage
 	}
 	view_->SetCamera(camera_);
 	view_->SetLayerMask(kRenderLayerAll & ~kReflectorLayer);
+	// 床に映った輪郭線はほとんど見えないので省く（反射は毎フレーム描くので、少しでも軽くする）
+	view_->SetPassEnabled(RenderViewPass::Outline, false);
 	// 有効にするまで描かない
 	view_->SetEnabled(false);
 	return true;
