@@ -65,6 +65,13 @@ void LineManager::Finalize()
 }
 
 void LineManager::RenderLines() {
+	// 本編で描いた後は空になっている。行列のバッファは1本しかないので、
+	// サブビュー（モニター・反射）で空のまま更新すると、GPU が本編を描く前に
+	// そのビューのカメラで上書きされ、ラインが画面に貼り付いて見える
+	if (line_->IsEmpty())
+	{
+		return;
+	}
 	// 頂点データ、行列データの更新
     line_->Update(cameraManager_->GetActiveCamera());
 	// 描画

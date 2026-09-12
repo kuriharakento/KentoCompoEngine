@@ -71,6 +71,9 @@ public:
      */
     void Clear();
 
+    /** @brief 描くラインが無いか */
+    bool IsEmpty() const { return vertices_.empty(); }
+
 private:
     void CreateVertexData();      // 頂点バッファの作成
 	void CreateWVPResource();     // 定数バッファ（WVP行列）の作成
