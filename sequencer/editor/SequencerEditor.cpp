@@ -62,6 +62,14 @@ constexpr float kKeyGrabRadius = 7.0f;
 constexpr float kWaveformTop = 28.0f;
 /** @brief タップをやり直したとみなす間隔（秒） */
 constexpr double kTapResetSeconds = 2.0;
+/** @brief 拍の番号を出すのに要る拍どうしの間隔（ピクセル）。これより詰まると文字が重なる */
+constexpr float kBeatLabelMinSpacing = 28.0f;
+/** @brief 拍の番号を書くルーラー内のY位置 */
+constexpr float kBeatLabelTop = 15.0f;
+/** @brief 拍の線から番号までのすき間（ピクセル） */
+constexpr float kBeatLabelPadding = 2.0f;
+/** @brief 波形の下にあけるすき間（ピクセル） */
+constexpr float kWaveformBottomMargin = 2.0f;
 
 /**
  * @brief トラックがタイムライン上で占める行数
@@ -598,11 +606,11 @@ void SequencerEditor::DrawRuler(const ImVec2& canvasMin, float canvasWidth)
 					ImVec2(x, canvasMin.y + ImGui::GetContentRegionAvail().y),
 					isBarStart ? IM_COL32(90, 90, 110, 160) : IM_COL32(70, 70, 80, 90));
 
-				if (beat >= 0 && beatDuration * view_.pixelsPerSecond >= 28.0f)
+				if (beat >= 0 && beatDuration * view_.pixelsPerSecond >= kBeatLabelMinSpacing)
 				{
 					char beatLabel[24];
 					std::snprintf(beatLabel, sizeof(beatLabel), "%d.%d", beat / 4 + 1, beat % 4 + 1);
-					drawList->AddText(ImVec2(x + 2.0f, canvasMin.y + 15.0f), IM_COL32(130, 190, 220, 255), beatLabel);
+					drawList->AddText(ImVec2(x + kBeatLabelPadding, canvasMin.y + kBeatLabelTop), IM_COL32(130, 190, 220, 255), beatLabel);
 				}
 			}
 		}
@@ -636,7 +644,7 @@ void SequencerEditor::DrawWaveform(const ImVec2& canvasMin, float canvasWidth)
 	const float left = canvasMin.x + view_.headerWidth;
 	const float right = canvasMin.x + canvasWidth;
 	const float top = canvasMin.y + kWaveformTop;
-	const float bottom = canvasMin.y + view_.rulerHeight - 2.0f;
+	const float bottom = canvasMin.y + view_.rulerHeight - kWaveformBottomMargin;
 	const float center = (top + bottom) * 0.5f;
 	const float amplitude = (bottom - top) * 0.5f;
 	const float secondsPerPeak = Audio::GetInstance()->GetWaveformSecondsPerPeak(meta.audioClip);
@@ -965,9 +973,11 @@ void SequencerEditor::DrawTimelineWindow()
 		}
 
 		float bpm = meta.bpm;
-		if (ImGui::DragFloat("BPM", &bpm, 0.1f, 0.0f, 400.0f, "%.2f"))
+		const bool bpmChanged = ImGui::DragFloat("BPM", &bpm, 0.1f, 0.0f, 400.0f, "%.2f");
+		// つかんだフレームで必ず番号を進める。値が変わるのが次のフレームでも、前の操作とまとめないため
+		if (ImGui::IsItemActivated()) { ++metaEditId_; }
+		if (bpmChanged)
 		{
-			if (ImGui::IsItemActivated()) { ++metaEditId_; }
 			SequenceMeta after = meta;
 			after.bpm = bpm;
 			ExecuteMetaEdit(sequence_, after, "Change BPM", metaEditId_);
@@ -997,9 +1007,10 @@ void SequencerEditor::DrawTimelineWindow()
 		}
 
 		float offset = meta.offset;
-		if (ImGui::DragFloat("Offset", &offset, 0.001f, -10.0f, 10.0f, "%.3f s"))
+		const bool offsetChanged = ImGui::DragFloat("Offset", &offset, 0.001f, -10.0f, 10.0f, "%.3f s");
+		if (ImGui::IsItemActivated()) { ++metaEditId_; }
+		if (offsetChanged)
 		{
-			if (ImGui::IsItemActivated()) { ++metaEditId_; }
 			SequenceMeta after = meta;
 			after.offset = offset;
 			ExecuteMetaEdit(sequence_, after, "Change Offset", metaEditId_);
