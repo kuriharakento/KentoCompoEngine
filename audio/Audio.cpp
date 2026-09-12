@@ -418,7 +418,10 @@ void Audio::Load(const std::string& name, const std::string& filename, SoundGrou
 	SoundData soundData = {};
 	if (DecodeAudioFile(resolved, group, soundData))
 	{
+		// 描画幅に合わせた集計を毎フレーム行わず、読み込み時に一度だけ粗い波形を作る。
+		BuildWaveformPeaks(soundData);
 		soundDataMap_[name] = std::move(soundData);
+		loadedSoundNames_.push_back(name);
 	}
 	else if (reportedLoadErrors_.insert(resolved.string()).second)
 	{
@@ -1196,6 +1199,89 @@ bool Audio::IsLoaded(const std::string& name) const
 	return soundDataMap_.find(name) != soundDataMap_.end();
 }
 
+const std::vector<SoundData::WaveformPeak>* Audio::GetWaveformPeaks(const std::string& name) const
+{
+	auto it = soundDataMap_.find(name);
+	return it != soundDataMap_.end() ? &it->second.waveformPeaks : nullptr;
+}
+
+float Audio::GetWaveformSecondsPerPeak(const std::string& name) const
+{
+	auto it = soundDataMap_.find(name);
+	if (it == soundDataMap_.end() || it->second.wfex.nSamplesPerSec == 0)
+	{
+		return 0.0f;
+	}
+	return static_cast<float>(it->second.waveformFramesPerPeak) / static_cast<float>(it->second.wfex.nSamplesPerSec);
+}
+
+void Audio::BuildWaveformPeaks(SoundData& soundData)
+{
+	const uint32_t channels = soundData.wfex.nChannels;
+	const uint32_t bitsPerSample = soundData.wfex.wBitsPerSample;
+	const uint32_t blockAlign = soundData.wfex.nBlockAlign;
+	if (channels == 0 || blockAlign == 0 || soundData.wfex.nSamplesPerSec == 0 ||
+		(bitsPerSample != 8 && bitsPerSample != 16 && bitsPerSample != 24 && bitsPerSample != 32))
+	{
+		return;
+	}
+
+	const uint64_t frameCount = GetTotalSampleCount(soundData);
+	const uint32_t framesPerPeak = (std::max)(
+		static_cast<uint32_t>(soundData.wfex.nSamplesPerSec) / Audio::kWaveformPeaksPerSecond, 1u);
+	soundData.waveformFramesPerPeak = framesPerPeak;
+	const size_t peakCount = static_cast<size_t>((frameCount + framesPerPeak - 1) / framesPerPeak);
+	soundData.waveformPeaks.reserve(peakCount);
+
+	const BYTE* bytes = soundData.buffer.data();
+	for (uint64_t firstFrame = 0; firstFrame < frameCount; firstFrame += framesPerPeak)
+	{
+		const uint64_t lastFrame = (std::min)(firstFrame + framesPerPeak, frameCount);
+		float minimum = 1.0f;
+		float maximum = -1.0f;
+		for (uint64_t frame = firstFrame; frame < lastFrame; ++frame)
+		{
+			const BYTE* frameData = bytes + frame * blockAlign;
+			for (uint32_t channel = 0; channel < channels; ++channel)
+			{
+				const BYTE* sample = frameData + channel * (bitsPerSample / 8);
+				float value = 0.0f;
+				switch (bitsPerSample)
+				{
+				case 8:
+					value = (static_cast<float>(*sample) - 128.0f) / 128.0f;
+					break;
+				case 16:
+				{
+					int16_t pcm = 0;
+					std::memcpy(&pcm, sample, sizeof(pcm));
+					value = static_cast<float>(pcm) / 32768.0f;
+					break;
+				}
+				case 24:
+				{
+					int32_t pcm = static_cast<int32_t>(sample[0]) |
+						(static_cast<int32_t>(sample[1]) << 8) | (static_cast<int32_t>(sample[2]) << 16);
+					if ((pcm & 0x00800000) != 0) { pcm |= static_cast<int32_t>(0xFF000000); }
+					value = static_cast<float>(pcm) / 8388608.0f;
+					break;
+				}
+				case 32:
+				{
+					int32_t pcm = 0;
+					std::memcpy(&pcm, sample, sizeof(pcm));
+					value = static_cast<float>(pcm) / 2147483648.0f;
+					break;
+				}
+				}
+				minimum = (std::min)(minimum, value);
+				maximum = (std::max)(maximum, value);
+			}
+		}
+		soundData.waveformPeaks.push_back({ minimum, maximum });
+	}
+}
+
 void Audio::SetReverbEnabled(bool enabled)
 {
 	reverbEnabled_ = enabled;
@@ -1259,6 +1345,7 @@ void Audio::UnloadWave(const std::string& name)
 	{
 		// std::vector handles memory automatically
 		soundDataMap_.erase(it);
+		loadedSoundNames_.erase(std::remove(loadedSoundNames_.begin(), loadedSoundNames_.end(), name), loadedSoundNames_.end());
 	}
 }
 
@@ -1271,6 +1358,7 @@ void Audio::UnloadAll()
 		// std::vector handles memory automatically
 	}
 	soundDataMap_.clear();
+	loadedSoundNames_.clear();
 }
 
 void Audio::InitializeEffect()

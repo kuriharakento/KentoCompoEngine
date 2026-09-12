@@ -155,4 +155,33 @@ private:
 	nlohmann::json after_;
 	bool hasAfter_ = false;
 };
+
+/**
+ * @brief BPM・オフセット・音声名の変更をまとめて扱うコマンド
+ */
+class SequenceMetaCommand : public ICommand
+{
+public:
+	/**
+	 * @brief コンストラクタ
+	 * @param sequence 対象のシーケンス
+	 * @param before 変更前のメタ情報
+	 * @param after 変更後のメタ情報
+	 * @param name 履歴に表示する操作名
+	 * @param editId 同じドラッグをまとめる識別子
+	 */
+	SequenceMetaCommand(Sequence* sequence, const SequenceMeta& before, const SequenceMeta& after, std::string name, uint32_t editId);
+
+	void Execute() override;
+	void Undo() override;
+	std::string GetName() const override { return name_; }
+	bool MergeWith(const ICommand* next) override;
+
+private:
+	Sequence* sequence_ = nullptr;
+	SequenceMeta before_{};
+	SequenceMeta after_{};
+	std::string name_;
+	uint32_t editId_ = 0;
+};
 } // namespace KCE

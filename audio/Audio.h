@@ -70,6 +70,14 @@ struct SoundData
 	std::vector<BYTE> buffer;
 	unsigned int bufferSize;
 	SoundGroup group;
+	/** @brief 波形表示用に間引いた最小値と最大値 */
+	struct WaveformPeak
+	{
+		float minimum = 0.0f;
+		float maximum = 0.0f;
+	};
+	std::vector<WaveformPeak> waveformPeaks;
+	uint32_t waveformFramesPerPeak = 0;
 };
 
 /**
@@ -115,6 +123,9 @@ struct AudioDebugData
 class Audio
 {
 public:
+	/** @brief 波形キャッシュが1秒に持つピーク数 */
+	static constexpr uint32_t kWaveformPeaksPerSecond = 256;
+
 	static Audio* GetInstance();
 	void Initialize();
 	void Finalize();
@@ -163,6 +174,21 @@ public:
 	bool IsPlaying(const std::string& name) const;
 	bool IsPaused(const std::string& name) const;
 	bool IsLoaded(const std::string& name) const;
+
+	/**
+	 * @brief 読み込み済みの音声名を取得する
+	 * @return 読み込み順に並んだ音声名。参照は次の読み込み・破棄まで有効
+	 */
+	const std::vector<std::string>& GetLoadedSoundNames() const { return loadedSoundNames_; }
+
+	/**
+	 * @brief 波形表示用のピーク列を取得する
+	 * @param name 読み込み済みの音声名
+	 * @return ピーク列。未読み込みなら nullptr
+	 */
+	const std::vector<SoundData::WaveformPeak>* GetWaveformPeaks(const std::string& name) const;
+	/** @brief 波形ピーク1個が表す秒数。未読み込みなら0 */
+	float GetWaveformSecondsPerPeak(const std::string& name) const;
 
 	// --- 再生位置（シーケンサの時間の権威） ---
 
@@ -229,6 +255,8 @@ private:
 	 * @return サンプル数。ブロックアラインが0なら0
 	 */
 	static uint64_t GetTotalSampleCount(const SoundData& soundData);
+	/** @brief 読み込み時に波形表示用のピーク列を作る */
+	static void BuildWaveformPeaks(SoundData& soundData);
 
 	float ClampVolume(float volume) const;
 	float ClampPitch(float pitch) const;
@@ -245,6 +273,7 @@ private:
 	IXAudio2SubmixVoice* submixVoiceReverb_ = nullptr; // リバーブ用
 
 	std::unordered_map<std::string, SoundData> soundDataMap_;
+	std::vector<std::string> loadedSoundNames_;
 	std::unordered_map<std::string, IXAudio2SourceVoice*> sourceVoiceMap_;
 	std::unordered_map<SoundGroup, std::vector<IXAudio2SourceVoice*>> groupVoicesMap_;
 	std::unordered_map<std::string, bool> pausedMap_;

@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -37,7 +38,7 @@ struct TimelineViewState
 	//! 左側のトラック名欄の幅（ピクセル）
 	float headerWidth = 180.0f;
 	//! 時間ルーラーの高さ（ピクセル）
-	float rulerHeight = 24.0f;
+	float rulerHeight = 72.0f;
 };
 
 /**
@@ -126,6 +127,8 @@ private:
 	void DrawToolbar();
 	/** @brief 時間ルーラーとビートグリッド */
 	void DrawRuler(const ImVec2& canvasMin, float canvasWidth);
+	/** @brief 選択中の音声の波形をルーラー内に描く */
+	void DrawWaveform(const ImVec2& canvasMin, float canvasWidth);
 	/** @brief トラック行とキーを描く */
 	void DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSize);
 	/** @brief 再生ヘッドを描き、ドラッグによるスクラブを処理する */
@@ -222,6 +225,11 @@ private:
 	bool draggingKey_ = false;
 	// 再生ヘッドをドラッグ中かどうか
 	bool draggingPlayhead_ = false;
+	// タップ間隔の平均を取るため、直近の時刻だけ固定長で持つ
+	std::array<double, 8> tapTimes_{};
+	size_t tapCount_ = 0;
+	// 別々のUI操作をUndoで一緒にしないための番号
+	uint32_t metaEditId_ = 0;
 	// 編集用カメラの移動速度
 	float editorCameraSpeed_ = 8.0f;
 	// 初期化済みかどうか

@@ -29,6 +29,7 @@ bool SequencerEditor::HasInstance()
 #include <cstdio>
 
 #include "ImGuizmo/ImGuizmo.h"
+#include "audio/Audio.h"
 #include "base/Logger.h"
 #include "editor/EditorContext.h"
 #include "editor/SceneViewContext.h"
@@ -57,6 +58,10 @@ const char* const kSequenceCameraName = "SequencerCamera";
 constexpr float kKeyMarkerRadius = 5.0f;
 /** @brief キーを掴めるとみなす距離（ピクセル） */
 constexpr float kKeyGrabRadius = 7.0f;
+/** @brief 波形を描き始めるルーラー内のY位置 */
+constexpr float kWaveformTop = 28.0f;
+/** @brief タップをやり直したとみなす間隔（秒） */
+constexpr double kTapResetSeconds = 2.0;
 
 /**
  * @brief トラックがタイムライン上で占める行数
@@ -141,6 +146,18 @@ bool ExecuteTrackEdit(Sequence& sequence, size_t trackIndex, const char* name, E
 	}
 	CommandHistory::GetInstance()->Execute(std::move(command));
 	return true;
+}
+
+/** @brief メタ情報の変更を履歴へ積む */
+void ExecuteMetaEdit(Sequence& sequence, const SequenceMeta& after, const char* name, uint32_t editId)
+{
+	const SequenceMeta before = sequence.GetMeta();
+	if (before.bpm == after.bpm && before.offset == after.offset && before.audioClip == after.audioClip)
+	{
+		return;
+	}
+	CommandHistory::GetInstance()->Execute(
+		std::make_unique<SequenceMetaCommand>(&sequence, before, after, name, editId));
 }
 } // namespace
 
@@ -565,21 +582,28 @@ void SequencerEditor::DrawRuler(const ImVec2& canvasMin, float canvasWidth)
 		const float beatDuration = 60.0f / meta.bpm;
 		if (beatDuration * view_.pixelsPerSecond >= 6.0f)
 		{
-			const float firstBeatIndex = std::floor((startTime - meta.offset) / beatDuration);
-			for (float beat = firstBeatIndex; ; beat += 1.0f)
+			const int firstBeatIndex = static_cast<int>(std::floor((startTime - meta.offset) / beatDuration));
+			for (int beat = firstBeatIndex; ; ++beat)
 			{
-				const float t = meta.offset + beat * beatDuration;
+				const float t = meta.offset + static_cast<float>(beat) * beatDuration;
 				if (t > endTime) { break; }
 
 				const float x = TimeToPixel(t, left);
 				if (x < left) { continue; }
 
 				// 4拍ごとに濃くして小節の頭が分かるようにする
-				const bool isBarStart = std::fmod(std::abs(beat), 4.0f) < 0.001f;
+				const bool isBarStart = beat % 4 == 0;
 				drawList->AddLine(
 					ImVec2(x, rulerBottom),
 					ImVec2(x, canvasMin.y + ImGui::GetContentRegionAvail().y),
 					isBarStart ? IM_COL32(90, 90, 110, 160) : IM_COL32(70, 70, 80, 90));
+
+				if (beat >= 0 && beatDuration * view_.pixelsPerSecond >= 28.0f)
+				{
+					char beatLabel[24];
+					std::snprintf(beatLabel, sizeof(beatLabel), "%d.%d", beat / 4 + 1, beat % 4 + 1);
+					drawList->AddText(ImVec2(x + 2.0f, canvasMin.y + 15.0f), IM_COL32(130, 190, 220, 255), beatLabel);
+				}
 			}
 		}
 	}
@@ -592,6 +616,59 @@ void SequencerEditor::DrawRuler(const ImVec2& canvasMin, float canvasWidth)
 		drawList->AddLine(ImVec2(x, canvasMin.y), ImVec2(x, rulerBottom), IM_COL32(240, 200, 90, 255), 2.0f);
 		drawList->AddText(ImVec2(x + 3.0f, canvasMin.y + view_.rulerHeight * 0.5f), IM_COL32(240, 200, 90, 255), marker.name.c_str());
 	}
+}
+
+void SequencerEditor::DrawWaveform(const ImVec2& canvasMin, float canvasWidth)
+{
+	const SequenceMeta& meta = sequence_.GetMeta();
+	if (meta.audioClip.empty())
+	{
+		return;
+	}
+
+	const std::vector<SoundData::WaveformPeak>* peaks = Audio::GetInstance()->GetWaveformPeaks(meta.audioClip);
+	if (!peaks || peaks->empty())
+	{
+		return;
+	}
+
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	const float left = canvasMin.x + view_.headerWidth;
+	const float right = canvasMin.x + canvasWidth;
+	const float top = canvasMin.y + kWaveformTop;
+	const float bottom = canvasMin.y + view_.rulerHeight - 2.0f;
+	const float center = (top + bottom) * 0.5f;
+	const float amplitude = (bottom - top) * 0.5f;
+	const float secondsPerPeak = Audio::GetInstance()->GetWaveformSecondsPerPeak(meta.audioClip);
+	if (secondsPerPeak <= 0.0f)
+	{
+		return;
+	}
+	const float audioStart = (std::max)(view_.scrollTime + meta.offset, 0.0f);
+	const float audioEnd = (std::max)(PixelToTime(right, left) + meta.offset, 0.0f);
+	const size_t firstPeak = (std::min)(static_cast<size_t>(audioStart / secondsPerPeak), peaks->size());
+	const size_t lastPeak = (std::min)(static_cast<size_t>(std::ceil(audioEnd / secondsPerPeak)) + 1, peaks->size());
+	const size_t peaksPerPixel = (std::max)(static_cast<size_t>(std::ceil(1.0f / (secondsPerPeak * view_.pixelsPerSecond))), static_cast<size_t>(1));
+
+	drawList->PushClipRect(ImVec2(left, top), ImVec2(right, bottom), true);
+	for (size_t index = firstPeak; index < lastPeak; index += peaksPerPixel)
+	{
+		const size_t groupEnd = (std::min)(index + peaksPerPixel, lastPeak);
+		float minimum = 1.0f;
+		float maximum = -1.0f;
+		for (size_t peakIndex = index; peakIndex < groupEnd; ++peakIndex)
+		{
+			minimum = (std::min)(minimum, (*peaks)[peakIndex].minimum);
+			maximum = (std::max)(maximum, (*peaks)[peakIndex].maximum);
+		}
+		const float timelineTime = static_cast<float>(index) * secondsPerPeak - meta.offset;
+		const float x = TimeToPixel(timelineTime, left);
+		drawList->AddLine(
+			ImVec2(x, center - maximum * amplitude),
+			ImVec2(x, center - minimum * amplitude),
+			IM_COL32(90, 180, 210, 210));
+	}
+	drawList->PopClipRect();
 }
 
 void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSize)
@@ -860,19 +937,81 @@ void SequencerEditor::DrawTimelineWindow()
 			meta.name = nameBuffer;
 		}
 
-		char audioBuffer[128];
-		std::snprintf(audioBuffer, sizeof(audioBuffer), "%s", meta.audioClip.c_str());
-		if (ImGui::InputText("Audio Clip", audioBuffer, sizeof(audioBuffer)))
+		const char* audioPreview = meta.audioClip.empty() ? "(None)" : meta.audioClip.c_str();
+		if (ImGui::BeginCombo("Audio Clip", audioPreview))
 		{
-			meta.audioClip = audioBuffer;
+			if (ImGui::Selectable("(None)", meta.audioClip.empty()))
+			{
+				++metaEditId_;
+				SequenceMeta after = meta;
+				after.audioClip.clear();
+				ExecuteMetaEdit(sequence_, after, "Change Audio Clip", metaEditId_);
+			}
+			for (const std::string& soundName : Audio::GetInstance()->GetLoadedSoundNames())
+			{
+				if (ImGui::Selectable(soundName.c_str(), soundName == meta.audioClip))
+				{
+					++metaEditId_;
+					SequenceMeta after = meta;
+					after.audioClip = soundName;
+					ExecuteMetaEdit(sequence_, after, "Change Audio Clip", metaEditId_);
+				}
+			}
+			ImGui::EndCombo();
 		}
 		if (ImGui::IsItemHovered())
 		{
 			ImGui::SetTooltip("Audio に読み込み済みの音声名。\n設定するとこの音声の再生位置が時刻の権威になります");
 		}
 
-		ImGui::DragFloat("BPM", &meta.bpm, 0.1f, 0.0f, 400.0f, "%.2f");
-		ImGui::DragFloat("Offset", &meta.offset, 0.001f, -10.0f, 10.0f, "%.3f s");
+		float bpm = meta.bpm;
+		if (ImGui::DragFloat("BPM", &bpm, 0.1f, 0.0f, 400.0f, "%.2f"))
+		{
+			if (ImGui::IsItemActivated()) { ++metaEditId_; }
+			SequenceMeta after = meta;
+			after.bpm = bpm;
+			ExecuteMetaEdit(sequence_, after, "Change BPM", metaEditId_);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Tap Tempo"))
+		{
+			++metaEditId_;
+			const double now = ImGui::GetTime();
+			if (tapCount_ > 0 && now - tapTimes_[tapCount_ - 1] > kTapResetSeconds)
+			{
+				tapCount_ = 0;
+			}
+			if (tapCount_ == tapTimes_.size())
+			{
+				std::move(tapTimes_.begin() + 1, tapTimes_.end(), tapTimes_.begin());
+				--tapCount_;
+			}
+			tapTimes_[tapCount_++] = now;
+			if (tapCount_ >= 2)
+			{
+				const double averageInterval = (tapTimes_[tapCount_ - 1] - tapTimes_[0]) / static_cast<double>(tapCount_ - 1);
+				SequenceMeta after = meta;
+				after.bpm = std::clamp(static_cast<float>(60.0 / averageInterval), 0.0f, 400.0f);
+				ExecuteMetaEdit(sequence_, after, "Tap Tempo", metaEditId_);
+			}
+		}
+
+		float offset = meta.offset;
+		if (ImGui::DragFloat("Offset", &offset, 0.001f, -10.0f, 10.0f, "%.3f s"))
+		{
+			if (ImGui::IsItemActivated()) { ++metaEditId_; }
+			SequenceMeta after = meta;
+			after.offset = offset;
+			ExecuteMetaEdit(sequence_, after, "Change Offset", metaEditId_);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Set to Playhead"))
+		{
+			++metaEditId_;
+			SequenceMeta after = meta;
+			after.offset = player_.GetTime();
+			ExecuteMetaEdit(sequence_, after, "Set Offset to Playhead", metaEditId_);
+		}
 		ImGui::DragFloat("Duration", &meta.duration, 0.1f, 0.0f, 3600.0f, "%.2f s");
 		if (ImGui::IsItemHovered())
 		{
@@ -926,6 +1065,7 @@ void SequencerEditor::DrawTimelineWindow()
 	}
 
 	DrawRuler(canvasMin, canvasSize.x);
+	DrawWaveform(canvasMin, canvasSize.x);
 	DrawTracks(canvasMin, canvasSize);
 	DrawPlayhead(canvasMin, canvasSize);
 

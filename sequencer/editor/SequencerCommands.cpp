@@ -133,6 +133,41 @@ void SequenceStructureCommand::Undo()
 	}
 }
 
+SequenceMetaCommand::SequenceMetaCommand(
+	Sequence* sequence, const SequenceMeta& before, const SequenceMeta& after, std::string name, uint32_t editId)
+	: sequence_(sequence), before_(before), after_(after), name_(std::move(name)), editId_(editId)
+{
+}
+
+void SequenceMetaCommand::Execute()
+{
+	if (sequence_)
+	{
+		sequence_->GetMeta() = after_;
+	}
+}
+
+void SequenceMetaCommand::Undo()
+{
+	if (sequence_)
+	{
+		sequence_->GetMeta() = before_;
+	}
+}
+
+bool SequenceMetaCommand::MergeWith(const ICommand* next)
+{
+	const auto* other = dynamic_cast<const SequenceMetaCommand*>(next);
+	if (!other || other->sequence_ != sequence_ || other->name_ != name_ || other->editId_ != editId_)
+	{
+		return false;
+	}
+
+	// ドラッグ中に増えた変更は、つかむ前から離した位置までの1件にまとめる。
+	after_ = other->after_;
+	return true;
+}
+
 GameObjectTransformCommand::GameObjectTransformCommand(const Guid& guid, const Transform& before, const Transform& after, uint32_t dragId)
 	: guid_(guid), before_(before), after_(after), dragId_(dragId)
 {
