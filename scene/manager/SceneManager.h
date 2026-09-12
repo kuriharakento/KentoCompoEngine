@@ -57,6 +57,8 @@ public: //アクセッサ
 	VolumetricLightRenderer* GetVolumetricLight() const { return context_.volumetricLight; }
 	//床の平面反射の取得
 	PlanarReflection* GetPlanarReflection() const { return context_.planarReflection; }
+	//3D 空間の文字の登録先の取得
+	Text3DRenderer* GetText3D() const { return context_.text3D; }
 
 private: //メンバ関数
 	//次のシーンが予約されているか

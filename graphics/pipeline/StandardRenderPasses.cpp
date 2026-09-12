@@ -6,6 +6,7 @@
 #include "effects/particle/ParticleManager.h"
 #include "graphics/2d/SpriteCommon.h"
 #include "graphics/2d/TextOverlay.h"
+#include "graphics/text/Text3DRenderer.h"
 #include "graphics/3d/Object3dCommon.h"
 #include "graphics/3d/Skybox.h"
 #include "graphics/deferred/DeferredRenderer.h"
@@ -316,6 +317,20 @@ void TransparentPass::Execute(const RenderPassContext& ctx)
 	ParticleManager::GetInstance()->Draw();
 }
 
+void Text3DPass::Execute(const RenderPassContext& ctx)
+{
+	if (!ctx.text3DRenderer || !ctx.view || !ctx.view->IsValid() || !ctx.cameraManager)
+	{
+		return;
+	}
+	// サブビューの描画中はアクティブカメラが差し替わっているので、そのビューのカメラになる
+	ctx.text3DRenderer->Draw(
+		ctx.cameraManager->GetActiveCamera(),
+		ctx.view->GetSceneColor()->GetRTVHandle(),
+		ctx.view->GetGBuffer()->GetDSVHandle(),
+		ctx.frameConstantAllocator);
+}
+
 void OutlinePass::Execute(const RenderPassContext& ctx)
 {
 	if (!ctx.outlineRenderer || !ctx.view || !ctx.view->IsValid() || !ctx.cameraManager)
@@ -494,6 +509,7 @@ void BuildStandardRenderPipeline(RenderPipeline& pipeline)
 	pipeline.AddPass(std::make_unique<ReflectionPass>());
 	pipeline.AddPass(std::make_unique<FogPass>());
 	pipeline.AddPass(std::make_unique<TransparentPass>());
+	pipeline.AddPass(std::make_unique<Text3DPass>());
 	pipeline.AddPass(std::make_unique<BeamPass>());
 	pipeline.AddPass(std::make_unique<VolumetricLightPass>());
 	pipeline.AddPass(std::make_unique<SceneColorResolvePass>());
@@ -519,6 +535,8 @@ void BuildSceneOnlyRenderPipeline(RenderPipeline& pipeline)
 	pipeline.AddPass(std::make_unique<SkyboxPass>());
 	pipeline.AddPass(std::make_unique<FogPass>());
 	pipeline.AddPass(std::make_unique<TransparentPass>());
+	// モニターや床の反射にも文字が映るように、サブビューでも描く
+	pipeline.AddPass(std::make_unique<Text3DPass>());
 	pipeline.AddPass(std::make_unique<BeamPass>());
 	pipeline.AddPass(std::make_unique<SceneColorResolvePass>());
 }

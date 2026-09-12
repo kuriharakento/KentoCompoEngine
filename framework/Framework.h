@@ -19,6 +19,7 @@
 #include "graphics/2d/SpriteCommon.h"
 #include "graphics/2d/GlyphAtlas.h"
 #include "graphics/2d/TextOverlay.h"
+#include "graphics/text/Text3DRenderer.h"
 #include "graphics/3d/Object3dCommon.h"
 // shadow
 #include "manager/graphics/ShadowMapManager.h"
@@ -222,6 +223,8 @@ protected: // メンバ変数
 	std::unique_ptr<GlyphAtlas> glyphAtlas_;
 	// 歌詞テロップと会話枠。シーケンサの Text トラックが中身を決める
 	std::unique_ptr<TextOverlay> textOverlay_;
+	// 3D 空間の文字。文字列はシーンが持ち、名前で登録する
+	std::unique_ptr<Text3DRenderer> text3DRenderer_;
 	// 3Dオブジェクト共通部
 	std::unique_ptr<Object3dCommon> objectCommon_;
 	std::unique_ptr<FrameConstantAllocator> frameConstantAllocator_;

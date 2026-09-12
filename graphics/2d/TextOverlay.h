@@ -29,7 +29,7 @@ public:
 	 * @param spriteCommon スプライト共通部。所有しない
 	 * @param atlas 文字のアトラス。所有しない
 	 */
-	void Initialize(SpriteCommon* spriteCommon, const GlyphAtlas* atlas);
+	void Initialize(SpriteCommon* spriteCommon, GlyphAtlas* atlas);
 
 	/**
 	 * @brief 歌詞を出す

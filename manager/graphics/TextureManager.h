@@ -49,13 +49,14 @@ public:
 	void LoadTexture(const std::string& filePath);
 
 	/**
-	 * @brief メモリ上の画像をテクスチャとして登録する（実行時に作った文字アトラスなど）
-	 * @details 転送は今のコマンドリストに積むので、初期化中（GPU の完了待ちより前）に呼ぶこと。
+	 * @brief 外で作ったテクスチャを登録する（実行時に書き換える文字アトラスなど）
+	 * @details SRV を作って名前で引けるようにするだけ。中身の転送とリソースの状態は呼ぶ側が持つ。
 	 *          同じ名前が登録済みなら何もしない。
 	 * @param key 登録名。以降は LoadTexture で読んだものと同じようにこの名前で引ける
-	 * @param image 画像。ミップは作らない（渡したものをそのまま使う）
+	 * @param resource テクスチャ。TextureManager も参照を持つ
+	 * @param metadata 大きさとフォーマット。Sprite の UV の計算に使われる
 	 */
-	void LoadTextureFromImage(const std::string& key, const DirectX::ScratchImage& image);
+	void RegisterTexture(const std::string& key, Microsoft::WRL::ComPtr<ID3D12Resource> resource, const DirectX::TexMetadata& metadata);
 
 	/**
 	 * @brief 中間リソースを解放する

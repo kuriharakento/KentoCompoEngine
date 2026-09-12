@@ -41,9 +41,10 @@ public:
 	/**
 	 * @brief 初期化
 	 * @param spriteCommon スプライト共通部。所有しない
-	 * @param atlas 文字のアトラス。所有しない（このインスタンスより長生きする前提）
+	 * @param atlas 文字のアトラス。所有しない（このインスタンスより長生きする前提）。
+	 *              初めて使う文字はここへ描き足してもらうので const ではない
 	 */
-	void Initialize(SpriteCommon* spriteCommon, const GlyphAtlas* atlas);
+	void Initialize(SpriteCommon* spriteCommon, GlyphAtlas* atlas);
 
 	/** @brief 表示する文字列（UTF-8）。改行は '\n' */
 	void SetText(const std::string& utf8Text);
@@ -77,7 +78,7 @@ private:
 
 	// 所有しない
 	SpriteCommon* spriteCommon_ = nullptr;
-	const GlyphAtlas* atlas_ = nullptr;
+	GlyphAtlas* atlas_ = nullptr;
 
 	std::string utf8Text_;
 	std::wstring text_;

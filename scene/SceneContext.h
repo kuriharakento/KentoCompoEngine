@@ -15,6 +15,7 @@ class ISubViewProvider;
 class DepthOfFieldRenderer;
 class VolumetricLightRenderer;
 class PlanarReflection;
+class Text3DRenderer;
 
 /**
  * @brief 各シーンで共有するコンテキスト情報。
@@ -37,5 +38,7 @@ struct SceneContext
 	DepthOfFieldRenderer* depthOfField = nullptr;
 	VolumetricLightRenderer* volumetricLight = nullptr;
 	PlanarReflection* planarReflection = nullptr;
+	// 3D 空間の文字の登録先
+	Text3DRenderer* text3D = nullptr;
 };
 } // namespace KCE

@@ -11,8 +11,6 @@ namespace
 // アトラスに無い文字の代わり
 constexpr wchar_t kMissingGlyph = L'?';
 constexpr wchar_t kNewLine = L'\n';
-constexpr wchar_t kSpace = L' ';
-constexpr wchar_t kIdeographicSpace = L'　';
 constexpr float kHalf = 0.5f;
 
 bool SameVector(const Vector2& a, const Vector2& b) { return a.x == b.x && a.y == b.y; }
@@ -22,7 +20,7 @@ bool SameVector(const Vector4& a, const Vector4& b) { return a.x == b.x && a.y =
 TextSprite::TextSprite() = default;
 TextSprite::~TextSprite() = default;
 
-void TextSprite::Initialize(SpriteCommon* spriteCommon, const GlyphAtlas* atlas)
+void TextSprite::Initialize(SpriteCommon* spriteCommon, GlyphAtlas* atlas)
 {
 	spriteCommon_ = spriteCommon;
 	atlas_ = atlas;
@@ -105,11 +103,12 @@ void TextSprite::Layout()
 
 	const float scale = fontSize_ / atlas_->GetFontPixelSize();
 	const float lineHeight = atlas_->GetLineHeight() * scale;
-	const GlyphInfo* missing = atlas_->Find(kMissingGlyph);
+	const float ascent = atlas_->GetAscent() * scale;
+	// 初めて使う文字はここで描き足される
 	const auto findGlyph = [&](wchar_t c)
 	{
-		const GlyphInfo* glyph = atlas_->Find(c);
-		return glyph ? glyph : missing;
+		const GlyphInfo* glyph = atlas_->Acquire(c);
+		return glyph ? glyph : atlas_->Acquire(kMissingGlyph);
 	};
 
 	// 行に分ける。日本語は単語の区切りが無いので、幅を超えたら文字単位で折り返す
@@ -139,7 +138,8 @@ void TextSprite::Layout()
 	lines_.push_back(line);
 
 	size_t shown = 0;
-	for (size_t lineIndex = 0; lineIndex < lines_.size(); ++lineIndex)
+	bool reachedLimit = false;
+	for (size_t lineIndex = 0; lineIndex < lines_.size() && !reachedLimit; ++lineIndex)
 	{
 		const Line& current = lines_[lineIndex];
 		float x = position_.x;
@@ -151,35 +151,40 @@ void TextSprite::Layout()
 		{
 			x -= current.width;
 		}
-		const float y = position_.y + lineHeight * static_cast<float>(lineIndex);
+		// 文字はベースラインに揃えて置く
+		const float baseline = position_.y + lineHeight * static_cast<float>(lineIndex) + ascent;
 
 		for (size_t i = current.begin; i < current.end; ++i)
 		{
 			if (shown >= visibleCount_)
 			{
-				return;
+				reachedLimit = true;
+				break;
 			}
 			++shown;
 
-			const wchar_t c = text_[i];
-			const GlyphInfo* glyph = findGlyph(c);
+			const GlyphInfo* glyph = findGlyph(text_[i]);
 			if (!glyph)
 			{
 				continue;
 			}
-			if (c != kSpace && c != kIdeographicSpace)
+			// 空白など絵の無い文字は送るだけ
+			if (glyph->width > 0.0f && glyph->height > 0.0f)
 			{
 				Sprite* sprite = AcquireSprite();
 				sprite->SetTextureLeftTop({ glyph->x, glyph->y });
 				sprite->SetTextureSize({ glyph->width, glyph->height });
 				sprite->SetSize({ glyph->width * scale, glyph->height * scale });
 				sprite->SetAnchorPoint({ 0.0f, 0.0f });
-				sprite->SetPosition({ x, y });
+				sprite->SetPosition({ x + glyph->offsetX * scale, baseline + glyph->offsetY * scale });
 				sprite->SetColor(color_);
 				sprite->Update();
 			}
 			x += glyph->advance * scale;
 		}
 	}
+
+	// 描き足した文字は、この後の描画で読むので先に送っておく
+	atlas_->FlushUploads();
 }
 } // namespace KCE

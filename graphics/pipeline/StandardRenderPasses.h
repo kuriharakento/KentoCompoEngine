@@ -97,6 +97,17 @@ public:
 };
 
 /**
+ * @brief 3D 空間の文字を描くパス
+ * @details 半透明の後、ビームの前。物の奥には隠れ、文字どうしは深度を書かずに重ねる。
+ */
+class Text3DPass : public IRenderPass
+{
+public:
+	const char* GetName() const override { return "Text3D"; }
+	void Execute(const RenderPassContext& ctx) override;
+};
+
+/**
  * @brief アウトライン（輪郭線）のパス
  * @details 不透明物を描いた後に置く。フォグより前なので、遠くの線は霧に沈む。
  */

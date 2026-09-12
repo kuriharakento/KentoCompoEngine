@@ -130,6 +130,9 @@
     <Filter Include="graphics\postfx">
       <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A40D}</UniqueIdentifier>
     </Filter>
+    <Filter Include="graphics\text">
+      <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A40E}</UniqueIdentifier>
+    </Filter>
     <Filter Include="graphics\shader">
       <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A408}</UniqueIdentifier>
     </Filter>
@@ -566,6 +569,15 @@
     </ClCompile>
     <ClCompile Include="graphics\2d\TextSprite.cpp">
       <Filter>graphics\2d</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\text\TextMesh3D.cpp">
+      <Filter>graphics\text</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\text\Text3DRenderer.cpp">
+      <Filter>graphics\text</Filter>
+    </ClCompile>
+    <ClCompile Include="sequencer\track\Text3DTrack.cpp">
+      <Filter>sequencer\track</Filter>
     </ClCompile>
     <ClCompile Include="sequencer\track\TextTrack.cpp">
       <Filter>sequencer\track</Filter>
@@ -1201,6 +1213,15 @@
     </ClInclude>
     <ClInclude Include="graphics\2d\TextSprite.h">
       <Filter>graphics\2d</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\text\TextMesh3D.h">
+      <Filter>graphics\text</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\text\Text3DRenderer.h">
+      <Filter>graphics\text</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\track\Text3DTrack.h">
+      <Filter>sequencer\track</Filter>
     </ClInclude>
     <ClInclude Include="sequencer\track\TextTrack.h">
       <Filter>sequencer\track</Filter>
