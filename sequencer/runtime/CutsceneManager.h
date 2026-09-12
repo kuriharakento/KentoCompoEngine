@@ -15,6 +15,7 @@ class Camera;
 class CameraManager;
 class FogRenderer;
 class TextOverlay;
+class Text3DRenderer;
 class LightManager;
 class PostProcessManager;
 
@@ -105,6 +106,9 @@ public:
 
 	/** @brief Text トラックの出力先を渡す（Framework 所有） */
 	void SetTextOverlay(TextOverlay* textOverlay);
+
+	/** @brief Text3D トラックの探し先を渡す（Framework 所有） */
+	void SetText3DRenderer(Text3DRenderer* text3DRenderer);
 
 	void Finalize();
 

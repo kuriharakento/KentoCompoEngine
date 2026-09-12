@@ -15,6 +15,7 @@ class FogRenderer;
 class LightManager;
 class PostProcessManager;
 class TextOverlay;
+class Text3DRenderer;
 
 /**
  * @brief 役（ロール）に割り当てられる実体の型
@@ -132,6 +133,10 @@ public:
 	void SetTextOverlay(TextOverlay* textOverlay) { textOverlay_ = textOverlay; }
 	TextOverlay* GetTextOverlay() const { return textOverlay_; }
 
+	// 3D 空間の文字。Text3D トラックはここから名前で探す
+	void SetText3DRenderer(Text3DRenderer* text3DRenderer) { text3DRenderer_ = text3DRenderer; }
+	Text3DRenderer* GetText3DRenderer() const { return text3DRenderer_; }
+
 	// --- 原点 ---
 
 	/**
@@ -176,6 +181,7 @@ private:
 	FogRenderer* fogRenderer_ = nullptr;
 	BeamRenderer* beamRenderer_ = nullptr;
 	TextOverlay* textOverlay_ = nullptr;
+	Text3DRenderer* text3DRenderer_ = nullptr;
 	SequenceOrigin origin_;
 };
 } // namespace KCE

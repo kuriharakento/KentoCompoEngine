@@ -314,6 +314,15 @@ void Framework::Initialize()
 #endif
 	}
 
+	// 3D 空間の文字（ライブ映像の歌詞の演出など）
+	text3DRenderer_ = std::make_unique<Text3DRenderer>();
+	text3DRenderer_->Initialize(dxCommon_.get(), glyphAtlas_.get());
+	shaderHotReload->Register(text3DRenderer_.get(), "Text3D",
+		[this](std::string& outError) { return text3DRenderer_->ReloadShaders(outError); });
+#ifdef USE_IMGUI
+	text3DRenderer_->RegisterDebugUI();
+#endif
+
 	// アウトライン（輪郭線）
 	outlineRenderer_ = std::make_unique<OutlineRenderer>();
 	outlineRenderer_->Initialize(dxCommon_.get(), srvManager_.get());
@@ -327,12 +336,14 @@ void Framework::Initialize()
 	// シーケンサの初期化はこれらより前なので、ここで後から渡す
 	SequencerEditor::GetInstance()->SetAtmosphere(fogRenderer_.get(), beamRenderer_.get());
 	SequencerEditor::GetInstance()->SetTextOverlay(textOverlay_.get());
+	SequencerEditor::GetInstance()->GetPlayer().GetBindingContext().SetText3DRenderer(text3DRenderer_.get());
 
 	// ゲームからカットシーンを再生する窓口
 	CutsceneManager* cutscene = CutsceneManager::GetInstance();
 	cutscene->Initialize(cameraManager_.get(), lightManager_.get(), postProcessManager_.get());
 	cutscene->SetAtmosphere(fogRenderer_.get(), beamRenderer_.get());
 	cutscene->SetTextOverlay(textOverlay_.get());
+	cutscene->SetText3DRenderer(text3DRenderer_.get());
 #ifdef USE_IMGUI
 	cutscene->RegisterDebugUI();
 #endif
@@ -473,6 +484,7 @@ void Framework::Finalize()
 	ownedSubViews_.clear();
 	// 文字の Sprite は GPU リソースを持つので、デバイスより先に畳む
 	textOverlay_.reset();
+	text3DRenderer_.reset();
 	glyphAtlas_.reset();
 
 	GameObjectEditor::GetInstance()->Finalize();
@@ -554,6 +566,7 @@ RenderPassContext Framework::MakeRenderPassContext(RenderView* view, RenderTextu
 	ctx.beamRenderer = beamRenderer_.get();
 	ctx.outlineRenderer = outlineRenderer_.get();
 	ctx.textOverlay = textOverlay_.get();
+	ctx.text3DRenderer = text3DRenderer_.get();
 	ctx.fxaaRenderer = fxaaRenderer_.get();
 	ctx.depthOfFieldRenderer = depthOfFieldRenderer_.get();
 	ctx.volumetricLightRenderer = volumetricLightRenderer_.get();

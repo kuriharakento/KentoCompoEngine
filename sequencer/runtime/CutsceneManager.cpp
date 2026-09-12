@@ -92,6 +92,11 @@ void CutsceneManager::SetTextOverlay(TextOverlay* textOverlay)
 	player_.GetBindingContext().SetTextOverlay(textOverlay);
 }
 
+void CutsceneManager::SetText3DRenderer(Text3DRenderer* text3DRenderer)
+{
+	player_.GetBindingContext().SetText3DRenderer(text3DRenderer);
+}
+
 void CutsceneManager::Finalize()
 {
 #ifdef USE_IMGUI

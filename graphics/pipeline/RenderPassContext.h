@@ -21,6 +21,7 @@ class Skybox;
 class SpriteCommon;
 class SrvManager;
 class TextOverlay;
+class Text3DRenderer;
 class FxaaRenderer;
 class DepthOfFieldRenderer;
 class VolumetricLightRenderer;
@@ -115,6 +116,8 @@ struct RenderPassContext
 	// --- 文字 ---
 	//! 歌詞テロップと会話枠（2D の一番手前）
 	TextOverlay* textOverlay = nullptr;
+	//! 3D 空間の文字（半透明の後）
+	Text3DRenderer* text3DRenderer = nullptr;
 
 	// --- 画の質 ---
 	//! トーンマップ後のジャギーを均す

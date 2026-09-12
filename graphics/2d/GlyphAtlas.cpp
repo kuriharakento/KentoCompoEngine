@@ -22,8 +22,7 @@ namespace KCE
 {
 namespace
 {
-// アトラスの一辺（ピクセル）。48px で数千文字入る
-constexpr uint32_t kAtlasSize = 4096;
+constexpr uint32_t kAtlasSize = GlyphAtlas::kTextureSize;
 // 隣の文字がにじんで入らないように空ける幅
 constexpr uint32_t kGlyphPadding = 2;
 constexpr uint32_t kBytesPerPixel = 4;

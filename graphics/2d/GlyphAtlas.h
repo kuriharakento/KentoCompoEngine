@@ -36,6 +36,8 @@ class GlyphAtlas
 public:
 	/** @brief TextureManager に登録するときの名前 */
 	static constexpr const char* kTextureKey = "runtime/glyph_atlas";
+	/** @brief アトラスの一辺（ピクセル）。48px で数千文字入る */
+	static constexpr uint32_t kTextureSize = 4096;
 
 	GlyphAtlas();
 	~GlyphAtlas();
