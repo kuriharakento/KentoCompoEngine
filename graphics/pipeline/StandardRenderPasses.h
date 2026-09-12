@@ -105,6 +105,8 @@ class Text3DPass : public IRenderPass
 public:
 	const char* GetName() const override { return "Text3D"; }
 	void Execute(const RenderPassContext& ctx) override;
+	/** @brief ビューが 3D 文字を省いていれば描かない */
+	bool ShouldExecute(const RenderPassContext& ctx) const override;
 };
 
 /**
@@ -116,6 +118,8 @@ class OutlinePass : public IRenderPass
 public:
 	const char* GetName() const override { return "Outline"; }
 	void Execute(const RenderPassContext& ctx) override;
+	/** @brief ビューが輪郭線を省いていれば描かない */
+	bool ShouldExecute(const RenderPassContext& ctx) const override;
 };
 
 /**
@@ -128,6 +132,8 @@ class FogPass : public IRenderPass
 public:
 	const char* GetName() const override { return "Fog"; }
 	void Execute(const RenderPassContext& ctx) override;
+	/** @brief ビューがフォグを省いていれば描かない */
+	bool ShouldExecute(const RenderPassContext& ctx) const override;
 };
 
 /**
@@ -139,6 +145,8 @@ class BeamPass : public IRenderPass
 public:
 	const char* GetName() const override { return "Beams"; }
 	void Execute(const RenderPassContext& ctx) override;
+	/** @brief ビューがビームを省いていれば描かない */
+	bool ShouldExecute(const RenderPassContext& ctx) const override;
 };
 
 /**

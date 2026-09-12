@@ -25,6 +25,8 @@ public:
 	/** @brief 画面オブジェクトを置くレイヤー。モニターのカメラからは見えない */
 	static constexpr uint32_t kScreenLayerIndex = 1;
 	static constexpr RenderLayerMask kScreenLayer = MakeRenderLayerMask(kScreenLayerIndex);
+	/** @brief 映像を描き直す回数（1秒あたり）。本物のテレビのように 24fps で十分 */
+	static constexpr float kDefaultFramesPerSecond = 24.0f;
 
 	~StageMonitor();
 
@@ -57,6 +59,12 @@ public:
 
 	/** @brief モニター用カメラ（CameraManager 所有） */
 	Camera* GetCamera() const { return camera_; }
+
+	/**
+	 * @brief 映像を1秒に何回描き直すか
+	 * @param framesPerSecond 回数。0 以下なら毎フレーム（デバッグ用のカメラ映像など、遅れが困るとき）
+	 */
+	void SetFramesPerSecond(float framesPerSecond);
 
 private:
 	/** @brief 画面の Model にサブビューの映像を差す／外す */

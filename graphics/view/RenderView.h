@@ -16,6 +16,19 @@ class RenderTexture;
 class SrvManager;
 
 /**
+ * @brief ビューごとに省けるパス
+ * @details サブビュー（モニター・反射など）は本編ほどの見た目が要らないことが多い。
+ *          描かなくてよいものを落として軽くするのに使う。
+ */
+enum class RenderViewPass : uint32_t
+{
+	Outline = 1u << 0, //!< 輪郭線
+	Fog = 1u << 1,	   //!< 大気フォグ
+	Beams = 1u << 2,   //!< スポットライトのビーム
+	Text3D = 1u << 3,  //!< 3D 空間の文字
+};
+
+/**
  * @brief 1つの視点ぶんの描画リソースをまとめたもの
  *
  * @details SEQUENCER_PLAN 4.3。従来は renderTexture_ / deferredRenderer_ /
@@ -99,6 +112,54 @@ public:
 	bool IsEnabled() const { return enabled_; }
 
 	/**
+	 * @brief 何秒ごとに描き直すか
+	 * @details テレビのように 24fps で十分なモニターなどで使う。描かないフレームは前の絵が残る。
+	 * @param seconds 描き直す間隔（秒）。0 以下なら毎フレーム描く
+	 */
+	void SetUpdateInterval(float seconds) { updateInterval_ = seconds; }
+	float GetUpdateInterval() const { return updateInterval_; }
+
+	/**
+	 * @brief 経過時間を進めて、このフレームで描き直すかを決める
+	 * @details 一度も描いていなければ必ず描く（作りたての絵は読めない状態のため）。
+	 *          大きく遅れたときに、取り戻そうとして連続で描かないよう余りは捨てる。
+	 * @param deltaSeconds 前のフレームからの実時間（秒）
+	 * @return 描き直すなら真
+	 */
+	bool AdvanceAndCheckUpdate(float deltaSeconds)
+	{
+		if (updateInterval_ <= 0.0f || !hasRendered_)
+		{
+			hasRendered_ = true;
+			timeSinceUpdate_ = 0.0f;
+			return true;
+		}
+		timeSinceUpdate_ += deltaSeconds;
+		if (timeSinceUpdate_ < updateInterval_)
+		{
+			return false;
+		}
+		timeSinceUpdate_ -= updateInterval_;
+		if (timeSinceUpdate_ >= updateInterval_)
+		{
+			timeSinceUpdate_ = 0.0f;
+		}
+		return true;
+	}
+
+	/**
+	 * @brief このビューで特定のパスを描くかどうか
+	 * @param pass 対象のパス
+	 * @param enabled 描くなら真（既定はすべて描く）
+	 */
+	void SetPassEnabled(RenderViewPass pass, bool enabled)
+	{
+		const uint32_t bit = static_cast<uint32_t>(pass);
+		disabledPasses_ = enabled ? (disabledPasses_ & ~bit) : (disabledPasses_ | bit);
+	}
+	bool IsPassEnabled(RenderViewPass pass) const { return (disabledPasses_ & static_cast<uint32_t>(pass)) == 0; }
+
+	/**
 	 * @brief 描画に使える状態か
 	 * @return 初期化済みなら真
 	 */
@@ -121,6 +182,14 @@ private:
 	RenderLayerMask layerMask_ = kRenderLayerAll;
 	// 描画するかどうか
 	bool enabled_ = true;
+	// 描き直す間隔（秒）。0 以下なら毎フレーム
+	float updateInterval_ = 0.0f;
+	// 前に描いてからの経過（秒）
+	float timeSinceUpdate_ = 0.0f;
+	// 一度でも描いたか
+	bool hasRendered_ = false;
+	// 省くパス（RenderViewPass のビットの集まり）
+	uint32_t disabledPasses_ = 0;
 
 	DirectXCommon* dxCommon_ = nullptr;
 	SrvManager* srvManager_ = nullptr;

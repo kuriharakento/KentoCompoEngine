@@ -317,6 +317,26 @@ void TransparentPass::Execute(const RenderPassContext& ctx)
 	ParticleManager::GetInstance()->Draw();
 }
 
+bool Text3DPass::ShouldExecute(const RenderPassContext& ctx) const
+{
+	return IsEnabled() && (!ctx.view || ctx.view->IsPassEnabled(RenderViewPass::Text3D));
+}
+
+bool OutlinePass::ShouldExecute(const RenderPassContext& ctx) const
+{
+	return IsEnabled() && (!ctx.view || ctx.view->IsPassEnabled(RenderViewPass::Outline));
+}
+
+bool FogPass::ShouldExecute(const RenderPassContext& ctx) const
+{
+	return IsEnabled() && (!ctx.view || ctx.view->IsPassEnabled(RenderViewPass::Fog));
+}
+
+bool BeamPass::ShouldExecute(const RenderPassContext& ctx) const
+{
+	return IsEnabled() && (!ctx.view || ctx.view->IsPassEnabled(RenderViewPass::Beams));
+}
+
 void Text3DPass::Execute(const RenderPassContext& ctx)
 {
 	if (!ctx.text3DRenderer || !ctx.view || !ctx.view->IsValid() || !ctx.cameraManager)

@@ -646,6 +646,12 @@ void Framework::RenderSubView(RenderView* view)
 	{
 		return;
 	}
+	// 間隔を決めたビュー（24fps のモニターなど）は、時間が来たフレームだけ描く。
+	// 描かないフレームは前の絵がそのまま使われる
+	if (!view->AdvanceAndCheckUpdate(TimeManager::GetInstance().GetUIContext().realDeltaTime))
+	{
+		return;
+	}
 
 	Camera* camera = view->GetCamera();
 	if (camera && camera != cameraManager_->GetPrimaryCamera())
