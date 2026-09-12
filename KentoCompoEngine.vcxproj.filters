@@ -237,6 +237,9 @@
     <ClCompile Include="base\PostProcessPass.cpp">
       <Filter>base</Filter>
     </ClCompile>
+    <ClCompile Include="base\JobSystem.cpp">
+      <Filter>base</Filter>
+    </ClCompile>
     <ClCompile Include="base\RenderTexture.cpp">
       <Filter>base</Filter>
     </ClCompile>
@@ -681,6 +684,9 @@
       <Filter>base</Filter>
     </ClInclude>
     <ClInclude Include="base\PostProcessPass.h">
+      <Filter>base</Filter>
+    </ClInclude>
+    <ClInclude Include="base\JobSystem.h">
       <Filter>base</Filter>
     </ClInclude>
     <ClInclude Include="base\RenderTexture.h">

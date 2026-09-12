@@ -15,6 +15,8 @@
 
 namespace KCE
 {
+class JobSystem;
+
 /**
  * @brief テクスチャマネージャークラス
  * @details テクスチャのロード、キャッシング、SRVインデックス管理を行うシングルトンクラス
@@ -48,6 +50,16 @@ public:
 	 * @details 読み込み済みの場合はスキップされる
 	 */
 	void LoadTexture(const std::string& filePath, ResourceLifetime lifetime = ResourceLifetime::Scene);
+
+	/**
+	 * @brief テクスチャをまとめて読む。ファイルの展開とミップマップ作りだけワーカーで並べて回す
+	 * @details GPU のリソース・転送・SRV は並べた順にメインスレッドで作るので、
+	 *          SRV の番号の並びは LoadTexture を順に呼んだときと同じ。メインスレッドから呼ぶこと。
+	 * @param filePaths 読むテクスチャのパス。読み込み済みと重複は飛ばす
+	 * @param lifetime 寿命
+	 * @param jobSystem ワーカー。nullptr なら順番に読む（所有しない）
+	 */
+	void LoadTextures(const std::vector<std::string>& filePaths, ResourceLifetime lifetime, JobSystem* jobSystem);
 
 	/** @brief 読み込み済みテクスチャを常駐扱いへ昇格する */
 	void MarkResident(const std::string& filePath);
@@ -185,6 +197,32 @@ private: // メンバ関数
 	 * @details 相対パスを整理し、スラッシュ区切り・小文字に統一する
 	 */
 	std::string NormalizePath(const std::string& filePath) const;
+
+	/**
+	 * @brief 読み込み済みか、前に失敗したパスかを調べる
+	 * @details 読み込み済みのものを常駐で読もうとしたら、常駐へ昇格もする
+	 * @return 読まなくていいなら true
+	 */
+	bool IsAlreadyHandled(const std::string& normalizedPath, ResourceLifetime lifetime);
+
+	/**
+	 * @brief ファイルを探して展開し、ミップマップまで作る
+	 * @details メンバーを書き換えないので、ワーカーから同時に呼んでいい
+	 * @param filePath テクスチャファイルパス
+	 * @param mipImages 展開結果の書き込み先
+	 * @return 失敗したら FAILED な値
+	 */
+	HRESULT DecodeTexture(const std::string& filePath, DirectX::ScratchImage& mipImages) const;
+
+	/**
+	 * @brief 展開済みの画像から GPU のリソース・転送・SRV を作って登録する。メインスレッド専用
+	 */
+	void CommitTexture(const std::string& normalizedPath, const DirectX::ScratchImage& mipImages, ResourceLifetime lifetime);
+
+	/**
+	 * @brief 読めなかったテクスチャを記録して、代わりの白いテクスチャを割り当てる
+	 */
+	void HandleLoadFailure(const std::string& filePath, const std::string& normalizedPath);
 
 	/**
 	 * @brief テクスチャリソースの転送

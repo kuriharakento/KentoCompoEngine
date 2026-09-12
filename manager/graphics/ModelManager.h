@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 #include <unordered_set>
+#include <vector>
 
 // system
 #include "graphics/3d/Model.h"
@@ -11,6 +12,8 @@
 
 namespace KCE
 {
+class JobSystem;
+
 /**
  * @brief モデルマネージャークラス
  * @details 3Dモデルのロードとキャッシングを管理するシングルトンクラス
@@ -18,6 +21,18 @@ namespace KCE
  */
 class ModelManager
 {
+public: /*========[ 型 ]========*/
+	/**
+	 * @brief LoadModels でまとめて読むモデル1つ分
+	 */
+	struct ModelRequest
+	{
+		// モデルファイルパス（Resources/modelsディレクトリからの相対パス）
+		std::string filePath;
+		// モデルのファイル形式
+		std::string modelType = ".obj";
+	};
+
 public: /*========[ メンバ関数 ]========*/
 	/**
 	 * @brief シングルトンインスタンスを取得
@@ -44,6 +59,15 @@ public: /*========[ メンバ関数 ]========*/
 	 * @details 読み込み済みの場合はスキップされる
 	 */
 	void LoadModel(const std::string& filePath, const std::string& modelType = ".obj", ResourceLifetime lifetime = ResourceLifetime::Scene);
+
+	/**
+	 * @brief モデルをまとめて読む。ファイルの解析と、モデルが使うテクスチャの展開をワーカーで並べて回す
+	 * @details GPU リソースは並べた順にメインスレッドで作る。メインスレッドから呼ぶこと。
+	 * @param requests 読むモデル。読み込み済みと重複は飛ばす
+	 * @param lifetime 寿命
+	 * @param jobSystem ワーカー。nullptr なら順番に読む（所有しない）
+	 */
+	void LoadModels(const std::vector<ModelRequest>& requests, ResourceLifetime lifetime, JobSystem* jobSystem);
 
 	/** @brief シーン寿命のモデルをまとめて解放する */
 	void ReleaseSceneResources();
@@ -72,14 +96,30 @@ public:
 private: /*========[ シングルトン ]========*/
 	static std::unique_ptr<ModelManager> instance_; // シングルトンインスタンス
 	friend std::unique_ptr<ModelManager> std::make_unique<ModelManager>();
-	
+
 	// コピー禁止
 	ModelManager()=default;
-	
+
 	ModelManager(const ModelManager&) = delete;
 	ModelManager& operator=(const ModelManager&) = delete;
 
+private: /*========[ 内部処理 ]========*/
+	/**
+	 * @brief 読み込み済みか、前に失敗したモデルかを調べる
+	 * @details 読み込み済みのモデルを常駐で読もうとしたら、常駐へ昇格もする
+	 * @return 読まなくていいなら true
+	 */
+	bool IsAlreadyHandled(const std::string& filePath, const std::string& modelType, ResourceLifetime lifetime);
+
+	/**
+	 * @brief 初期化できたモデルを登録する。常駐ならマテリアルのテクスチャも常駐にする
+	 */
+	void RegisterModel(const std::string& filePath, const std::string& modelType, std::unique_ptr<Model> model, ResourceLifetime lifetime);
+
 private: /*========[ メンバ変数 ]========*/
+	// モデルを探し始める場所
+	static constexpr const char* kModelDirectory = "Resources/models";
+
 	// モデル共通設定
 	std::unique_ptr<ModelCommon> modelCommon_ = nullptr;
 

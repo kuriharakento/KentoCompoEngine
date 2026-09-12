@@ -69,6 +69,33 @@ public:
 	bool Initialize(ModelCommon* modelCommon, const std::string& directoryPath, const std::string& filename, const std::string& modelType);
 
 	/**
+	 * @brief GPU を使わない下ごしらえの結果。ワーカーで Parse して、メインスレッドで Initialize に渡す
+	 */
+	struct ParsedModel
+	{
+		// マテリアルのテクスチャパスはフルパスに直してある
+		ModelData modelData;
+	};
+
+	/**
+	 * @brief モデルファイルを探して解析する。GPU もマネージャーも触らないので、ワーカーから呼んでいい
+	 * @param directoryPath モデルファイルのディレクトリパス
+	 * @param filename モデルファイル名
+	 * @param modelType モデルファイルの拡張子（.obj, .fbxなど）
+	 * @param outParsed 解析結果
+	 * @return 使えるメッシュがあれば true
+	 */
+	static bool Parse(const std::string& directoryPath, const std::string& filename, const std::string& modelType, ParsedModel& outParsed);
+
+	/**
+	 * @brief Parse 済みのデータから初期化する（テクスチャの読み込みと GPU リソース作り）。メインスレッド専用
+	 * @param modelCommon モデル共通部へのポインタ
+	 * @param parsed Parse の結果。中身はこのモデルに移す
+	 * @return 初期化できたら true
+	 */
+	bool Initialize(ModelCommon* modelCommon, ParsedModel&& parsed);
+
+	/**
 	 * @brief 描画
 	 * @details 頂点バッファとマテリアルを設定して描画コマンドを発行する
 	 */

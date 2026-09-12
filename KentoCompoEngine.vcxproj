@@ -20,6 +20,7 @@
     <ClCompile Include="base\Logger.cpp" />
     <ClCompile Include="base\ObjectPool.cpp" />
     <ClCompile Include="base\PostProcessPass.cpp" />
+    <ClCompile Include="base\JobSystem.cpp" />
     <ClCompile Include="base\RenderTexture.cpp" />
     <ClCompile Include="base\StringUtility.cpp" />
     <ClCompile Include="base\WinApp.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="base\Logger.h" />
     <ClInclude Include="base\ObjectPool.h" />
     <ClInclude Include="base\PostProcessPass.h" />
+    <ClInclude Include="base\JobSystem.h" />
     <ClInclude Include="base\RenderTexture.h" />
     <ClInclude Include="base\StringUtility.h" />
     <ClInclude Include="base\WinApp.h" />

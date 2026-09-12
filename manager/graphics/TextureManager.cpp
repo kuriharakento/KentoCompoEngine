@@ -5,6 +5,7 @@
 #include <iterator>
 
 // system
+#include "base/JobSystem.h"
 #include "base/PathManager.h"
 #include "base/StringUtility.h"
 #include "base/Logger.h"
@@ -54,18 +55,118 @@ void TextureManager::LoadTexture(const std::string& filePath, ResourceLifetime l
 	std::string normalizedPath = NormalizePath(filePath);
 
 	/*--------------[ 読み込み済みテクスチャを検索 ]-----------------*/
-	if (textureDatas_.contains(normalizedPath) || filePathToIndex_.contains(normalizedPath) || failedTexturePaths_.contains(normalizedPath))
+	if (IsAlreadyHandled(normalizedPath, lifetime))
 	{
-		if (lifetime == ResourceLifetime::Resident)
-		{
-			MarkResident(normalizedPath);
-		}
 		return;
 	}
 
 	// テクスチャ枚数上限チェック
 	assert(!srvManager_->IsMaxSRVCount());
 
+	DirectX::ScratchImage mipImages{};
+	if (FAILED(DecodeTexture(filePath, mipImages)))
+	{
+		HandleLoadFailure(filePath, normalizedPath);
+		return;
+	}
+	CommitTexture(normalizedPath, mipImages, lifetime);
+}
+
+void TextureManager::LoadTextures(const std::vector<std::string>& filePaths, ResourceLifetime lifetime, JobSystem* jobSystem)
+{
+	// 展開が要るものだけ残す。読み込み済みと、リスト内の重複はここで落とす
+	struct PendingTexture
+	{
+		std::string filePath;
+		std::string normalizedPath;
+		DirectX::ScratchImage mipImages;
+		HRESULT result = E_FAIL;
+	};
+	std::vector<PendingTexture> pendingTextures;
+	// 途中で伸びると展開中の要素が動くので、先に確保しきっておく
+	pendingTextures.reserve(filePaths.size());
+	std::unordered_set<std::string> queuedPaths;
+	for (const auto& filePath : filePaths)
+	{
+		std::string normalizedPath = NormalizePath(filePath);
+		if (IsAlreadyHandled(normalizedPath, lifetime) || !queuedPaths.insert(normalizedPath).second)
+		{
+			continue;
+		}
+		PendingTexture& pending = pendingTextures.emplace_back();
+		pending.filePath = filePath;
+		pending.normalizedPath = std::move(normalizedPath);
+	}
+
+	// ファイルの展開とミップマップ作りだけ並べる。ここでは TextureManager の中身を書き換えない
+	const auto decode = [this, &pendingTextures](size_t index)
+	{
+		PendingTexture& pending = pendingTextures[index];
+		pending.result = DecodeTexture(pending.filePath, pending.mipImages);
+	};
+	if (jobSystem)
+	{
+		jobSystem->ParallelFor(pendingTextures.size(), decode);
+	}
+	else
+	{
+		for (size_t index = 0; index < pendingTextures.size(); ++index)
+		{
+			decode(index);
+		}
+	}
+
+	// GPU 側は並べた順に作るので、SRV の番号の並びは LoadTexture を順に呼んだときと同じになる
+	for (const PendingTexture& pending : pendingTextures)
+	{
+		// テクスチャ枚数上限チェック
+		assert(!srvManager_->IsMaxSRVCount());
+		if (FAILED(pending.result))
+		{
+			HandleLoadFailure(pending.filePath, pending.normalizedPath);
+			continue;
+		}
+		CommitTexture(pending.normalizedPath, pending.mipImages, lifetime);
+	}
+}
+
+bool TextureManager::IsAlreadyHandled(const std::string& normalizedPath, ResourceLifetime lifetime)
+{
+	if (textureDatas_.contains(normalizedPath) || filePathToIndex_.contains(normalizedPath) || failedTexturePaths_.contains(normalizedPath))
+	{
+		if (lifetime == ResourceLifetime::Resident)
+		{
+			MarkResident(normalizedPath);
+		}
+		return true;
+	}
+	return false;
+}
+
+void TextureManager::HandleLoadFailure(const std::string& filePath, const std::string& normalizedPath)
+{
+	if (failedTexturePaths_.insert(normalizedPath).second)
+	{
+		Logger::Log("テクスチャを読み込めませんでした: " + filePath + "\n", Logger::LogLevel::Error);
+	}
+	const std::string fallbackPath = NormalizePath(kFallbackTexturePath);
+	// 代替テクスチャ自身の失敗時は再帰せず、未登録のまま戻す。
+	if (normalizedPath == fallbackPath)
+	{
+		// アセット単体の破損ではなく既定リソースが無い状態なので、原因が分かるように別で知らせる
+		Logger::Log("エンジンの既定リソース " + kFallbackTexturePath + " を読み込めない。読めなかったテクスチャの代わりが無いので、表示が崩れる\n", Logger::LogLevel::Error);
+		return;
+	}
+	LoadTexture(kFallbackTexturePath, ResourceLifetime::Resident);
+	auto fallback = filePathToIndex_.find(fallbackPath);
+	if (fallback != filePathToIndex_.end())
+	{
+		filePathToIndex_[normalizedPath] = fallback->second;
+	}
+}
+
+HRESULT TextureManager::DecodeTexture(const std::string& filePath, DirectX::ScratchImage& mipImages) const
+{
 	/*--------------[ テクスチャファイルを読み込み ]-----------------*/
 
 	DirectX::ScratchImage image{};
@@ -105,27 +206,6 @@ void TextureManager::LoadTexture(const std::string& filePath, ResourceLifetime l
 	}
 
 	HRESULT hr;
-	const auto useFallback = [&]()
-	{
-		if (failedTexturePaths_.insert(normalizedPath).second)
-		{
-			Logger::Log("テクスチャを読み込めませんでした: " + filePath + "\n", Logger::LogLevel::Error);
-		}
-		const std::string fallbackPath = NormalizePath(kFallbackTexturePath);
-		// 代替テクスチャ自身の失敗時は再帰せず、未登録のまま戻す。
-		if (normalizedPath == fallbackPath)
-		{
-			// アセット単体の破損ではなく既定リソースが無い状態なので、原因が分かるように別で知らせる
-			Logger::Log("エンジンの既定リソース " + kFallbackTexturePath + " を読み込めない。読めなかったテクスチャの代わりが無いので、表示が崩れる\n", Logger::LogLevel::Error);
-			return;
-		}
-		LoadTexture(kFallbackTexturePath, ResourceLifetime::Resident);
-		auto fallback = filePathToIndex_.find(fallbackPath);
-		if (fallback != filePathToIndex_.end())
-		{
-			filePathToIndex_[normalizedPath] = fallback->second;
-		}
-	};
 
 	// ファイル形式に応じて読み込み方法を変更
 	if (targetPath.ends_with(L".dds"))
@@ -150,13 +230,11 @@ void TextureManager::LoadTexture(const std::string& filePath, ResourceLifetime l
 	}
 	if (FAILED(hr))
 	{
-		useFallback();
-		return;
+		return hr;
 	}
 
 	/*--------------[ ミップマップの作成 ]-----------------*/
 
-	DirectX::ScratchImage mipImages{};
 	if (DirectX::IsCompressed(image.GetMetadata().format))
 	{
 		// 圧縮フォーマットならそのまま使用
@@ -174,12 +252,11 @@ void TextureManager::LoadTexture(const std::string& filePath, ResourceLifetime l
 			mipImages
 		);
 	}
-	if (FAILED(hr))
-	{
-		useFallback();
-		return;
-	}
+	return hr;
+}
 
+void TextureManager::CommitTexture(const std::string& normalizedPath, const DirectX::ScratchImage& mipImages, ResourceLifetime lifetime)
+{
 	/*--------------[ テクスチャデータを追加 ]-----------------*/
 
 	// 正規化パスをキーにしてテクスチャデータを登録

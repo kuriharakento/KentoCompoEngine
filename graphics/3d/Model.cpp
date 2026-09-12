@@ -49,8 +49,16 @@ Model::Model(const Model& other)
 
 bool Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPath, const std::string& filename, const std::string& modelType)
 {
-	modelCommon_ = modelCommon;
+	ParsedModel parsed;
+	if (!Parse(directoryPath, filename, modelType, parsed))
+	{
+		return false;
+	}
+	return Initialize(modelCommon, std::move(parsed));
+}
 
+bool Model::Parse(const std::string& directoryPath, const std::string& filename, const std::string& modelType, ParsedModel& outParsed)
+{
 	// サブディレクトリを含む場合はベースネームのみを使う
 	std::string baseName = filename;
 	size_t slashPos = filename.rfind('/');
@@ -84,9 +92,9 @@ bool Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPat
 	}
 
 	// モデルの読み込み
-	modelData_ = LoadModelFile(resolvedDirectoryPath, objFilePath);
+	outParsed.modelData = LoadModelFile(resolvedDirectoryPath, objFilePath);
 	// 壊れたモデルからGPUリソースを作らず、マネージャーにも登録させない。
-	if (modelData_.meshes.empty())
+	if (outParsed.modelData.meshes.empty())
 	{
 		return false;
 	}
@@ -94,14 +102,29 @@ bool Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPat
 	// モデルのベースパス
 	std::string basePath = resolvedDirectoryPath + "/" + filename + "/";
 
+	// テクスチャのフルパスだけ作っておく。読み込みはメインスレッドの Initialize でやる
+	for (auto& material : outParsed.modelData.materials)
+	{
+		if (!material.textureFilePath.empty())
+		{
+			material.textureFilePath = basePath + material.textureFilePath;
+		}
+	}
+	return true;
+}
+
+bool Model::Initialize(ModelCommon* modelCommon, ParsedModel&& parsed)
+{
+	modelCommon_ = modelCommon;
+	modelData_ = std::move(parsed.modelData);
+
 	// 全マテリアルのテクスチャを読み込み
 	for (auto& material : modelData_.materials)
 	{
 		if (!material.textureFilePath.empty())
 		{
-			// テクスチャのフルパスを構築
-			std::string fullTexturePath = basePath + material.textureFilePath;
-			material.textureFilePath = fullTexturePath;
+			// Parse でフルパスにしてある
+			const std::string& fullTexturePath = material.textureFilePath;
 			
 			// テクスチャの読み込み
 			TextureManager::GetInstance()->LoadTexture(fullTexturePath);

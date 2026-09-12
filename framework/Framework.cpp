@@ -82,6 +82,10 @@ void Framework::Initialize()
 	DebugUIManager::GetInstance()->Initialize();
 	ConsoleLog::GetInstance()->Initialize();
 
+	// 読み込みを並べて回すワーカー。起動時の素材読み込みから使う
+	jobSystem_ = std::make_unique<JobSystem>();
+	jobSystem_->Initialize();
+
 
 	/*----- テクスチャ・グラフィックスの初期化 -----*/
 
@@ -424,6 +428,9 @@ void Framework::Finalize()
 	/*----- 終了処理（初期化の逆順で解放） -----*/
 
 	sceneManager_.reset();
+
+	// 仕事がマネージャーを触ってるかもしれないので、何より先にワーカーを止める
+	jobSystem_.reset();
 
 	// エディタ層は、登録先の DebugUIManager より先に片付ける
 	ShaderHotReload::GetInstance()->Finalize();

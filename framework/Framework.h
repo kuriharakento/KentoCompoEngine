@@ -10,6 +10,7 @@
 #include "manager/scene/LightManager.h"
 // system
 #include "base/DirectXCommon.h"
+#include "base/JobSystem.h"
 #include "base/WinApp.h"
 #include "manager/system/SrvManager.h"
 // editor
@@ -217,6 +218,8 @@ protected: // メンバ変数
 	std::unique_ptr<SrvManager> srvManager_;
 	// ImGuiManager
 	std::unique_ptr<ImGuiManager> imguiManager_;
+	// 読み込みを並べて回すワーカー。Finalize の最初に止める
+	std::unique_ptr<JobSystem> jobSystem_;
 	// スプライト共通部
 	std::unique_ptr<SpriteCommon> spriteCommon_;
 	// ゲーム内の日本語の文字（Windows のフォントから焼いたアトラス）

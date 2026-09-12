@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "base/JobSystem.h"
 #include "manager/graphics/TextureManager.h"
 
 namespace KCE
@@ -34,6 +35,98 @@ void ModelManager::Finalize()
 void ModelManager::LoadModel(const std::string& filePath, const std::string& modelType, ResourceLifetime lifetime)
 {
 	// 読み込み済みモデルを検索
+	if (IsAlreadyHandled(filePath, modelType, lifetime))
+	{
+		return;
+	}
+
+	// モデルの生成とファイル読み込み、初期化
+	std::unique_ptr<Model> model = std::make_unique<Model>();
+	if (!model->Initialize(modelCommon_.get(), kModelDirectory, filePath, modelType))
+	{
+		// 読み込みに失敗したモデルは登録せず、FindModelでnullptrを返せるようにする。
+		failedModels_.insert(filePath + modelType);
+		return;
+	}
+
+	RegisterModel(filePath, modelType, std::move(model), lifetime);
+}
+
+void ModelManager::LoadModels(const std::vector<ModelRequest>& requests, ResourceLifetime lifetime, JobSystem* jobSystem)
+{
+	// 解析が要るものだけ残す。読み込み済みと、リスト内の重複はここで落とす
+	struct PendingModel
+	{
+		// requests の要素を指す。この関数の中でしか使わない
+		const ModelRequest* request = nullptr;
+		Model::ParsedModel parsed;
+		bool isParsed = false;
+	};
+	std::vector<PendingModel> pendingModels;
+	// 途中で伸びると解析中の要素が動くので、先に確保しきっておく
+	pendingModels.reserve(requests.size());
+	std::unordered_set<std::string> queuedPaths;
+	for (const auto& request : requests)
+	{
+		if (IsAlreadyHandled(request.filePath, request.modelType, lifetime) || !queuedPaths.insert(request.filePath).second)
+		{
+			continue;
+		}
+		pendingModels.emplace_back().request = &request;
+	}
+
+	// ファイルの解析だけ並べる。GPU とマネージャーはここでは触らない
+	const auto parse = [&pendingModels](size_t index)
+	{
+		PendingModel& pending = pendingModels[index];
+		pending.isParsed = Model::Parse(kModelDirectory, pending.request->filePath, pending.request->modelType, pending.parsed);
+	};
+	if (jobSystem)
+	{
+		jobSystem->ParallelFor(pendingModels.size(), parse);
+	}
+	else
+	{
+		for (size_t index = 0; index < pendingModels.size(); ++index)
+		{
+			parse(index);
+		}
+	}
+
+	// モデルが使うテクスチャも先にまとめて並べて読む。Initialize の中の LoadTexture は読み込み済みで素通りになる
+	std::vector<std::string> texturePaths;
+	for (const PendingModel& pending : pendingModels)
+	{
+		if (!pending.isParsed)
+		{
+			continue;
+		}
+		for (const auto& material : pending.parsed.modelData.materials)
+		{
+			if (!material.textureFilePath.empty())
+			{
+				texturePaths.push_back(material.textureFilePath);
+			}
+		}
+	}
+	TextureManager::GetInstance()->LoadTextures(texturePaths, ResourceLifetime::Scene, jobSystem);
+
+	// GPU リソースは並べた順に作る
+	for (PendingModel& pending : pendingModels)
+	{
+		std::unique_ptr<Model> model = std::make_unique<Model>();
+		if (!pending.isParsed || !model->Initialize(modelCommon_.get(), std::move(pending.parsed)))
+		{
+			// 読み込みに失敗したモデルは登録せず、FindModelでnullptrを返せるようにする。
+			failedModels_.insert(pending.request->filePath + pending.request->modelType);
+			continue;
+		}
+		RegisterModel(pending.request->filePath, pending.request->modelType, std::move(model), lifetime);
+	}
+}
+
+bool ModelManager::IsAlreadyHandled(const std::string& filePath, const std::string& modelType, ResourceLifetime lifetime)
+{
 	if (models_.contains(filePath))
 	{
 		if (lifetime == ResourceLifetime::Resident)
@@ -44,22 +137,13 @@ void ModelManager::LoadModel(const std::string& filePath, const std::string& mod
 				TextureManager::GetInstance()->MarkResident(material.textureFilePath);
 			}
 		}
-		return;
+		return true;
 	}
-	if (failedModels_.contains(filePath + modelType))
-	{
-		return;
-	}
+	return failedModels_.contains(filePath + modelType);
+}
 
-	// モデルの生成とファイル読み込み、初期化
-	std::unique_ptr<Model> model = std::make_unique<Model>();
-	if (!model->Initialize(modelCommon_.get(), "Resources/models", filePath, modelType))
-	{
-		// 読み込みに失敗したモデルは登録せず、FindModelでnullptrを返せるようにする。
-		failedModels_.insert(filePath + modelType);
-		return;
-	}
-
+void ModelManager::RegisterModel(const std::string& filePath, const std::string& modelType, std::unique_ptr<Model> model, ResourceLifetime lifetime)
+{
 	// モデルをmapコンテナに格納する（キャッシング）
 	knownModelTypes_[filePath] = modelType;
 	Model* loadedModel = model.get();
