@@ -26,10 +26,11 @@ public:
 
 	/**
 	 * @brief 初期化。初期化中（GPU の完了待ちより前）に呼ぶこと
-	 * @param spriteCommon スプライト共通部。所有しない
+	 * @param spriteCommon スプライト共通部（会話枠を描く）。所有しない
 	 * @param atlas 文字のアトラス。所有しない
+	 * @param textPipeline 文字の描き方。所有しない
 	 */
-	void Initialize(SpriteCommon* spriteCommon, GlyphAtlas* atlas);
+	void Initialize(SpriteCommon* spriteCommon, GlyphAtlas* atlas, TextSpritePipeline* textPipeline);
 
 	/**
 	 * @brief 歌詞を出す
@@ -58,6 +59,8 @@ private:
 	TextSprite speaker_;
 	TextSprite body_;
 	std::unique_ptr<Sprite> dialogueBox_;
+	// 文字を描いた後に会話枠（Sprite）を描くとき、Sprite 用の設定に戻すために使う。所有しない
+	SpriteCommon* spriteCommon_ = nullptr;
 	bool lyricVisible_ = false;
 	bool dialogueVisible_ = false;
 };

@@ -221,6 +221,8 @@ protected: // メンバ変数
 	std::unique_ptr<SpriteCommon> spriteCommon_;
 	// ゲーム内の日本語の文字（Windows のフォントから焼いたアトラス）
 	std::unique_ptr<GlyphAtlas> glyphAtlas_;
+	// 2D の文字の描き方。TextOverlay の文字が参照するので、それより先に宣言して後で壊れるようにする
+	std::unique_ptr<TextSpritePipeline> textSpritePipeline_;
 	// 歌詞テロップと会話枠。シーケンサの Text トラックが中身を決める
 	std::unique_ptr<TextOverlay> textOverlay_;
 	// 3D 空間の文字。文字列はシーンが持ち、名前で登録する

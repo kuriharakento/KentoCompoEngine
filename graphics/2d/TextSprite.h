@@ -1,16 +1,14 @@
 #pragma once
 #include <cstddef>
-#include <memory>
 #include <string>
 #include <vector>
 
 #include "base/GraphicsTypes.h"
+#include "graphics/2d/TextSpritePipeline.h"
 
 namespace KCE
 {
 class GlyphAtlas;
-class Sprite;
-class SpriteCommon;
 
 /**
  * @brief 文字列の揃え方。基準点（SetPosition）に対して行をどこへ置くか
@@ -23,11 +21,11 @@ enum class TextAlign
 };
 
 /**
- * @brief GlyphAtlas の文字を Sprite で並べて、日本語の文字列を描く
+ * @brief GlyphAtlas の文字を並べて、日本語の文字列を描く
  *
  * - 座標は Sprite と同じ 1920x1080 の仮想画面。基準点は1行目の上端
  * - 値が変わったときだけ並べ直す。毎フレーム同じ値を入れても重くならない
- * - 描画は 2D の共通設定を済ませた後に呼ぶこと
+ * - 文字列ごとに1回の描画命令で描く（TextSpritePipeline）
  */
 class TextSprite
 {
@@ -40,11 +38,11 @@ public:
 
 	/**
 	 * @brief 初期化
-	 * @param spriteCommon スプライト共通部。所有しない
+	 * @param pipeline 描き方。所有しない（このインスタンスより長生きする前提）
 	 * @param atlas 文字のアトラス。所有しない（このインスタンスより長生きする前提）。
 	 *              初めて使う文字はここへ描き足してもらうので const ではない
 	 */
-	void Initialize(SpriteCommon* spriteCommon, GlyphAtlas* atlas);
+	void Initialize(TextSpritePipeline* pipeline, GlyphAtlas* atlas);
 
 	/** @brief 表示する文字列（UTF-8）。改行は '\n' */
 	void SetText(const std::string& utf8Text);
@@ -71,13 +69,11 @@ private:
 		float width = 0.0f;
 	};
 
-	/** @brief 文字ごとの Sprite を並べ直す */
+	/** @brief 文字ごとの板を並べ直す */
 	void Layout();
-	/** @brief 使える Sprite を1つ取り出す。足りなければ作る */
-	Sprite* AcquireSprite();
 
 	// 所有しない
-	SpriteCommon* spriteCommon_ = nullptr;
+	TextSpritePipeline* pipeline_ = nullptr;
 	GlyphAtlas* atlas_ = nullptr;
 
 	std::string utf8Text_;
@@ -89,9 +85,8 @@ private:
 	float maxWidth_ = 0.0f;
 	size_t visibleCount_ = kShowAll;
 
-	// 文字ごとの Sprite。減らさずに使い回す
-	std::vector<std::unique_ptr<Sprite>> sprites_;
-	size_t activeCount_ = 0;
+	// 文字ごとの板。clear しても容量は残るので、並べ直しで確保し直さない
+	std::vector<TextSpritePipeline::Instance> instances_;
 	std::vector<Line> lines_;
 	bool dirty_ = true;
 };

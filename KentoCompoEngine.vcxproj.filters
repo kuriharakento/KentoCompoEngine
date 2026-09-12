@@ -570,6 +570,9 @@
     <ClCompile Include="graphics\2d\TextSprite.cpp">
       <Filter>graphics\2d</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\2d\TextSpritePipeline.cpp">
+      <Filter>graphics\2d</Filter>
+    </ClCompile>
     <ClCompile Include="graphics\text\TextMesh3D.cpp">
       <Filter>graphics\text</Filter>
     </ClCompile>
@@ -1212,6 +1215,9 @@
       <Filter>graphics\2d</Filter>
     </ClInclude>
     <ClInclude Include="graphics\2d\TextSprite.h">
+      <Filter>graphics\2d</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\2d\TextSpritePipeline.h">
       <Filter>graphics\2d</Filter>
     </ClInclude>
     <ClInclude Include="graphics\text\TextMesh3D.h">

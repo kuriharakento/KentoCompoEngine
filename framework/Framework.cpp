@@ -96,8 +96,6 @@ void Framework::Initialize()
 	constexpr uint32_t kGlyphAtlasFontSize = 48;
 	glyphAtlas_ = std::make_unique<GlyphAtlas>();
 	glyphAtlas_->Build(dxCommon_.get(), kGlyphAtlasFontSize);
-	textOverlay_ = std::make_unique<TextOverlay>();
-	textOverlay_->Initialize(spriteCommon_.get(), glyphAtlas_.get());
 
 	// 3Dオブジェクト共通部の初期化
 	objectCommon_ = std::make_unique<Object3dCommon>();
@@ -105,6 +103,12 @@ void Framework::Initialize()
 	frameConstantAllocator_ = std::make_unique<FrameConstantAllocator>();
 	frameConstantAllocator_->Initialize(dxCommon_.get(), kFrameConstantBufferCapacity);
 	objectCommon_->SetFrameConstantAllocator(frameConstantAllocator_.get());
+
+	// 2D の文字は文字列ごとに1回で描く。板のデータはフレームの置き場に書くので、置き場を作った後で用意する
+	textSpritePipeline_ = std::make_unique<TextSpritePipeline>();
+	textSpritePipeline_->Initialize(dxCommon_.get(), frameConstantAllocator_.get());
+	textOverlay_ = std::make_unique<TextOverlay>();
+	textOverlay_->Initialize(spriteCommon_.get(), glyphAtlas_.get(), textSpritePipeline_.get());
 
 	// 3Dモデルマネージャーの初期化
 	ModelManager::GetInstance()->Initialize(dxCommon_.get());
@@ -486,6 +490,7 @@ void Framework::Finalize()
 	ownedSubViews_.clear();
 	// 文字の Sprite は GPU リソースを持つので、デバイスより先に畳む
 	textOverlay_.reset();
+	textSpritePipeline_.reset();
 	text3DRenderer_.reset();
 	glyphAtlas_.reset();
 
