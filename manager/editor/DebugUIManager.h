@@ -3,52 +3,87 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "editor/SelectionContext.h"
+
+struct ImGuiContext;
+struct ImGuiSettingsHandler;
+struct ImGuiTextBuffer;
 
 namespace KCE
 {
 /** @brief エディタの初期ドッキング先。 */
 enum class EditorDock { Left, Right, RightBottom, Bottom };
 
+/**
+ * @brief エディタの ImGui ウィンドウを置き場所ごとにまとめて描く。
+ *
+ * - 独立ウィンドウ（Project・道具など）、Settings のページ、Inspector の中身、Scene への重ね描きを登録で受け付ける
+ * - 表示のオン・オフや UI の拡大率は imgui.ini の [DebugUI] に覚えておく
+ */
 class DebugUIManager
 {
 public:
 	static DebugUIManager* GetInstance();
 	static bool HasInstance();
 #ifdef USE_IMGUI
+	/** @brief 初期化する。imgui.ini の読み書き口もここで登録する。 */
 	void Initialize();
+	/** @brief 登録を全部外して終了する。 */
 	void Finalize();
-	/** @brief 独立したエディタウィンドウを登録する。 */
-	void RegisterWindow(void* owner, const std::string& name, EditorDock dock, std::function<void()> draw, bool defaultVisible = true);
+	/**
+	 * @brief 独立したエディタウィンドウを登録する。
+	 * @param owner 登録元。Unregister で外すときの鍵
+	 * @param name ImGui のウィンドウ名。表示のオン・オフもこの名前で覚える
+	 * @param draw 中身の描画
+	 * @param dock 初めて開くときの置き場所
+	 * @param defaultVisible 覚えた表示状態が無いときに開いておくか
+	 */
 	void RegisterWindow(void* owner, const std::string& name, std::function<void()> draw, EditorDock dock, bool defaultVisible = true);
-	/** @brief 既存の登録順で独立ウィンドウを登録する。 */
-	/** @brief Settings のページを登録する。 */
+	/**
+	 * @brief Settings のページを登録する。
+	 * @param category 左の一覧の分類名（"Rendering" など）
+	 * @param name ページ名
+	 */
 	void RegisterSettingsPage(void* owner, const std::string& category, const std::string& name, std::function<void()> draw);
-	/** @brief 選択種別に対応する Inspector の内容を登録する。 */
+	/** @brief 選択の種類に対応する Inspector の中身を登録する。種類ごとに1つ。 */
 	void RegisterInspector(void* owner, SelectionKind kind, std::function<void(const SelectionItem&)> draw);
-	/** @brief Scene 画像の上に描くオーバーレイを登録する。 */
+	/** @brief Scene 画像の上に描く重ね描き（ギズモなど）を登録する。 */
 	void RegisterSceneOverlay(void* owner, std::function<void()> draw);
 	/** @brief owner が登録した項目をすべて外す。 */
 	void Unregister(void* owner);
+	/** @brief 登録を全部外す。覚えた表示状態は消さない。 */
 	void Clear();
+	/** @brief 独立ウィンドウ・Inspector・Settings を描く。毎フレーム Scene ウィンドウの後に呼ぶ。 */
 	void Draw();
+	/** @brief Scene ウィンドウの中で重ね描きを描く。Scene 画像を描いた直後に呼ぶ。 */
 	void DrawSceneOverlays();
+	/** @brief 次のフレームで初期レイアウトを組み直すよう頼む。表示状態も初期値に戻す。 */
 	void RequestLayoutReset();
+	/** @brief 初期レイアウトの組み直しを頼まれているか返す。 */
 	bool IsLayoutResetRequested() const { return resetLayoutRequested_; }
+	/** @brief 初期レイアウトを組み終えたら呼ぶ。 */
 	void ClearLayoutResetRequest() { resetLayoutRequested_ = false; }
+	/**
+	 * @brief 初期レイアウトでその場所に入れるウィンドウ名を返す。
+	 * @return 呼ぶたびに作り直す。次に呼ぶまで有効
+	 */
 	const std::vector<std::string>& GetDockWindowNames(EditorDock dock);
+	/** @brief メニューに独立ウィンドウの表示切り替えを並べる。 */
 	void DrawWindowMenu();
+	/** @brief UI の拡大率を返す。 */
 	float GetUIScale() const { return uiScale_; }
+	/** @brief UI の拡大率を変える。文字と余白をまとめて拡大し、imgui.ini に覚える。 */
 	void SetUIScale(float scale);
+	/** @brief Console を表示するか返す。 */
 	bool IsShowConsole() const { return showConsole_; }
-	void SetShowConsole(bool show) { showConsole_ = show; }
+	/** @brief Console の表示を変える。変わったときだけ imgui.ini に覚える。 */
+	void SetShowConsole(bool show);
 #else
 	void Initialize() {}
 	void Finalize() {}
-	void RegisterWindow(void*, const std::string&, EditorDock, std::function<void()>, bool = true) {}
+	void RegisterWindow(void*, const std::string&, std::function<void()>, EditorDock, bool = true) {}
 	void RegisterSettingsPage(void*, const std::string&, const std::string&, std::function<void()>) {}
 	void RegisterInspector(void*, SelectionKind, std::function<void(const SelectionItem&)>) {}
 	void RegisterSceneOverlay(void*, std::function<void()>) {}
@@ -72,37 +107,67 @@ private:
 	friend std::unique_ptr<DebugUIManager> std::make_unique<DebugUIManager>();
 	DebugUIManager() = default;
 #ifdef USE_IMGUI
+	/** @brief 独立ウィンドウ1つぶんの登録。 */
 	struct Window
 	{
-		void* owner = nullptr; //!< 登録元。所有しない。
-		std::string name; //!< ImGui ウィンドウ名。
-		EditorDock dock = EditorDock::Bottom; //!< 初期ドッキング先。
-		std::function<void()> draw; //!< 中身の描画。
-		bool visible = true; //!< 表示状態。
-		bool defaultVisible = true; //!< 初期表示状態。
+		void* owner = nullptr;					//!< 登録元。所有しない
+		std::string name;						//!< ImGui のウィンドウ名
+		EditorDock dock = EditorDock::Bottom;	//!< 初めて開くときの置き場所
+		std::function<void()> draw;				//!< 中身の描画
+		bool visible = true;					//!< 今の表示状態
+		bool defaultVisible = true;				//!< 初期レイアウトでの表示状態
 	};
+	/** @brief Settings のページ1つぶんの登録。 */
 	struct SettingsPage
 	{
-		void* owner = nullptr; //!< 登録元。所有しない。
-		std::string category; //!< 左側の分類名。
-		std::string name; //!< ページ名。
-		std::string displayName; //!< 分類付きの表示名。
-		std::function<void()> draw; //!< 中身の描画。
+		void* owner = nullptr;			//!< 登録元。所有しない
+		std::string category;			//!< 左の一覧の分類名
+		std::string name;				//!< ページ名
+		std::string displayName;		//!< 分類付きの表示名。毎フレーム作らないよう登録時に作る
+		std::function<void()> draw;		//!< 中身の描画
 	};
-	struct InspectorPage { void* owner = nullptr; SelectionKind kind = SelectionKind::None; std::function<void(const SelectionItem&)> draw; };
-	struct Overlay { void* owner = nullptr; std::function<void()> draw; };
+	/** @brief Inspector の中身1つぶんの登録。 */
+	struct InspectorPage
+	{
+		void* owner = nullptr;								//!< 登録元。所有しない
+		SelectionKind kind = SelectionKind::None;			//!< 受け持つ選択の種類
+		std::function<void(const SelectionItem&)> draw;		//!< 中身の描画
+	};
+	/** @brief Scene への重ね描き1つぶんの登録。 */
+	struct Overlay
+	{
+		void* owner = nullptr;			//!< 登録元。所有しない
+		std::function<void()> draw;		//!< 重ね描き
+	};
+
+	/** @brief 1つの Inspector に、今の選択に合った中身を描く。 */
 	void DrawInspector();
+	/** @brief 左に一覧、右に中身の Settings を描く。 */
 	void DrawSettings();
+	/**
+	 * @brief imgui.ini に設定が無いウィンドウを、同じ置き場所のウィンドウの隣へ入れる。
+	 * @details 既に imgui.ini がある環境では初期レイアウトが組まれないので、後から増えたウィンドウが浮かないようにする。
+	 */
+	void DockOnFirstOpen(const std::string& name, EditorDock dock);
+	/** @brief 今の表示状態を覚えて、imgui.ini の書き出しを頼む。 */
 	void SaveSettings();
+
+	// --- imgui.ini の [DebugUI] の読み書き口（ImGuiSettingsHandler に渡す） ---
+	static void* ReadSettingsOpen(ImGuiContext* context, ImGuiSettingsHandler* handler, const char* name);
+	static void ReadSettingsLine(ImGuiContext* context, ImGuiSettingsHandler* handler, void* entry, const char* line);
+	static void ApplySettings(ImGuiContext* context, ImGuiSettingsHandler* handler);
+	static void WriteSettings(ImGuiContext* context, ImGuiSettingsHandler* handler, ImGuiTextBuffer* buffer);
+
 	std::vector<Window> windows_;
 	std::vector<SettingsPage> settingsPages_;
 	std::vector<InspectorPage> inspectorPages_;
 	std::vector<Overlay> overlays_;
+	// GetDockWindowNames の結果。呼ぶたびに作り直すが、領域は使い回す
 	std::array<std::vector<std::string>, 4> dockWindowNames_;
-	std::unordered_map<std::string, bool> savedVisibility_;
 	std::string selectedSettingsPage_;
 	std::array<char, 128> settingsFilter_{};
 	float uiScale_ = 1.0f;
+	// ScaleAllSizes は掛け算なので、前回の拡大率との比で掛ける
 	float previousUiScale_ = 1.0f;
 	bool showConsole_ = true;
 	bool resetLayoutRequested_ = false;
