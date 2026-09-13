@@ -53,7 +53,12 @@ void GameObjectEditor::Initialize()
 	DebugUIManager::GetInstance()->RegisterInspector(
 		this,
 		SelectionKind::GameObject,
-		[this](const SelectionItem&) { this->DrawInspectorImGui(); }
+		[this](const SelectionItem&)
+		{
+			// Hierarchy 以外（ギズモなど）で選ばれても中身がずれないよう、選択の一元管理に合わせてから描く
+			selected_ = SelectionContext::GetInstance()->GetPrimaryGameObject();
+			this->DrawInspectorImGui();
+		}
 	);
 #endif
 }
