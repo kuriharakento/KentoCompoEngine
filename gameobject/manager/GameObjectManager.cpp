@@ -116,6 +116,13 @@ void GameObjectManager::Update()
 			obj->Update();
 		}
 	}
+	for (auto* obj : tempObjects)
+	{
+		if (std::find(gameObjects_.begin(), gameObjects_.end(), obj) != gameObjects_.end() && obj->IsActive() && !obj->IsPendingDestroy())
+		{
+			obj->LateUpdate();
+		}
+	}
 
 	// 破棄保留中のオブジェクトを安全に解放
 	ClearPendingDestroyObjects();

@@ -11,10 +11,21 @@ using namespace GameObjectComponent;
 
 namespace collisionAlgorithm
 {
-	using GameObjectComponent::AABBColliderComponent;
-	using GameObjectComponent::OBBColliderComponent;
-	using GameObjectComponent::SphereColliderComponent;
-	using GameObjectComponent::RayColliderComponent;
+	constexpr int kMaximumSubstepCount = 256;
+	constexpr float kMinimumSubstepDistance = 0.01f;
+	float SmallestAxis(const Vector3& value)
+	{
+		return (std::min)(value.x, (std::min)(value.y, value.z));
+	}
+	int CalculateSubstepCount(float distance, float smallestShapeSize)
+	{
+		const float stepDistance = (std::max)(kMinimumSubstepDistance, smallestShapeSize * 0.5f);
+		return (std::min)(kMaximumSubstepCount, (std::max)(1, static_cast<int>(std::ceil(distance / stepDistance))));
+	}
+	using GameObjectComponent::AABBCollider;
+	using GameObjectComponent::OBBCollider;
+	using GameObjectComponent::SphereCollider;
+	using GameObjectComponent::RayCollider;
 	// --- シグネチャ統一用ラッパー関数群 ---
 	// 全て「BをAから遠ざける方向のMTV」を返すよう統一する
 
@@ -55,11 +66,9 @@ namespace collisionAlgorithm
 	}
 
 	// Ray vs ... (MTVは非対応)
-	static bool RayvsAABB_W(const ecs::ColliderComponent& a, const ecs::ColliderComponent& b, Vector3*) { return CheckRayvsAABB3D(nullptr, nullptr); } // 既存はコンポーネント版のみ。実際は更新時に数学版を呼ぶ
-
 	// --- CCD (Substep) ラッパー ---
 	static bool AABBvsAABB_CCD(const ecs::ColliderComponent& a, const ecs::ColliderComponent& b, Vector3* mtv) {
-		return mtv ? CheckAABBvsAABBSubstepMTV(a.worldAabb_, a.previousPosition_, b.worldAabb_, b.previousPosition_, *mtv) 
+		return mtv ? CheckAABBvsAABBSubstepMTV(a.worldAabb_, a.previousPosition_, b.worldAabb_, b.previousPosition_, *mtv)
 			       : CheckAABBvsAABBSubstep(a.worldAabb_, a.previousPosition_, b.worldAabb_, b.previousPosition_);
 	}
 	static bool SpherevsSphere_CCD(const ecs::ColliderComponent& a, const ecs::ColliderComponent& b, Vector3* mtv) {
@@ -480,7 +489,7 @@ namespace collisionAlgorithm
 				if (invD < 0.0f) std::swap(t0, t1);
 				tmin = (std::max)(tmin, t0);
 				tmax = (std::min)(tmax, t1);
-				if (tmax <= tmin) return false;
+				if (tmax < tmin) return false;
 			}
 		}
 		if (outT) *outT = tmin;
@@ -615,6 +624,25 @@ namespace collisionAlgorithm
 		return false;
 	}
 
+	bool CheckSpherevsSphereSubstepMTV(const Sphere& a, const Vector3& prevA, const Sphere& b, const Vector3& prevB, Vector3& mtv)
+	{
+		const float maxDistance = (std::max)((a.center - prevA).Length(), (b.center - prevB).Length());
+		const int substepCount = CalculateSubstepCount(maxDistance, (std::min)(a.radius, b.radius));
+		for (int step = 0; step < substepCount; ++step)
+		{
+			const float t = static_cast<float>(step + 1) / substepCount;
+			Sphere subA(MathUtils::Lerp(prevA, a.center, t), a.radius);
+			Sphere subB(MathUtils::Lerp(prevB, b.center, t), b.radius);
+			Vector3 subMtv{};
+			if (CheckSpherevsSphereMTV(subA, subB, subMtv))
+			{
+				mtv = (subB.center - b.center) - (subA.center - a.center) + subMtv;
+				return true;
+			}
+		}
+		return false;
+	}
+
 	bool CheckSpherevsAABBSubstep(const Sphere& a, const Vector3& prevA, const AABB& b, const Vector3& prevB)
 	{
 		constexpr float MAX_STEP_DISTANCE = 1.0f;
@@ -655,8 +683,7 @@ namespace collisionAlgorithm
 		{
 			return CheckAABBvsAABBMTV(a, b, mtv);
 		}
-		constexpr float MAX_STEP_DISTANCE = 1.0f;
-		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE)));
+		int subStepCount = CalculateSubstepCount(maxDist, (std::min)(SmallestAxis(a.GetHalfSize()), SmallestAxis(b.GetHalfSize())));
 		for (int step = 0; step < subStepCount; ++step)
 		{
 			float t = (float)(step + 1) / subStepCount;
@@ -677,15 +704,13 @@ namespace collisionAlgorithm
 
 	bool CheckOBBvsOBBSubstepMTV(const OBB& a, const Vector3& prevA, const OBB& b, const Vector3& prevB, Vector3& mtv)
 	{
-		constexpr float MAX_STEP_DISTANCE = 1.0f;
-
 		float distA = (a.center - prevA).Length();
 		float distB = (b.center - prevB).Length();
 		float maxDist = (std::max)(distA, distB);
 
 		// 既存 CheckOBBvsOBBSubstep3D と同じループ構造
 		// step=0〜N-1, t=(step+1)/N で最終位置を含む端から端まで検査する
-		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE)));
+		int subStepCount = CalculateSubstepCount(maxDist, (std::min)(SmallestAxis(a.size), SmallestAxis(b.size)));
 		for (int step = 0; step < subStepCount; ++step)
 		{
 			float t = (float)(step + 1) / subStepCount;
@@ -708,8 +733,7 @@ namespace collisionAlgorithm
 		{
 			return CheckSpherevsOBBMTV(a, b, mtv);
 		}
-		constexpr float MAX_STEP_DISTANCE_SPHERE_OBB = 1.0f;
-		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE_SPHERE_OBB)));
+		int subStepCount = CalculateSubstepCount(maxDist, (std::min)(a.radius, SmallestAxis(b.size)));
 		for (int step = 0; step < subStepCount; ++step)
 		{
 			float t = (float)(step + 1) / subStepCount;
@@ -732,8 +756,7 @@ namespace collisionAlgorithm
 		{
 			return CheckSpherevsAABBMTV(a, b, mtv);
 		}
-		constexpr float MAX_STEP_DISTANCE_SPHERE_AABB = 1.0f;
-		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE_SPHERE_AABB)));
+		int subStepCount = CalculateSubstepCount(maxDist, (std::min)(a.radius, SmallestAxis(b.GetHalfSize())));
 		for (int step = 0; step < subStepCount; ++step)
 		{
 			float t = (float)(step + 1) / subStepCount;
@@ -757,8 +780,7 @@ namespace collisionAlgorithm
 		{
 			return CheckAABBvsOBBMTV(a, b, mtv);
 		}
-		constexpr float MAX_STEP_DISTANCE_AABB_OBB = 1.0f;
-		int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDist / MAX_STEP_DISTANCE_AABB_OBB)));
+		int subStepCount = CalculateSubstepCount(maxDist, (std::min)(SmallestAxis(a.GetHalfSize()), SmallestAxis(b.size)));
 		for (int step = 0; step < subStepCount; ++step)
 		{
 			float t = (float)(step + 1) / subStepCount;
@@ -776,46 +798,46 @@ namespace collisionAlgorithm
 	}
 
 // --- 3D用判定 (既存のコンポーネント版) ---
-	bool CheckAABBvsAABB3D(const AABBColliderComponent* a, const AABBColliderComponent* b)
+	bool CheckAABBvsAABB3D(const AABBCollider* a, const AABBCollider* b)
 	{
 		return CheckAABBvsAABB(a->GetAABB(), b->GetAABB());
 	}
 
-	bool CheckOBBvsOBB3D(const OBBColliderComponent* a, const OBBColliderComponent* b)
+	bool CheckOBBvsOBB3D(const OBBCollider* a, const OBBCollider* b)
 	{
 		if (CheckOBBvsOBB(a->GetOBB(), b->GetOBB()))
 		{
-			const_cast<OBBColliderComponent*>(a)->SetCollisionPosition(a->GetOBB().center);
-			const_cast<OBBColliderComponent*>(b)->SetCollisionPosition(b->GetOBB().center);
+			const_cast<OBBCollider*>(a)->SetCollisionPosition(a->GetOBB().center);
+			const_cast<OBBCollider*>(b)->SetCollisionPosition(b->GetOBB().center);
 			return true;
 		}
 		return false;
 	}
 
-	bool CheckAABBvsOBB3D(const AABBColliderComponent* a, const OBBColliderComponent* b)
+	bool CheckAABBvsOBB3D(const AABBCollider* a, const OBBCollider* b)
 	{
 		if (CheckAABBvsOBB(a->GetAABB(), b->GetOBB()))
 		{
-			const_cast<AABBColliderComponent*>(a)->SetCollisionPosition(a->GetAABB().GetCenter());
-			const_cast<OBBColliderComponent*>(b)->SetCollisionPosition(b->GetOBB().center);
+			const_cast<AABBCollider*>(a)->SetCollisionPosition(a->GetAABB().GetCenter());
+			const_cast<OBBCollider*>(b)->SetCollisionPosition(b->GetOBB().center);
 			return true;
 		}
 		return false;
 	}
 
-	bool CheckSpherevsSphere3D(const SphereColliderComponent* a, const SphereColliderComponent* b)
+	bool CheckSpherevsSphere3D(const SphereCollider* a, const SphereCollider* b)
 	{
 		if (CheckSpherevsSphere(a->GetSphere(), b->GetSphere()))
 		{
-			const_cast<SphereColliderComponent*>(a)->SetCollisionPosition(a->GetSphere().center);
-			const_cast<SphereColliderComponent*>(b)->SetCollisionPosition(b->GetSphere().center);
+			const_cast<SphereCollider*>(a)->SetCollisionPosition(a->GetSphere().center);
+			const_cast<SphereCollider*>(b)->SetCollisionPosition(b->GetSphere().center);
 			return true;
 		}
 		return false;
 	}
 } // namespace collisionAlgorithm
 
-bool collisionAlgorithm::CheckSpherevsAABB3D(const SphereColliderComponent* a, const AABBColliderComponent* b)
+bool collisionAlgorithm::CheckSpherevsAABB3D(const SphereCollider* a, const AABBCollider* b)
 {
 	const Sphere& s = a->GetSphere();
 	const AABB& box = b->GetAABB();
@@ -829,8 +851,8 @@ bool collisionAlgorithm::CheckSpherevsAABB3D(const SphereColliderComponent* a, c
 
 	if (CheckSpherevsAABB(s, box))
 	{
-		ICollisionComponent* aNonConst = const_cast<SphereColliderComponent*>(a);
-		ICollisionComponent* bNonConst = const_cast<AABBColliderComponent*>(b);
+		Collider* aNonConst = const_cast<SphereCollider*>(a);
+		Collider* bNonConst = const_cast<AABBCollider*>(b);
 		aNonConst->SetCollisionPosition(s.center);
 		bNonConst->SetCollisionPosition(closest);
 		return true;
@@ -838,7 +860,7 @@ bool collisionAlgorithm::CheckSpherevsAABB3D(const SphereColliderComponent* a, c
 	return false;
 }
 
-bool collisionAlgorithm::CheckSpherevsOBB3D(const SphereColliderComponent* a, const OBBColliderComponent* b)
+bool collisionAlgorithm::CheckSpherevsOBB3D(const SphereCollider* a, const OBBCollider* b)
 {
 	const Sphere& s = a->GetSphere();
 	const OBB& obb = b->GetOBB();
@@ -859,8 +881,8 @@ bool collisionAlgorithm::CheckSpherevsOBB3D(const SphereColliderComponent* a, co
 
 	if (CheckSpherevsOBB(s, obb))
 	{
-		ICollisionComponent* aNonConst = const_cast<SphereColliderComponent*>(a);
-		ICollisionComponent* bNonConst = const_cast<OBBColliderComponent*>(b);
+		Collider* aNonConst = const_cast<SphereCollider*>(a);
+		Collider* bNonConst = const_cast<OBBCollider*>(b);
 		aNonConst->SetCollisionPosition(s.center);
 		bNonConst->SetCollisionPosition(closest);
 		return true;
@@ -870,40 +892,40 @@ bool collisionAlgorithm::CheckSpherevsOBB3D(const SphereColliderComponent* a, co
 
 // --- Ray 判定 ---
 
-bool collisionAlgorithm::CheckRayvsAABB3D(const RayColliderComponent* a, const AABBColliderComponent* b)
+bool collisionAlgorithm::CheckRayvsAABB3D(const RayCollider* a, const AABBCollider* b)
 {
 	float t;
 	if (CheckRayvsAABB(a->GetRay(), b->GetAABB(), &t))
 	{
 		Vector3 hitPos = a->GetRay().start + a->GetRay().direction * t;
-		const_cast<RayColliderComponent*>(a)->SetCollisionPosition(hitPos);
-		const_cast<AABBColliderComponent*>(b)->SetCollisionPosition(hitPos);
+		const_cast<RayCollider*>(a)->SetCollisionPosition(hitPos);
+		const_cast<AABBCollider*>(b)->SetCollisionPosition(hitPos);
 		return true;
 	}
 	return false;
 }
 
-bool collisionAlgorithm::CheckRayvsOBB3D(const RayColliderComponent* a, const OBBColliderComponent* b)
+bool collisionAlgorithm::CheckRayvsOBB3D(const RayCollider* a, const OBBCollider* b)
 {
 	float t;
 	if (CheckRayvsOBB(a->GetRay(), b->GetOBB(), &t))
 	{
 		Vector3 hitPos = a->GetRay().start + a->GetRay().direction * t;
-		const_cast<RayColliderComponent*>(a)->SetCollisionPosition(hitPos);
-		const_cast<OBBColliderComponent*>(b)->SetCollisionPosition(hitPos);
+		const_cast<RayCollider*>(a)->SetCollisionPosition(hitPos);
+		const_cast<OBBCollider*>(b)->SetCollisionPosition(hitPos);
 		return true;
 	}
 	return false;
 }
 
-bool collisionAlgorithm::CheckRayvsSphere3D(const RayColliderComponent* a, const SphereColliderComponent* b)
+bool collisionAlgorithm::CheckRayvsSphere3D(const RayCollider* a, const SphereCollider* b)
 {
 	float t;
 	if (CheckRayvsSphere(a->GetRay(), b->GetSphere(), &t))
 	{
 		Vector3 hitPos = a->GetRay().start + a->GetRay().direction * t;
-		const_cast<RayColliderComponent*>(a)->SetCollisionPosition(hitPos);
-		const_cast<SphereColliderComponent*>(b)->SetCollisionPosition(hitPos);
+		const_cast<RayCollider*>(a)->SetCollisionPosition(hitPos);
+		const_cast<SphereCollider*>(b)->SetCollisionPosition(hitPos);
 		return true;
 	}
 	return false;
@@ -911,79 +933,79 @@ bool collisionAlgorithm::CheckRayvsSphere3D(const RayColliderComponent* a, const
 
 // --- 3Dサブステップ判定 (コンポーネント版) ---
 
-bool collisionAlgorithm::CheckAABBvsAABBSubstep3D(const AABBColliderComponent* a, const AABBColliderComponent* b)
+bool collisionAlgorithm::CheckAABBvsAABBSubstep3D(const AABBCollider* a, const AABBCollider* b)
 {
 	Vector3 prevA = a->GetPreviousPosition();
 	Vector3 prevB = b->GetPreviousPosition();
 	if (CheckAABBvsAABBSubstep(a->GetAABB(), prevA, b->GetAABB(), prevB))
 	{
-		const_cast<AABBColliderComponent*>(a)->SetCollisionPosition(a->GetAABB().GetCenter());
-		const_cast<AABBColliderComponent*>(b)->SetCollisionPosition(b->GetAABB().GetCenter());
+		const_cast<AABBCollider*>(a)->SetCollisionPosition(a->GetAABB().GetCenter());
+		const_cast<AABBCollider*>(b)->SetCollisionPosition(b->GetAABB().GetCenter());
 		return true;
 	}
 	return false;
 }
 
-bool collisionAlgorithm::CheckOBBvsOBBSubstep3D(const OBBColliderComponent* a, const OBBColliderComponent* b)
+bool collisionAlgorithm::CheckOBBvsOBBSubstep3D(const OBBCollider* a, const OBBCollider* b)
 {
 	Vector3 prevA = a->GetPreviousPosition();
 	Vector3 prevB = b->GetPreviousPosition();
 	if (CheckOBBvsOBBSubstep(a->GetOBB(), prevA, b->GetOBB(), prevB))
 	{
-		const_cast<OBBColliderComponent*>(a)->SetCollisionPosition(a->GetOBB().center);
-		const_cast<OBBColliderComponent*>(b)->SetCollisionPosition(b->GetOBB().center);
+		const_cast<OBBCollider*>(a)->SetCollisionPosition(a->GetOBB().center);
+		const_cast<OBBCollider*>(b)->SetCollisionPosition(b->GetOBB().center);
 		return true;
 	}
 	return false;
 }
 
-bool collisionAlgorithm::CheckAABBvsOBBSubstep3D(const AABBColliderComponent* a, const OBBColliderComponent* b)
+bool collisionAlgorithm::CheckAABBvsOBBSubstep3D(const AABBCollider* a, const OBBCollider* b)
 {
 	Vector3 prevA = a->GetPreviousPosition();
 	Vector3 prevB = b->GetPreviousPosition();
 	if (CheckAABBvsOBBSubstep(a->GetAABB(), prevA, b->GetOBB(), prevB))
 	{
-		const_cast<AABBColliderComponent*>(a)->SetCollisionPosition(a->GetAABB().GetCenter());
-		const_cast<OBBColliderComponent*>(b)->SetCollisionPosition(b->GetOBB().center);
+		const_cast<AABBCollider*>(a)->SetCollisionPosition(a->GetAABB().GetCenter());
+		const_cast<OBBCollider*>(b)->SetCollisionPosition(b->GetOBB().center);
 		return true;
 	}
 	return false;
 }
 
-bool collisionAlgorithm::CheckSpherevsSphereSubstep3D(const SphereColliderComponent* a, const SphereColliderComponent* b)
+bool collisionAlgorithm::CheckSpherevsSphereSubstep3D(const SphereCollider* a, const SphereCollider* b)
 {
 	Vector3 prevA = a->GetPreviousPosition();
 	Vector3 prevB = b->GetPreviousPosition();
 	if (CheckSpherevsSphereSubstep(a->GetSphere(), prevA, b->GetSphere(), prevB))
 	{
-		const_cast<SphereColliderComponent*>(a)->SetCollisionPosition(a->GetSphere().center);
-		const_cast<SphereColliderComponent*>(b)->SetCollisionPosition(b->GetSphere().center);
+		const_cast<SphereCollider*>(a)->SetCollisionPosition(a->GetSphere().center);
+		const_cast<SphereCollider*>(b)->SetCollisionPosition(b->GetSphere().center);
 		return true;
 	}
 	return false;
 }
 
-bool collisionAlgorithm::CheckSpherevsAABBSubstep3D(const SphereColliderComponent* a, const AABBColliderComponent* b)
+bool collisionAlgorithm::CheckSpherevsAABBSubstep3D(const SphereCollider* a, const AABBCollider* b)
 {
 	Vector3 prevA = a->GetPreviousPosition();
 	Vector3 prevB = b->GetPreviousPosition();
 	if (CheckSpherevsAABBSubstep(a->GetSphere(), prevA, b->GetAABB(), prevB))
 	{
-		const_cast<SphereColliderComponent*>(a)->SetCollisionPosition(a->GetSphere().center);
-		const_cast<AABBColliderComponent*>(b)->SetCollisionPosition(b->GetAABB().GetCenter());
+		const_cast<SphereCollider*>(a)->SetCollisionPosition(a->GetSphere().center);
+		const_cast<AABBCollider*>(b)->SetCollisionPosition(b->GetAABB().GetCenter());
 		return true;
 	}
 	return false;
 }
 
-bool collisionAlgorithm::CheckSpherevsOBBSubstep3D(const SphereColliderComponent* a, const OBBColliderComponent* b)
+bool collisionAlgorithm::CheckSpherevsOBBSubstep3D(const SphereCollider* a, const OBBCollider* b)
 {
 	Vector3 prevA = a->GetPreviousPosition();
 	Vector3 prevB = b->GetPreviousPosition();
 	if (CheckSpherevsOBBSubstep(a->GetSphere(), prevA, b->GetOBB(), prevB))
 	{
-		const_cast<SphereColliderComponent*>(a)->SetCollisionPosition(a->GetSphere().center);
-		const_cast<OBBColliderComponent*>(b)->SetCollisionPosition(b->GetOBB().center);
+		const_cast<SphereCollider*>(a)->SetCollisionPosition(a->GetSphere().center);
+		const_cast<OBBCollider*>(b)->SetCollisionPosition(b->GetOBB().center);
 		return true;
 	}
 	return false;
@@ -1015,7 +1037,7 @@ float GetSizeFromIndex(const Vector3& v, int axis)
 }
 
 // --- AABB vs AABB 2D判定 ---
-bool collisionAlgorithm::CheckAABBvsAABB2D(const AABBColliderComponent* a, const AABBColliderComponent* b, CollisionPlane plane)
+bool collisionAlgorithm::CheckAABBvsAABB2D(const AABBCollider* a, const AABBCollider* b, CollisionPlane plane)
 {
 	int axis1, axis2;
 	GetPlaneAxes(plane, axis1, axis2);
@@ -1040,8 +1062,8 @@ bool collisionAlgorithm::CheckAABBvsAABB2D(const AABBColliderComponent* a, const
 
 	if (overlap)
 	{
-		ICollisionComponent* aNonConst = const_cast<AABBColliderComponent*>(a);
-		ICollisionComponent* bNonConst = const_cast<AABBColliderComponent*>(b);
+		Collider* aNonConst = const_cast<AABBCollider*>(a);
+		Collider* bNonConst = const_cast<AABBCollider*>(b);
 		aNonConst->SetCollisionPosition(aBox.GetCenter());
 		bNonConst->SetCollisionPosition(bBox.GetCenter());
 	}
@@ -1049,7 +1071,7 @@ bool collisionAlgorithm::CheckAABBvsAABB2D(const AABBColliderComponent* a, const
 }
 
 // --- OBB vs OBB 2D判定 ---
-bool collisionAlgorithm::CheckOBBvsOBB2D(const OBBColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane)
+bool collisionAlgorithm::CheckOBBvsOBB2D(const OBBCollider* a, const OBBCollider* b, CollisionPlane plane)
 {
 	const OBB& obbA = a->GetOBB();
 	const OBB& obbB = b->GetOBB();
@@ -1072,8 +1094,8 @@ bool collisionAlgorithm::CheckOBBvsOBB2D(const OBBColliderComponent* a, const OB
 	if (isColliding)
 	{
 		// 衝突位置の設定
-		ICollisionComponent* aNonConst = const_cast<OBBColliderComponent*>(a);
-		ICollisionComponent* bNonConst = const_cast<OBBColliderComponent*>(b);
+		Collider* aNonConst = const_cast<OBBCollider*>(a);
+		Collider* bNonConst = const_cast<OBBCollider*>(b);
 		aNonConst->SetCollisionPosition(obbA.center);
 		bNonConst->SetCollisionPosition(obbB.center);
 	}
@@ -1215,7 +1237,7 @@ bool collisionAlgorithm::CheckOBBvsOBB_YZ(const OBB& obbA, const OBB& obbB)
 }
 
 // --- AABB vs OBB 2D判定 ---
-bool collisionAlgorithm::CheckAABBvsOBB2D(const AABBColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane)
+bool collisionAlgorithm::CheckAABBvsOBB2D(const AABBCollider* a, const OBBCollider* b, CollisionPlane plane)
 {
 	int axis1, axis2;
 	GetPlaneAxes(plane, axis1, axis2);
@@ -1286,14 +1308,14 @@ bool collisionAlgorithm::CheckAABBvsOBB2D(const AABBColliderComponent* a, const 
 			return false;
 	}
 
-	ICollisionComponent* aNonConst = const_cast<AABBColliderComponent*>(a);
-	ICollisionComponent* bNonConst = const_cast<OBBColliderComponent*>(b);
+	Collider* aNonConst = const_cast<AABBCollider*>(a);
+	Collider* bNonConst = const_cast<OBBCollider*>(b);
 	aNonConst->SetCollisionPosition(aBox.GetCenter());
 	bNonConst->SetCollisionPosition(obb.center);
 	return true;
 }
 
-bool collisionAlgorithm::CheckCirclevsCircle2D(const SphereColliderComponent* a, const SphereColliderComponent* b, CollisionPlane plane)
+bool collisionAlgorithm::CheckCirclevsCircle2D(const SphereCollider* a, const SphereCollider* b, CollisionPlane plane)
 {
 	int axis1, axis2;
 	GetPlaneAxes(plane, axis1, axis2);
@@ -1314,8 +1336,8 @@ bool collisionAlgorithm::CheckCirclevsCircle2D(const SphereColliderComponent* a,
 
 	if (distSq <= radiusSum * radiusSum)
 	{
-		ICollisionComponent* aNonConst = const_cast<SphereColliderComponent*>(a);
-		ICollisionComponent* bNonConst = const_cast<SphereColliderComponent*>(b);
+		Collider* aNonConst = const_cast<SphereCollider*>(a);
+		Collider* bNonConst = const_cast<SphereCollider*>(b);
 		aNonConst->SetCollisionPosition(sA.center);
 		bNonConst->SetCollisionPosition(sB.center);
 		return true;
@@ -1324,7 +1346,7 @@ bool collisionAlgorithm::CheckCirclevsCircle2D(const SphereColliderComponent* a,
 }
 
 // Circle vs AABB 2D
-bool collisionAlgorithm::CheckCirclevsAABB2D(const SphereColliderComponent* a, const AABBColliderComponent* b, CollisionPlane plane)
+bool collisionAlgorithm::CheckCirclevsAABB2D(const SphereCollider* a, const AABBCollider* b, CollisionPlane plane)
 {
 	int axis1, axis2;
 	GetPlaneAxes(plane, axis1, axis2);
@@ -1350,8 +1372,8 @@ bool collisionAlgorithm::CheckCirclevsAABB2D(const SphereColliderComponent* a, c
 
 	if (distSq <= s.radius * s.radius)
 	{
-		ICollisionComponent* aNonConst = const_cast<SphereColliderComponent*>(a);
-		ICollisionComponent* bNonConst = const_cast<AABBColliderComponent*>(b);
+		Collider* aNonConst = const_cast<SphereCollider*>(a);
+		Collider* bNonConst = const_cast<AABBCollider*>(b);
 		aNonConst->SetCollisionPosition(s.center);
 		// 最近傍点を3Dで返すなら
 		Vector3 closestPt = s.center;
@@ -1362,7 +1384,7 @@ bool collisionAlgorithm::CheckCirclevsAABB2D(const SphereColliderComponent* a, c
 }
 
 // Circle vs OBB 2D
-bool collisionAlgorithm::CheckCirclevsOBB2D(const SphereColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane)
+bool collisionAlgorithm::CheckCirclevsOBB2D(const SphereCollider* a, const OBBCollider* b, CollisionPlane plane)
 {
 	int axis1, axis2;
 	GetPlaneAxes(plane, axis1, axis2);
@@ -1405,8 +1427,8 @@ bool collisionAlgorithm::CheckCirclevsOBB2D(const SphereColliderComponent* a, co
 
 	if (distSq <= s.radius * s.radius)
 	{
-		ICollisionComponent* aNonConst = const_cast<SphereColliderComponent*>(a);
-		ICollisionComponent* bNonConst = const_cast<OBBColliderComponent*>(b);
+		Collider* aNonConst = const_cast<SphereCollider*>(a);
+		Collider* bNonConst = const_cast<OBBCollider*>(b);
 		aNonConst->SetCollisionPosition(s.center);
 
 		// 最近傍点を3Dで返す
@@ -1420,342 +1442,4 @@ bool collisionAlgorithm::CheckCirclevsOBB2D(const SphereColliderComponent* a, co
 
 // --- サブステップ 2D判定 ---
 
-bool collisionAlgorithm::CheckAABBvsAABBSubstep2D(const AABBColliderComponent* a, const AABBColliderComponent* b, CollisionPlane plane)
-{
-	constexpr float MAX_STEP_DISTANCE = 1.0f;
-	Vector3 startA = a->GetPreviousPosition();
-	Vector3 endA = a->GetOwner()->GetPosition();
-	Vector3 startB = b->GetPreviousPosition();
-	Vector3 endB = b->GetOwner()->GetPosition();
-
-	const AABB& aBox = a->GetAABB();
-	const AABB& bBox = b->GetAABB();
-
-	if (CheckAABBvsAABB2D(a, b, plane)) return true;
-
-	float distanceA = (endA - startA).Length();
-	float distanceB = (endB - startB).Length();
-
-	float maxDistance = (std::max)(distanceA, distanceB);
-	int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDistance / MAX_STEP_DISTANCE)));
-
-	AABBColliderComponent* aNonConst = const_cast<AABBColliderComponent*>(a);
-	AABBColliderComponent* bNonConst = const_cast<AABBColliderComponent*>(b);
-
-	AABBColliderComponent tempA(nullptr);
-	AABBColliderComponent tempB(nullptr);
-
-	for (int step = 0; step <= subStepCount; ++step)
-	{
-		float t = static_cast<float>(step) / subStepCount;
-		Vector3 subPosA = MathUtils::Lerp(startA, endA, t);
-		Vector3 subPosB = MathUtils::Lerp(startB, endB, t);
-
-		AABB movedAABB_A(subPosA - aBox.GetHalfSize(), subPosA + aBox.GetHalfSize());
-		AABB movedAABB_B(subPosB - bBox.GetHalfSize(), subPosB + bBox.GetHalfSize());
-
-
-		tempA.SetAABB(movedAABB_A);
-		tempB.SetAABB(movedAABB_B);
-
-		if (CheckAABBvsAABB2D(&tempA, &tempB, plane))
-		{
-			aNonConst->SetCollisionPosition(subPosA);
-			bNonConst->SetCollisionPosition(subPosB);
-			return true;
-		}
-	}
-	return false;
-}
-
-bool collisionAlgorithm::CheckOBBvsOBBSubstep2D(const OBBColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane)
-{
-	constexpr float MAX_STEP_DISTANCE = 1.0f;
-	Vector3 startA = a->GetPreviousPosition();
-	Vector3 endA = a->GetOwner()->GetPosition();
-	Vector3 startB = b->GetPreviousPosition();
-	Vector3 endB = b->GetOwner()->GetPosition();
-
-	OBB aObb = a->GetOBB();
-	OBB bObb = b->GetOBB();
-
-	float distanceA = (endA - startA).Length();
-	float distanceB = (endB - startB).Length();
-
-	float maxDistance = (std::max)(distanceA, distanceB);
-	int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDistance / MAX_STEP_DISTANCE)));
-
-	OBBColliderComponent* aNonConst = const_cast<OBBColliderComponent*>(a);
-	OBBColliderComponent* bNonConst = const_cast<OBBColliderComponent*>(b);
-
-	OBBColliderComponent tempA(nullptr);
-	OBBColliderComponent tempB(nullptr);
-
-	for (int step = 0; step < subStepCount; ++step)
-	{
-		float t = static_cast<float>(step + 1) / subStepCount;
-		Vector3 subPosA = startA + (endA - startA) * t;
-		Vector3 subPosB = startB + (endB - startB) * t;
-
-		OBB movedOBB_A = aObb;
-		OBB movedOBB_B = bObb;
-		movedOBB_A.center = subPosA;
-		movedOBB_B.center = subPosB;
-
-
-		tempA.SetOBB(movedOBB_A);
-		tempB.SetOBB(movedOBB_B);
-
-		if (CheckOBBvsOBB2D(&tempA, &tempB, plane))
-		{
-			aNonConst->SetCollisionPosition(subPosA);
-			bNonConst->SetCollisionPosition(subPosB);
-			return true;
-		}
-	}
-	return false;
-}
-
-bool collisionAlgorithm::CheckAABBvsOBBSubstep2D(const AABBColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane)
-{
-	constexpr float MAX_STEP_DISTANCE = 1.0f;
-	Vector3 startA = a->GetPreviousPosition();
-	Vector3 endA = a->GetOwner()->GetPosition();
-	Vector3 startB = b->GetPreviousPosition();
-	Vector3 endB = b->GetOwner()->GetPosition();
-
-	const AABB& aBox = a->GetAABB();
-	OBB bObb = b->GetOBB();
-
-	float distanceA = (endA - startA).Length();
-	float distanceB = (endB - startB).Length();
-
-	float maxDistance = (std::max)(distanceA, distanceB);
-	int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDistance / MAX_STEP_DISTANCE)));
-
-	AABBColliderComponent* aNonConst = const_cast<AABBColliderComponent*>(a);
-	OBBColliderComponent* bNonConst = const_cast<OBBColliderComponent*>(b);
-
-	AABBColliderComponent tempA(nullptr);
-	OBBColliderComponent tempB(nullptr);
-
-	for (int step = 0; step < subStepCount; ++step)
-	{
-		float t = static_cast<float>(step + 1) / subStepCount;
-		Vector3 subPosA = startA + (endA - startA) * t;
-		Vector3 subPosB = startB + (endB - startB) * t;
-
-		OBB movedOBB = bObb;
-		movedOBB.center = subPosB;
-
-		Vector3 aHalf = aBox.GetHalfSize();
-		AABB movedAABB(subPosA - aHalf, subPosA + aHalf);
-
-
-		tempA.SetAABB(movedAABB);
-		tempB.SetOBB(movedOBB);
-
-		if (CheckAABBvsOBB2D(&tempA, &tempB, plane))
-		{
-			aNonConst->SetCollisionPosition(subPosA);
-			bNonConst->SetCollisionPosition(subPosB);
-			return true;
-		}
-	}
-	return false;
-}
-
-// Circle vs Circle 2D サブステップ
-bool collisionAlgorithm::CheckCirclevsCircleSubstep2D(const SphereColliderComponent* a, const SphereColliderComponent* b, CollisionPlane plane)
-{
-	constexpr float MAX_STEP_DISTANCE = 1.0f;
-
-	Vector3 startA = a->GetPreviousPosition();
-	Vector3 endA = a->GetOwner()->GetPosition();
-	Vector3 startB = b->GetPreviousPosition();
-	Vector3 endB = b->GetOwner()->GetPosition();
-
-	const Sphere& sphereA = a->GetSphere();
-	const Sphere& sphereB = b->GetSphere();
-
-	if (CheckCirclevsCircle2D(a, b, plane)) return true;
-
-	float distanceA = (endA - startA).Length();
-	float distanceB = (endB - startB).Length();
-
-	float maxDistance = (std::max)(distanceA, distanceB);
-	int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDistance / MAX_STEP_DISTANCE)));
-
-	SphereColliderComponent* aNonConst = const_cast<SphereColliderComponent*>(a);
-	SphereColliderComponent* bNonConst = const_cast<SphereColliderComponent*>(b);
-
-	int axis1, axis2;
-	GetPlaneAxes(plane, axis1, axis2);
-
-	for (int step = 1; step <= subStepCount; ++step)
-	{
-		float t = static_cast<float>(step) / subStepCount;
-		Vector3 subPosA = MathUtils::Lerp(startA, endA, t);
-		Vector3 subPosB = MathUtils::Lerp(startB, endB, t);
-
-		float a1 = GetSizeFromIndex(subPosA, axis1);
-		float a2 = GetSizeFromIndex(subPosA, axis2);
-		float b1 = GetSizeFromIndex(subPosB, axis1);
-		float b2 = GetSizeFromIndex(subPosB, axis2);
-
-		float dx = a1 - b1;
-		float dy = a2 - b2;
-		float distSq = dx * dx + dy * dy;
-		float radiusSum = sphereA.radius + sphereB.radius;
-
-		if (distSq <= radiusSum * radiusSum)
-		{
-			aNonConst->SetCollisionPosition(subPosA);
-			bNonConst->SetCollisionPosition(subPosB);
-			return true;
-		}
-	}
-	return false;
-}
-
-// Circle vs AABB 2D サブステップ
-bool collisionAlgorithm::CheckCirclevsAABBSubstep2D(const SphereColliderComponent* a, const AABBColliderComponent* b, CollisionPlane plane)
-{
-	constexpr float MAX_STEP_DISTANCE = 1.0f;
-
-	Vector3 startA = a->GetPreviousPosition();
-	Vector3 endA = a->GetOwner()->GetPosition();
-	Vector3 startB = b->GetPreviousPosition();
-	Vector3 endB = b->GetOwner()->GetPosition();
-
-	const Sphere& sphereA = a->GetSphere();
-	const AABB& boxB = b->GetAABB();
-
-	if (CheckCirclevsAABB2D(a, b, plane)) return true;
-
-	float distanceA = (endA - startA).Length();
-	float distanceB = (endB - startB).Length();
-
-	float maxDistance = (std::max)(distanceA, distanceB);
-	int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDistance / MAX_STEP_DISTANCE)));
-
-	SphereColliderComponent* aNonConst = const_cast<SphereColliderComponent*>(a);
-	AABBColliderComponent* bNonConst = const_cast<AABBColliderComponent*>(b);
-
-	int axis1, axis2;
-	GetPlaneAxes(plane, axis1, axis2);
-
-	Vector3 boxHalf = boxB.GetHalfSize();
-
-	for (int step = 1; step <= subStepCount; ++step)
-	{
-		float t = static_cast<float>(step) / subStepCount;
-		Vector3 subPosA = MathUtils::Lerp(startA, endA, t);
-		Vector3 subPosB = MathUtils::Lerp(startB, endB, t);
-
-		float cx = GetSizeFromIndex(subPosA, axis1);
-		float cy = GetSizeFromIndex(subPosA, axis2);
-
-		float minX = GetSizeFromIndex(subPosB - boxHalf, axis1);
-		float minY = GetSizeFromIndex(subPosB - boxHalf, axis2);
-		float maxX = GetSizeFromIndex(subPosB + boxHalf, axis1);
-		float maxY = GetSizeFromIndex(subPosB + boxHalf, axis2);
-
-		float closestX = (std::max)(minX, (std::min)(cx, maxX));
-		float closestY = (std::max)(minY, (std::min)(cy, maxY));
-
-		float dx = cx - closestX;
-		float dy = cy - closestY;
-		float distSq = dx * dx + dy * dy;
-
-		if (distSq <= sphereA.radius * sphereA.radius)
-		{
-			aNonConst->SetCollisionPosition(subPosA);
-			// 最近傍点を3Dで返すなら
-			Vector3 closestPt = subPosA;
-			bNonConst->SetCollisionPosition(closestPt);
-			return true;
-		}
-	}
-	return false;
-}
-
-// Circle vs OBB 2D サブステップ
-bool collisionAlgorithm::CheckCirclevsOBBSubstep2D(const SphereColliderComponent* a, const OBBColliderComponent* b, CollisionPlane plane)
-{
-	constexpr float MAX_STEP_DISTANCE = 1.0f;
-
-	Vector3 startA = a->GetPreviousPosition();
-	Vector3 endA = a->GetOwner()->GetPosition();
-	Vector3 startB = b->GetPreviousPosition();
-	Vector3 endB = b->GetOwner()->GetPosition();
-
-	const Sphere& sphereA = a->GetSphere();
-	OBB obbB = b->GetOBB();
-
-	if (CheckCirclevsOBB2D(a, b, plane)) return true;
-
-	float distanceA = (endA - startA).Length();
-	float distanceB = (endB - startB).Length();
-
-	float maxDistance = (std::max)(distanceA, distanceB);
-	int subStepCount = (std::max)(1, static_cast<int>(std::ceil(maxDistance / MAX_STEP_DISTANCE)));
-
-	SphereColliderComponent* aNonConst = const_cast<SphereColliderComponent*>(a);
-	OBBColliderComponent* bNonConst = const_cast<OBBColliderComponent*>(b);
-
-	int axis1, axis2;
-	GetPlaneAxes(plane, axis1, axis2);
-
-	for (int step = 1; step <= subStepCount; ++step)
-	{
-		float t = static_cast<float>(step) / subStepCount;
-		Vector3 subPosA = MathUtils::Lerp(startA, endA, t);
-		Vector3 subPosB = MathUtils::Lerp(startB, endB, t);
-
-		OBB movedOBB = obbB;
-		movedOBB.center = subPosB;
-
-		// 2D座標
-		float sx = GetSizeFromIndex(subPosA, axis1);
-		float sy = GetSizeFromIndex(subPosA, axis2);
-		float obb_cx = GetSizeFromIndex(movedOBB.center, axis1);
-		float obb_cy = GetSizeFromIndex(movedOBB.center, axis2);
-
-		KCE::Vector2 axes[2];
-		axes[0] = KCE::Vector2(GetSizeFromIndex(Vector3(movedOBB.rotate.m[axis1][0], movedOBB.rotate.m[axis2][0], 0), 0),
-						  GetSizeFromIndex(Vector3(movedOBB.rotate.m[axis1][0], movedOBB.rotate.m[axis2][0], 0), 1));
-		axes[1] = KCE::Vector2(GetSizeFromIndex(Vector3(movedOBB.rotate.m[axis1][1], movedOBB.rotate.m[axis2][1], 0), 0),
-						  GetSizeFromIndex(Vector3(movedOBB.rotate.m[axis1][1], movedOBB.rotate.m[axis2][1], 0), 1));
-
-		KCE::Vector2 obbCenter(obb_cx, obb_cy);
-		KCE::Vector2 circleCenter(sx, sy);
-		KCE::Vector2 d = circleCenter - obbCenter;
-		KCE::Vector2 closest = obbCenter;
-
-		const float size1 = GetSizeFromIndex(movedOBB.size, axis1);
-		const float size2 = GetSizeFromIndex(movedOBB.size, axis2);
-
-		float dist1 = KCE::Vector2::Dot(d, axes[0]);
-		float clamped1 = (std::max)(-size1, (std::min)(dist1, size1));
-		closest += axes[0] * clamped1;
-
-		float dist2 = KCE::Vector2::Dot(d, axes[1]);
-		float clamped2 = (std::max)(-size2, (std::min)(dist2, size2));
-		closest += axes[1] * clamped2;
-
-		KCE::Vector2 diff = circleCenter - closest;
-		float distSq = diff.x * diff.x + diff.y * diff.y;
-
-		if (distSq <= sphereA.radius * sphereA.radius)
-		{
-			aNonConst->SetCollisionPosition(subPosA);
-			// 最近傍点を3Dで返す
-			Vector3 closestPt = subPosA;
-			bNonConst->SetCollisionPosition(closestPt);
-			return true;
-		}
-	}
-	return false;
-}
 } // namespace KCE

@@ -360,10 +360,13 @@
     <ClCompile Include="gameobject\base\GameObject.cpp">
       <Filter>gameobject\base</Filter>
     </ClCompile>
-    <ClCompile Include="gameobject\component\base\ICollisionComponent.cpp">
+    <ClCompile Include="gameobject\component\base\Collider.cpp">
       <Filter>gameobject\component\base</Filter>
     </ClCompile>
-    <ClCompile Include="gameobject\component\collision\AABBColliderComponent.cpp">
+    <ClCompile Include="gameobject\component\base\Component.cpp">
+      <Filter>ソース ファイル\gameobject\component\base</Filter>
+    </ClCompile>
+    <ClCompile Include="gameobject\component\collision\AABBCollider.cpp">
       <Filter>gameobject\component\collision</Filter>
     </ClCompile>
     <ClCompile Include="gameobject\component\collision\CollisionAlgorithm.cpp">
@@ -375,13 +378,13 @@
     <ClCompile Include="gameobject\component\collision\CollisionUtils.cpp">
       <Filter>gameobject\component\collision</Filter>
     </ClCompile>
-    <ClCompile Include="gameobject\component\collision\OBBColliderComponent.cpp">
+    <ClCompile Include="gameobject\component\collision\OBBCollider.cpp">
       <Filter>gameobject\component\collision</Filter>
     </ClCompile>
-    <ClCompile Include="gameobject\component\collision\RayColliderComponent.cpp">
+    <ClCompile Include="gameobject\component\collision\RayCollider.cpp">
       <Filter>gameobject\component\collision</Filter>
     </ClCompile>
-    <ClCompile Include="gameobject\component\collision\SphereColliderComponent.cpp">
+    <ClCompile Include="gameobject\component\collision\SphereCollider.cpp">
       <Filter>gameobject\component\collision</Filter>
     </ClCompile>
     <ClCompile Include="gameobject\manager\GameObjectManager.cpp">
@@ -923,16 +926,16 @@
     <ClInclude Include="gameobject\component\base\ComponentFactory.h">
       <Filter>gameobject\component\base</Filter>
     </ClInclude>
-    <ClInclude Include="gameobject\component\base\IActionComponent.h">
+    <ClInclude Include="gameobject\component\base\Behaviour.h">
       <Filter>gameobject\component\base</Filter>
     </ClInclude>
-    <ClInclude Include="gameobject\component\base\ICollisionComponent.h">
+    <ClInclude Include="gameobject\component\base\Collider.h">
       <Filter>gameobject\component\base</Filter>
     </ClInclude>
-    <ClInclude Include="gameobject\component\base\IGameObjectComponent.h">
+    <ClInclude Include="gameobject\component\base\Component.h">
       <Filter>gameobject\component\base</Filter>
     </ClInclude>
-    <ClInclude Include="gameobject\component\collision\AABBColliderComponent.h">
+    <ClInclude Include="gameobject\component\collision\AABBCollider.h">
       <Filter>gameobject\component\collision</Filter>
     </ClInclude>
     <ClInclude Include="gameobject\component\collision\CollisionAlgorithm.h">
@@ -944,13 +947,13 @@
     <ClInclude Include="gameobject\component\collision\CollisionUtils.h">
       <Filter>gameobject\component\collision</Filter>
     </ClInclude>
-    <ClInclude Include="gameobject\component\collision\OBBColliderComponent.h">
+    <ClInclude Include="gameobject\component\collision\OBBCollider.h">
       <Filter>gameobject\component\collision</Filter>
     </ClInclude>
-    <ClInclude Include="gameobject\component\collision\RayColliderComponent.h">
+    <ClInclude Include="gameobject\component\collision\RayCollider.h">
       <Filter>gameobject\component\collision</Filter>
     </ClInclude>
-    <ClInclude Include="gameobject\component\collision\SphereColliderComponent.h">
+    <ClInclude Include="gameobject\component\collision\SphereCollider.h">
       <Filter>gameobject\component\collision</Filter>
     </ClInclude>
     <ClInclude Include="gameobject\manager\GameObjectManager.h">

@@ -1,5 +1,5 @@
 #pragma once
-#include "engine/gameobject/component/base/ICollisionComponent.h"
+#include "engine/gameobject/component/base/Collider.h"
 #include "math/Sphere.h"
 #include "jsonEditor/JsonEditableBase.h"
 
@@ -24,14 +24,13 @@ namespace KCE
  */
 namespace GameObjectComponent
 {
-	class SphereColliderComponent : public ICollisionComponent, public JsonEditableBase
+	class SphereCollider : public Collider, public JsonEditableBase
 	{
 	public:
 		/**
 		 * @brief コンストラクタ
-		 * @param owner このコンポーネントを所有するGameObject
 		 */
-		SphereColliderComponent(GameObject* owner);
+		SphereCollider();
 
 		/**
 		 * @brief 球データを取得
@@ -50,9 +49,8 @@ namespace GameObjectComponent
 		 *
 		 * GameObjectの位置に合わせて球の中心位置を更新します。
 		 *
-		 * @param owner このコンポーネントを所有するGameObject
 		 */
-		void Update(GameObject* owner) override;
+		void Update() override;
 
 		/**
 		 * @brief コライダーの種類を取得

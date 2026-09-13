@@ -12,7 +12,7 @@ class GameObject;
 
 namespace GameObjectComponent
 {
-	class IGameObjectComponent;
+	class Component;
 
 	/**
 	 * @brief コンポーネント自動登録ファクトリクラス（シングルトン）
@@ -29,7 +29,7 @@ namespace GameObjectComponent
 		/**
 		 * @brief コンポーネント生成関数の登録
 		 */
-		void Register(const std::string& typeName, std::function<std::unique_ptr<IGameObjectComponent>(GameObject*)> creator)
+		void Register(const std::string& typeName, std::function<std::unique_ptr<Component>(GameObject*)> creator)
 		{
 			registry_[typeName] = creator;
 		}
@@ -37,7 +37,7 @@ namespace GameObjectComponent
 		/**
 		 * @brief コンポーネントのインスタンス作成
 		 */
-		std::unique_ptr<IGameObjectComponent> Create(const std::string& typeName, GameObject* owner)
+		std::unique_ptr<Component> Create(const std::string& typeName, GameObject* owner)
 		{
 			auto it = registry_.find(typeName);
 			if (it != registry_.end())
@@ -67,7 +67,7 @@ namespace GameObjectComponent
 		ComponentFactory& operator=(const ComponentFactory&) = delete;
 
 	private:
-		std::unordered_map<std::string, std::function<std::unique_ptr<IGameObjectComponent>(GameObject*)>> registry_;
+		std::unordered_map<std::string, std::function<std::unique_ptr<Component>(GameObject*)>> registry_;
 	};
 
 	/**
@@ -79,7 +79,7 @@ namespace GameObjectComponent
 	public:
 		ComponentRegisterer(const std::string& typeName)
 		{
-			ComponentFactory::GetInstance()->Register(typeName, [](GameObject* owner) -> std::unique_ptr<IGameObjectComponent> {
+			ComponentFactory::GetInstance()->Register(typeName, [](GameObject* owner) -> std::unique_ptr<Component> {
 				// コンストラクタ引数があるかどうかをメタプログラミングで判定して生成
 				if constexpr (std::is_constructible_v<T, GameObject*>)
 				{
@@ -99,4 +99,6 @@ namespace GameObjectComponent
  */
 #define REGISTER_COMPONENT(Type) \
 	static KCE::GameObjectComponent::ComponentRegisterer<KCE::GameObjectComponent::Type> g_registerer_##Type(#Type);
+#define REGISTER_COMPONENT_ALIAS(Type, Alias) \
+	static KCE::GameObjectComponent::ComponentRegisterer<KCE::GameObjectComponent::Type> g_registerer_##Type##_##Alias(#Alias);
 } // namespace KCE

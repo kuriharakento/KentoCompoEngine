@@ -1,5 +1,5 @@
 #pragma once
-#include "engine/gameobject/component/base/ICollisionComponent.h"
+#include "engine/gameobject/component/base/Collider.h"
 #include "engine/math/Ray.h"
 #include "jsonEditor/JsonEditableBase.h"
 #include <algorithm>
@@ -8,36 +8,35 @@ namespace KCE
 {
 /**
  * @brief レイによる衝突判定コンポーネント
- * 
+ *
  * 始点、方向ベクトル、および長さを持つレイを表す
  */
 namespace GameObjectComponent
 {
-	class RayColliderComponent : public ICollisionComponent, public JsonEditableBase
+	class RayCollider : public Collider, public JsonEditableBase
 	{
 	public:
 		/**
 		 * @brief コンストラクタ
-		 * @param owner このコンポーネントを所有するGameObject
 		 */
-		RayColliderComponent(GameObject* owner);
+		RayCollider();
 
 		/**
 		 * @brief 初期化処理
 		 */
-		void Init();
+		void Awake() override;
 
 		/**
 		 * @brief 更新処理
-		 * 
+		 *
 		 * GameObjectのTransform（位置・回転）に基づいて、
 		 * レイの始点と方向をワールド座標系で更新します。
 		 */
-		void Update(GameObject* owner) override;
+		void Update() override;
 
 		/**
 		 * @brief デバッグ用描画処理
-		 * 
+		 *
 		 * 無効化されている場合は描画されません。
 		 */
 		void Draw();
@@ -46,7 +45,7 @@ namespace GameObjectComponent
 		 * @brief ワールドスペースの方向を直接設定（回転なしで使う場合）
 		 * @param dir ワールド座標系での方向ベクトル（正規化推奨）
 		 */
-		void SetWorldDirection(const Vector3& dir) { worldDirection_ = dir; useWorldDirection_ = true; }
+		void SetWorldDirection(const Vector3& dir);
 
 		/**
 		 * @brief ワールド方向の直接指定を解除し、baseDirection+所有者回転に戻す
@@ -83,7 +82,7 @@ namespace GameObjectComponent
 		 * @param offset GameObjectの中心からの座標ズレ
 		 */
 		void SetOffset(const Vector3& offset) { offset_ = offset; }
-		
+
 		/**
 		 * @brief レイのローカル方向（基準）を設定
 		 * @param direction 基準となる方向ベクトル（デフォは前方Z軸）
@@ -102,7 +101,7 @@ namespace GameObjectComponent
 
 		// 親オブジェクト中心からのオフセット
 		Vector3 offset_ = { 0.0f, 0.0f, 0.0f };
-		
+
 		// ワールド座標系で直接指定する方向（useWorldDirection_がtrueの場合に有効）
 		Vector3 worldDirection_ = { 0.0f, 0.0f, 1.0f };
 

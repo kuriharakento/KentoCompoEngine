@@ -12,8 +12,8 @@
 // math
 #include "base/GraphicsTypes.h"
 // component
-#include "engine/gameobject/component/base/IActionComponent.h"
-#include "engine/gameobject/component/base/ICollisionComponent.h"
+#include "engine/gameobject/component/base/Behaviour.h"
+#include "engine/gameobject/component/base/Collider.h"
 // json
 #include "jsonEditor/JsonEditableBase.h"
 // core
@@ -25,24 +25,24 @@ namespace KCE
 {
 namespace GameObjectComponent
 {
-	class IGameObjectComponent;
-	class IActionComponent;
-	class ICollisionComponent;
+	class Component;
+	class Behaviour;
+	class Collider;
 }
 
 /**
  * @brief ゲーム内の全てのオブジェクトの基底クラス
- * 
+ *
  * Entity-Component-System(ECS)パターンを実装し、
  * 3D空間でのトランスフォーム、描画、親子関係を管理します。
  * コンポーネントを動的に追加・削除することで機能を拡張できます。
- * 
+ *
  * 主な機能:
  * - トランスフォーム管理（位置、回転、スケール）
  * - コンポーネントシステム（機能の動的追加・削除）
  * - 親子関係による階層構造
  * - 3D描画
- * 
+ *
  * @note コンポーネントの追加・削除は更新中に保留され、更新終了後に処理されます
  */
 class GameObject : public JsonEditableBase
@@ -65,7 +65,7 @@ public:
 public:
 	/**
 	 * @brief デストラクタ
-	 * 
+	 *
 	 * 全てのコンポーネントをクリアし、オブジェクトを非アクティブ状態にします。
 	 */
 	virtual ~GameObject();
@@ -86,11 +86,13 @@ public:
 
 	/**
 	 * @brief 毎フレームの更新処理
-	 * 
+	 *
 	 * コンポーネント、ワールド行列、子オブジェクトを更新します。
 	 * 更新中のコンポーネント追加・削除は保留されます。
 	 */
 	virtual void Update();
+	/** @brief 全オブジェクトの Update 後にコンポーネントを更新する。 */
+	virtual void LateUpdate();
 
 	/**
 	 * @brief 3D描画処理
@@ -124,43 +126,59 @@ public:
 
 	/**
 	 * @brief コンポーネントの追加
-	 * 
+	 *
 	 * 指定された名前でコンポーネントを追加します。
 	 * 更新中の場合は保留リストに追加され、更新終了後に実際に追加されます。
-	 * 
+	 *
 	 * @param name コンポーネント名（一意識別子）
 	 * @param comp 追加するコンポーネント
 	 */
-	void AddComponent(const std::string& name, std::unique_ptr<GameObjectComponent::IGameObjectComponent> comp);
+	GameObjectComponent::Component* AddComponent(std::unique_ptr<GameObjectComponent::Component> comp, const std::string& typeName);
+
+	template<typename T, typename... Args>
+	T* AddComponent(Args&&... args);
 
 	/**
 	 * @brief コンポーネントの削除
-	 * 
+	 *
 	 * 指定された名前のコンポーネントを削除します。
 	 * 更新中の場合は保留リストに追加され、更新終了後に実際に削除されます。
-	 * 
+	 *
 	 * @param name 削除するコンポーネント名
 	 */
 	void RemoveComponent(const std::string& name);
 
 	/**
 	 * @brief 型指定でのコンポーネント取得
-	 * 
+	 *
 	 * @tparam T 取得するコンポーネントの型
 	 * @return 指定された型のコンポーネント（見つからない場合はnullptr）
 	 */
 	template<typename T>
-	std::shared_ptr<T> GetComponent() const;
+	T* GetComponent() const;
+
+	template<typename T>
+	void GetComponents(std::vector<T*>& out) const;
+	/** @brief 有効な全コンポーネントへ組単位の Enter を送る。 */
+	void DispatchCollisionEnter(const GameObjectComponent::CollisionInfo& info);
+	/** @brief 有効な全コンポーネントへ組単位の Stay を送る。 */
+	void DispatchCollisionStay(const GameObjectComponent::CollisionInfo& info);
+	/** @brief 有効な全コンポーネントへ組単位の Exit を送る。 */
+	void DispatchCollisionExit(const GameObjectComponent::CollisionInfo& info);
+	/** @brief 有効な全コンポーネントへオブジェクト単位の Enter を送る。 */
+	void DispatchObjectCollisionEnter(const GameObjectComponent::CollisionInfo& info);
+	/** @brief 有効な全コンポーネントへオブジェクト単位の Stay を送る。 */
+	void DispatchObjectCollisionStay(const GameObjectComponent::CollisionInfo& info);
+	/** @brief 有効な全コンポーネントへオブジェクト単位の Exit を送る。 */
+	void DispatchObjectCollisionExit(const GameObjectComponent::CollisionInfo& info);
 
 	/**
 	 * @brief 名前と型を指定してのコンポーネント取得
-	 * 
+	 *
 	 * @tparam T 取得するコンポーネントの型
 	 * @param name コンポーネント名（一意識別子）
 	 * @return 指定された型と名前のコンポーネント（見つからない場合はnullptr）
 	 */
-	template<typename T>
-	std::shared_ptr<T> GetComponent(const std::string& name) const;
 
 public: // アクセッサ
 	// === Transform関連 ===
@@ -202,7 +220,7 @@ public: // アクセッサ
 
 	/**
 	 * @brief ワールド行列の更新
-	 * 
+	 *
 	 * ローカルトランスフォームから親子関係を考慮したワールド行列を計算します。
 	 */
 	void UpdateWorldMatrix();
@@ -326,13 +344,15 @@ public: // アクセッサ
 	 * @brief アクティブ状態の設定
 	 * @param isActive 設定するアクティブ状態
 	 */
-	void SetActive(bool isActive) { isActive_ = isActive; }
+	void SetActive(bool isActive);
+	/** @brief enabled 変更後に寿命通知を同期する。 */
+	void RefreshComponentActivation() { SyncComponentActivation(); }
 
 	/**
 	 * @brief アクティブ状態の取得
 	 * @return 現在のアクティブ状態
 	 */
-	bool IsActive() const { return isActive_; }
+	bool IsActive() const { return isActive_ && (!parent_ || parent_->IsActive()); }
 
 	/**
 	 * @brief オブジェクトの破棄を要求する（フレーム末尾で安全にメモリ解放されます）
@@ -347,7 +367,7 @@ public: // アクセッサ
 	// === 親子関係関連 ===
 	/**
 	 * @brief 子オブジェクトの追加
-	 * 
+	 *
 	 * @param name 子オブジェクトの名前（一意識別子）
 	 * @param child 追加する子オブジェクト
 	 */
@@ -369,7 +389,9 @@ public: // アクセッサ
 	/**
 	 * @brief アタッチされている全コンポーネントを取得
 	 */
-	const std::unordered_map<std::string, std::shared_ptr<GameObjectComponent::IGameObjectComponent>>& GetComponents() const { return components_; }
+	const std::vector<std::unique_ptr<GameObjectComponent::Component>>& GetComponents() const { return components_; }
+	/** @brief コンポーネントの保存名を追加順で返す。 */
+	const std::vector<std::string>& GetComponentTypeNames() const { return componentTypeNames_; }
 
 	/**
 	 * @brief 内部で使用している Object3dCommon を取得
@@ -414,7 +436,7 @@ private:
 	 * @param name コンポーネント名
 	 * @param comp 追加するコンポーネント
 	 */
-	void AddComponentImmediate(const std::string& name, std::shared_ptr<GameObjectComponent::IGameObjectComponent> comp);
+	GameObjectComponent::Component* AddComponentImmediate(std::unique_ptr<GameObjectComponent::Component> comp, const std::string& typeName);
 
 	/**
 	 * @brief コンポーネントの即座削除
@@ -426,25 +448,22 @@ private:
 	 * @brief カテゴリリストからコンポーネントを削除
 	 * @param comp 削除するコンポーネント
 	 */
-	void RemoveFromCategoryLists(const std::shared_ptr<GameObjectComponent::IGameObjectComponent>& comp);
-
 	/**
 	 * @brief 保留中の変更処理
 	 */
 	void ProcessPendingChanges();
+	void SyncComponentActivation();
+	void DestroyAllComponents();
 
 private:
 	// === コンポーネントシステム ===
 	// 全コンポーネントのマップ
-	std::unordered_map<std::string, std::shared_ptr<GameObjectComponent::IGameObjectComponent>> components_;
-	// アクションコンポーネントのリスト（高速アクセス用）
-	std::vector<std::shared_ptr<GameObjectComponent::IActionComponent>> actionComponents_;
-	// コリジョンコンポーネントのリスト（高速アクセス用）
-	std::vector<std::shared_ptr<GameObjectComponent::ICollisionComponent>> collisionComponents_;
+	std::vector<std::unique_ptr<GameObjectComponent::Component>> components_;
+	std::vector<std::string> componentTypeNames_;
 
 	// === 保留処理システム ===
 	// 追加保留中のコンポーネントリスト
-	std::vector<std::pair<std::string, std::shared_ptr<GameObjectComponent::IGameObjectComponent>>> pendingAdds_;
+	std::vector<std::pair<std::string, std::unique_ptr<GameObjectComponent::Component>>> pendingAdds_;
 	// 削除保留中のコンポーネント名リスト
 	std::vector<std::string> pendingRemoves_;
 	// 更新処理中フラグ
@@ -473,64 +492,42 @@ private:
 
 /**
  * @brief 型指定でのコンポーネント取得（テンプレート実装）
- * 
+ *
  * @tparam T 取得するコンポーネントの型
  * @return 指定された型のコンポーネント（見つからない場合はnullptr）
  */
 template <typename T>
-std::shared_ptr<T> GameObject::GetComponent() const
+T* GameObject::GetComponent() const
 {
-	// 1. T が ICollisionComponent またはその派生クラスの場合
-	if constexpr (std::is_base_of_v<GameObjectComponent::ICollisionComponent, T>)
+	for (const auto& component : components_)
 	{
-		for (const auto& comp : collisionComponents_)
+		if (auto* result = dynamic_cast<T*>(component.get()))
 		{
-			if (auto casted = std::dynamic_pointer_cast<T>(comp))
-			{
-				return casted;
-			}
-		}
-	}
-	// 2. T が IActionComponent またはその派生クラスの場合
-	else if constexpr (std::is_base_of_v<GameObjectComponent::IActionComponent, T>)
-	{
-		for (const auto& comp : actionComponents_)
-		{
-			if (auto casted = std::dynamic_pointer_cast<T>(comp))
-			{
-				return casted;
-			}
-		}
-	}
-	// 3. それ以外の型の場合（フォールバック）
-	else
-	{
-		for (const auto& [_, comp] : components_)
-		{
-			if (auto casted = std::dynamic_pointer_cast<T>(comp))
-			{
-				return casted;
-			}
+			return result;
 		}
 	}
 	return nullptr;
 }
 
-/**
- * @brief 名前と型を指定してのコンポーネント取得（テンプレート実装）
- * 
- * @tparam T 取得するコンポーネントの型
- * @param name コンポーネント名（一意識別子）
- * @return 指定された型と名前のコンポーネント（見つからない場合はnullptr）
- */
-template <typename T>
-std::shared_ptr<T> GameObject::GetComponent(const std::string& name) const
+template<typename T, typename... Args>
+T* GameObject::AddComponent(Args&&... args)
 {
-	auto it = components_.find(name);
-	if (it != components_.end())
+	auto component = std::make_unique<T>(std::forward<Args>(args)...);
+	T* result = component.get();
+	AddComponent(std::move(component), typeid(T).name());
+	return result;
+}
+
+template<typename T>
+void GameObject::GetComponents(std::vector<T*>& out) const
+{
+	out.clear();
+	for (const auto& component : components_)
 	{
-		return std::dynamic_pointer_cast<T>(it->second);
+		if (auto* result = dynamic_cast<T*>(component.get()))
+		{
+			out.push_back(result);
+		}
 	}
-	return nullptr;
 }
 } // namespace KCE

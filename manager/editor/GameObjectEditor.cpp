@@ -188,8 +188,11 @@ void GameObjectEditor::DrawInspectorImGui()
 			}
 			else
 			{
-				for (const auto& [compName, comp] : comps)
+				const auto& componentNames = selected_->GetComponentTypeNames();
+				for (size_t index = 0; index < comps.size(); ++index)
 				{
+					const auto& compName = componentNames[index];
+					const auto& comp = comps[index];
 					ImGui::PushID(compName.c_str());
 					ImGui::AlignTextToFramePadding();
 					ImGui::Bullet();
@@ -296,7 +299,7 @@ void GameObjectEditor::DrawInspectorImGui()
 								auto compInstance = GameObjectComponent::ComponentFactory::GetInstance()->Create(compName, newObj);
 								if (compInstance)
 								{
-									newObj->AddComponent(compName, std::move(compInstance));
+					newObj->AddComponent(std::move(compInstance), compName);
 								}
 							}
 						}
@@ -340,7 +343,7 @@ void GameObjectEditor::AddComponentByName(GameObject* owner, const std::string& 
 	auto comp = GameObjectComponent::ComponentFactory::GetInstance()->Create(compTypeName, owner);
 	if (comp)
 	{
-		owner->AddComponent(compTypeName, std::move(comp));
+		owner->AddComponent(std::move(comp), compTypeName);
 	}
 }
 

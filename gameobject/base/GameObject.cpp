@@ -30,9 +30,7 @@ GameObject::~GameObject()
 		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
 	}
 #endif
-	actionComponents_.clear();
-	collisionComponents_.clear();
-	components_.clear();
+	DestroyAllComponents();
 	isActive_ = false;
 	renderable3d_.reset();
 }
@@ -111,12 +109,20 @@ void GameObject::Update()
 	// 更新中フラグを立てる（コンポーネントの追加・削除を保留するため）
 	isUpdating_ = true;
 
-	// アクションコンポーネントの更新
-	for (auto& actionComp : actionComponents_)
+	SyncComponentActivation();
+	for (auto& component : components_)
 	{
-		if (actionComp)
+		if (component->activeInHierarchy_)
 		{
-			actionComp->Update(this);
+			if (!component->started_)
+			{
+				component->Start();
+				component->started_ = true;
+			}
+			if (!dynamic_cast<GameObjectComponent::Collider*>(component.get()))
+			{
+				component->Update();
+			}
 		}
 	}
 
@@ -130,13 +136,11 @@ void GameObject::Update()
 
 	// ワールド行列の更新
 	UpdateWorldMatrix();
-
-	// コリジョンコンポーネントの更新（当たり判定処理）
-	for (auto& collisionComp : collisionComponents_)
+	for (auto& component : components_)
 	{
-		if (collisionComp)
+		if (component->activeInHierarchy_ && dynamic_cast<GameObjectComponent::Collider*>(component.get()))
 		{
-			collisionComp->Update(this);
+			component->Update();
 		}
 	}
 
@@ -149,9 +153,22 @@ void GameObject::Update()
 		}
 	}
 
-	isUpdating_ = false;
+}
 
-	// 保留中のコンポーネント変更を処理
+void GameObject::LateUpdate()
+{
+	for (auto& component : components_)
+	{
+		if (component->activeInHierarchy_)
+		{
+			component->LateUpdate();
+		}
+	}
+	for (auto& [name, child] : children_)
+	{
+		if (child && child->IsActive()) child->LateUpdate();
+	}
+	isUpdating_ = false;
 	ProcessPendingChanges();
 }
 
@@ -178,11 +195,14 @@ void GameObject::Draw3D(CameraManager* camera)
 	}
 
 	// アクションコンポーネントの描画（エフェクト、UI、デバッグ表示など）
-	for (auto& actionComp : actionComponents_)
+	for (auto& component : components_)
 	{
-		if (actionComp)
+		if (component->activeInHierarchy_)
 		{
-			actionComp->Draw3D(camera);
+			if (auto* behaviour = dynamic_cast<GameObjectComponent::Behaviour*>(component.get()))
+			{
+				behaviour->Draw3D(camera);
+			}
 		}
 	}
 }
@@ -192,11 +212,14 @@ void GameObject::Draw2D()
 	if (!isActive_) { return; }
 
 	// アクションコンポーネントの2D描画
-	for (auto& actionComp : actionComponents_)
+	for (auto& component : components_)
 	{
-		if (actionComp)
+		if (component->activeInHierarchy_)
 		{
-			actionComp->Draw2D();
+			if (auto* behaviour = dynamic_cast<GameObjectComponent::Behaviour*>(component.get()))
+			{
+				behaviour->Draw2D();
+			}
 		}
 	}
 	// 子オブジェクトの2D描画
@@ -326,33 +349,22 @@ void GameObject::UpdateWorldMatrix()
 	}
 }
 
-void GameObject::AddComponent(const std::string& name, std::unique_ptr<GameObjectComponent::IGameObjectComponent> comp)
+GameObjectComponent::Component* GameObject::AddComponent(std::unique_ptr<GameObjectComponent::Component> comp, const std::string& typeName)
 {
-	// nullポインタチェック
 	if (!comp)
 	{
-		KCE::Logger::Log("Error: Attempted to add a null component with name: " + name);
-		return;
+		return nullptr;
 	}
-
-	// 同名コンポーネントの重複チェック
-	if (components_.find(name) != components_.end())
-	{
-		KCE::Logger::Log("Warning: Component already exists: " + name);
-		return;
-	}
-
-	auto sharedComp = std::shared_ptr<GameObjectComponent::IGameObjectComponent>(std::move(comp));
-
-	// Update実行中は保留リストに追加
+	GameObjectComponent::Component* result = comp.get();
 	if (isUpdating_)
 	{
-		pendingAdds_.emplace_back(name, sharedComp);
+		pendingAdds_.emplace_back(typeName, std::move(comp));
 	}
 	else
 	{
-		AddComponentImmediate(name, sharedComp);
+		AddComponentImmediate(std::move(comp), typeName);
 	}
+	return result;
 }
 
 void GameObject::RemoveComponent(const std::string& name)
@@ -467,69 +479,41 @@ void GameObject::ShowImGuiHierarchy()
 #endif
 }
 
-void GameObject::AddComponentImmediate(const std::string& name, std::shared_ptr<GameObjectComponent::IGameObjectComponent> comp)
+GameObjectComponent::Component* GameObject::AddComponentImmediate(std::unique_ptr<GameObjectComponent::Component> comp, const std::string& typeName)
 {
-	if (!comp) return;
-
-	// 重複チェック（安全のため再確認）
-	if (components_.find(name) != components_.end())
+	if (!comp)
 	{
-		KCE::Logger::Log("Warning: Component already exists on immediate add: " + name);
-		return;
+		return nullptr;
 	}
-
-	components_[name] = comp;
-
-	// 型ごとにカテゴリ配列へ登録（高速アクセス用）
-	if (auto action = std::dynamic_pointer_cast<GameObjectComponent::IActionComponent>(comp))
-	{
-		actionComponents_.push_back(action);
-	}
-	if (auto collision = std::dynamic_pointer_cast<GameObjectComponent::ICollisionComponent>(comp))
-	{
-		collisionComponents_.push_back(collision);
-	}
+	GameObjectComponent::Component* result = comp.get();
+	result->owner_ = this;
+	result->Awake();
+	result->awakeCalled_ = true;
+	components_.push_back(std::move(comp));
+	componentTypeNames_.push_back(typeName);
+	SyncComponentActivation();
+	return result;
 }
 
 void GameObject::RemoveComponentImmediate(const std::string& name)
 {
-	auto it = components_.find(name);
-
-	if (it == components_.end())
+	auto nameIt = std::find(componentTypeNames_.begin(), componentTypeNames_.end(), name);
+	if (nameIt == componentTypeNames_.end())
 	{
 		KCE::Logger::Log("Warning: Component not found: " + name);
 		return;
 	}
 
-	auto comp = it->second;
-
-	// カテゴリ配列から削除
-	RemoveFromCategoryLists(comp);
-
-	components_.erase(it);
-}
-
-void GameObject::RemoveFromCategoryLists(const std::shared_ptr<GameObjectComponent::IGameObjectComponent>& comp)
-{
-	if (!comp) return;
-
-	// アクションコンポーネント配列から削除
-	if (auto action = std::dynamic_pointer_cast<GameObjectComponent::IActionComponent>(comp))
+	const size_t index = static_cast<size_t>(std::distance(componentTypeNames_.begin(), nameIt));
+	auto& component = components_[index];
+	if (component->activeInHierarchy_)
 	{
-		actionComponents_.erase(
-			std::remove(actionComponents_.begin(), actionComponents_.end(), action),
-			actionComponents_.end()
-		);
+		component->OnDisable();
 	}
-
-	// コリジョンコンポーネント配列から削除
-	if (auto collision = std::dynamic_pointer_cast<GameObjectComponent::ICollisionComponent>(comp))
-	{
-		collisionComponents_.erase(
-			std::remove(collisionComponents_.begin(), collisionComponents_.end(), collision),
-			collisionComponents_.end()
-		);
-	}
+	component->OnDestroy();
+	component->destroyed_ = true;
+	components_.erase(components_.begin() + index);
+	componentTypeNames_.erase(nameIt);
 }
 
 void GameObject::ProcessPendingChanges()
@@ -547,22 +531,101 @@ void GameObject::ProcessPendingChanges()
 	// 追加処理を実行
 	if (!pendingAdds_.empty())
 	{
-		for (auto& p : pendingAdds_)
+		for (auto& [name, component] : pendingAdds_)
 		{
-			const auto& name = p.first;
-			const auto& comp = p.second;
-
-			// 既に存在する場合は追加をスキップ
-			if (components_.find(name) != components_.end())
-			{
-				KCE::Logger::Log("Warning: Component already exists when processing pending add: " + name + " - Skipped.");
-				continue;
-			}
-
-			AddComponentImmediate(name, comp);
+			AddComponentImmediate(std::move(component), name);
 		}
 		pendingAdds_.clear();
 	}
+}
+
+void GameObject::SetActive(bool isActive)
+{
+	if (isActive_ == isActive)
+	{
+		return;
+	}
+	isActive_ = isActive;
+	SyncComponentActivation();
+}
+
+void GameObject::SyncComponentActivation()
+{
+	for (auto& component : components_)
+	{
+		const bool shouldBeActive = component->enabled_ && IsActive();
+		if (shouldBeActive == component->activeInHierarchy_)
+		{
+			continue;
+		}
+		component->activeInHierarchy_ = shouldBeActive;
+		if (shouldBeActive)
+		{
+			component->OnEnable();
+		}
+		else
+		{
+			component->OnDisable();
+		}
+	}
+	for (auto& [name, child] : children_)
+	{
+		if (child) child->SyncComponentActivation();
+	}
+}
+
+void GameObject::DestroyAllComponents()
+{
+	for (auto& component : components_)
+	{
+		if (component->activeInHierarchy_)
+		{
+			component->OnDisable();
+		}
+		if (!component->destroyed_)
+		{
+			component->OnDestroy();
+			component->destroyed_ = true;
+		}
+	}
+	components_.clear();
+	componentTypeNames_.clear();
+}
+
+void GameObject::DispatchCollisionEnter(const GameObjectComponent::CollisionInfo& info)
+{
+	for (auto& component : components_)
+	{
+		if (component->activeInHierarchy_) component->OnCollisionEnter(info);
+	}
+}
+
+void GameObject::DispatchCollisionStay(const GameObjectComponent::CollisionInfo& info)
+{
+	for (auto& component : components_)
+	{
+		if (component->activeInHierarchy_) component->OnCollisionStay(info);
+	}
+}
+
+void GameObject::DispatchCollisionExit(const GameObjectComponent::CollisionInfo& info)
+{
+	for (auto& component : components_)
+	{
+		if (component->activeInHierarchy_) component->OnCollisionExit(info);
+	}
+}
+void GameObject::DispatchObjectCollisionEnter(const GameObjectComponent::CollisionInfo& info)
+{
+	for (auto& component : components_) if (component->activeInHierarchy_) component->OnObjectCollisionEnter(info);
+}
+void GameObject::DispatchObjectCollisionStay(const GameObjectComponent::CollisionInfo& info)
+{
+	for (auto& component : components_) if (component->activeInHierarchy_) component->OnObjectCollisionStay(info);
+}
+void GameObject::DispatchObjectCollisionExit(const GameObjectComponent::CollisionInfo& info)
+{
+	for (auto& component : components_) if (component->activeInHierarchy_) component->OnObjectCollisionExit(info);
 }
 
 bool GameObject::SaveJson(const std::string& path) const
@@ -582,8 +645,10 @@ bool GameObject::SaveJson(const std::string& path) const
 
 	// 2. 各コンポーネントのJSONをシリアライズして追加
 	nlohmann::json compJson = nlohmann::json::object();
-	for (const auto& [compName, comp] : components_)
+	for (size_t index = 0; index < components_.size(); ++index)
 	{
+		const auto& compName = componentTypeNames_[index];
+		const auto& comp = components_[index];
 		auto* editableComp = dynamic_cast<JsonEditableBase*>(comp.get());
 		if (editableComp)
 		{
@@ -660,10 +725,11 @@ bool GameObject::LoadJson(const std::string& path)
 		for (auto it = componentsNode.begin(); it != componentsNode.end(); ++it)
 		{
 			std::string compName = it.key();
-			auto compIt = components_.find(compName);
-			if (compIt != components_.end())
+			auto nameIt = std::find(componentTypeNames_.begin(), componentTypeNames_.end(), compName);
+			if (nameIt != componentTypeNames_.end())
 			{
-				auto* editableComp = dynamic_cast<JsonEditableBase*>(compIt->second.get());
+				const size_t index = static_cast<size_t>(std::distance(componentTypeNames_.begin(), nameIt));
+				auto* editableComp = dynamic_cast<JsonEditableBase*>(components_[index].get());
 				if (editableComp)
 				{
 					editableComp->Deserialize(it.value());
@@ -689,8 +755,10 @@ void GameObject::DrawImGui()
 	JsonEditableBase::DrawImGui();
 
 	// 各コンポーネントのプロパティを描画
-	for (const auto& [compName, comp] : components_)
+	for (size_t index = 0; index < components_.size(); ++index)
 	{
+		const auto& compName = componentTypeNames_[index];
+		const auto& comp = components_[index];
 		auto* editableComp = dynamic_cast<JsonEditableBase*>(comp.get());
 		if (editableComp)
 		{

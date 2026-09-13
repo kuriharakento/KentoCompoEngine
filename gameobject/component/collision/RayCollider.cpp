@@ -1,4 +1,4 @@
-#include "RayColliderComponent.h"
+#include "RayCollider.h"
 #include "engine/gameobject/base/GameObject.h"
 #include "engine/manager/graphics/LineManager.h"
 #include "math/MathUtils.h"
@@ -8,12 +8,12 @@
 
 namespace KCE
 {
-REGISTER_COMPONENT(RayColliderComponent)
+REGISTER_COMPONENT(RayCollider)
+REGISTER_COMPONENT_ALIAS(RayCollider, RayColliderComponent)
 
 namespace GameObjectComponent
 {
-	RayColliderComponent::RayColliderComponent(GameObject* owner)
-		: ICollisionComponent(owner)
+	RayCollider::RayCollider()
 	{
 		Register("offset", &offset_);
 		Register("baseDirection", &baseDirection_);
@@ -22,18 +22,18 @@ namespace GameObjectComponent
 		Register("worldDirection", &worldDirection_);
 	}
 
-	void RayColliderComponent::Init()
+	void RayCollider::Awake()
 	{
 		// 初期状態のレイ情報を構築
-		Update(owner_);
+		Update();
 	}
 
-	void RayColliderComponent::Update(GameObject* owner)
+	void RayCollider::Update()
 	{
-		if (!owner_) return;
+		if (!GetOwner()) return;
 
-		Vector3 worldPos = owner_->GetPosition() + offset_;
-		ray_.start = worldPos;
+		const Matrix4x4 world = GetOwner()->GetWorldMatrix();
+		ray_.start = MathUtils::Transform(offset_, world);
 
 		if (useWorldDirection_)
 		{
@@ -43,19 +43,33 @@ namespace GameObjectComponent
 		else
 		{
 			// baseDirection_ を所有者の回転で変換してワールド方向を算出
-			Vector3 rotation = owner_->GetRotation();
-			Matrix4x4 rotMatrix = MakeRotateMatrix(rotation);
-			Vector3 worldDir = MathUtils::TransformNormal(baseDirection_, rotMatrix);
+			Vector3 worldDir = MathUtils::TransformNormal(baseDirection_, world);
 			worldDir.NormalizeSelf();
 			ray_.direction = worldDir;
 		}
+		Draw();
 	}
 
-	void RayColliderComponent::Draw()
+	void RayCollider::SetWorldDirection(const Vector3& dir)
+	{
+		constexpr float kMinimumDirectionLength = 0.000001f;
+		worldDirection_ = dir;
+		if (worldDirection_.Length() <= kMinimumDirectionLength)
+		{
+			worldDirection_ = { 0.0f, 0.0f, 1.0f };
+		}
+		else
+		{
+			worldDirection_.NormalizeSelf();
+		}
+		useWorldDirection_ = true;
+	}
+
+	void RayCollider::Draw()
 	{
 	#ifdef USE_IMGUI
 		// 衝突判定が無効な場合は描画しない
-		if (!owner_ || !owner_->IsActive()) return;
+		if (!GetOwner() || !GetOwner()->IsActive()) return;
 
 		// レイの終点を計算
 		Vector3 endPoint = ray_.start + ray_.direction * ray_.length;

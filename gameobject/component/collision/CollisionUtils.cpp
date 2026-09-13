@@ -1,17 +1,17 @@
 #include "CollisionUtils.h"
 #include "engine/gameobject/component/collision/CollisionAlgorithm.h"
-#include "OBBColliderComponent.h"
+#include "OBBCollider.h"
 #include "engine/gameobject/base/GameObject.h"
 
 namespace KCE
 {
 namespace collisionUtils
 {
-	using GameObjectComponent::OBBColliderComponent;
+	using GameObjectComponent::OBBCollider;
 	void ResolvePenetration(GameObject* self, GameObject* other)
 	{
-		auto selfColl = self->GetComponent<OBBColliderComponent>();
-		auto otherColl = other->GetComponent<OBBColliderComponent>();
+		auto selfColl = self->GetComponent<OBBCollider>();
+		auto otherColl = other->GetComponent<OBBCollider>();
 		if (!selfColl || !otherColl) return;
 
 		Vector3 mtv;
