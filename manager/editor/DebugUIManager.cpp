@@ -4,6 +4,7 @@
 #include "externals/imgui/imgui.h"
 #include "externals/imgui/imgui_internal.h"
 #include <algorithm>
+#include <cctype>
 #include <cstdio>
 #include <cstring>
 #include <unordered_map>
@@ -64,6 +65,33 @@ PersistedSettings s_persisted;
 size_t ToIndex(EditorDock dock)
 {
 	return static_cast<size_t>(dock);
+}
+
+/**
+ * @brief text が needle を含むか。大文字と小文字は区別しない
+ * @details 毎フレームの検索で呼ぶので、小文字にした文字列は作らずに1文字ずつ比べる。
+ */
+bool ContainsIgnoreCase(const std::string& text, const char* needle)
+{
+	const size_t needleLength = std::strlen(needle);
+	if (needleLength == 0)
+	{
+		return true;
+	}
+	for (size_t start = 0; start + needleLength <= text.size(); ++start)
+	{
+		size_t matched = 0;
+		while (matched < needleLength &&
+			std::tolower(static_cast<unsigned char>(text[start + matched])) == std::tolower(static_cast<unsigned char>(needle[matched])))
+		{
+			++matched;
+		}
+		if (matched == needleLength)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 /** @brief その置き場所に必ずあるウィンドウ名。無ければ nullptr */
@@ -139,10 +167,12 @@ void DebugUIManager::RegisterSettingsPage(void* owner, const std::string& catego
 			page.category = category;
 			page.displayName = category + "/" + name;
 			page.draw = std::move(draw);
+			RebuildSettingsCategories();
 			return;
 		}
 	}
 	settingsPages_.push_back({ owner, category, name, category + "/" + name, std::move(draw) });
+	RebuildSettingsCategories();
 	if (selectedSettingsPage_.empty())
 	{
 		selectedSettingsPage_ = name;
@@ -194,12 +224,14 @@ void DebugUIManager::Unregister(void* owner)
 	std::erase_if(settingsPages_, removeOwner);
 	std::erase_if(inspectorPages_, removeOwner);
 	std::erase_if(overlays_, removeOwner);
+	RebuildSettingsCategories();
 }
 
 void DebugUIManager::Clear()
 {
 	windows_.clear();
 	settingsPages_.clear();
+	settingsCategories_.clear();
 	inspectorPages_.clear();
 	overlays_.clear();
 	for (auto& names : dockWindowNames_)
@@ -271,18 +303,39 @@ void DebugUIManager::DrawSettings()
 	ImGui::Begin(kSettingsWindowName);
 	ImGui::InputTextWithHint("##settings_filter", "Search", settingsFilter_.data(), settingsFilter_.size());
 	ImGui::BeginChild("SettingsList", ImVec2(kSettingsListWidth, 0.0f), true);
-	for (size_t index = 0; index < settingsPages_.size(); ++index)
+	const bool filtering = settingsFilter_[0] != '\0';
+	for (const auto& category : settingsCategories_)
 	{
-		const auto& page = settingsPages_[index];
-		if (settingsFilter_[0] != '\0' && page.displayName.find(settingsFilter_.data()) == std::string::npos)
+		// 検索中は、当てはまるページが無い分類ごと隠し、当てはまる分類は開いて見せる
+		const bool hasMatch = std::any_of(settingsPages_.begin(), settingsPages_.end(),
+			[this, &category](const SettingsPage& page) { return page.category == category && MatchesSettingsFilter(page); });
+		if (!hasMatch)
 		{
 			continue;
 		}
-		if (ImGui::Selectable(page.displayName.c_str(), selectedSettingsPage_ == page.name))
+		if (filtering)
 		{
-			selectedSettingsPage_ = page.name;
-			SaveSettings();
+			ImGui::SetNextItemOpen(true);
 		}
+		if (!ImGui::TreeNodeEx(category.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth))
+		{
+			continue;
+		}
+		for (const auto& page : settingsPages_)
+		{
+			if (page.category != category || !MatchesSettingsFilter(page))
+			{
+				continue;
+			}
+			ImGui::PushID(&page);
+			if (ImGui::Selectable(page.name.c_str(), selectedSettingsPage_ == page.name))
+			{
+				selectedSettingsPage_ = page.name;
+				SaveSettings();
+			}
+			ImGui::PopID();
+		}
+		ImGui::TreePop();
 	}
 	ImGui::EndChild();
 	ImGui::SameLine();
@@ -297,6 +350,23 @@ void DebugUIManager::DrawSettings()
 	}
 	ImGui::EndChild();
 	ImGui::End();
+}
+
+void DebugUIManager::RebuildSettingsCategories()
+{
+	settingsCategories_.clear();
+	for (const auto& page : settingsPages_)
+	{
+		if (std::find(settingsCategories_.begin(), settingsCategories_.end(), page.category) == settingsCategories_.end())
+		{
+			settingsCategories_.push_back(page.category);
+		}
+	}
+}
+
+bool DebugUIManager::MatchesSettingsFilter(const SettingsPage& page) const
+{
+	return settingsFilter_[0] == '\0' || ContainsIgnoreCase(page.displayName, settingsFilter_.data());
 }
 
 void DebugUIManager::DockOnFirstOpen(const std::string& name, EditorDock dock)

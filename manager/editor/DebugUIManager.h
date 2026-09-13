@@ -151,6 +151,10 @@ private:
 	void DockOnFirstOpen(const std::string& name, EditorDock dock);
 	/** @brief 今の表示状態を覚えて、imgui.ini の書き出しを頼む。 */
 	void SaveSettings();
+	/** @brief Settings の分類の並びを登録順で作り直す。登録・解除のときだけ呼ぶ。 */
+	void RebuildSettingsCategories();
+	/** @brief Settings のページが検索欄の文字を含むか返す。大文字と小文字は区別しない。 */
+	bool MatchesSettingsFilter(const SettingsPage& page) const;
 
 	// --- imgui.ini の [DebugUI] の読み書き口（ImGuiSettingsHandler に渡す） ---
 	static void* ReadSettingsOpen(ImGuiContext* context, ImGuiSettingsHandler* handler, const char* name);
@@ -160,6 +164,8 @@ private:
 
 	std::vector<Window> windows_;
 	std::vector<SettingsPage> settingsPages_;
+	// Settings の分類名（登録順）。毎フレーム作らないよう、登録・解除のときだけ作り直す
+	std::vector<std::string> settingsCategories_;
 	std::vector<InspectorPage> inspectorPages_;
 	std::vector<Overlay> overlays_;
 	// GetDockWindowNames の結果。呼ぶたびに作り直すが、領域は使い回す
