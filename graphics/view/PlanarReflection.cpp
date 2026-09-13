@@ -154,6 +154,9 @@ void PlanarReflection::Composite(Camera* camera, GBuffer* gBuffer, D3D12_CPU_DES
 	}
 	ConstantsForGPU constants{};
 	constants.invViewProjection = Inverse(camera->GetViewProjectionMatrix());
+	// 反射のサブビューは本編の後に描くので、ここで読む絵は1フレーム前のカメラで描いたもの。
+	// SyncCamera はまだ呼ばれていないので、camera_ にはその絵を描いたときの行列が残っている
+	constants.reflectionViewProjection = camera_->GetViewProjectionMatrix();
 	constants.cameraPosition = camera->GetTranslate();
 	constants.planeHeight = settings_.planeHeight;
 	constants.strength = settings_.strength;

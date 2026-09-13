@@ -54,6 +54,8 @@ public:
 	struct ConstantsForGPU
 	{
 		Matrix4x4 invViewProjection;
+		// 反射の絵を描いたときの鏡映カメラ。床の点をこれで投影して、絵のどこを読むか決める
+		Matrix4x4 reflectionViewProjection;
 		Vector3 cameraPosition;
 		float planeHeight;
 		float strength;
@@ -61,7 +63,7 @@ public:
 		float minReflectance;
 		float heightTolerance;
 	};
-	static_assert(sizeof(ConstantsForGPU) == 96, "ReflectionConstants のサイズがシェーダー側と一致しません");
+	static_assert(sizeof(ConstantsForGPU) == 160, "ReflectionConstants のサイズがシェーダー側と一致しません");
 
 	~PlanarReflection();
 

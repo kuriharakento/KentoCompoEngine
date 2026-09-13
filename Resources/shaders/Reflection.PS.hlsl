@@ -7,6 +7,7 @@
 cbuffer ReflectionConstants : register(b0)
 {
     row_major float4x4 invViewProjection;
+    row_major float4x4 reflectionViewProjection;
     float3 cameraPosition;
     float planeHeight;
     float strength;
@@ -53,7 +54,21 @@ float4 main(VertexShaderOutput input) : SV_TARGET
     float fresnel = pow(1.0f - saturate(toCamera.y), fresnelPower);
     float amount = strength * lerp(minReflectance, 1.0f, fresnel);
 
-    // 鏡映したカメラの像は上下が反転している
-    float3 reflection = gReflection.SampleLevel(gLinearSampler, float2(uv.x, 1.0f - uv.y), 0).rgb;
+    // 反射の絵は1フレーム前のカメラで描いてある。画面の位置をそのまま読むと、
+    // カメラが動いている間だけ映り込みが床からずれるので、描いたときのカメラで床の点を投影し直す。
+    // 鏡映カメラの上下の反転もこの投影に含まれる
+    float4 reflectionClip = mul(float4(world.xyz, 1.0f), reflectionViewProjection);
+    if (reflectionClip.w <= 0.0f)
+    {
+        return float4(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+    // NDC（-1〜1、Y 上向き）から UV（0〜1、V 下向き）へ
+    float2 reflectionUv = float2(reflectionClip.x, -reflectionClip.y) / reflectionClip.w * 0.5f + 0.5f;
+    // 前のフレームの絵に写っていない所は足さない（端が引き伸ばされて見えるのを防ぐ）
+    if (any(reflectionUv < 0.0f) || any(reflectionUv > 1.0f))
+    {
+        return float4(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+    float3 reflection = gReflection.SampleLevel(gLinearSampler, reflectionUv, 0).rgb;
     return float4(reflection, saturate(amount));
 }
