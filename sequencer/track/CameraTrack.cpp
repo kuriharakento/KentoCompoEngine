@@ -22,6 +22,46 @@ constexpr float kParallelThreshold = 0.999f;
 // 度からラジアンへ（数式由来）
 constexpr float kDegreesToRadians = std::numbers::pi_v<float> / 180.0f;
 constexpr size_t kRoleBufferSize = 64;
+constexpr float kSecondsPerMinute = 60.0f;
+constexpr float kTwoPi = 2.0f * std::numbers::pi_v<float>;
+// 小節の拍数（4/4 拍子前提。エディタの小節線と同じ）
+constexpr int kBeatsPerBar = 4;
+constexpr int kBeatsPerTwoBeats = 2;
+// 拍の揺れで画角を狭めても、これより小さくはしない（度）
+constexpr float kMinFovDegrees = 1.0f;
+// 拍の揺れの戻りの時定数の範囲（秒）。0 に近いと割り算が暴れる
+constexpr float kMinBeatShakeDecay = 0.01f;
+constexpr float kMaxBeatShakeDecay = 1.0f;
+constexpr float kBeatShakeDecayDragSpeed = 0.005f;
+// 手持ちの揺れの速さの範囲（Hz）
+constexpr float kMinHandheldFrequency = 0.05f;
+constexpr float kMaxHandheldFrequency = 5.0f;
+constexpr float kHandheldFrequencyDragSpeed = 0.01f;
+// 手持ちのロールは首振りより控えめにする
+constexpr float kHandheldRollScale = 0.5f;
+
+/**
+ * @brief 手持ちの揺れの1成分（正弦波）
+ */
+struct HandheldWave
+{
+	float frequencyScale; // 基準の速さに掛ける倍率
+	float phase;		  // 位相（ラジアン）
+	float weight;		  // 混ぜる重み
+};
+
+// 軸ごとに周波数の違う2つの波を足して、繰り返しが目立たないようにする。
+// 倍率は軸どうし・成分どうしで周期がそろわない値にしてある（数式由来の係数）
+constexpr HandheldWave kHandheldWaves[3][2] = {
+	{ { 1.00f, 0.0f, 0.65f }, { 2.31f, 1.7f, 0.35f } }, // 縦の首振り
+	{ { 0.83f, 2.4f, 0.65f }, { 1.97f, 0.6f, 0.35f } }, // 横の首振り
+	{ { 0.71f, 4.1f, 0.65f }, { 1.63f, 3.3f, 0.35f } }, // 傾き
+};
+constexpr size_t kHandheldPitchAxis = 0;
+constexpr size_t kHandheldYawAxis = 1;
+constexpr size_t kHandheldRollAxis = 2;
+
+const char* kBeatDivisionNames[] = { "beat", "twoBeats", "bar" };
 
 /**
  * @brief 右・上・前の3軸からカメラの回転を作る
@@ -70,6 +110,62 @@ Quaternion ApplyRoll(const Quaternion& rotation, float degrees)
 	const float s = std::sin(radians);
 	return MakeRotationFromBasis(right * c + up * s, up * c - right * s, forward);
 }
+
+/**
+ * @brief ベクトルを軸まわりに回す（ロドリゲスの回転公式）
+ */
+Vector3 RotateAroundAxis(const Vector3& v, const Vector3& axis, float radians)
+{
+	const float c = std::cos(radians);
+	const float s = std::sin(radians);
+	return v * c + Vector3::Cross(axis, v) * s + axis * (Vector3::Dot(axis, v) * (1.0f - c));
+}
+
+/**
+ * @brief 回転に、カメラから見た横と縦の首振りを重ねる
+ * @param pitchDegrees 縦の首振り（度）
+ * @param yawDegrees 横の首振り（度）
+ */
+Quaternion ApplyLocalTilt(const Quaternion& rotation, float pitchDegrees, float yawDegrees)
+{
+	const Matrix4x4 basis = rotation.ToMatrix();
+	Vector3 right = { basis.m[0][0], basis.m[0][1], basis.m[0][2] };
+	Vector3 up = { basis.m[1][0], basis.m[1][1], basis.m[1][2] };
+	Vector3 forward = { basis.m[2][0], basis.m[2][1], basis.m[2][2] };
+
+	// 横の首振りはカメラの上方向まわり、縦の首振りは振った後の右方向まわり
+	const float yaw = yawDegrees * kDegreesToRadians;
+	right = RotateAroundAxis(right, up, yaw);
+	forward = RotateAroundAxis(forward, up, yaw);
+	const float pitch = pitchDegrees * kDegreesToRadians;
+	up = RotateAroundAxis(up, right, pitch);
+	forward = RotateAroundAxis(forward, right, pitch);
+	return MakeRotationFromBasis(right, up, forward);
+}
+
+/**
+ * @brief 手持ちの揺れの1軸ぶんを求める
+ * @return おおむね -1〜1
+ */
+float EvaluateHandheldAxis(const HandheldWave (&waves)[2], float time, float frequency)
+{
+	float value = 0.0f;
+	for (const HandheldWave& wave : waves)
+	{
+		value += wave.weight * std::sin(kTwoPi * frequency * wave.frequencyScale * time + wave.phase);
+	}
+	return value;
+}
+
+int GetBeatsPerShake(CameraTrack::BeatDivision division)
+{
+	switch (division)
+	{
+	case CameraTrack::BeatDivision::EveryTwoBeats: return kBeatsPerTwoBeats;
+	case CameraTrack::BeatDivision::EveryBar:      return kBeatsPerBar;
+	default:                                       return 1;
+	}
+}
 } // namespace
 
 CameraTrack::CameraTrack()
@@ -88,6 +184,8 @@ ICurveChannel* CameraTrack::GetChannel(size_t index)
 	case 3:  return &aimOffsetChannel_;
 	case 4:  return &aimBlendChannel_;
 	case 5:  return &rollChannel_;
+	case 6:  return &beatShakeChannel_;
+	case 7:  return &handheldChannel_;
 	default: return nullptr;
 	}
 }
@@ -132,6 +230,26 @@ bool CameraTrack::EvaluateAimTarget(float time, const BindingContext& ctx, Vecto
 	return true;
 }
 
+float CameraTrack::EvaluateBeatKick(float time, const BindingContext& ctx) const
+{
+	const float bpm = ctx.GetBpm();
+	if (bpm <= 0.0f || beatShakeCurve_.IsEmpty())
+	{
+		return 0.0f;
+	}
+	// 1拍目より前は揺らさない
+	const float sinceFirstBeat = time - ctx.GetBeatOffset();
+	if (sinceFirstBeat < 0.0f)
+	{
+		return 0.0f;
+	}
+	// 直近の拍からの経過で、はねた画角が指数で戻る
+	const float interval = kSecondsPerMinute / bpm * static_cast<float>(GetBeatsPerShake(beatDivision_));
+	const float sinceBeat = std::fmod(sinceFirstBeat, interval);
+	const float decay = (std::max)(beatShakeDecay_, kMinBeatShakeDecay);
+	return beatShakeCurve_.Evaluate(time) * std::exp(-sinceBeat / decay);
+}
+
 void CameraTrack::Evaluate(float time, const BindingContext& ctx)
 {
 	Camera* camera = ctx.GetCamera(GetBindingRole());
@@ -170,19 +288,45 @@ void CameraTrack::Evaluate(float time, const BindingContext& ctx)
 		{
 			rotation = ApplyRoll(rotation, rollCurve_.Evaluate(time));
 		}
+		// 手持ちの揺れも同じ理由で、この評価で決めた向きにだけ重ねる
+		if (!handheldCurve_.IsEmpty())
+		{
+			const float amplitude = handheldCurve_.Evaluate(time);
+			const float pitch = amplitude * EvaluateHandheldAxis(kHandheldWaves[kHandheldPitchAxis], time, handheldFrequency_);
+			const float yaw = amplitude * EvaluateHandheldAxis(kHandheldWaves[kHandheldYawAxis], time, handheldFrequency_);
+			const float roll = amplitude * kHandheldRollScale * EvaluateHandheldAxis(kHandheldWaves[kHandheldRollAxis], time, handheldFrequency_);
+			rotation = ApplyRoll(ApplyLocalTilt(rotation, pitch, yaw), roll);
+		}
 		camera->SetRotateQuaternion(rotation);
 	}
 
+	// 画角の土台は、キーがあればそれ、無ければ再生前に退避した画角（拍の揺れだけ付けたいとき用）。
+	// カメラの今の画角を土台にすると、評価のたびに揺れが積み重なって純関数でなくなる
+	float fov = 0.0f;
+	bool hasFov = false;
 	if (!fovCurve_.IsEmpty())
 	{
-		camera->SetFovY(fovCurve_.Evaluate(time));
+		fov = fovCurve_.Evaluate(time);
+		hasFov = true;
+	}
+	else if (hasCapturedState_ && !beatShakeCurve_.IsEmpty())
+	{
+		fov = capturedFov_;
+		hasFov = true;
+	}
+	if (hasFov)
+	{
+		const float kickDegrees = EvaluateBeatKick(time, ctx);
+		fov = (std::max)(fov - kickDegrees * kDegreesToRadians, kMinFovDegrees * kDegreesToRadians);
+		camera->SetFovY(fov);
 	}
 }
 
 float CameraTrack::GetEndTime() const
 {
 	return (std::max)({ positionCurve_.GetEndTime(), rotationCurve_.GetEndTime(), fovCurve_.GetEndTime(),
-		aimOffsetCurve_.GetEndTime(), aimBlendCurve_.GetEndTime(), rollCurve_.GetEndTime() });
+		aimOffsetCurve_.GetEndTime(), aimBlendCurve_.GetEndTime(), rollCurve_.GetEndTime(),
+		beatShakeCurve_.GetEndTime(), handheldCurve_.GetEndTime() });
 }
 
 void CameraTrack::CaptureState(const BindingContext& ctx)
@@ -236,7 +380,7 @@ bool CameraTrack::RecordKey(float time, const BindingContext& ctx)
 		return false;
 	}
 
-	// 注目点・混ぜ具合・ロールは今のカメラから読み取れないので、ここでは打たない
+	// 注目点・混ぜ具合・ロール・揺れは今のカメラから読み取れないので、ここでは打たない
 	positionChannel_.SetKey(time, camera->GetTranslate());
 	rotationChannel_.SetKey(time, camera->GetRotateQuaternion());
 	fovChannel_.SetKey(time, camera->GetFovY());
@@ -255,6 +399,11 @@ nlohmann::json CameraTrack::Serialize() const
 	json["aimOffset"] = SerializeCurve(aimOffsetCurve_);
 	json["aimBlend"] = SerializeCurve(aimBlendCurve_);
 	json["roll"] = SerializeCurve(rollCurve_);
+	json["beatShake"] = SerializeCurve(beatShakeCurve_);
+	json["beatDivision"] = kBeatDivisionNames[static_cast<size_t>(beatDivision_)];
+	json["beatShakeDecay"] = beatShakeDecay_;
+	json["handheld"] = SerializeCurve(handheldCurve_);
+	json["handheldFrequency"] = handheldFrequency_;
 	return json;
 }
 
@@ -301,6 +450,33 @@ bool CameraTrack::Deserialize(const nlohmann::json& json)
 	{
 		DeserializeCurve(json["roll"], rollCurve_);
 	}
+	if (json.contains("beatShake"))
+	{
+		DeserializeCurve(json["beatShake"], beatShakeCurve_);
+	}
+	if (json.contains("beatDivision") && json["beatDivision"].is_string())
+	{
+		const std::string division = json["beatDivision"].get<std::string>();
+		for (size_t i = 0; i < std::size(kBeatDivisionNames); ++i)
+		{
+			if (division == kBeatDivisionNames[i])
+			{
+				beatDivision_ = static_cast<BeatDivision>(i);
+			}
+		}
+	}
+	if (json.contains("beatShakeDecay") && json["beatShakeDecay"].is_number())
+	{
+		beatShakeDecay_ = std::clamp(json["beatShakeDecay"].get<float>(), kMinBeatShakeDecay, kMaxBeatShakeDecay);
+	}
+	if (json.contains("handheld"))
+	{
+		DeserializeCurve(json["handheld"], handheldCurve_);
+	}
+	if (json.contains("handheldFrequency") && json["handheldFrequency"].is_number())
+	{
+		handheldFrequency_ = std::clamp(json["handheldFrequency"].get<float>(), kMinHandheldFrequency, kMaxHandheldFrequency);
+	}
 
 	return true;
 }
@@ -331,6 +507,32 @@ bool CameraTrack::DrawInspector()
 	if (UsesAim())
 	{
 		ImGui::TextDisabled("注目点を使っている間は Rotation のキーを使わない");
+	}
+
+	ImGui::SeparatorText("Shake");
+	int division = static_cast<int>(beatDivision_);
+	if (ImGui::Combo("Beat Division", &division, "Every Beat\0Every 2 Beats\0Every Bar\0"))
+	{
+		beatDivision_ = static_cast<BeatDivision>(division);
+		changed = true;
+	}
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("Beat Shake のキーの強さ（度）だけ、この間隔ごとに画角がはねる。\nシーケンスの BPM が 0 だと揺れない");
+	}
+	if (ImGui::DragFloat("Beat Decay (s)", &beatShakeDecay_, kBeatShakeDecayDragSpeed, kMinBeatShakeDecay, kMaxBeatShakeDecay, "%.3f"))
+	{
+		beatShakeDecay_ = std::clamp(beatShakeDecay_, kMinBeatShakeDecay, kMaxBeatShakeDecay);
+		changed = true;
+	}
+	if (ImGui::DragFloat("Handheld Speed (Hz)", &handheldFrequency_, kHandheldFrequencyDragSpeed, kMinHandheldFrequency, kMaxHandheldFrequency, "%.2f"))
+	{
+		handheldFrequency_ = std::clamp(handheldFrequency_, kMinHandheldFrequency, kMaxHandheldFrequency);
+		changed = true;
+	}
+	if (fovCurve_.IsEmpty() && !beatShakeCurve_.IsEmpty())
+	{
+		ImGui::TextDisabled("FOV のキーが無いときは、再生前の画角を土台にしてはねる");
 	}
 	return changed;
 }

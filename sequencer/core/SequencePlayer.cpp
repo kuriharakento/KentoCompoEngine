@@ -246,6 +246,9 @@ void SequencePlayer::ApplyTime(float time)
 	time_ = time;
 	if (sequence_)
 	{
+		// 拍で動くトラックのために、評価の直前に今の BPM を渡す（エディタで BPM を変えてもすぐ追従する）
+		const SequenceMeta& meta = sequence_->GetMeta();
+		bindingContext_.SetBeatTiming(meta.bpm, meta.offset);
 		sequence_->Evaluate(time_, bindingContext_);
 	}
 }

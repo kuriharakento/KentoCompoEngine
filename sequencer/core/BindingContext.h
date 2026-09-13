@@ -137,6 +137,19 @@ public:
 	void SetText3DRenderer(Text3DRenderer* text3DRenderer) { text3DRenderer_ = text3DRenderer; }
 	Text3DRenderer* GetText3DRenderer() const { return text3DRenderer_; }
 
+	// --- 拍 ---
+
+	/**
+	 * @brief 拍の刻みを設定する
+	 * @details シーケンスのメタ情報を、再生側（SequencePlayer）が評価の直前に入れる。
+	 *          拍に合わせて動くトラック（カメラの拍の揺れなど）が使う。
+	 * @param bpm 1分あたりの拍数。0 以下なら拍を使わない
+	 * @param offset 1拍目の時刻（秒、シーケンス先頭から）。エディタの拍の線と同じ基準
+	 */
+	void SetBeatTiming(float bpm, float offset) { bpm_ = bpm; beatOffset_ = offset; }
+	float GetBpm() const { return bpm_; }
+	float GetBeatOffset() const { return beatOffset_; }
+
 	// --- 原点 ---
 
 	/**
@@ -183,5 +196,8 @@ private:
 	TextOverlay* textOverlay_ = nullptr;
 	Text3DRenderer* text3DRenderer_ = nullptr;
 	SequenceOrigin origin_;
+	// 拍の刻み。SequencePlayer が評価の直前に入れる
+	float bpm_ = 0.0f;
+	float beatOffset_ = 0.0f;
 };
 } // namespace KCE
