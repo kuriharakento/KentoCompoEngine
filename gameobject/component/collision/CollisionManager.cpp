@@ -229,23 +229,28 @@ CollisionManager::~CollisionManager()
 void CollisionManager::Register(Collider* collider)
 {
 	if (collider && std::find(colliders_.begin(), colliders_.end(), collider) == colliders_.end()) colliders_.push_back(collider);
-	const size_t pairCapacity = colliders_.size() * colliders_.size();
-	currentCollisions_.reserve(pairCapacity);
-	nextCollisions_.reserve(pairCapacity);
-	collisionDetails_.reserve(pairCapacity);
-	currentObjectCollisions_.reserve(pairCapacity);
-	nextObjectCollisions_.reserve(pairCapacity);
 	raycastCandidates_.reserve(colliders_.size());
 }
 
 void CollisionManager::Unregister(Collider* collider)
 {
 	GameObject* owner = collider ? collider->GetOwner() : nullptr;
-	// このコライダーを含む衝突ペアを全て削除
+	if (!collider || !owner)
+	{
+		return;
+	}
+
+	// 外した判定の Exit はここで送る。次のフレームまで残すと相手が片方だけ通知を受け損ねる。
 	for (auto it = currentCollisions_.begin(); it != currentCollisions_.end(); )
 	{
 		if (it->a == collider || it->b == collider)
 		{
+			const Collider* a = it->a;
+			const Collider* b = it->b;
+			CollisionInfo infoA{ const_cast<Collider*>(a), b->GetOwner(), const_cast<Collider*>(b) };
+			CollisionInfo infoB{ const_cast<Collider*>(b), a->GetOwner(), const_cast<Collider*>(a) };
+			if (!a->GetOwner()->IsDestroying()) a->CallOnExit(infoA);
+			if (!b->GetOwner()->IsDestroying()) b->CallOnExit(infoB);
 			it = currentCollisions_.erase(it);
 		}
 		else
@@ -255,7 +260,33 @@ void CollisionManager::Unregister(Collider* collider)
 	}
 
 	colliders_.erase(std::remove(colliders_.begin(), colliders_.end(), collider), colliders_.end());
-	std::erase_if(currentObjectCollisions_, [owner](const ObjectPair& pair) { return pair.a == owner || pair.b == owner; });
+	for (auto it = currentObjectCollisions_.begin(); it != currentObjectCollisions_.end(); )
+	{
+		if (it->a != owner && it->b != owner)
+		{
+			++it;
+			continue;
+		}
+
+		const ObjectPair objects = *it;
+		const bool hasRemainingContact = std::any_of(currentCollisions_.begin(), currentCollisions_.end(), [&objects](const CollisionPair& pair)
+		{
+			GameObject* a = pair.a->GetOwner();
+			GameObject* b = pair.b->GetOwner();
+			return (a == objects.a && b == objects.b) || (a == objects.b && b == objects.a);
+		});
+		if (hasRemainingContact)
+		{
+			++it;
+			continue;
+		}
+
+		CollisionInfo infoA{ nullptr, objects.b, nullptr };
+		CollisionInfo infoB{ nullptr, objects.a, nullptr };
+		if (!objects.a->IsDestroying()) objects.a->DispatchObjectCollisionExit(infoA);
+		if (!objects.b->IsDestroying()) objects.b->DispatchObjectCollisionExit(infoB);
+		it = currentObjectCollisions_.erase(it);
+	}
 }
 
 void CollisionManager::CheckCollisions()

@@ -20,6 +20,7 @@ namespace KCE
 {
 GameObject::~GameObject()
 {
+	isDestroying_ = true;
 	if (GameObjectManager::HasInstance())
 	{
 		GameObjectManager::GetInstance()->Unregister(this);

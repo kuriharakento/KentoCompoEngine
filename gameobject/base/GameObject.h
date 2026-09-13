@@ -353,6 +353,8 @@ public: // アクセッサ
 	 * @return 現在のアクティブ状態
 	 */
 	bool IsActive() const { return isActive_ && (!parent_ || parent_->IsActive()); }
+	/** @brief コンポーネントを破棄している途中か返す。 */
+	bool IsDestroying() const { return isDestroying_; }
 
 	/**
 	 * @brief オブジェクトの破棄を要求する（フレーム末尾で安全にメモリ解放されます）
@@ -468,6 +470,7 @@ private:
 	std::vector<std::string> pendingRemoves_;
 	// 更新処理中フラグ
 	bool isUpdating_ = false;
+	bool isDestroying_ = false;
 
 	// === オブジェクト基本情報 ===
 	// オブジェクトのタグ（分類用）
