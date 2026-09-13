@@ -80,6 +80,8 @@ bool PlanarReflection::Initialize(DirectXCommon* dxCommon, SrvManager* srvManage
 	view_->SetLayerMask(kRenderLayerAll & ~kReflectorLayer);
 	// 床に映った輪郭線はほとんど見えないので省く（反射は毎フレーム描くので、少しでも軽くする）
 	view_->SetPassEnabled(RenderViewPass::Outline, false);
+	// デバッグ用の線まで床に映ると、本編の線とずれて二重に見える
+	view_->SetPassEnabled(RenderViewPass::DebugLines, false);
 	// 有効にするまで描かない
 	view_->SetEnabled(false);
 	return true;

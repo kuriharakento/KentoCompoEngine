@@ -26,6 +26,7 @@ enum class RenderViewPass : uint32_t
 	Fog = 1u << 1,	   //!< 大気フォグ
 	Beams = 1u << 2,   //!< スポットライトのビーム
 	Text3D = 1u << 3,  //!< 3D 空間の文字
+	DebugLines = 1u << 4, //!< デバッグ用の線（グリッド・ライトの形など）
 };
 
 /**

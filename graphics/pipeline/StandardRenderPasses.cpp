@@ -365,6 +365,14 @@ void ForwardOpaquePass::Execute(const RenderPassContext& ctx)
 	// フォワードパス対象オブジェクトの描画
 	ctx.sceneManager->Draw3D();
 
+	// 線を省くビューでは、このビューの Draw3D で積まれた分を描かずに捨てる。
+	// 残すと次の本編でもう一度描かれて、線が二重に見える
+	if (ctx.view && !ctx.view->IsPassEnabled(RenderViewPass::DebugLines))
+	{
+		LineManager::GetInstance()->Clear();
+		return;
+	}
+
 #ifdef _DEBUG
 	// デバッグライン描画
 	if (ctx.lightManager)

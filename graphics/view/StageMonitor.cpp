@@ -55,6 +55,8 @@ bool StageMonitor::Initialize(ISubViewProvider* provider, CameraManager* cameraM
 	view_->SetCamera(camera_);
 	// 画面自身を映すと、読んでいるテクスチャに描くことになる
 	view_->SetLayerMask(kRenderLayerAll & ~kScreenLayer);
+	// モニターは客に見せる映像なので、デバッグ用の線は映さない
+	view_->SetPassEnabled(RenderViewPass::DebugLines, false);
 	// モニターは毎フレーム描き直さなくても分からないので、テレビの速さに間引く
 	SetFramesPerSecond(kDefaultFramesPerSecond);
 	updateCount_ = 0;
