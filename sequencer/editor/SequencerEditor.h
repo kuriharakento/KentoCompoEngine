@@ -137,6 +137,12 @@ private:
 	void DrawBezierEditor();
 	/** @brief トラック自体の設定（名前・役・プレビュー用の割り当て） */
 	void DrawTrackInspector(size_t trackIndex);
+	/**
+	 * @brief 役にプレビュー用の GameObject を割り当てる選択欄
+	 * @param role 役の名前
+	 * @param label 欄の見出し
+	 */
+	void DrawPreviewObjectCombo(const std::string& role, const char* label);
 
 	// --- 操作 ---
 

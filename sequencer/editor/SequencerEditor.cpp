@@ -41,6 +41,7 @@ bool SequencerEditor::HasInstance()
 #include "manager/scene/LightManager.h"
 #include "sequencer/core/TrackFactory.h"
 #include "sequencer/editor/SequencerCommands.h"
+#include "sequencer/track/CameraTrack.h"
 #include "sequencer/track/LightTrack.h"
 
 namespace KCE
@@ -1259,39 +1260,8 @@ void SequencerEditor::DrawTrackInspector(size_t trackIndex)
 		break;
 
 	case BindingType::GameObject:
-	{
-		const auto it = previewObjectBindings_.find(role);
-		GameObject* current = (it != previewObjectBindings_.end() && GameObjectManager::HasInstance())
-			? GameObjectManager::GetInstance()->FindByGuid(it->second)
-			: nullptr;
-
-		if (ImGui::BeginCombo("Preview Object", current ? current->GetName().c_str() : "(未割り当て)"))
-		{
-			if (ImGui::Selectable("(未割り当て)", current == nullptr))
-			{
-				previewObjectBindings_.erase(role);
-				player_.GetBindingContext().BindGameObject(role, nullptr);
-			}
-			if (GameObjectManager::HasInstance())
-			{
-				for (GameObject* object : GameObjectManager::GetInstance()->GetGameObjects())
-				{
-					if (!object) { continue; }
-					// 同名オブジェクトを区別できるよう、GUID を ID に使う
-					ImGui::PushID(object->GetGuid().ToString().c_str());
-					if (ImGui::Selectable(object->GetName().c_str(), object == current))
-					{
-						previewObjectBindings_[role] = object->GetGuid();
-						ApplyPreviewBindings();
-						player_.EvaluateCurrentTime();
-					}
-					ImGui::PopID();
-				}
-			}
-			ImGui::EndCombo();
-		}
+		DrawPreviewObjectCombo(role, "Preview Object");
 		break;
-	}
 
 	case BindingType::Light:
 	{
@@ -1335,6 +1305,62 @@ void SequencerEditor::DrawTrackInspector(size_t trackIndex)
 		}
 		break;
 	}
+	}
+
+	// カメラの注目点の役にも、プレビュー用の GameObject を割り当てられるようにする
+	if (const auto* cameraTrack = dynamic_cast<const CameraTrack*>(track))
+	{
+		const std::string* aimRoles[] = { &cameraTrack->GetAimRoleA(), &cameraTrack->GetAimRoleB() };
+		for (const std::string* aimRole : aimRoles)
+		{
+			if (aimRole->empty())
+			{
+				continue;
+			}
+			BindingDefinition aimDefinition;
+			aimDefinition.role = *aimRole;
+			aimDefinition.type = BindingType::GameObject;
+			sequence_.AddBinding(aimDefinition);
+
+			const std::string label = "Aim: " + *aimRole;
+			ImGui::PushID(aimRole);
+			DrawPreviewObjectCombo(*aimRole, label.c_str());
+			ImGui::PopID();
+		}
+	}
+}
+
+void SequencerEditor::DrawPreviewObjectCombo(const std::string& role, const char* label)
+{
+	const auto it = previewObjectBindings_.find(role);
+	GameObject* current = (it != previewObjectBindings_.end() && GameObjectManager::HasInstance())
+		? GameObjectManager::GetInstance()->FindByGuid(it->second)
+		: nullptr;
+
+	if (ImGui::BeginCombo(label, current ? current->GetName().c_str() : "(未割り当て)"))
+	{
+		if (ImGui::Selectable("(未割り当て)", current == nullptr))
+		{
+			previewObjectBindings_.erase(role);
+			player_.GetBindingContext().BindGameObject(role, nullptr);
+		}
+		if (GameObjectManager::HasInstance())
+		{
+			for (GameObject* object : GameObjectManager::GetInstance()->GetGameObjects())
+			{
+				if (!object) { continue; }
+				// 同名オブジェクトを区別できるよう、GUID を ID に使う
+				ImGui::PushID(object->GetGuid().ToString().c_str());
+				if (ImGui::Selectable(object->GetName().c_str(), object == current))
+				{
+					previewObjectBindings_[role] = object->GetGuid();
+					ApplyPreviewBindings();
+					player_.EvaluateCurrentTime();
+				}
+				ImGui::PopID();
+			}
+		}
+		ImGui::EndCombo();
 	}
 }
 

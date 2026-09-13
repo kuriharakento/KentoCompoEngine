@@ -1,4 +1,6 @@
 #pragma once
+#include <string>
+
 #include "math/Quaternion.h"
 #include "math/Vector3.h"
 #include "sequencer/core/Curve.h"
@@ -12,8 +14,12 @@ namespace KCE
  * @details 回転はクォータニオンで保持し Slerp で補間する。オイラー角のまま
  *          補間するとカットをまたぐ大きな回転で必ず破綻するため（SEQUENCER_PLAN 7.4）。
  *
+ *          注目点（Aim）を使うと、向きは回転のキーではなく「どこを見るか」から毎フレーム決める。
+ *          役 A / B に割り当てた GameObject の位置を混ぜ具合で混ぜ、ずらし量を足した点を狙う。
+ *          役が両方空なら、ずらし量をワールドの座標としてそのまま狙う。
+ *
  *          Evaluate() は ITrack の純関数契約を守る。内部に「前フレームの値」を
- *          持たず、時刻だけから位置・回転・画角を決めてカメラに書き込む。
+ *          持たず、時刻と割り当てた実体の今の位置だけから決めてカメラに書き込む。
  */
 class CameraTrack : public ITrack
 {
@@ -36,6 +42,10 @@ public:
 	ICurveChannel* GetChannel(size_t index) override;
 	bool RecordKey(float time, const BindingContext& ctx) override;
 
+#ifdef USE_IMGUI
+	bool DrawInspector() override;
+#endif
+
 	// --- カーブへのアクセス ---
 
 	Vector3Curve& GetPositionCurve() { return positionCurve_; }
@@ -47,19 +57,54 @@ public:
 	FloatCurve& GetFovCurve() { return fovCurve_; }
 	const FloatCurve& GetFovCurve() const { return fovCurve_; }
 
+	// --- 注目点 ---
+
+	/** @brief 注目点にする役 A（GameObject）。空なら使わない */
+	const std::string& GetAimRoleA() const { return aimRoleA_; }
+	/** @brief 注目点にする役 B（GameObject）。空なら使わない */
+	const std::string& GetAimRoleB() const { return aimRoleB_; }
+
+	/**
+	 * @brief 注目点を使う設定になっているか
+	 * @return 役か、ずらし量のキーがあれば真
+	 */
+	bool UsesAim() const;
+
 private:
-	/** @brief チャンネル数（位置・回転・画角） */
-	static constexpr size_t kChannelCount = 3;
+	/** @brief チャンネル数（位置・回転・画角・注目点のずらし量・混ぜ具合・ロール） */
+	static constexpr size_t kChannelCount = 6;
+
+	/**
+	 * @brief 指定時刻の注目点を求める
+	 * @param time 時刻（秒）
+	 * @param ctx 役の割り当て
+	 * @param outTarget 注目点（ワールド）
+	 * @return 求められたら真。役を指定しているのに割り当てが無ければ偽
+	 */
+	bool EvaluateAimTarget(float time, const BindingContext& ctx, Vector3& outTarget) const;
 
 	Vector3Curve positionCurve_;
 	QuaternionCurve rotationCurve_;
 	// 垂直画角（ラジアン）
 	FloatCurve fovCurve_;
+	// 注目点のずらし量。役があればその位置から、無ければワールドの座標そのもの
+	Vector3Curve aimOffsetCurve_;
+	// 役 A と B の混ぜ具合（0 で A、1 で B）
+	FloatCurve aimBlendCurve_;
+	// 画面の傾き（度）。カメラの前方向を軸に回す
+	FloatCurve rollCurve_;
+
+	// 注目点にする役（GameObject）
+	std::string aimRoleA_;
+	std::string aimRoleB_;
 
 	// カーブをエディタへ見せる窓口。カーブの実体はこのクラスが持つ
 	CurveChannel<Vector3> positionChannel_{ "Position", &positionCurve_ };
 	CurveChannel<Quaternion> rotationChannel_{ "Rotation", &rotationCurve_ };
 	CurveChannel<float> fovChannel_{ "FOV", &fovCurve_ };
+	CurveChannel<Vector3> aimOffsetChannel_{ "Aim Offset", &aimOffsetCurve_ };
+	CurveChannel<float> aimBlendChannel_{ "Aim Blend", &aimBlendCurve_ };
+	CurveChannel<float> rollChannel_{ "Roll (deg)", &rollCurve_ };
 
 	// --- 状態の退避（SEQUENCER_PLAN 3.5） ---
 	bool hasCapturedState_ = false;
