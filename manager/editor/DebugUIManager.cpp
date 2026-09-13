@@ -44,6 +44,7 @@ constexpr float kCenterPivot = 0.5f;
 constexpr char kSettingsTypeName[] = "DebugUI";
 constexpr char kGlobalSettingsName[] = "GlobalSettings";
 constexpr char kSettingsPagePrefix[] = "settings_page=";
+constexpr char kHierarchyWindowName[] = "Hierarchy";
 constexpr char kInspectorWindowName[] = "Inspector";
 constexpr char kSettingsWindowName[] = "Settings";
 
@@ -99,6 +100,7 @@ const char* GetFixedWindowName(EditorDock dock)
 {
 	switch (dock)
 	{
+	case EditorDock::Left: return kHierarchyWindowName;
 	case EditorDock::Right: return kInspectorWindowName;
 	case EditorDock::RightBottom: return kSettingsWindowName;
 	default: return nullptr;
@@ -213,6 +215,23 @@ void DebugUIManager::RegisterSceneOverlay(void* owner, std::function<void()> dra
 	overlays_.push_back({ owner, std::move(draw) });
 }
 
+void DebugUIManager::RegisterHierarchySection(void* owner, const std::string& name, std::function<void()> draw)
+{
+	if (!owner || name.empty() || !draw)
+	{
+		return;
+	}
+	for (auto& section : hierarchySections_)
+	{
+		if (section.owner == owner && section.name == name)
+		{
+			section.draw = std::move(draw);
+			return;
+		}
+	}
+	hierarchySections_.push_back({ owner, name, std::move(draw) });
+}
+
 void DebugUIManager::Unregister(void* owner)
 {
 	if (!owner)
@@ -224,6 +243,7 @@ void DebugUIManager::Unregister(void* owner)
 	std::erase_if(settingsPages_, removeOwner);
 	std::erase_if(inspectorPages_, removeOwner);
 	std::erase_if(overlays_, removeOwner);
+	std::erase_if(hierarchySections_, removeOwner);
 	RebuildSettingsCategories();
 }
 
@@ -234,6 +254,7 @@ void DebugUIManager::Clear()
 	settingsCategories_.clear();
 	inspectorPages_.clear();
 	overlays_.clear();
+	hierarchySections_.clear();
 	for (auto& names : dockWindowNames_)
 	{
 		names.clear();
@@ -260,6 +281,7 @@ void DebugUIManager::Draw()
 			SaveSettings();
 		}
 	}
+	DrawHierarchy();
 	DrawInspector();
 	DrawSettings();
 }
@@ -270,6 +292,22 @@ void DebugUIManager::DrawSceneOverlays()
 	{
 		overlay.draw();
 	}
+}
+
+void DebugUIManager::DrawHierarchy()
+{
+	DockOnFirstOpen(kHierarchyWindowName, EditorDock::Left);
+	ImGui::Begin(kHierarchyWindowName);
+	for (const auto& section : hierarchySections_)
+	{
+		ImGui::PushID(&section);
+		if (ImGui::CollapsingHeader(section.name.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			section.draw();
+		}
+		ImGui::PopID();
+	}
+	ImGui::End();
 }
 
 void DebugUIManager::DrawInspector()

@@ -1,4 +1,5 @@
 #pragma once
+#include "editor/SelectionContext.h"
 #include <string>
 #include <unordered_map>
 #include <memory>
@@ -91,9 +92,15 @@ public:
 
 #ifdef USE_IMGUI
 	/**
-	 * @brief ImGuiの描画処理
+	 * @brief カメラの一覧を描く。Hierarchy に出し、選んだら SelectionContext へ伝える
 	 */
-	void DrawImGui();
+	void DrawHierarchyImGui();
+
+	/**
+	 * @brief 選んだカメラ1つの詳細を描く。Inspector に出す
+	 * @param item SelectionKind::Camera の選択
+	 */
+	void DrawInspectorImGui(const SelectionItem& item);
 #endif
 
 private:

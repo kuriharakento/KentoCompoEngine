@@ -18,7 +18,9 @@ void CameraManager::Initialize(DirectXCommon* dxCommon)
 	dxCommon_ = dxCommon;
 
 #ifdef USE_IMGUI
-	DebugUIManager::GetInstance()->RegisterWindow(this, "Camera Manager", [this]() { this->DrawImGui(); }, EditorDock::Left);
+	// 一覧は Hierarchy、選んだカメラの詳細は Inspector に出す
+	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "Cameras", [this]() { this->DrawHierarchyImGui(); });
+	DebugUIManager::GetInstance()->RegisterInspector(this, SelectionKind::Camera, [this](const SelectionItem& item) { this->DrawInspectorImGui(item); });
 #endif
 }
 
@@ -82,48 +84,67 @@ void CameraManager::Update() {
 }
 
 #ifdef USE_IMGUI
-void CameraManager::DrawImGui() {
-    // アクティブカメラが設定されていない場合は何もしない
-    if(!activeCamera_)
-    {
-        return;
-    }
-
-	// アクティブカメラの名前を表示
-	ImGui::Text("Active Camera: %s", activeCameraName_.c_str());
-
-    // カメラのリストを表示
-    if(ImGui::CollapsingHeader("list"))
-    {
-		for (auto& camera : cameras_)
+void CameraManager::DrawHierarchyImGui()
+{
+	// 選ばれているかは今の選択と直接比べる（毎フレーム選択を作らない）
+	const SelectionItem& primary = SelectionContext::GetInstance()->GetPrimary();
+	for (const auto& [name, camera] : cameras_)
+	{
+		(void)camera;
+		ImGui::PushID(name.c_str());
+		const bool isSelected = primary.kind == SelectionKind::Camera && primary.name == name;
+		if (ImGui::Selectable(name.c_str(), isSelected))
 		{
-            ImGui::Text("Camera: %s", camera.first.c_str());
+			SelectionItem item;
+			item.kind = SelectionKind::Camera;
+			item.name = name;
+			SelectionContext::GetInstance()->Select(item);
 		}
-    }
+		if (name == activeCameraName_)
+		{
+			ImGui::SameLine();
+			ImGui::TextDisabled("(Active)");
+		}
+		ImGui::PopID();
+	}
 
-	// カメラの位置を編集
-	Vector3 cameraPosition = activeCamera_->GetTranslate();
-	ImGui::DragFloat3("translate", &cameraPosition.x, 0.1f);
-	activeCamera_->SetTranslate(cameraPosition);
-
-	// カメラの回転を編集
-	Vector3 cameraRotate = activeCamera_->GetRotate();
-	ImGui::DragFloat3("rotate", &cameraRotate.x, 0.01f, -3.14f, 3.14f);
-	activeCamera_->SetRotate(cameraRotate);
-
-    // カメラの追加ボタン
+	// カメラの追加ボタン
 	if (ImGui::Button("Add Camera"))
 	{
 		AddCamera("camera" + std::to_string(cameras_.size()));
 	}
+}
 
-	// アクティブカメラの切り替えボタン
-	for (auto& camera : cameras_)
+void CameraManager::DrawInspectorImGui(const SelectionItem& item)
+{
+	// 選んだ後で消されていることがあるので、名前から引き直す
+	Camera* camera = GetCamera(item.name);
+	if (!camera)
 	{
-		if (ImGui::Button(camera.first.c_str()))
-		{
-			SetActiveCamera(camera.first);
-		}
+		ImGui::TextDisabled("このカメラは見つかりません");
+		return;
+	}
+
+	ImGui::SeparatorText(item.name.c_str());
+	if (item.name == activeCameraName_)
+	{
+		ImGui::TextUnformatted("Active Camera");
+	}
+	else if (ImGui::Button("Set Active"))
+	{
+		SetActiveCamera(item.name);
+	}
+
+	// 触ったときだけ書き戻す。毎フレーム書くと、シーケンサーがクォータニオンで回したカメラをオイラー角に戻してしまう
+	Vector3 cameraPosition = camera->GetTranslate();
+	if (ImGui::DragFloat3("translate", &cameraPosition.x, 0.1f))
+	{
+		camera->SetTranslate(cameraPosition);
+	}
+	Vector3 cameraRotate = camera->GetRotate();
+	if (ImGui::DragFloat3("rotate", &cameraRotate.x, 0.01f, -3.14f, 3.14f))
+	{
+		camera->SetRotate(cameraRotate);
 	}
 }
 #endif

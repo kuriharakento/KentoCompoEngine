@@ -43,12 +43,11 @@ void GameObjectEditor::Initialize()
 	UpdateJsonFileList();
 
 #ifdef USE_IMGUI
-	// 一覧と詳細を別々にドッキングできるよう、同じ所有者で2つ登録する。
-	DebugUIManager::GetInstance()->RegisterWindow(
+	// 一覧は Hierarchy の区画、詳細は Inspector に出す
+	DebugUIManager::GetInstance()->RegisterHierarchySection(
 		this,
-		"GameObject List",
-		[this]() { this->DrawListImGui(); },
-		EditorDock::Left
+		"GameObjects",
+		[this]() { this->DrawListImGui(); }
 	);
 	DebugUIManager::GetInstance()->RegisterInspector(
 		this,

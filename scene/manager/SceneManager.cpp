@@ -77,7 +77,7 @@ void SceneManager::Initialize(const SceneContext& context)
 			ImGui::SeparatorText("Scene State");
 			ImGui::Text("State: %s", currentScene_->GetCurrentStateName().c_str());
 		}
-	}, EditorDock::Left);
+	}, EditorDock::LeftBottom);
 #endif
 }
 

@@ -13,8 +13,10 @@ struct ImGuiTextBuffer;
 
 namespace KCE
 {
-/** @brief エディタの初期ドッキング先。 */
-enum class EditorDock { Left, Right, RightBottom, Bottom };
+/** @brief エディタの初期ドッキング先。LeftBottom は Hierarchy の下（シーンごとのパネル）。 */
+enum class EditorDock { Left, Right, RightBottom, Bottom, LeftBottom };
+/** @brief EditorDock の数。置き場所ごとの配列の大きさに使う。 */
+constexpr size_t kEditorDockCount = 5;
 
 /**
  * @brief エディタの ImGui ウィンドウを置き場所ごとにまとめて描く。
@@ -51,6 +53,12 @@ public:
 	void RegisterInspector(void* owner, SelectionKind kind, std::function<void(const SelectionItem&)> draw);
 	/** @brief Scene 画像の上に描く重ね描き（ギズモなど）を登録する。 */
 	void RegisterSceneOverlay(void* owner, std::function<void()> draw);
+	/**
+	 * @brief Hierarchy の区画を登録する。区画は登録順に折りたたみ見出しで並ぶ。
+	 * @param name 見出し（"GameObjects" など）
+	 * @param draw 一覧の描画。選んだら SelectionContext へ伝える
+	 */
+	void RegisterHierarchySection(void* owner, const std::string& name, std::function<void()> draw);
 	/** @brief owner が登録した項目をすべて外す。 */
 	void Unregister(void* owner);
 	/** @brief 登録を全部外す。覚えた表示状態は消さない。 */
@@ -87,6 +95,7 @@ public:
 	void RegisterSettingsPage(void*, const std::string&, const std::string&, std::function<void()>) {}
 	void RegisterInspector(void*, SelectionKind, std::function<void(const SelectionItem&)>) {}
 	void RegisterSceneOverlay(void*, std::function<void()>) {}
+	void RegisterHierarchySection(void*, const std::string&, std::function<void()>) {}
 	void Unregister(void*) {}
 	void Clear() {}
 	void Draw() {}
@@ -139,7 +148,16 @@ private:
 		void* owner = nullptr;			//!< 登録元。所有しない
 		std::function<void()> draw;		//!< 重ね描き
 	};
+	/** @brief Hierarchy の区画1つぶんの登録。 */
+	struct HierarchySection
+	{
+		void* owner = nullptr;			//!< 登録元。所有しない
+		std::string name;				//!< 折りたたみ見出し
+		std::function<void()> draw;		//!< 一覧の描画
+	};
 
+	/** @brief 1つの Hierarchy に、登録された区画を並べて描く。 */
+	void DrawHierarchy();
 	/** @brief 1つの Inspector に、今の選択に合った中身を描く。 */
 	void DrawInspector();
 	/** @brief 左に一覧、右に中身の Settings を描く。 */
@@ -168,8 +186,9 @@ private:
 	std::vector<std::string> settingsCategories_;
 	std::vector<InspectorPage> inspectorPages_;
 	std::vector<Overlay> overlays_;
+	std::vector<HierarchySection> hierarchySections_;
 	// GetDockWindowNames の結果。呼ぶたびに作り直すが、領域は使い回す
-	std::array<std::vector<std::string>, 4> dockWindowNames_;
+	std::array<std::vector<std::string>, kEditorDockCount> dockWindowNames_;
 	std::string selectedSettingsPage_;
 	std::array<char, 128> settingsFilter_{};
 	float uiScale_ = 1.0f;

@@ -18,6 +18,19 @@ enum class SelectionKind
 	GameObject,		//!< シーン上のオブジェクト
 	SequenceTrack,	//!< シーケンスのトラック
 	SequenceKey,	//!< シーケンスのキーフレーム
+	Light,			//!< ライト（種類と名前で指す）
+	Camera,			//!< カメラ（名前で指す）
+};
+
+/**
+ * @brief 選択しているライトの種類
+ */
+enum class SelectionLightType
+{
+	None,			//!< ライト以外
+	Directional,	//!< 平行光源（シーンに1つなので名前を使わない）
+	Point,			//!< ポイントライト
+	Spot,			//!< スポットライト
 };
 
 /**
@@ -25,6 +38,7 @@ enum class SelectionKind
  * @details GameObject は GUID で持つ。ポインタで持つとオブジェクト破棄後に
  *          ダングリングし、名前で持つと改名で壊れるため。
  *          トラック・キーはシーケンス内のインデックスで指す。
+ *          ライトとカメラは管理側が名前で持っているので、名前で指す。
  */
 struct SelectionItem
 {
@@ -34,10 +48,13 @@ struct SelectionItem
 	int clipIndex = -1;		 //!< SequenceKey のとき、キーが属するクリップ
 	int keyIndex = -1;		 //!< SequenceKey のとき有効
 	int channelIndex = -1;	 //!< SequenceKey のとき、キーが属するカーブ（成分）
+	SelectionLightType lightType = SelectionLightType::None;	//!< SelectionKind::Light のとき有効
+	std::string name;		 //!< SelectionKind::Light（平行光源以外）/ Camera のとき有効
 
 	bool operator==(const SelectionItem& other) const
 	{
-		return kind == other.kind && objectGuid == other.objectGuid && trackIndex == other.trackIndex && clipIndex == other.clipIndex && keyIndex == other.keyIndex && channelIndex == other.channelIndex;
+		return kind == other.kind && objectGuid == other.objectGuid && trackIndex == other.trackIndex && clipIndex == other.clipIndex && keyIndex == other.keyIndex && channelIndex == other.channelIndex
+			&& lightType == other.lightType && name == other.name;
 	}
 	bool operator!=(const SelectionItem& other) const { return !(*this == other); }
 };

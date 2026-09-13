@@ -7,6 +7,7 @@
 #include "light/DirectionalLight.h"
 #include "light/PointLight.h"
 #include "light/SpotLight.h"
+#include "editor/SelectionContext.h"
 // system
 #include "base/DirectXCommon.h"
 // math
@@ -480,9 +481,20 @@ public: // ゲッター
 
 private:
 	/**
-	 * @brief デバッグUIを描画する
+	 * @brief 全体の設定（イージング、追加・全消し、グラデーション）を描く。Settings / Scene に出す
 	 */
 	void DrawImGui();
+
+	/**
+	 * @brief ライトの一覧を描く。Hierarchy に出し、選んだら SelectionContext へ伝える
+	 */
+	void DrawHierarchyImGui();
+
+	/**
+	 * @brief 選んだライト1つの詳細を描く。Inspector に出す
+	 * @param item SelectionKind::Light の選択
+	 */
+	void DrawInspectorImGui(const SelectionItem& item);
 
 	/**
 	 * @brief ディレクショナルライト用定数バッファの作成
