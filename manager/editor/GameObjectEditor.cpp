@@ -44,17 +44,16 @@ void GameObjectEditor::Initialize()
 
 #ifdef USE_IMGUI
 	// 一覧と詳細を別々にドッキングできるよう、同じ所有者で2つ登録する。
-	DebugUIManager::GetInstance()->RegisterDebugUI(
+	DebugUIManager::GetInstance()->RegisterWindow(
 		this,
 		"GameObject List",
 		[this]() { this->DrawListImGui(); },
-		DebugUIArea::Hierarchy
+		EditorDock::Left
 	);
-	DebugUIManager::GetInstance()->RegisterDebugUI(
+	DebugUIManager::GetInstance()->RegisterInspector(
 		this,
-		"GameObject Inspector",
-		[this]() { this->DrawInspectorImGui(); },
-		DebugUIArea::Inspector
+		SelectionKind::GameObject,
+		[this](const SelectionItem&) { this->DrawInspectorImGui(); }
 	);
 #endif
 }
@@ -64,7 +63,7 @@ void GameObjectEditor::Finalize()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 	selected_ = nullptr;

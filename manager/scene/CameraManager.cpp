@@ -18,7 +18,7 @@ void CameraManager::Initialize(DirectXCommon* dxCommon)
 	dxCommon_ = dxCommon;
 
 #ifdef USE_IMGUI
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Camera Manager", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+	DebugUIManager::GetInstance()->RegisterWindow(this, "Camera Manager", [this]() { this->DrawImGui(); }, EditorDock::Left);
 #endif
 }
 
@@ -27,7 +27,7 @@ CameraManager::~CameraManager()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 }

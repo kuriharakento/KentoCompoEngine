@@ -41,7 +41,7 @@ PlanarReflection::~PlanarReflection()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 }
@@ -182,7 +182,7 @@ void PlanarReflection::Composite(Camera* camera, GBuffer* gBuffer, D3D12_CPU_DES
 #ifdef USE_IMGUI
 void PlanarReflection::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Floor Reflection", [this]() { DrawImGui(); }, DebugUIArea::Inspector);
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Floor Reflection", [this]() { DrawImGui(); });
 }
 
 void PlanarReflection::DrawImGui()

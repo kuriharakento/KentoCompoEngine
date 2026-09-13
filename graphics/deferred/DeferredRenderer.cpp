@@ -52,7 +52,7 @@ DeferredRenderer::~DeferredRenderer()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 }
@@ -60,8 +60,7 @@ DeferredRenderer::~DeferredRenderer()
 #ifdef USE_IMGUI
 void DeferredRenderer::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterDebugUI(
-		this, "NPR Shading", [this]() { DrawImGui(); }, DebugUIArea::Inspector);
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "NPR Shading", [this]() { DrawImGui(); });
 }
 
 void DeferredRenderer::DrawImGui()

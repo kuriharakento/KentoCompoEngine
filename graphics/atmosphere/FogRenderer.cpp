@@ -29,7 +29,7 @@ FogRenderer::~FogRenderer()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 }
@@ -180,7 +180,7 @@ void FogRenderer::Draw(Camera* camera, GBuffer* gBuffer, D3D12_CPU_DESCRIPTOR_HA
 #ifdef USE_IMGUI
 void FogRenderer::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Atmosphere Fog", [this]() { DrawImGui(); }, DebugUIArea::Inspector);
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Atmosphere Fog", [this]() { DrawImGui(); });
 }
 
 void FogRenderer::DrawImGui()

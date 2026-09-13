@@ -28,7 +28,7 @@ FxaaRenderer::~FxaaRenderer()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 }
@@ -122,7 +122,7 @@ void FxaaRenderer::Apply(RenderTexture* output, FrameConstantAllocator* allocato
 #ifdef USE_IMGUI
 void FxaaRenderer::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Anti-Aliasing", [this]() { DrawImGui(); }, DebugUIArea::Inspector);
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Anti-Aliasing", [this]() { DrawImGui(); });
 }
 
 void FxaaRenderer::DrawImGui()

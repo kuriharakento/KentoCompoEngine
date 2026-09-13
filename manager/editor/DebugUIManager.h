@@ -1,202 +1,94 @@
 #pragma once
+#include <array>
 #include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-struct ImGuiTextBuffer;
+#include "editor/SelectionContext.h"
 
 namespace KCE
 {
-/**
- * @brief 初期レイアウトで使うドッキング先
- */
-enum class DebugUIDockLocation
-{
-	Left,
-	Center,
-	RightTop,
-	RightBottom,
-	Bottom
-};
-
-/**
- * @brief デバッグUIの表示エリア
- * @details 各エリアの使い分け：
- * - Hierarchy: 構成リスト、選択用（例: SceneManager）
- * - Inspector: パラメータ詳細・調整用
- * - Console: テキストログ出力用
- * - Scene: ゲーム画面へのオーバーレイ用
- * - Project: 横広エディタ・アセット管理用
- */
-#ifdef USE_IMGUI
-enum class DebugUIArea
-{
-	Hierarchy,
-	Inspector,
-	Console,
-	Scene,
-	Project
-};
-
-struct DebugUI
-{
-	std::string name;
-	std::function<void()> drawFunc;
-	DebugUIArea area;
-	DebugUIArea defaultArea;
-	bool visible = true; // Toolsメニューからの表示切替
-};
-#else
-enum class DebugUIArea
-{
-	Hierarchy,
-	Inspector,
-	Console,
-	Scene
-};
-#endif
+/** @brief エディタの初期ドッキング先。 */
+enum class EditorDock { Left, Right, RightBottom, Bottom };
 
 class DebugUIManager
 {
 public:
 	static DebugUIManager* GetInstance();
 	static bool HasInstance();
-
 #ifdef USE_IMGUI
 	void Initialize();
 	void Finalize();
-
-	/**
-	 * @brief デバッグUIを登録する
-	 * @param owner 登録元のオブジェクトキー
-	 * @param name ウィンドウ名
-	 * @param drawFunc 描画コールバック
-	 * @param area 表示エリア
-	 */
-	void RegisterDebugUI(void* owner, const std::string& name, std::function<void()> drawFunc, DebugUIArea area = DebugUIArea::Inspector);
-	void UnregisterDebugUI(void* owner);
+	/** @brief 独立したエディタウィンドウを登録する。 */
+	void RegisterWindow(void* owner, const std::string& name, EditorDock dock, std::function<void()> draw, bool defaultVisible = true);
+	/** @brief 既存の登録順で独立ウィンドウを登録する。 */
+	void RegisterWindow(void* owner, const std::string& name, std::function<void()> draw, EditorDock dock, bool defaultVisible = true);
+	/** @brief Settings のページを登録する。 */
+	void RegisterSettingsPage(void* owner, const std::string& category, const std::string& name, std::function<void()> draw);
+	/** @brief 選択種別に対応する Inspector の内容を登録する。 */
+	void RegisterInspector(void* owner, SelectionKind kind, std::function<void(const SelectionItem&)> draw);
+	/** @brief Scene 画像の上に描くオーバーレイを登録する。 */
+	void RegisterSceneOverlay(void* owner, std::function<void()> draw);
+	/** @brief owner が登録した項目をすべて外す。 */
+	void Unregister(void* owner);
 	void Clear();
 	void Draw();
-
+	void DrawSceneOverlays();
 	void RequestLayoutReset();
-	bool IsLayoutResetRequested() const;
-	void ClearLayoutResetRequest();
-
-	void DrawArea(DebugUIArea area);
-	bool HasVisibleDebugUI(DebugUIArea area) const;
-
-	/**
-	 * @brief Windowメニューへ登録済みUIの表示項目を描画する
-	 */
+	bool IsLayoutResetRequested() const { return resetLayoutRequested_; }
+	void ClearLayoutResetRequest() { resetLayoutRequested_ = false; }
+	const std::vector<std::string>& GetDockWindowNames(EditorDock dock);
 	void DrawWindowMenu();
-
-	/**
-	 * @brief 指定した初期ドッキング先のウィンドウ名を返す
-	 * @param location ドッキング先
-	 * @return 登録済みウィンドウ名。Consoleも対象に含む
-	 */
-	std::vector<std::string> GetDockWindowNames(DebugUIDockLocation location) const;
-
-	void SetDebugUIArea(void* owner, DebugUIArea area);
-	void SetDebugUIArea(const std::string& name, DebugUIArea area);
-
-	bool IsShowHierarchy() const { return showHierarchy_; }
-	void SetShowHierarchy(bool show) { showHierarchy_ = show; }
-
-	bool IsShowInspector() const { return showInspector_; }
-	void SetShowInspector(bool show) { showInspector_ = show; }
-
-	bool IsShowConsole() const { return showConsole_; }
-	void SetShowConsole(bool show);
-
-	bool IsShowProject() const { return showProject_; }
-	void SetShowProject(bool show) { showProject_ = show; }
-
-	float GetUIScale() const;
+	float GetUIScale() const { return uiScale_; }
 	void SetUIScale(float scale);
-	void ApplyUIScale(float scale);
-
-	struct SavedUIState
-	{
-		DebugUIArea area;
-		bool visible;
-	};
-
+	bool IsShowConsole() const { return showConsole_; }
+	void SetShowConsole(bool show) { showConsole_ = show; }
 #else
-	// --- 非ImGui環境用の空実装（元のドキュメントや引数名を残して可読性を維持） ---
 	void Initialize() {}
 	void Finalize() {}
-
-	/**
-	 * @brief デバッグUIを登録する（非ImGui時は何もしない）
-	 */
-	void RegisterDebugUI(void* owner, const std::string& name, std::function<void()> drawFunc, DebugUIArea area = DebugUIArea::Inspector) {}
-	void UnregisterDebugUI(void* owner) {}
+	void RegisterWindow(void*, const std::string&, EditorDock, std::function<void()>, bool = true) {}
+	void RegisterSettingsPage(void*, const std::string&, const std::string&, std::function<void()>) {}
+	void RegisterInspector(void*, SelectionKind, std::function<void(const SelectionItem&)>) {}
+	void RegisterSceneOverlay(void*, std::function<void()>) {}
+	void Unregister(void*) {}
 	void Clear() {}
 	void Draw() {}
-
+	void DrawSceneOverlays() {}
 	void RequestLayoutReset() {}
 	bool IsLayoutResetRequested() const { return false; }
 	void ClearLayoutResetRequest() {}
-
-	void DrawArea(DebugUIArea area) {}
-	bool HasVisibleDebugUI(DebugUIArea area) const { return false; }
-
-	/**
-	 * @brief Toolsメニュー用のサブメニューを描画する（非ImGui時は何もしない）
-	 */
+	const std::vector<std::string>& GetDockWindowNames(EditorDock) { static const std::vector<std::string> empty; return empty; }
 	void DrawWindowMenu() {}
-	std::vector<std::string> GetDockWindowNames(DebugUIDockLocation location) const { return {}; }
-
-	void SetDebugUIArea(void* owner, DebugUIArea area) {}
-	void SetDebugUIArea(const std::string& name, DebugUIArea area) {}
-
-	bool IsShowHierarchy() const { return false; }
-	void SetShowHierarchy(bool show) {}
-
-	bool IsShowInspector() const { return false; }
-	void SetShowInspector(bool show) {}
-
-	bool IsShowConsole() const { return false; }
-	void SetShowConsole(bool show) {}
-
-	bool IsShowProject() const { return false; }
-	void SetShowProject(bool show) {}
-
 	float GetUIScale() const { return 1.0f; }
-	void SetUIScale(float scale) {}
-	void ApplyUIScale(float scale) {}
+	void SetUIScale(float) {}
+	bool IsShowConsole() const { return false; }
+	void SetShowConsole(bool) {}
 #endif
-
-public:
 	~DebugUIManager() = default;
-
 private:
 	static std::unique_ptr<DebugUIManager> instance_;
 	friend std::unique_ptr<DebugUIManager> std::make_unique<DebugUIManager>();
-
 	DebugUIManager() = default;
-	DebugUIManager(const DebugUIManager&) = delete;
-	DebugUIManager& operator=(const DebugUIManager&) = delete;
-
 #ifdef USE_IMGUI
-	std::unordered_map<void*, std::vector<DebugUI>> debugUIs_;
-
-	void SaveLayout();
-	void ClearLoadedStates();
-	SavedUIState& GetOrAddLoadedState(const std::string& name);
-	void WriteAllSettings(::ImGuiTextBuffer* buf);
-	void ApplyLoadedStatesToActiveUIs();
-
+	struct Window { void* owner = nullptr; std::string name; EditorDock dock = EditorDock::Bottom; std::function<void()> draw; bool visible = true; bool defaultVisible = true; };
+	struct SettingsPage { void* owner = nullptr; std::string category; std::string name; std::function<void()> draw; };
+	struct InspectorPage { void* owner = nullptr; SelectionKind kind = SelectionKind::None; std::function<void(const SelectionItem&)> draw; };
+	struct Overlay { void* owner = nullptr; std::function<void()> draw; };
+	void DrawInspector();
+	void DrawSettings();
+	void SaveSettings();
+	std::vector<Window> windows_;
+	std::vector<SettingsPage> settingsPages_;
+	std::vector<InspectorPage> inspectorPages_;
+	std::vector<Overlay> overlays_;
+	std::array<std::vector<std::string>, 4> dockWindowNames_;
+	std::unordered_map<std::string, bool> savedVisibility_;
+	std::string selectedSettingsPage_;
+	std::array<char, 128> settingsFilter_{};
 	float uiScale_ = 1.0f;
-
-	bool showHierarchy_ = true;
-	bool showInspector_ = true;
 	bool showConsole_ = true;
-	bool showProject_ = true;
-
 	bool resetLayoutRequested_ = false;
 #endif
 };

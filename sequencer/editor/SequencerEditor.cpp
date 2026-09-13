@@ -220,9 +220,10 @@ void SequencerEditor::Initialize(CameraManager* cameraManager, LightManager* lig
 	});
 
 	DebugUIManager* debugUI = DebugUIManager::GetInstance();
-	debugUI->RegisterDebugUI(this, "Sequencer", [this]() { DrawTimelineWindow(); }, DebugUIArea::Project);
-	debugUI->RegisterDebugUI(this, "Sequencer Inspector", [this]() { DrawInspectorWindow(); }, DebugUIArea::Inspector);
-	debugUI->RegisterDebugUI(this, "Sequencer Gizmo", [this]() { DrawSceneOverlay(); }, DebugUIArea::Scene);
+	debugUI->RegisterWindow(this, "Sequencer", [this]() { DrawTimelineWindow(); }, EditorDock::Bottom);
+	debugUI->RegisterInspector(this, SelectionKind::SequenceTrack, [this](const SelectionItem&) { DrawInspectorWindow(); });
+	debugUI->RegisterInspector(this, SelectionKind::SequenceKey, [this](const SelectionItem&) { DrawInspectorWindow(); });
+	debugUI->RegisterSceneOverlay(this, [this]() { DrawSceneOverlay(); });
 
 	initialized_ = true;
 }
@@ -231,7 +232,7 @@ void SequencerEditor::Finalize()
 {
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 
 	player_.SetSequence(nullptr);

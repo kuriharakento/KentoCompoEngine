@@ -47,7 +47,7 @@ void FontSprite::Initialize(SpriteCommon* spriteCommon, const std::string& fontN
 
 #ifdef USE_IMGUI
     std::string windowName = "Font Sprite: " + fontName;
-    DebugUIManager::GetInstance()->RegisterDebugUI(this, windowName, [this]() { this->DrawImGui(); }, DebugUIArea::Console);
+    DebugUIManager::GetInstance()->RegisterWindow(this, windowName, [this]() { this->DrawImGui(); }, EditorDock::Bottom, false);
 #endif
 }
 
@@ -56,7 +56,7 @@ FontSprite::~FontSprite()
 #ifdef USE_IMGUI
     if (DebugUIManager::HasInstance())
     {
-        DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+        DebugUIManager::GetInstance()->Unregister(this);
     }
 #endif
 }

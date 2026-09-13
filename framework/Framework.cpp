@@ -465,7 +465,7 @@ void Framework::Finalize()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance() && postProcessManager_)
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(postProcessManager_.get());
+		DebugUIManager::GetInstance()->Unregister(postProcessManager_.get());
 	}
 #endif
 	postProcessManager_.reset();

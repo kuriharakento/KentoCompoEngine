@@ -32,7 +32,7 @@ DepthOfFieldRenderer::~DepthOfFieldRenderer()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 }
@@ -125,7 +125,7 @@ void DepthOfFieldRenderer::Draw(Camera* camera, RenderView* view, FrameConstantA
 #ifdef USE_IMGUI
 void DepthOfFieldRenderer::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Depth Of Field", [this]() { DrawImGui(); }, DebugUIArea::Inspector);
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Depth Of Field", [this]() { DrawImGui(); });
 }
 
 void DepthOfFieldRenderer::DrawImGui()

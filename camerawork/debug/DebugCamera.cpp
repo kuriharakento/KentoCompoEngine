@@ -28,7 +28,7 @@ void DebugCamera::Initialize(Camera* camera)
     isActive_ = false;
 
 #ifdef USE_IMGUI
-    DebugUIManager::GetInstance()->RegisterDebugUI(this, "Debug Camera", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+    DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Camera", "Debug Camera", [this]() { this->DrawImGui(); });
 #endif
 }
 
@@ -37,7 +37,7 @@ DebugCamera::~DebugCamera()
 #ifdef USE_IMGUI
     if (DebugUIManager::HasInstance())
     {
-        DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+        DebugUIManager::GetInstance()->Unregister(this);
     }
 #endif
 }

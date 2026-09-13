@@ -19,7 +19,7 @@ TimerManager::TimerManager()
     Clear();
 
 #ifdef USE_IMGUI
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Timer Manager", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "System", "Timer Manager", [this]() { this->DrawImGui(); });
 #endif
 }
 
@@ -28,7 +28,7 @@ TimerManager::~TimerManager()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
     // 全タイマーを解放

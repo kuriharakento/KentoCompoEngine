@@ -595,8 +595,7 @@ bool PostProcessManager::ReloadShaders(std::string& outError)
 #ifdef USE_IMGUI
 void PostProcessManager::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterDebugUI(
-		this, "Post Process", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Post Process", [this]() { this->DrawImGui(); });
 }
 
 void PostProcessManager::DrawImGui()

@@ -14,7 +14,7 @@ RenderPipeline::~RenderPipeline()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 }
@@ -111,8 +111,7 @@ void RenderPipeline::Clear()
 #ifdef USE_IMGUI
 void RenderPipeline::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterDebugUI(
-		this, "Render Pipeline", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+	DebugUIManager::GetInstance()->RegisterWindow(this, "Render Pipeline", [this]() { this->DrawImGui(); }, EditorDock::Bottom);
 }
 
 void RenderPipeline::DrawImGui()

@@ -40,7 +40,7 @@ Text3DRenderer::~Text3DRenderer()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 }
@@ -224,7 +224,7 @@ void Text3DRenderer::Draw(Camera* camera, D3D12_CPU_DESCRIPTOR_HANDLE sceneColor
 #ifdef USE_IMGUI
 void Text3DRenderer::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "3D Text", [this]() { DrawImGui(); }, DebugUIArea::Inspector);
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "3D Text", [this]() { DrawImGui(); });
 }
 
 void Text3DRenderer::DrawImGui()

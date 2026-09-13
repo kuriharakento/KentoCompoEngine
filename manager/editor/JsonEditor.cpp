@@ -28,7 +28,7 @@ void JsonEditor::Initialize()
 
 #ifdef USE_IMGUI
 	// JSONエディタをデバッグUIに登録（再起動時に消えないように Project エリアに登録する）
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "JSON Editor", [this]() {
+	DebugUIManager::GetInstance()->RegisterWindow(this, "JSON Editor", [this]() {
 		// タブバーを開始
 		if (ImGui::BeginTabBar("EditableTabs"))
 		{
@@ -167,7 +167,7 @@ void JsonEditor::Initialize()
 			}
 			ImGui::EndTabBar();
 		}
-	}, DebugUIArea::Project);
+	}, EditorDock::Bottom, false);
 #endif
 }
 
@@ -176,7 +176,7 @@ void JsonEditor::Finalize()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 	// エディタリストをクリア

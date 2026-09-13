@@ -64,7 +64,7 @@ ParticleEditor::~ParticleEditor()
 {
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance()) {
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 	// 現在編集中のエフェクトをマネージャーから削除
@@ -83,7 +83,7 @@ void ParticleEditor::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)
 	NewEffect();
 
 #ifdef USE_IMGUI
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Particle Editor", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+	DebugUIManager::GetInstance()->RegisterWindow(this, "Particle Editor", [this]() { this->DrawImGui(); }, EditorDock::Bottom, false);
 #endif
 }
 

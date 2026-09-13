@@ -34,7 +34,7 @@ void CollisionManager::Initialize()
 {
 	colliders_.clear();
 #ifdef USE_IMGUI
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "CollisionManager Colliders", [this]() { this->DrawImGui(); }, DebugUIArea::Console);
+	DebugUIManager::GetInstance()->RegisterWindow(this, "CollisionManager Colliders", [this]() { this->DrawImGui(); }, EditorDock::Bottom, false);
 #endif
 
 	// --- 1. 通常判定マトリクス (collisionMatrix_) の登録 ---
@@ -206,7 +206,7 @@ void CollisionManager::Finalize()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 	colliders_.clear();
@@ -221,7 +221,7 @@ CollisionManager::~CollisionManager()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 }

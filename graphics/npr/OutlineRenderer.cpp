@@ -31,7 +31,7 @@ OutlineRenderer::~OutlineRenderer()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 }
@@ -178,7 +178,7 @@ void OutlineRenderer::Draw(Camera* camera, GBuffer* gBuffer, D3D12_CPU_DESCRIPTO
 #ifdef USE_IMGUI
 void OutlineRenderer::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Outline", [this]() { DrawImGui(); }, DebugUIArea::Inspector);
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Outline", [this]() { DrawImGui(); });
 }
 
 void OutlineRenderer::DrawImGui()

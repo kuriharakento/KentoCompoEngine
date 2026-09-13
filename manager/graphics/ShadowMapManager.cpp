@@ -15,7 +15,7 @@ ShadowMapManager::~ShadowMapManager() {
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
     // リソースはComPtrで自動解放されるため、特別な処理は不要
@@ -49,14 +49,14 @@ void ShadowMapManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManage
     KCE::Logger::Log("ShadowMapManager initialized\n");
 
 #ifdef USE_IMGUI
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Shadow Maps", [this]()
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Shadow Maps", [this]()
 	{
 		ImGui::Text("Spot shadows redrawn this frame: %u", spotLightShadowRedrawCount_);
 		if (ImGui::Button("Redraw all spot shadows"))
 		{
 			InvalidateSpotLightShadows();
 		}
-	}, DebugUIArea::Inspector);
+	});
 #endif
 }
 

@@ -33,7 +33,7 @@ void ParticleManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager
 	pipelineManager_->Initialize(dxCommon_);
 
 #ifdef USE_IMGUI
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Particle Manager", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Effects", "Particle Manager", [this]() { this->DrawImGui(); });
 #endif
 }
 
@@ -42,7 +42,7 @@ void ParticleManager::Finalize()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 	effects_.clear();

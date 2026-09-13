@@ -24,7 +24,7 @@ TimeManager::TimeManager()
 
 #ifdef USE_IMGUI
 	// TimeManagerをデバッグUIに登録
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Time Manager", [this]() {
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "System", "Time Manager", [this]() {
 		// 全体のポーズ設定
 		ImGui::Checkbox("Paused", &paused_);
 		ImGui::Separator();
@@ -46,7 +46,7 @@ TimeManager::TimeManager()
 		ImGui::Text("  RealGameTime: %.2f", uiContext_.realGameTime);
 		ImGui::Text("  DeltaTime: %.4f", uiContext_.deltaTime);
 		ImGui::Text("  RealDeltaTime: %.4f", uiContext_.realDeltaTime);
-	}, DebugUIArea::Inspector);
+	});
 #endif
 }
 

@@ -15,7 +15,7 @@ void TopDownCamera::Initialize(Camera* camera)
     camera_ = camera;
 
 #ifdef USE_IMGUI
-    DebugUIManager::GetInstance()->RegisterDebugUI(this, "TopDownCamera Settings", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+    DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Camera", "TopDownCamera Settings", [this]() { this->DrawImGui(); });
 #endif
 }
 
@@ -24,7 +24,7 @@ TopDownCamera::~TopDownCamera()
 #ifdef USE_IMGUI
     if (DebugUIManager::HasInstance())
     {
-        DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+        DebugUIManager::GetInstance()->Unregister(this);
     }
 #endif
 }

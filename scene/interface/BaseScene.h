@@ -35,7 +35,7 @@ public:
 #ifdef USE_IMGUI
         if (DebugUIManager::HasInstance())
         {
-            DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+            DebugUIManager::GetInstance()->Unregister(this);
         }
 #endif
     }

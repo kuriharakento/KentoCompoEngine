@@ -102,7 +102,7 @@ void CutsceneManager::Finalize()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 	// ロックしたまま終わらないようにする
@@ -323,7 +323,7 @@ void CutsceneManager::Update()
 #ifdef USE_IMGUI
 void CutsceneManager::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Cutscene", [this]() { DrawImGui(); }, DebugUIArea::Inspector);
+	DebugUIManager::GetInstance()->RegisterWindow(this, "Cutscene", [this]() { DrawImGui(); }, EditorDock::Bottom);
 }
 
 void CutsceneManager::DrawImGui()

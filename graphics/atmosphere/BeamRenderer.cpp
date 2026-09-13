@@ -50,7 +50,7 @@ BeamRenderer::~BeamRenderer()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 }
@@ -299,7 +299,7 @@ void BeamRenderer::Draw(Camera* camera, GBuffer* gBuffer, D3D12_CPU_DESCRIPTOR_H
 void BeamRenderer::RegisterDebugUI(LightManager* lightManager)
 {
 	debugLightManager_ = lightManager;
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Light Beams", [this]() { DrawImGui(); }, DebugUIArea::Inspector);
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Light Beams", [this]() { DrawImGui(); });
 }
 
 void BeamRenderer::DrawImGui()

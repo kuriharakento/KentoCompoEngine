@@ -195,10 +195,10 @@ void Audio::Initialize()
 #ifdef USE_IMGUI
 	debugData_.reverbAmount = kDefaultReverbAmount;
 
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Audio Debug", [this]()
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "System", "Audio Debug", [this]()
 	{
 		this->DrawDebugWindow();
-	}, DebugUIArea::Console);
+	});
 #endif
 
 	InitializeEffect();
@@ -210,7 +210,7 @@ void Audio::Finalize()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 	fadeList_.clear();

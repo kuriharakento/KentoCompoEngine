@@ -31,7 +31,7 @@ LightManager::~LightManager()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 	// 定数バッファのアンマップ
@@ -64,7 +64,7 @@ void LightManager::Initialize(DirectXCommon* dxCommon)
 	pEasingFunc_ = EaseInSine<float>;
 
 #ifdef USE_IMGUI
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Light Manager", [this]() { this->DrawImGui(); }, DebugUIArea::Inspector);
+	DebugUIManager::GetInstance()->RegisterWindow(this, "Light Manager", [this]() { this->DrawImGui(); }, EditorDock::Left);
 #endif
 }
 

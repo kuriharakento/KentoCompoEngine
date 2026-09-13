@@ -45,7 +45,7 @@ VolumetricLightRenderer::~VolumetricLightRenderer()
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
 	{
-		DebugUIManager::GetInstance()->UnregisterDebugUI(this);
+		DebugUIManager::GetInstance()->Unregister(this);
 	}
 #endif
 }
@@ -199,7 +199,7 @@ void VolumetricLightRenderer::Draw(Camera* camera, GBuffer* gBuffer, D3D12_CPU_D
 #ifdef USE_IMGUI
 void VolumetricLightRenderer::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterDebugUI(this, "Volumetric Light", [this]() { DrawImGui(); }, DebugUIArea::Inspector);
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Volumetric Light", [this]() { DrawImGui(); });
 }
 
 void VolumetricLightRenderer::DrawImGui()
