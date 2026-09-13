@@ -23,8 +23,8 @@ public:
 	void Finalize();
 	/** @brief 独立したエディタウィンドウを登録する。 */
 	void RegisterWindow(void* owner, const std::string& name, EditorDock dock, std::function<void()> draw, bool defaultVisible = true);
-	/** @brief 既存の登録順で独立ウィンドウを登録する。 */
 	void RegisterWindow(void* owner, const std::string& name, std::function<void()> draw, EditorDock dock, bool defaultVisible = true);
+	/** @brief 既存の登録順で独立ウィンドウを登録する。 */
 	/** @brief Settings のページを登録する。 */
 	void RegisterSettingsPage(void* owner, const std::string& category, const std::string& name, std::function<void()> draw);
 	/** @brief 選択種別に対応する Inspector の内容を登録する。 */
@@ -72,8 +72,23 @@ private:
 	friend std::unique_ptr<DebugUIManager> std::make_unique<DebugUIManager>();
 	DebugUIManager() = default;
 #ifdef USE_IMGUI
-	struct Window { void* owner = nullptr; std::string name; EditorDock dock = EditorDock::Bottom; std::function<void()> draw; bool visible = true; bool defaultVisible = true; };
-	struct SettingsPage { void* owner = nullptr; std::string category; std::string name; std::function<void()> draw; };
+	struct Window
+	{
+		void* owner = nullptr; //!< 登録元。所有しない。
+		std::string name; //!< ImGui ウィンドウ名。
+		EditorDock dock = EditorDock::Bottom; //!< 初期ドッキング先。
+		std::function<void()> draw; //!< 中身の描画。
+		bool visible = true; //!< 表示状態。
+		bool defaultVisible = true; //!< 初期表示状態。
+	};
+	struct SettingsPage
+	{
+		void* owner = nullptr; //!< 登録元。所有しない。
+		std::string category; //!< 左側の分類名。
+		std::string name; //!< ページ名。
+		std::string displayName; //!< 分類付きの表示名。
+		std::function<void()> draw; //!< 中身の描画。
+	};
 	struct InspectorPage { void* owner = nullptr; SelectionKind kind = SelectionKind::None; std::function<void(const SelectionItem&)> draw; };
 	struct Overlay { void* owner = nullptr; std::function<void()> draw; };
 	void DrawInspector();
@@ -88,6 +103,7 @@ private:
 	std::string selectedSettingsPage_;
 	std::array<char, 128> settingsFilter_{};
 	float uiScale_ = 1.0f;
+	float previousUiScale_ = 1.0f;
 	bool showConsole_ = true;
 	bool resetLayoutRequested_ = false;
 #endif

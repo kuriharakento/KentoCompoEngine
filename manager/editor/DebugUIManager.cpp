@@ -2,6 +2,7 @@
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
+#include "externals/imgui/imgui_internal.h"
 #include <algorithm>
 #include <cstring>
 #endif
@@ -45,6 +46,7 @@ void DebugUIManager::Initialize()
 {
 	Clear();
 	uiScale_ = 1.0f;
+	previousUiScale_ = 1.0f;
 	resetLayoutRequested_ = false;
 }
 
@@ -74,11 +76,6 @@ void DebugUIManager::RegisterWindow(void* owner, const std::string& name, Editor
 	windows_.push_back({ owner, name, dock, std::move(draw), visible, defaultVisible });
 }
 
-void DebugUIManager::RegisterWindow(void* owner, const std::string& name, std::function<void()> draw, EditorDock dock, bool defaultVisible)
-{
-	RegisterWindow(owner, name, dock, std::move(draw), defaultVisible);
-}
-
 void DebugUIManager::RegisterSettingsPage(void* owner, const std::string& category, const std::string& name, std::function<void()> draw)
 {
 	if (!owner || category.empty() || name.empty() || !draw)
@@ -94,7 +91,7 @@ void DebugUIManager::RegisterSettingsPage(void* owner, const std::string& catego
 			return;
 		}
 	}
-	settingsPages_.push_back({ owner, category, name, std::move(draw) });
+	settingsPages_.push_back({ owner, category, name, category + "/" + name, std::move(draw) });
 	if (selectedSettingsPage_.empty())
 	{
 		selectedSettingsPage_ = name;
@@ -168,11 +165,27 @@ void DebugUIManager::Draw()
 		{
 			continue;
 		}
+		const bool firstOpen = !ImGui::FindWindowByName(window.name.c_str()) && !ImGui::FindWindowSettingsByID(ImHashStr(window.name.c_str()));
+		if (firstOpen)
+		{
+			const auto& dockNames = GetDockWindowNames(window.dock);
+			for (const auto& dockName : dockNames)
+			{
+				const ImGuiWindow* dockWindow = ImGui::FindWindowByName(dockName.c_str());
+				if (dockWindow && dockWindow->DockId != 0)
+				{
+					ImGui::SetNextWindowDockID(dockWindow->DockId, ImGuiCond_FirstUseEver);
+					break;
+				}
+			}
+		}
+		const bool wasVisible = window.visible;
 		if (ImGui::Begin(window.name.c_str(), &window.visible))
 		{
 			window.draw();
 		}
 		ImGui::End();
+		if (wasVisible != window.visible) SaveSettings();
 	}
 	DrawInspector();
 	DrawSettings();
@@ -218,11 +231,11 @@ void DebugUIManager::DrawSettings()
 	for (size_t index = 0; index < settingsPages_.size(); ++index)
 	{
 		const auto& page = settingsPages_[index];
-		if (settingsFilter_[0] != '\0' && page.name.find(settingsFilter_.data()) == std::string::npos && page.category.find(settingsFilter_.data()) == std::string::npos)
+		if (settingsFilter_[0] != '\0' && page.displayName.find(settingsFilter_.data()) == std::string::npos)
 		{
 			continue;
 		}
-		if (ImGui::Selectable((page.category + "/" + page.name).c_str(), selectedSettingsPage_ == page.name))
+		if (ImGui::Selectable(page.displayName.c_str(), selectedSettingsPage_ == page.name))
 		{
 			selectedSettingsPage_ = page.name;
 		}
@@ -286,10 +299,27 @@ void DebugUIManager::RequestLayoutReset()
 	resetLayoutRequested_ = true;
 }
 
+void DebugUIManager::RegisterWindow(void* owner, const std::string& name, std::function<void()> draw, EditorDock dock, bool defaultVisible)
+{
+	RegisterWindow(owner, name, dock, std::move(draw), defaultVisible);
+}
+
+void DebugUIManager::SaveSettings()
+{
+	for (const auto& window : windows_)
+	{
+		savedVisibility_[window.name] = window.visible;
+	}
+	ImGui::MarkIniSettingsDirty();
+}
+
 void DebugUIManager::SetUIScale(float scale)
 {
 	uiScale_ = (std::clamp)(scale, kMinimumUiScale, kMaximumUiScale);
 	ImGui::GetIO().FontGlobalScale = uiScale_;
+	ImGui::GetStyle().ScaleAllSizes(uiScale_ / previousUiScale_);
+	previousUiScale_ = uiScale_;
+	SaveSettings();
 }
 #endif
 } // namespace KCE
