@@ -480,16 +480,16 @@ void ParticleEditor::SaveEffect(const std::string& path)
 #ifdef USE_IMGUI
 void ParticleEditor::DrawMenuBar()
 {
-	if (ImGui::CollapsingHeader("Menu / Operations", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("メニュー / 操作", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		if (ImGui::Button("New Effect")) { NewEffect(); }
+		if (ImGui::Button("新しいエフェクト")) { NewEffect(); }
 		ImGui::SameLine();
-		if (ImGui::Button("Save")) { SaveEffect(effectPath_); }
+		if (ImGui::Button("保存")) { SaveEffect(effectPath_); }
 		ImGui::SameLine();
-		if (ImGui::Button("Save As...")) { effectPath_.clear(); SaveEffect(""); }
+		if (ImGui::Button("名前を付けて保存...")) { effectPath_.clear(); SaveEffect(""); }
 		ImGui::SameLine();
 
-		if (ImGui::Button("Load..."))
+		if (ImGui::Button("読み込み..."))
 		{
 			ImGui::OpenPopup("LoadEffectPopup");
 		}
@@ -518,27 +518,27 @@ void ParticleEditor::DrawMenuBar()
 		}
 
 		ImGui::SameLine();
-		if (ImGui::Button("Add Emitter")) { showAddEmitterDialog_ = true; }
+		if (ImGui::Button("エミッターを追加")) { showAddEmitterDialog_ = true; }
 		ImGui::SameLine();
-		if (ImGui::Button("Reset View")) { if (currentEffect_) { currentEffect_->Reset(); currentEffect_->Play(); } }
+		if (ImGui::Button("表示をリセット")) { if (currentEffect_) { currentEffect_->Reset(); currentEffect_->Play(); } }
 		
-		ImGui::Checkbox("Show Debug Lines", &showDebug_);
+		ImGui::Checkbox("デバッグ線を表示", &showDebug_);
 		ImGui::SameLine();
-		ImGui::Checkbox("Show Particle Markers", &showParticleMarkers_);
+		ImGui::Checkbox("パーティクルの目印を表示", &showParticleMarkers_);
 
 		// Skydome Color Tint
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(150.0f);
-		ImGui::ColorEdit3("Skydome Color", &skydomeColor_.x);
+		ImGui::ColorEdit3("スカイドームの色", &skydomeColor_.x);
 	}
 }
 
 void ParticleEditor::DrawEffectPanel()
 {
-	if (ImGui::CollapsingHeader("Effect", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("エフェクト", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		// エフェクト名
-		ImGui::Text("Name:");
+		ImGui::Text("名前:");
 		ImGui::SameLine(80);
 		ImGui::SetNextItemWidth(-1);
 		ImGui::InputText("##Name", effectNameBuffer_, sizeof(effectNameBuffer_));
@@ -547,7 +547,7 @@ void ParticleEditor::DrawEffectPanel()
 		{
 			// 位置
 			Vector3 pos = currentEffect_->GetPosition();
-			ImGui::Text("Position:");
+			ImGui::Text("位置:");
 			ImGui::SameLine(80);
 			ImGui::SetNextItemWidth(-1);
 			if (ImGui::DragFloat3("##Position", &pos.x, 0.1f)) 
@@ -556,22 +556,22 @@ void ParticleEditor::DrawEffectPanel()
 			}
 
 			// 再生状態
-			ImGui::Text("Status:");
+			ImGui::Text("状態:");
 			ImGui::SameLine(80);
 			bool isPlaying = currentEffect_->IsPlaying();
-			if (ImGui::Checkbox("Playing", &isPlaying))
+			if (ImGui::Checkbox("再生中", &isPlaying))
 			{
 				if (isPlaying) currentEffect_->Play();
 				else currentEffect_->Stop();
 			}
 			ImGui::SameLine();
-			if (ImGui::Button("Reset")) 
+			if (ImGui::Button("リセット")) 
 			{ 
 				currentEffect_->Reset(); 
 				currentEffect_->Play(); 
 			}
 
-			ImGui::Text("Time:");
+			ImGui::Text("時間:");
 			ImGui::SameLine(80);
 			int deltaType = static_cast<int>(currentEffect_->GetDeltaTimeType());
 			const char* deltaTypeNames[] = { "DeltaTime", "RealDeltaTime" };
@@ -581,14 +581,14 @@ void ParticleEditor::DrawEffectPanel()
 			}
 
 			// エミッター数
-			ImGui::Text("Emitters:");
+			ImGui::Text("エミッター数:");
 			ImGui::SameLine(80);
 			ImGui::Text("%d", static_cast<int>(currentEffect_->GetEmitterCount()));
 
 			ImGui::Separator();
 
 			// 保存パス表示
-			ImGui::Text("Path:");
+			ImGui::Text("パス:");
 			ImGui::SameLine(80);
 			if (effectPath_.empty())
 			{
@@ -601,7 +601,7 @@ void ParticleEditor::DrawEffectPanel()
 
 			// 保存ボタン
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.2f, 1.0f));
-			if (ImGui::Button("Save Effect"))
+			if (ImGui::Button("エフェクトを保存"))
 			{
 				SaveEffect(effectPath_);
 			}
@@ -609,7 +609,7 @@ void ParticleEditor::DrawEffectPanel()
 			
 			ImGui::SameLine();
 			ImGui::PushID(1234);
-			if (ImGui::Button("Save As..."))
+			if (ImGui::Button("名前を付けて保存..."))
 			{
 				effectPath_.clear();
 				SaveEffect("");
@@ -623,14 +623,14 @@ void ParticleEditor::DrawPreviewPanel()
 {
 	if (!currentEffect_) return;
 
-	if (ImGui::CollapsingHeader("Preview", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("プレビュー", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		const size_t emitterCount = currentEffect_->GetEmitterCount();
 
 		//===== 一括制御ボタン行 =====//
 		// Play All: 全エミッターをRestart → エフェクトをPlay
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
-		if (ImGui::Button("Play All"))
+		if (ImGui::Button("全部再生"))
 		{
 			for (size_t i = 0; i < emitterCount; ++i)
 			{
@@ -646,7 +646,7 @@ void ParticleEditor::DrawPreviewPanel()
 
 		// Stop All
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.2f, 0.2f, 1.0f));
-		if (ImGui::Button("Stop All"))
+		if (ImGui::Button("全部停止"))
 		{
 			currentEffect_->Stop();
 			previewLooping_ = false;
@@ -657,7 +657,7 @@ void ParticleEditor::DrawPreviewPanel()
 
 		// Reset All: particles_もクリアして全エミッターを完全リセット → Play
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.4f, 0.1f, 1.0f));
-		if (ImGui::Button("Reset All"))
+		if (ImGui::Button("全部リセット"))
 		{
 			for (size_t i = 0; i < emitterCount; ++i)
 			{
@@ -671,14 +671,14 @@ void ParticleEditor::DrawPreviewPanel()
 
 		//===== ループ設定 =====//
 		ImGui::Spacing();
-		ImGui::Checkbox("Loop Preview", &previewLooping_);
-		ImGui::SetItemTooltip("On: Play All を一定間隔で自動繰り返し");
+		ImGui::Checkbox("プレビューを繰り返す", &previewLooping_);
+		ImGui::SetItemTooltip("オン: 「全部再生」を一定間隔で繰り返す");
 
 		if (previewLooping_)
 		{
 			ImGui::SameLine();
 			ImGui::SetNextItemWidth(120.0f);
-			ImGui::DragFloat("Interval (s)", &previewRepeatInterval_, 0.1f, 0.1f, 30.0f, "%.1f");
+			ImGui::DragFloat("間隔 (秒)", &previewRepeatInterval_, 0.1f, 0.1f, 30.0f, "%.1f");
 
 			// 残り時間バー
 			float progress = (previewRepeatInterval_ > 0.0f)
@@ -689,19 +689,19 @@ void ParticleEditor::DrawPreviewPanel()
 
 		//===== トレイルプレビュー設定 =====//
 		ImGui::Spacing();
-		ImGui::SeparatorText("Trail Target Preview");
-		ImGui::Checkbox("Enable Motion Dummy", &enablePreviewTarget_);
-		ImGui::SetItemTooltip("On: トレイルテスト用の動くダミーターゲットを登録します");
+		ImGui::SeparatorText("トレイルの追従先プレビュー");
+		ImGui::Checkbox("動くダミーを使う", &enablePreviewTarget_);
+		ImGui::SetItemTooltip("オン: トレイルを試すための動くダミーを置く");
 		if (enablePreviewTarget_)
 		{
-			ImGui::DragFloat("Motion Speed", &previewTargetSpeed_, 0.05f, 0.1f, 10.0f, "%.2f");
-			ImGui::DragFloat("Motion Radius", &previewTargetRadius_, 0.1f, 0.5f, 20.0f, "%.1f");
-			ImGui::Text("Dummy Position: (%.2f, %.2f, %.2f)", previewTargetPos_.x, previewTargetPos_.y, previewTargetPos_.z);
+			ImGui::DragFloat("ダミーの速さ", &previewTargetSpeed_, 0.05f, 0.1f, 10.0f, "%.2f");
+			ImGui::DragFloat("ダミーの半径", &previewTargetRadius_, 0.1f, 0.5f, 20.0f, "%.1f");
+			ImGui::Text("ダミーの位置: (%.2f, %.2f, %.2f)", previewTargetPos_.x, previewTargetPos_.y, previewTargetPos_.z);
 		}
 
 		//===== エミッター一覧（パーティクル数表示）=====//
 		ImGui::Spacing();
-		ImGui::SeparatorText("Emitters");
+		ImGui::SeparatorText("エミッター");
 
 		// 総パーティクル数
 		uint32_t totalParticles = 0;
@@ -710,7 +710,7 @@ void ParticleEditor::DrawPreviewPanel()
 			const auto* emitter = currentEffect_->GetEmitter(i);
 			if (emitter) totalParticles += static_cast<uint32_t>(emitter->GetParticles().size());
 		}
-		ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.5f, 1.0f), "Total Particles: %u", totalParticles);
+		ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.5f, 1.0f), "パーティクルの合計: %u", totalParticles);
 
 		// エミッターごとの行
 		ImGui::BeginChild("PreviewEmitterList", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Borders);
@@ -731,18 +731,18 @@ void ParticleEditor::DrawPreviewPanel()
 			ImGui::SameLine();
 			ImGui::Text("%-20s", emitter->GetName().c_str());
 			ImGui::SameLine();
-			ImGui::TextDisabled("Particles: %d", static_cast<int>(emitter->GetParticles().size()));
+			ImGui::TextDisabled("パーティクル数: %d", static_cast<int>(emitter->GetParticles().size()));
 
 			// 行の右端にRestart/Stopボタン
 			ImGui::SameLine(ImGui::GetWindowWidth() - 100.0f);
-			if (ImGui::SmallButton("Restart"))
+			if (ImGui::SmallButton("最初から"))
 			{
 				emitter->Restart();
 				if (!currentEffect_->IsPlaying()) currentEffect_->Play();
 				previewElapsed_ = 0.0f;
 			}
 			ImGui::SameLine();
-			if (ImGui::SmallButton("Stop"))
+			if (ImGui::SmallButton("停止"))
 			{
 				emitter->Stop();
 			}
@@ -763,7 +763,7 @@ void ParticleEditor::DrawEmitterPanel()
 {
 	if (!currentEffect_) return;
 
-	if (ImGui::CollapsingHeader("Emitters", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("エミッター", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		int emitterToDelete = -1;
 
@@ -786,7 +786,7 @@ void ParticleEditor::DrawEmitterPanel()
 			// 右クリックコンテキストメニュー
 			if (ImGui::BeginPopupContextItem())
 			{
-				if (ImGui::MenuItem("Delete"))
+				if (ImGui::MenuItem("削除"))
 				{
 					emitterToDelete = static_cast<int>(i);
 				}
@@ -820,7 +820,7 @@ void ParticleEditor::DrawEmitterPanel()
 		{
 			ImGui::SameLine();
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.2f, 0.2f, 1.0f));
-			if (ImGui::Button("Delete Selected"))
+			if (ImGui::Button("選択中を削除"))
 			{
 				currentEffect_->RemoveEmitter(static_cast<size_t>(selectedEmitterIndex_));
 				selectedEmitterIndex_ = -1;
@@ -834,18 +834,18 @@ void ParticleEditor::DrawEmitterPanel()
 	if (selectedEmitterIndex_ >= 0)
 	{
 		auto* emitter = currentEffect_->GetEmitter(static_cast<size_t>(selectedEmitterIndex_));
-		if (emitter && ImGui::CollapsingHeader("Emitter Settings", ImGuiTreeNodeFlags_DefaultOpen))
+		if (emitter && ImGui::CollapsingHeader("エミッターの設定", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			// Position
 			Vector3 pos = emitter->GetPosition();
-			if (ImGui::DragFloat3("Position", &pos.x, 0.1f))
+			if (ImGui::DragFloat3("位置", &pos.x, 0.1f))
 			{
 				emitter->SetPosition(pos);
 			}
 
 			// Max Particles
 			int maxP = static_cast<int>(emitter->GetMaxParticles());
-			if (ImGui::InputInt("Max Particles", &maxP))
+			if (ImGui::InputInt("最大パーティクル数", &maxP))
 			{
 				emitter->SetMaxParticles(static_cast<uint32_t>((std::max)(100, maxP)));
 			}
@@ -853,28 +853,28 @@ void ParticleEditor::DrawEmitterPanel()
 			// Simulation Mode
 			int mode = static_cast<int>(emitter->GetSimulationMode());
 			const char* modes[] = { "CPU", "GPU" };
-			if (ImGui::Combo("Simulation Mode", &mode, modes, IM_ARRAYSIZE(modes)))
+			if (ImGui::Combo("シミュレーション方式", &mode, modes, IM_ARRAYSIZE(modes)))
 			{
 				emitter->SetSimulationMode(static_cast<SimulationMode>(mode));
 			}
 
 			// Follow Offset
 			Vector3 offset = emitter->GetFollowOffset();
-			if (ImGui::DragFloat3("Follow Offset##emitterSettings", &offset.x, 0.1f))
+			if (ImGui::DragFloat3("追従のずらし量##emitterSettings", &offset.x, 0.1f))
 			{
 				emitter->SetFollowOffset(offset);
 			}
-			ImGui::SetItemTooltip("Offset applied when following a target Transform or Emitter");
+			ImGui::SetItemTooltip("Transform やエミッターに追従するときに足すずらし量");
 
 			// Follow Emitter (同じエフェクト内の別エミッターを追従)
 			ImGui::Separator();
-			ImGui::Text("Follow Other Emitter:");
+			ImGui::Text("ほかのエミッターに追従:");
 			int followIdx = emitter->GetFollowEmitterIndex();
 			
 			// エミッターリストを作成（現在選択中のエミッター以外）
 			std::vector<const char*> emitterNames;
 			std::vector<int> emitterIndices;
-			emitterNames.push_back("None");
+			emitterNames.push_back("なし");
 			emitterIndices.push_back(-1);
 			
 			for (size_t i = 0; i < currentEffect_->GetEmitterCount(); ++i)
@@ -901,48 +901,48 @@ void ParticleEditor::DrawEmitterPanel()
 				}
 			}
 			
-			if (ImGui::Combo("Follow Emitter##emitterSettings", &currentSelection, emitterNames.data(), 
+			if (ImGui::Combo("追従するエミッター##emitterSettings", &currentSelection, emitterNames.data(), 
 			                 static_cast<int>(emitterNames.size())))
 			{
 				emitter->SetFollowEmitterIndex(emitterIndices[currentSelection]);
 			}
-			ImGui::SetItemTooltip("Select another emitter to follow within this effect");
+			ImGui::SetItemTooltip("このエフェクトの中で追従するエミッターを選ぶ");
 
 			// Simulation Space
-			const char* spaces[] = { "World", "Local" };
+			const char* spaces[] = { "ワールド", "ローカル" };
 			int space = static_cast<int>(emitter->GetSimulationSpace());
-			if (ImGui::Combo("Simulation Space##emitterSettings", &space, spaces, 2))
+			if (ImGui::Combo("シミュレーション空間##emitterSettings", &space, spaces, 2))
 			{
 				emitter->SetSimulationSpace(static_cast<SimulationSpace>(space));
 			}
 
 			// 移動時のみ生成
 			bool spawnOnlyWhenMoving = emitter->GetSpawnOnlyWhenMoving();
-			if (ImGui::Checkbox("Spawn Only When Moving", &spawnOnlyWhenMoving))
+			if (ImGui::Checkbox("動いているときだけ出す", &spawnOnlyWhenMoving))
 			{
 				emitter->SetSpawnOnlyWhenMoving(spawnOnlyWhenMoving);
 			}
-			ImGui::SetItemTooltip("Only spawn particles when the emitter is moving (good for trails)");
+			ImGui::SetItemTooltip("エミッターが動いているときだけパーティクルを出す（トレイル向き）");
 
 			if (spawnOnlyWhenMoving)
 			{
 				float minDist = emitter->GetMinMoveDistance();
-				if (ImGui::DragFloat("Min Move Distance", &minDist, 0.01f, 0.001f, 1.0f))
+				if (ImGui::DragFloat("最小の移動距離", &minDist, 0.01f, 0.001f, 1.0f))
 				{
 					emitter->SetMinMoveDistance(minDist);
 				}
-				ImGui::SetItemTooltip("Minimum distance the emitter must move to spawn particles");
+				ImGui::SetItemTooltip("パーティクルを出すのに要るエミッターの移動距離");
 			}
 
 			//===== ライフサイクル設定 =====//
 			ImGui::Separator();
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.9f, 0.4f, 1.0f));
-			ImGui::Text("Lifecycle");
+			ImGui::Text("寿命");
 			ImGui::PopStyleColor();
 
 			// Duration
 			float duration = emitter->GetDuration();
-			if (ImGui::DragFloat("Duration", &duration, 0.1f, 0.0f, 100.0f))
+			if (ImGui::DragFloat("長さ", &duration, 0.1f, 0.0f, 100.0f))
 			{
 				emitter->SetDuration(duration);
 				// エディタ用: 設定変更時に停止中なら再開
@@ -951,20 +951,20 @@ void ParticleEditor::DrawEmitterPanel()
 					emitter->Reset();
 				}
 			}
-			ImGui::SetItemTooltip("Emitter lifetime in seconds (0 = infinite)");
+			ImGui::SetItemTooltip("エミッターの寿命（秒）。0 で無限");
 
 			// Start Delay
 			float startDelay = emitter->GetStartDelay();
-			if (ImGui::DragFloat("Start Delay", &startDelay, 0.1f, 0.0f, 10.0f))
+			if (ImGui::DragFloat("開始の遅れ", &startDelay, 0.1f, 0.0f, 10.0f))
 			{
 				emitter->SetStartDelay(startDelay);
 			}
-			ImGui::SetItemTooltip("Delay before particles start spawning");
+			ImGui::SetItemTooltip("パーティクルを出し始めるまでの遅れ");
 
 			// Loop Behavior
-			const char* loopBehaviors[] = { "Once", "Infinite", "Multiple" };
+			const char* loopBehaviors[] = { "1回", "無限", "回数指定" };
 			int loopBehavior = static_cast<int>(emitter->GetLoopBehavior());
-			if (ImGui::Combo("Loop Behavior", &loopBehavior, loopBehaviors, 3))
+			if (ImGui::Combo("繰り返し方", &loopBehavior, loopBehaviors, 3))
 			{
 				emitter->SetLoopBehavior(static_cast<LoopBehavior>(loopBehavior));
 				// エディタ用: 設定変更時に停止中なら再開
@@ -973,13 +973,13 @@ void ParticleEditor::DrawEmitterPanel()
 					emitter->Reset();
 				}
 			}
-			ImGui::SetItemTooltip("Once: Play once and stop. Infinite: Loop forever. Multiple: Loop N times.");
+			ImGui::SetItemTooltip("1回: 1回で止まる。無限: ずっと繰り返す。回数指定: N 回繰り返す。");
 
 			// Loop Count (Multipleのときのみ表示)
 			if (emitter->GetLoopBehavior() == LoopBehavior::Multiple)
 			{
 				int loopCount = emitter->GetLoopCount();
-				if (ImGui::InputInt("Loop Count", &loopCount))
+				if (ImGui::InputInt("繰り返し回数", &loopCount))
 				{
 					emitter->SetLoopCount((std::max)(1, loopCount));
 					// エディタ用: 設定変更時に停止中なら再開
@@ -991,27 +991,27 @@ void ParticleEditor::DrawEmitterPanel()
 			}
 
 			// Inactive Response
-			const char* inactiveResponses[] = { "Complete", "Kill" };
+			const char* inactiveResponses[] = { "最後まで", "すぐ消す" };
 			int inactiveResponse = static_cast<int>(emitter->GetInactiveResponse());
-			if (ImGui::Combo("When Inactive", &inactiveResponse, inactiveResponses, 2))
+			if (ImGui::Combo("止めたとき", &inactiveResponse, inactiveResponses, 2))
 			{
 				emitter->SetInactiveResponse(static_cast<InactiveResponse>(inactiveResponse));
 			}
-			ImGui::SetItemTooltip("Complete: Let particles finish. Kill: Remove immediately.");
+			ImGui::SetItemTooltip("最後まで: 出ているパーティクルは寿命まで残す。すぐ消す: すぐに消す。");
 
 			// 状態表示 + リセットボタン
 			ImGui::Separator();
-			ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Age: %.2f s", emitter->GetEmitterAge());
+			ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "経過: %.2f 秒", emitter->GetEmitterAge());
 			ImGui::SameLine();
 			ImGui::TextColored(
 				emitter->IsEmitting() ? ImVec4(0.4f, 1.0f, 0.4f, 1.0f) : ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
-				"Emitting: %s", emitter->IsEmitting() ? "Yes" : "No");
+				"放出中: %s", emitter->IsEmitting() ? "はい" : "いいえ");
 			
 			// 手動リセットボタン（停止中のみ表示）
 			if (!emitter->IsEmitting())
 			{
 				ImGui::SameLine();
-				if (ImGui::SmallButton("Restart"))
+				if (ImGui::SmallButton("最初から"))
 				{
 					emitter->Reset();
 				}
@@ -1028,17 +1028,17 @@ void ParticleEditor::DrawModulePanel()
 	if (!emitter) return;
 
 	// Active Particles表示（シンプルに）
-	ImGui::Text("Active Particles: %d", static_cast<int>(emitter->GetParticles().size()));
+	ImGui::Text("出ているパーティクル: %d", static_cast<int>(emitter->GetParticles().size()));
 	ImGui::Separator();
 
 	// モジュールリスト（Spawn/Updateで分離）
-	if (ImGui::CollapsingHeader("Modules", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("モジュール", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		int moduleToDelete = -1;
 
 		// Spawnモジュール
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 1.0f, 0.4f, 1.0f));
-		ImGui::SeparatorText("Spawn Modules");
+		ImGui::SeparatorText("発生モジュール");
 		ImGui::PopStyleColor();
 		
 		bool hasSpawnModules = false;
@@ -1072,10 +1072,10 @@ void ParticleEditor::DrawModulePanel()
 			// 右クリックコンテキストメニュー
 			if (ImGui::BeginPopupContextItem())
 			{
-				if (ImGui::MenuItem("Move Up") && i > 0) { emitter->MoveModuleUp(i); }
-				if (ImGui::MenuItem("Move Down") && i < emitter->GetModuleCount() - 1) { emitter->MoveModuleDown(i); }
+				if (ImGui::MenuItem("上へ") && i > 0) { emitter->MoveModuleUp(i); }
+				if (ImGui::MenuItem("下へ") && i < emitter->GetModuleCount() - 1) { emitter->MoveModuleDown(i); }
 				ImGui::Separator();
-				if (ImGui::MenuItem("Delete")) { moduleToDelete = static_cast<int>(i); }
+				if (ImGui::MenuItem("削除")) { moduleToDelete = static_cast<int>(i); }
 				ImGui::EndPopup();
 			}
 
@@ -1111,7 +1111,7 @@ void ParticleEditor::DrawModulePanel()
 
 		// Updateモジュール
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.7f, 1.0f, 1.0f));
-		ImGui::SeparatorText("Update Modules");
+		ImGui::SeparatorText("更新モジュール");
 		ImGui::PopStyleColor();
 		
 		bool hasUpdateModules = false;
@@ -1144,10 +1144,10 @@ void ParticleEditor::DrawModulePanel()
 			// 右クリックコンテキストメニュー
 			if (ImGui::BeginPopupContextItem())
 			{
-				if (ImGui::MenuItem("Move Up") && i > 0) { emitter->MoveModuleUp(i); }
-				if (ImGui::MenuItem("Move Down") && i < emitter->GetModuleCount() - 1) { emitter->MoveModuleDown(i); }
+				if (ImGui::MenuItem("上へ") && i > 0) { emitter->MoveModuleUp(i); }
+				if (ImGui::MenuItem("下へ") && i < emitter->GetModuleCount() - 1) { emitter->MoveModuleDown(i); }
 				ImGui::Separator();
-				if (ImGui::MenuItem("Delete")) { moduleToDelete = static_cast<int>(i); }
+				if (ImGui::MenuItem("削除")) { moduleToDelete = static_cast<int>(i); }
 				ImGui::EndPopup();
 			}
 
@@ -1218,14 +1218,14 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 		return false;
 	};
 
-	ImGui::Text("Module: %s", module->GetName());
+	ImGui::Text("モジュール: %s", module->GetName());
 	ImGui::Separator();
 
 	// 各モジュールタイプごとにキャスト
 	if (auto* m = dynamic_cast<SpawnRateModule*>(module))
 	{
 		float rate = m->GetRate();
-		if (ImGui::DragFloat("Rate (per sec)", &rate, 0.1f, 0.0f, 1000.0f))
+		if (ImGui::DragFloat("1秒あたりの数", &rate, 0.1f, 0.0f, 1000.0f))
 		{
 			m->SetRate(rate);
 		}
@@ -1233,145 +1233,145 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 	else if (auto* m = dynamic_cast<SpawnBurstModule*>(module))
 	{
 		int count = static_cast<int>(m->GetCount());
-		if (ImGui::InputInt("Count", &count)) { m->SetCount(static_cast<uint32_t>((std::max)(0, count))); }
+		if (ImGui::InputInt("数", &count)) { m->SetCount(static_cast<uint32_t>((std::max)(0, count))); }
 
 		float delay = m->GetDelay();
-		if (ImGui::DragFloat("Delay", &delay, 0.01f, 0.0f, 10.0f)) { m->SetDelay(delay); }
+		if (ImGui::DragFloat("遅れ", &delay, 0.01f, 0.0f, 10.0f)) { m->SetDelay(delay); }
 
 		float interval = m->GetInterval();
-		if (ImGui::DragFloat("Interval", &interval, 0.01f, 0.0f, 10.0f)) { m->SetInterval(interval); }
+		if (ImGui::DragFloat("間隔", &interval, 0.01f, 0.0f, 10.0f)) { m->SetInterval(interval); }
 
 		int loops = m->GetLoops();
-		if (ImGui::InputInt("Loops (-1=infinite)", &loops)) { m->SetLoops(loops); }
+		if (ImGui::InputInt("繰り返し (-1で無限)", &loops)) { m->SetLoops(loops); }
 	}
 	else if (auto* m = dynamic_cast<InitialLifetimeModule*>(module))
 	{
 		float min = m->GetMinLifetime();
 		float max = m->GetMaxLifetime();
-		if (ImGui::DragFloat("Min Lifetime", &min, 0.01f, 0.01f, 100.0f)) { m->SetMinLifetime(min); }
-		if (ImGui::DragFloat("Max Lifetime", &max, 0.01f, 0.01f, 100.0f)) { m->SetMaxLifetime(max); }
+		if (ImGui::DragFloat("寿命の最小", &min, 0.01f, 0.01f, 100.0f)) { m->SetMinLifetime(min); }
+		if (ImGui::DragFloat("寿命の最大", &max, 0.01f, 0.01f, 100.0f)) { m->SetMaxLifetime(max); }
 	}
 	else if (auto* m = dynamic_cast<InitialVelocityModule*>(module))
 	{
 		Vector3 min = m->GetMinVelocity();
 		Vector3 max = m->GetMaxVelocity();
-		if (ImGui::DragFloat3("Min Velocity", &min.x, 0.1f)) { m->SetMinVelocity(min); }
-		if (ImGui::DragFloat3("Max Velocity", &max.x, 0.1f)) { m->SetMaxVelocity(max); }
+		if (ImGui::DragFloat3("速度の最小", &min.x, 0.1f)) { m->SetMinVelocity(min); }
+		if (ImGui::DragFloat3("速度の最大", &max.x, 0.1f)) { m->SetMaxVelocity(max); }
 	}
 	else if (auto* m = dynamic_cast<InitialScaleModule*>(module))
 	{
 		Vector3 min = m->GetMinScale();
 		Vector3 max = m->GetMaxScale();
-		if (ImGui::DragFloat3("Min Scale", &min.x, 0.01f)) { m->SetMinScale(min); }
-		if (ImGui::DragFloat3("Max Scale", &max.x, 0.01f)) { m->SetMaxScale(max); }
+		if (ImGui::DragFloat3("スケールの最小", &min.x, 0.01f)) { m->SetMinScale(min); }
+		if (ImGui::DragFloat3("スケールの最大", &max.x, 0.01f)) { m->SetMaxScale(max); }
 	}
 	else if (auto* m = dynamic_cast<InitialColorModule*>(module))
 	{
 		Vector4 min = m->GetMinColor();
 		Vector4 max = m->GetMaxColor();
-		if (ImGui::ColorEdit4("Min Color", &min.x)) { m->SetMinColor(min); }
-		if (ImGui::ColorEdit4("Max Color", &max.x)) { m->SetMaxColor(max); }
+		if (ImGui::ColorEdit4("色の最小", &min.x)) { m->SetMinColor(min); }
+		if (ImGui::ColorEdit4("色の最大", &max.x)) { m->SetMaxColor(max); }
 	}
 	else if (auto* m = dynamic_cast<AssignRibbonIdModule*>(module))
 	{
 		int groupCount = static_cast<int>(m->GetGroupCount());
-		if (ImGui::InputInt("Group Count", &groupCount, 1, 5))
+		if (ImGui::InputInt("グループ数", &groupCount, 1, 5))
 		{
 			m->SetGroupCount(static_cast<uint32_t>((std::max)(1, groupCount)));
 		}
-		ImGui::SetItemTooltip("Number of ribbon groups. Each group forms a separate trail.");
+		ImGui::SetItemTooltip("リボンのグループ数。グループごとに別のトレイルになる。");
 	}
 	else if (auto* m = dynamic_cast<GravityModule*>(module))
 	{
 		Vector3 minG = m->GetMinGravity();
 		Vector3 maxG = m->GetMaxGravity();
-		if (ImGui::DragFloat3("Min Gravity", &minG.x, 0.1f)) { m->SetGravityRange(minG, maxG); }
-		if (ImGui::DragFloat3("Max Gravity", &maxG.x, 0.1f)) { m->SetGravityRange(minG, maxG); }
+		if (ImGui::DragFloat3("重力の最小", &minG.x, 0.1f)) { m->SetGravityRange(minG, maxG); }
+		if (ImGui::DragFloat3("重力の最大", &maxG.x, 0.1f)) { m->SetGravityRange(minG, maxG); }
 	}
 	else if (auto* m = dynamic_cast<DragModule*>(module))
 	{
 		float minD = m->GetMinDrag();
 		float maxD = m->GetMaxDrag();
-		if (ImGui::DragFloat("Min Drag", &minD, 0.01f, 0.0f, 10.0f)) { m->SetDragRange(minD, maxD); }
-		if (ImGui::DragFloat("Max Drag", &maxD, 0.01f, 0.0f, 10.0f)) { m->SetDragRange(minD, maxD); }
+		if (ImGui::DragFloat("空気抵抗の最小", &minD, 0.01f, 0.0f, 10.0f)) { m->SetDragRange(minD, maxD); }
+		if (ImGui::DragFloat("空気抵抗の最大", &maxD, 0.01f, 0.0f, 10.0f)) { m->SetDragRange(minD, maxD); }
 	}
 	else if (auto* m = dynamic_cast<ColorFadeModule*>(module))
 	{
 		bool useInitial = m->GetUseInitialColor();
-		if (ImGui::Checkbox("Use Initial Color", &useInitial)) 
+		if (ImGui::Checkbox("初期色から始める", &useInitial)) 
 		{ 
 			m->SetUseInitialColor(useInitial); 
 		}
-		ImGui::SetItemTooltip("When enabled, fades from the color set by InitialColor module instead of Start Color");
+		ImGui::SetItemTooltip("オンにすると、開始色ではなく InitialColor モジュールの色から変える");
 		
 		if (!useInitial)
 		{
 			Vector4 start = m->GetStartColor();
-			if (ImGui::ColorEdit4("Start Color", &start.x)) { m->SetStartColor(start); }
+			if (ImGui::ColorEdit4("開始色", &start.x)) { m->SetStartColor(start); }
 		}
 		Vector4 end = m->GetEndColor();
-		if (ImGui::ColorEdit4("End Color", &end.x)) { m->SetEndColor(end); }
+		if (ImGui::ColorEdit4("終了色", &end.x)) { m->SetEndColor(end); }
 
 		EasingType easing = m->GetEasingType();
-		if (DrawEasingCombo("Easing Type", &easing)) { m->SetEasingType(easing); }
+		if (DrawEasingCombo("イージング", &easing)) { m->SetEasingType(easing); }
 	}
 	else if (auto* m = dynamic_cast<ScaleOverLifetimeModule*>(module))
 	{
 		Vector3 start = m->GetStartScale();
 		Vector3 end = m->GetEndScale();
-		if (ImGui::DragFloat3("Start Scale", &start.x, 0.01f)) { m->SetStartScale(start); }
-		if (ImGui::DragFloat3("End Scale", &end.x, 0.01f)) { m->SetEndScale(end); }
+		if (ImGui::DragFloat3("開始のスケール", &start.x, 0.01f)) { m->SetStartScale(start); }
+		if (ImGui::DragFloat3("終了のスケール", &end.x, 0.01f)) { m->SetEndScale(end); }
 
 		EasingType easing = m->GetEasingType();
-		if (DrawEasingCombo("Easing Type", &easing)) { m->SetEasingType(easing); }
+		if (DrawEasingCombo("イージング", &easing)) { m->SetEasingType(easing); }
 	}
 	else if (auto* m = dynamic_cast<TextureSheetModule*>(module))
 	{
 		int cols = static_cast<int>(m->GetColumns());
 		int rows = static_cast<int>(m->GetRows());
-		if (ImGui::InputInt("Columns", &cols)) { m->SetGridSize(static_cast<uint32_t>((std::max)(1, cols)), m->GetRows()); }
-		if (ImGui::InputInt("Rows", &rows)) { m->SetGridSize(m->GetColumns(), static_cast<uint32_t>((std::max)(1, rows))); }
+		if (ImGui::InputInt("列", &cols)) { m->SetGridSize(static_cast<uint32_t>((std::max)(1, cols)), m->GetRows()); }
+		if (ImGui::InputInt("行", &rows)) { m->SetGridSize(m->GetColumns(), static_cast<uint32_t>((std::max)(1, rows))); }
 
 		float fps = m->GetFrameRate();
-		if (ImGui::DragFloat("Frame Rate", &fps, 0.1f, 0.1f, 120.0f)) { m->SetFrameRate(fps); }
+		if (ImGui::DragFloat("フレームレート", &fps, 0.1f, 0.1f, 120.0f)) { m->SetFrameRate(fps); }
 
-		const char* playModes[] = { "Loop", "Once", "PingPong" };
+		const char* playModes[] = { "ループ", "1回", "往復" };
 		int mode = static_cast<int>(m->GetPlayMode());
-		if (ImGui::Combo("Play Mode", &mode, playModes, 3)) { m->SetPlayMode(static_cast<TextureSheetPlayMode>(mode)); }
+		if (ImGui::Combo("再生の仕方", &mode, playModes, 3)) { m->SetPlayMode(static_cast<TextureSheetPlayMode>(mode)); }
 	}
 	else if (auto* m = dynamic_cast<AttractorModule*>(module))
 	{
 		Vector3 target = m->GetTarget();
-		if (ImGui::DragFloat3("Target", &target.x, 0.1f)) { m->SetTarget(target); }
+		if (ImGui::DragFloat3("目標", &target.x, 0.1f)) { m->SetTarget(target); }
 
 		float strength = m->GetStrength();
-		if (ImGui::DragFloat("Strength", &strength, 0.1f)) { m->SetStrength(strength); }
+		if (ImGui::DragFloat("強さ", &strength, 0.1f)) { m->SetStrength(strength); }
 
 		float range = m->GetRange();
-		if (ImGui::DragFloat("Range", &range, 0.1f, 0.0f, 100.0f)) { m->SetRange(range); }
+		if (ImGui::DragFloat("範囲", &range, 0.1f, 0.0f, 100.0f)) { m->SetRange(range); }
 
-		const char* falloffTypes[] = { "None", "Linear", "Inverse Square" };
+		const char* falloffTypes[] = { "なし", "直線", "距離の2乗に反比例" };
 		int falloff = static_cast<int>(m->GetFalloffType());
-		if (ImGui::Combo("Falloff", &falloff, falloffTypes, 3)) { m->SetFalloffType(static_cast<FalloffType>(falloff)); }
+		if (ImGui::Combo("減衰", &falloff, falloffTypes, 3)) { m->SetFalloffType(static_cast<FalloffType>(falloff)); }
 	}
 	else if (auto* m = dynamic_cast<VortexModule*>(module))
 	{
 		Vector3 axis = m->GetAxis();
 		Vector3 center = m->GetCenter();
-		if (ImGui::DragFloat3("Axis", &axis.x, 0.01f)) { m->SetAxis(axis); }
-		if (ImGui::DragFloat3("Center", &center.x, 0.1f)) { m->SetCenter(center); }
+		if (ImGui::DragFloat3("軸", &axis.x, 0.01f)) { m->SetAxis(axis); }
+		if (ImGui::DragFloat3("中心", &center.x, 0.1f)) { m->SetCenter(center); }
 
 		float strength = m->GetStrength();
-		if (ImGui::DragFloat("Strength", &strength, 0.1f)) { m->SetStrength(strength); }
+		if (ImGui::DragFloat("強さ", &strength, 0.1f)) { m->SetStrength(strength); }
 
 		float range = m->GetRange();
-		if (ImGui::DragFloat("Range", &range, 0.1f, 0.0f, 100.0f)) { m->SetRange(range); }
+		if (ImGui::DragFloat("範囲", &range, 0.1f, 0.0f, 100.0f)) { m->SetRange(range); }
 	}
 	else if (auto* m = dynamic_cast<SpawnShapeModule*>(module))
 	{
 		const char* shapeTypes[] = { "Point", "Sphere", "Circle", "Box", "Cone", "Line" };
 		int shape = static_cast<int>(m->GetShapeType());
-		if (ImGui::Combo("Shape Type", &shape, shapeTypes, 6))
+		if (ImGui::Combo("形", &shape, shapeTypes, 6))
 		{
 			m->SetShapeType(static_cast<SpawnShapeType>(shape));
 		}
@@ -1381,234 +1381,234 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 		if (currentShape == SpawnShapeType::Sphere || currentShape == SpawnShapeType::Circle || 
 		    currentShape == SpawnShapeType::Box)
 		{
-			const char* spawnLocations[] = { "Volume", "Surface", "Edge" };
+			const char* spawnLocations[] = { "内部", "表面", "辺" };
 			int loc = static_cast<int>(m->GetSpawnLocation());
-			if (ImGui::Combo("Spawn Location", &loc, spawnLocations, 
+			if (ImGui::Combo("出す場所", &loc, spawnLocations, 
 			    (currentShape == SpawnShapeType::Box) ? 3 : 2)) // Edge only for Box
 			{
 				m->SetSpawnLocation(static_cast<SpawnLocation>(loc));
 			}
-			ImGui::SetItemTooltip("Volume: Fill interior, Surface: Outer shell only, Edge: Box edges only");
+			ImGui::SetItemTooltip("内部: 中を埋める。表面: 外側だけ。辺: 箱の辺だけ");
 		}
 
 		float innerRadius = m->GetInnerRadius();
 		float outerRadius = m->GetOuterRadius();
-		if (ImGui::DragFloat("Inner Radius", &innerRadius, 0.1f, 0.0f, 100.0f)) { m->SetInnerRadius(innerRadius); }
-		if (ImGui::DragFloat("Outer Radius", &outerRadius, 0.1f, 0.0f, 100.0f)) { m->SetOuterRadius(outerRadius); }
+		if (ImGui::DragFloat("内側の半径", &innerRadius, 0.1f, 0.0f, 100.0f)) { m->SetInnerRadius(innerRadius); }
+		if (ImGui::DragFloat("外側の半径", &outerRadius, 0.1f, 0.0f, 100.0f)) { m->SetOuterRadius(outerRadius); }
 
 		Vector3 boxSize = m->GetBoxSize();
-		if (ImGui::DragFloat3("Box Size", &boxSize.x, 0.1f)) { m->SetBoxSize(boxSize); }
+		if (ImGui::DragFloat3("箱の大きさ", &boxSize.x, 0.1f)) { m->SetBoxSize(boxSize); }
 
 		float coneHeight = m->GetConeHeight();
-		if (ImGui::DragFloat("Cone Height", &coneHeight, 0.1f, 0.0f, 100.0f)) { m->SetConeHeight(coneHeight); }
+		if (ImGui::DragFloat("円錐の高さ", &coneHeight, 0.1f, 0.0f, 100.0f)) { m->SetConeHeight(coneHeight); }
 
 		bool emitFromSurface = m->GetEmitFromSurface();
-		if (ImGui::Checkbox("Emit From Surface", &emitFromSurface)) { m->SetEmitFromSurface(emitFromSurface); }
+		if (ImGui::Checkbox("表面から出す", &emitFromSurface)) { m->SetEmitFromSurface(emitFromSurface); }
 
 		float initialSpeed = m->GetInitialSpeed();
-		if (ImGui::DragFloat("Initial Speed", &initialSpeed, 0.1f, 0.0f, 100.0f)) { m->SetInitialSpeed(initialSpeed); }
+		if (ImGui::DragFloat("初速", &initialSpeed, 0.1f, 0.0f, 100.0f)) { m->SetInitialSpeed(initialSpeed); }
 
 		// Line用パラメータ
 		Vector3 lineStart = m->GetLineStart();
 		Vector3 lineEnd = m->GetLineEnd();
-		if (ImGui::DragFloat3("Line Start", &lineStart.x, 0.1f)) { m->SetLine(lineStart, lineEnd); }
-		if (ImGui::DragFloat3("Line End", &lineEnd.x, 0.1f)) { m->SetLine(lineStart, lineEnd); }
+		if (ImGui::DragFloat3("線の始点", &lineStart.x, 0.1f)) { m->SetLine(lineStart, lineEnd); }
+		if (ImGui::DragFloat3("線の終点", &lineEnd.x, 0.1f)) { m->SetLine(lineStart, lineEnd); }
 
 		float arcAngle = m->GetArcAngle();
-		if (ImGui::DragFloat("Arc Angle", &arcAngle, 1.0f, 0.0f, 360.0f)) { m->SetArcAngle(arcAngle); }
-		ImGui::SetItemTooltip("Specify spawn arc angle for Circle and Cone (0-360)");
+		if (ImGui::DragFloat("弧の角度", &arcAngle, 1.0f, 0.0f, 360.0f)) { m->SetArcAngle(arcAngle); }
+		ImGui::SetItemTooltip("Circle と Cone で出す弧の角度（0〜360）");
 	}
 	else if (auto* m = dynamic_cast<InitialRotationModule*>(module))
 	{
 		Vector3 minAngle = m->GetMinAngle();
 		Vector3 maxAngle = m->GetMaxAngle();
-		if (ImGui::DragFloat3("Min Angle", &minAngle.x, 1.0f, 0.0f, 360.0f)) { m->SetRotationRange(minAngle, maxAngle); }
-		if (ImGui::DragFloat3("Max Angle", &maxAngle.x, 1.0f, 0.0f, 360.0f)) { m->SetRotationRange(minAngle, maxAngle); }
+		if (ImGui::DragFloat3("角度の最小", &minAngle.x, 1.0f, 0.0f, 360.0f)) { m->SetRotationRange(minAngle, maxAngle); }
+		if (ImGui::DragFloat3("角度の最大", &maxAngle.x, 1.0f, 0.0f, 360.0f)) { m->SetRotationRange(minAngle, maxAngle); }
 	}
 	else if (auto* m = dynamic_cast<RotationOverLifetimeModule*>(module))
 	{
 		float startSpeed = m->GetStartSpeed();
 		float endSpeed = m->GetEndSpeed();
-		if (ImGui::DragFloat("Start Speed (deg/s)", &startSpeed, 1.0f, -1000.0f, 1000.0f)) { m->SetRotationSpeedRange(startSpeed, endSpeed); }
-		if (ImGui::DragFloat("End Speed (deg/s)", &endSpeed, 1.0f, -1000.0f, 1000.0f)) { m->SetRotationSpeedRange(startSpeed, endSpeed); }
+		if (ImGui::DragFloat("開始の回転速度 (度/秒)", &startSpeed, 1.0f, -1000.0f, 1000.0f)) { m->SetRotationSpeedRange(startSpeed, endSpeed); }
+		if (ImGui::DragFloat("終了の回転速度 (度/秒)", &endSpeed, 1.0f, -1000.0f, 1000.0f)) { m->SetRotationSpeedRange(startSpeed, endSpeed); }
 
 		EasingType easing = m->GetEasingType();
-		if (DrawEasingCombo("Easing Type", &easing)) { m->SetEasingType(easing); }
+		if (DrawEasingCombo("イージング", &easing)) { m->SetEasingType(easing); }
 	}
 	else if (auto* m = dynamic_cast<FaceVelocityModule*>(module))
 	{
-		ImGui::Text("Aligns particle rotation to its velocity direction.");
+		ImGui::Text("パーティクルの向きを進む方向に合わせる。");
 		bool use2D = m->IsUse2DAlignment();
-		if (ImGui::Checkbox("Use 2D Alignment", &use2D))
+		if (ImGui::Checkbox("2D で合わせる", &use2D))
 		{
 			m->SetUse2DAlignment(use2D);
 		}
-		ImGui::SetItemTooltip("ON: 2D Rolling (for Sprites), OFF: 3D Pitch/Yaw (for Meshes)");
+		ImGui::SetItemTooltip("オン: 2D の回転（スプライト向け）。オフ: 3D のピッチ/ヨー（メッシュ向け）");
 	}
 	else if (auto* m = dynamic_cast<JitterModule*>(module))
 	{
 		Vector3 amount = m->GetAmount();
-		if (ImGui::DragFloat3("Amount", &amount.x, 0.01f, 0.0f, 10.0f)) { m->SetAmount(amount); }
+		if (ImGui::DragFloat3("量", &amount.x, 0.01f, 0.0f, 10.0f)) { m->SetAmount(amount); }
 	}
 	else if (auto* m = dynamic_cast<ForceOverLifetimeModule*>(module))
 	{
 		Vector3 dir = m->GetDirection();
-		if (ImGui::DragFloat3("Direction", &dir.x, 0.1f)) { m->SetDirection(dir); }
+		if (ImGui::DragFloat3("向き", &dir.x, 0.1f)) { m->SetDirection(dir); }
 
 		float startS = m->GetStartStrength();
 		float endS = m->GetEndStrength();
-		if (ImGui::DragFloat("Start Strength", &startS, 0.1f)) { m->SetStrengths(startS, endS); }
-		if (ImGui::DragFloat("End Strength", &endS, 0.1f)) { m->SetStrengths(startS, endS); }
+		if (ImGui::DragFloat("開始の強さ", &startS, 0.1f)) { m->SetStrengths(startS, endS); }
+		if (ImGui::DragFloat("終了の強さ", &endS, 0.1f)) { m->SetStrengths(startS, endS); }
 
 		EasingType easing = m->GetEasingType();
-		if (DrawEasingCombo("Easing Type", &easing)) { m->SetEasingType(easing); }
+		if (DrawEasingCombo("イージング", &easing)) { m->SetEasingType(easing); }
 	}
 	else if (auto* m = dynamic_cast<OrbitModule*>(module))
 	{
 		float speed = m->GetOrbitSpeed();
-		if (ImGui::DragFloat("Orbit Speed (deg/s)", &speed, 1.0f, -360.0f, 360.0f)) { m->SetOrbitSpeed(speed); }
+		if (ImGui::DragFloat("周回の速さ (度/秒)", &speed, 1.0f, -360.0f, 360.0f)) { m->SetOrbitSpeed(speed); }
 
 		Vector3 axis = m->GetOrbitAxis();
-		if (ImGui::DragFloat3("Orbit Axis", &axis.x, 0.01f)) { m->SetOrbitAxis(axis); }
+		if (ImGui::DragFloat3("周回の軸", &axis.x, 0.01f)) { m->SetOrbitAxis(axis); }
 	}
 	else if (auto* m = dynamic_cast<NoiseModule*>(module))
 	{
 		float strength = m->GetStrength();
 		float frequency = m->GetFrequency();
-		if (ImGui::DragFloat("Strength", &strength, 0.1f, 0.0f, 100.0f)) { m->SetStrength(strength); }
-		if (ImGui::DragFloat("Frequency", &frequency, 0.1f, 0.0f, 10.0f)) { m->SetFrequency(frequency); }
+		if (ImGui::DragFloat("強さ", &strength, 0.1f, 0.0f, 100.0f)) { m->SetStrength(strength); }
+		if (ImGui::DragFloat("周波数", &frequency, 0.1f, 0.0f, 10.0f)) { m->SetFrequency(frequency); }
 	}
 	else if (auto* m = dynamic_cast<VelocityLimitModule*>(module))
 	{
 		float maxSpeed = m->GetMaxSpeed();
-		if (ImGui::DragFloat("Max Speed", &maxSpeed, 0.1f, 0.0f, 100.0f)) { m->SetMaxSpeed(maxSpeed); }
+		if (ImGui::DragFloat("最大速度", &maxSpeed, 0.1f, 0.0f, 100.0f)) { m->SetMaxSpeed(maxSpeed); }
 	}
 	// Phase 3: New modules
 	else if (auto* m = dynamic_cast<AccelerationModule*>(module))
 	{
 		Vector3 acc = m->GetAcceleration();
-		if (ImGui::DragFloat3("Acceleration", &acc.x, 0.1f)) { m->SetAcceleration(acc); }
+		if (ImGui::DragFloat3("加速度", &acc.x, 0.1f)) { m->SetAcceleration(acc); }
 	}
 	else if (auto* m = dynamic_cast<CurlNoiseModule*>(module))
 	{
 		float strength = m->GetStrength();
-		if (ImGui::DragFloat("Strength", &strength, 0.1f, 0.0f, 50.0f)) { m->SetStrength(strength); }
+		if (ImGui::DragFloat("強さ", &strength, 0.1f, 0.0f, 50.0f)) { m->SetStrength(strength); }
 		
 		float frequency = m->GetFrequency();
-		if (ImGui::DragFloat("Frequency", &frequency, 0.1f, 0.01f, 10.0f)) { m->SetFrequency(frequency); }
+		if (ImGui::DragFloat("周波数", &frequency, 0.1f, 0.01f, 10.0f)) { m->SetFrequency(frequency); }
 		
 		int octaves = m->GetOctaves();
-		if (ImGui::SliderInt("Octaves", &octaves, 1, 8)) { m->SetOctaves(octaves); }
+		if (ImGui::SliderInt("オクターブ", &octaves, 1, 8)) { m->SetOctaves(octaves); }
 		
 		float scroll = m->GetScrollSpeed();
-		if (ImGui::DragFloat("Scroll Speed", &scroll, 0.1f, 0.0f, 10.0f)) { m->SetScrollSpeed(scroll); }
+		if (ImGui::DragFloat("流れる速さ", &scroll, 0.1f, 0.0f, 10.0f)) { m->SetScrollSpeed(scroll); }
 	}
 	else if (auto* m = dynamic_cast<SizeBySpeedModule*>(module))
 	{
 		float minSpd = m->GetMinSpeed();
 		float maxSpd = m->GetMaxSpeed();
-		if (ImGui::DragFloat("Min Speed", &minSpd, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpd, maxSpd); }
-		if (ImGui::DragFloat("Max Speed", &maxSpd, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpd, maxSpd); }
+		if (ImGui::DragFloat("最小速度", &minSpd, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpd, maxSpd); }
+		if (ImGui::DragFloat("最大速度", &maxSpd, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpd, maxSpd); }
 		
 		Vector3 minScale = m->GetMinScale();
 		Vector3 maxScale = m->GetMaxScale();
-		if (ImGui::DragFloat3("Min Scale", &minScale.x, 0.01f)) { m->SetScaleRange(minScale, maxScale); }
-		if (ImGui::DragFloat3("Max Scale", &maxScale.x, 0.01f)) { m->SetScaleRange(minScale, maxScale); }
+		if (ImGui::DragFloat3("スケールの最小", &minScale.x, 0.01f)) { m->SetScaleRange(minScale, maxScale); }
+		if (ImGui::DragFloat3("スケールの最大", &maxScale.x, 0.01f)) { m->SetScaleRange(minScale, maxScale); }
 	}
 	else if (auto* m = dynamic_cast<ColorBySpeedModule*>(module))
 	{
 		float minSpd = m->GetMinSpeed();
 		float maxSpd = m->GetMaxSpeed();
-		if (ImGui::DragFloat("Min Speed", &minSpd, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpd, maxSpd); }
-		if (ImGui::DragFloat("Max Speed", &maxSpd, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpd, maxSpd); }
+		if (ImGui::DragFloat("最小速度", &minSpd, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpd, maxSpd); }
+		if (ImGui::DragFloat("最大速度", &maxSpd, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpd, maxSpd); }
 		
 		Vector4 minColor = m->GetMinColor();
 		Vector4 maxColor = m->GetMaxColor();
-		if (ImGui::ColorEdit4("Min Color", &minColor.x)) { m->SetColorRange(minColor, maxColor); }
-		if (ImGui::ColorEdit4("Max Color", &maxColor.x)) { m->SetColorRange(minColor, maxColor); }
+		if (ImGui::ColorEdit4("色の最小", &minColor.x)) { m->SetColorRange(minColor, maxColor); }
+		if (ImGui::ColorEdit4("色の最大", &maxColor.x)) { m->SetColorRange(minColor, maxColor); }
 	}
 	else if (auto* m = dynamic_cast<CollisionModule*>(module))
 	{
-		const char* modes[] = { "Plane", "World", "Box" };
+		const char* modes[] = { "平面", "ワールド", "箱" };
 		int mode = static_cast<int>(m->GetMode());
-		if (ImGui::Combo("Mode", &mode, modes, 3)) { m->SetMode(static_cast<CollisionMode>(mode)); }
+		if (ImGui::Combo("方式", &mode, modes, 3)) { m->SetMode(static_cast<CollisionMode>(mode)); }
 		
 		float bounce = m->GetBounce();
-		if (ImGui::DragFloat("Bounce", &bounce, 0.01f, 0.0f, 1.0f)) { m->SetBounce(bounce); }
+		if (ImGui::DragFloat("跳ね返り", &bounce, 0.01f, 0.0f, 1.0f)) { m->SetBounce(bounce); }
 		
 		float friction = m->GetFriction();
-		if (ImGui::DragFloat("Friction", &friction, 0.01f, 0.0f, 1.0f)) { m->SetFriction(friction); }
+		if (ImGui::DragFloat("摩擦", &friction, 0.01f, 0.0f, 1.0f)) { m->SetFriction(friction); }
 		
 		if (m->GetMode() == CollisionMode::Plane || m->GetMode() == CollisionMode::World)
 		{
 			float height = m->GetPlaneHeight();
-			if (ImGui::DragFloat("Plane Height", &height, 0.1f)) { m->SetPlaneHeight(height); }
+			if (ImGui::DragFloat("平面の高さ", &height, 0.1f)) { m->SetPlaneHeight(height); }
 		}
 		else if (m->GetMode() == CollisionMode::Box)
 		{
 			Vector3 center = m->GetBoxCenter();
 			Vector3 size = m->GetBoxSize();
-			if (ImGui::DragFloat3("Box Center", &center.x, 0.1f)) { m->SetBoxCenter(center); }
-			if (ImGui::DragFloat3("Box Size", &size.x, 0.1f)) { m->SetBoxSize(size); }
+			if (ImGui::DragFloat3("箱の中心", &center.x, 0.1f)) { m->SetBoxCenter(center); }
+			if (ImGui::DragFloat3("箱の大きさ", &size.x, 0.1f)) { m->SetBoxSize(size); }
 		}
 		
 		bool killOnCol = m->GetKillOnCollision();
-		if (ImGui::Checkbox("Kill On Collision", &killOnCol)) { m->SetKillOnCollision(killOnCol); }
+		if (ImGui::Checkbox("当たったら消す", &killOnCol)) { m->SetKillOnCollision(killOnCol); }
 	}
 	else if (auto* m = dynamic_cast<KillZoneModule*>(module))
 	{
-		const char* zoneTypes[] = { "Box", "Sphere" };
+		const char* zoneTypes[] = { "箱", "球" };
 		int zType = static_cast<int>(m->GetZoneType());
-		if (ImGui::Combo("Zone Type", &zType, zoneTypes, 2)) { m->SetZoneType(static_cast<KillZoneType>(zType)); }
+		if (ImGui::Combo("範囲の形", &zType, zoneTypes, 2)) { m->SetZoneType(static_cast<KillZoneType>(zType)); }
 		
 		Vector3 center = m->GetCenter();
-		if (ImGui::DragFloat3("Center", &center.x, 0.1f)) { m->SetCenter(center); }
+		if (ImGui::DragFloat3("中心", &center.x, 0.1f)) { m->SetCenter(center); }
 		
 		if (m->GetZoneType() == KillZoneType::Box)
 		{
 			Vector3 size = m->GetBoxSize();
-			if (ImGui::DragFloat3("Size", &size.x, 0.1f)) { m->SetBoxSize(size); }
+			if (ImGui::DragFloat3("大きさ", &size.x, 0.1f)) { m->SetBoxSize(size); }
 		}
 		else
 		{
 			float radius = m->GetRadius();
-			if (ImGui::DragFloat("Radius", &radius, 0.1f, 0.0f, 100.0f)) { m->SetRadius(radius); }
+			if (ImGui::DragFloat("半径", &radius, 0.1f, 0.0f, 100.0f)) { m->SetRadius(radius); }
 		}
 		
 		bool killInside = m->GetKillInside();
-		if (ImGui::Checkbox("Kill Inside", &killInside)) { m->SetKillInside(killInside); }
-		ImGui::SetItemTooltip("ON: Kill particles inside zone, OFF: Kill particles outside zone");
+		if (ImGui::Checkbox("内側で消す", &killInside)) { m->SetKillInside(killInside); }
+		ImGui::SetItemTooltip("オン: 範囲の内側で消す。オフ: 外側で消す");
 	}
 	else if (auto* m = dynamic_cast<SprintToTargetModule*>(module))
 	{
 		Vector3 target = m->GetTarget();
-		if (ImGui::DragFloat3("Target", &target.x, 0.1f)) { m->SetTarget(target); }
+		if (ImGui::DragFloat3("目標", &target.x, 0.1f)) { m->SetTarget(target); }
 		
 		float acc = m->GetAcceleration();
-		if (ImGui::DragFloat("Acceleration", &acc, 0.1f, 0.0f, 50.0f)) { m->SetAcceleration(acc); }
+		if (ImGui::DragFloat("加速度", &acc, 0.1f, 0.0f, 50.0f)) { m->SetAcceleration(acc); }
 		
 		float arriveRad = m->GetArriveRadius();
-		if (ImGui::DragFloat("Arrive Radius", &arriveRad, 0.1f, 0.0f, 10.0f)) { m->SetArriveRadius(arriveRad); }
+		if (ImGui::DragFloat("到着とみなす半径", &arriveRad, 0.1f, 0.0f, 10.0f)) { m->SetArriveRadius(arriveRad); }
 		
 		bool killOnArrive = m->GetKillOnArrive();
-		if (ImGui::Checkbox("Kill On Arrive", &killOnArrive)) { m->SetKillOnArrive(killOnArrive); }
+		if (ImGui::Checkbox("着いたら消す", &killOnArrive)) { m->SetKillOnArrive(killOnArrive); }
 		
 		bool useSpeedCurve = m->GetUseSpeedCurve();
-		if (ImGui::Checkbox("Use Speed Curve", &useSpeedCurve)) { m->SetUseSpeedCurve(useSpeedCurve); }
+		if (ImGui::Checkbox("距離で速さを変える", &useSpeedCurve)) { m->SetUseSpeedCurve(useSpeedCurve); }
 		
 		if (useSpeedCurve)
 		{
 			float maxDist = m->GetMaxDistance();
-			if (ImGui::DragFloat("Max Distance", &maxDist, 0.1f, 1.0f, 100.0f)) { m->SetMaxDistance(maxDist); }
+			if (ImGui::DragFloat("最大距離", &maxDist, 0.1f, 1.0f, 100.0f)) { m->SetMaxDistance(maxDist); }
 			
 			float speedBoost = m->GetSpeedBoost();
-			if (ImGui::DragFloat("Speed Boost", &speedBoost, 0.1f, 0.0f, 10.0f)) { m->SetSpeedBoost(speedBoost); }
+			if (ImGui::DragFloat("速さの上乗せ", &speedBoost, 0.1f, 0.0f, 10.0f)) { m->SetSpeedBoost(speedBoost); }
 		}
 	}
 	// Phase 4: Sub-Emitters
 	else if (auto* m = dynamic_cast<SubEmitterModule*>(module))
 	{
-		ImGui::Text("Sub Emitter Configurations: %d", static_cast<int>(m->GetConfigCount()));
+		ImGui::Text("サブエミッターの設定: %d", static_cast<int>(m->GetConfigCount()));
 		
 		// 既存設定の編集
 		for (size_t i = 0; i < m->GetConfigCount(); ++i)
@@ -1618,27 +1618,27 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 			
 			ImGui::PushID(static_cast<int>(i));
 			ImGui::Separator();
-			ImGui::Text("Config %d", static_cast<int>(i + 1));
+			ImGui::Text("設定 %d", static_cast<int>(i + 1));
 			
 			// Effect Path
 			static char pathBuffer[256];
 			strncpy_s(pathBuffer, config->effectPath.c_str(), sizeof(pathBuffer) - 1);
-			if (ImGui::InputText("Effect Path", pathBuffer, sizeof(pathBuffer)))
+			if (ImGui::InputText("エフェクトのパス", pathBuffer, sizeof(pathBuffer)))
 			{
 				config->effectPath = pathBuffer;
 			}
-			ImGui::SetItemTooltip("Path to sub-effect JSON file");
+			ImGui::SetItemTooltip("サブエフェクトの JSON ファイルのパス");
 			
 			// Trigger
 			const char* triggers[] = { "OnSpawn", "OnDeath", "OnCollision", "Continuous" };
 			int trigger = static_cast<int>(config->trigger);
-			if (ImGui::Combo("Trigger", &trigger, triggers, 4))
+			if (ImGui::Combo("きっかけ", &trigger, triggers, 4))
 			{
 				config->trigger = static_cast<SubEmitterTrigger>(trigger);
 			}
 			
 			// Probability
-			if (ImGui::DragFloat("Probability", &config->probability, 0.01f, 0.0f, 1.0f))
+			if (ImGui::DragFloat("確率", &config->probability, 0.01f, 0.0f, 1.0f))
 			{
 				config->probability = (std::clamp)(config->probability, 0.0f, 1.0f);
 			}
@@ -1646,22 +1646,22 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 			// Continuous rate (only for Continuous trigger)
 			if (config->trigger == SubEmitterTrigger::Continuous)
 			{
-				ImGui::DragFloat("Rate (per sec)", &config->continuousRate, 0.1f, 0.1f, 100.0f);
+				ImGui::DragFloat("1秒あたりの数", &config->continuousRate, 0.1f, 0.1f, 100.0f);
 			}
 			
 			// Inheritance settings
-			ImGui::Checkbox("Inherit Position", &config->inheritPosition);
-			ImGui::Checkbox("Inherit Velocity", &config->inheritVelocity);
+			ImGui::Checkbox("位置を引き継ぐ", &config->inheritPosition);
+			ImGui::Checkbox("速度を引き継ぐ", &config->inheritVelocity);
 			if (config->inheritVelocity)
 			{
-				ImGui::DragFloat("Velocity Scale", &config->inheritVelocityScale, 0.1f, 0.0f, 2.0f);
+				ImGui::DragFloat("速度の倍率", &config->inheritVelocityScale, 0.1f, 0.0f, 2.0f);
 			}
-			ImGui::Checkbox("Inherit Color", &config->inheritColor);
-			ImGui::Checkbox("Inherit Scale", &config->inheritScale);
+			ImGui::Checkbox("色を引き継ぐ", &config->inheritColor);
+			ImGui::Checkbox("スケールを引き継ぐ", &config->inheritScale);
 			
 			// Delete button
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.2f, 0.2f, 1.0f));
-			if (ImGui::Button("Delete Config"))
+			if (ImGui::Button("設定を削除"))
 			{
 				m->RemoveConfig(i);
 				ImGui::PopStyleColor();
@@ -1686,131 +1686,131 @@ void ParticleEditor::DrawModuleProperties(IModule* module)
 	{
 		float minSpeed = m->GetMinSpeed();
 		float maxSpeed = m->GetMaxSpeed();
-		if (ImGui::DragFloat("Min Speed", &minSpeed, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpeed, maxSpeed); }
-		if (ImGui::DragFloat("Max Speed", &maxSpeed, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpeed, maxSpeed); }
+		if (ImGui::DragFloat("最小速度", &minSpeed, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpeed, maxSpeed); }
+		if (ImGui::DragFloat("最大速度", &maxSpeed, 0.1f, 0.0f, 100.0f)) { m->SetSpeedRange(minSpeed, maxSpeed); }
 	}
 	else if (auto* m = dynamic_cast<VelocityOverLifetimeModule*>(module))
 	{
 		float startMul = m->GetStartMultiplier();
 		float endMul = m->GetEndMultiplier();
-		if (ImGui::DragFloat("Start Multiplier", &startMul, 0.01f, 0.0f, 2.0f)) { m->SetStartMultiplier(startMul); }
-		if (ImGui::DragFloat("End Multiplier", &endMul, 0.01f, 0.0f, 2.0f)) { m->SetEndMultiplier(endMul); }
+		if (ImGui::DragFloat("開始の倍率", &startMul, 0.01f, 0.0f, 2.0f)) { m->SetStartMultiplier(startMul); }
+		if (ImGui::DragFloat("終了の倍率", &endMul, 0.01f, 0.0f, 2.0f)) { m->SetEndMultiplier(endMul); }
 	}
 	else if (auto* m = dynamic_cast<StretchByVelocityModule*>(module))
 	{
 		float factor = m->GetStretchFactor();
-		if (ImGui::DragFloat("Stretch Factor", &factor, 0.01f, 0.0f, 1.0f)) { m->SetStretchFactor(factor); }
+		if (ImGui::DragFloat("伸びの強さ", &factor, 0.01f, 0.0f, 1.0f)) { m->SetStretchFactor(factor); }
 		
 		float minS = m->GetMinStretch();
 		float maxS = m->GetMaxStretch();
-		if (ImGui::DragFloat("Min Stretch", &minS, 0.1f, 0.1f, 10.0f)) { m->SetMinStretch(minS); }
-		if (ImGui::DragFloat("Max Stretch", &maxS, 0.1f, 0.1f, 10.0f)) { m->SetMaxStretch(maxS); }
+		if (ImGui::DragFloat("伸びの最小", &minS, 0.1f, 0.1f, 10.0f)) { m->SetMinStretch(minS); }
+		if (ImGui::DragFloat("伸びの最大", &maxS, 0.1f, 0.1f, 10.0f)) { m->SetMaxStretch(maxS); }
 		
 		bool preserve = m->GetPreserveVolume();
-		if (ImGui::Checkbox("Preserve Volume", &preserve)) { m->SetPreserveVolume(preserve); }
-		ImGui::SetItemTooltip("Shrink X/Z when stretching Y to maintain volume");
+		if (ImGui::Checkbox("体積を保つ", &preserve)) { m->SetPreserveVolume(preserve); }
+		ImGui::SetItemTooltip("Y に伸ばすときに X/Z を縮めて体積を保つ");
 	}
 	else if (auto* m = dynamic_cast<WindModule*>(module))
 	{
 		Vector3 dir = m->GetDirection();
-		if (ImGui::DragFloat3("Direction", &dir.x, 0.01f)) { m->SetDirection(dir); }
+		if (ImGui::DragFloat3("向き", &dir.x, 0.01f)) { m->SetDirection(dir); }
 		
 		float strength = m->GetStrength();
-		if (ImGui::DragFloat("Strength", &strength, 0.1f, 0.0f, 50.0f)) { m->SetStrength(strength); }
+		if (ImGui::DragFloat("強さ", &strength, 0.1f, 0.0f, 50.0f)) { m->SetStrength(strength); }
 		
 		float turb = m->GetTurbulence();
-		if (ImGui::DragFloat("Turbulence", &turb, 0.01f, 0.0f, 1.0f)) { m->SetTurbulence(turb); }
+		if (ImGui::DragFloat("乱れ", &turb, 0.01f, 0.0f, 1.0f)) { m->SetTurbulence(turb); }
 		
 		float turbFreq = m->GetTurbulenceFrequency();
-		if (ImGui::DragFloat("Turbulence Freq", &turbFreq, 0.1f, 0.1f, 10.0f)) { m->SetTurbulenceFrequency(turbFreq); }
+		if (ImGui::DragFloat("乱れの周波数", &turbFreq, 0.1f, 0.1f, 10.0f)) { m->SetTurbulenceFrequency(turbFreq); }
 	}
 	else if (auto* m = dynamic_cast<FlickerModule*>(module))
 	{
 		float freq = m->GetFrequency();
-		if (ImGui::DragFloat("Frequency", &freq, 0.1f, 0.1f, 50.0f)) { m->SetFrequency(freq); }
+		if (ImGui::DragFloat("周波数", &freq, 0.1f, 0.1f, 50.0f)) { m->SetFrequency(freq); }
 		
 		float minA = m->GetMinAlpha();
 		float maxA = m->GetMaxAlpha();
-		if (ImGui::DragFloat("Min Alpha", &minA, 0.01f, 0.0f, 1.0f)) { m->SetMinAlpha(minA); }
-		if (ImGui::DragFloat("Max Alpha", &maxA, 0.01f, 0.0f, 1.0f)) { m->SetMaxAlpha(maxA); }
+		if (ImGui::DragFloat("アルファの最小", &minA, 0.01f, 0.0f, 1.0f)) { m->SetMinAlpha(minA); }
+		if (ImGui::DragFloat("アルファの最大", &maxA, 0.01f, 0.0f, 1.0f)) { m->SetMaxAlpha(maxA); }
 		
 		bool randPhase = m->GetRandomPhase();
-		if (ImGui::Checkbox("Random Phase", &randPhase)) { m->SetRandomPhase(randPhase); }
+		if (ImGui::Checkbox("位相をばらつかせる", &randPhase)) { m->SetRandomPhase(randPhase); }
 		
 		bool useNoise = m->GetUseNoise();
-		if (ImGui::Checkbox("Use Noise", &useNoise)) { m->SetUseNoise(useNoise); }
+		if (ImGui::Checkbox("ノイズを使う", &useNoise)) { m->SetUseNoise(useNoise); }
 	}
 	else if (auto* m = dynamic_cast<AlphaFadeModule*>(module))
 	{
 		float startA = m->GetStartAlpha();
 		float endA = m->GetEndAlpha();
-		if (ImGui::DragFloat("Start Alpha", &startA, 0.01f, 0.0f, 1.0f)) { m->SetStartAlpha(startA); }
-		if (ImGui::DragFloat("End Alpha", &endA, 0.01f, 0.0f, 1.0f)) { m->SetEndAlpha(endA); }
+		if (ImGui::DragFloat("開始のアルファ", &startA, 0.01f, 0.0f, 1.0f)) { m->SetStartAlpha(startA); }
+		if (ImGui::DragFloat("終了のアルファ", &endA, 0.01f, 0.0f, 1.0f)) { m->SetEndAlpha(endA); }
 		
 		bool easeIn = m->GetEaseIn();
 		bool easeOut = m->GetEaseOut();
-		if (ImGui::Checkbox("Ease In", &easeIn)) { m->SetEaseIn(easeIn); }
+		if (ImGui::Checkbox("イーズイン", &easeIn)) { m->SetEaseIn(easeIn); }
 		ImGui::SameLine();
-		if (ImGui::Checkbox("Ease Out", &easeOut)) { m->SetEaseOut(easeOut); }
+		if (ImGui::Checkbox("イーズアウト", &easeOut)) { m->SetEaseOut(easeOut); }
 	}
 	else if (auto* m = dynamic_cast<RotationBySpeedModule*>(module))
 	{
 		float rotPerSpeed = m->GetRotationPerSpeed();
-		if (ImGui::DragFloat("Rotation/Speed (deg)", &rotPerSpeed, 1.0f, -360.0f, 360.0f)) { m->SetRotationPerSpeed(rotPerSpeed); }
+		if (ImGui::DragFloat("速さあたりの回転 (度)", &rotPerSpeed, 1.0f, -360.0f, 360.0f)) { m->SetRotationPerSpeed(rotPerSpeed); }
 		
 		float minSpd = m->GetMinSpeed();
 		float maxSpd = m->GetMaxSpeed();
-		if (ImGui::DragFloat("Min Speed", &minSpd, 0.1f, 0.0f, 100.0f)) { m->SetMinSpeed(minSpd); }
-		if (ImGui::DragFloat("Max Speed (0=unlimited)", &maxSpd, 0.1f, 0.0f, 100.0f)) { m->SetMaxSpeed(maxSpd); }
+		if (ImGui::DragFloat("最小速度", &minSpd, 0.1f, 0.0f, 100.0f)) { m->SetMinSpeed(minSpd); }
+		if (ImGui::DragFloat("最大速度 (0で無制限)", &maxSpd, 0.1f, 0.0f, 100.0f)) { m->SetMaxSpeed(maxSpd); }
 	}
 	else if (auto* m = dynamic_cast<SineWaveModule*>(module))
 	{
 		float amp = m->GetAmplitude();
-		if (ImGui::DragFloat("Amplitude", &amp, 0.1f, 0.0f, 10.0f)) { m->SetAmplitude(amp); }
+		if (ImGui::DragFloat("振幅", &amp, 0.1f, 0.0f, 10.0f)) { m->SetAmplitude(amp); }
 		
 		float freq = m->GetFrequency();
-		if (ImGui::DragFloat("Frequency", &freq, 0.1f, 0.1f, 20.0f)) { m->SetFrequency(freq); }
+		if (ImGui::DragFloat("周波数", &freq, 0.1f, 0.1f, 20.0f)) { m->SetFrequency(freq); }
 		
 		Vector3 axis = m->GetAxis();
-		if (ImGui::DragFloat3("Axis", &axis.x, 0.01f)) { m->SetAxis(axis); }
+		if (ImGui::DragFloat3("軸", &axis.x, 0.01f)) { m->SetAxis(axis); }
 		
 		bool randPhase = m->GetRandomPhase();
-		if (ImGui::Checkbox("Random Phase", &randPhase)) { m->SetRandomPhase(randPhase); }
+		if (ImGui::Checkbox("位相をばらつかせる", &randPhase)) { m->SetRandomPhase(randPhase); }
 	}
 	else if (auto* m = dynamic_cast<SpiralModule*>(module))
 	{
 		float radius = m->GetRadius();
-		if (ImGui::DragFloat("Radius", &radius, 0.1f, 0.01f, 10.0f)) { m->SetRadius(radius); }
+		if (ImGui::DragFloat("半径", &radius, 0.1f, 0.01f, 10.0f)) { m->SetRadius(radius); }
 		
 		float speed = m->GetSpeed();
-		if (ImGui::DragFloat("Speed (deg/s)", &speed, 1.0f, -720.0f, 720.0f)) { m->SetSpeed(speed); }
+		if (ImGui::DragFloat("速さ (度/秒)", &speed, 1.0f, -720.0f, 720.0f)) { m->SetSpeed(speed); }
 		
 		float lift = m->GetLift();
-		if (ImGui::DragFloat("Lift", &lift, 0.1f, -10.0f, 10.0f)) { m->SetLift(lift); }
+		if (ImGui::DragFloat("上昇", &lift, 0.1f, -10.0f, 10.0f)) { m->SetLift(lift); }
 		
 		bool randPhase = m->GetRandomPhase();
-		if (ImGui::Checkbox("Random Phase", &randPhase)) { m->SetRandomPhase(randPhase); }
+		if (ImGui::Checkbox("位相をばらつかせる", &randPhase)) { m->SetRandomPhase(randPhase); }
 		
 		bool expand = m->GetExpandRadius();
-		if (ImGui::Checkbox("Expand Radius", &expand)) { m->SetExpandRadius(expand); }
+		if (ImGui::Checkbox("半径を広げる", &expand)) { m->SetExpandRadius(expand); }
 		
 		if (expand)
 		{
 			float expRate = m->GetExpansionRate();
-			if (ImGui::DragFloat("Expansion Rate", &expRate, 0.1f, 0.0f, 5.0f)) { m->SetExpansionRate(expRate); }
+			if (ImGui::DragFloat("広がる速さ", &expRate, 0.1f, 0.0f, 5.0f)) { m->SetExpansionRate(expRate); }
 		}
 	}
 	else if (auto* m = dynamic_cast<TwistModule*>(module))
 	{
 		float twistSpeed = m->GetTwistSpeed();
-		if (ImGui::DragFloat("Twist Speed (deg/s)", &twistSpeed, 1.0f, -360.0f, 360.0f)) { m->SetTwistSpeed(twistSpeed); }
+		if (ImGui::DragFloat("ねじれの速さ (度/秒)", &twistSpeed, 1.0f, -360.0f, 360.0f)) { m->SetTwistSpeed(twistSpeed); }
 		
 		float twistStrength = m->GetTwistStrength();
-		if (ImGui::DragFloat("Twist Strength", &twistStrength, 0.1f, 0.0f, 10.0f)) { m->SetTwistStrength(twistStrength); }
+		if (ImGui::DragFloat("ねじれの強さ", &twistStrength, 0.1f, 0.0f, 10.0f)) { m->SetTwistStrength(twistStrength); }
 		
 		const char* axes[] = { "X", "Y", "Z" };
 		int axis = m->GetHeightAxis();
-		if (ImGui::Combo("Height Axis", &axis, axes, 3)) { m->SetHeightAxis(axis); }
+		if (ImGui::Combo("高さの軸", &axis, axes, 3)) { m->SetHeightAxis(axis); }
 	}
 	else
 	{
@@ -1827,7 +1827,7 @@ void ParticleEditor::DrawRendererPanel()
 
 	ImGui::Spacing();
 	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.6f, 0.2f, 1.0f));
-	ImGui::SeparatorText("Renderer");
+	ImGui::SeparatorText("レンダラー");
 	ImGui::PopStyleColor();
 	
 	{
@@ -1836,7 +1836,7 @@ void ParticleEditor::DrawRendererPanel()
 		{
 			const char* typeNames[] = { "Sprite", "Trail", "Mesh" };
 			int currentType = static_cast<int>(renderer->GetType());
-			if (ImGui::Combo("Type", &currentType, typeNames, 3))
+			if (ImGui::Combo("種類", &currentType, typeNames, 3))
 			{
 				RendererType newType = static_cast<RendererType>(currentType);
 				if (newType != renderer->GetType())
@@ -1884,7 +1884,7 @@ void ParticleEditor::DrawRendererPanel()
 				"ColorDodge"
 			};
 			int currentBlend = static_cast<int>(renderer->GetBlendMode());
-			if (ImGui::Combo("Blend Mode", &currentBlend, blendModes, IM_ARRAYSIZE(blendModes)))
+			if (ImGui::Combo("ブレンドモード", &currentBlend, blendModes, IM_ARRAYSIZE(blendModes)))
 			{
 				renderer->SetBlendMode(static_cast<BlendMode>(currentBlend));
 			}
@@ -1898,7 +1898,7 @@ void ParticleEditor::DrawRendererPanel()
 				if (!texturePaths.empty())
 				{
 					ImGui::Separator();
-					ImGui::Text("Texture:");
+					ImGui::Text("テクスチャ:");
 
 					// 現在のテクスチャを取得（表示用）
 					static int selectedTextureIdx = 0;
@@ -1916,7 +1916,7 @@ void ParticleEditor::DrawRendererPanel()
 							{
 								displayName = displayName.substr(lastSlash + 1);
 							}
-							if (displayName.empty()) displayName = "Unknown";
+							if (displayName.empty()) displayName = "不明";
 
 							// IDの衝突を避けるためにインデックスを付与
 							std::string label = displayName + "##" + std::to_string(i);
@@ -1938,7 +1938,7 @@ void ParticleEditor::DrawRendererPanel()
 
 				// ティントカラー
 				Vector4 tintColor = spriteRenderer->GetTintColor();
-				if (ImGui::ColorEdit4("Tint Color##Sprite", &tintColor.x))
+				if (ImGui::ColorEdit4("色味##Sprite", &tintColor.x))
 				{
 					spriteRenderer->SetTintColor(tintColor);
 				}
@@ -1947,42 +1947,42 @@ void ParticleEditor::DrawRendererPanel()
 			else if (auto* trailRenderer = dynamic_cast<TrailRenderer*>(renderer))
 			{
 				ImGui::Separator();
-				ImGui::Text("Trail Settings:");
+				ImGui::Text("トレイルの設定:");
 
 				// トレイル幅
 				float width = trailRenderer->GetTrailWidth();
-				if (ImGui::DragFloat("Trail Width", &width, 0.01f, 0.01f, 10.0f))
+				if (ImGui::DragFloat("トレイルの太さ", &width, 0.01f, 0.01f, 10.0f))
 				{
 					trailRenderer->SetTrailWidth(width);
 				}
 
 				// トレイル寿命
 				float trailLifetime = trailRenderer->GetTrailLifetime();
-				if (ImGui::DragFloat("Trail Lifetime", &trailLifetime, 0.1f, 0.1f, 10.0f))
+				if (ImGui::DragFloat("トレイルの寿命", &trailLifetime, 0.1f, 0.1f, 10.0f))
 				{
 					trailRenderer->SetTrailLifetime(trailLifetime);
 				}
-				ImGui::SetItemTooltip("How long the trail persists (seconds)");
+				ImGui::SetItemTooltip("トレイルが残る時間（秒）");
 
 				// 記録間隔
 				float recordInterval = trailRenderer->GetRecordInterval();
-				if (ImGui::DragFloat("Record Interval", &recordInterval, 0.001f, 0.001f, 0.1f))
+				if (ImGui::DragFloat("記録の間隔", &recordInterval, 0.001f, 0.001f, 0.1f))
 				{
 					trailRenderer->SetRecordInterval(recordInterval);
 				}
-				ImGui::SetItemTooltip("Time between position samples (lower = smoother)");
+				ImGui::SetItemTooltip("位置を記録する間隔（小さいほどなめらか）");
 
 				// 最小セグメント距離
 				float minDist = trailRenderer->GetMinSegmentDistance();
-				if (ImGui::DragFloat("Min Segment Distance", &minDist, 0.01f, 0.01f, 1.0f))
+				if (ImGui::DragFloat("区間の最小距離", &minDist, 0.01f, 0.01f, 1.0f))
 				{
 					trailRenderer->SetMinSegmentDistance(minDist);
 				}
 
 				// テクスチャモード
-				const char* textureModes[] = { "Stretch", "Tile" };
+				const char* textureModes[] = { "引き伸ばし", "繰り返し" };
 				int texMode = static_cast<int>(trailRenderer->GetTextureMode());
-				if (ImGui::Combo("Texture Mode", &texMode, textureModes, 2))
+				if (ImGui::Combo("テクスチャの貼り方", &texMode, textureModes, 2))
 				{
 					trailRenderer->SetTextureMode(static_cast<RibbonTextureMode>(texMode));
 				}
@@ -1991,38 +1991,38 @@ void ParticleEditor::DrawRendererPanel()
 				if (trailRenderer->GetTextureMode() == RibbonTextureMode::Tile)
 				{
 					float tileScale = trailRenderer->GetTileScale();
-					if (ImGui::DragFloat("Tile Scale", &tileScale, 0.1f, 0.1f, 100.0f))
+					if (ImGui::DragFloat("繰り返しの倍率", &tileScale, 0.1f, 0.1f, 100.0f))
 					{
 						trailRenderer->SetTileScale(tileScale);
 					}
 				}
 
 				ImGui::Separator();
-				ImGui::Text("Fade Settings:");
+				ImGui::Text("フェードの設定:");
 
 				// 幅フェード
 				bool widthFade = trailRenderer->GetWidthFade();
-				if (ImGui::Checkbox("Width Fade", &widthFade))
+				if (ImGui::Checkbox("太さを細くしていく", &widthFade))
 				{
 					trailRenderer->SetWidthFade(widthFade);
 				}
-				ImGui::SetItemTooltip("Trail gets thinner towards the end");
+				ImGui::SetItemTooltip("終わりに向かって細くなる");
 
 				// アルファフェード
 				bool alphaFade = trailRenderer->GetAlphaFade();
-				if (ImGui::Checkbox("Alpha Fade", &alphaFade))
+				if (ImGui::Checkbox("アルファを薄くしていく", &alphaFade))
 				{
 					trailRenderer->SetAlphaFade(alphaFade);
 				}
-				ImGui::SetItemTooltip("Trail becomes transparent towards the end");
+				ImGui::SetItemTooltip("終わりに向かって透明になる");
 
 				// ビルボード設定
 				bool billboard = trailRenderer->GetBillboard();
-				if (ImGui::Checkbox("Billboard", &billboard))
+				if (ImGui::Checkbox("ビルボード", &billboard))
 				{
 					trailRenderer->SetBillboard(billboard);
 				}
-				ImGui::SetItemTooltip("Enable billboard facing for trail segments");
+				ImGui::SetItemTooltip("トレイルの各区間をカメラに向ける");
 
 				// TextureManagerから読み込み済みテクスチャを取得
 				auto texturePaths = TextureManager::GetInstance()->GetLoadedTexturePaths();
@@ -2030,7 +2030,7 @@ void ParticleEditor::DrawRendererPanel()
 				if (!texturePaths.empty())
 				{
 					ImGui::Separator();
-					ImGui::Text("Texture:");
+					ImGui::Text("テクスチャ:");
 
 					static int selectedTrailTextureIdx = 0;
 
@@ -2046,7 +2046,7 @@ void ParticleEditor::DrawRendererPanel()
 							{
 								displayName = displayName.substr(lastSlash + 1);
 							}
-							if (displayName.empty()) displayName = "Unknown";
+							if (displayName.empty()) displayName = "不明";
 
 							std::string label = displayName + "##trail" + std::to_string(i);
 
@@ -2067,7 +2067,7 @@ void ParticleEditor::DrawRendererPanel()
 
 				// ティントカラー
 				Vector4 tintColor = trailRenderer->GetTintColor();
-				if (ImGui::ColorEdit4("Tint Color##Trail", &tintColor.x))
+				if (ImGui::ColorEdit4("色味##Trail", &tintColor.x))
 				{
 					trailRenderer->SetTintColor(tintColor);
 				}
@@ -2076,14 +2076,14 @@ void ParticleEditor::DrawRendererPanel()
 			else if (auto* meshRenderer = dynamic_cast<MeshRenderer*>(renderer))
 			{
 				ImGui::Separator();
-				ImGui::Text("Mesh Settings:");
+				ImGui::Text("メッシュの設定:");
 
 				const char* primitiveTypes[] = { "Plane", "Ring", "Cylinder", "Sphere", "Torus", "Star", "Heart", "Spiral", "Cone", "Cube" };
 				int primType = static_cast<int>(meshRenderer->GetPrimitiveType());
 				PrimitiveOptions options = meshRenderer->GetOptions();
 				bool optionsChanged = false;
 
-				if (ImGui::Combo("Primitive", &primType, primitiveTypes, 10))
+				if (ImGui::Combo("形", &primType, primitiveTypes, 10))
 				{
 					meshRenderer->SetPrimitive(static_cast<PrimitiveType>(primType), options);
 				}
@@ -2095,7 +2095,7 @@ void ParticleEditor::DrawRendererPanel()
 				if (currentType != PrimitiveType::Plane && currentType != PrimitiveType::Cube)
 				{
 					int segments = static_cast<int>(options.segments);
-					if (ImGui::SliderInt("Segments", &segments, 4, 64))
+					if (ImGui::SliderInt("分割数", &segments, 4, 64))
 					{
 						options.segments = static_cast<uint32_t>(segments);
 						optionsChanged = true;
@@ -2106,7 +2106,7 @@ void ParticleEditor::DrawRendererPanel()
 				if (currentType == PrimitiveType::Sphere)
 				{
 					int rings = static_cast<int>(options.rings);
-					if (ImGui::SliderInt("Rings", &rings, 4, 32))
+					if (ImGui::SliderInt("輪の数", &rings, 4, 32))
 					{
 						options.rings = static_cast<uint32_t>(rings);
 						optionsChanged = true;
@@ -2116,11 +2116,11 @@ void ParticleEditor::DrawRendererPanel()
 				// Inner/Outer Radius (Ring, Star, Torus)
 				if (currentType == PrimitiveType::Ring || currentType == PrimitiveType::Star)
 				{
-					if (ImGui::DragFloat("Inner Radius", &options.innerRadius, 0.01f, 0.0f, 1.0f))
+					if (ImGui::DragFloat("内側の半径", &options.innerRadius, 0.01f, 0.0f, 1.0f))
 					{
 						optionsChanged = true;
 					}
-					if (ImGui::DragFloat("Outer Radius", &options.outerRadius, 0.01f, 0.1f, 2.0f))
+					if (ImGui::DragFloat("外側の半径", &options.outerRadius, 0.01f, 0.1f, 2.0f))
 					{
 						optionsChanged = true;
 					}
@@ -2129,7 +2129,7 @@ void ParticleEditor::DrawRendererPanel()
 				// Tube Radius (Torus)
 				if (currentType == PrimitiveType::Torus)
 				{
-					if (ImGui::DragFloat("Tube Radius", &options.tubeRadius, 0.01f, 0.05f, 0.5f))
+					if (ImGui::DragFloat("管の半径", &options.tubeRadius, 0.01f, 0.05f, 0.5f))
 					{
 						optionsChanged = true;
 					}
@@ -2139,7 +2139,7 @@ void ParticleEditor::DrawRendererPanel()
 				if (currentType == PrimitiveType::Star)
 				{
 					int points = static_cast<int>(options.points);
-					if (ImGui::SliderInt("Points", &points, 3, 12))
+					if (ImGui::SliderInt("先の数", &points, 3, 12))
 					{
 						options.points = static_cast<uint32_t>(points);
 						optionsChanged = true;
@@ -2149,7 +2149,7 @@ void ParticleEditor::DrawRendererPanel()
 				// Turns (Spiral)
 				if (currentType == PrimitiveType::Spiral)
 				{
-					if (ImGui::DragFloat("Turns", &options.turns, 0.1f, 0.5f, 10.0f))
+					if (ImGui::DragFloat("巻き数", &options.turns, 0.1f, 0.5f, 10.0f))
 					{
 						optionsChanged = true;
 					}
@@ -2158,7 +2158,7 @@ void ParticleEditor::DrawRendererPanel()
 				// Caps (Cylinder, Cone)
 				if (currentType == PrimitiveType::Cylinder || currentType == PrimitiveType::Cone)
 				{
-					if (ImGui::Checkbox("With Caps", &options.withCaps))
+					if (ImGui::Checkbox("ふたを付ける", &options.withCaps))
 					{
 						optionsChanged = true;
 					}
@@ -2167,7 +2167,7 @@ void ParticleEditor::DrawRendererPanel()
 				// Double Sided (Plane)
 				if (currentType == PrimitiveType::Plane)
 				{
-					if (ImGui::Checkbox("Double Sided", &options.doubleSided))
+					if (ImGui::Checkbox("両面", &options.doubleSided))
 					{
 						optionsChanged = true;
 					}
@@ -2176,24 +2176,24 @@ void ParticleEditor::DrawRendererPanel()
 				// Cube Options
 				if (currentType == PrimitiveType::Cube)
 				{
-					if (ImGui::DragFloat3("Size (XYZ)", &options.cubeSize.x, 0.01f, 0.0f, 100.0f))
+					if (ImGui::DragFloat3("大きさ (XYZ)", &options.cubeSize.x, 0.01f, 0.0f, 100.0f))
 					{
 						optionsChanged = true;
 					}
 
-					ImGui::Text("Visible Faces:");
+					ImGui::Text("見せる面:");
 					// 2列で表示
-					if (ImGui::Checkbox("Front##Cube", &options.cubeFaceVisible[0])) optionsChanged = true;
+					if (ImGui::Checkbox("前##Cube", &options.cubeFaceVisible[0])) optionsChanged = true;
 					ImGui::SameLine();
-					if (ImGui::Checkbox("Back##Cube", &options.cubeFaceVisible[1])) optionsChanged = true;
+					if (ImGui::Checkbox("後ろ##Cube", &options.cubeFaceVisible[1])) optionsChanged = true;
 
-					if (ImGui::Checkbox("Top##Cube", &options.cubeFaceVisible[2])) optionsChanged = true;
+					if (ImGui::Checkbox("上##Cube", &options.cubeFaceVisible[2])) optionsChanged = true;
 					ImGui::SameLine();
-					if (ImGui::Checkbox("Bottom##Cube", &options.cubeFaceVisible[3])) optionsChanged = true;
+					if (ImGui::Checkbox("下##Cube", &options.cubeFaceVisible[3])) optionsChanged = true;
 
-					if (ImGui::Checkbox("Right##Cube", &options.cubeFaceVisible[4])) optionsChanged = true;
+					if (ImGui::Checkbox("右##Cube", &options.cubeFaceVisible[4])) optionsChanged = true;
 					ImGui::SameLine();
-					if (ImGui::Checkbox("Left##Cube", &options.cubeFaceVisible[5])) optionsChanged = true;
+					if (ImGui::Checkbox("左##Cube", &options.cubeFaceVisible[5])) optionsChanged = true;
 				}
 
 				// オプション変更適用
@@ -2203,21 +2203,21 @@ void ParticleEditor::DrawRendererPanel()
 				}
 
 				float scale = meshRenderer->GetScale();
-				if (ImGui::DragFloat("Scale", &scale, 0.01f, 0.01f, 10.0f))
+				if (ImGui::DragFloat("スケール", &scale, 0.01f, 0.01f, 10.0f))
 				{
 					meshRenderer->SetScale(scale);
 				}
 
 				// ビルボード設定
 				bool useBillboard = meshRenderer->GetBillboard();
-				if (ImGui::Checkbox("Billboard", &useBillboard))
+				if (ImGui::Checkbox("ビルボード", &useBillboard))
 				{
 					meshRenderer->SetBillboard(useBillboard);
 				}
 
 				// ティントカラー
 				Vector4 tintColor = meshRenderer->GetTintColor();
-				if (ImGui::ColorEdit4("Tint Color", &tintColor.x))
+				if (ImGui::ColorEdit4("色味", &tintColor.x))
 				{
 					meshRenderer->SetTintColor(tintColor);
 				}
@@ -2227,7 +2227,7 @@ void ParticleEditor::DrawRendererPanel()
 
 				if (!texturePaths.empty())
 				{
-					ImGui::Text("Texture:");
+					ImGui::Text("テクスチャ:");
 
 					static int selectedMeshTextureIdx = 0;
 
@@ -2243,7 +2243,7 @@ void ParticleEditor::DrawRendererPanel()
 							{
 								displayName = displayName.substr(lastSlash + 1);
 							}
-							if (displayName.empty()) displayName = "Unknown";
+							if (displayName.empty()) displayName = "不明";
 
 							std::string label = displayName + "##mesh" + std::to_string(i);
 
@@ -2265,9 +2265,9 @@ void ParticleEditor::DrawRendererPanel()
 		}
 		else
 		{
-			ImGui::Text("No renderer assigned");
+			ImGui::Text("レンダラーがない");
 
-			if (ImGui::Button("Create Sprite Renderer"))
+			if (ImGui::Button("スプライトのレンダラーを作る"))
 			{
 				auto newRenderer = std::make_unique<SpriteRenderer>();
 				newRenderer->Initialize("./Resources/uvChecker.png");
@@ -2283,14 +2283,14 @@ void ParticleEditor::DrawGradientEditor() { /* TODO: Gradient color editing */ }
 
 void ParticleEditor::AddEmitterDialog()
 {
-	ImGui::OpenPopup("Add Emitter");
+	ImGui::OpenPopup("エミッターを追加###AddEmitter");
 
-	if (ImGui::BeginPopupModal("Add Emitter", &showAddEmitterDialog_, ImGuiWindowFlags_AlwaysAutoResize))
+	if (ImGui::BeginPopupModal("エミッターを追加###AddEmitter", &showAddEmitterDialog_, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::SetNextItemWidth(200.0f);
-		ImGui::InputText("Emitter Name", emitterNameBuffer_, sizeof(emitterNameBuffer_));
+		ImGui::InputText("エミッター名", emitterNameBuffer_, sizeof(emitterNameBuffer_));
 
-		if (ImGui::Button("Create"))
+		if (ImGui::Button("作成"))
 		{
 			auto emitter = std::make_unique<ParticleEmitter>();
 			emitter->Initialize(emitterNameBuffer_);
@@ -2308,7 +2308,7 @@ void ParticleEditor::AddEmitterDialog()
 		}
 
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel")) { showAddEmitterDialog_ = false; }
+		if (ImGui::Button("キャンセル")) { showAddEmitterDialog_ = false; }
 
 		ImGui::EndPopup();
 	}
@@ -2318,14 +2318,14 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 {
 	if (!emitter) return;
 
-	ImGui::OpenPopup("Add Module");
+	ImGui::OpenPopup("モジュールを追加###AddModule");
 
-	if (ImGui::BeginPopupModal("Add Module", &showAddModuleDialog_, ImGuiWindowFlags_AlwaysAutoResize))
+	if (ImGui::BeginPopupModal("モジュールを追加###AddModule", &showAddModuleDialog_, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		static int selectedCategory = 0; // 0=Spawn, 1=Update
-		ImGui::RadioButton("Spawn", &selectedCategory, 0);
+		ImGui::RadioButton("発生", &selectedCategory, 0);
 		ImGui::SameLine();
-		ImGui::RadioButton("Update", &selectedCategory, 1);
+		ImGui::RadioButton("更新", &selectedCategory, 1);
 		ImGui::Separator();
 
 		static int selectedModule = 0;
@@ -2346,27 +2346,27 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				"Assign Ribbon ID"
 			};
 			const char* spawnDescriptions[] = {
-				"Spawn particles at a constant rate",
-				"Spawn multiple particles at once at intervals",
-				"Spawn particles from shapes (Box, Sphere, Cone, etc.)",
-				"Set initial lifetime of particles",
-				"Set initial velocity and direction",
-				"Set initial size of particles",
-				"Set initial color (RGBA)",
-				"Set initial rotation angle",
-				"Apply radial velocity from emitter center (explosion)",
-				"Assign RibbonId for multi-trail (Niagara-style partition)"
+				"一定の割合でパーティクルを出す",
+				"間隔を空けてまとめて出す",
+				"形（Box、Sphere、Cone など）から出す",
+				"出たときの寿命を決める",
+				"出たときの速度と向きを決める",
+				"出たときの大きさを決める",
+				"出たときの色 (RGBA) を決める",
+				"出たときの回転角を決める",
+				"エミッターの中心から放射状に飛ばす（爆発）",
+				"複数トレイル用に RibbonId を振る（Niagara 風の分け方）"
 			};
 			
 			ImGui::SetNextItemWidth(200.0f);
-			ImGui::Combo("Spawn Module", &selectedModule, spawnModules, IM_ARRAYSIZE(spawnModules));
+			ImGui::Combo("発生モジュール", &selectedModule, spawnModules, IM_ARRAYSIZE(spawnModules));
 			
 			// 説明表示
 			ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s", 
 				(selectedModule >= 0 && selectedModule < IM_ARRAYSIZE(spawnDescriptions)) 
 				? spawnDescriptions[selectedModule] : "");
 
-			if (ImGui::Button("Add"))
+			if (ImGui::Button("追加"))
 			{
 				switch (selectedModule)
 				{
@@ -2404,37 +2404,37 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 				}
 			};
 
-			AddModuleOption("Gravity", "Apply gravity (downward Y-axis)", 0, true);
-			AddModuleOption("Drag", "Apply air resistance to slow particles", 1, true);
-			AddModuleOption("Color Fade", "Fade color over lifetime", 2, true);
-			AddModuleOption("Scale Over Lifetime", "Change scale over lifetime", 3, true);
-			AddModuleOption("Rotation Over Lifetime", "Rotate over lifetime", 4, true);
-			AddModuleOption("Texture Sheet", "UV animation for sprite sheets", 5, false);
-			AddModuleOption("Attractor", "Attract/repel to a point", 6, true);
-			AddModuleOption("Vortex", "Swirl particles in a vortex", 7, true);
-			AddModuleOption("Orbit", "Orbit around a center point", 8, false);
-			AddModuleOption("Noise", "Add random noise movement", 9, true);
-			AddModuleOption("Velocity Limit", "Limit maximum speed", 10, false);
-			AddModuleOption("Acceleration", "Apply constant acceleration", 11, false);
-			AddModuleOption("Curl Noise", "Add turbulence with 3D curl noise", 12, true);
-			AddModuleOption("Size By Speed", "Change size based on speed", 13, false);
-			AddModuleOption("Color By Speed", "Change color based on speed", 14, false);
-			AddModuleOption("Collision", "Collide and bounce off planes/boxes", 15, false);
-			AddModuleOption("Kill Zone", "Kill particles inside/outside a zone", 16, false);
-			AddModuleOption("Sprint To Target", "Accelerate toward a target position", 17, false);
-			AddModuleOption("Sub Emitter", "Spawn sub-effects on particle events", 18, false);
-			AddModuleOption("Velocity Over Lifetime", "Multiply velocity over particle lifetime", 19, true);
-			AddModuleOption("Stretch By Velocity", "Stretch particles in velocity direction (bullets, rain)", 20, true);
-			AddModuleOption("Wind", "Apply directional wind force with turbulence", 21, false);
-			AddModuleOption("Flicker", "Flicker/blink alpha for fire, sparks", 22, true);
-			AddModuleOption("Alpha Fade", "Simple alpha fade over lifetime", 23, true);
-			AddModuleOption("Rotation By Speed", "Rotate based on movement speed", 24, false);
-			AddModuleOption("Sine Wave", "Oscillate position with sine wave", 25, false);
-			AddModuleOption("Spiral", "Move in spiral pattern", 26, false);
-			AddModuleOption("Twist", "Twist position around an axis", 27, false);
-			AddModuleOption("Face Velocity", "Align particle rotation to its velocity direction", 28, true);
-			AddModuleOption("Jitter", "Add random position jitter each frame", 29, false);
-			AddModuleOption("Force Over Lifetime", "Apply a directional force that changes over lifetime", 30, false);
+			AddModuleOption("Gravity", "重力をかける（Y の下向き）", 0, true);
+			AddModuleOption("Drag", "空気抵抗で遅くする", 1, true);
+			AddModuleOption("Color Fade", "寿命に合わせて色を変える", 2, true);
+			AddModuleOption("Scale Over Lifetime", "寿命に合わせて大きさを変える", 3, true);
+			AddModuleOption("Rotation Over Lifetime", "寿命に合わせて回す", 4, true);
+			AddModuleOption("Texture Sheet", "スプライトシートの UV アニメーション", 5, false);
+			AddModuleOption("Attractor", "1点に引き寄せる・遠ざける", 6, true);
+			AddModuleOption("Vortex", "渦を巻かせる", 7, true);
+			AddModuleOption("Orbit", "中心の周りを回る", 8, false);
+			AddModuleOption("Noise", "ランダムに揺らす", 9, true);
+			AddModuleOption("Velocity Limit", "最大速度を制限する", 10, false);
+			AddModuleOption("Acceleration", "一定の加速度をかける", 11, false);
+			AddModuleOption("Curl Noise", "3D のカールノイズで乱れを加える", 12, true);
+			AddModuleOption("Size By Speed", "速さに合わせて大きさを変える", 13, false);
+			AddModuleOption("Color By Speed", "速さに合わせて色を変える", 14, false);
+			AddModuleOption("Collision", "平面や箱に当たって跳ね返る", 15, false);
+			AddModuleOption("Kill Zone", "範囲の内側・外側で消す", 16, false);
+			AddModuleOption("Sprint To Target", "目標の位置へ加速していく", 17, false);
+			AddModuleOption("Sub Emitter", "パーティクルの出来事でサブエフェクトを出す", 18, false);
+			AddModuleOption("Velocity Over Lifetime", "寿命に合わせて速度に掛ける", 19, true);
+			AddModuleOption("Stretch By Velocity", "進む方向に伸ばす（弾、雨）", 20, true);
+			AddModuleOption("Wind", "乱れのある風を当てる", 21, false);
+			AddModuleOption("Flicker", "アルファをちらつかせる（炎、火花）", 22, true);
+			AddModuleOption("Alpha Fade", "寿命に合わせてアルファを薄くする", 23, true);
+			AddModuleOption("Rotation By Speed", "動く速さに合わせて回す", 24, false);
+			AddModuleOption("Sine Wave", "サイン波で位置を揺らす", 25, false);
+			AddModuleOption("Spiral", "らせんを描いて動く", 26, false);
+			AddModuleOption("Twist", "軸の周りにねじる", 27, false);
+			AddModuleOption("Face Velocity", "パーティクルの向きを進む方向に合わせる", 28, true);
+			AddModuleOption("Jitter", "毎フレーム位置をランダムにずらす", 29, false);
+			AddModuleOption("Force Over Lifetime", "寿命に合わせて変わる力をかける", 30, false);
 
 			// クランプ処理（切り替え時にインデックスがはみ出ないようにする）
 			if (selectedModule >= static_cast<int>(updateModules.size()))
@@ -2443,14 +2443,14 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 			}
 
 			ImGui::SetNextItemWidth(200.0f);
-			ImGui::Combo("Update Module", &selectedModule, updateModules.data(), static_cast<int>(updateModules.size()));
+			ImGui::Combo("更新モジュール", &selectedModule, updateModules.data(), static_cast<int>(updateModules.size()));
 			
 			// 説明表示
 			ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s",
 				(selectedModule >= 0 && selectedModule < static_cast<int>(updateDescriptions.size()))
 				? updateDescriptions[selectedModule] : "");
 
-			if (ImGui::Button("Add"))
+			if (ImGui::Button("追加"))
 			{
 				int actualIndex = originalIndices[selectedModule];
 				switch (actualIndex)
@@ -2493,7 +2493,7 @@ void ParticleEditor::AddModuleDialog(ParticleEmitter* emitter)
 		}
 
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel")) { showAddModuleDialog_ = false; }
+		if (ImGui::Button("キャンセル")) { showAddModuleDialog_ = false; }
 
 		ImGui::EndPopup();
 	}

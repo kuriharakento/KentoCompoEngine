@@ -134,9 +134,9 @@ void ParticleManager::DrawSettingsImGui()
 		totalEmitters++;
 	}
 
-	ImGui::Text("Total Particles: %u", totalParticles);
-	ImGui::Text("Total Emitters: %u", totalEmitters);
-	ImGui::Text("Active Effects: %d", static_cast<int>(effects_.size()));
+	ImGui::Text("パーティクルの合計: %u", totalParticles);
+	ImGui::Text("エミッターの合計: %u", totalEmitters);
+	ImGui::Text("動いているエフェクト: %d", static_cast<int>(effects_.size()));
 
 	// SRV使用状況（Active = 実使用中、HWM = 確保した最大インデックス）
 	uint32_t srvActive = srvManager_->GetActiveSRVCount();
@@ -223,8 +223,8 @@ void ParticleManager::DrawInspectorImGui(const SelectionItem& item)
 		{
 			emitter->ClearParticles();
 		}
-		ImGui::Text("Particles: %d", static_cast<int>(emitter->GetParticles().size()));
-		ImGui::Text("Mode: %s", emitter->GetSimulationMode() == SimulationMode::GPU ? "GPU" : "CPU");
+		ImGui::Text("パーティクル数: %d", static_cast<int>(emitter->GetParticles().size()));
+		ImGui::Text("方式: %s", emitter->GetSimulationMode() == SimulationMode::GPU ? "GPU" : "CPU");
 		return;
 	}
 	ImGui::TextDisabled("エフェクトが見つからない。");
