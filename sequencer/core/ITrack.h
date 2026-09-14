@@ -160,6 +160,13 @@ public:
 	 * @return プロパティが変わったら真（呼び出し側がコマンドとして履歴に積む）
 	 */
 	virtual bool DrawInspector() { return false; }
+
+	/**
+	 * @brief バインディングを参照するトラック向けの Inspector。
+	 * @param ctx 現在のプレビュー対象
+	 * @return プロパティが変わったら真
+	 */
+	virtual bool DrawInspector(const BindingContext& ctx) { (void)ctx; return DrawInspector(); }
 #endif
 
 	// --- 共通プロパティ ---

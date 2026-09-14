@@ -13,24 +13,6 @@ constexpr size_t kNameBufferSize = 128;
 constexpr size_t kTextBufferSize = 512;
 constexpr float kTextBoxHeight = 60.0f;
 
-const char* StyleToString(TextAppearStyle style)
-{
-	switch (style)
-	{
-	case TextAppearStyle::Drop: return "Drop";
-	case TextAppearStyle::Spin: return "Spin";
-	case TextAppearStyle::Pop:  return "Pop";
-	default:                    return "Fade";
-	}
-}
-
-TextAppearStyle StyleFromString(const std::string& str)
-{
-	if (str == "Drop") { return TextAppearStyle::Drop; }
-	if (str == "Spin") { return TextAppearStyle::Spin; }
-	if (str == "Pop") { return TextAppearStyle::Pop; }
-	return TextAppearStyle::Fade;
-}
 } // namespace
 
 Text3DTrack::Text3DTrack()
@@ -131,7 +113,7 @@ nlohmann::json Text3DTrack::Serialize() const
 	SerializeCommon(json);
 	json["target"] = targetName_;
 	json["text"] = text_;
-	json["style"] = StyleToString(style_);
+	json["style"] = TextAppearStyleToString(style_);
 	json["position"] = SerializeCurve(positionCurve_);
 	json["rotation"] = SerializeCurve(rotationCurve_);
 	json["scale"] = SerializeCurve(scaleCurve_);
@@ -150,7 +132,7 @@ bool Text3DTrack::Deserialize(const nlohmann::json& json)
 	DeserializeCommon(json);
 	if (json.contains("target") && json["target"].is_string()) { targetName_ = json["target"].get<std::string>(); }
 	if (json.contains("text") && json["text"].is_string()) { text_ = json["text"].get<std::string>(); }
-	if (json.contains("style") && json["style"].is_string()) { style_ = StyleFromString(json["style"].get<std::string>()); }
+	if (json.contains("style") && json["style"].is_string()) { style_ = TextAppearStyleFromString(json["style"].get<std::string>()); }
 	if (json.contains("position")) { DeserializeCurve(json["position"], positionCurve_); }
 	if (json.contains("rotation")) { DeserializeCurve(json["rotation"], rotationCurve_); }
 	if (json.contains("scale")) { DeserializeCurve(json["scale"], scaleCurve_); }
@@ -162,6 +144,12 @@ bool Text3DTrack::Deserialize(const nlohmann::json& json)
 
 #ifdef USE_IMGUI
 bool Text3DTrack::DrawInspector()
+{
+	BindingContext emptyContext;
+	return DrawInspector(emptyContext);
+}
+
+bool Text3DTrack::DrawInspector(const BindingContext& ctx)
 {
 	bool changed = false;
 
@@ -175,6 +163,26 @@ bool Text3DTrack::DrawInspector()
 	if (ImGui::IsItemHovered())
 	{
 		ImGui::SetTooltip("Text3DRenderer に登録された名前（3D Text 窓に出ている名前）");
+	}
+
+	const Text3DRenderer* renderer = ctx.GetText3DRenderer();
+	if (renderer && ImGui::BeginCombo("登録済み", targetName_.empty() ? "選ぶ..." : targetName_.c_str()))
+	{
+		renderer->ForEachName([this, &changed](const std::string& name)
+		{
+			const bool selected = name == targetName_;
+			if (ImGui::Selectable(name.c_str(), selected))
+			{
+				targetName_ = name;
+				changed = true;
+			}
+		});
+		ImGui::EndCombo();
+	}
+	if (!targetName_.empty() && (!renderer || !renderer->Find(targetName_)))
+	{
+		ImGui::SameLine();
+		ImGui::TextColored(ImVec4(1.0f, 0.45f, 0.25f, 1.0f), "見つからない");
 	}
 
 	char textBuffer[kTextBufferSize];

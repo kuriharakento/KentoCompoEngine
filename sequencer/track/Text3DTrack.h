@@ -42,6 +42,7 @@ public:
 
 #ifdef USE_IMGUI
 	bool DrawInspector() override;
+	bool DrawInspector(const BindingContext& ctx) override;
 #endif
 
 private:

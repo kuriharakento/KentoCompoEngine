@@ -2500,7 +2500,7 @@ void SequencerEditor::DrawTrackInspector(size_t trackIndex)
 			}
 			else
 			{
-				changed = track->DrawInspector();
+				changed = track->DrawInspector(player_.GetBindingContext());
 			}
 		});
 		if (changed)
@@ -2908,18 +2908,19 @@ void SequencerEditor::LoadSequenceFile(const std::string& path)
 	}
 }
 
-void SequencerEditor::SaveSequenceFile(const std::string& path)
+bool SequencerEditor::SaveSequenceFile(const std::string& path, bool saveStage)
 {
-	if (sequence_.SaveToFile(path))
+	const bool sequenceSaved = sequence_.SaveToFile(path);
+	const bool stageSaved = !saveStage || !stageSaveCallback_ || stageSaveCallback_();
+	if (sequenceSaved && stageSaved)
 	{
 		filePath_ = path;
 		statusMessage_ = "保存しました: " + path;
 		CommandHistory::GetInstance()->MarkSaved();
+		return true;
 	}
-	else
-	{
-		statusMessage_ = "保存に失敗しました: " + path;
-	}
+	statusMessage_ = "保存に失敗しました: " + path;
+	return false;
 }
 
 void SequencerEditor::RequestNewSequence(const std::string& path)
@@ -3547,7 +3548,7 @@ void SequencerEditor::HandleShortcuts()
 	}
 	else if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S, false))
 	{
-		SaveSequenceFile(filePath_);
+		SaveSequenceFile(filePath_, true);
 	}
 	else if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_C, false))
 	{

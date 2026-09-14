@@ -23,6 +23,12 @@ enum class TextAppearStyle
 	Pop,  //!< 小さい所から弾むように大きくなる
 };
 
+/** @brief 出入りの動き方を保存用の文字列へ変換する。 */
+const char* TextAppearStyleToString(TextAppearStyle style);
+
+/** @brief 保存用の文字列から出入りの動き方へ変換する。 */
+TextAppearStyle TextAppearStyleFromString(const std::string& value);
+
 /**
  * @brief 3D 空間に置く文字列（1文字ごとに板を並べる）
  *

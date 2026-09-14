@@ -17,6 +17,9 @@ constexpr int kGameObjectSchemaVersion = 1;
 /** @brief Sequence（演出データ）のシリアライズ形式のバージョン */
 constexpr int kSequenceSchemaVersion = 1;
 
+/** @brief ステージファイルの現在のスキーマバージョン */
+constexpr int kStageSchemaVersion = 1;
+
 /**
  * @brief JSONに書かれていたバージョンが読み込み可能かどうか
  * @param loadedVersion 読み込んだJSONの version 値

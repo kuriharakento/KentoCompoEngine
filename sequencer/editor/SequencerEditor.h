@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -112,6 +113,9 @@ public:
 
 	/** @brief Text トラックの出力先を渡す（Framework 所有） */
 	void SetTextOverlay(TextOverlay* textOverlay);
+
+	/** @brief Ctrl+S でシーケンスと一緒に保存する処理を設定する。 */
+	void SetStageSaveCallback(std::function<bool()> callback) { stageSaveCallback_ = std::move(callback); }
 
 public:
 	~SequencerEditor() = default;
@@ -228,7 +232,7 @@ private:
 	 * @brief 今のシーケンスを保存する。成功したら保存先もこのファイルにする
 	 * @param path Resources/json/sequence からの相対パス、または絶対パス
 	 */
-	void SaveSequenceFile(const std::string& path);
+	bool SaveSequenceFile(const std::string& path, bool saveStage = false);
 	/**
 	 * @brief 新規作成を頼む。保存していない変更があれば、捨ててよいかを先に聞く
 	 * @param path 作るファイルのパス
@@ -353,6 +357,8 @@ private:
 	float curvePaneHeight_ = 220.0f;
 	// 最後の保存・読み込みの結果メッセージ
 	std::string statusMessage_;
+	// シーン所有の StageManager を直接持たず、保存操作だけを借りる
+	std::function<bool()> stageSaveCallback_;
 	// 状態メッセージを目立たせ始めた時刻
 	double statusMessageTime_ = 0.0;
 	std::string observedStatusMessage_;
@@ -457,6 +463,7 @@ public:
 		player_.GetBindingContext().SetBeamRenderer(beamRenderer);
 	}
 	void SetTextOverlay(TextOverlay* textOverlay) { player_.GetBindingContext().SetTextOverlay(textOverlay); }
+	void SetStageSaveCallback(std::function<bool()> callback) { (void)callback; }
 
 public:
 	~SequencerEditor() = default;

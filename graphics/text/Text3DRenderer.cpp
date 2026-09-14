@@ -15,6 +15,7 @@
 #ifdef USE_IMGUI
 #include <cstdio>
 #include "externals/imgui/imgui.h"
+#include "editor/command/CommandHistory.h"
 #include "editor/SelectionContext.h"
 #include "manager/editor/DebugUIManager.h"
 #endif
@@ -33,6 +34,40 @@ constexpr DXGI_FORMAT kDepthFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 constexpr size_t kTextBufferSize = 512;
 constexpr float kDragSpeed = 0.05f;
 constexpr float kTextBoxHeight = 60.0f;
+
+class Text3DEditCommand final : public ICommand
+{
+public:
+	Text3DEditCommand(Text3DRenderer* renderer, std::string name, TextMesh3D* mesh,
+		std::string beforeText, const TextMesh3D::Params& beforeParams,
+		std::string afterText, const TextMesh3D::Params& afterParams)
+		: renderer_(renderer), name_(std::move(name)), mesh_(mesh), beforeText_(std::move(beforeText)), beforeParams_(beforeParams),
+		afterText_(std::move(afterText)), afterParams_(afterParams)
+	{
+	}
+
+	void Execute() override { Apply(afterText_, afterParams_); }
+	void Undo() override { Apply(beforeText_, beforeParams_); }
+	std::string GetName() const override { return "Edit 3D Text"; }
+
+private:
+	void Apply(const std::string& text, const TextMesh3D::Params& params)
+	{
+		if (!renderer_ || renderer_->Find(name_) != mesh_) { return; }
+		mesh_->SetText(text);
+		mesh_->GetParams() = params;
+	}
+
+	// Framework 所有。Text3DRenderer は履歴より長生きする
+	Text3DRenderer* renderer_ = nullptr;
+	std::string name_;
+	// 比較にだけ使う非所有ポインタ。Renderer に同じ対象が残る間だけ参照する
+	TextMesh3D* mesh_ = nullptr;
+	std::string beforeText_;
+	TextMesh3D::Params beforeParams_{};
+	std::string afterText_;
+	TextMesh3D::Params afterParams_{};
+};
 #endif
 } // namespace
 
@@ -260,28 +295,59 @@ void Text3DRenderer::DrawInspectorImGui(const SelectionItem& item)
 		return;
 	}
 
+	auto finishEdit = [this, mesh, &item](const std::string& beforeText, const TextMesh3D::Params& beforeParams)
+	{
+		if (ImGui::IsItemActivated())
+		{
+			editingMesh_ = mesh;
+			editingText_ = beforeText;
+			editingParams_ = beforeParams;
+		}
+		if (ImGui::IsItemDeactivatedAfterEdit() && editingMesh_ == mesh)
+		{
+			CommandHistory::GetInstance()->Execute(std::make_unique<Text3DEditCommand>(
+				this, item.name, mesh, editingText_, editingParams_, mesh->GetText(), mesh->GetParams()));
+			editingMesh_ = nullptr;
+		}
+	};
+
 	char buffer[kTextBufferSize];
 	std::snprintf(buffer, sizeof(buffer), "%s", mesh->GetText().c_str());
+	std::string beforeText = mesh->GetText();
+	TextMesh3D::Params beforeParams = mesh->GetParams();
 	if (ImGui::InputTextMultiline("Text", buffer, sizeof(buffer), ImVec2(0.0f, kTextBoxHeight)))
 	{
 		mesh->SetText(buffer);
 	}
+	finishEdit(beforeText, beforeParams);
 	TextMesh3D::Params& params = mesh->GetParams();
+	beforeText = mesh->GetText(); beforeParams = params;
 	ImGui::DragFloat3("位置", &params.position.x, kDragSpeed);
+	finishEdit(beforeText, beforeParams);
+	beforeText = mesh->GetText(); beforeParams = params;
 	ImGui::DragFloat("大きさ", &params.size, kDragSpeed * 0.1f, 0.01f, 100.0f);
+	finishEdit(beforeText, beforeParams);
+	beforeText = mesh->GetText(); beforeParams = params;
 	ImGui::ColorEdit4("色", &params.color.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+	finishEdit(beforeText, beforeParams);
 	const float charCount = static_cast<float>(mesh->GetCharCount());
 	float reveal = (std::min)(params.reveal, charCount);
+	beforeText = mesh->GetText(); beforeParams = params;
 	if (ImGui::SliderFloat("表示量", &reveal, 0.0f, charCount, "%.2f"))
 	{
 		params.reveal = reveal;
 	}
+	finishEdit(beforeText, beforeParams);
+	beforeText = mesh->GetText(); beforeParams = params;
 	ImGui::SliderFloat("退場量", &params.exit, 0.0f, charCount, "%.2f");
+	finishEdit(beforeText, beforeParams);
 	int style = static_cast<int>(params.style);
+	beforeText = mesh->GetText(); beforeParams = params;
 	if (ImGui::Combo("出方", &style, "フェード\0落下\0回転\0ポップ\0"))
 	{
 		params.style = static_cast<TextAppearStyle>(style);
 	}
+	finishEdit(beforeText, beforeParams);
 }
 #endif
 } // namespace KCE
