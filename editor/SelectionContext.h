@@ -20,6 +20,7 @@ enum class SelectionKind
 	SequenceKey,	//!< シーケンスのキーフレーム
 	Light,			//!< ライト（種類と名前で指す）
 	Camera,			//!< カメラ（名前で指す）
+	Text3D,			//!< 3D 文字（名前で指す）
 };
 
 /**
@@ -49,7 +50,7 @@ struct SelectionItem
 	int keyIndex = -1;		 //!< SequenceKey のとき有効
 	int channelIndex = -1;	 //!< SequenceKey のとき、キーが属するカーブ（成分）
 	SelectionLightType lightType = SelectionLightType::None;	//!< SelectionKind::Light のとき有効
-	std::string name;		 //!< SelectionKind::Light（平行光源以外）/ Camera のとき有効
+	std::string name;		 //!< 名前で管理されている選択対象のとき有効
 
 	bool operator==(const SelectionItem& other) const
 	{

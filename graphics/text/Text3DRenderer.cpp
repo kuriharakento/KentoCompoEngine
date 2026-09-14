@@ -15,6 +15,7 @@
 #ifdef USE_IMGUI
 #include <cstdio>
 #include "externals/imgui/imgui.h"
+#include "editor/SelectionContext.h"
 #include "manager/editor/DebugUIManager.h"
 #endif
 
@@ -224,45 +225,62 @@ void Text3DRenderer::Draw(Camera* camera, D3D12_CPU_DESCRIPTOR_HANDLE sceneColor
 #ifdef USE_IMGUI
 void Text3DRenderer::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "3D Text", [this]() { DrawImGui(); });
+	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "3D Text", [this]() { DrawHierarchyImGui(); });
+	DebugUIManager::GetInstance()->RegisterInspector(this, SelectionKind::Text3D,
+		[this](const SelectionItem& item) { DrawInspectorImGui(item); });
 }
 
-void Text3DRenderer::DrawImGui()
+void Text3DRenderer::DrawHierarchyImGui()
 {
 	if (meshes_.empty())
 	{
 		ImGui::TextDisabled("登録されている 3D 文字はない。");
 		return;
 	}
-	for (auto& [name, mesh] : meshes_)
+	const SelectionItem& primary = SelectionContext::GetInstance()->GetPrimary();
+	for (const auto& [name, mesh] : meshes_)
 	{
-		ImGui::PushID(mesh);
-		if (ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+		const bool isSelected = primary.kind == SelectionKind::Text3D && primary.name == name;
+		if (ImGui::Selectable(name.c_str(), isSelected))
 		{
-			char buffer[kTextBufferSize];
-			std::snprintf(buffer, sizeof(buffer), "%s", mesh->GetText().c_str());
-			if (ImGui::InputTextMultiline("Text", buffer, sizeof(buffer), ImVec2(0.0f, kTextBoxHeight)))
-			{
-				mesh->SetText(buffer);
-			}
-			TextMesh3D::Params& params = mesh->GetParams();
-			ImGui::DragFloat3("Position", &params.position.x, kDragSpeed);
-			ImGui::DragFloat("Size", &params.size, kDragSpeed * 0.1f, 0.01f, 100.0f);
-			ImGui::ColorEdit4("Color", &params.color.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
-			const float charCount = static_cast<float>(mesh->GetCharCount());
-			float reveal = (std::min)(params.reveal, charCount);
-			if (ImGui::SliderFloat("Reveal", &reveal, 0.0f, charCount, "%.2f"))
-			{
-				params.reveal = reveal;
-			}
-			ImGui::SliderFloat("Exit", &params.exit, 0.0f, charCount, "%.2f");
-			int style = static_cast<int>(params.style);
-			if (ImGui::Combo("Style", &style, "Fade\0Drop\0Spin\0Pop\0"))
-			{
-				params.style = static_cast<TextAppearStyle>(style);
-			}
+			SelectionItem item;
+			item.kind = SelectionKind::Text3D;
+			item.name = name;
+			SelectionContext::GetInstance()->Select(item);
 		}
-		ImGui::PopID();
+	}
+}
+
+void Text3DRenderer::DrawInspectorImGui(const SelectionItem& item)
+{
+	TextMesh3D* mesh = Find(item.name);
+	if (!mesh)
+	{
+		ImGui::TextDisabled("3D 文字が見つからない。");
+		return;
+	}
+
+	char buffer[kTextBufferSize];
+	std::snprintf(buffer, sizeof(buffer), "%s", mesh->GetText().c_str());
+	if (ImGui::InputTextMultiline("Text", buffer, sizeof(buffer), ImVec2(0.0f, kTextBoxHeight)))
+	{
+		mesh->SetText(buffer);
+	}
+	TextMesh3D::Params& params = mesh->GetParams();
+	ImGui::DragFloat3("Position", &params.position.x, kDragSpeed);
+	ImGui::DragFloat("Size", &params.size, kDragSpeed * 0.1f, 0.01f, 100.0f);
+	ImGui::ColorEdit4("Color", &params.color.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+	const float charCount = static_cast<float>(mesh->GetCharCount());
+	float reveal = (std::min)(params.reveal, charCount);
+	if (ImGui::SliderFloat("Reveal", &reveal, 0.0f, charCount, "%.2f"))
+	{
+		params.reveal = reveal;
+	}
+	ImGui::SliderFloat("Exit", &params.exit, 0.0f, charCount, "%.2f");
+	int style = static_cast<int>(params.style);
+	if (ImGui::Combo("Style", &style, "Fade\0Drop\0Spin\0Pop\0"))
+	{
+		params.style = static_cast<TextAppearStyle>(style);
 	}
 }
 #endif

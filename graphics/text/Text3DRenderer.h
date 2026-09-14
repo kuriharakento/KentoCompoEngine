@@ -13,6 +13,7 @@ class Camera;
 class DirectXCommon;
 class FrameConstantAllocator;
 class GlyphAtlas;
+struct SelectionItem;
 
 /**
  * @brief 3D 空間の文字（TextMesh3D）をまとめて描く
@@ -60,7 +61,8 @@ public:
 
 #ifdef USE_IMGUI
 	void RegisterDebugUI();
-	void DrawImGui();
+	void DrawHierarchyImGui();
+	void DrawInspectorImGui(const SelectionItem& item);
 #endif
 
 private:
