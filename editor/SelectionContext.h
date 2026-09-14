@@ -21,6 +21,7 @@ enum class SelectionKind
 	Light,			//!< ライト（種類と名前で指す）
 	Camera,			//!< カメラ（名前で指す）
 	Text3D,			//!< 3D 文字（名前で指す）
+	FontSprite,		//!< FontSprite（デバッグ用の一意な名前で指す）
 };
 
 /**

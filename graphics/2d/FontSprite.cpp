@@ -1,10 +1,12 @@
 #include "FontSprite.h"
+#include <algorithm>
 #include <fstream>
 #include <cassert>
 #include <iostream>
 #include "externals/nlohmann/json.hpp"
 #ifdef USE_IMGUI
 #include "ImGui/imgui.h"
+#include "editor/SelectionContext.h"
 #include "manager/editor/DebugUIManager.h"
 
 #endif // USE_IMGUI
@@ -16,6 +18,11 @@ namespace KCE
 {
 
 using json = nlohmann::json;
+
+#ifdef USE_IMGUI
+std::vector<FontSprite*> FontSprite::instances_;
+uint64_t FontSprite::nextDebugId_ = 0;
+#endif
 
 void FontSprite::Initialize(SpriteCommon* spriteCommon, const std::string& fontName)
 {
@@ -46,17 +53,24 @@ void FontSprite::Initialize(SpriteCommon* spriteCommon, const std::string& fontN
     }
 
 #ifdef USE_IMGUI
-    std::string windowName = "Font Sprite: " + fontName;
-    DebugUIManager::GetInstance()->RegisterWindow(this, windowName, [this]() { this->DrawImGui(); }, EditorDock::Bottom, false);
+	debugName_ = fontName + " (" + std::to_string(++nextDebugId_) + ")";
+	instances_.push_back(this);
+	if (instances_.size() == 1)
+	{
+		DebugUIManager::GetInstance()->RegisterHierarchySection(&instances_, "Font Sprites", []() { DrawHierarchyImGui(); });
+		DebugUIManager::GetInstance()->RegisterInspector(&instances_, SelectionKind::FontSprite,
+			[](const SelectionItem& item) { DrawInspectorImGui(item); });
+	}
 #endif
 }
 
 FontSprite::~FontSprite()
 {
 #ifdef USE_IMGUI
-    if (DebugUIManager::HasInstance())
+	instances_.erase(std::remove(instances_.begin(), instances_.end(), this), instances_.end());
+    if (instances_.empty() && DebugUIManager::HasInstance())
     {
-        DebugUIManager::GetInstance()->Unregister(this);
+		DebugUIManager::GetInstance()->Unregister(&instances_);
     }
 #endif
 }
@@ -313,19 +327,44 @@ float FontSprite::GetTextWidth() const
 }
 
 #ifdef USE_IMGUI
+void FontSprite::DrawHierarchyImGui()
+{
+	const SelectionItem& primary = SelectionContext::GetInstance()->GetPrimary();
+	for (const FontSprite* instance : instances_)
+	{
+		const bool isSelected = primary.kind == SelectionKind::FontSprite && primary.name == instance->debugName_;
+		if (ImGui::Selectable(instance->debugName_.c_str(), isSelected))
+		{
+			SelectionItem item;
+			item.kind = SelectionKind::FontSprite;
+			item.name = instance->debugName_;
+			SelectionContext::GetInstance()->Select(item);
+		}
+	}
+}
+
+void FontSprite::DrawInspectorImGui(const SelectionItem& item)
+{
+	const auto found = std::find_if(instances_.begin(), instances_.end(), [&item](const FontSprite* instance)
+	{
+		return instance->debugName_ == item.name;
+	});
+	if (found == instances_.end())
+	{
+		ImGui::TextDisabled("FontSprite が見つからない。");
+		return;
+	}
+	(*found)->DrawImGui();
+}
+
 void FontSprite::DrawImGui()
 {
 	ImGui::PushID(this); // FontSprite インスタンスごとにIDを分ける
 
     // Text 入力（簡易実装：内部バッファを用いる）
-    static char textBuf[512] = "";
-    static bool textBufInitialized = false;
-    if (!textBufInitialized || text_ != textBuf)
-    {
-        strncpy_s(textBuf, text_.c_str(), sizeof(textBuf));
-        textBuf[sizeof(textBuf) - 1] = '\0';
-        textBufInitialized = true;
-    }
+	char textBuf[512];
+	strncpy_s(textBuf, text_.c_str(), sizeof(textBuf));
+	textBuf[sizeof(textBuf) - 1] = '\0';
     if (ImGui::InputText("Text", textBuf, sizeof(textBuf)))
     {
         text_ = std::string(textBuf);

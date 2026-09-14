@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <memory>
@@ -8,6 +9,7 @@
 
 namespace KCE
 {
+struct SelectionItem;
 /**
  * @brief フォント整列方向
  */
@@ -46,6 +48,8 @@ public:
 
 #ifdef USE_IMGUI
     void DrawImGui();
+	static void DrawHierarchyImGui();
+	static void DrawInspectorImGui(const SelectionItem& item);
 #endif
 
     /**
@@ -267,5 +271,13 @@ private:
 
 	// 整列方向
 	FontAlignment alignment_ = FontAlignment::Left;
+
+#ifdef USE_IMGUI
+	// デバッグUIの選択用。ポインタではなく、この名前を SelectionContext に保存する
+	std::string debugName_;
+	// 生存中のインスタンス。各 FontSprite が所有されている間だけ登録する非所有ポインタ
+	static std::vector<FontSprite*> instances_;
+	static uint64_t nextDebugId_;
+#endif
 };
 } // namespace KCE
