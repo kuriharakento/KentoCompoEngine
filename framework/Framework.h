@@ -173,7 +173,12 @@ public: // メンバ関数
 	 */
 	RenderView* CreateSubView(const std::string& name, uint32_t width, uint32_t height) override;
 
-	/** @brief CreateSubView で作ったビューを登録解除して破棄する */
+	/**
+	 * @brief CreateSubView で作ったビューを登録解除して破棄する
+	 * @details 登録はすぐ外すが、破棄は次のフレームの頭まで遅らせる。
+	 *          エディタの Inspector などは、このフレームの描画コマンドを積んだ後に呼ぶことがあり、
+	 *          すぐ消すと実行前のコマンドリストが消えたレンダーターゲットを指したままになる。
+	 */
 	void DestroySubView(RenderView* view) override;
 
 	/**
@@ -279,6 +284,8 @@ protected: // メンバ変数
 	std::vector<RenderView*> subViews_;
 	// CreateSubView で作ったビュー（こちらは所有する）
 	std::vector<std::unique_ptr<RenderView>> ownedSubViews_;
+	// DestroySubView で登録を外したが、まだ GPU が使っているかもしれないビュー。次のフレームの頭で破棄する
+	std::vector<std::unique_ptr<RenderView>> pendingDestroySubViews_;
 	// シャドウマップのニアクリップ距離
 	float shadowNearPlane_ = 0.1f;
 	// シャドウマップのファークリップ距離

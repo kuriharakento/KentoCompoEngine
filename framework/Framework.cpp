@@ -497,6 +497,7 @@ void Framework::Finalize()
 	fxaaRenderer_.reset();
 	subViews_.clear();
 	ownedSubViews_.clear();
+	pendingDestroySubViews_.clear();
 	// 文字の Sprite は GPU リソースを持つので、デバイスより先に畳む
 	textOverlay_.reset();
 	textSpritePipeline_.reset();
@@ -509,6 +510,10 @@ void Framework::Finalize()
 
 void Framework::Update()
 {
+	// 前のフレームで登録を外したサブビューを破棄する。PostDraw で前のフレームの GPU 完了を待ち終わっているので、
+	// もうどのコマンドリストも指していない
+	pendingDestroySubViews_.clear();
+
 	// 画面サイズ変更のキー入力チェック（F12でフルスクリーントグル）
 	if (Input::GetInstance()->TriggerKey(DIK_F12))
 	{
@@ -643,10 +648,18 @@ void Framework::DestroySubView(RenderView* view)
 	{
 		return;
 	}
+	// 次のフレームからは描かないよう登録はすぐ外す
 	UnregisterSubView(view);
-	ownedSubViews_.erase(
-		std::remove_if(ownedSubViews_.begin(), ownedSubViews_.end(), [view](const std::unique_ptr<RenderView>& owned) { return owned.get() == view; }),
-		ownedSubViews_.end());
+
+	// 破棄は次のフレームの頭まで遅らせる。このフレームのコマンドリストが既にこのビューを指していることがあるため
+	const auto owned = std::find_if(ownedSubViews_.begin(), ownedSubViews_.end(),
+		[view](const std::unique_ptr<RenderView>& candidate) { return candidate.get() == view; });
+	if (owned == ownedSubViews_.end())
+	{
+		return;
+	}
+	pendingDestroySubViews_.push_back(std::move(*owned));
+	ownedSubViews_.erase(owned);
 }
 
 void Framework::RenderSubView(RenderView* view)
