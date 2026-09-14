@@ -61,6 +61,7 @@ void GameObject::Initialize(Object3dCommon* object3dCommon, LightManager* lightM
 
 	// デフォルトで立方体モデルを設定
 	object3d->SetModel("cube");
+	modelName_ = "cube";
 	object3d->SetLightManager(lightManager);
 
 	renderable3d_ = std::move(object3d);
@@ -73,6 +74,7 @@ void GameObject::SetModel(const std::string& modelName)
 	if (auto* obj3d = GetObject3d())
 	{
 		obj3d->SetModel(modelName);
+		modelName_ = modelName;
 	}
 }
 
@@ -94,6 +96,7 @@ void GameObject::SetSkinnedModel(const std::string& modelPath, const std::string
 
 	// renderable3d_を差し替え
 	renderable3d_ = std::move(skinned);
+	modelName_.clear();
 }
 
 Model* GameObject::GetModel() const
@@ -672,6 +675,74 @@ bool GameObject::SaveJson(const std::string& path) const
 	}
 	ofs << json.dump(4);
 	return true;
+}
+
+nlohmann::json GameObject::SerializePrefab() const
+{
+	nlohmann::json prefab;
+	prefab["version"] = 1;
+	prefab["name"] = name_;
+	prefab["tag"] = tag_;
+	const nlohmann::json objectFields = JsonEditableBase::Serialize();
+	prefab["transform"] = objectFields.at("transform");
+	if (GetObject3d() && !modelName_.empty())
+	{
+		prefab["model"] = modelName_;
+	}
+
+	prefab["components"] = nlohmann::json::array();
+	for (size_t index = 0; index < components_.size(); ++index)
+	{
+		nlohmann::json component;
+		component["type"] = componentTypeNames_[index];
+		component["enabled"] = components_[index]->IsEnabled();
+		component["fields"] = nlohmann::json::object();
+		if (const auto* editable = dynamic_cast<const JsonEditableBase*>(components_[index].get()))
+		{
+			component["fields"] = editable->Serialize();
+		}
+		prefab["components"].push_back(std::move(component));
+	}
+
+	std::vector<std::string> childNames;
+	childNames.reserve(children_.size());
+	for (const auto& [name, child] : children_)
+	{
+		if (child) childNames.push_back(name);
+	}
+	std::sort(childNames.begin(), childNames.end());
+	prefab["children"] = nlohmann::json::array();
+	for (const auto& childName : childNames)
+	{
+		prefab["children"].push_back(children_.at(childName)->SerializePrefab());
+	}
+	return prefab;
+}
+
+bool GameObject::SavePrefab(const std::string& path) const
+{
+	if (path.empty())
+	{
+		Logger::Log("プレハブの保存先が空です。\n", Logger::LogLevel::Error);
+		return false;
+	}
+	const std::filesystem::path directory = PathManager::GetApplicationResourceRoot() / "json" / "prefab";
+	std::error_code error;
+	std::filesystem::create_directories(directory, error);
+	if (error)
+	{
+		Logger::Log("プレハブの保存先を作れません: " + directory.string() + "\n", Logger::LogLevel::Error);
+		return false;
+	}
+	const std::filesystem::path fullPath = directory / std::filesystem::path(path).filename();
+	std::ofstream output(fullPath);
+	if (!output)
+	{
+		Logger::Log("プレハブを書き込めません: " + fullPath.string() + "\n", Logger::LogLevel::Error);
+		return false;
+	}
+	output << SerializePrefab().dump(4);
+	return output.good();
 }
 
 bool GameObject::LoadJson(const std::string& path)

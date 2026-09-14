@@ -59,6 +59,16 @@ public:
 	bool SaveJson(const std::string& path) const override;
 
 	/**
+	 * @brief このオブジェクトと子をプレハブとして保存する。
+	 * @param path application/Resources/json/prefab からの相対パス
+	 * @return 保存できたら真
+	 */
+	bool SavePrefab(const std::string& path) const;
+
+	/** @brief GUIDを含まないプレハブ形式へ再帰的に変換する。 */
+	nlohmann::json SerializePrefab() const;
+
+	/**
 	 * @brief ImGuiによる編集UIを描画（オーバーライド）
 	 */
 	void DrawImGui() override;
@@ -250,6 +260,8 @@ public: // アクセッサ
 	 * @return 現在のモデル
 	 */
 	Model* GetModel() const;
+	/** @return 静的モデルの設定名。モデルを持たなければ空文字列。 */
+	const std::string& GetModelName() const { return modelName_; }
 
 	/**
 	 * @brief Object3Dインスタンスの取得
@@ -410,6 +422,8 @@ protected:
 	Transform transform_;
 	// 3D描画用オブジェクト（Object3dまたはSkinnedObject3d）
 	std::unique_ptr<IRenderable3d> renderable3d_;
+	// SetModel で設定した静的モデル名。プレハブ保存時に使う
+	std::string modelName_;
 	// Object3dCommonへのポインタ（SetSkinnedModel用）
 	Object3dCommon* object3dCommon_ = nullptr;
 	// LightManagerへのポインタ（SetSkinnedModel用）
