@@ -187,6 +187,10 @@ private:
 	void PasteKeysAt(float time);
 	/** @brief タイムライン行の右クリックメニューを描く */
 	void DrawTimelineContextMenu();
+	/** @brief 選択中チャンネルを時間×値のグラフで編集する */
+	void DrawCurveEditor();
+	/** @brief 選択中カーブが収まる表示へ合わせる */
+	void FrameSelectedCurves();
 	/** @brief 指定種別のトラックを追加する */
 	void AddTrack(const std::string& typeName);
 	/** @brief 編集用カメラを自由移動させる */
@@ -286,6 +290,27 @@ private:
 	int contextTrackIndex_ = -1;
 	int contextChannelIndex_ = -1;
 	float contextTime_ = 0.0f;
+	// 0: ドープシート、1: カーブ
+	int timelineMode_ = 0;
+	float curveTimeStart_ = 0.0f;
+	float curvePixelsPerSecond_ = 100.0f;
+	float curveValueCenter_ = 0.0f;
+	float curvePixelsPerValue_ = 50.0f;
+	bool curvePanning_ = false;
+	int curveDragTrack_ = -1;
+	int curveDragChannel_ = -1;
+	int curveDragKey_ = -1;
+	int curveDragComponent_ = -1;
+	float curveDragStartTime_ = 0.0f;
+	float curveDragStartValue_ = 0.0f;
+	ImVec2 curveDragMouseStart_{};
+	std::unique_ptr<TrackEditCommand> curveDragCommand_;
+	int curveHandleTrack_ = -1;
+	int curveHandleChannel_ = -1;
+	int curveHandleKey_ = -1;
+	int curveHandleComponent_ = 0;
+	int curveHandlePoint_ = 0;
+	std::unique_ptr<TrackEditCommand> curveHandleCommand_;
 
 	/** @brief ドラッグ中のキー1つ分。番号は並べ替えのたびに追従させる */
 	struct DraggedKey

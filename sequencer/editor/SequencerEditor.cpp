@@ -1536,6 +1536,251 @@ void SequencerEditor::DrawPlayhead(const ImVec2& canvasMin, const ImVec2& canvas
 	}
 }
 
+void SequencerEditor::FrameSelectedCurves()
+{
+	float minTime = FLT_MAX;
+	float maxTime = -FLT_MAX;
+	float minValue = FLT_MAX;
+	float maxValue = -FLT_MAX;
+	for (const SelectionItem& item : SelectionContext::GetInstance()->GetItems())
+	{
+		ICurveChannel* channel = GetSelectedChannel(sequence_, item);
+		if (!channel || channel->GetComponentCount() == 0) { continue; }
+		for (size_t key = 0; key < channel->GetKeyCount(); ++key)
+		{
+			minTime = (std::min)(minTime, channel->GetKeyTime(key));
+			maxTime = (std::max)(maxTime, channel->GetKeyTime(key));
+			for (size_t component = 0; component < channel->GetComponentCount(); ++component)
+			{
+				const float value = channel->GetKeyComponent(key, component);
+				minValue = (std::min)(minValue, value);
+				maxValue = (std::max)(maxValue, value);
+			}
+		}
+	}
+	if (minTime == FLT_MAX) { return; }
+	constexpr float kMinimumTimeRange = 1.0f;
+	constexpr float kMinimumValueRange = 1.0f;
+	const ImVec2 available = ImGui::GetContentRegionAvail();
+	const float timeRange = (std::max)(maxTime - minTime, kMinimumTimeRange);
+	const float valueRange = (std::max)(maxValue - minValue, kMinimumValueRange);
+	curveTimeStart_ = (std::max)(minTime - timeRange * 0.1f, 0.0f);
+	curvePixelsPerSecond_ = (std::max)(available.x * 0.8f / timeRange, 5.0f);
+	curveValueCenter_ = (minValue + maxValue) * 0.5f;
+	curvePixelsPerValue_ = (std::max)(available.y * 0.7f / valueRange, 1.0f);
+}
+
+void SequencerEditor::DrawCurveEditor()
+{
+	const ImVec2 canvasMin = ImGui::GetCursorScreenPos();
+	const ImVec2 canvasSize = ImGui::GetContentRegionAvail();
+	if (canvasSize.x < 50.0f || canvasSize.y < 50.0f) { return; }
+	ImGui::InvisibleButton("CurveCanvas", canvasSize, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight | ImGuiButtonFlags_MouseButtonMiddle);
+	const bool hovered = ImGui::IsItemHovered();
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	drawList->AddRectFilled(canvasMin, ImVec2(canvasMin.x + canvasSize.x, canvasMin.y + canvasSize.y), IM_COL32(25, 26, 30, 255));
+	drawList->PushClipRect(canvasMin, ImVec2(canvasMin.x + canvasSize.x, canvasMin.y + canvasSize.y), true);
+
+	const float centerY = canvasMin.y + canvasSize.y * 0.5f;
+	auto timeToX = [&](float time) { return canvasMin.x + (time - curveTimeStart_) * curvePixelsPerSecond_; };
+	auto valueToY = [&](float value) { return centerY - (value - curveValueCenter_) * curvePixelsPerValue_; };
+	auto xToTime = [&](float x) { return curveTimeStart_ + (x - canvasMin.x) / curvePixelsPerSecond_; };
+	auto yToValue = [&](float y) { return curveValueCenter_ + (centerY - y) / curvePixelsPerValue_; };
+
+	drawList->AddLine(ImVec2(canvasMin.x, valueToY(0.0f)), ImVec2(canvasMin.x + canvasSize.x, valueToY(0.0f)), IM_COL32(70, 70, 76, 255));
+	static const ImU32 componentColors[] = { IM_COL32(235, 85, 85, 255), IM_COL32(90, 220, 110, 255), IM_COL32(90, 140, 240, 255), IM_COL32(190, 190, 195, 255) };
+
+	struct VisibleChannel { int track; int channel; ICurveChannel* curve; };
+	std::vector<VisibleChannel> visible;
+	for (const SelectionItem& item : SelectionContext::GetInstance()->GetItems())
+	{
+		if (item.trackIndex < 0 || item.channelIndex < 0) { continue; }
+		ICurveChannel* channel = GetSelectedChannel(sequence_, item);
+		if (!channel || channel->GetComponentCount() == 0) { continue; }
+		const bool exists = std::any_of(visible.begin(), visible.end(), [&](const VisibleChannel& value)
+		{
+			return value.track == item.trackIndex && value.channel == item.channelIndex;
+		});
+		if (!exists) { visible.push_back({ item.trackIndex, item.channelIndex, channel }); }
+	}
+	if (visible.empty())
+	{
+		const int selectedTrack = GetSelectedTrackIndex();
+		ITrack* track = selectedTrack >= 0 ? sequence_.GetTrack(static_cast<size_t>(selectedTrack)) : nullptr;
+		for (size_t channelIndex = 0; track && channelIndex < track->GetChannelCount(); ++channelIndex)
+		{
+			ICurveChannel* channel = track->GetChannel(channelIndex);
+			if (channel && channel->GetComponentCount() > 0) { visible.push_back({ selectedTrack, static_cast<int>(channelIndex), channel }); }
+		}
+	}
+
+	constexpr int kSamplesPerSegment = 24;
+	for (const VisibleChannel& entry : visible)
+	{
+		for (size_t component = 0; component < entry.curve->GetComponentCount(); ++component)
+		{
+			for (size_t key = 0; key + 1 < entry.curve->GetKeyCount(); ++key)
+			{
+				const float start = entry.curve->GetKeyTime(key);
+				const float end = entry.curve->GetKeyTime(key + 1);
+				ImVec2 previous(timeToX(start), valueToY(entry.curve->EvaluateComponent(start, component)));
+				for (int sample = 1; sample <= kSamplesPerSegment; ++sample)
+				{
+					const float ratio = static_cast<float>(sample) / static_cast<float>(kSamplesPerSegment);
+					const float time = start + (end - start) * ratio;
+					const ImVec2 current(timeToX(time), valueToY(entry.curve->EvaluateComponent(time, component)));
+					drawList->AddLine(previous, current, componentColors[component], 1.5f);
+					previous = current;
+				}
+			}
+			for (size_t key = 0; key < entry.curve->GetKeyCount(); ++key)
+			{
+				const ImVec2 point(timeToX(entry.curve->GetKeyTime(key)), valueToY(entry.curve->GetKeyComponent(key, component)));
+				drawList->AddCircleFilled(point, 4.0f, componentColors[component]);
+				if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+				{
+					const ImVec2 mouse = ImGui::GetIO().MousePos;
+					const float dx = mouse.x - point.x;
+					const float dy = mouse.y - point.y;
+					if (dx * dx + dy * dy <= kBezierHandleGrabRadius * kBezierHandleGrabRadius)
+					{
+						curveDragTrack_ = entry.track;
+						curveDragChannel_ = entry.channel;
+						curveDragKey_ = static_cast<int>(key);
+						curveDragComponent_ = static_cast<int>(component);
+						curveDragStartTime_ = entry.curve->GetKeyTime(key);
+						curveDragStartValue_ = entry.curve->GetKeyComponent(key, component);
+						curveDragMouseStart_ = mouse;
+						curveDragCommand_ = std::make_unique<TrackEditCommand>(&sequence_, static_cast<size_t>(entry.track), "Edit Curve Key");
+					}
+				}
+			}
+		}
+	}
+
+	const SelectionItem primary = GetPrimarySelection();
+	ICurveChannel* primaryChannel = GetSelectedChannel(sequence_, primary);
+	if (primaryChannel && primaryChannel->HasInterpolation() && primary.keyIndex >= 0 &&
+		static_cast<size_t>(primary.keyIndex + 1) < primaryChannel->GetKeyCount() &&
+		primaryChannel->GetKeyInterp(static_cast<size_t>(primary.keyIndex)) == InterpolationMode::Bezier &&
+		primaryChannel->GetComponentCount() > 0)
+	{
+		const size_t key = static_cast<size_t>(primary.keyIndex);
+		const size_t component = static_cast<size_t>((std::max)(curveHandleComponent_, 0)) % primaryChannel->GetComponentCount();
+		const float time0 = primaryChannel->GetKeyTime(key);
+		const float time1 = primaryChannel->GetKeyTime(key + 1);
+		const float value0 = primaryChannel->GetKeyComponent(key, component);
+		const float value1 = primaryChannel->GetKeyComponent(key + 1, component);
+		const float timeRange = time1 - time0;
+		const float valueRange = value1 - value0;
+		const BezierHandle& handle = primaryChannel->GetKeyBezier(key);
+		const ImVec2 start(timeToX(time0), valueToY(value0));
+		const ImVec2 end(timeToX(time1), valueToY(value1));
+		const ImVec2 point1(timeToX(time0 + timeRange * handle.x1), valueToY(value0 + valueRange * handle.y1));
+		const ImVec2 point2(timeToX(time0 + timeRange * handle.x2), valueToY(value0 + valueRange * handle.y2));
+		drawList->AddLine(start, point1, IM_COL32(230, 180, 90, 220));
+		drawList->AddLine(end, point2, IM_COL32(230, 180, 90, 220));
+		drawList->AddCircleFilled(point1, kBezierHandleRadius, IM_COL32(255, 205, 100, 255));
+		drawList->AddCircleFilled(point2, kBezierHandleRadius, IM_COL32(255, 205, 100, 255));
+		if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		{
+			const ImVec2 mouse = ImGui::GetIO().MousePos;
+			auto nearPoint = [&](const ImVec2& point)
+			{
+				const float dx = mouse.x - point.x;
+				const float dy = mouse.y - point.y;
+				return dx * dx + dy * dy <= kBezierHandleGrabRadius * kBezierHandleGrabRadius;
+			};
+			if (nearPoint(point1) || nearPoint(point2))
+			{
+				curveHandleTrack_ = primary.trackIndex;
+				curveHandleChannel_ = primary.channelIndex;
+				curveHandleKey_ = primary.keyIndex;
+				curveHandleComponent_ = static_cast<int>(component);
+				curveHandlePoint_ = nearPoint(point1) ? 1 : 2;
+				curveHandleCommand_ = std::make_unique<TrackEditCommand>(&sequence_, static_cast<size_t>(primary.trackIndex), "Edit Curve Handle");
+			}
+		}
+	}
+
+	if (curveHandleCommand_)
+	{
+		ITrack* track = sequence_.GetTrack(static_cast<size_t>(curveHandleTrack_));
+		ICurveChannel* channel = track ? track->GetChannel(static_cast<size_t>(curveHandleChannel_)) : nullptr;
+		if (channel && ImGui::IsMouseDown(ImGuiMouseButton_Left))
+		{
+			const size_t key = static_cast<size_t>(curveHandleKey_);
+			const float time0 = channel->GetKeyTime(key);
+			const float time1 = channel->GetKeyTime(key + 1);
+			const float value0 = channel->GetKeyComponent(key, static_cast<size_t>(curveHandleComponent_));
+			const float value1 = channel->GetKeyComponent(key + 1, static_cast<size_t>(curveHandleComponent_));
+			const float timeRange = (std::max)(time1 - time0, 0.0001f);
+			const float valueRange = std::abs(value1 - value0) < 0.0001f ? 1.0f : value1 - value0;
+			BezierHandle& handle = channel->GetKeyBezier(key);
+			const float normalizedX = std::clamp((xToTime(ImGui::GetIO().MousePos.x) - time0) / timeRange, 0.0f, 1.0f);
+			const float normalizedY = (yToValue(ImGui::GetIO().MousePos.y) - value0) / valueRange;
+			if (curveHandlePoint_ == 1) { handle.x1 = (std::min)(normalizedX, handle.x2); handle.y1 = normalizedY; }
+			else { handle.x2 = (std::max)(normalizedX, handle.x1); handle.y2 = normalizedY; }
+		}
+		else
+		{
+			curveHandleCommand_->CaptureAfter();
+			if (curveHandleCommand_->HasChanged()) { CommandHistory::GetInstance()->Execute(std::move(curveHandleCommand_)); }
+			else { curveHandleCommand_.reset(); }
+			curveHandlePoint_ = 0;
+		}
+	}
+
+	if (curveDragCommand_)
+	{
+		ICurveChannel* channel = sequence_.GetTrack(static_cast<size_t>(curveDragTrack_))->GetChannel(static_cast<size_t>(curveDragChannel_));
+		if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+		{
+			const ImVec2 delta(ImGui::GetIO().MousePos.x - curveDragMouseStart_.x, ImGui::GetIO().MousePos.y - curveDragMouseStart_.y);
+			if (!ImGui::GetIO().KeyShift)
+			{
+				curveDragKey_ = static_cast<int>(channel->MoveKey(static_cast<size_t>(curveDragKey_),
+					(std::max)(curveDragStartTime_ + delta.x / curvePixelsPerSecond_, 0.0f)));
+			}
+			channel->SetKeyComponent(static_cast<size_t>(curveDragKey_), static_cast<size_t>(curveDragComponent_),
+				curveDragStartValue_ - delta.y / curvePixelsPerValue_);
+			player_.EvaluateCurrentTime();
+		}
+		else
+		{
+			curveDragCommand_->CaptureAfter();
+			if (curveDragCommand_->HasChanged()) { CommandHistory::GetInstance()->Execute(std::move(curveDragCommand_)); }
+			else { curveDragCommand_.reset(); }
+			curveDragKey_ = -1;
+		}
+	}
+
+	if (hovered && ImGui::GetIO().MouseWheel != 0.0f)
+	{
+		const float factor = (std::max)(1.0f + ImGui::GetIO().MouseWheel * 0.1f, 0.1f);
+		if (ImGui::GetIO().KeyShift) { curvePixelsPerSecond_ = std::clamp(curvePixelsPerSecond_ * factor, 5.0f, 2000.0f); }
+		else { curvePixelsPerValue_ = std::clamp(curvePixelsPerValue_ * factor, 1.0f, 2000.0f); }
+	}
+	if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Middle)) { curvePanning_ = true; }
+	if (curvePanning_)
+	{
+		if (ImGui::IsMouseDown(ImGuiMouseButton_Middle))
+		{
+			curveTimeStart_ = (std::max)(curveTimeStart_ - ImGui::GetIO().MouseDelta.x / curvePixelsPerSecond_, 0.0f);
+			curveValueCenter_ += ImGui::GetIO().MouseDelta.y / curvePixelsPerValue_;
+		}
+		else { curvePanning_ = false; }
+	}
+	if (hovered && ImGui::IsKeyPressed(ImGuiKey_F, false)) { FrameSelectedCurves(); }
+	if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+	{
+		contextTime_ = (std::max)(xToTime(ImGui::GetIO().MousePos.x), 0.0f);
+		ImGui::OpenPopup("TimelineContextMenu");
+	}
+	DrawTimelineContextMenu();
+	drawList->PopClipRect();
+}
+
 void SequencerEditor::DrawTimelineWindow()
 {
 	DrawToolbar();
@@ -1651,6 +1896,25 @@ void SequencerEditor::DrawTimelineWindow()
 	}
 
 	ImGui::Separator();
+	if (ImGui::BeginTabBar("SequencerViewTabs"))
+	{
+		if (ImGui::BeginTabItem("ドープシート"))
+		{
+			timelineMode_ = 0;
+			ImGui::EndTabItem();
+		}
+		if (ImGui::BeginTabItem("カーブ"))
+		{
+			timelineMode_ = 1;
+			ImGui::EndTabItem();
+		}
+		ImGui::EndTabBar();
+	}
+	if (timelineMode_ == 1)
+	{
+		DrawCurveEditor();
+		return;
+	}
 
 	// --- キャンバス ---
 	const ImVec2 canvasMin = ImGui::GetCursorScreenPos();

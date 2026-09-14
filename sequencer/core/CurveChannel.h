@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <type_traits>
 
 #include "sequencer/core/Curve.h"
 #include "sequencer/core/CurveSerialization.h"
@@ -65,6 +66,12 @@ public:
 
 	/** @brief 指定時刻に、その時刻の値または型の既定値でキーを足す。 */
 	virtual bool AddKeyAt(float time) { (void)time; return false; }
+
+	/** @brief カーブエディタへ公開する値の成分数。 */
+	virtual size_t GetComponentCount() const { return 0; }
+	virtual float GetKeyComponent(size_t key, size_t component) const { (void)key; (void)component; return 0.0f; }
+	virtual void SetKeyComponent(size_t key, size_t component, float value) { (void)key; (void)component; (void)value; }
+	virtual float EvaluateComponent(float time, size_t component) const { (void)time; (void)component; return 0.0f; }
 
 	bool IsEmpty() const { return GetKeyCount() == 0; }
 
@@ -200,6 +207,29 @@ public:
 		return true;
 	}
 
+	size_t GetComponentCount() const override
+	{
+		if constexpr (std::is_same_v<T, float>) { return 1; }
+		if constexpr (std::is_same_v<T, Vector3> || std::is_same_v<T, Quaternion>) { return 3; }
+		if constexpr (std::is_same_v<T, Vector4>) { return 4; }
+		return 0;
+	}
+
+	float GetKeyComponent(size_t key, size_t component) const override
+	{
+		return GetComponent(curve_->GetKey(key).value, component);
+	}
+
+	void SetKeyComponent(size_t key, size_t component, float value) override
+	{
+		SetComponent(curve_->GetKey(key).value, component, value);
+	}
+
+	float EvaluateComponent(float time, size_t component) const override
+	{
+		return GetComponent(curve_->Evaluate(time), component);
+	}
+
 #ifdef USE_IMGUI
 	bool DrawKeyValueEditor(size_t index) override
 	{
@@ -208,6 +238,34 @@ public:
 #endif
 
 private:
+	static float GetComponent(const T& value, size_t component)
+	{
+		if constexpr (std::is_same_v<T, float>) { return component == 0 ? value : 0.0f; }
+		if constexpr (std::is_same_v<T, Vector3>) { return component < 3 ? (&value.x)[component] : 0.0f; }
+		if constexpr (std::is_same_v<T, Vector4>) { return component < 4 ? (&value.x)[component] : 0.0f; }
+		if constexpr (std::is_same_v<T, Quaternion>)
+		{
+			constexpr float kRadiansToDegrees = 57.29577951308232f;
+			const Vector3 euler = value.ToEuler();
+			return component < 3 ? (&euler.x)[component] * kRadiansToDegrees : 0.0f;
+		}
+		return 0.0f;
+	}
+
+	static void SetComponent(T& target, size_t component, float value)
+	{
+		if constexpr (std::is_same_v<T, float>) { if (component == 0) { target = value; } }
+		else if constexpr (std::is_same_v<T, Vector3>) { if (component < 3) { (&target.x)[component] = value; } }
+		else if constexpr (std::is_same_v<T, Vector4>) { if (component < 4) { (&target.x)[component] = value; } }
+		else if constexpr (std::is_same_v<T, Quaternion>)
+		{
+			constexpr float kDegreesToRadians = 0.017453292519943295f;
+			Vector3 euler = target.ToEuler();
+			if (component < 3) { (&euler.x)[component] = value * kDegreesToRadians; }
+			target = Quaternion::FromEuler(euler);
+		}
+	}
+
 	// 浮動小数の誤差でキーが二重に増えないよう、1ミリ秒以内は同じ時刻とみなす
 	static constexpr float kSameTimeTolerance = 0.001f;
 
