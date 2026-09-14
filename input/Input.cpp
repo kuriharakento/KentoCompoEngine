@@ -5,7 +5,6 @@
 
 #include <cassert>
 #include <cstring>
-#include <thread>
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
@@ -28,8 +27,6 @@ constexpr DWORD kMaxGamepadCount = XUSER_MAX_COUNT;
 constexpr WORD kVibrationOff = 0;
 // キーボードバッファサイズ
 constexpr int kMaxBufferSize = 256;
-// キーボード再取得時のリトライ待機時間（ミリ秒）
-constexpr int kRetryDelay = 10;
 
 // シングルトンのインスタンス初期化
 std::unique_ptr<Input> Input::instance_ = nullptr;
@@ -183,8 +180,9 @@ void Input::Update() {
             }
         }
 
-        // マウス固定が有効な場合、位置をウィンドウの中央にリセット
-        if (isMouseLockEnabled_) {
+        // マウス固定が有効な場合、位置をウィンドウの中央にリセット。
+        // ImGui のウィンドウを触っている間は戻さない。戻すとカーソルが中央へ引き戻され、UI が反応しなくなる
+        if (isMouseLockEnabled_ && !IsUICapturingMouse()) {
             ClientToScreen(hwnd, &center);
             SetCursorPos(center.x, center.y);
         }
@@ -208,15 +206,9 @@ void Input::Update() {
         memcpy(keyPre_, key_, sizeof(key_));
 
         // キーボードのアクセス権を取得
+        // 取れなければこのフレームはキー入力なしで進み、次のフレームでまた試す。
+        // 取れるまで待つと、その間ゲームごと止まってカクつく
         result = keyboard_->Acquire();
-        if (FAILED(result)) {
-            // 取得失敗時はリトライ
-            while (result == DIERR_INPUTLOST || result == DIERR_NOTACQUIRED) {
-                result = keyboard_->Acquire();
-                if (SUCCEEDED(result)) break;
-                std::this_thread::sleep_for(std::chrono::milliseconds(kRetryDelay));
-            }
-        }
 
         // キーボードの状態を取得
         result = keyboard_->GetDeviceState(sizeof(key_), key_);
