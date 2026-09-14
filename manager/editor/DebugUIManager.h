@@ -13,10 +13,10 @@ struct ImGuiTextBuffer;
 
 namespace KCE
 {
-/** @brief エディタの初期ドッキング先。LeftBottom は Hierarchy の下（シーンごとのパネル）。 */
-enum class EditorDock { Left, Right, RightBottom, Bottom, LeftBottom };
+/** @brief エディタの初期ドッキング先。 */
+enum class EditorDock { Left, Right, RightBottom, Bottom };
 /** @brief EditorDock の数。置き場所ごとの配列の大きさに使う。 */
-constexpr size_t kEditorDockCount = 5;
+constexpr size_t kEditorDockCount = 4;
 
 /**
  * @brief エディタの ImGui ウィンドウを置き場所ごとにまとめて描く。
