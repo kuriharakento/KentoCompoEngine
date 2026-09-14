@@ -1,6 +1,7 @@
 #include "sequencer/core/TrackFactory.h"
 
 #include "sequencer/track/CameraTrack.h"
+#include "sequencer/track/ComponentTrack.h"
 #include "sequencer/track/EventTrack.h"
 #include "sequencer/track/LightTrack.h"
 #include "sequencer/track/PostProcessTrack.h"
@@ -23,6 +24,7 @@ const char* const kCreatableTypeNames[] = {
 	"Screen",
 	"Text",
 	"Text3D",
+	"Component",
 };
 } // namespace
 
@@ -36,6 +38,7 @@ TrackPtr TrackFactory::Create(const std::string& typeName)
 	if (typeName == "Screen") { return std::make_unique<ScreenTrack>(); }
 	if (typeName == "Text") { return std::make_unique<TextTrack>(); }
 	if (typeName == "Text3D") { return std::make_unique<Text3DTrack>(); }
+	if (typeName == "Component") { return std::make_unique<ComponentTrack>(); }
 
 	// 未知の種別。新しいバージョンで保存されたデータを開いた場合に起きる。
 	// 落とさずに nullptr を返し、呼び出し側で読み飛ばす。
@@ -54,6 +57,7 @@ TrackPtr TrackFactory::Create(TrackType type)
 	case TrackType::Screen:      return std::make_unique<ScreenTrack>();
 	case TrackType::Text:        return std::make_unique<TextTrack>();
 	case TrackType::Text3D:      return std::make_unique<Text3DTrack>();
+	case TrackType::Component:   return std::make_unique<ComponentTrack>();
 	default:                     return nullptr;
 	}
 }

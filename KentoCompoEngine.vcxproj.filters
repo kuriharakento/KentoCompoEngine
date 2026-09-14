@@ -645,6 +645,9 @@
     <ClCompile Include="sequencer\track\CameraTrack.cpp">
       <Filter>sequencer\track</Filter>
     </ClCompile>
+    <ClCompile Include="sequencer\track\ComponentTrack.cpp">
+      <Filter>sequencer\track</Filter>
+    </ClCompile>
     <ClCompile Include="sequencer\track\EventTrack.cpp">
       <Filter>sequencer\track</Filter>
     </ClCompile>
@@ -1317,6 +1320,9 @@
       <Filter>sequencer\editor</Filter>
     </ClInclude>
     <ClInclude Include="sequencer\track\CameraTrack.h">
+      <Filter>sequencer\track</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\track\ComponentTrack.h">
       <Filter>sequencer\track</Filter>
     </ClInclude>
     <ClInclude Include="sequencer\track\EventTrack.h">

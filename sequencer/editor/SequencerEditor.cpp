@@ -42,6 +42,7 @@ bool SequencerEditor::HasInstance()
 #include "sequencer/core/TrackFactory.h"
 #include "sequencer/editor/SequencerCommands.h"
 #include "sequencer/track/CameraTrack.h"
+#include "sequencer/track/ComponentTrack.h"
 #include "sequencer/track/LightTrack.h"
 
 namespace KCE
@@ -195,6 +196,7 @@ bool GetBindingTypeForTrack(const ITrack& track, BindingType& outType)
 	case TrackType::Transform: outType = BindingType::GameObject; return true;
 	case TrackType::Light:     outType = BindingType::Light; return true;
 	case TrackType::Screen:    outType = BindingType::GameObject; return true;
+	case TrackType::Component: outType = BindingType::GameObject; return true;
 	default:                   return false;
 	}
 }
@@ -433,6 +435,10 @@ void SequencerEditor::DrawGameObjectSequencerInspector(const SelectionItem& item
 	if (ImGui::Button("Transform トラックを作る"))
 	{
 		AddGameObjectTrack("Transform", *object);
+	}
+	if (ImGui::Button("Component トラックを作る"))
+	{
+		AddGameObjectTrack("Component", *object);
 	}
 
 	const int cameraTrackIndex = FindTargetCameraTrackIndex();
@@ -1643,7 +1649,21 @@ void SequencerEditor::DrawTrackInspector(size_t trackIndex)
 	// トラック固有の設定。変更はコマンドとして積む
 	{
 		bool changed = false;
-		ExecuteTrackEdit(sequence_, trackIndex, "Edit Track Settings", [&]() { changed = track->DrawInspector(); });
+		ExecuteTrackEdit(sequence_, trackIndex, "Edit Track Settings", [&]()
+		{
+			if (auto* componentTrack = dynamic_cast<ComponentTrack*>(track))
+			{
+				const auto binding = previewObjectBindings_.find(track->GetBindingRole());
+				GameObject* object = binding != previewObjectBindings_.end() && GameObjectManager::HasInstance()
+					? GameObjectManager::GetInstance()->FindByGuid(binding->second)
+					: nullptr;
+				changed = componentTrack->DrawInspectorForObject(object);
+			}
+			else
+			{
+				changed = track->DrawInspector();
+			}
+		});
 		if (changed)
 		{
 			player_.EvaluateCurrentTime();

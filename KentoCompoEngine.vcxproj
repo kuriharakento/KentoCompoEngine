@@ -157,6 +157,7 @@
     <ClCompile Include="sequencer\editor\SequencerCommands.cpp" />
     <ClCompile Include="sequencer\editor\SequencerEditor.cpp" />
     <ClCompile Include="sequencer\track\CameraTrack.cpp" />
+    <ClCompile Include="sequencer\track\ComponentTrack.cpp" />
     <ClCompile Include="sequencer\track\EventTrack.cpp" />
     <ClCompile Include="sequencer\runtime\CutsceneManager.cpp" />
     <ClCompile Include="sequencer\track\LightTrack.cpp" />
@@ -388,6 +389,7 @@
     <ClInclude Include="sequencer\editor\SequencerCommands.h" />
     <ClInclude Include="sequencer\editor\SequencerEditor.h" />
     <ClInclude Include="sequencer\track\CameraTrack.h" />
+    <ClInclude Include="sequencer\track\ComponentTrack.h" />
     <ClInclude Include="sequencer\track\EventTrack.h" />
     <ClInclude Include="sequencer\runtime\CutsceneManager.h" />
     <ClInclude Include="sequencer\track\LightTrack.h" />
