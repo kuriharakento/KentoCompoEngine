@@ -116,6 +116,8 @@ private:
 	void DrawTimelineWindow();
 	/** @brief インスペクタ（Inspectorエリア）。選択中のトラック・キーを編集する */
 	void DrawInspectorWindow();
+	/** @brief GameObject のインスペクタにシーケンサ連携を描画する */
+	void DrawGameObjectSequencerInspector(const SelectionItem& item);
 	/** @brief シーンへのオーバーレイ（Sceneエリア）。ギズモを描く */
 	void DrawSceneOverlay();
 	/**
@@ -191,6 +193,12 @@ private:
 	 *          ポインタで覚えると、対象が破棄されたときにダングリングする。
 	 */
 	void ApplyPreviewBindings();
+	/** @brief GameObject を割り当てたトラックを追加し、追加した番号を返す */
+	int AddGameObjectTrack(const std::string& typeName, GameObject& object);
+	/** @brief オブジェクト名を基に、別オブジェクトと競合しない役名を作る */
+	std::string MakeUniqueObjectRole(const GameObject& object) const;
+	/** @brief 選択中、または先頭のカメラトラックを返す */
+	int FindTargetCameraTrackIndex() const;
 
 	/** @brief 選択から、操作対象のトラック番号を求める。無ければ -1 */
 	int GetSelectedTrackIndex() const;

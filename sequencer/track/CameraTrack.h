@@ -76,8 +76,10 @@ public:
 
 	/** @brief 注目点にする役 A（GameObject）。空なら使わない */
 	const std::string& GetAimRoleA() const { return aimRoleA_; }
+	void SetAimRoleA(const std::string& role) { aimRoleA_ = role; }
 	/** @brief 注目点にする役 B（GameObject）。空なら使わない */
 	const std::string& GetAimRoleB() const { return aimRoleB_; }
+	void SetAimRoleB(const std::string& role) { aimRoleB_ = role; }
 
 	/**
 	 * @brief 注目点を使う設定になっているか

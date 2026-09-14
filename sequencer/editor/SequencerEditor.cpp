@@ -55,6 +55,37 @@ const char* const kEditorCameraName = "SequencerEditorCamera";
 /** @brief シーケンスが駆動するカメラの名前 */
 const char* const kSequenceCameraName = "SequencerCamera";
 
+class PreviewObjectBindingCommand : public ICommand
+{
+public:
+	PreviewObjectBindingCommand(std::unordered_map<std::string, Guid>* bindings, std::string role, Guid after)
+		: bindings_(bindings), role_(std::move(role)), after_(after)
+	{
+		const auto it = bindings_->find(role_);
+		if (it != bindings_->end())
+		{
+			before_ = it->second;
+			hadBefore_ = true;
+		}
+	}
+
+	void Execute() override { (*bindings_)[role_] = after_; }
+	void Undo() override
+	{
+		if (hadBefore_) { (*bindings_)[role_] = before_; }
+		else { bindings_->erase(role_); }
+	}
+	std::string GetName() const override { return "Bind Preview Object"; }
+
+private:
+	// SequencerEditor が所有し、登録解除時に履歴も破棄される。
+	std::unordered_map<std::string, Guid>* bindings_ = nullptr;
+	std::string role_;
+	Guid before_{};
+	Guid after_{};
+	bool hadBefore_ = false;
+};
+
 /** @brief キーのマーカーの半径（ピクセル） */
 constexpr float kKeyMarkerRadius = 5.0f;
 /** @brief キーを掴めるとみなす距離（ピクセル） */
@@ -253,6 +284,8 @@ void SequencerEditor::Initialize(CameraManager* cameraManager, LightManager* lig
 	debugUI->RegisterWindow(this, "Sequencer", [this]() { DrawTimelineWindow(); }, EditorDock::Bottom);
 	debugUI->RegisterInspector(this, SelectionKind::SequenceTrack, [this](const SelectionItem&) { DrawInspectorWindow(); });
 	debugUI->RegisterInspector(this, SelectionKind::SequenceKey, [this](const SelectionItem&) { DrawInspectorWindow(); });
+	debugUI->RegisterInspector(this, SelectionKind::GameObject,
+		[this](const SelectionItem& item) { DrawGameObjectSequencerInspector(item); });
 	debugUI->RegisterSceneOverlay(this, [this]() { DrawSceneOverlay(); });
 
 	initialized_ = true;
@@ -311,6 +344,128 @@ void SequencerEditor::ApplyPreviewBindings()
 	for (const auto& [role, lightName] : previewLightBindings_)
 	{
 		ctx.BindLight(role, lightName);
+	}
+}
+
+std::string SequencerEditor::MakeUniqueObjectRole(const GameObject& object) const
+{
+	const std::string base = object.GetName().empty() ? "GameObject" : object.GetName();
+	std::string role = base;
+	for (uint32_t suffix = 2;; ++suffix)
+	{
+		const auto it = previewObjectBindings_.find(role);
+		if (it == previewObjectBindings_.end() || it->second == object.GetGuid())
+		{
+			return role;
+		}
+		role = base + " " + std::to_string(suffix);
+	}
+}
+
+int SequencerEditor::AddGameObjectTrack(const std::string& typeName, GameObject& object)
+{
+	TrackPtr track = TrackFactory::Create(typeName);
+	if (!track)
+	{
+		statusMessage_ = "未知のトラック種別です: " + typeName;
+		return -1;
+	}
+
+	const std::string role = MakeUniqueObjectRole(object);
+	track->SetBindingRole(role);
+	track->SetName(object.GetName() + " " + typeName);
+
+	auto structure = std::make_unique<SequenceStructureCommand>(&sequence_, "Add " + typeName + " Track");
+	BindingDefinition definition;
+	definition.role = role;
+	definition.type = BindingType::GameObject;
+	sequence_.AddBinding(definition);
+	sequence_.AddTrack(std::move(track));
+	structure->CaptureAfter();
+
+	CommandHistory* history = CommandHistory::GetInstance();
+	history->BeginTransaction("Add GameObject Track");
+	if (structure->HasChanged())
+	{
+		history->Execute(std::move(structure));
+	}
+	history->Execute(std::make_unique<PreviewObjectBindingCommand>(
+		&previewObjectBindings_, role, object.GetGuid()));
+	history->EndTransaction();
+
+	ApplyPreviewBindings();
+	const int trackIndex = static_cast<int>(sequence_.GetTrackCount()) - 1;
+	SelectionItem selected;
+	selected.kind = SelectionKind::SequenceTrack;
+	selected.trackIndex = trackIndex;
+	SelectionContext::GetInstance()->Select(selected);
+	return trackIndex;
+}
+
+int SequencerEditor::FindTargetCameraTrackIndex() const
+{
+	const int selected = GetSelectedTrackIndex();
+	if (selected >= 0 && dynamic_cast<CameraTrack*>(sequence_.GetTrack(static_cast<size_t>(selected))))
+	{
+		return selected;
+	}
+	for (size_t index = 0; index < sequence_.GetTrackCount(); ++index)
+	{
+		if (dynamic_cast<CameraTrack*>(sequence_.GetTrack(index)))
+		{
+			return static_cast<int>(index);
+		}
+	}
+	return -1;
+}
+
+void SequencerEditor::DrawGameObjectSequencerInspector(const SelectionItem& item)
+{
+	GameObject* object = GameObjectManager::HasInstance()
+		? GameObjectManager::GetInstance()->FindByGuid(item.objectGuid)
+		: nullptr;
+	if (!object)
+	{
+		return;
+	}
+
+	ImGui::SeparatorText("Sequencer");
+	if (ImGui::Button("Transform トラックを作る"))
+	{
+		AddGameObjectTrack("Transform", *object);
+	}
+
+	const int cameraTrackIndex = FindTargetCameraTrackIndex();
+	const bool hasCameraTrack = cameraTrackIndex >= 0;
+	if (!hasCameraTrack) { ImGui::BeginDisabled(); }
+	auto setAimRole = [&](bool useRoleB)
+	{
+		CameraTrack* cameraTrack = dynamic_cast<CameraTrack*>(sequence_.GetTrack(static_cast<size_t>(cameraTrackIndex)));
+		const std::string role = MakeUniqueObjectRole(*object);
+		auto edit = std::make_unique<TrackEditCommand>(&sequence_, static_cast<size_t>(cameraTrackIndex), "Set Camera Aim Role");
+		if (useRoleB) { cameraTrack->SetAimRoleB(role); }
+		else { cameraTrack->SetAimRoleA(role); }
+		edit->CaptureAfter();
+
+		CommandHistory* history = CommandHistory::GetInstance();
+		history->BeginTransaction("Set Camera Aim Target");
+		if (edit->HasChanged()) { history->Execute(std::move(edit)); }
+		history->Execute(std::make_unique<PreviewObjectBindingCommand>(
+			&previewObjectBindings_, role, object->GetGuid()));
+		history->EndTransaction();
+		ApplyPreviewBindings();
+
+		SelectionItem selected;
+		selected.kind = SelectionKind::SequenceTrack;
+		selected.trackIndex = cameraTrackIndex;
+		SelectionContext::GetInstance()->Select(selected);
+	};
+	if (ImGui::Button("カメラの注目点 A にする")) { setAimRole(false); }
+	if (ImGui::Button("カメラの注目点 B にする")) { setAimRole(true); }
+	if (!hasCameraTrack)
+	{
+		ImGui::EndDisabled();
+		ImGui::TextDisabled("カメラトラックがありません");
 	}
 }
 
