@@ -1,11 +1,94 @@
 #include "GameObjectManager.h"
 #include "engine/gameobject/base/GameObject.h"
+#include "engine/gameobject/component/base/ComponentFactory.h"
+#include "jsonEditor/JsonEditableBase.h"
+#include "base/Logger.h"
+#include "base/PathManager.h"
 #include <algorithm>
+#include <filesystem>
+#include <fstream>
+#include <unordered_set>
+#include <nlohmann/json.hpp>
 #include "manager/scene/CameraManager.h"
 #include "manager/editor/GameObjectEditor.h"
 
 namespace KCE
 {
+namespace
+{
+constexpr int kPrefabVersion = 1;
+
+std::unique_ptr<GameObject> DeserializePrefabNode(
+	const nlohmann::json& node, Object3dCommon* object3dCommon, LightManager* lightManager)
+{
+	if (!node.is_object() || node.value("version", 0) != kPrefabVersion ||
+		!node.contains("name") || !node["name"].is_string() || node["name"].get_ref<const std::string&>().empty() ||
+		!node.contains("tag") || !node["tag"].is_string() || node["tag"].get_ref<const std::string&>().empty() ||
+		!node.contains("transform") || !node["transform"].is_object() ||
+		!node.contains("components") || !node["components"].is_array() ||
+		!node.contains("children") || !node["children"].is_array())
+	{
+		return nullptr;
+	}
+
+	auto object = std::make_unique<GameObject>(node["tag"].get<std::string>());
+	object->SetName(node["name"].get<std::string>());
+	object->Initialize(object3dCommon, lightManager);
+	nlohmann::json objectFields;
+	objectFields["transform"] = node["transform"];
+	object->JsonEditableBase::Deserialize(objectFields);
+	if (node.contains("model"))
+	{
+		if (!node["model"].is_string() || node["model"].get_ref<const std::string&>().empty())
+		{
+			return nullptr;
+		}
+		object->SetModel(node["model"].get<std::string>());
+	}
+
+	for (const auto& componentNode : node["components"])
+	{
+		if (!componentNode.is_object() || !componentNode.contains("type") || !componentNode["type"].is_string() ||
+			!componentNode.contains("enabled") || !componentNode["enabled"].is_boolean() ||
+			!componentNode.contains("fields") || !componentNode["fields"].is_object())
+		{
+			return nullptr;
+		}
+		const std::string typeName = componentNode["type"].get<std::string>();
+		auto component = GameObjectComponent::ComponentFactory::GetInstance()->Create(typeName, object.get());
+		if (!component)
+		{
+			Logger::Log("プレハブのコンポーネント種類を読み込めません: " + typeName + "\n", Logger::LogLevel::Error);
+			return nullptr;
+		}
+		GameObjectComponent::Component* added = object->AddComponent(std::move(component), typeName);
+		if (auto* editable = dynamic_cast<JsonEditableBase*>(added))
+		{
+			editable->Deserialize(componentNode["fields"]);
+		}
+		else if (!componentNode["fields"].empty())
+		{
+			Logger::Log("プレハブのfieldsを読めないコンポーネントです: " + typeName + "\n", Logger::LogLevel::Error);
+			return nullptr;
+		}
+		added->SetEnabled(componentNode["enabled"].get<bool>());
+	}
+
+	std::unordered_set<std::string> childNames;
+	for (const auto& childNode : node["children"])
+	{
+		auto child = DeserializePrefabNode(childNode, object3dCommon, lightManager);
+		if (!child || !childNames.insert(child->GetName()).second)
+		{
+			return nullptr;
+		}
+		const std::string childName = child->GetName();
+		object->AddChild(childName, std::move(child));
+	}
+	return object;
+}
+}
+
 std::unique_ptr<GameObjectManager> GameObjectManager::instance_ = nullptr;
 
 GameObjectManager* GameObjectManager::GetInstance()
@@ -366,6 +449,39 @@ GameObject* GameObjectManager::CreateGameObject(const std::string& name, const s
 	Register(ptr);
 
 	return ptr;
+}
+
+std::unique_ptr<GameObject> GameObjectManager::LoadPrefab(const std::string& prefabPath) const
+{
+	if (prefabPath.empty() || !cachedObject3dCommon_ || !cachedLightManager_)
+	{
+		Logger::Log("プレハブを読み込むためのパスまたは共有システムがありません。\n", Logger::LogLevel::Error);
+		return nullptr;
+	}
+	const std::filesystem::path fullPath = PathManager::GetApplicationResourceRoot() / "json" / "prefab" /
+		std::filesystem::path(prefabPath).filename();
+	std::ifstream input(fullPath);
+	if (!input)
+	{
+		Logger::Log("プレハブを開けません: " + fullPath.string() + "\n", Logger::LogLevel::Error);
+		return nullptr;
+	}
+	try
+	{
+		nlohmann::json json;
+		input >> json;
+		auto object = DeserializePrefabNode(json, cachedObject3dCommon_, cachedLightManager_);
+		if (!object)
+		{
+			Logger::Log("プレハブの形式が壊れています: " + fullPath.string() + "\n", Logger::LogLevel::Error);
+		}
+		return object;
+	}
+	catch (const std::exception& error)
+	{
+		Logger::Log("プレハブを読み込めません: " + fullPath.string() + " (" + error.what() + ")\n", Logger::LogLevel::Error);
+		return nullptr;
+	}
 }
 
 void GameObjectManager::ClearPendingDestroyObjects()

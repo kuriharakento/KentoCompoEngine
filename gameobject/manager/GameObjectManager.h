@@ -93,6 +93,13 @@ public:
 	GameObject* CreateGameObject(const std::string& name = "GameObject", const std::string& tag = "GameObject");
 
 	/**
+	 * @brief プレハブを読み込み、まだmanagerへ登録していないツリーを返す。
+	 * @param prefabPath application/Resources/json/prefab からの相対パス
+	 * @return 読み込みに成功したツリー。所有権は呼び出し側へ移る
+	 */
+	std::unique_ptr<GameObject> LoadPrefab(const std::string& prefabPath) const;
+
+	/**
 	 * @brief 名前でGameObjectを検索
 	 * @param name 検索する名前
 	 * @return 最初に見つかったGameObject。無ければnullptr
