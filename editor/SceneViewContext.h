@@ -6,7 +6,9 @@ namespace KCE
 class Camera;
 
 /**
- * @brief シーンビューの矩形（スクリーン座標、ピクセル）
+ * @brief シーンビューの矩形（ImGui の座標、ピクセル）
+ * @details ImGui のマルチビューポートは無効なので、ImGui の座標はウィンドウのクライアント座標と同じ
+ *          （スクリーン座標ではない）。クライアント座標が要るときは ImGui::GetMainViewport()->Pos を引く。
  */
 struct SceneViewRect
 {
@@ -45,7 +47,7 @@ public:
 
 	/**
 	 * @brief シーン画像の矩形を設定する
-	 * @param rect スクリーン座標での矩形
+	 * @param rect ImGui の座標での矩形（ImGui::GetItemRectMin() などの値をそのまま渡す）
 	 */
 	void SetViewportRect(const SceneViewRect& rect) { rect_ = rect; }
 

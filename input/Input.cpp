@@ -148,17 +148,19 @@ void Input::Update() {
             (rect.right - rect.left) / 2,
             (rect.bottom - rect.top) / 2
         };
-        if (SceneViewContext::HasInstance() && SceneViewContext::GetInstance()->GetViewportRect().IsValid())
+#ifdef USE_IMGUI
+        if (ImGui::GetCurrentContext() && SceneViewContext::HasInstance() && SceneViewContext::GetInstance()->GetViewportRect().IsValid())
         {
-            // Scene の矩形はスクリーン座標なので、クライアント座標に直す（0.5f は中心を取るための半分）
+            // Scene の矩形は ImGui の座標。メインビューポートの位置を引くとクライアント座標になる
+            // （マルチビューポートが無効な今は位置が (0,0) なので、ImGui の座標がそのままクライアント座標）。0.5f は中心を取るための半分
             const SceneViewRect& view = SceneViewContext::GetInstance()->GetViewportRect();
-            POINT viewCenter = {
-                static_cast<LONG>(view.x + view.width * 0.5f),
-                static_cast<LONG>(view.y + view.height * 0.5f)
+            const ImVec2 viewportPos = ImGui::GetMainViewport()->Pos;
+            center = {
+                static_cast<LONG>(view.x - viewportPos.x + view.width * 0.5f),
+                static_cast<LONG>(view.y - viewportPos.y + view.height * 0.5f)
             };
-            ScreenToClient(hwnd, &viewCenter);
-            center = viewCenter;
         }
+#endif
 
         // 現在のマウス座標を取得
         POINT mousePos;
