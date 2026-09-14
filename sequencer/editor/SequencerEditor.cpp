@@ -1160,6 +1160,7 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 			case TrackType::Text:
 			case TrackType::Text3D: return IM_COL32(185, 130, 200, 255);
 			case TrackType::Component: return IM_COL32(200, 125, 70, 255);
+			case TrackType::Particle: return IM_COL32(230, 150, 190, 255);
 			default: return IM_COL32(110, 110, 120, 255);
 			}
 		}();

@@ -161,6 +161,7 @@
     <ClCompile Include="sequencer\track\EventTrack.cpp" />
     <ClCompile Include="sequencer\runtime\CutsceneManager.cpp" />
     <ClCompile Include="sequencer\track\LightTrack.cpp" />
+    <ClCompile Include="sequencer\track\ParticleTrack.cpp" />
     <ClCompile Include="sequencer\track\PostProcessTrack.cpp" />
     <ClCompile Include="sequencer\track\ScreenTrack.cpp" />
     <ClCompile Include="sequencer\track\TextTrack.cpp" />
@@ -393,6 +394,7 @@
     <ClInclude Include="sequencer\track\EventTrack.h" />
     <ClInclude Include="sequencer\runtime\CutsceneManager.h" />
     <ClInclude Include="sequencer\track\LightTrack.h" />
+    <ClInclude Include="sequencer\track\ParticleTrack.h" />
     <ClInclude Include="sequencer\track\PostProcessTrack.h" />
     <ClInclude Include="sequencer\track\ScreenTrack.h" />
     <ClInclude Include="sequencer\track\TextTrack.h" />

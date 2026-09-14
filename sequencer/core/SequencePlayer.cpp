@@ -5,6 +5,7 @@
 
 #include "audio/Audio.h"
 #include "sequencer/track/EventTrack.h"
+#include "sequencer/track/ParticleTrack.h"
 #include "time/TimeManager.h"
 
 namespace KCE
@@ -205,20 +206,34 @@ void SequencePlayer::Update()
 
 void SequencePlayer::FireEvents(float from, float to, bool skipping)
 {
-	if (!sequence_ || !eventCallback_)
+	if (!sequence_)
 	{
 		return;
 	}
 
 	for (const auto& track : sequence_->GetTracks())
 	{
-		const auto* eventTrack = dynamic_cast<const EventTrack*>(track.get());
-		if (!eventTrack || eventTrack->IsMuted())
+		if (!track || track->IsMuted())
 		{
 			continue;
 		}
-		eventTrack->ForEachEventInRange(from, to, skipping,
-			[this](const SequenceEvent& event) { eventCallback_(event.name); });
+
+		// イベントはゲーム側のコールバックが無ければ渡す先が無い
+		if (const auto* eventTrack = dynamic_cast<const EventTrack*>(track.get()))
+		{
+			if (eventCallback_)
+			{
+				eventTrack->ForEachEventInRange(from, to, skipping,
+					[this](const SequenceEvent& event) { eventCallback_(event.name); });
+			}
+			continue;
+		}
+
+		// パーティクルはコールバックが無くても出す。エディタの再生でも見えるように
+		if (const auto* particleTrack = dynamic_cast<const ParticleTrack*>(track.get()))
+		{
+			particleTrack->FireInRange(from, to, skipping, bindingContext_);
+		}
 	}
 }
 

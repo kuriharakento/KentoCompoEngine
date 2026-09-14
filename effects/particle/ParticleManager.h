@@ -69,6 +69,14 @@ public:
 	 */
 	bool HasEffect(const std::string& name) const;
 
+	/**
+	 * @brief Play() で新しく出せる定義（JSON パス）が登録済みかチェック
+	 * @details CreateEmpty() で作っただけのエフェクトは HasEffect() は真でも、定義が無いので Play() では出ない。
+	 * @param name エフェクト名
+	 * @return 定義が登録済みならtrue
+	 */
+	bool HasEffectDefinition(const std::string& name) const { return effectDefinitions_.count(name) > 0; }
+
 	//===== エフェクト定義の管理（後方互換）=====//
 
 	/**

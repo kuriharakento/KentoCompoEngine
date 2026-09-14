@@ -651,6 +651,9 @@
     <ClCompile Include="sequencer\track\EventTrack.cpp">
       <Filter>sequencer\track</Filter>
     </ClCompile>
+    <ClCompile Include="sequencer\track\ParticleTrack.cpp">
+      <Filter>sequencer\track</Filter>
+    </ClCompile>
     <ClCompile Include="sequencer\runtime\CutsceneManager.cpp">
       <Filter>sequencer\runtime</Filter>
     </ClCompile>
@@ -1326,6 +1329,9 @@
       <Filter>sequencer\track</Filter>
     </ClInclude>
     <ClInclude Include="sequencer\track\EventTrack.h">
+      <Filter>sequencer\track</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\track\ParticleTrack.h">
       <Filter>sequencer\track</Filter>
     </ClInclude>
     <ClInclude Include="sequencer\runtime\CutsceneManager.h">

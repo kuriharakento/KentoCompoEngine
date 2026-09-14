@@ -24,6 +24,7 @@ enum class TrackType
 	Text,		 //!< 歌詞テロップ・会話
 	Text3D,		 //!< 3D 空間の文字
 	Component,	 //!< GameObject コンポーネントの項目
+	Particle,	 //!< パーティクルのエフェクトを出す
 	Unknown,	 //!< 未知（前方互換のためのプレースホルダ）
 };
 
