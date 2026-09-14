@@ -580,18 +580,23 @@ void LightManager::DrawHierarchyImGui()
 	// 平行光源はシーンに1つなので名前を持たない
 	static const std::string kDirectionalLightName;
 	drawEntry(SelectionLightType::Directional, kDirectionalLightName, "Directional Light");
+	// ポイントとスポットで同じ名前を付けられるので、種類ごとに ID を分けてから名前で分ける
+	ImGui::PushID("Point");
 	for (const auto& name : pointLightNames_)
 	{
 		ImGui::PushID(name.c_str());
 		drawEntry(SelectionLightType::Point, name, name.c_str());
 		ImGui::PopID();
 	}
+	ImGui::PopID();
+	ImGui::PushID("Spot");
 	for (const auto& name : spotLightNames_)
 	{
 		ImGui::PushID(name.c_str());
 		drawEntry(SelectionLightType::Spot, name, name.c_str());
 		ImGui::PopID();
 	}
+	ImGui::PopID();
 #endif
 }
 

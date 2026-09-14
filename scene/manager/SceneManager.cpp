@@ -33,7 +33,7 @@ void SceneManager::Initialize(const SceneContext& context)
 
 #ifdef USE_IMGUI
 	// シーンマネージャーをデバッグUIに登録
-	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "シーン管理", [this]() {
+	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "シーンマネージャー", [this]() {
 		ImGui::Text("CurrentScene: %s", currentSceneName_.c_str());
 		ImGui::Text("Textures: resident %zu / scene %zu",
 			TextureManager::GetInstance()->GetResidentTextureCount(),

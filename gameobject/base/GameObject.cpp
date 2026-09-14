@@ -838,14 +838,14 @@ void GameObject::DrawImGui()
 			ImGui::Separator();
 			ImGui::Spacing();
 
-			// コンポーネント用のヘッダーセクション
+			// コンポーネント用のヘッダーセクション。同じ種類を2つ持てるので、見出しごと ID を分ける
 			std::string headerLabel = compName + " Component";
+			ImGui::PushID(comp.get());
 			if (ImGui::CollapsingHeader(headerLabel.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				ImGui::PushID(comp.get());
 				editableComp->DrawImGui();
-				ImGui::PopID();
 			}
+			ImGui::PopID();
 		}
 	}
 #endif // USE_IMGUI

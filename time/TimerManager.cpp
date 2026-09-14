@@ -19,7 +19,7 @@ TimerManager::TimerManager()
     Clear();
 
 #ifdef USE_IMGUI
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "システム", "タイマー管理", [this]() { this->DrawImGui(); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "システム", "タイマーマネージャー", [this]() { this->DrawImGui(); });
 #endif
 }
 

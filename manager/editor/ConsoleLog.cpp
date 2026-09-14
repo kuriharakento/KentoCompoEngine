@@ -78,7 +78,7 @@ void ConsoleLog::Draw([[maybe_unused]] bool* open)
 	}
 
 	ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
-	if (!ImGui::Begin("コンソール###Console", open))
+	if (!ImGui::Begin("Console###Console", open))
 	{
 		ImGui::End();
 		return;

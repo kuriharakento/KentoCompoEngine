@@ -24,7 +24,7 @@ TimeManager::TimeManager()
 
 #ifdef USE_IMGUI
 	// TimeManagerをデバッグUIに登録
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "システム", "時間管理", [this]() {
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "システム", "タイムマネージャー", [this]() {
 		// 全体のポーズ設定
 		ImGui::Checkbox("一時停止", &paused_);
 		ImGui::Separator();

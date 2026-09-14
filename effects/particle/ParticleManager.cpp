@@ -34,7 +34,7 @@ void ParticleManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager
 	pipelineManager_->Initialize(dxCommon_);
 
 #ifdef USE_IMGUI
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "エフェクト", "パーティクル管理", [this]() { this->DrawSettingsImGui(); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "エフェクト", "パーティクルマネージャー", [this]() { this->DrawSettingsImGui(); });
 	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "エフェクト", [this]() { this->DrawHierarchyImGui(); });
 	DebugUIManager::GetInstance()->RegisterInspector(this, SelectionKind::ParticleEffect,
 		[this](const SelectionItem& item) { this->DrawInspectorImGui(item); });

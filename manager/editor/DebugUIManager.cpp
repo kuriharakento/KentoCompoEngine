@@ -44,9 +44,9 @@ constexpr float kCenterPivot = 0.5f;
 constexpr char kSettingsTypeName[] = "DebugUI";
 constexpr char kGlobalSettingsName[] = "GlobalSettings";
 constexpr char kSettingsPagePrefix[] = "settings_page=";
-constexpr char kHierarchyWindowName[] = "階層###Hierarchy";
-constexpr char kInspectorWindowName[] = "インスペクター###Inspector";
-constexpr char kSettingsWindowName[] = "設定###Settings";
+constexpr char kHierarchyWindowName[] = "Hierarchy###Hierarchy";
+constexpr char kInspectorWindowName[] = "Inspector###Inspector";
+constexpr char kSettingsWindowName[] = "Settings###Settings";
 constexpr char kSystemCategoryName[] = "システム";
 constexpr char kDebugCategoryName[] = "デバッグ";
 
@@ -328,7 +328,10 @@ void DebugUIManager::DrawInspector()
 		{
 			if (page.kind == selected.kind)
 			{
+				// 同じ種類に複数の登録元が欄を足すので、登録元ごとに ID を分けてラベルがぶつからないようにする
+				ImGui::PushID(&page);
 				page.draw(selected);
+				ImGui::PopID();
 				found = true;
 			}
 		}

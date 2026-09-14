@@ -224,7 +224,7 @@ void GameObjectEditor::DrawInspectorImGui()
 		ImGui::Spacing();
 
 		// 3. コンポーネントの管理（追加・削除を一目でわかりやすく整理）
-		if (ImGui::CollapsingHeader("Component管理", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::CollapsingHeader("Componentマネージャー", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			ImGui::Spacing();
 			ImGui::Text("追加済みComponent:");
@@ -243,7 +243,8 @@ void GameObjectEditor::DrawInspectorImGui()
 				{
 					const auto& compName = componentNames[index];
 					const auto& comp = comps[index];
-					ImGui::PushID(compName.c_str());
+					// 同じ種類を2つ持てるので、種類名ではなく並び順で ID を分ける
+					ImGui::PushID(static_cast<int>(index));
 					ImGui::AlignTextToFramePadding();
 					ImGui::Bullet();
 					ImGui::Text("%s", compName.c_str());
