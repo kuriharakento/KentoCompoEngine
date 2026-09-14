@@ -16,6 +16,7 @@ class LightManager;
 class PostProcessManager;
 class TextOverlay;
 class Text3DRenderer;
+class DepthOfFieldRenderer;
 
 /**
  * @brief 役（ロール）に割り当てられる実体の型
@@ -137,6 +138,10 @@ public:
 	void SetText3DRenderer(Text3DRenderer* text3DRenderer) { text3DRenderer_ = text3DRenderer; }
 	Text3DRenderer* GetText3DRenderer() const { return text3DRenderer_; }
 
+	// 被写界深度。カメラトラックがピントを注目点に合わせるときに使う。画面に1つ
+	void SetDepthOfFieldRenderer(DepthOfFieldRenderer* depthOfFieldRenderer) { depthOfFieldRenderer_ = depthOfFieldRenderer; }
+	DepthOfFieldRenderer* GetDepthOfFieldRenderer() const { return depthOfFieldRenderer_; }
+
 	// --- 拍 ---
 
 	/**
@@ -195,6 +200,7 @@ private:
 	BeamRenderer* beamRenderer_ = nullptr;
 	TextOverlay* textOverlay_ = nullptr;
 	Text3DRenderer* text3DRenderer_ = nullptr;
+	DepthOfFieldRenderer* depthOfFieldRenderer_ = nullptr;
 	SequenceOrigin origin_;
 	// 拍の刻み。SequencePlayer が評価の直前に入れる
 	float bpm_ = 0.0f;

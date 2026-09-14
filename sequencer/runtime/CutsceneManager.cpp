@@ -87,6 +87,11 @@ void CutsceneManager::SetAtmosphere(FogRenderer* fogRenderer, BeamRenderer* beam
 	player_.GetBindingContext().SetBeamRenderer(beamRenderer);
 }
 
+void CutsceneManager::SetDepthOfField(DepthOfFieldRenderer* depthOfFieldRenderer)
+{
+	player_.GetBindingContext().SetDepthOfFieldRenderer(depthOfFieldRenderer);
+}
+
 void CutsceneManager::SetTextOverlay(TextOverlay* textOverlay)
 {
 	player_.GetBindingContext().SetTextOverlay(textOverlay);

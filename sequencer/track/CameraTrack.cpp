@@ -7,6 +7,7 @@
 
 #include "base/Camera.h"
 #include "gameobject/base/GameObject.h"
+#include "graphics/postfx/DepthOfFieldRenderer.h"
 #include "sequencer/core/CurveSerialization.h"
 
 namespace KCE
@@ -39,6 +40,9 @@ constexpr float kMaxHandheldFrequency = 5.0f;
 constexpr float kHandheldFrequencyDragSpeed = 0.01f;
 // 手持ちのロールは首振りより控えめにする
 constexpr float kHandheldRollScale = 0.5f;
+// 自動フレーミングの余白の範囲（m）
+constexpr float kMaxFrameMargin = 50.0f;
+constexpr float kFrameMarginDragSpeed = 0.05f;
 
 /**
  * @brief 手持ちの揺れの1成分（正弦波）
@@ -250,6 +254,41 @@ float CameraTrack::EvaluateBeatKick(float time, const BindingContext& ctx) const
 	return beatShakeCurve_.Evaluate(time) * std::exp(-sinceBeat / decay);
 }
 
+bool CameraTrack::EvaluateFramedPosition(float time, const BindingContext& ctx, const Vector3& keyedPosition, float fovY, float aspectRatio, Vector3& outPosition, Vector3& outCenter) const
+{
+	const GameObject* objectA = aimRoleA_.empty() ? nullptr : ctx.GetGameObject(aimRoleA_);
+	const GameObject* objectB = aimRoleB_.empty() ? nullptr : ctx.GetGameObject(aimRoleB_);
+	if (!objectA && !objectB)
+	{
+		return false;
+	}
+
+	// 片方しか割り当てられていなければ、その1人を余白の分だけ包む
+	const Vector3 positionA = (objectA ? objectA : objectB)->GetPosition();
+	const Vector3 positionB = (objectB ? objectB : objectA)->GetPosition();
+	const Vector3 offset = aimOffsetCurve_.IsEmpty() ? Vector3{} : aimOffsetCurve_.Evaluate(time);
+	outCenter = (positionA + positionB) * 0.5f + offset;
+	const float radius = Vector3::Length(positionB - positionA) * 0.5f + frameMargin_;
+
+	const Vector3 fromCenter = keyedPosition - outCenter;
+	const float keyedDistance = Vector3::Length(fromCenter);
+	if (keyedDistance < kMinAimDistance || radius <= 0.0f)
+	{
+		return false;
+	}
+
+	// 縦と横の画角の狭い方で収める。球が半画角 θ に収まる距離は r / sin(θ)（数式由来）
+	const float halfFovY = fovY * 0.5f;
+	const float halfFovX = std::atan(std::tan(halfFovY) * aspectRatio);
+	const float halfFov = (std::min)(halfFovY, halfFovX);
+	if (halfFov <= 0.0f)
+	{
+		return false;
+	}
+	outPosition = outCenter + fromCenter / keyedDistance * (radius / std::sin(halfFov));
+	return true;
+}
+
 void CameraTrack::Evaluate(float time, const BindingContext& ctx)
 {
 	Camera* camera = ctx.GetCamera(GetBindingRole());
@@ -259,19 +298,44 @@ void CameraTrack::Evaluate(float time, const BindingContext& ctx)
 		return;
 	}
 
+	// 画角の土台は、キーがあればそれ、無ければ再生前に退避した画角（拍の揺れだけ付けたいとき用）。
+	// カメラの今の画角を土台にすると、評価のたびに揺れが積み重なって純関数でなくなる
+	float fov = 0.0f;
+	bool hasFov = false;
+	if (!fovCurve_.IsEmpty())
+	{
+		fov = fovCurve_.Evaluate(time);
+		hasFov = true;
+	}
+	else if (hasCapturedState_ && !beatShakeCurve_.IsEmpty())
+	{
+		fov = capturedFov_;
+		hasFov = true;
+	}
+	// 自動フレーミングの距離は、揺れを足す前の画角で決める。
+	// このトラックが画角を決めないなら、退避した画角か今の画角（どちらもこのトラックは書き換えない）
+	const float framingFov = hasFov ? fov : (hasCapturedState_ ? capturedFov_ : camera->GetFovY());
+
 	// キーを持たないチャンネルには触れない。
 	// 触れてしまうと「位置だけ演出する」トラックが画角を初期値に戻してしまう。
 	// 原点が設定されていれば（カットシーンを現在地で再生する場合）、その位置と向きへ移す
+	Vector3 framedCenter{};
+	bool framed = false;
 	if (!positionCurve_.IsEmpty())
 	{
-		camera->SetTranslate(ctx.ApplyOriginToPoint(positionCurve_.Evaluate(time)));
+		const Vector3 keyedPosition = ctx.ApplyOriginToPoint(positionCurve_.Evaluate(time));
+		Vector3 framedPosition{};
+		framed = frameTargets_ && EvaluateFramedPosition(time, ctx, keyedPosition, framingFov, camera->GetAspectRatio(), framedPosition, framedCenter);
+		camera->SetTranslate(framed ? framedPosition : keyedPosition);
 	}
 
-	// 向きは、注目点が決まればそちらを優先し、決まらなければ回転のキーを使う
+	// 向きは、注目点が決まればそちらを優先し、決まらなければ回転のキーを使う。
+	// 自動フレーミング中は、役を包んだ球の中心を狙う
 	Quaternion rotation = Quaternion::Identity();
 	bool hasRotation = false;
-	Vector3 aimTarget{};
-	if (UsesAim() && EvaluateAimTarget(time, ctx, aimTarget))
+	Vector3 aimTarget = framedCenter;
+	const bool hasAim = framed || (UsesAim() && EvaluateAimTarget(time, ctx, aimTarget));
+	if (hasAim)
 	{
 		hasRotation = MakeLookRotation(camera->GetTranslate(), aimTarget, rotation);
 	}
@@ -300,20 +364,17 @@ void CameraTrack::Evaluate(float time, const BindingContext& ctx)
 		camera->SetRotateQuaternion(rotation);
 	}
 
-	// 画角の土台は、キーがあればそれ、無ければ再生前に退避した画角（拍の揺れだけ付けたいとき用）。
-	// カメラの今の画角を土台にすると、評価のたびに揺れが積み重なって純関数でなくなる
-	float fov = 0.0f;
-	bool hasFov = false;
-	if (!fovCurve_.IsEmpty())
+	// ピントを注目点に合わせる。距離はカメラの位置と注目点だけから決まるので純関数のまま
+	if (autoFocus_ && hasAim)
 	{
-		fov = fovCurve_.Evaluate(time);
-		hasFov = true;
+		if (DepthOfFieldRenderer* depthOfField = ctx.GetDepthOfFieldRenderer())
+		{
+			DepthOfFieldRenderer::Settings& settings = depthOfField->GetSettings();
+			settings.enabled = true;
+			settings.focusDistance = Vector3::Length(aimTarget - camera->GetTranslate());
+		}
 	}
-	else if (hasCapturedState_ && !beatShakeCurve_.IsEmpty())
-	{
-		fov = capturedFov_;
-		hasFov = true;
-	}
+
 	if (hasFov)
 	{
 		const float kickDegrees = EvaluateBeatKick(time, ctx);
@@ -331,6 +392,20 @@ float CameraTrack::GetEndTime() const
 
 void CameraTrack::CaptureState(const BindingContext& ctx)
 {
+	// 自動フォーカスを使うときだけ、被写界深度の設定を退避する。
+	// 使わないのに戻すと、再生中に Settings で変えた値を消してしまう
+	hasCapturedFocus_ = false;
+	if (autoFocus_)
+	{
+		if (DepthOfFieldRenderer* depthOfField = ctx.GetDepthOfFieldRenderer())
+		{
+			const DepthOfFieldRenderer::Settings& settings = depthOfField->GetSettings();
+			capturedFocusEnabled_ = settings.enabled;
+			capturedFocusDistance_ = settings.focusDistance;
+			hasCapturedFocus_ = true;
+		}
+	}
+
 	const Camera* camera = ctx.GetCamera(GetBindingRole());
 	if (!camera)
 	{
@@ -349,6 +424,16 @@ void CameraTrack::CaptureState(const BindingContext& ctx)
 
 void CameraTrack::RestoreState(const BindingContext& ctx)
 {
+	if (hasCapturedFocus_)
+	{
+		if (DepthOfFieldRenderer* depthOfField = ctx.GetDepthOfFieldRenderer())
+		{
+			DepthOfFieldRenderer::Settings& settings = depthOfField->GetSettings();
+			settings.enabled = capturedFocusEnabled_;
+			settings.focusDistance = capturedFocusDistance_;
+		}
+	}
+
 	if (!hasCapturedState_)
 	{
 		return;
@@ -404,6 +489,9 @@ nlohmann::json CameraTrack::Serialize() const
 	json["beatShakeDecay"] = beatShakeDecay_;
 	json["handheld"] = SerializeCurve(handheldCurve_);
 	json["handheldFrequency"] = handheldFrequency_;
+	json["autoFocus"] = autoFocus_;
+	json["frameTargets"] = frameTargets_;
+	json["frameMargin"] = frameMargin_;
 	return json;
 }
 
@@ -477,6 +565,18 @@ bool CameraTrack::Deserialize(const nlohmann::json& json)
 	{
 		handheldFrequency_ = std::clamp(json["handheldFrequency"].get<float>(), kMinHandheldFrequency, kMaxHandheldFrequency);
 	}
+	if (json.contains("autoFocus") && json["autoFocus"].is_boolean())
+	{
+		autoFocus_ = json["autoFocus"].get<bool>();
+	}
+	if (json.contains("frameTargets") && json["frameTargets"].is_boolean())
+	{
+		frameTargets_ = json["frameTargets"].get<bool>();
+	}
+	if (json.contains("frameMargin") && json["frameMargin"].is_number())
+	{
+		frameMargin_ = std::clamp(json["frameMargin"].get<float>(), 0.0f, kMaxFrameMargin);
+	}
 
 	return true;
 }
@@ -507,6 +607,36 @@ bool CameraTrack::DrawInspector()
 	if (UsesAim())
 	{
 		ImGui::TextDisabled("注目点を使っている間は Rotation のキーを使わない");
+	}
+
+	ImGui::SeparatorText("Focus / Framing");
+	if (ImGui::Checkbox("Auto Focus On Aim", &autoFocus_))
+	{
+		changed = true;
+	}
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("被写界深度をオンにして、ピントを注目点までの距離に合わせ続ける。\n再生を止めると元の設定に戻る");
+	}
+	if (ImGui::Checkbox("Frame Aim Roles", &frameTargets_))
+	{
+		changed = true;
+	}
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("Aim Role A / B が画面に収まる距離まで、カメラを自動で前後させる。\n向きは Position のキーから決め、画角はそのまま。Position のキーが要る");
+	}
+	if (frameTargets_)
+	{
+		if (ImGui::DragFloat("Frame Margin (m)", &frameMargin_, kFrameMarginDragSpeed, 0.0f, kMaxFrameMargin, "%.2f"))
+		{
+			frameMargin_ = std::clamp(frameMargin_, 0.0f, kMaxFrameMargin);
+			changed = true;
+		}
+		if (positionCurve_.IsEmpty())
+		{
+			ImGui::TextDisabled("Position のキーが無いので、フレーミングは効かない");
+		}
 	}
 
 	ImGui::SeparatorText("Shake");
