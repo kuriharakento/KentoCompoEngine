@@ -154,7 +154,7 @@ void ParticleManager::DrawHierarchyImGui()
 	for (const auto& effect : effects_)
 	{
 		const bool isSelected = primary.kind == SelectionKind::ParticleEffect && primary.name == effect->GetDebugName();
-		if (ImGui::Selectable(effect->GetName().c_str(), isSelected))
+		if (ImGui::Selectable(effect->GetDebugName().c_str(), isSelected))
 		{
 			SelectionItem item;
 			item.kind = SelectionKind::ParticleEffect;
@@ -165,7 +165,7 @@ void ParticleManager::DrawHierarchyImGui()
 	for (const auto& emitter : emitters_)
 	{
 		const bool isSelected = primary.kind == SelectionKind::ParticleEffect && primary.name == emitter->GetDebugName();
-		if (ImGui::Selectable(emitter->GetName().c_str(), isSelected))
+		if (ImGui::Selectable(emitter->GetDebugName().c_str(), isSelected))
 		{
 			SelectionItem item;
 			item.kind = SelectionKind::ParticleEffect;
