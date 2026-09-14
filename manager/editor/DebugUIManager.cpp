@@ -47,6 +47,8 @@ constexpr char kSettingsPagePrefix[] = "settings_page=";
 constexpr char kHierarchyWindowName[] = "Hierarchy";
 constexpr char kInspectorWindowName[] = "Inspector";
 constexpr char kSettingsWindowName[] = "Settings";
+constexpr char kSystemCategoryName[] = "System";
+constexpr char kDebugCategoryName[] = "Debug";
 
 /**
  * @brief imgui.ini に覚えておく中身
@@ -402,6 +404,14 @@ void DebugUIManager::RebuildSettingsCategories()
 		{
 			settingsCategories_.push_back(page.category);
 		}
+	}
+	const auto debug = std::find(settingsCategories_.begin(), settingsCategories_.end(), kDebugCategoryName);
+	if (debug != settingsCategories_.end())
+	{
+		const std::string debugCategory = *debug;
+		settingsCategories_.erase(debug);
+		const auto system = std::find(settingsCategories_.begin(), settingsCategories_.end(), kSystemCategoryName);
+		settingsCategories_.insert(system != settingsCategories_.end() ? std::next(system) : settingsCategories_.end(), debugCategory);
 	}
 }
 

@@ -220,7 +220,7 @@ bool ShaderHotReload::ReloadAll()
 #ifdef USE_IMGUI
 void ShaderHotReload::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterWindow(this, "Shader Hot Reload", [this]() { this->DrawImGui(); }, EditorDock::Bottom);
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Debug", "Shader Hot Reload", [this]() { this->DrawImGui(); });
 }
 
 void ShaderHotReload::DrawImGui()
