@@ -68,6 +68,16 @@ bool ReadFloatArray(const nlohmann::json& json, size_t count, float* output)
 	}
 	return true;
 }
+
+/** @brief 保存する項目だけを比べる。reveal / exit はシーケンスが動かす値なので保存も比較もしない */
+bool SameSavedParams(const TextMesh3D::Params& a, const TextMesh3D::Params& b)
+{
+	return a.position.x == b.position.x && a.position.y == b.position.y && a.position.z == b.position.z &&
+		a.rotation.x == b.rotation.x && a.rotation.y == b.rotation.y && a.rotation.z == b.rotation.z && a.rotation.w == b.rotation.w &&
+		a.scale == b.scale && a.size == b.size &&
+		a.color.x == b.color.x && a.color.y == b.color.y && a.color.z == b.color.z && a.color.w == b.color.w &&
+		a.style == b.style;
+}
 } // namespace
 
 StageManager::~StageManager()
@@ -222,7 +232,7 @@ bool StageManager::SaveToFile()
 		std::filesystem::rename(tempPath, fullPath, error);
 		if (error) { Logger::Log("StageManager: 保存の確定に失敗しました: " + error.message() + "\n", Logger::LogLevel::Error); return false; }
 	}
-	savedState_ = contents;
+	CaptureSavedState();
 	return true;
 }
 
@@ -232,7 +242,7 @@ bool StageManager::LoadFromFile()
 	if (!std::filesystem::exists(fullPath))
 	{
 		Clear();
-		savedState_ = Serialize().dump(4);
+		CaptureSavedState();
 		Logger::Log("StageManager: 新しい空のステージを開きました: " + stageName_ + "\n", Logger::LogLevel::Info);
 		return true;
 	}
@@ -256,11 +266,35 @@ bool StageManager::LoadFromFile()
 		Clear();
 		return false;
 	}
-	savedState_ = Serialize().dump(4);
+	CaptureSavedState();
 	return true;
 }
 
-bool StageManager::IsDirty() const { return Serialize().dump(4) != savedState_; }
+bool StageManager::IsDirty() const
+{
+	// Hierarchy が毎フレーム呼ぶので、JSON の文字列にせず項目を直接比べる（毎フレーム確保しない）
+	if (texts3D_.size() != savedTexts_.size()) { return true; }
+	for (size_t i = 0; i < texts3D_.size(); ++i)
+	{
+		const TextEntry& current = texts3D_[i];
+		const SavedText& saved = savedTexts_[i];
+		if (current.name != saved.name || current.mesh->GetText() != saved.text || !SameSavedParams(current.mesh->GetParams(), saved.params))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void StageManager::CaptureSavedState()
+{
+	savedTexts_.clear();
+	savedTexts_.reserve(texts3D_.size());
+	for (const TextEntry& entry : texts3D_)
+	{
+		savedTexts_.push_back({ entry.name, entry.mesh->GetText(), entry.mesh->GetParams() });
+	}
+}
 
 #ifdef USE_IMGUI
 void StageManager::RegisterDebugUI()

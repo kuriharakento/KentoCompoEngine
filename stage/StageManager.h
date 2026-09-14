@@ -56,14 +56,19 @@ private:
 	bool Deserialize(const nlohmann::json& json, std::string& outError);
 	std::filesystem::path GetFilePath() const;
 	void Clear();
+	/** @brief 今の中身を「保存した時点」として覚える。保存と読み込みのあとに呼ぶ */
+	void CaptureSavedState();
 #ifdef USE_IMGUI
 	void RegisterDebugUI();
 	void DrawHierarchyImGui();
 	void DrawInspectorImGui(const SelectionItem& item);
 #endif
+	/** @brief 保存（か読み込み）した時点の3D文字。未保存かを JSON にせず比べるために持つ */
+	struct SavedText { std::string name; std::string text; TextMesh3D::Params params; };
 	std::string stageName_;
 	std::vector<TextEntry> texts3D_;
-	std::string savedState_;
+	// 保存（か読み込み）した時点の中身。IsDirty() が毎フレームこれと比べる
+	std::vector<SavedText> savedTexts_;
 	uint64_t lifetimeId_ = 0;
 	// Framework 所有。StageManager より長生きする前提
 	Text3DRenderer* text3DRenderer_ = nullptr;
