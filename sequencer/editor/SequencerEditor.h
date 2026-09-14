@@ -250,8 +250,20 @@ private:
 	 * @brief プレビュー用の割り当てをバインディングコンテキストへ反映する
 	 * @details GameObject は GUID で覚えておき、毎フレーム引き直す。
 	 *          ポインタで覚えると、対象が破棄されたときにダングリングする。
+	 *          名前で読み込んでまだ見つかっていない割り当てがあれば、ここで探し直す。
 	 */
 	void ApplyPreviewBindings();
+	/**
+	 * @brief プレビュー用の割り当てをシーケンスのエディタ用データへ書く
+	 * @details GUID は生成のたびに振り直されて次の起動では合わないので、名前で保存する。
+	 */
+	void StorePreviewBindings();
+	/** @brief シーケンスのエディタ用データから、プレビュー用の割り当てを読み直す */
+	void RestorePreviewBindings();
+	/** @brief 名前で読み込んだ割り当てを、今いる GameObject から探して GUID に直す */
+	void ResolvePendingObjectBindings();
+	/** @brief プレビュー用の割り当てを全部外す。シーケンスを入れ替える前に呼ぶ */
+	void ClearPreviewBindings();
 	/** @brief 全キーが時間方向に収まる表示へ合わせる */
 	void FrameAllKeys();
 	/** @brief 折りたたみ状態を含むトラックの表示行数 */
@@ -300,6 +312,9 @@ private:
 	std::unordered_map<std::string, Guid> previewObjectBindings_;
 	// エディタでのプレビュー用の割り当て（役 → ライト名）
 	std::unordered_map<std::string, std::string> previewLightBindings_;
+	// ファイルから名前で読んだが、まだ同じ名前の GameObject が見つかっていない割り当て（役 → 名前）。
+	// 保存するときもそのまま書き戻す（シーンに居ないだけで消さない）
+	std::unordered_map<std::string, std::string> pendingObjectBindings_;
 
 	// 「トラックを追加」で選んでいる種別
 	int addTrackTypeIndex_ = 0;

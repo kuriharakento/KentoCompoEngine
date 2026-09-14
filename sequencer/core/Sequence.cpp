@@ -15,6 +15,8 @@ namespace
 {
 /** @brief シーケンスJSONを置くディレクトリ（アプリのリソースルートからの相対） */
 const char* const kSequenceDirectory = "json/sequence";
+/** @brief エディタだけが使うデータを置くキー */
+const char* const kEditorDataKey = "editor";
 
 /**
  * @brief 保存・読み込み先のフルパスを解決する
@@ -210,6 +212,11 @@ nlohmann::json Sequence::Serialize() const
 	}
 	json["markers"] = markersJson;
 
+	if (!editorData_.is_null())
+	{
+		json[kEditorDataKey] = editorData_;
+	}
+
 	return json;
 }
 
@@ -309,6 +316,11 @@ bool Sequence::Deserialize(const nlohmann::json& json, std::string* outError)
 		}
 	}
 
+	if (json.contains(kEditorDataKey) && json[kEditorDataKey].is_object())
+	{
+		editorData_ = json[kEditorDataKey];
+	}
+
 	return true;
 }
 
@@ -396,5 +408,6 @@ void Sequence::Clear()
 	markers_.clear();
 	bindings_.clear();
 	meta_ = SequenceMeta{};
+	editorData_ = nullptr;
 }
 } // namespace KCE

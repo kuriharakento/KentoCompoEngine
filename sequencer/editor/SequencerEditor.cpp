@@ -60,8 +60,14 @@ const char* const kSequenceCameraName = "SequencerCamera";
 class PreviewObjectBindingCommand : public ICommand
 {
 public:
-	PreviewObjectBindingCommand(std::unordered_map<std::string, Guid>* bindings, std::string role, Guid after)
-		: bindings_(bindings), role_(std::move(role)), after_(after)
+	/**
+	 * @param bindings 書き換える割り当て
+	 * @param role 役
+	 * @param after 割り当てる GameObject の GUID
+	 * @param unbind 真なら after を使わず、割り当てを外す
+	 */
+	PreviewObjectBindingCommand(std::unordered_map<std::string, Guid>* bindings, std::string role, Guid after, bool unbind = false)
+		: bindings_(bindings), role_(std::move(role)), after_(after), unbind_(unbind)
 	{
 		const auto it = bindings_->find(role_);
 		if (it != bindings_->end())
@@ -71,7 +77,11 @@ public:
 		}
 	}
 
-	void Execute() override { (*bindings_)[role_] = after_; }
+	void Execute() override
+	{
+		if (unbind_) { bindings_->erase(role_); }
+		else { (*bindings_)[role_] = after_; }
+	}
 	void Undo() override
 	{
 		if (hadBefore_) { (*bindings_)[role_] = before_; }
@@ -86,7 +96,15 @@ private:
 	Guid before_{};
 	Guid after_{};
 	bool hadBefore_ = false;
+	bool unbind_ = false;
 };
+
+/** @brief シーケンスのエディタ用データで、プレビュー用の割り当てを置くキー */
+const char* const kPreviewBindingsKey = "previewBindings";
+/** @brief プレビュー用の割り当てのうち、GameObject（役 → 名前）のキー */
+const char* const kPreviewObjectsKey = "objects";
+/** @brief プレビュー用の割り当てのうち、ライト（役 → ライト名）のキー */
+const char* const kPreviewLightsKey = "lights";
 
 /** @brief キーのマーカーの半径（ピクセル） */
 constexpr float kKeyMarkerRadius = 5.0f;
@@ -439,6 +457,7 @@ void SequencerEditor::Finalize()
 	sequence_.Clear();
 	previewObjectBindings_.clear();
 	previewLightBindings_.clear();
+	pendingObjectBindings_.clear();
 	cameraManager_ = nullptr;
 	lightManager_ = nullptr;
 	postProcessManager_ = nullptr;
@@ -471,6 +490,13 @@ void SequencerEditor::ApplyPreviewBindings()
 {
 	BindingContext& ctx = player_.GetBindingContext();
 
+	// 名前で読んだ割り当ては、その GameObject が後から作られることもあるので探し続ける。
+	// 見つかっていない物が無ければ何もしない（ふだんは毎フレームの負担にならない）
+	if (!pendingObjectBindings_.empty())
+	{
+		ResolvePendingObjectBindings();
+	}
+
 	// GameObject は GUID から毎フレーム引き直す。破棄されていれば割り当ては外れる
 	for (const auto& [role, guid] : previewObjectBindings_)
 	{
@@ -482,6 +508,114 @@ void SequencerEditor::ApplyPreviewBindings()
 	{
 		ctx.BindLight(role, lightName);
 	}
+}
+
+void SequencerEditor::StorePreviewBindings()
+{
+	// 見つかっていない名前も書き戻す。シーンに居ないだけで、覚えていた割り当てを消さないため
+	nlohmann::json objects = nlohmann::json::object();
+	for (const auto& [role, name] : pendingObjectBindings_)
+	{
+		objects[role] = name;
+	}
+	for (const auto& [role, guid] : previewObjectBindings_)
+	{
+		const GameObject* object = GameObjectManager::HasInstance() ? GameObjectManager::GetInstance()->FindByGuid(guid) : nullptr;
+		if (object)
+		{
+			objects[role] = object->GetName();
+		}
+	}
+
+	nlohmann::json lights = nlohmann::json::object();
+	for (const auto& [role, lightName] : previewLightBindings_)
+	{
+		lights[role] = lightName;
+	}
+
+	// 他のキーがあっても消さないよう、自分のキーだけを書き換える
+	nlohmann::json& editorData = sequence_.GetEditorData();
+	if (!editorData.is_object())
+	{
+		editorData = nlohmann::json::object();
+	}
+	editorData[kPreviewBindingsKey] = { { kPreviewObjectsKey, objects }, { kPreviewLightsKey, lights } };
+}
+
+void SequencerEditor::RestorePreviewBindings()
+{
+	const nlohmann::json& editorData = sequence_.GetEditorData();
+	if (!editorData.is_object() || !editorData.contains(kPreviewBindingsKey) || !editorData[kPreviewBindingsKey].is_object())
+	{
+		return;
+	}
+	const nlohmann::json& bindings = editorData[kPreviewBindingsKey];
+
+	// GameObject は名前しか分からないので、いったん「探し中」に入れて今いる物から探す
+	if (bindings.contains(kPreviewObjectsKey) && bindings[kPreviewObjectsKey].is_object())
+	{
+		for (const auto& entry : bindings[kPreviewObjectsKey].items())
+		{
+			if (entry.value().is_string())
+			{
+				pendingObjectBindings_[entry.key()] = entry.value().get<std::string>();
+			}
+		}
+	}
+	if (bindings.contains(kPreviewLightsKey) && bindings[kPreviewLightsKey].is_object())
+	{
+		for (const auto& entry : bindings[kPreviewLightsKey].items())
+		{
+			if (entry.value().is_string())
+			{
+				previewLightBindings_[entry.key()] = entry.value().get<std::string>();
+			}
+		}
+	}
+	ResolvePendingObjectBindings();
+}
+
+void SequencerEditor::ResolvePendingObjectBindings()
+{
+	if (!GameObjectManager::HasInstance())
+	{
+		return;
+	}
+	const std::vector<GameObject*>& objects = GameObjectManager::GetInstance()->GetGameObjects();
+	for (auto it = pendingObjectBindings_.begin(); it != pendingObjectBindings_.end();)
+	{
+		// 同じ名前が複数あるときは、一覧で先に出てくる物にする
+		const auto found = std::find_if(objects.begin(), objects.end(),
+			[&it](const GameObject* object) { return object && object->GetName() == it->second; });
+		if (found != objects.end())
+		{
+			previewObjectBindings_[it->first] = (*found)->GetGuid();
+			it = pendingObjectBindings_.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
+}
+
+void SequencerEditor::ClearPreviewBindings()
+{
+	// コンテキストに残った割り当ても外す。役の一覧から消すだけでは、前の物を動かし続けてしまう
+	BindingContext& ctx = player_.GetBindingContext();
+	for (const auto& [role, guid] : previewObjectBindings_)
+	{
+		(void)guid;
+		ctx.BindGameObject(role, nullptr);
+	}
+	for (const auto& [role, lightName] : previewLightBindings_)
+	{
+		(void)lightName;
+		ctx.BindLight(role, "");
+	}
+	previewObjectBindings_.clear();
+	previewLightBindings_.clear();
+	pendingObjectBindings_.clear();
 }
 
 std::string SequencerEditor::MakeUniqueObjectRole(const GameObject& object) const
@@ -2553,7 +2687,7 @@ void SequencerEditor::DrawTrackInspector(size_t trackIndex)
 	definition.type = bindingType;
 	sequence_.AddBinding(definition);
 
-	ImGui::TextDisabled("プレビュー用の割り当て（エディタのみ・保存されません）");
+	ImGui::TextDisabled("プレビュー用の割り当て（エディタのみ。シーケンスと一緒に名前で保存）");
 
 	switch (bindingType)
 	{
@@ -2639,12 +2773,28 @@ void SequencerEditor::DrawPreviewObjectCombo(const std::string& role, const char
 		? GameObjectManager::GetInstance()->FindByGuid(it->second)
 		: nullptr;
 
-	if (ImGui::BeginCombo(label, current ? current->GetName().c_str() : "(未割り当て)"))
+	// ファイルで覚えていた名前の物が今のシーンに居ないときは、それが分かるように出す
+	const auto pending = pendingObjectBindings_.find(role);
+	std::string preview = "(未割り当て)";
+	if (current) { preview = current->GetName(); }
+	else if (pending != pendingObjectBindings_.end()) { preview = "(見つからない: " + pending->second + ")"; }
+
+	// 割り当ての変更は Undo で戻せるようにし、保存していない印も付ける
+	const auto bind = [this, &role](GameObject* object)
+	{
+		pendingObjectBindings_.erase(role);
+		CommandHistory::GetInstance()->Execute(std::make_unique<PreviewObjectBindingCommand>(
+			&previewObjectBindings_, role, object ? object->GetGuid() : Guid{}, object == nullptr));
+		player_.GetBindingContext().BindGameObject(role, object);
+		ApplyPreviewBindings();
+		player_.EvaluateCurrentTime();
+	};
+
+	if (ImGui::BeginCombo(label, preview.c_str()))
 	{
 		if (ImGui::Selectable("(未割り当て)", current == nullptr))
 		{
-			previewObjectBindings_.erase(role);
-			player_.GetBindingContext().BindGameObject(role, nullptr);
+			bind(nullptr);
 		}
 		if (GameObjectManager::HasInstance())
 		{
@@ -2655,9 +2805,7 @@ void SequencerEditor::DrawPreviewObjectCombo(const std::string& role, const char
 				ImGui::PushID(object->GetGuid().ToString().c_str());
 				if (ImGui::Selectable(object->GetName().c_str(), object == current))
 				{
-					previewObjectBindings_[role] = object->GetGuid();
-					ApplyPreviewBindings();
-					player_.EvaluateCurrentTime();
+					bind(object);
 				}
 				ImGui::PopID();
 			}
@@ -2900,6 +3048,10 @@ void SequencerEditor::LoadSequenceFile(const std::string& path)
 		// 読めたファイルを保存先にもする。別のファイルに上書きしてしまわないように
 		filePath_ = path;
 		statusMessage_ = "読み込みました: " + path;
+		// 前のシーケンスの割り当てを残すと、同じ役名の別の物を動かしてしまう
+		ClearPreviewBindings();
+		RestorePreviewBindings();
+		ApplyPreviewBindings();
 		player_.EvaluateCurrentTime();
 	}
 	else
@@ -2910,6 +3062,7 @@ void SequencerEditor::LoadSequenceFile(const std::string& path)
 
 void SequencerEditor::SaveSequenceFile(const std::string& path)
 {
+	StorePreviewBindings();
 	if (sequence_.SaveToFile(path))
 	{
 		filePath_ = path;
@@ -2940,6 +3093,7 @@ void SequencerEditor::CreateNewSequence(const std::string& path)
 	SelectionContext::GetInstance()->ClearSelection();
 	CommandHistory::GetInstance()->Clear();
 	collapsedTracks_.clear();
+	ClearPreviewBindings();
 
 	sequence_.Clear();
 	AddRequiredBindings();

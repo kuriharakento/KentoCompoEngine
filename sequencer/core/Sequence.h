@@ -126,6 +126,16 @@ public:
 	const SequenceMeta& GetMeta() const { return meta_; }
 	SequenceMeta& GetMeta() { return meta_; }
 
+	// --- エディタ用のデータ ---
+
+	/**
+	 * @brief エディタだけが使うデータ（プレビュー用の割り当てなど）
+	 * @details 再生側は見ない。中身を知らなくても、読み込んで保存したときに消えないようそのまま持ち回る。
+	 * @return JSON。無ければ null
+	 */
+	nlohmann::json& GetEditorData() { return editorData_; }
+	const nlohmann::json& GetEditorData() const { return editorData_; }
+
 	/**
 	 * @brief シーケンスの長さを取得する
 	 * @details メタに明示された長さがあればそれを、無ければ全トラックの
@@ -191,5 +201,7 @@ private:
 	std::vector<TrackPtr> tracks_;
 	// タイムライン上の目印
 	std::vector<SequenceMarker> markers_;
+	// エディタだけが使うデータ。再生側は見ない
+	nlohmann::json editorData_;
 };
 } // namespace KCE
