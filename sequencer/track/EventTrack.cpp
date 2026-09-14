@@ -46,6 +46,33 @@ void EventTrack::EventChannel::RemoveKey(size_t index)
 	}
 }
 
+nlohmann::json EventTrack::EventChannel::CopyKey(size_t index) const
+{
+	if (index >= events_->size())
+	{
+		return nullptr;
+	}
+	const SequenceEvent& event = (*events_)[index];
+	nlohmann::json json;
+	json["name"] = event.name;
+	json["fireOnSkip"] = event.fireOnSkip;
+	return json;
+}
+
+bool EventTrack::EventChannel::PasteKey(float time, const nlohmann::json& json)
+{
+	if (!json.is_object())
+	{
+		return false;
+	}
+	SequenceEvent event;
+	event.time = time;
+	if (json.contains("name") && json["name"].is_string()) { event.name = json["name"].get<std::string>(); }
+	if (json.contains("fireOnSkip") && json["fireOnSkip"].is_boolean()) { event.fireOnSkip = json["fireOnSkip"].get<bool>(); }
+	Insert(event);
+	return true;
+}
+
 #ifdef USE_IMGUI
 bool EventTrack::EventChannel::DrawKeyValueEditor(size_t index)
 {

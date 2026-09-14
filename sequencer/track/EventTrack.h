@@ -83,6 +83,9 @@ private:
 		InterpolationMode& GetKeyInterp(size_t index) override { (void)index; return unusedInterp_; }
 		BezierHandle& GetKeyBezier(size_t index) override { (void)index; return unusedBezier_; }
 		bool HasInterpolation() const override { return false; }
+		nlohmann::json CopyKey(size_t index) const override;
+		/** @details イベントは同じ時刻に複数あってよいので、上書きせずに足す */
+		bool PasteKey(float time, const nlohmann::json& json) override;
 
 		/** @brief 時刻順を保ったまま追加する。追加後のインデックスを返す */
 		size_t Insert(const SequenceEvent& event);
