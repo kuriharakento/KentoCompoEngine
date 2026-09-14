@@ -200,6 +200,40 @@ private:
 	std::unordered_set<ObjectPair, ObjectPairHash> currentObjectCollisions_;
 	std::unordered_set<ObjectPair, ObjectPairHash> nextObjectCollisions_;
 
+	// 通知は写しで回す。通知の中で登録や解除が起きても、回している一覧が壊れないようにするため。毎フレーム確保しないよう使い回す
+	std::vector<CollisionPair> dispatchPairs_;
+	std::vector<ObjectPair> dispatchObjectPairs_;
+	// このフレームで Enter を送った組。通知の途中で外されたとき、Exit も送るかの判断に使う
+	std::vector<CollisionPair> enteredPairs_;
+	std::vector<ObjectPair> enteredObjectPairs_;
+	// 通知の途中で外されたコライダーと、破棄中の持ち主。解放済みかもしれないので、アドレスを比べるだけに使う
+	std::vector<const GameObjectComponent::Collider*> removedColliders_;
+	std::vector<const GameObject*> destroyedOwners_;
+	// 通知の入れ子の深さ。0 に戻ったら上の2つを空にする
+	int dispatchDepth_ = 0;
+
+	/** @brief 通知の入れ子を1段深くする。 */
+	void BeginDispatch() { ++dispatchDepth_; }
+	/** @brief 通知の入れ子を1段戻す。いちばん外まで戻ったら、外した記録を消す。 */
+	void EndDispatch();
+	/**
+	 * @brief コライダー組の Exit を両側に送る。
+	 * @param pair 送る組。呼ぶ前に一覧から抜いておく
+	 * @param removing いま外している最中のコライダー。記録にあっても生きているので通知してよい。無ければ nullptr
+	 */
+	void NotifyColliderExit(const CollisionPair& pair, const GameObjectComponent::Collider* removing);
+	/**
+	 * @brief オブジェクト組の Exit を両側に送る。破棄中の側には送らない。
+	 * @param objects 送る組。呼ぶ前に一覧から抜いておく
+	 */
+	void NotifyObjectExit(const ObjectPair& objects);
+	/**
+	 * @brief このフレームの通知の途中で外されたか。
+	 * @param collider 調べるコライダー。解放済みでもよい（アドレスを比べるだけ）
+	 * @return 外されていれば真
+	 */
+	bool WasRemoved(const GameObjectComponent::Collider* collider) const;
+
 	// 空間分割用セルキー構造体
 	struct CellKey
 	{

@@ -230,6 +230,8 @@ void CollisionManager::Register(Collider* collider)
 {
 	if (collider && std::find(colliders_.begin(), colliders_.end(), collider) == colliders_.end()) colliders_.push_back(collider);
 	raycastCandidates_.reserve(colliders_.size());
+	// 通知の途中で付け直された（または同じアドレスに作り直された）判定は、外された扱いにしない
+	removedColliders_.erase(std::remove(removedColliders_.begin(), removedColliders_.end(), collider), removedColliders_.end());
 }
 
 void CollisionManager::Unregister(Collider* collider)
@@ -240,17 +242,22 @@ void CollisionManager::Unregister(Collider* collider)
 		return;
 	}
 
+	colliders_.erase(std::remove(colliders_.begin(), colliders_.end(), collider), colliders_.end());
+	removedColliders_.push_back(collider);
+	if (owner->IsDestroying())
+	{
+		destroyedOwners_.push_back(owner);
+	}
+
 	// 外した判定の Exit はここで送る。次のフレームまで残すと相手が片方だけ通知を受け損ねる。
+	// 組は先に一覧から抜いてから送る。Exit の中で別の判定が外されても、回している一覧が壊れないようにするため
+	// （外したときだけなので、ここの確保は許す）
+	std::vector<CollisionPair> exitPairs;
 	for (auto it = currentCollisions_.begin(); it != currentCollisions_.end(); )
 	{
 		if (it->a == collider || it->b == collider)
 		{
-			const Collider* a = it->a;
-			const Collider* b = it->b;
-			CollisionInfo infoA{ const_cast<Collider*>(a), b->GetOwner(), const_cast<Collider*>(b) };
-			CollisionInfo infoB{ const_cast<Collider*>(b), a->GetOwner(), const_cast<Collider*>(a) };
-			if (!a->GetOwner()->IsDestroying()) a->CallOnExit(infoA);
-			if (!b->GetOwner()->IsDestroying()) b->CallOnExit(infoB);
+			exitPairs.push_back(*it);
 			it = currentCollisions_.erase(it);
 		}
 		else
@@ -258,35 +265,131 @@ void CollisionManager::Unregister(Collider* collider)
 			++it;
 		}
 	}
-
-	colliders_.erase(std::remove(colliders_.begin(), colliders_.end(), collider), colliders_.end());
-	for (auto it = currentObjectCollisions_.begin(); it != currentObjectCollisions_.end(); )
+	// CheckCollisions の通知中なら、このフレームで触れたばかりの組も抜く。Enter を送り済みのものだけ Exit を送る
+	for (auto it = nextCollisions_.begin(); it != nextCollisions_.end(); )
 	{
-		if (it->a != owner && it->b != owner)
+		if (it->a == collider || it->b == collider)
+		{
+			if (std::find(enteredPairs_.begin(), enteredPairs_.end(), *it) != enteredPairs_.end())
+			{
+				exitPairs.push_back(*it);
+			}
+			it = nextCollisions_.erase(it);
+		}
+		else
 		{
 			++it;
-			continue;
 		}
+	}
 
-		const ObjectPair objects = *it;
-		const bool hasRemainingContact = std::any_of(currentCollisions_.begin(), currentCollisions_.end(), [&objects](const CollisionPair& pair)
+	// 触れている判定が1つも残らなくなったオブジェクト組も、同じように抜く
+	const auto hasContact = [this](const ObjectPair& objects)
+	{
+		const auto matches = [&objects](const CollisionPair& pair)
 		{
 			GameObject* a = pair.a->GetOwner();
 			GameObject* b = pair.b->GetOwner();
 			return (a == objects.a && b == objects.b) || (a == objects.b && b == objects.a);
-		});
-		if (hasRemainingContact)
+		};
+		return std::any_of(currentCollisions_.begin(), currentCollisions_.end(), matches)
+			|| std::any_of(nextCollisions_.begin(), nextCollisions_.end(), matches);
+	};
+	std::vector<ObjectPair> objectExitPairs;
+	for (auto it = currentObjectCollisions_.begin(); it != currentObjectCollisions_.end(); )
+	{
+		if ((it->a == owner || it->b == owner) && !hasContact(*it))
+		{
+			objectExitPairs.push_back(*it);
+			it = currentObjectCollisions_.erase(it);
+		}
+		else
 		{
 			++it;
-			continue;
 		}
-
-		CollisionInfo infoA{ nullptr, objects.b, nullptr };
-		CollisionInfo infoB{ nullptr, objects.a, nullptr };
-		if (!objects.a->IsDestroying()) objects.a->DispatchObjectCollisionExit(infoA);
-		if (!objects.b->IsDestroying()) objects.b->DispatchObjectCollisionExit(infoB);
-		it = currentObjectCollisions_.erase(it);
 	}
+	for (auto it = nextObjectCollisions_.begin(); it != nextObjectCollisions_.end(); )
+	{
+		if ((it->a == owner || it->b == owner) && !hasContact(*it))
+		{
+			if (std::find(enteredObjectPairs_.begin(), enteredObjectPairs_.end(), *it) != enteredObjectPairs_.end())
+			{
+				objectExitPairs.push_back(*it);
+			}
+			it = nextObjectCollisions_.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
+
+	BeginDispatch();
+	for (const CollisionPair& pair : exitPairs)
+	{
+		NotifyColliderExit(pair, collider);
+	}
+	for (const ObjectPair& objects : objectExitPairs)
+	{
+		NotifyObjectExit(objects);
+	}
+	EndDispatch();
+}
+
+void CollisionManager::EndDispatch()
+{
+	--dispatchDepth_;
+	if (dispatchDepth_ == 0)
+	{
+		removedColliders_.clear();
+		destroyedOwners_.clear();
+	}
+}
+
+void CollisionManager::NotifyColliderExit(const CollisionPair& pair, const Collider* removing)
+{
+	// 先の通知で外された側は解放済みかもしれない。相手の情報も作れないので、この組は送らない
+	const auto isAlive = [this, removing](const Collider* collider) { return collider == removing || !WasRemoved(collider); };
+	if (!isAlive(pair.a) || !isAlive(pair.b))
+	{
+		return;
+	}
+
+	// Exit のときはめり込みが無いので、深さと法線は 0 のまま
+	CollisionInfo infoA{ const_cast<Collider*>(pair.a), pair.b->GetOwner(), const_cast<Collider*>(pair.b) };
+	CollisionInfo infoB{ const_cast<Collider*>(pair.b), pair.a->GetOwner(), const_cast<Collider*>(pair.a) };
+	if (!pair.a->GetOwner()->IsDestroying())
+	{
+		pair.a->CallOnExit(infoA);
+	}
+	// a の通知の中で b が外されていたら送らない
+	if (isAlive(pair.b) && !pair.b->GetOwner()->IsDestroying())
+	{
+		pair.b->CallOnExit(infoB);
+	}
+}
+
+void CollisionManager::NotifyObjectExit(const ObjectPair& objects)
+{
+	// 破棄中の側は解放済みかもしれないので触らない
+	const auto isAlive = [this](const GameObject* object)
+	{
+		return std::find(destroyedOwners_.begin(), destroyedOwners_.end(), object) == destroyedOwners_.end() && !object->IsDestroying();
+	};
+	CollisionInfo infoA{ nullptr, objects.b, nullptr };
+	CollisionInfo infoB{ nullptr, objects.a, nullptr };
+	if (isAlive(objects.a))
+	{
+		objects.a->DispatchObjectCollisionExit(infoA);
+	}
+	if (isAlive(objects.b))
+	{
+		objects.b->DispatchObjectCollisionExit(infoB);
+	}
+}
+
+bool CollisionManager::WasRemoved(const Collider* collider) const
+{
+	return std::find(removedColliders_.begin(), removedColliders_.end(), collider) != removedColliders_.end();
 }
 
 void CollisionManager::CheckCollisions()
@@ -427,9 +530,16 @@ void CollisionManager::CheckCollisions()
 		}
 	}
 
-	// 衝突状態の変化を検出し、コールバックを呼び出す
-	for (auto& pair : newCollisions)
+	// ここから通知。通知の中で判定が外されても壊れないよう、一覧は写しで回して、使う前にまだ残っているかを見る
+	BeginDispatch();
+	dispatchPairs_.assign(newCollisions.begin(), newCollisions.end());
+	for (const CollisionPair& pair : dispatchPairs_)
 	{
+		if (!newCollisions.contains(pair))
+		{
+			continue;
+		}
+
 		auto detIt = detailsMap.find(pair);
 		CollisionDetails details = {};
 		if (detIt != detailsMap.end())
@@ -455,41 +565,34 @@ void CollisionManager::CheckCollisions()
 		infoB.depth = details.depth;
 		infoB.collisionPoint = details.point;
 
-		if (currentCollisions_.find(pair) == currentCollisions_.end())
+		// a の通知の中で組が外されていたら、b は解放済みかもしれないので送らない
+		if (!currentCollisions_.contains(pair))
 		{
 			// 新規衝突 (OnEnter)
-			pair.a->CallOnEnter(infoA);
-			pair.b->CallOnEnter(infoB);
+			enteredPairs_.push_back(pair);
 			LogCollision("Enter", pair.a, pair.b);
+			pair.a->CallOnEnter(infoA);
+			if (newCollisions.contains(pair)) pair.b->CallOnEnter(infoB);
 		}
 		else
 		{
 			// 継続衝突 (OnStay)
 			pair.a->CallOnStay(infoA);
-			pair.b->CallOnStay(infoB);
+			if (newCollisions.contains(pair)) pair.b->CallOnStay(infoB);
 		}
 	}
 
-	for (auto& pair : currentCollisions_)
+	dispatchPairs_.assign(currentCollisions_.begin(), currentCollisions_.end());
+	for (const CollisionPair& pair : dispatchPairs_)
 	{
-		if (newCollisions.find(pair) == newCollisions.end())
+		if (newCollisions.contains(pair) || !currentCollisions_.contains(pair))
 		{
-			// 衝突終了 (OnExit)
-			// Exitのときはめり込みは無いため深さ0、法線0にする
-			CollisionInfo infoA;
-			infoA.self = const_cast<Collider*>(pair.a);
-			infoA.other = pair.b->GetOwner();
-			infoA.otherCollider = const_cast<Collider*>(pair.b);
-
-			CollisionInfo infoB;
-			infoB.self = const_cast<Collider*>(pair.b);
-			infoB.other = pair.a->GetOwner();
-			infoB.otherCollider = const_cast<Collider*>(pair.a);
-
-			pair.a->CallOnExit(infoA);
-			pair.b->CallOnExit(infoB);
-			LogCollision("Exit", pair.a, pair.b);
+			continue;
 		}
+		// 衝突終了 (OnExit)。先に一覧から抜いて、通知の中で片方が外されても二重に送らないようにする
+		currentCollisions_.erase(pair);
+		LogCollision("Exit", pair.a, pair.b);
+		NotifyColliderExit(pair, nullptr);
 	}
 
 	nextObjectCollisions_.clear();
@@ -499,8 +602,13 @@ void CollisionManager::CheckCollisions()
 		if (objects.a > objects.b) std::swap(objects.a, objects.b);
 		if (objects.a != objects.b) nextObjectCollisions_.insert(objects);
 	}
-	for (const auto& objects : nextObjectCollisions_)
+	dispatchObjectPairs_.assign(nextObjectCollisions_.begin(), nextObjectCollisions_.end());
+	for (const ObjectPair& objects : dispatchObjectPairs_)
 	{
+		if (!nextObjectCollisions_.contains(objects))
+		{
+			continue;
+		}
 		const auto representative = std::find_if(newCollisions.begin(), newCollisions.end(), [&objects](const CollisionPair& pair)
 		{
 			return (pair.a->GetOwner() == objects.a && pair.b->GetOwner() == objects.b) || (pair.a->GetOwner() == objects.b && pair.b->GetOwner() == objects.a);
@@ -513,28 +621,33 @@ void CollisionManager::CheckCollisions()
 		if (currentObjectCollisions_.contains(objects))
 		{
 			objects.a->DispatchObjectCollisionStay(infoA);
-			objects.b->DispatchObjectCollisionStay(infoB);
+			if (nextObjectCollisions_.contains(objects)) objects.b->DispatchObjectCollisionStay(infoB);
 		}
 		else
 		{
+			enteredObjectPairs_.push_back(objects);
 			objects.a->DispatchObjectCollisionEnter(infoA);
-			objects.b->DispatchObjectCollisionEnter(infoB);
+			if (nextObjectCollisions_.contains(objects)) objects.b->DispatchObjectCollisionEnter(infoB);
 		}
 	}
-	for (const auto& objects : currentObjectCollisions_)
+	dispatchObjectPairs_.assign(currentObjectCollisions_.begin(), currentObjectCollisions_.end());
+	for (const ObjectPair& objects : dispatchObjectPairs_)
 	{
-		if (!nextObjectCollisions_.contains(objects))
+		if (nextObjectCollisions_.contains(objects) || !currentObjectCollisions_.contains(objects))
 		{
-			CollisionInfo infoA{};
-			infoA.other = objects.b;
-			CollisionInfo infoB{};
-			infoB.other = objects.a;
-			objects.a->DispatchObjectCollisionExit(infoA);
-			objects.b->DispatchObjectCollisionExit(infoB);
+			continue;
 		}
+		currentObjectCollisions_.erase(objects);
+		NotifyObjectExit(objects);
 	}
 	currentObjectCollisions_.swap(nextObjectCollisions_);
 	currentCollisions_.swap(nextCollisions_);
+	// 前のフレームの組を持ち越さない。通知の外で Unregister が来たとき、古い組を見ないようにするため
+	nextObjectCollisions_.clear();
+	nextCollisions_.clear();
+	enteredPairs_.clear();
+	enteredObjectPairs_.clear();
+	EndDispatch();
 }
 
 void CollisionManager::UpdatePreviousPositions()
