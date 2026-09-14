@@ -401,6 +401,7 @@ int SequencerEditor::AddGameObjectTrack(const std::string& typeName, GameObject&
 	selected.kind = SelectionKind::SequenceTrack;
 	selected.trackIndex = trackIndex;
 	SelectionContext::GetInstance()->Select(selected);
+	pendingScrollToTrack_ = selected.trackIndex;
 	return trackIndex;
 }
 
@@ -734,6 +735,20 @@ float SequencerEditor::SnapTime(float time) const
 	return std::round(time / snapInterval_) * snapInterval_;
 }
 
+void SequencerEditor::FrameAllKeys()
+{
+	float endTime = 0.0f;
+	for (const auto& track : sequence_.GetTracks())
+	{
+		if (track) { endTime = (std::max)(endTime, track->GetEndTime()); }
+	}
+	constexpr float kMinimumVisibleSeconds = 1.0f;
+	constexpr float kFramePadding = 40.0f;
+	const float width = (std::max)(ImGui::GetContentRegionAvail().x - view_.headerWidth - kFramePadding, 50.0f);
+	view_.scrollTime = 0.0f;
+	view_.pixelsPerSecond = std::clamp(width / (std::max)(endTime, kMinimumVisibleSeconds), 5.0f, 2000.0f);
+}
+
 void SequencerEditor::DrawRuler(const ImVec2& canvasMin, float canvasWidth)
 {
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
@@ -875,11 +890,14 @@ void SequencerEditor::DrawWaveform(const ImVec2& canvasMin, float canvasWidth)
 void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSize)
 {
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	drawList->PushClipRect(
+		ImVec2(canvasMin.x, canvasMin.y + view_.rulerHeight),
+		ImVec2(canvasMin.x + canvasSize.x, canvasMin.y + canvasSize.y), true);
 	SelectionContext* selection = SelectionContext::GetInstance();
 	const float left = canvasMin.x + view_.headerWidth;
 	const int selectedTrack = GetSelectedTrackIndex();
 
-	float rowY = canvasMin.y + view_.rulerHeight;
+	float rowY = canvasMin.y + view_.rulerHeight - view_.verticalScroll;
 	size_t globalRow = 0;
 
 	for (size_t trackIndex = 0; trackIndex < sequence_.GetTrackCount(); ++trackIndex)
@@ -985,7 +1003,7 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 		// クリックした行がどのトラックのどのチャンネルかを求める
 		int hitTrack = -1;
 		int hitChannel = -1;
-		float searchRowY = rowsTop;
+		float searchRowY = rowsTop - view_.verticalScroll;
 		for (size_t trackIndex = 0; trackIndex < sequence_.GetTrackCount() && hitTrack < 0; ++trackIndex)
 		{
 			ITrack* track = sequence_.GetTrack(trackIndex);
@@ -1112,6 +1130,7 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 			boxSelecting_ = false;
 		}
 	}
+	drawList->PopClipRect();
 }
 
 void SequencerEditor::BeginKeyDrag(const SelectionItem& grabbed)
@@ -1235,7 +1254,7 @@ void SequencerEditor::SelectKeysInRect(const ImVec2& canvasMin, const ImVec2& re
 	}
 
 	const float left = canvasMin.x + view_.headerWidth;
-	float rowY = canvasMin.y + view_.rulerHeight;
+	float rowY = canvasMin.y + view_.rulerHeight - view_.verticalScroll;
 	for (size_t trackIndex = 0; trackIndex < sequence_.GetTrackCount(); ++trackIndex)
 	{
 		ITrack* track = sequence_.GetTrack(trackIndex);
@@ -1426,6 +1445,11 @@ void SequencerEditor::DrawTimelineWindow()
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(200.0f);
 	ImGui::DragFloat("Scroll", &view_.scrollTime, 0.05f, 0.0f, 3600.0f, "%.2f s");
+	ImGui::SameLine();
+	if (ImGui::Button("全体を表示 (F)"))
+	{
+		FrameAllKeys();
+	}
 
 	ImGui::Separator();
 
@@ -1446,8 +1470,34 @@ void SequencerEditor::DrawTimelineWindow()
 		ImVec2(canvasMin.x + view_.headerWidth, canvasMin.y + canvasSize.y),
 		IM_COL32(70, 70, 80, 255));
 
-	// このウィンドウ内のマウスホイールでズーム・スクロールする
-	if (ImGui::IsWindowHovered() && ImGui::GetIO().MouseWheel != 0.0f)
+	const ImVec2 mousePos = ImGui::GetIO().MousePos;
+	timelineHovered_ = mousePos.x >= canvasMin.x && mousePos.x <= canvasMin.x + canvasSize.x &&
+		mousePos.y >= canvasMin.y && mousePos.y <= canvasMin.y + canvasSize.y;
+
+	float totalRowsHeight = 0.0f;
+	for (const auto& track : sequence_.GetTracks())
+	{
+		if (track) { totalRowsHeight += static_cast<float>(GetRowCount(track.get())) * view_.trackHeight; }
+	}
+	const float visibleRowsHeight = (std::max)(canvasSize.y - view_.rulerHeight - ImGui::GetFrameHeightWithSpacing(), 1.0f);
+	const float maxVerticalScroll = (std::max)(totalRowsHeight - visibleRowsHeight, 0.0f);
+	if (pendingScrollToTrack_ >= 0)
+	{
+		float targetTop = 0.0f;
+		for (int index = 0; index < pendingScrollToTrack_ && index < static_cast<int>(sequence_.GetTrackCount()); ++index)
+		{
+			ITrack* track = sequence_.GetTrack(static_cast<size_t>(index));
+			if (track) { targetTop += static_cast<float>(GetRowCount(track)) * view_.trackHeight; }
+		}
+		ITrack* target = sequence_.GetTrack(static_cast<size_t>(pendingScrollToTrack_));
+		const float targetBottom = targetTop + (target ? static_cast<float>(GetRowCount(target)) * view_.trackHeight : 0.0f);
+		if (targetBottom > view_.verticalScroll + visibleRowsHeight) { view_.verticalScroll = targetBottom - visibleRowsHeight; }
+		if (targetTop < view_.verticalScroll) { view_.verticalScroll = targetTop; }
+		pendingScrollToTrack_ = -1;
+	}
+
+	// 一般的な動画編集ソフトと同じホイール操作にする
+	if (timelineHovered_ && ImGui::GetIO().MouseWheel != 0.0f)
 	{
 		const float wheel = ImGui::GetIO().MouseWheel;
 		if (ImGui::GetIO().KeyCtrl)
@@ -1458,17 +1508,40 @@ void SequencerEditor::DrawTimelineWindow()
 			view_.pixelsPerSecond = std::clamp(view_.pixelsPerSecond * (1.0f + wheel * 0.1f), 5.0f, 2000.0f);
 			view_.scrollTime = timeUnderMouse - (ImGui::GetIO().MousePos.x - left) / view_.pixelsPerSecond;
 		}
-		else
+		else if (ImGui::GetIO().KeyShift)
 		{
 			view_.scrollTime -= wheel * (100.0f / view_.pixelsPerSecond);
 		}
+		else
+		{
+			view_.verticalScroll -= wheel * view_.trackHeight * 3.0f;
+		}
 		view_.scrollTime = (std::max)(view_.scrollTime, 0.0f);
 	}
+
+	if (timelineHovered_ && ImGui::IsMouseClicked(ImGuiMouseButton_Middle)) { panningTimeline_ = true; }
+	if (panningTimeline_)
+	{
+		if (ImGui::IsMouseDown(ImGuiMouseButton_Middle))
+		{
+			const ImVec2 delta = ImGui::GetIO().MouseDelta;
+			view_.scrollTime = (std::max)(view_.scrollTime - delta.x / view_.pixelsPerSecond, 0.0f);
+			view_.verticalScroll -= delta.y;
+		}
+		else { panningTimeline_ = false; }
+	}
+	view_.verticalScroll = std::clamp(view_.verticalScroll, 0.0f, maxVerticalScroll);
 
 	DrawRuler(canvasMin, canvasSize.x);
 	DrawWaveform(canvasMin, canvasSize.x);
 	DrawTracks(canvasMin, canvasSize);
 	DrawPlayhead(canvasMin, canvasSize);
+
+	ImGui::SetCursorScreenPos(ImVec2(canvasMin.x + view_.headerWidth, canvasMin.y + canvasSize.y - ImGui::GetFrameHeight()));
+	ImGui::SetNextItemWidth(canvasSize.x - view_.headerWidth);
+	const float visibleSeconds = (std::max)((canvasSize.x - view_.headerWidth) / view_.pixelsPerSecond, 0.01f);
+	const float maxScrollTime = (std::max)(sequence_.GetDuration() - visibleSeconds, 0.0f);
+	ImGui::SliderFloat("##TimeScrollbar", &view_.scrollTime, 0.0f, maxScrollTime, "", ImGuiSliderFlags_AlwaysClamp);
 
 	// キャンバス領域を確保しておかないと、後続のUIが重なって描かれる
 	ImGui::SetCursorScreenPos(canvasMin);
@@ -2056,6 +2129,7 @@ void SequencerEditor::AddTrack(const std::string& typeName)
 	item.kind = SelectionKind::SequenceTrack;
 	item.trackIndex = static_cast<int>(sequence_.GetTrackCount() - 1);
 	SelectionContext::GetInstance()->Select(item);
+	pendingScrollToTrack_ = item.trackIndex;
 }
 
 void SequencerEditor::AddKeyAtCurrentTime()
@@ -2401,6 +2475,10 @@ void SequencerEditor::HandleShortcuts()
 	else if (ImGui::IsKeyPressed(ImGuiKey_K, false))
 	{
 		AddKeyAtCurrentTime();
+	}
+	else if (timelineHovered_ && ImGui::IsKeyPressed(ImGuiKey_F, false))
+	{
+		FrameAllKeys();
 	}
 	else if (ImGui::IsKeyPressed(ImGuiKey_Delete, false))
 	{

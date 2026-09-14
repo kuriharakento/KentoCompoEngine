@@ -42,6 +42,8 @@ struct TimelineViewState
 	float headerWidth = 180.0f;
 	//! 時間ルーラーの高さ（ピクセル）
 	float rulerHeight = 72.0f;
+	//! 行領域の縦スクロール量（ピクセル）
+	float verticalScroll = 0.0f;
 };
 
 /**
@@ -193,6 +195,8 @@ private:
 	 *          ポインタで覚えると、対象が破棄されたときにダングリングする。
 	 */
 	void ApplyPreviewBindings();
+	/** @brief 全キーが時間方向に収まる表示へ合わせる */
+	void FrameAllKeys();
 	/** @brief GameObject を割り当てたトラックを追加し、追加した番号を返す */
 	int AddGameObjectTrack(const std::string& typeName, GameObject& object);
 	/** @brief オブジェクト名を基に、別オブジェクトと競合しない役名を作る */
@@ -240,6 +244,12 @@ private:
 
 	// 「トラックを追加」で選んでいる種別
 	int addTrackTypeIndex_ = 0;
+	// 追加直後に表示へ入れるトラック。負なら自動スクロールしない
+	int pendingScrollToTrack_ = -1;
+	// タイムライン上にマウスがあるか。F の対象判定に使う
+	bool timelineHovered_ = false;
+	// 中ボタンで表示をつかんでいるか
+	bool panningTimeline_ = false;
 
 	// シーケンスカメラ視点でプレビューするか
 	bool previewThroughSequenceCamera_ = false;
