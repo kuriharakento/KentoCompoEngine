@@ -201,6 +201,8 @@ private:
 	void ApplyPreviewBindings();
 	/** @brief 全キーが時間方向に収まる表示へ合わせる */
 	void FrameAllKeys();
+	/** @brief 折りたたみ状態を含むトラックの表示行数 */
+	size_t GetVisibleRowCount(size_t trackIndex) const;
 	/** @brief GameObject を割り当てたトラックを追加し、追加した番号を返す */
 	int AddGameObjectTrack(const std::string& typeName, GameObject& object);
 	/** @brief オブジェクト名を基に、別オブジェクトと競合しない役名を作る */
@@ -254,6 +256,8 @@ private:
 	bool timelineHovered_ = false;
 	// 中ボタンで表示をつかんでいるか
 	bool panningTimeline_ = false;
+	// 折りたたまれているトラック番号
+	std::vector<size_t> collapsedTracks_;
 
 	// シーケンスカメラ視点でプレビューするか
 	bool previewThroughSequenceCamera_ = false;

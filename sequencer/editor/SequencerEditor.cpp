@@ -776,6 +776,14 @@ void SequencerEditor::FrameAllKeys()
 	view_.pixelsPerSecond = std::clamp(width / (std::max)(endTime, kMinimumVisibleSeconds), 5.0f, 2000.0f);
 }
 
+size_t SequencerEditor::GetVisibleRowCount(size_t trackIndex) const
+{
+	ITrack* track = sequence_.GetTrack(trackIndex);
+	if (!track) { return 0; }
+	const bool collapsed = std::find(collapsedTracks_.begin(), collapsedTracks_.end(), trackIndex) != collapsedTracks_.end();
+	return 1 + (collapsed ? 0 : track->GetChannelCount());
+}
+
 void SequencerEditor::DrawRuler(const ImVec2& canvasMin, float canvasWidth)
 {
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
@@ -935,14 +943,14 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 			continue;
 		}
 
-		const size_t rowCount = GetRowCount(track);
+		const size_t rowCount = GetVisibleRowCount(trackIndex);
 		const bool hasBinding = HasRequiredBinding(*track, player_.GetBindingContext());
 		for (size_t row = 0; row < rowCount; ++row, ++globalRow)
 		{
 			const float rowTop = rowY;
 			const float rowBottom = rowY + view_.trackHeight;
 			const float rowCenter = (rowTop + rowBottom) * 0.5f;
-			ICurveChannel* channel = track->GetChannel(row);
+			ICurveChannel* channel = row > 0 ? track->GetChannel(row - 1) : nullptr;
 
 			// 行の背景。選択中のトラックは明るくし、それ以外は1行おきに明度を変える
 			ImU32 background = (globalRow % 2 == 0) ? IM_COL32(30, 30, 34, 255) : IM_COL32(34, 34, 39, 255);
@@ -950,13 +958,19 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 			{
 				background = IM_COL32(44, 48, 62, 255);
 			}
+			if (track->IsMuted()) { background = IM_COL32(23, 23, 26, 255); }
 			drawList->AddRectFilled(ImVec2(canvasMin.x, rowTop), ImVec2(canvasMin.x + canvasSize.x, rowBottom), background);
 
 			// トラック名欄
 			char headerLabel[128];
-			if (channel)
+			if (row == 0)
 			{
-				std::snprintf(headerLabel, sizeof(headerLabel), "%s%s / %s", hasBinding ? "" : "! ", track->GetName().c_str(), channel->GetName());
+				const bool collapsed = std::find(collapsedTracks_.begin(), collapsedTracks_.end(), trackIndex) != collapsedTracks_.end();
+				std::snprintf(headerLabel, sizeof(headerLabel), "%s %s%s", collapsed ? ">" : "v", hasBinding ? "" : "! ", track->GetName().c_str());
+			}
+			else if (channel)
+			{
+				std::snprintf(headerLabel, sizeof(headerLabel), "    %s", channel->GetName());
 			}
 			else
 			{
@@ -986,6 +1000,38 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 				ImGui::PopID();
 			}
 
+			if (row == 0)
+			{
+				const ImU32 typeColor = [&]()
+				{
+					switch (track->GetType())
+					{
+					case TrackType::Camera: return IM_COL32(80, 130, 210, 255);
+					case TrackType::Transform: return IM_COL32(80, 175, 130, 255);
+					case TrackType::Light: return IM_COL32(210, 175, 70, 255);
+					case TrackType::PostProcess: return IM_COL32(170, 90, 190, 255);
+					case TrackType::Event: return IM_COL32(215, 100, 85, 255);
+					case TrackType::Screen: return IM_COL32(80, 175, 185, 255);
+					case TrackType::Text:
+					case TrackType::Text3D: return IM_COL32(185, 130, 200, 255);
+					case TrackType::Component: return IM_COL32(200, 125, 70, 255);
+					default: return IM_COL32(110, 110, 120, 255);
+					}
+				}();
+				drawList->AddRectFilled(ImVec2(canvasMin.x, rowTop), ImVec2(canvasMin.x + 4.0f, rowBottom), typeColor);
+				for (size_t channelIndex = 0; channelIndex < track->GetChannelCount(); ++channelIndex)
+				{
+					ICurveChannel* aggregate = track->GetChannel(channelIndex);
+					for (size_t keyIndex = 0; aggregate && keyIndex < aggregate->GetKeyCount(); ++keyIndex)
+					{
+						const float x = TimeToPixel(aggregate->GetKeyTime(keyIndex), left);
+						drawList->AddCircleFilled(ImVec2(x, rowCenter), 3.0f, typeColor);
+					}
+				}
+				rowY = rowBottom;
+				continue;
+			}
+
 			if (!channel)
 			{
 				rowY = rowBottom;
@@ -1004,20 +1050,36 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 				SelectionItem item;
 				item.kind = SelectionKind::SequenceKey;
 				item.trackIndex = static_cast<int>(trackIndex);
-				item.channelIndex = static_cast<int>(row);
+				item.channelIndex = static_cast<int>(row - 1);
 				item.keyIndex = static_cast<int>(keyIndex);
 
 				const bool isSelected = selection->IsSelected(item);
 
-				// ひし形で描く。丸より「キーフレーム」に見える
-				const ImVec2 points[4] = {
-					ImVec2(x, rowCenter - kKeyMarkerRadius),
-					ImVec2(x + kKeyMarkerRadius, rowCenter),
-					ImVec2(x, rowCenter + kKeyMarkerRadius),
-					ImVec2(x - kKeyMarkerRadius, rowCenter),
-				};
-				drawList->AddConvexPolyFilled(points, 4, isSelected ? IM_COL32(255, 200, 80, 255) : IM_COL32(150, 190, 255, 255));
-				drawList->AddPolyline(points, 4, IM_COL32(20, 20, 25, 255), ImDrawFlags_Closed, 1.0f);
+				const ImU32 keyColor = isSelected ? IM_COL32(255, 200, 80, 255) : IM_COL32(150, 190, 255, 255);
+				const InterpolationMode interp = channel->HasInterpolation() ? channel->GetKeyInterp(keyIndex) : InterpolationMode::Constant;
+				if (interp == InterpolationMode::Linear)
+				{
+					drawList->AddCircleFilled(ImVec2(x, rowCenter), kKeyMarkerRadius, keyColor);
+				}
+				else if (interp == InterpolationMode::Constant)
+				{
+					drawList->AddRectFilled(ImVec2(x - kKeyMarkerRadius, rowCenter - kKeyMarkerRadius), ImVec2(x + kKeyMarkerRadius, rowCenter + kKeyMarkerRadius), keyColor);
+				}
+				else
+				{
+					const ImVec2 points[4] = { ImVec2(x, rowCenter - kKeyMarkerRadius), ImVec2(x + kKeyMarkerRadius, rowCenter), ImVec2(x, rowCenter + kKeyMarkerRadius), ImVec2(x - kKeyMarkerRadius, rowCenter) };
+					drawList->AddConvexPolyFilled(points, 4, keyColor);
+					drawList->AddPolyline(points, 4, IM_COL32(20, 20, 25, 255), ImDrawFlags_Closed, 1.0f);
+				}
+				if (std::abs(ImGui::GetIO().MousePos.x - x) <= kKeyGrabRadius && std::abs(ImGui::GetIO().MousePos.y - rowCenter) <= kKeyGrabRadius)
+				{
+					ImGui::BeginTooltip();
+					ImGui::Text("時刻: %.3f s", channel->GetKeyTime(keyIndex));
+					const nlohmann::json value = channel->CopyKey(keyIndex);
+					if (!value.is_null()) { ImGui::TextWrapped("値: %s", value.dump().c_str()); }
+					ImGui::Text("補間: %s", interp == InterpolationMode::Constant ? "一定" : (interp == InterpolationMode::Linear ? "直線" : "ベジェ"));
+					ImGui::EndTooltip();
+				}
 			}
 			rowY = rowBottom;
 		}
@@ -1038,7 +1100,7 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 		{
 			ITrack* track = sequence_.GetTrack(trackIndex);
 			if (!track) { continue; }
-			for (size_t row = 0; row < GetRowCount(track); ++row, searchRowY += view_.trackHeight)
+			for (size_t row = 0; row < GetVisibleRowCount(trackIndex); ++row, searchRowY += view_.trackHeight)
 			{
 				if (mousePos.y >= searchRowY && mousePos.y < searchRowY + view_.trackHeight)
 				{
@@ -1052,7 +1114,8 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 
 	if (mouseInRows && !mouseInHeader && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 	{
-		const auto [trackIndex, channelIndex] = findHitRow();
+		const auto [trackIndex, displayRow] = findHitRow();
+		const int channelIndex = displayRow - 1;
 		ITrack* track = trackIndex >= 0 ? sequence_.GetTrack(static_cast<size_t>(trackIndex)) : nullptr;
 		ICurveChannel* channel = track && channelIndex >= 0 ? track->GetChannel(static_cast<size_t>(channelIndex)) : nullptr;
 		if (channel)
@@ -1075,7 +1138,8 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 
 	if (mouseInRows && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
 	{
-		const auto [trackIndex, channelIndex] = findHitRow();
+		const auto [trackIndex, displayRow] = findHitRow();
+		const int channelIndex = displayRow - 1;
 		contextTrackIndex_ = trackIndex;
 		contextChannelIndex_ = channelIndex;
 		contextTime_ = (std::max)(SnapTime(PixelToTime(mousePos.x, left)), 0.0f);
@@ -1107,28 +1171,18 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 	if (mouseInRows && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) &&
 		!draggingPlayhead_ && !ImGui::IsAnyItemHovered())
 	{
-		// クリックした行がどのトラックのどのチャンネルかを求める
-		int hitTrack = -1;
-		int hitChannel = -1;
-		float searchRowY = rowsTop - view_.verticalScroll;
-		for (size_t trackIndex = 0; trackIndex < sequence_.GetTrackCount() && hitTrack < 0; ++trackIndex)
+		const auto [hitTrack, displayRow] = findHitRow();
+		const int hitChannel = displayRow - 1;
+		if (hitTrack >= 0 && displayRow == 0 && mouseInHeader && mousePos.x < canvasMin.x + 26.0f)
 		{
-			ITrack* track = sequence_.GetTrack(trackIndex);
-			if (!track) { continue; }
-			for (size_t row = 0; row < GetRowCount(track); ++row)
-			{
-				if (mousePos.y >= searchRowY && mousePos.y < searchRowY + view_.trackHeight)
-				{
-					hitTrack = static_cast<int>(trackIndex);
-					hitChannel = static_cast<int>(row);
-					break;
-				}
-				searchRowY += view_.trackHeight;
-			}
+			const size_t index = static_cast<size_t>(hitTrack);
+			const auto collapsed = std::find(collapsedTracks_.begin(), collapsedTracks_.end(), index);
+			if (collapsed == collapsedTracks_.end()) { collapsedTracks_.push_back(index); }
+			else { collapsedTracks_.erase(collapsed); }
 		}
 
 		SelectionItem picked;
-		if (hitTrack >= 0 && !mouseInHeader)
+		if (hitTrack >= 0 && !mouseInHeader && hitChannel >= 0)
 		{
 			// その行で最も近いキーを拾う
 			ITrack* track = sequence_.GetTrack(static_cast<size_t>(hitTrack));
@@ -1144,6 +1198,38 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 					picked.trackIndex = hitTrack;
 					picked.channelIndex = hitChannel;
 					picked.keyIndex = static_cast<int>(keyIndex);
+				}
+			}
+		}
+		else if (hitTrack >= 0 && !mouseInHeader && displayRow == 0)
+		{
+			ITrack* track = sequence_.GetTrack(static_cast<size_t>(hitTrack));
+			float bestDistance = kKeyGrabRadius;
+			float pickedTime = 0.0f;
+			for (size_t channelIndex = 0; track && channelIndex < track->GetChannelCount(); ++channelIndex)
+			{
+				ICurveChannel* aggregate = track->GetChannel(channelIndex);
+				for (size_t keyIndex = 0; aggregate && keyIndex < aggregate->GetKeyCount(); ++keyIndex)
+				{
+					const float distance = std::abs(TimeToPixel(aggregate->GetKeyTime(keyIndex), left) - mousePos.x);
+					if (distance < bestDistance) { bestDistance = distance; pickedTime = aggregate->GetKeyTime(keyIndex); }
+				}
+			}
+			if (bestDistance < kKeyGrabRadius)
+			{
+				selection->ClearSelection();
+				for (size_t channelIndex = 0; channelIndex < track->GetChannelCount(); ++channelIndex)
+				{
+					ICurveChannel* aggregate = track->GetChannel(channelIndex);
+					const int keyIndex = aggregate ? aggregate->FindKeyAt(pickedTime, kPastedKeyTolerance) : -1;
+					if (keyIndex < 0) { continue; }
+					SelectionItem item;
+					item.kind = SelectionKind::SequenceKey;
+					item.trackIndex = hitTrack;
+					item.channelIndex = static_cast<int>(channelIndex);
+					item.keyIndex = keyIndex;
+					selection->AddToSelection(item);
+					picked = item;
 				}
 			}
 		}
@@ -1369,11 +1455,13 @@ void SequencerEditor::SelectKeysInRect(const ImVec2& canvasMin, const ImVec2& re
 		{
 			continue;
 		}
-		for (size_t row = 0; row < GetRowCount(track); ++row, rowY += view_.trackHeight)
+		// 見出し行を飛ばし、展開中のチャンネル行だけを範囲選択する
+		rowY += view_.trackHeight;
+		for (size_t row = 1; row < GetVisibleRowCount(trackIndex); ++row, rowY += view_.trackHeight)
 		{
 			// キーは行の真ん中に描いているので、真ん中が四角に入った行だけを見る
 			const float rowCenter = rowY + view_.trackHeight * 0.5f;
-			ICurveChannel* channel = track->GetChannel(row);
+			ICurveChannel* channel = track->GetChannel(row - 1);
 			if (!channel || rowCenter < rectMin.y || rowCenter > rectMax.y)
 			{
 				continue;
@@ -1388,7 +1476,7 @@ void SequencerEditor::SelectKeysInRect(const ImVec2& canvasMin, const ImVec2& re
 				SelectionItem item;
 				item.kind = SelectionKind::SequenceKey;
 				item.trackIndex = static_cast<int>(trackIndex);
-				item.channelIndex = static_cast<int>(row);
+				item.channelIndex = static_cast<int>(row - 1);
 				item.keyIndex = static_cast<int>(keyIndex);
 				selection->AddToSelection(item);
 			}
@@ -1416,6 +1504,10 @@ void SequencerEditor::DrawPlayhead(const ImVec2& canvasMin, const ImVec2& canvas
 			ImVec2(x, canvasMin.y + 10.0f),
 		};
 		drawList->AddConvexPolyFilled(head, 3, IM_COL32(255, 90, 90, 255));
+		char timeLabel[32];
+		FormatTime(timeLabel, sizeof(timeLabel), player_.GetTime());
+		drawList->AddRectFilled(ImVec2(x + 7.0f, canvasMin.y), ImVec2(x + 76.0f, canvasMin.y + 18.0f), IM_COL32(95, 35, 35, 230));
+		drawList->AddText(ImVec2(x + 10.0f, canvasMin.y + 2.0f), IM_COL32(255, 235, 235, 255), timeLabel);
 	}
 
 	// ルーラー上のドラッグでスクラブする
@@ -1589,9 +1681,9 @@ void SequencerEditor::DrawTimelineWindow()
 		mousePos.y >= canvasMin.y && mousePos.y <= canvasMin.y + canvasSize.y;
 
 	float totalRowsHeight = 0.0f;
-	for (const auto& track : sequence_.GetTracks())
+	for (size_t trackIndex = 0; trackIndex < sequence_.GetTrackCount(); ++trackIndex)
 	{
-		if (track) { totalRowsHeight += static_cast<float>(GetRowCount(track.get())) * view_.trackHeight; }
+		totalRowsHeight += static_cast<float>(GetVisibleRowCount(trackIndex)) * view_.trackHeight;
 	}
 	const float visibleRowsHeight = (std::max)(canvasSize.y - view_.rulerHeight - ImGui::GetFrameHeightWithSpacing(), 1.0f);
 	const float maxVerticalScroll = (std::max)(totalRowsHeight - visibleRowsHeight, 0.0f);
@@ -1601,10 +1693,10 @@ void SequencerEditor::DrawTimelineWindow()
 		for (int index = 0; index < pendingScrollToTrack_ && index < static_cast<int>(sequence_.GetTrackCount()); ++index)
 		{
 			ITrack* track = sequence_.GetTrack(static_cast<size_t>(index));
-			if (track) { targetTop += static_cast<float>(GetRowCount(track)) * view_.trackHeight; }
+			if (track) { targetTop += static_cast<float>(GetVisibleRowCount(static_cast<size_t>(index))) * view_.trackHeight; }
 		}
 		ITrack* target = sequence_.GetTrack(static_cast<size_t>(pendingScrollToTrack_));
-		const float targetBottom = targetTop + (target ? static_cast<float>(GetRowCount(target)) * view_.trackHeight : 0.0f);
+		const float targetBottom = targetTop + (target ? static_cast<float>(GetVisibleRowCount(static_cast<size_t>(pendingScrollToTrack_))) * view_.trackHeight : 0.0f);
 		if (targetBottom > view_.verticalScroll + visibleRowsHeight) { view_.verticalScroll = targetBottom - visibleRowsHeight; }
 		if (targetTop < view_.verticalScroll) { view_.verticalScroll = targetTop; }
 		pendingScrollToTrack_ = -1;
