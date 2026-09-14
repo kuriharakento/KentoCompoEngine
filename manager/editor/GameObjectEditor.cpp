@@ -5,6 +5,7 @@
 #include "manager/editor/DebugUIManager.h"
 #include "editor/SelectionContext.h"
 #include "externals/imgui/imgui.h"
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 
@@ -38,9 +39,11 @@ void GameObjectEditor::Initialize()
 
 	selectedCompIndex_ = 0;
 	selectedJsonIndex_ = 0;
+	selectedPrefabIndex_ = 0;
 
 	// 既存JSONファイル一覧の取得
 	UpdateJsonFileList();
+	UpdatePrefabFileList();
 
 #ifdef USE_IMGUI
 	// 一覧は Hierarchy の区画、詳細は Inspector に出す
@@ -163,6 +166,50 @@ void GameObjectEditor::DrawInspectorImGui()
 				selected_->LoadJson(fileNameBuf_);
 			}
 			ImGui::Spacing();
+		}
+
+		if (ImGui::CollapsingHeader("Prefab", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::PushItemWidth(200.0f);
+			ImGui::InputText("Prefab File Name", prefabFileNameBuf_, sizeof(prefabFileNameBuf_));
+			ImGui::PopItemWidth();
+			if (ImGui::Button("Save As Prefab"))
+			{
+				if (selected_->SavePrefab(prefabFileNameBuf_))
+				{
+					UpdatePrefabFileList();
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Instantiate Prefab") && !prefabFiles_.empty())
+			{
+				GameObject* object = GameObjectManager::GetInstance()->Instantiate(prefabFiles_[selectedPrefabIndex_]);
+				if (object)
+				{
+					selected_ = object;
+					SelectionContext::GetInstance()->SelectGameObject(object);
+				}
+			}
+			if (!prefabFiles_.empty())
+			{
+				ImGui::PushItemWidth(200.0f);
+				if (ImGui::BeginCombo("Prefab Source", prefabFiles_[selectedPrefabIndex_].c_str()))
+				{
+					for (int index = 0; index < static_cast<int>(prefabFiles_.size()); ++index)
+					{
+						if (ImGui::Selectable(prefabFiles_[index].c_str(), selectedPrefabIndex_ == index))
+						{
+							selectedPrefabIndex_ = index;
+						}
+					}
+					ImGui::EndCombo();
+				}
+				ImGui::PopItemWidth();
+			}
+			else
+			{
+				ImGui::TextDisabled("No prefab files found.");
+			}
 		}
 
 		ImGui::Spacing();
@@ -374,6 +421,29 @@ void GameObjectEditor::UpdateJsonFileList()
 	if (selectedJsonIndex_ >= static_cast<int>(jsonFiles_.size()))
 	{
 		selectedJsonIndex_ = 0;
+	}
+}
+
+void GameObjectEditor::UpdatePrefabFileList()
+{
+	prefabFiles_.clear();
+	const std::filesystem::path directory = PathManager::GetApplicationResourceRoot() / "json" / "prefab";
+	try
+	{
+		std::filesystem::create_directories(directory);
+		for (const auto& entry : std::filesystem::directory_iterator(directory))
+		{
+			if (entry.is_regular_file() && entry.path().extension() == ".json")
+			{
+				prefabFiles_.push_back(entry.path().filename().string());
+			}
+		}
+	}
+	catch (...) {}
+	std::sort(prefabFiles_.begin(), prefabFiles_.end());
+	if (selectedPrefabIndex_ >= static_cast<int>(prefabFiles_.size()))
+	{
+		selectedPrefabIndex_ = 0;
 	}
 }
 } // namespace KCE

@@ -62,6 +62,8 @@ private:
 	 * @brief Resources/json ディレクトリから既存のJSONファイル一覧を取得する
 	 */
 	void UpdateJsonFileList();
+	/** @brief Resources/json/prefab のJSONファイル一覧を更新する。 */
+	void UpdatePrefabFileList();
 
 private:
 	static std::unique_ptr<GameObjectEditor> instance_;
@@ -71,6 +73,7 @@ private:
 
 	// セーブ・ロード用のファイル名入力バッファ
 	char fileNameBuf_[128] = "gameObject.json";
+	char prefabFileNameBuf_[128] = "prefab.json";
 
 	// 追加可能なコンポーネントタイプのリスト
 	std::vector<std::string> availableComponents_;
@@ -79,5 +82,7 @@ private:
 	// 既存のJSONファイルリスト
 	std::vector<std::string> jsonFiles_;
 	int selectedJsonIndex_ = 0;
+	std::vector<std::string> prefabFiles_;
+	int selectedPrefabIndex_ = 0;
 };
 } // namespace KCE
