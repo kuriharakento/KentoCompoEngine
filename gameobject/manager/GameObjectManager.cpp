@@ -2,6 +2,7 @@
 #include "engine/gameobject/base/GameObject.h"
 #include "engine/gameobject/component/base/ComponentFactory.h"
 #include "jsonEditor/JsonEditableBase.h"
+#include "jsonEditor/JsonSerialization.h"
 #include "base/Logger.h"
 #include "base/PathManager.h"
 #include <algorithm>
@@ -34,9 +35,11 @@ std::unique_ptr<GameObject> DeserializePrefabNode(
 	auto object = std::make_unique<GameObject>(node["tag"].get<std::string>());
 	object->SetName(node["name"].get<std::string>());
 	object->Initialize(object3dCommon, lightManager);
-	nlohmann::json objectFields;
-	objectFields["transform"] = node["transform"];
-	object->JsonEditableBase::Deserialize(objectFields);
+	// 登録名（transform_）に頼らず、Transform として読む。形が違えば例外になり、LoadPrefab が受ける
+	const Transform transform = node["transform"].get<Transform>();
+	object->SetScale(transform.scale);
+	object->SetRotation(transform.rotate);
+	object->SetPosition(transform.translate);
 	if (node.contains("model"))
 	{
 		if (!node["model"].is_string() || node["model"].get_ref<const std::string&>().empty())

@@ -22,6 +22,9 @@ namespace GameObjectComponent
 		Register("sizeOffset", &sizeOffset_);
 		Register("center", &centerOffset_);
 		Register("useSubstep", &useSubstep_);
+		// プレハブで作り直したときに、当たる相手の設定が既定値（None）に戻らないよう保存する
+		Register("collisionLayer", &layer_);
+		Register("collisionMask", &collisionMask_);
 	}
 
 	OBBCollider::~OBBCollider()

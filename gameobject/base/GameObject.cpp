@@ -683,8 +683,8 @@ nlohmann::json GameObject::SerializePrefab() const
 	prefab["version"] = 1;
 	prefab["name"] = name_;
 	prefab["tag"] = tag_;
-	const nlohmann::json objectFields = JsonEditableBase::Serialize();
-	prefab["transform"] = objectFields.at("transform");
+	// 登録名（transform_）に頼らず、Transform をそのまま書く
+	prefab["transform"] = nlohmann::json(transform_);
 	if (GetObject3d() && !modelName_.empty())
 	{
 		prefab["model"] = modelName_;

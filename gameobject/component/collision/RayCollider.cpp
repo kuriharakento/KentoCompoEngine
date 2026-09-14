@@ -20,6 +20,9 @@ namespace GameObjectComponent
 		Register("length", &ray_.length);
 		Register("useWorldDirection", &useWorldDirection_);
 		Register("worldDirection", &worldDirection_);
+		// プレハブで作り直したときに、当たる相手の設定が既定値（None）に戻らないよう保存する
+		Register("collisionLayer", &layer_);
+		Register("collisionMask", &collisionMask_);
 	}
 
 	void RayCollider::Awake()
