@@ -140,13 +140,25 @@ void Input::Update() {
 
     // マウスの状態を更新
     {
-        // ウィンドウの中央座標を計算
+        // マウス固定でカーソルを戻す中心。エディタでは Scene の画像の中心にする。
+        // ウィンドウの中心だと、Scene が左上などにあるときに別のウィンドウの上へ戻してしまい、そこの UI が動いてしまう
         RECT rect;
         GetClientRect(hwnd, &rect);
         POINT center = {
             (rect.right - rect.left) / 2,
             (rect.bottom - rect.top) / 2
         };
+        if (SceneViewContext::HasInstance() && SceneViewContext::GetInstance()->GetViewportRect().IsValid())
+        {
+            // Scene の矩形はスクリーン座標なので、クライアント座標に直す（0.5f は中心を取るための半分）
+            const SceneViewRect& view = SceneViewContext::GetInstance()->GetViewportRect();
+            POINT viewCenter = {
+                static_cast<LONG>(view.x + view.width * 0.5f),
+                static_cast<LONG>(view.y + view.height * 0.5f)
+            };
+            ScreenToClient(hwnd, &viewCenter);
+            center = viewCenter;
+        }
 
         // 現在のマウス座標を取得
         POINT mousePos;
@@ -173,8 +185,25 @@ void Input::Update() {
         // ロックを解除した瞬間に押しっぱなしのボタンを「押された瞬間」にしないよう、消す前の状態を残す
         memcpy(rawMouseButtons_, mouseButtons_, sizeof(mouseButtons_));
 
+        // Scene の上で始めたマウス固定（デバッグカメラの右ドラッグなど）は、ボタンを離すまでゲームが持ち続ける。
+        // 途中でカーソルが Scene の外へはみ出しても UI に渡さない。渡すと固定が止まり、カーソルの下の UI が動いてしまう
+        bool anyRawButton = false;
+        for (int i = 0; i < kMouseButtonCount; ++i)
+        {
+            anyRawButton = anyRawButton || rawMouseButtons_[i] != 0;
+        }
+        if (!anyRawButton || !isMouseLockEnabled_)
+        {
+            mouseLookOwnedByGame_ = false;
+        }
+        else if (!IsUICapturingMouse())
+        {
+            mouseLookOwnedByGame_ = true;
+        }
+        const bool uiCapturingMouse = IsUICapturingMouse() && !mouseLookOwnedByGame_;
+
         // ImGuiのウィンドウやギズモを操作している間はゲーム側にクリックを渡さない
-        if (IsUICapturingMouse() || gameplayLocked_) {
+        if (uiCapturingMouse || gameplayLocked_) {
             for (int i = 0; i < kMouseButtonCount; ++i) {
                 mouseButtons_[i] = 0;
             }
@@ -182,7 +211,7 @@ void Input::Update() {
 
         // マウス固定が有効な場合、位置をウィンドウの中央にリセット。
         // ImGui のウィンドウを触っている間は戻さない。戻すとカーソルが中央へ引き戻され、UI が反応しなくなる
-        if (isMouseLockEnabled_ && !IsUICapturingMouse()) {
+        if (isMouseLockEnabled_ && !uiCapturingMouse) {
             ClientToScreen(hwnd, &center);
             SetCursorPos(center.x, center.y);
         }

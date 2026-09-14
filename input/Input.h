@@ -352,6 +352,9 @@ private:
     int lastMouseY_ = 0;       // 前フレームのマウスY座標
     POINT mousePos_;           // マウスの現在座標
     bool isMouseLockEnabled_ = false; // マウス固定フラグ
+    // Scene の上で始めたマウス固定を、ボタンを離すまでゲームが持っているか。
+    // 持っている間は、カーソルが Scene の外へはみ出しても UI に渡さない
+    bool mouseLookOwnedByGame_ = false;
     bool isUICaptureEnabled_ = true;  // エディタUIによる入力横取りの有効フラグ
     bool gameplayLocked_ = false;     // ゲーム操作のロック（カットシーン中など）
     BYTE rawKey_[256] = {};           // ロック前のキーボード状態（システム入力用）
