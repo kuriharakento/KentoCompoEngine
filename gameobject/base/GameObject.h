@@ -14,6 +14,7 @@
 // component
 #include "engine/gameobject/component/base/Behaviour.h"
 #include "engine/gameobject/component/base/Collider.h"
+#include "engine/gameobject/component/base/ComponentFactory.h"
 // json
 #include "jsonEditor/JsonEditableBase.h"
 // core
@@ -531,7 +532,7 @@ T* GameObject::AddComponent(Args&&... args)
 {
 	auto component = std::make_unique<T>(std::forward<Args>(args)...);
 	T* result = component.get();
-	AddComponent(std::move(component), typeid(T).name());
+	AddComponent(std::move(component), GameObjectComponent::ComponentFactory::GetInstance()->GetTypeName(typeid(T)));
 	return result;
 }
 

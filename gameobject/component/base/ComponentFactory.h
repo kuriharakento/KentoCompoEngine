@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 #include <type_traits>
+#include <typeindex>
 
 namespace KCE
 {
@@ -32,6 +33,19 @@ namespace GameObjectComponent
 		void Register(const std::string& typeName, std::function<std::unique_ptr<Component>(GameObject*)> creator)
 		{
 			registry_[typeName] = creator;
+		}
+
+		template<typename T>
+		void RegisterTypeName(const std::string& typeName)
+		{
+			// 正規名の登録がaliasより先に並ぶ。最初の名前を保存名として固定する
+			typeNames_.try_emplace(std::type_index(typeid(T)), typeName);
+		}
+
+		std::string GetTypeName(const std::type_info& type) const
+		{
+			const auto found = typeNames_.find(std::type_index(type));
+			return found != typeNames_.end() ? found->second : type.name();
 		}
 
 		/**
@@ -68,6 +82,7 @@ namespace GameObjectComponent
 
 	private:
 		std::unordered_map<std::string, std::function<std::unique_ptr<Component>(GameObject*)>> registry_;
+		std::unordered_map<std::type_index, std::string> typeNames_;
 	};
 
 	/**
@@ -79,6 +94,7 @@ namespace GameObjectComponent
 	public:
 		ComponentRegisterer(const std::string& typeName)
 		{
+			ComponentFactory::GetInstance()->RegisterTypeName<T>(typeName);
 			ComponentFactory::GetInstance()->Register(typeName, [](GameObject* owner) -> std::unique_ptr<Component> {
 				// コンストラクタ引数があるかどうかをメタプログラミングで判定して生成
 				if constexpr (std::is_constructible_v<T, GameObject*>)
