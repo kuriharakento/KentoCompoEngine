@@ -211,6 +211,9 @@
     <Filter Include="sequencer\track">
       <UniqueIdentifier>{1B7A4C90-8E31-4A62-9C05-2D8F3E71A407}</UniqueIdentifier>
     </Filter>
+    <Filter Include="stage">
+      <UniqueIdentifier>{7A9D542B-9E7C-4D1C-9EC8-1C36A717D04B}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="animation\Animator.cpp">
@@ -593,6 +596,9 @@
     </ClCompile>
     <ClCompile Include="graphics\view\StageMonitor.cpp">
       <Filter>graphics\view</Filter>
+    </ClCompile>
+    <ClCompile Include="stage\StageManager.cpp">
+      <Filter>stage</Filter>
     </ClCompile>
     <ClCompile Include="sequencer\track\ScreenTrack.cpp">
       <Filter>sequencer\track</Filter>
@@ -1252,6 +1258,9 @@
     </ClInclude>
     <ClInclude Include="graphics\view\ISubViewProvider.h">
       <Filter>graphics\view</Filter>
+    </ClInclude>
+    <ClInclude Include="stage\StageManager.h">
+      <Filter>stage</Filter>
     </ClInclude>
     <ClInclude Include="graphics\view\StageMonitor.h">
       <Filter>graphics\view</Filter>

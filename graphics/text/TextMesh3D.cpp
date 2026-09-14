@@ -8,6 +8,25 @@
 
 namespace KCE
 {
+const char* TextAppearStyleToString(TextAppearStyle style)
+{
+	switch (style)
+	{
+	case TextAppearStyle::Drop: return "Drop";
+	case TextAppearStyle::Spin: return "Spin";
+	case TextAppearStyle::Pop:  return "Pop";
+	default:                    return "Fade";
+	}
+}
+
+TextAppearStyle TextAppearStyleFromString(const std::string& value)
+{
+	if (value == "Drop") { return TextAppearStyle::Drop; }
+	if (value == "Spin") { return TextAppearStyle::Spin; }
+	if (value == "Pop") { return TextAppearStyle::Pop; }
+	return TextAppearStyle::Fade;
+}
+
 namespace
 {
 constexpr wchar_t kNewLine = L'\n';

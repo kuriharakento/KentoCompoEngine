@@ -49,6 +49,20 @@ public:
 	TextMesh3D* Find(const std::string& name) const;
 
 	/**
+	 * @brief 登録名を確保なしで順に渡す。
+	 * @param callback 名前を受け取る処理
+	 */
+	template<class F>
+	void ForEachName(F&& callback) const
+	{
+		for (const auto& [name, mesh] : meshes_)
+		{
+			(void)mesh;
+			callback(name);
+		}
+	}
+
+	/**
 	 * @brief 登録されている文字列を全部描く
 	 * @param camera このビューのカメラ
 	 * @param sceneColorRtv 描き込む先
@@ -82,5 +96,11 @@ private:
 	std::unordered_map<std::string, TextMesh3D*> meshes_;
 	// 板のデータを集める作業領域。使い回して毎フレーム確保しない
 	std::vector<TextMesh3D::Instance> instances_;
+#ifdef USE_IMGUI
+	// Inspector で掴んだ時点の値。対象は meshes_ の非所有要素で、編集が終わるまで有効
+	TextMesh3D* editingMesh_ = nullptr;
+	std::string editingText_;
+	TextMesh3D::Params editingParams_{};
+#endif
 };
 } // namespace KCE

@@ -166,6 +166,7 @@
     <ClCompile Include="sequencer\track\ScreenTrack.cpp" />
     <ClCompile Include="sequencer\track\TextTrack.cpp" />
     <ClCompile Include="sequencer\track\TransformTrack.cpp" />
+    <ClCompile Include="stage\StageManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="animation\Animator.h" />
@@ -400,6 +401,7 @@
     <ClInclude Include="sequencer\track\TextTrack.h" />
     <ClInclude Include="sequencer\track\TransformTrack.h" />
     <ClInclude Include="sequencer\core\CurveChannel.h" />
+    <ClInclude Include="stage\StageManager.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>
