@@ -199,18 +199,18 @@ void VolumetricLightRenderer::Draw(Camera* camera, GBuffer* gBuffer, D3D12_CPU_D
 #ifdef USE_IMGUI
 void VolumetricLightRenderer::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Volumetric Light", [this]() { DrawImGui(); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "レンダリング", "ボリューメトリックライト", [this]() { DrawImGui(); });
 }
 
 void VolumetricLightRenderer::DrawImGui()
 {
-	ImGui::Checkbox("Enabled", &settings_.enabled);
-	ImGui::SliderFloat("Density", &settings_.density, 0.0f, kMaxDensity, "%.3f");
-	ImGui::SliderFloat("Anisotropy", &settings_.anisotropy, -kMaxAnisotropy, kMaxAnisotropy, "%.2f");
+	ImGui::Checkbox("有効", &settings_.enabled);
+	ImGui::SliderFloat("濃さ", &settings_.density, 0.0f, kMaxDensity, "%.3f");
+	ImGui::SliderFloat("異方性", &settings_.anisotropy, -kMaxAnisotropy, kMaxAnisotropy, "%.2f");
 	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("正にするとライトの方を向いたときに明るく見える"); }
-	ImGui::SliderInt("Steps", &settings_.stepCount, kMinSteps, kMaxSteps);
-	ImGui::SliderFloat("Max Distance", &settings_.maxDistance, 1.0f, kMaxDistance, "%.1f");
-	ImGui::SliderFloat("Intensity", &settings_.intensity, 0.0f, kMaxIntensity, "%.2f");
+	ImGui::SliderInt("ステップ数", &settings_.stepCount, kMinSteps, kMaxSteps);
+	ImGui::SliderFloat("最大距離", &settings_.maxDistance, 1.0f, kMaxDistance, "%.1f");
+	ImGui::SliderFloat("強さ", &settings_.intensity, 0.0f, kMaxIntensity, "%.2f");
 	ImGui::TextDisabled("照らすのはビームを出しているライトの先頭 %u 本。", kMaxLights);
 }
 #endif

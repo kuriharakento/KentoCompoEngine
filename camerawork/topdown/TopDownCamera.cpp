@@ -15,7 +15,7 @@ void TopDownCamera::Initialize(Camera* camera)
     camera_ = camera;
 
 #ifdef USE_IMGUI
-    DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Camera", "TopDownCamera Settings", [this]() { this->DrawImGui(); });
+    DebugUIManager::GetInstance()->RegisterSettingsPage(this, "カメラ", "見下ろしカメラ", [this]() { this->DrawImGui(); });
 #endif
 }
 
@@ -78,15 +78,15 @@ void TopDownCamera::SetActive(bool active)
 void TopDownCamera::DrawImGui()
 {
 	Vector3 cameraPos = camera_->GetTranslate();
-	ImGui::DragFloat3("Camera Position", &cameraPos.x, 0.1f);
+	ImGui::DragFloat3("カメラ位置", &cameraPos.x, 0.1f);
 	camera_->SetTranslate(cameraPos);
 	Vector3 cameraRotate = camera_->GetRotate();
-	ImGui::DragFloat3("Camera Rotate", &cameraRotate.x, 0.1f);
+	ImGui::DragFloat3("カメラ回転", &cameraRotate.x, 0.1f);
 	camera_->SetRotate(cameraRotate);
-	ImGui::DragFloat("Camera Height", &height_, 0.1f);
-	ImGui::DragFloat("Camera Pitch", &pitch_, 0.1f);
-	ImGui::DragFloat("Camera Yaw", &yaw_, 0.1f);
-	ImGui::DragFloat3("Camera Offset", &offset_.x, 0.1f);
+	ImGui::DragFloat("高さ", &height_, 0.1f);
+	ImGui::DragFloat("ピッチ", &pitch_, 0.1f);
+	ImGui::DragFloat("ヨー", &yaw_, 0.1f);
+	ImGui::DragFloat3("オフセット", &offset_.x, 0.1f);
 }
 #endif
 } // namespace KCE

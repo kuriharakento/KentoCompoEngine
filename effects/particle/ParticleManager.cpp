@@ -34,8 +34,8 @@ void ParticleManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager
 	pipelineManager_->Initialize(dxCommon_);
 
 #ifdef USE_IMGUI
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Effects", "Particle Manager", [this]() { this->DrawSettingsImGui(); });
-	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "Effects", [this]() { this->DrawHierarchyImGui(); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "エフェクト", "パーティクル管理", [this]() { this->DrawSettingsImGui(); });
+	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "エフェクト", [this]() { this->DrawHierarchyImGui(); });
 	DebugUIManager::GetInstance()->RegisterInspector(this, SelectionKind::ParticleEffect,
 		[this](const SelectionItem& item) { this->DrawInspectorImGui(item); });
 #endif
@@ -186,13 +186,13 @@ void ParticleManager::DrawInspectorImGui(const SelectionItem& item)
 			continue;
 		}
 		bool isPlaying = effect->IsPlaying();
-		if (ImGui::Checkbox("Playing", &isPlaying))
+		if (ImGui::Checkbox("再生中", &isPlaying))
 		{
 			if (isPlaying) effect->Play();
 			else effect->Stop();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Reset"))
+		if (ImGui::Button("リセット"))
 		{
 			effect->Reset();
 			effect->Play();
@@ -214,12 +214,12 @@ void ParticleManager::DrawInspectorImGui(const SelectionItem& item)
 			continue;
 		}
 		bool isEnabled = emitter->IsEnabled();
-		if (ImGui::Checkbox("Playing", &isEnabled))
+		if (ImGui::Checkbox("再生中", &isEnabled))
 		{
 			emitter->SetEnabled(isEnabled);
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Clear"))
+		if (ImGui::Button("消す"))
 		{
 			emitter->ClearParticles();
 		}

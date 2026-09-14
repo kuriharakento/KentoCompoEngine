@@ -111,7 +111,7 @@ void RenderPipeline::Clear()
 #ifdef USE_IMGUI
 void RenderPipeline::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Render Pipeline", [this]() { this->DrawImGui(); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "レンダリング", "レンダーパイプライン", [this]() { this->DrawImGui(); });
 }
 
 void RenderPipeline::DrawImGui()

@@ -49,10 +49,10 @@ void ShadowMapManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManage
     KCE::Logger::Log("ShadowMapManager initialized\n");
 
 #ifdef USE_IMGUI
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Shadow Maps", [this]()
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "レンダリング", "シャドウマップ", [this]()
 	{
 		ImGui::Text("Spot shadows redrawn this frame: %u", spotLightShadowRedrawCount_);
-		if (ImGui::Button("Redraw all spot shadows"))
+		if (ImGui::Button("スポットライトの影を全部描き直す"))
 		{
 			InvalidateSpotLightShadows();
 		}

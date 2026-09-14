@@ -122,16 +122,16 @@ void FxaaRenderer::Apply(RenderTexture* output, FrameConstantAllocator* allocato
 #ifdef USE_IMGUI
 void FxaaRenderer::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Anti-Aliasing", [this]() { DrawImGui(); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "レンダリング", "アンチエイリアス", [this]() { DrawImGui(); });
 }
 
 void FxaaRenderer::DrawImGui()
 {
 	ImGui::Checkbox("FXAA", &settings_.enabled);
-	ImGui::SliderFloat("Subpixel", &settings_.subpixel, kMinSubpixel, kMaxSubpixel, "%.2f");
+	ImGui::SliderFloat("サブピクセル", &settings_.subpixel, kMinSubpixel, kMaxSubpixel, "%.2f");
 	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("1ピクセルより細かい段差をどれだけ均すか。上げるほどぼける"); }
-	ImGui::SliderFloat("Edge Threshold", &settings_.edgeThreshold, kMinEdgeThreshold, kMaxEdgeThreshold, "%.3f");
-	ImGui::SliderFloat("Edge Threshold Min", &settings_.edgeThresholdMin, 0.0f, kMaxEdgeThreshold, "%.3f");
+	ImGui::SliderFloat("輪郭のしきい値", &settings_.edgeThreshold, kMinEdgeThreshold, kMaxEdgeThreshold, "%.3f");
+	ImGui::SliderFloat("輪郭のしきい値の下限", &settings_.edgeThresholdMin, 0.0f, kMaxEdgeThreshold, "%.3f");
 }
 #endif
 } // namespace KCE

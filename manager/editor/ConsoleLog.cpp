@@ -78,20 +78,20 @@ void ConsoleLog::Draw([[maybe_unused]] bool* open)
 	}
 
 	ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
-	if (!ImGui::Begin("Console", open))
+	if (!ImGui::Begin("コンソール###Console", open))
 	{
 		ImGui::End();
 		return;
 	}
 
 	// ツールバー（ログクリアなど）
-	if (ImGui::Button("Clear"))
+	if (ImGui::Button("消す"))
 	{
 		Clear();
 	}
 	ImGui::SameLine();
 	bool scroll_to_bottom = false;
-	if (ImGui::Button("Scroll to Bottom"))
+	if (ImGui::Button("一番下へ"))
 	{
 		scroll_to_bottom = true;
 	}

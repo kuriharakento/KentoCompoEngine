@@ -60,7 +60,7 @@ DeferredRenderer::~DeferredRenderer()
 #ifdef USE_IMGUI
 void DeferredRenderer::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "NPR Shading", [this]() { DrawImGui(); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "レンダリング", "NPRシェーディング", [this]() { DrawImGui(); });
 }
 
 void DeferredRenderer::DrawImGui()
@@ -69,19 +69,19 @@ void DeferredRenderer::DrawImGui()
 	ImGui::TextDisabled("ここはディファード描画の全体設定。フォワード描画は既定値を使う");
 	ImGui::Separator();
 
-	ImGui::DragFloat("Threshold", &toonSettings_.threshold, 0.005f, 0.0f, 1.0f, "%.3f");
+	ImGui::DragFloat("しきい値", &toonSettings_.threshold, 0.005f, 0.0f, 1.0f, "%.3f");
 	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("明部と暗部の境界（NdotL）"); }
-	ImGui::DragFloat("Softness", &toonSettings_.softness, 0.002f, 0.0f, 0.5f, "%.3f");
+	ImGui::DragFloat("境界のぼかし", &toonSettings_.softness, 0.002f, 0.0f, 0.5f, "%.3f");
 	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("境界のぼかし幅。0 でくっきり、大きいほど柔らかい"); }
-	ImGui::ColorEdit3("Shadow Tint", &toonSettings_.shadowTint.x);
+	ImGui::ColorEdit3("影の色味", &toonSettings_.shadowTint.x);
 	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("暗部に乗算する色。黒で落とすと濁るので、少し色味を残す"); }
 
 	ImGui::Separator();
-	ImGui::ColorEdit3("Rim Color", &toonSettings_.rimColor.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
-	ImGui::DragFloat("Rim Power", &toonSettings_.rimPower, 0.05f, 0.5f, 16.0f, "%.2f");
+	ImGui::ColorEdit3("リムの色", &toonSettings_.rimColor.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+	ImGui::DragFloat("リムの絞り", &toonSettings_.rimPower, 0.05f, 0.5f, 16.0f, "%.2f");
 	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("大きいほど輪郭の細い範囲だけが光る"); }
 
-	if (ImGui::Button("Reset"))
+	if (ImGui::Button("リセット"))
 	{
 		toonSettings_ = ToonSettingsForGPU{};
 	}
@@ -89,10 +89,10 @@ void DeferredRenderer::DrawImGui()
 	// 素材の既定は効き具合0（従来の見た目）なので、そのままでは違いを確認できない。
 	// 見比べるために、シーンの全オブジェクトへまとめて適用できるようにしておく。
 	ImGui::SeparatorText("全オブジェクトへ適用（確認用）");
-	ImGui::DragFloat("Toon Amount", &previewToonAmount_, 0.01f, 0.0f, 1.0f, "%.2f");
-	ImGui::DragFloat("Rim Strength", &previewRimStrength_, 0.01f, 0.0f, 1.0f, "%.2f");
-	ImGui::DragFloat("Outline Strength", &previewOutlineStrength_, 0.01f, 0.0f, 1.0f, "%.2f");
-	if (ImGui::Button("Apply to All Objects") && GameObjectManager::HasInstance())
+	ImGui::DragFloat("トゥーンの効き", &previewToonAmount_, 0.01f, 0.0f, 1.0f, "%.2f");
+	ImGui::DragFloat("リムの強さ", &previewRimStrength_, 0.01f, 0.0f, 1.0f, "%.2f");
+	ImGui::DragFloat("輪郭線の強さ", &previewOutlineStrength_, 0.01f, 0.0f, 1.0f, "%.2f");
+	if (ImGui::Button("全オブジェクトに適用") && GameObjectManager::HasInstance())
 	{
 		for (GameObject* object : GameObjectManager::GetInstance()->GetGameObjects())
 		{

@@ -49,7 +49,7 @@ void GameObjectEditor::Initialize()
 	// 一覧は Hierarchy の区画、詳細は Inspector に出す
 	DebugUIManager::GetInstance()->RegisterHierarchySection(
 		this,
-		"GameObjects",
+		"GameObject",
 		[this]() { this->DrawListImGui(); }
 	);
 	DebugUIManager::GetInstance()->RegisterInspector(
@@ -88,7 +88,7 @@ void GameObjectEditor::OnGameObjectRemoved(GameObject* gameObject)
 void GameObjectEditor::DrawListImGui()
 {
 #ifdef USE_IMGUI
-	if (ImGui::Button("Create GameObject", ImVec2(-FLT_MIN, 0.0f)))
+	if (ImGui::Button("GameObjectを作成", ImVec2(-FLT_MIN, 0.0f)))
 	{
 		GameObject* newObj = GameObjectManager::GetInstance()->CreateGameObject("NewObject", "GameObject");
 		if (newObj)
@@ -121,7 +121,7 @@ void GameObjectEditor::DrawListImGui()
 
 	if (selected_)
 	{
-		if (ImGui::Button("Delete Selected", ImVec2(-FLT_MIN, 0.0f)))
+		if (ImGui::Button("選択中を削除", ImVec2(-FLT_MIN, 0.0f)))
 		{
 			// 不正ポインタ参照を防ぐため、Unregister前にselected_をクリア
 			GameObject* objToDelete = selected_;
@@ -143,17 +143,17 @@ void GameObjectEditor::DrawInspectorImGui()
 	if (selected_)
 	{
 		// 1. JSON ファイル操作（折りたたみ可能にしてスッキリさせる）
-		if (ImGui::CollapsingHeader("JSON Storage", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::CollapsingHeader("JSON保存", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			ImGui::Spacing();
 			ImGui::PushItemWidth(200.0f);
-			if (ImGui::InputText("JSON File Name", fileNameBuf_, sizeof(fileNameBuf_)))
+			if (ImGui::InputText("JSONファイル名", fileNameBuf_, sizeof(fileNameBuf_)))
 			{
 				// 入力時にもファイル一覧をリフレッシュ
 			}
 			ImGui::PopItemWidth();
 
-			if (ImGui::Button("Save JSON", ImVec2(100.0f, 0.0f)))
+			if (ImGui::Button("JSONを保存", ImVec2(100.0f, 0.0f)))
 			{
 				if (selected_->SaveJson(fileNameBuf_))
 				{
@@ -161,19 +161,19 @@ void GameObjectEditor::DrawInspectorImGui()
 				}
 			}
 			ImGui::SameLine();
-			if (ImGui::Button("Load (Overwrite)", ImVec2(130.0f, 0.0f)))
+			if (ImGui::Button("読み込み（上書き）", ImVec2(130.0f, 0.0f)))
 			{
 				selected_->LoadJson(fileNameBuf_);
 			}
 			ImGui::Spacing();
 		}
 
-		if (ImGui::CollapsingHeader("Prefab", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::CollapsingHeader("プレハブ", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			ImGui::PushItemWidth(200.0f);
-			ImGui::InputText("Prefab File Name", prefabFileNameBuf_, sizeof(prefabFileNameBuf_));
+			ImGui::InputText("プレハブファイル名", prefabFileNameBuf_, sizeof(prefabFileNameBuf_));
 			ImGui::PopItemWidth();
-			if (ImGui::Button("Save As Prefab"))
+			if (ImGui::Button("プレハブとして保存"))
 			{
 				if (selected_->SavePrefab(prefabFileNameBuf_))
 				{
@@ -181,7 +181,7 @@ void GameObjectEditor::DrawInspectorImGui()
 				}
 			}
 			ImGui::SameLine();
-			if (ImGui::Button("Instantiate Prefab") && !prefabFiles_.empty())
+			if (ImGui::Button("プレハブを生成") && !prefabFiles_.empty())
 			{
 				GameObject* object = GameObjectManager::GetInstance()->Instantiate(prefabFiles_[selectedPrefabIndex_]);
 				if (object)
@@ -193,7 +193,7 @@ void GameObjectEditor::DrawInspectorImGui()
 			if (!prefabFiles_.empty())
 			{
 				ImGui::PushItemWidth(200.0f);
-				if (ImGui::BeginCombo("Prefab Source", prefabFiles_[selectedPrefabIndex_].c_str()))
+				if (ImGui::BeginCombo("プレハブ元", prefabFiles_[selectedPrefabIndex_].c_str()))
 				{
 					for (int index = 0; index < static_cast<int>(prefabFiles_.size()); ++index)
 					{
@@ -208,7 +208,7 @@ void GameObjectEditor::DrawInspectorImGui()
 			}
 			else
 			{
-				ImGui::TextDisabled("No prefab files found.");
+				ImGui::TextDisabled("プレハブファイルがありません。");
 			}
 		}
 
@@ -224,17 +224,17 @@ void GameObjectEditor::DrawInspectorImGui()
 		ImGui::Spacing();
 
 		// 3. コンポーネントの管理（追加・削除を一目でわかりやすく整理）
-		if (ImGui::CollapsingHeader("Components Manager", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::CollapsingHeader("Component管理", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			ImGui::Spacing();
-			ImGui::Text("Attached Components:");
+			ImGui::Text("追加済みComponent:");
 			ImGui::Indent();
 
 			std::vector<std::string> toRemove;
 			const auto& comps = selected_->GetComponents();
 			if (comps.empty())
 			{
-				ImGui::TextDisabled("No components attached.");
+				ImGui::TextDisabled("Componentはありません。");
 			}
 			else
 			{
@@ -248,7 +248,7 @@ void GameObjectEditor::DrawInspectorImGui()
 					ImGui::Bullet();
 					ImGui::Text("%s", compName.c_str());
 					ImGui::SameLine(ImGui::GetWindowWidth() - 110.0f);
-					if (ImGui::Button("Remove", ImVec2(75.0f, 0.0f)))
+					if (ImGui::Button("削除", ImVec2(75.0f, 0.0f)))
 					{
 						toRemove.push_back(compName);
 					}
@@ -268,7 +268,7 @@ void GameObjectEditor::DrawInspectorImGui()
 			// コンポーネント追加セクション
 			if (!availableComponents_.empty())
 			{
-				ImGui::Text("Add New Component:");
+				ImGui::Text("Componentを追加:");
 				ImGui::PushItemWidth(180.0f);
 				if (ImGui::BeginCombo("##CompSelect", availableComponents_[selectedCompIndex_].c_str()))
 				{
@@ -284,7 +284,7 @@ void GameObjectEditor::DrawInspectorImGui()
 				}
 				ImGui::PopItemWidth();
 				ImGui::SameLine();
-				if (ImGui::Button("Add Component"))
+				if (ImGui::Button("Componentを追加"))
 				{
 					AddComponentByName(selected_, availableComponents_[selectedCompIndex_]);
 				}
@@ -294,7 +294,7 @@ void GameObjectEditor::DrawInspectorImGui()
 	}
 	else
 	{
-		ImGui::TextDisabled("Select a GameObject from the list to edit properties.");
+		ImGui::TextDisabled("一覧からGameObjectを選ぶと編集できます。");
 	}
 
 	ImGui::EndChild(); // InspectorDetailsArea
@@ -303,7 +303,7 @@ void GameObjectEditor::DrawInspectorImGui()
 	ImGui::Spacing();
 	ImGui::Separator();
 	ImGui::Spacing();
-	ImGui::Text("Load Existing JSON:");
+	ImGui::Text("既存JSONを読み込み:");
 
 	if (!jsonFiles_.empty())
 	{
@@ -324,7 +324,7 @@ void GameObjectEditor::DrawInspectorImGui()
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
-		if (ImGui::Button("Load As New Object"))
+		if (ImGui::Button("新しいオブジェクトとして読み込み"))
 		{
 			std::string fileToLoad = jsonFiles_[selectedJsonIndex_];
 			std::string fullPath = "Resources/json/gameobject/" + fileToLoad;
@@ -375,11 +375,11 @@ void GameObjectEditor::DrawInspectorImGui()
 	}
 	else
 	{
-		ImGui::TextDisabled("No JSON files found.");
+		ImGui::TextDisabled("JSONファイルがない。");
 	}
 
 	ImGui::SameLine();
-	if (ImGui::Button("Refresh List"))
+	if (ImGui::Button("一覧を更新"))
 	{
 		UpdateJsonFileList();
 	}

@@ -19,7 +19,7 @@ TimerManager::TimerManager()
     Clear();
 
 #ifdef USE_IMGUI
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "System", "Timer Manager", [this]() { this->DrawImGui(); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "システム", "タイマー管理", [this]() { this->DrawImGui(); });
 #endif
 }
 
@@ -125,10 +125,10 @@ bool TimerManager::HasTimer(const std::string& name) const
 #ifdef USE_IMGUI
 void TimerManager::DrawImGui()
 {
-	ImGui::SeparatorText("Active Timers");
+	ImGui::SeparatorText("動いているタイマー");
 	if (timers_.empty())
 	{
-		ImGui::TextDisabled("No active timers.");
+		ImGui::TextDisabled("動いているタイマーはない。");
 		return;
 	}
 

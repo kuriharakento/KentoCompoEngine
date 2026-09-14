@@ -19,7 +19,7 @@ void CameraManager::Initialize(DirectXCommon* dxCommon)
 
 #ifdef USE_IMGUI
 	// 一覧は Hierarchy、選んだカメラの詳細は Inspector に出す
-	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "Cameras", [this]() { this->DrawHierarchyImGui(); });
+	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "カメラ", [this]() { this->DrawHierarchyImGui(); });
 	DebugUIManager::GetInstance()->RegisterInspector(this, SelectionKind::Camera, [this](const SelectionItem& item) { this->DrawInspectorImGui(item); });
 #endif
 }
@@ -109,7 +109,7 @@ void CameraManager::DrawHierarchyImGui()
 	}
 
 	// カメラの追加ボタン
-	if (ImGui::Button("Add Camera"))
+	if (ImGui::Button("カメラを追加"))
 	{
 		AddCamera("camera" + std::to_string(cameras_.size()));
 	}
@@ -130,19 +130,19 @@ void CameraManager::DrawInspectorImGui(const SelectionItem& item)
 	{
 		ImGui::TextUnformatted("Active Camera");
 	}
-	else if (ImGui::Button("Set Active"))
+	else if (ImGui::Button("このカメラを使う"))
 	{
 		SetActiveCamera(item.name);
 	}
 
 	// 触ったときだけ書き戻す。毎フレーム書くと、シーケンサーがクォータニオンで回したカメラをオイラー角に戻してしまう
 	Vector3 cameraPosition = camera->GetTranslate();
-	if (ImGui::DragFloat3("translate", &cameraPosition.x, 0.1f))
+	if (ImGui::DragFloat3("位置", &cameraPosition.x, 0.1f))
 	{
 		camera->SetTranslate(cameraPosition);
 	}
 	Vector3 cameraRotate = camera->GetRotate();
-	if (ImGui::DragFloat3("rotate", &cameraRotate.x, 0.01f, -3.14f, 3.14f))
+	if (ImGui::DragFloat3("回転", &cameraRotate.x, 0.01f, -3.14f, 3.14f))
 	{
 		camera->SetRotate(cameraRotate);
 	}

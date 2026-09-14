@@ -178,7 +178,7 @@ void OutlineRenderer::Draw(Camera* camera, GBuffer* gBuffer, D3D12_CPU_DESCRIPTO
 #ifdef USE_IMGUI
 void OutlineRenderer::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Outline", [this]() { DrawImGui(); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "レンダリング", "アウトライン", [this]() { DrawImGui(); });
 }
 
 void OutlineRenderer::DrawImGui()
@@ -186,14 +186,14 @@ void OutlineRenderer::DrawImGui()
 	ImGui::TextDisabled("線を引くかは素材ごと（SetOutlineStrength）。既定は 0");
 	ImGui::TextDisabled("ディファードで描くオブジェクトにだけ効く");
 	ImGui::Separator();
-	ImGui::Checkbox("Enabled", &settings_.enabled);
-	ImGui::DragFloat("Width", &settings_.width, 0.05f, 0.5f, 8.0f, "%.2f px");
-	ImGui::DragFloat("Depth Threshold", &settings_.depthThreshold, 0.002f, 0.001f, 1.0f, "%.3f");
+	ImGui::Checkbox("有効", &settings_.enabled);
+	ImGui::DragFloat("太さ", &settings_.width, 0.05f, 0.5f, 8.0f, "%.2f px");
+	ImGui::DragFloat("深度のしきい値", &settings_.depthThreshold, 0.002f, 0.001f, 1.0f, "%.3f");
 	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("奥行きの差がこの割合を超えたら輪郭。小さいほど線が増える"); }
-	ImGui::DragFloat("Normal Threshold", &settings_.normalThreshold, 0.01f, -1.0f, 1.0f, "%.2f");
+	ImGui::DragFloat("法線のしきい値", &settings_.normalThreshold, 0.01f, -1.0f, 1.0f, "%.2f");
 	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("面の向きの差でも線を引く（折れ目）。1 に近いほど線が増える"); }
-	ImGui::ColorEdit3("Color", &settings_.color.x);
-	if (ImGui::Button("Reset"))
+	ImGui::ColorEdit3("色", &settings_.color.x);
+	if (ImGui::Button("リセット"))
 	{
 		const bool enabled = settings_.enabled;
 		settings_ = Settings{};

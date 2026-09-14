@@ -586,7 +586,7 @@ bool CameraTrack::DrawInspector()
 {
 	bool changed = false;
 
-	ImGui::SeparatorText("Aim");
+	ImGui::SeparatorText("注目点 (Aim)");
 	const auto drawRole = [&changed](const char* label, std::string& role)
 	{
 		char buffer[kRoleBufferSize];
@@ -601,16 +601,16 @@ bool CameraTrack::DrawInspector()
 			ImGui::SetTooltip("狙う GameObject の役。A と B の両方があれば Aim Blend で混ぜる（キーが無ければ真ん中）。\n両方空なら Aim Offset をワールドの座標として狙う");
 		}
 	};
-	drawRole("Aim Role A", aimRoleA_);
-	drawRole("Aim Role B", aimRoleB_);
+	drawRole("注目の役 A", aimRoleA_);
+	drawRole("注目の役 B", aimRoleB_);
 
 	if (UsesAim())
 	{
 		ImGui::TextDisabled("注目点を使っている間は Rotation のキーを使わない");
 	}
 
-	ImGui::SeparatorText("Focus / Framing");
-	if (ImGui::Checkbox("Auto Focus On Aim", &autoFocus_))
+	ImGui::SeparatorText("フォーカス / フレーミング");
+	if (ImGui::Checkbox("注目点にピントを合わせる", &autoFocus_))
 	{
 		changed = true;
 	}
@@ -618,17 +618,17 @@ bool CameraTrack::DrawInspector()
 	{
 		ImGui::SetTooltip("被写界深度をオンにして、ピントを注目点までの距離に合わせ続ける。\n再生を止めると元の設定に戻る");
 	}
-	if (ImGui::Checkbox("Frame Aim Roles", &frameTargets_))
+	if (ImGui::Checkbox("注目の役が収まるように寄る", &frameTargets_))
 	{
 		changed = true;
 	}
 	if (ImGui::IsItemHovered())
 	{
-		ImGui::SetTooltip("Aim Role A / B が画面に収まる距離まで、カメラを自動で前後させる。\n向きは Position のキーから決め、画角はそのまま。Position のキーが要る");
+		ImGui::SetTooltip("注目の役 A / B が画面に収まる距離まで、カメラを自動で前後させる。\n向きは Position のキーから決め、画角はそのまま。Position のキーが要る");
 	}
 	if (frameTargets_)
 	{
-		if (ImGui::DragFloat("Frame Margin (m)", &frameMargin_, kFrameMarginDragSpeed, 0.0f, kMaxFrameMargin, "%.2f"))
+		if (ImGui::DragFloat("余白 (m)", &frameMargin_, kFrameMarginDragSpeed, 0.0f, kMaxFrameMargin, "%.2f"))
 		{
 			frameMargin_ = std::clamp(frameMargin_, 0.0f, kMaxFrameMargin);
 			changed = true;
@@ -639,9 +639,9 @@ bool CameraTrack::DrawInspector()
 		}
 	}
 
-	ImGui::SeparatorText("Shake");
+	ImGui::SeparatorText("揺れ");
 	int division = static_cast<int>(beatDivision_);
-	if (ImGui::Combo("Beat Division", &division, "Every Beat\0Every 2 Beats\0Every Bar\0"))
+	if (ImGui::Combo("拍の揺れの間隔", &division, "毎拍\0" "2拍ごと\0" "小節ごと\0"))
 	{
 		beatDivision_ = static_cast<BeatDivision>(division);
 		changed = true;
@@ -650,12 +650,12 @@ bool CameraTrack::DrawInspector()
 	{
 		ImGui::SetTooltip("Beat Shake のキーの強さ（度）だけ、この間隔ごとに画角がはねる。\nシーケンスの BPM が 0 だと揺れない");
 	}
-	if (ImGui::DragFloat("Beat Decay (s)", &beatShakeDecay_, kBeatShakeDecayDragSpeed, kMinBeatShakeDecay, kMaxBeatShakeDecay, "%.3f"))
+	if (ImGui::DragFloat("拍の揺れの戻り (秒)", &beatShakeDecay_, kBeatShakeDecayDragSpeed, kMinBeatShakeDecay, kMaxBeatShakeDecay, "%.3f"))
 	{
 		beatShakeDecay_ = std::clamp(beatShakeDecay_, kMinBeatShakeDecay, kMaxBeatShakeDecay);
 		changed = true;
 	}
-	if (ImGui::DragFloat("Handheld Speed (Hz)", &handheldFrequency_, kHandheldFrequencyDragSpeed, kMinHandheldFrequency, kMaxHandheldFrequency, "%.2f"))
+	if (ImGui::DragFloat("手持ちの揺れの速さ (Hz)", &handheldFrequency_, kHandheldFrequencyDragSpeed, kMinHandheldFrequency, kMaxHandheldFrequency, "%.2f"))
 	{
 		handheldFrequency_ = std::clamp(handheldFrequency_, kMinHandheldFrequency, kMaxHandheldFrequency);
 		changed = true;

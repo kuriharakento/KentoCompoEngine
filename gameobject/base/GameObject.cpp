@@ -460,13 +460,13 @@ void GameObject::ShowImGuiHierarchy()
 	if (ImGui::TreeNode(tag_.c_str()))
 	{
 		ImGui::Text("Position");
-		ImGui::DragFloat3("Position", &transform_.translate.x, 0.1f);
+		ImGui::DragFloat3("位置", &transform_.translate.x, 0.1f);
 
 		ImGui::Text("Rotation");
-		ImGui::DragFloat3("Rotation", &transform_.rotate.x, 0.1f);
+		ImGui::DragFloat3("回転", &transform_.rotate.x, 0.1f);
 
 		ImGui::Text("Scale");
-		ImGui::DragFloat3("Scale", &transform_.scale.x, 0.1f);
+		ImGui::DragFloat3("スケール", &transform_.scale.x, 0.1f);
 
 		// 子オブジェクトを再帰的に表示
 		for (const auto& [name, child] : children_)

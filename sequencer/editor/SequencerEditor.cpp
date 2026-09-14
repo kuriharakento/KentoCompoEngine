@@ -301,7 +301,7 @@ void SequencerEditor::Initialize(CameraManager* cameraManager, LightManager* lig
 	});
 
 	DebugUIManager* debugUI = DebugUIManager::GetInstance();
-	debugUI->RegisterWindow(this, "Sequencer", [this]() { DrawTimelineWindow(); }, EditorDock::Bottom);
+	debugUI->RegisterWindow(this, "シーケンサ###Sequencer", [this]() { DrawTimelineWindow(); }, EditorDock::Bottom);
 	debugUI->RegisterInspector(this, SelectionKind::SequenceTrack, [this](const SelectionItem&) { DrawInspectorWindow(); });
 	debugUI->RegisterInspector(this, SelectionKind::SequenceKey, [this](const SelectionItem&) { DrawInspectorWindow(); });
 	debugUI->RegisterInspector(this, SelectionKind::GameObject,
@@ -450,7 +450,7 @@ void SequencerEditor::DrawGameObjectSequencerInspector(const SelectionItem& item
 		return;
 	}
 
-	ImGui::SeparatorText("Sequencer");
+	ImGui::SeparatorText("シーケンサ");
 	if (ImGui::Button("Transform トラックを作る"))
 	{
 		AddGameObjectTrack("Transform", *object);
@@ -528,7 +528,7 @@ void SequencerEditor::DrawToolbar()
 
 	// --- モード切り替え ---
 	const bool isEditMode = editorContext->IsEditMode();
-	if (ImGui::Button(isEditMode ? "Mode: Edit" : "Mode: Play"))
+	if (ImGui::Button(isEditMode ? "モード: 編集" : "モード: 再生"))
 	{
 		editorContext->ToggleMode();
 	}
@@ -549,20 +549,20 @@ void SequencerEditor::DrawToolbar()
 	ImGui::SameLine();
 
 	const bool isPlaying = player_.IsPlaying();
-	if (ImGui::Button(isPlaying ? "Pause" : "Play"))
+	if (ImGui::Button(isPlaying ? "一時停止" : "再生"))
 	{
 		if (isPlaying) { player_.Pause(); }
 		else { player_.Resume(); }
 	}
 	ImGui::SameLine();
 
-	if (ImGui::Button("Stop"))
+	if (ImGui::Button("停止"))
 	{
 		player_.Stop();
 	}
 	ImGui::SameLine();
 
-	if (ImGui::Button("Skip"))
+	if (ImGui::Button("末尾へ"))
 	{
 		// 純関数契約が守られていれば、これだけで最終状態になる
 		player_.SkipToEnd();
@@ -574,7 +574,7 @@ void SequencerEditor::DrawToolbar()
 
 	ImGui::SameLine();
 	bool loop = player_.IsLoop();
-	if (ImGui::Checkbox("Loop", &loop))
+	if (ImGui::Checkbox("ループ", &loop))
 	{
 		player_.SetLoop(loop);
 	}
@@ -603,7 +603,7 @@ void SequencerEditor::DrawToolbar()
 	ImGui::SetNextItemWidth(120.0f);
 	ImGui::Combo("##TrackType", &addTrackTypeIndex_, typeNames, static_cast<int>(typeCount));
 	ImGui::SameLine();
-	if (ImGui::Button("Add Track"))
+	if (ImGui::Button("トラックを追加"))
 	{
 		if (addTrackTypeIndex_ >= 0 && static_cast<size_t>(addTrackTypeIndex_) < typeCount)
 		{
@@ -611,12 +611,12 @@ void SequencerEditor::DrawToolbar()
 		}
 	}
 	ImGui::SameLine();
-	if (ImGui::Button("Add Key (K)"))
+	if (ImGui::Button("キーを追加 (K)"))
 	{
 		AddKeyAtCurrentTime();
 	}
 	ImGui::SameLine();
-	if (ImGui::Button("Delete Key (Del)"))
+	if (ImGui::Button("キーを削除 (Del)"))
 	{
 		DeleteSelectedKey();
 	}
@@ -643,7 +643,7 @@ void SequencerEditor::DrawToolbar()
 	ImGui::EndDisabled();
 
 	// --- 3行目: プレビューとギズモ ---
-	if (ImGui::Checkbox("Look through sequence camera", &previewThroughSequenceCamera_))
+	if (ImGui::Checkbox("シーケンスカメラで見る", &previewThroughSequenceCamera_))
 	{
 		ApplyActiveCamera();
 	}
@@ -654,24 +654,24 @@ void SequencerEditor::DrawToolbar()
 
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(120.0f);
-	ImGui::Combo("Gizmo", &gizmoOperation_, "Translate\0Rotate\0Scale\0");
+	ImGui::Combo("ギズモ", &gizmoOperation_, "移動\0回転\0スケール\0");
 	ImGui::SameLine();
-	ImGui::Checkbox("World", &gizmoWorldSpace_);
+	ImGui::Checkbox("ワールド", &gizmoWorldSpace_);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(100.0f);
-	ImGui::DragFloat("Fly Speed", &editorCameraSpeed_, 0.1f, 0.1f, 200.0f, "%.1f");
+	ImGui::DragFloat("移動速度", &editorCameraSpeed_, 0.1f, 0.1f, 200.0f, "%.1f");
 
 	// --- 4行目: 保存とスナップ ---
 	char pathBuffer[256];
 	std::snprintf(pathBuffer, sizeof(pathBuffer), "%s", filePath_.c_str());
 	ImGui::SetNextItemWidth(220.0f);
-	if (ImGui::InputText("File", pathBuffer, sizeof(pathBuffer)))
+	if (ImGui::InputText("ファイル", pathBuffer, sizeof(pathBuffer)))
 	{
 		filePath_ = pathBuffer;
 	}
 
 	ImGui::SameLine();
-	if (ImGui::Button("Save"))
+	if (ImGui::Button("保存"))
 	{
 		if (sequence_.SaveToFile(filePath_))
 		{
@@ -684,7 +684,7 @@ void SequencerEditor::DrawToolbar()
 		}
 	}
 	ImGui::SameLine();
-	if (ImGui::Button("Load"))
+	if (ImGui::Button("読み込み"))
 	{
 		// 読み込みでシーケンスの中身が入れ替わるため、選択と履歴を捨てる。
 		// 残すと、消えたトラックを指したままの選択やUndoが残ってしまう。
@@ -705,10 +705,10 @@ void SequencerEditor::DrawToolbar()
 	}
 
 	ImGui::SameLine();
-	ImGui::Checkbox("Snap", &snapEnabled_);
+	ImGui::Checkbox("スナップ", &snapEnabled_);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(80.0f);
-	ImGui::DragFloat("Interval", &snapInterval_, 0.01f, 0.01f, 5.0f, "%.2f s");
+	ImGui::DragFloat("間隔", &snapInterval_, 0.01f, 0.01f, 5.0f, "%.2f s");
 
 	if (!statusMessage_.empty())
 	{
@@ -1787,21 +1787,21 @@ void SequencerEditor::DrawTimelineWindow()
 	ImGui::Separator();
 
 	// メタ情報
-	if (ImGui::CollapsingHeader("Sequence Settings"))
+	if (ImGui::CollapsingHeader("シーケンス設定"))
 	{
 		SequenceMeta& meta = sequence_.GetMeta();
 
 		char nameBuffer[128];
 		std::snprintf(nameBuffer, sizeof(nameBuffer), "%s", meta.name.c_str());
-		if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer)))
+		if (ImGui::InputText("名前", nameBuffer, sizeof(nameBuffer)))
 		{
 			meta.name = nameBuffer;
 		}
 
-		const char* audioPreview = meta.audioClip.empty() ? "(None)" : meta.audioClip.c_str();
-		if (ImGui::BeginCombo("Audio Clip", audioPreview))
+		const char* audioPreview = meta.audioClip.empty() ? "(なし)" : meta.audioClip.c_str();
+		if (ImGui::BeginCombo("オーディオクリップ", audioPreview))
 		{
-			if (ImGui::Selectable("(None)", meta.audioClip.empty()))
+			if (ImGui::Selectable("(なし)", meta.audioClip.empty()))
 			{
 				++metaEditId_;
 				SequenceMeta after = meta;
@@ -1836,7 +1836,7 @@ void SequencerEditor::DrawTimelineWindow()
 			ExecuteMetaEdit(sequence_, after, "Change BPM", metaEditId_);
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Tap Tempo"))
+		if (ImGui::Button("テンポをタップ"))
 		{
 			++metaEditId_;
 			const double now = ImGui::GetTime();
@@ -1860,7 +1860,7 @@ void SequencerEditor::DrawTimelineWindow()
 		}
 
 		float offset = meta.offset;
-		const bool offsetChanged = ImGui::DragFloat("Offset", &offset, 0.001f, -10.0f, 10.0f, "%.3f s");
+		const bool offsetChanged = ImGui::DragFloat("オフセット", &offset, 0.001f, -10.0f, 10.0f, "%.3f s");
 		if (ImGui::IsItemActivated()) { ++metaEditId_; }
 		if (offsetChanged)
 		{
@@ -1869,14 +1869,14 @@ void SequencerEditor::DrawTimelineWindow()
 			ExecuteMetaEdit(sequence_, after, "Change Offset", metaEditId_);
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Set to Playhead"))
+		if (ImGui::Button("再生ヘッドに合わせる"))
 		{
 			++metaEditId_;
 			SequenceMeta after = meta;
 			after.offset = player_.GetTime();
 			ExecuteMetaEdit(sequence_, after, "Set Offset to Playhead", metaEditId_);
 		}
-		ImGui::DragFloat("Duration", &meta.duration, 0.1f, 0.0f, 3600.0f, "%.2f s");
+		ImGui::DragFloat("長さ", &meta.duration, 0.1f, 0.0f, 3600.0f, "%.2f s");
 		if (ImGui::IsItemHovered())
 		{
 			ImGui::SetTooltip("0 にするとトラックの最終キーから自動で決まります");
@@ -1885,10 +1885,10 @@ void SequencerEditor::DrawTimelineWindow()
 
 	// ズーム
 	ImGui::SetNextItemWidth(200.0f);
-	ImGui::DragFloat("Zoom", &view_.pixelsPerSecond, 1.0f, 5.0f, 2000.0f, "%.0f px/s");
+	ImGui::DragFloat("ズーム", &view_.pixelsPerSecond, 1.0f, 5.0f, 2000.0f, "%.0f px/s");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(200.0f);
-	ImGui::DragFloat("Scroll", &view_.scrollTime, 0.05f, 0.0f, 3600.0f, "%.2f s");
+	ImGui::DragFloat("スクロール", &view_.scrollTime, 0.05f, 0.0f, 3600.0f, "%.2f s");
 	ImGui::SameLine();
 	if (ImGui::Button("全体を表示 (F)"))
 	{
@@ -2042,10 +2042,10 @@ void SequencerEditor::DrawBezierEditor()
 	InterpolationMode& interp = channel->GetKeyInterp(keyIndex);
 	BezierHandle& bezier = channel->GetKeyBezier(keyIndex);
 
-	ImGui::SeparatorText("Interpolation (このキーから次のキーまで)");
+	ImGui::SeparatorText("補間（このキーから次のキーまで）");
 
 	int interpIndex = static_cast<int>(interp);
-	if (ImGui::Combo("Mode", &interpIndex, "Constant\0Linear\0Bezier\0"))
+	if (ImGui::Combo("モード", &interpIndex, "一定\0直線\0ベジェ\0"))
 	{
 		ExecuteTrackEdit(sequence_, trackIndex, "Change Interpolation", [&]() { interp = static_cast<InterpolationMode>(interpIndex); });
 		player_.EvaluateCurrentTime();
@@ -2177,13 +2177,13 @@ void SequencerEditor::DrawTrackInspector(size_t trackIndex)
 		return;
 	}
 
-	ImGui::SeparatorText("Track");
-	ImGui::Text("Type: %s", track->GetTypeName());
+	ImGui::SeparatorText("トラック");
+	ImGui::Text("種類: %s", track->GetTypeName());
 
 	// 名前
 	char nameBuffer[128];
 	std::snprintf(nameBuffer, sizeof(nameBuffer), "%s", track->GetName().c_str());
-	if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer)))
+	if (ImGui::InputText("名前", nameBuffer, sizeof(nameBuffer)))
 	{
 		const std::string newName = nameBuffer;
 		ExecuteTrackEdit(sequence_, trackIndex, "Rename Track", [&]() { track->SetName(newName); });
@@ -2230,12 +2230,12 @@ void SequencerEditor::DrawTrackInspector(size_t trackIndex)
 		}
 	}
 
-	ImGui::SeparatorText("Binding");
+	ImGui::SeparatorText("割り当て");
 
 	// 役の名前
 	char roleBuffer[64];
 	std::snprintf(roleBuffer, sizeof(roleBuffer), "%s", track->GetBindingRole().c_str());
-	if (ImGui::InputText("Role", roleBuffer, sizeof(roleBuffer)))
+	if (ImGui::InputText("役", roleBuffer, sizeof(roleBuffer)))
 	{
 		const std::string newRole = roleBuffer;
 		ExecuteTrackEdit(sequence_, trackIndex, "Change Role", [&]() { track->SetBindingRole(newRole); });
@@ -2266,7 +2266,7 @@ void SequencerEditor::DrawTrackInspector(size_t trackIndex)
 		break;
 
 	case BindingType::GameObject:
-		DrawPreviewObjectCombo(role, "Preview Object");
+		DrawPreviewObjectCombo(role, "プレビュー対象");
 		break;
 
 	case BindingType::Light:
@@ -2275,7 +2275,7 @@ void SequencerEditor::DrawTrackInspector(size_t trackIndex)
 		const auto it = previewLightBindings_.find(role);
 		const std::string current = (it != previewLightBindings_.end()) ? it->second : std::string();
 
-		if (ImGui::BeginCombo("Preview Light", current.empty() ? "(未割り当て)" : current.c_str()))
+		if (ImGui::BeginCombo("プレビューライト", current.empty() ? "(未割り当て)" : current.c_str()))
 		{
 			if (ImGui::Selectable("(未割り当て)", current.empty()))
 			{
@@ -2384,11 +2384,11 @@ void SequencerEditor::DrawInspectorWindow()
 	{
 		const size_t keyIndex = static_cast<size_t>(selected.keyIndex);
 
-		ImGui::SeparatorText("Key");
-		ImGui::Text("Channel: %s  /  Key: %zu", channel->GetName(), keyIndex);
+		ImGui::SeparatorText("キー");
+		ImGui::Text("チャンネル: %s  /  キー: %zu", channel->GetName(), keyIndex);
 
 		float keyTime = channel->GetKeyTime(keyIndex);
-		if (ImGui::DragFloat("Time", &keyTime, 0.01f, 0.0f, 3600.0f, "%.3f s"))
+		if (ImGui::DragFloat("時刻", &keyTime, 0.01f, 0.0f, 3600.0f, "%.3f s"))
 		{
 			size_t newIndex = keyIndex;
 			if (ExecuteTrackEdit(sequence_, static_cast<size_t>(trackIndex), "Set Key Time",

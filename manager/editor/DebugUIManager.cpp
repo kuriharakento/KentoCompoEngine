@@ -44,11 +44,11 @@ constexpr float kCenterPivot = 0.5f;
 constexpr char kSettingsTypeName[] = "DebugUI";
 constexpr char kGlobalSettingsName[] = "GlobalSettings";
 constexpr char kSettingsPagePrefix[] = "settings_page=";
-constexpr char kHierarchyWindowName[] = "Hierarchy";
-constexpr char kInspectorWindowName[] = "Inspector";
-constexpr char kSettingsWindowName[] = "Settings";
-constexpr char kSystemCategoryName[] = "System";
-constexpr char kDebugCategoryName[] = "Debug";
+constexpr char kHierarchyWindowName[] = "階層###Hierarchy";
+constexpr char kInspectorWindowName[] = "インスペクター###Inspector";
+constexpr char kSettingsWindowName[] = "設定###Settings";
+constexpr char kSystemCategoryName[] = "システム";
+constexpr char kDebugCategoryName[] = "デバッグ";
 
 /**
  * @brief imgui.ini に覚えておく中身
@@ -344,7 +344,7 @@ void DebugUIManager::DrawSettings()
 {
 	DockOnFirstOpen(kSettingsWindowName, EditorDock::RightBottom);
 	ImGui::Begin(kSettingsWindowName);
-	ImGui::InputTextWithHint("##settings_filter", "Search", settingsFilter_.data(), settingsFilter_.size());
+	ImGui::InputTextWithHint("##settings_filter", "検索", settingsFilter_.data(), settingsFilter_.size());
 	ImGui::BeginChild("SettingsList", ImVec2(kSettingsListWidth, 0.0f), true);
 	const bool filtering = settingsFilter_[0] != '\0';
 	for (const auto& category : settingsCategories_)
@@ -476,7 +476,7 @@ const std::vector<std::string>& DebugUIManager::GetDockWindowNames(EditorDock do
 
 void DebugUIManager::DrawWindowMenu()
 {
-	if (!ImGui::BeginMenu("Windows"))
+	if (!ImGui::BeginMenu("ウィンドウ"))
 	{
 		return;
 	}

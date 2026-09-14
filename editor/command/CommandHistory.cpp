@@ -189,7 +189,7 @@ void CommandHistory::DrawImGui()
 	ImGui::EndDisabled();
 
 	ImGui::SameLine();
-	if (ImGui::Button("Clear History"))
+	if (ImGui::Button("履歴を消す"))
 	{
 		Clear();
 	}

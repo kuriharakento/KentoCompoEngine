@@ -125,17 +125,17 @@ void DepthOfFieldRenderer::Draw(Camera* camera, RenderView* view, FrameConstantA
 #ifdef USE_IMGUI
 void DepthOfFieldRenderer::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Depth Of Field", [this]() { DrawImGui(); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "レンダリング", "被写界深度", [this]() { DrawImGui(); });
 }
 
 void DepthOfFieldRenderer::DrawImGui()
 {
-	ImGui::Checkbox("Enabled", &settings_.enabled);
-	ImGui::DragFloat("Focus Distance", &settings_.focusDistance, kDragSpeed, 0.0f, kMaxFocusDistance, "%.2f");
+	ImGui::Checkbox("有効", &settings_.enabled);
+	ImGui::DragFloat("ピントの距離", &settings_.focusDistance, kDragSpeed, 0.0f, kMaxFocusDistance, "%.2f");
 	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("カメラからピントを合わせる所までの距離"); }
-	ImGui::DragFloat("Focus Range", &settings_.focusRange, kDragSpeed, 0.0f, kMaxFocusRange, "%.2f");
+	ImGui::DragFloat("ピントの幅", &settings_.focusRange, kDragSpeed, 0.0f, kMaxFocusRange, "%.2f");
 	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("ピントが合って見える奥行きの幅"); }
-	ImGui::SliderFloat("Max Blur (px)", &settings_.maxBlurPixels, 0.0f, kMaxBlurPixels, "%.1f");
+	ImGui::SliderFloat("最大のぼけ (px)", &settings_.maxBlurPixels, 0.0f, kMaxBlurPixels, "%.1f");
 }
 #endif
 } // namespace KCE

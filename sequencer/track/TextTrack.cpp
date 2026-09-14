@@ -159,7 +159,7 @@ bool TextTrack::TextChannel::DrawKeyValueEditor(size_t index)
 	TextEntry& entry = (*entries_)[index];
 	bool changed = false;
 
-	if (ImGui::DragFloat("Duration", &entry.duration, kDragSpeed, kMinDuration, kMaxDuration, "%.2f s"))
+	if (ImGui::DragFloat("表示時間", &entry.duration, kDragSpeed, kMinDuration, kMaxDuration, "%.2f s"))
 	{
 		changed = true;
 	}
@@ -168,7 +168,7 @@ bool TextTrack::TextChannel::DrawKeyValueEditor(size_t index)
 	{
 		char speakerBuffer[kSpeakerBufferSize];
 		std::snprintf(speakerBuffer, sizeof(speakerBuffer), "%s", entry.speaker.c_str());
-		if (ImGui::InputText("Speaker", speakerBuffer, sizeof(speakerBuffer)))
+		if (ImGui::InputText("話者", speakerBuffer, sizeof(speakerBuffer)))
 		{
 			entry.speaker = speakerBuffer;
 			changed = true;
@@ -189,14 +189,14 @@ bool TextTrack::DrawInspector()
 {
 	bool changed = false;
 	int kind = static_cast<int>(kind_);
-	if (ImGui::Combo("Text Kind", &kind, "Lyric\0Dialogue\0"))
+	if (ImGui::Combo("文字の種類", &kind, "歌詞\0会話\0"))
 	{
 		kind_ = static_cast<TextTrackKind>(kind);
 		changed = true;
 	}
 	if (kind_ == TextTrackKind::Dialogue)
 	{
-		if (ImGui::DragFloat("Chars / sec", &charsPerSecond_, 0.5f, kMinCharsPerSecond, kMaxCharsPerSecond, "%.1f"))
+		if (ImGui::DragFloat("1秒あたりの文字数", &charsPerSecond_, 0.5f, kMinCharsPerSecond, kMaxCharsPerSecond, "%.1f"))
 		{
 			changed = true;
 		}

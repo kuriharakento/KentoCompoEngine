@@ -28,22 +28,22 @@ void JsonEditor::Initialize()
 
 #ifdef USE_IMGUI
 	// JSONエディタをデバッグUIに登録（再起動時に消えないように Project エリアに登録する）
-	DebugUIManager::GetInstance()->RegisterWindow(this, "JSON Editor", [this]() {
+	DebugUIManager::GetInstance()->RegisterWindow(this, "JSONエディター###JSON Editor", [this]() {
 		// タブバーを開始
 		if (ImGui::BeginTabBar("EditableTabs"))
 		{
 			// 1. 汎用JSON編集タブ（常に表示され、任意のファイル名を指定・選択してロード・編集・保存できる）
-			if (ImGui::BeginTabItem("Raw JSON Editor"))
+			if (ImGui::BeginTabItem("JSONテキスト編集"))
 			{
 				ImGui::Spacing();
-				ImGui::SeparatorText("Raw JSON File Loader / Editor");
+				ImGui::SeparatorText("JSONファイルの読み込み・編集");
 
 				// ターゲットファイル名
 				char rawFileBuf[256];
 				strncpy_s(rawFileBuf, rawJsonFileName_.c_str(), sizeof(rawFileBuf));
 				rawFileBuf[sizeof(rawFileBuf) - 1] = '\0';
 				ImGui::PushItemWidth(250.0f);
-				if (ImGui::InputText("JSON File Name", rawFileBuf, sizeof(rawFileBuf)))
+				if (ImGui::InputText("JSONファイル名", rawFileBuf, sizeof(rawFileBuf)))
 				{
 					rawJsonFileName_ = rawFileBuf;
 				}
@@ -98,7 +98,7 @@ void JsonEditor::Initialize()
 				ImGui::Spacing();
 
 				// 読込・保存ボタン
-				if (ImGui::Button("Load Raw JSON"))
+				if (ImGui::Button("JSONを読み込み"))
 				{
 					std::ifstream ifs(dirPath + rawJsonFileName_);
 					if (ifs)
@@ -114,7 +114,7 @@ void JsonEditor::Initialize()
 					}
 				}
 				ImGui::SameLine();
-				if (ImGui::Button("Save Raw JSON"))
+				if (ImGui::Button("JSONを保存"))
 				{
 					std::ofstream ofs(dirPath + rawJsonFileName_);
 					if (ofs)
@@ -128,7 +128,7 @@ void JsonEditor::Initialize()
 				}
 
 				ImGui::Spacing();
-				ImGui::Text("File Contents (Raw Text Edit):");
+				ImGui::Text("ファイル内容:");
 
 				// 編集バッファの準備
 				static std::vector<char> textBuf;

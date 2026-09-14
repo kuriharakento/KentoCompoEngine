@@ -33,7 +33,7 @@ void SceneManager::Initialize(const SceneContext& context)
 
 #ifdef USE_IMGUI
 	// シーンマネージャーをデバッグUIに登録
-	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "SceneManager", [this]() {
+	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "シーン管理", [this]() {
 		ImGui::Text("CurrentScene: %s", currentSceneName_.c_str());
 		ImGui::Text("Textures: resident %zu / scene %zu",
 			TextureManager::GetInstance()->GetResidentTextureCount(),
@@ -45,16 +45,16 @@ void SceneManager::Initialize(const SceneContext& context)
 
 		// 任意文字列によるシーン直接切り替え入力欄（末尾の "Scene" は自動付加）
 		static char inputSceneName[128] = "";
-		ImGui::SeparatorText("Direct Scene Switch");
-		ImGui::InputText("Scene Name", inputSceneName, sizeof(inputSceneName));
+		ImGui::SeparatorText("シーンを直接切り替える");
+		ImGui::InputText("シーン名", inputSceneName, sizeof(inputSceneName));
 		ImGui::SameLine();
-		if (ImGui::Button("Go") && inputSceneName[0] != '\0')
+		if (ImGui::Button("切り替え") && inputSceneName[0] != '\0')
 		{
 			std::string targetScene = inputSceneName;
 			ChangeScene(targetScene);
 		}
 
-		ImGui::SeparatorText("Registered Scenes");
+		ImGui::SeparatorText("登録済みのシーン");
 		auto registeredScenes = SceneFactory::GetRegisteredSceneNames();
 		for (const auto& sceneName : registeredScenes)
 		{
@@ -74,7 +74,7 @@ void SceneManager::Initialize(const SceneContext& context)
 		// --- シーンのステート表示（デバッグ UI） ---
 		if (currentScene_)
 		{
-			ImGui::SeparatorText("Scene State");
+			ImGui::SeparatorText("シーンの状態");
 			ImGui::Text("State: %s", currentScene_->GetCurrentStateName().c_str());
 		}
 	});

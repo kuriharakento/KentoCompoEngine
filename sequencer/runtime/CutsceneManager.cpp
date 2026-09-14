@@ -328,7 +328,7 @@ void CutsceneManager::Update()
 #ifdef USE_IMGUI
 void CutsceneManager::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterWindow(this, "Cutscene", [this]() { DrawImGui(); }, EditorDock::Bottom);
+	DebugUIManager::GetInstance()->RegisterWindow(this, "カットシーン###Cutscene", [this]() { DrawImGui(); }, EditorDock::Bottom);
 }
 
 void CutsceneManager::DrawImGui()
@@ -337,7 +337,7 @@ void CutsceneManager::DrawImGui()
 
 	char pathBuffer[256];
 	std::snprintf(pathBuffer, sizeof(pathBuffer), "%s", debugPath_.c_str());
-	if (ImGui::InputText("Sequence", pathBuffer, sizeof(pathBuffer)))
+	if (ImGui::InputText("シーケンス", pathBuffer, sizeof(pathBuffer)))
 	{
 		debugPath_ = pathBuffer;
 	}
@@ -345,7 +345,7 @@ void CutsceneManager::DrawImGui()
 	static const char* const kStateNames[] = { "Idle", "Playing", "BlendingOut" };
 	ImGui::Text("State: %s  Time: %.2f / %.2f", kStateNames[static_cast<int>(state_)], player_.GetTime(), player_.GetDuration());
 
-	if (ImGui::Button("Play"))
+	if (ImGui::Button("再生"))
 	{
 		CutsceneRequest request;
 		request.sequencePath = debugPath_;
@@ -366,11 +366,11 @@ void CutsceneManager::DrawImGui()
 	}
 	ImGui::SameLine();
 	ImGui::BeginDisabled(state_ != State::Playing);
-	if (ImGui::Button("Skip")) { Skip(); }
+	if (ImGui::Button("スキップ")) { Skip(); }
 	ImGui::EndDisabled();
 	ImGui::SameLine();
 	ImGui::BeginDisabled(state_ == State::Idle);
-	if (ImGui::Button("Stop")) { Stop(); }
+	if (ImGui::Button("停止")) { Stop(); }
 	ImGui::EndDisabled();
 
 	if (!debugMessage_.empty())

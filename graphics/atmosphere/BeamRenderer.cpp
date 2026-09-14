@@ -299,22 +299,22 @@ void BeamRenderer::Draw(Camera* camera, GBuffer* gBuffer, D3D12_CPU_DESCRIPTOR_H
 #ifdef USE_IMGUI
 void BeamRenderer::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Light Beams", [this]() { DrawImGui(); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "レンダリング", "ライトビーム", [this]() { DrawImGui(); });
 	DebugUIManager::GetInstance()->RegisterInspector(this, SelectionKind::Light,
 		[this](const SelectionItem& item) { DrawSpotLightInspector(item); });
 }
 
 void BeamRenderer::DrawImGui()
 {
-	ImGui::Checkbox("Enabled", &settings_.enabled);
-	ImGui::DragFloat("Intensity", &settings_.intensity, 0.005f, 0.0f, 10.0f, "%.3f");
+	ImGui::Checkbox("有効", &settings_.enabled);
+	ImGui::DragFloat("強さ", &settings_.intensity, 0.005f, 0.0f, 10.0f, "%.3f");
 	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("ビーム全体の明るさ。空気の濃さに相当する"); }
-	ImGui::DragFloat("Length Falloff", &settings_.lengthFalloff, 0.05f, 0.0f, 10.0f, "%.2f");
-	ImGui::DragFloat("Edge Power", &settings_.edgePower, 0.05f, 0.1f, 16.0f, "%.2f");
+	ImGui::DragFloat("長さでの減衰", &settings_.lengthFalloff, 0.05f, 0.0f, 10.0f, "%.2f");
+	ImGui::DragFloat("縁の絞り", &settings_.edgePower, 0.05f, 0.1f, 16.0f, "%.2f");
 	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("大きいほど筋の縁が暗くなり、細く見える"); }
-	ImGui::DragFloat("Fade Distance", &settings_.fadeDistance, 0.05f, 0.01f, 20.0f, "%.2f");
+	ImGui::DragFloat("フェード距離", &settings_.fadeDistance, 0.05f, 0.01f, 20.0f, "%.2f");
 	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("壁や床の手前で消えていく距離。小さいと床に刺さった線が見える"); }
-	ImGui::DragFloat("Length Scale", &settings_.lengthScale, 0.01f, 0.05f, 4.0f, "%.2f");
+	ImGui::DragFloat("長さの倍率", &settings_.lengthScale, 0.01f, 0.05f, 4.0f, "%.2f");
 }
 
 void BeamRenderer::DrawSpotLightInspector(const SelectionItem& item)
@@ -323,14 +323,14 @@ void BeamRenderer::DrawSpotLightInspector(const SelectionItem& item)
 	{
 		return;
 	}
-	ImGui::SeparatorText("Beam");
+	ImGui::SeparatorText("ビーム");
 	bool enabled = IsBeamEnabled(item.name);
-	if (ImGui::Checkbox("Enabled", &enabled))
+	if (ImGui::Checkbox("有効", &enabled))
 	{
 		beamEnabled_[item.name] = enabled;
 	}
 	float scale = GetBeamScale(item.name);
-	if (ImGui::DragFloat("Intensity Scale", &scale, 0.01f, 0.0f, 10.0f, "x%.2f"))
+	if (ImGui::DragFloat("強さの倍率", &scale, 0.01f, 0.0f, 10.0f, "x%.2f"))
 	{
 		beamScale_[item.name] = scale;
 	}

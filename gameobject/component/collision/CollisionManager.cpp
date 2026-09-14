@@ -34,7 +34,7 @@ void CollisionManager::Initialize()
 {
 	colliders_.clear();
 #ifdef USE_IMGUI
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Debug", "CollisionManager Colliders", [this]() { this->DrawImGui(); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "デバッグ", "当たり判定の一覧", [this]() { this->DrawImGui(); });
 #endif
 
 	// --- 1. 通常判定マトリクス (collisionMatrix_) の登録 ---
@@ -746,8 +746,8 @@ void CollisionManager::LogCollision(const std::string& phase, const Collider* a,
 #ifdef USE_IMGUI
 void CollisionManager::DrawImGui()
 {
-	ImGui::SeparatorText("Colliders");
-	if (ImGui::CollapsingHeader("List"))
+	ImGui::SeparatorText("コライダー");
+	if (ImGui::CollapsingHeader("一覧"))
 	{
 		for (size_t i = 0; i < colliders_.size(); ++i)
 		{
@@ -765,7 +765,7 @@ void CollisionManager::DrawImGui()
 		}
 	}
 
-	ImGui::SeparatorText("Statistics");
+	ImGui::SeparatorText("統計");
 	ImGui::Text("Total Calliders: %zu", colliders_.size());
 	ImGui::Text("Active Collisions: %zu", currentCollisions_.size());
 }

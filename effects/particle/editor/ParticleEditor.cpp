@@ -83,7 +83,7 @@ void ParticleEditor::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)
 	NewEffect();
 
 #ifdef USE_IMGUI
-	DebugUIManager::GetInstance()->RegisterWindow(this, "Particle Editor", [this]() { this->DrawImGui(); }, EditorDock::Bottom, false);
+	DebugUIManager::GetInstance()->RegisterWindow(this, "パーティクルエディター###Particle Editor", [this]() { this->DrawImGui(); }, EditorDock::Bottom, false);
 #endif
 }
 

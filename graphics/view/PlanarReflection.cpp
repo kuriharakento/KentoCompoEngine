@@ -182,18 +182,18 @@ void PlanarReflection::Composite(Camera* camera, GBuffer* gBuffer, D3D12_CPU_DES
 #ifdef USE_IMGUI
 void PlanarReflection::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Floor Reflection", [this]() { DrawImGui(); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "レンダリング", "床反射", [this]() { DrawImGui(); });
 }
 
 void PlanarReflection::DrawImGui()
 {
-	ImGui::Checkbox("Enabled", &settings_.enabled);
-	ImGui::DragFloat("Plane Height", &settings_.planeHeight, kDragSpeed, -100.0f, 100.0f, "%.3f");
-	ImGui::SliderFloat("Strength", &settings_.strength, 0.0f, kMaxStrength, "%.2f");
-	ImGui::SliderFloat("Fresnel Power", &settings_.fresnelPower, 0.0f, kMaxFresnelPower, "%.1f");
+	ImGui::Checkbox("有効", &settings_.enabled);
+	ImGui::DragFloat("床の高さ", &settings_.planeHeight, kDragSpeed, -100.0f, 100.0f, "%.3f");
+	ImGui::SliderFloat("強さ", &settings_.strength, 0.0f, kMaxStrength, "%.2f");
+	ImGui::SliderFloat("フレネルの絞り", &settings_.fresnelPower, 0.0f, kMaxFresnelPower, "%.1f");
 	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("浅い角度ほど強く映る度合い"); }
-	ImGui::SliderFloat("Min Reflectance", &settings_.minReflectance, 0.0f, 1.0f, "%.2f");
-	ImGui::SliderFloat("Height Tolerance", &settings_.heightTolerance, 0.0f, kMaxHeightTolerance, "%.3f");
+	ImGui::SliderFloat("最低の反射率", &settings_.minReflectance, 0.0f, 1.0f, "%.2f");
+	ImGui::SliderFloat("高さの許容差", &settings_.heightTolerance, 0.0f, kMaxHeightTolerance, "%.3f");
 	ImGui::TextDisabled("反射させる床は PlanarReflection::kReflectorLayer に入れる。");
 }
 #endif

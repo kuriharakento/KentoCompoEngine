@@ -220,18 +220,18 @@ bool ShaderHotReload::ReloadAll()
 #ifdef USE_IMGUI
 void ShaderHotReload::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Debug", "Shader Hot Reload", [this]() { this->DrawImGui(); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "デバッグ", "シェーダーホットリロード", [this]() { this->DrawImGui(); });
 }
 
 void ShaderHotReload::DrawImGui()
 {
-	if (ImGui::Button("Reload Now"))
+	if (ImGui::Button("今すぐ読み直す"))
 	{
 		ReloadAll();
 	}
 
 	ImGui::SameLine();
-	ImGui::Checkbox("Auto Reload", &autoReloadEnabled_);
+	ImGui::Checkbox("自動で読み直す", &autoReloadEnabled_);
 	if (ImGui::IsItemHovered())
 	{
 		ImGui::SetTooltip("シェーダーファイルの更新を %.1f 秒ごとに確認します", kCheckInterval);

@@ -167,7 +167,7 @@ bool Text3DTrack::DrawInspector()
 
 	char nameBuffer[kNameBufferSize];
 	std::snprintf(nameBuffer, sizeof(nameBuffer), "%s", targetName_.c_str());
-	if (ImGui::InputText("Target", nameBuffer, sizeof(nameBuffer)))
+	if (ImGui::InputText("対象", nameBuffer, sizeof(nameBuffer)))
 	{
 		targetName_ = nameBuffer;
 		changed = true;
@@ -190,7 +190,7 @@ bool Text3DTrack::DrawInspector()
 	}
 
 	int style = static_cast<int>(style_);
-	if (ImGui::Combo("Style", &style, "Fade\0Drop\0Spin\0Pop\0"))
+	if (ImGui::Combo("出方", &style, "フェード\0落下\0回転\0ポップ\0"))
 	{
 		style_ = static_cast<TextAppearStyle>(style);
 		changed = true;

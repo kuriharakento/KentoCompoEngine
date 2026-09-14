@@ -24,14 +24,14 @@ TimeManager::TimeManager()
 
 #ifdef USE_IMGUI
 	// TimeManagerをデバッグUIに登録
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "System", "Time Manager", [this]() {
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "システム", "時間管理", [this]() {
 		// 全体のポーズ設定
-		ImGui::Checkbox("Paused", &paused_);
+		ImGui::Checkbox("一時停止", &paused_);
 		ImGui::Separator();
 
 		// ゲームコンテキストの表示
 		ImGui::Text("Game Context:");
-		ImGui::SliderFloat("Game Time Scale", &gameContext_.timeScale, 0.0f, 3.0f, "%.2f");
+		ImGui::SliderFloat("ゲーム時間の倍率", &gameContext_.timeScale, 0.0f, 3.0f, "%.2f");
 		ImGui::Text("  GameTime: %.2f", gameContext_.gameTime);
 		ImGui::Text("  RealGameTime: %.2f", gameContext_.realGameTime);
 		ImGui::Text("  DeltaTime: %.4f", gameContext_.deltaTime);
@@ -41,7 +41,7 @@ TimeManager::TimeManager()
 
 		// UIコンテキストの表示
 		ImGui::Text("UI Context:");
-		ImGui::SliderFloat("UI Time Scale", &uiContext_.timeScale, 0.0f, 3.0f, "%.2f");
+		ImGui::SliderFloat("UI時間の倍率", &uiContext_.timeScale, 0.0f, 3.0f, "%.2f");
 		ImGui::Text("  GameTime: %.2f", uiContext_.gameTime);
 		ImGui::Text("  RealGameTime: %.2f", uiContext_.realGameTime);
 		ImGui::Text("  DeltaTime: %.4f", uiContext_.deltaTime);

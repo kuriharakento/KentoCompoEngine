@@ -65,8 +65,8 @@ void LightManager::Initialize(DirectXCommon* dxCommon)
 
 #ifdef USE_IMGUI
 	// 一覧は Hierarchy、1つずつの詳細は Inspector、全体の操作は Settings に分けて出す
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Scene", "Lights", [this]() { this->DrawImGui(); });
-	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "Lights", [this]() { this->DrawHierarchyImGui(); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "シーン", "ライト", [this]() { this->DrawImGui(); });
+	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "ライト", [this]() { this->DrawHierarchyImGui(); });
 	DebugUIManager::GetInstance()->RegisterInspector(this, SelectionKind::Light, [this](const SelectionItem& item) { this->DrawInspectorImGui(item); });
 #endif
 }
@@ -412,7 +412,7 @@ void LightManager::DrawImGui()
 	if (ImGui::BeginTabBar("LightTabs"))
 	{
 		/*--------------[ ライトオプションタブ ]-----------------*/
-		if (ImGui::BeginTabItem("Light Options"))
+		if (ImGui::BeginTabItem("ライト設定"))
 		{
 			// イージング関数の選択肢
 			const char* easingOptions[] = {
@@ -441,10 +441,10 @@ void LightManager::DrawImGui()
 			static int currentEasingIndex = 0;
 
 			// イージングの時間
-			ImGui::DragFloat("Easing Time", &duration_, 0.1f, 0.0f, 10.0f);
+			ImGui::DragFloat("イージング時間", &duration_, 0.1f, 0.0f, 10.0f);
 
 			// イージング関数の選択
-			if (ImGui::Combo("Easing Function", &currentEasingIndex, easingOptions, IM_ARRAYSIZE(easingOptions))) {
+			if (ImGui::Combo("イージング関数", &currentEasingIndex, easingOptions, IM_ARRAYSIZE(easingOptions))) {
 				switch (currentEasingIndex) {
 				case 0: pEasingFunc_ = EaseInSine<float>; break;
 				case 1: pEasingFunc_ = EaseOutSine<float>; break;
@@ -471,8 +471,8 @@ void LightManager::DrawImGui()
 			}
 
 			// 全ライトクリアボタン
-			ImGui::SeparatorText("List Clear");
-			if (ImGui::Button("clear"))
+			ImGui::SeparatorText("一覧を消す");
+			if (ImGui::Button("全部消す"))
 			{
 				Clear();
 			}
@@ -480,17 +480,17 @@ void LightManager::DrawImGui()
 		}
 
 		/*--------------[ ポイントライトタブ ]-----------------*/
-		if (ImGui::BeginTabItem("Point Lights"))
+		if (ImGui::BeginTabItem("ポイントライト"))
 		{
 			// リストオプション
-			ImGui::SeparatorText("List Options");
+			ImGui::SeparatorText("一覧の操作");
 			ImGui::Text("PointLight Count : %d", lightCount_.pointLightCount);
-			if (ImGui::Button("Add PointLight"))
+			if (ImGui::Button("ポイントライトを追加"))
 			{
 				AddPointLight("PointLight" + std::to_string(pointLights_.size()));
 			}
 			ImGui::SameLine();
-			if (ImGui::Button("Clear PointLights"))
+			if (ImGui::Button("ポイントライトを全部消す"))
 			{
 				pointLights_.clear();
 				pointLightNames_.clear();
@@ -498,8 +498,8 @@ void LightManager::DrawImGui()
 			}
 
 			// グラデーション設定
-			ImGui::SeparatorText("Gradient");
-			if (ImGui::Button("Start Gradient"))
+			ImGui::SeparatorText("グラデーション");
+			if (ImGui::Button("グラデーション開始"))
 			{
 				// すべてのポイントライトにグラデーションを適用
 				for (const auto& name : pointLightNames_)
@@ -508,26 +508,26 @@ void LightManager::DrawImGui()
 				}
 			}
 			// 開始色
-			ImGui::ColorEdit4("Start Color", &startPointLightColor_.x);
+			ImGui::ColorEdit4("開始色", &startPointLightColor_.x);
 			// 終了色
-			ImGui::ColorEdit4("End Color", &endPointLightColor_.x);
+			ImGui::ColorEdit4("終了色", &endPointLightColor_.x);
 
 			// 1つずつの設定は Hierarchy で選んで Inspector で直す
 			ImGui::EndTabItem();
 		}
 
 		/*--------------[ スポットライトタブ ]-----------------*/
-		if (ImGui::BeginTabItem("Spot Lights"))
+		if (ImGui::BeginTabItem("スポットライト"))
 		{
 			// リストオプション
-			ImGui::SeparatorText("List Options");
+			ImGui::SeparatorText("一覧の操作");
 			ImGui::Text("SpotLight Count : %d", lightCount_.spotLightCount);
-			if (ImGui::Button("Add GPUSpotLight"))
+			if (ImGui::Button("スポットライトを追加"))
 			{
 				AddSpotLight("SpotLight" + std::to_string(spotLights_.size()));
 			}
 			ImGui::SameLine();
-			if (ImGui::Button("Clear SpotLights"))
+			if (ImGui::Button("スポットライトを全部消す"))
 			{
 				spotLights_.clear();
 				spotLightNames_.clear();
@@ -535,9 +535,9 @@ void LightManager::DrawImGui()
 			}
 
 			// グラデーション設定
-			ImGui::SeparatorText("Gradient");
+			ImGui::SeparatorText("グラデーション");
 
-			if (ImGui::Button("Start Gradient"))
+			if (ImGui::Button("グラデーション開始"))
 			{
 				// すべてのスポットライトにグラデーションを適用
 				for (const auto& name : spotLightNames_)
@@ -546,9 +546,9 @@ void LightManager::DrawImGui()
 				}
 			}
 			// 開始色
-			ImGui::ColorEdit4("Start Color", &startSpotLightColor_.x);
+			ImGui::ColorEdit4("開始色", &startSpotLightColor_.x);
 			// 終了色
-			ImGui::ColorEdit4("End Color", &endSpotLightColor_.x);
+			ImGui::ColorEdit4("終了色", &endSpotLightColor_.x);
 
 			// 1つずつの設定は Hierarchy で選んで Inspector で直す
 			ImGui::EndTabItem();
@@ -601,14 +601,14 @@ void LightManager::DrawInspectorImGui(const SelectionItem& item)
 	switch (item.lightType)
 	{
 	case SelectionLightType::Directional:
-		ImGui::SeparatorText("Directional Light");
-		ImGui::ColorEdit4("Color", &directionalLight_.color.x);
-		ImGui::DragFloat3("Direction", &directionalLight_.direction.x, 0.05f, -1.0f, 1.0f);
+		ImGui::SeparatorText("平行光源");
+		ImGui::ColorEdit4("色", &directionalLight_.color.x);
+		ImGui::DragFloat3("向き", &directionalLight_.direction.x, 0.05f, -1.0f, 1.0f);
 		if (ImGui::IsItemDeactivatedAfterEdit()) {
 			directionalLight_.direction = Vector3::Normalize(directionalLight_.direction);
 		}
-		ImGui::DragFloat("Intensity", &directionalLight_.intensity, 0.05f, 0.0f, 10.0f);
-		ImGui::ColorEdit4("Ambient Color", &directionalLight_.ambient.x);
+		ImGui::DragFloat("強さ", &directionalLight_.intensity, 0.05f, 0.0f, 10.0f);
+		ImGui::ColorEdit4("環境光の色", &directionalLight_.ambient.x);
 		break;
 
 	case SelectionLightType::Point:
@@ -622,11 +622,11 @@ void LightManager::DrawInspectorImGui(const SelectionItem& item)
 		}
 		GPUPointLight& light = it->second.gpuData;
 		ImGui::SeparatorText(item.name.c_str());
-		ImGui::ColorEdit4("PointLight Color", &light.color.x);
-		ImGui::DragFloat3("PointLight Position", &light.position.x, 0.1f);
-		ImGui::DragFloat("PointLight Intensity", &light.intensity, 0.1f, 0.0f,100.0f);
-		ImGui::DragFloat("PointLight Radius", &light.radius, 0.1f, 0.0f,1000.0f);
-		ImGui::DragFloat("PointLight Decay", &light.decay, 0.1f, 0.0f,10.0f);
+		ImGui::ColorEdit4("色", &light.color.x);
+		ImGui::DragFloat3("位置", &light.position.x, 0.1f);
+		ImGui::DragFloat("強さ", &light.intensity, 0.1f, 0.0f,100.0f);
+		ImGui::DragFloat("半径", &light.radius, 0.1f, 0.0f,1000.0f);
+		ImGui::DragFloat("減衰", &light.decay, 0.1f, 0.0f,10.0f);
 		break;
 	}
 
@@ -640,15 +640,15 @@ void LightManager::DrawInspectorImGui(const SelectionItem& item)
 		}
 		GPUSpotLight& light = it->second.gpuData;
 		ImGui::SeparatorText(item.name.c_str());
-		ImGui::ColorEdit4("SpotLight Color", &light.color.x);
-		ImGui::DragFloat3("SpotLight Position", &light.position.x, 0.1f);
-		ImGui::DragFloat3("SpotLight Direction", &light.direction.x, 0.01f, -1.0f, 1.0f);
-		ImGui::DragFloat("SpotLight Intensity", &light.intensity, 0.1f, 0.0f,100.0f);
-		ImGui::DragFloat("SpotLight Distance", &light.distance, 0.1f, 0.0f,1000.0f);
-		ImGui::DragFloat("SpotLight CosAngle", &light.cosAngle, 0.01f, -3.14f, 3.14f);
-		ImGui::DragFloat("SpotLight Decay", &light.decay, 0.1f, 0.0f,10.0f);
-		ImGui::DragFloat("SpotLight CosFalloffStart", &light.cosFalloffStart, 0.01f, -3.14f, 3.14f);
-		ImGui::Checkbox("Shadow Enabled", &it->second.shadowEnabled);
+		ImGui::ColorEdit4("色", &light.color.x);
+		ImGui::DragFloat3("位置", &light.position.x, 0.1f);
+		ImGui::DragFloat3("向き", &light.direction.x, 0.01f, -1.0f, 1.0f);
+		ImGui::DragFloat("強さ", &light.intensity, 0.1f, 0.0f,100.0f);
+		ImGui::DragFloat("距離", &light.distance, 0.1f, 0.0f,1000.0f);
+		ImGui::DragFloat("角度 (cos)", &light.cosAngle, 0.01f, -3.14f, 3.14f);
+		ImGui::DragFloat("減衰", &light.decay, 0.1f, 0.0f,10.0f);
+		ImGui::DragFloat("減衰の開始角 (cos)", &light.cosFalloffStart, 0.01f, -3.14f, 3.14f);
+		ImGui::Checkbox("影を出す", &it->second.shadowEnabled);
 		break;
 	}
 

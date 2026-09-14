@@ -27,7 +27,7 @@ void SplineData::DrawImGui()
 #ifdef USE_IMGUI
 	// 制御点追加ボタン
 	ImGui::SameLine();
-	if (ImGui::Button("Add ControlPoints"))
+	if (ImGui::Button("制御点を追加"))
 	{
 		controlPoints.push_back(Vector3(0.0f, 0.0f, 0.0f));
 	}

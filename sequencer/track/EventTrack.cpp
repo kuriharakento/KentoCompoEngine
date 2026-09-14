@@ -90,7 +90,7 @@ bool EventTrack::EventChannel::DrawKeyValueEditor(size_t index)
 
 	char nameBuffer[128];
 	std::snprintf(nameBuffer, sizeof(nameBuffer), "%s", event.name.c_str());
-	if (ImGui::InputText("Event Name", nameBuffer, sizeof(nameBuffer)))
+	if (ImGui::InputText("イベント名", nameBuffer, sizeof(nameBuffer)))
 	{
 		event.name = nameBuffer;
 		changed = true;
@@ -100,7 +100,7 @@ bool EventTrack::EventChannel::DrawKeyValueEditor(size_t index)
 		ImGui::SetTooltip("ゲーム側のコールバックに渡される名前");
 	}
 
-	if (ImGui::Checkbox("Fire On Skip", &event.fireOnSkip))
+	if (ImGui::Checkbox("スキップ時も呼ぶ", &event.fireOnSkip))
 	{
 		changed = true;
 	}

@@ -267,18 +267,18 @@ void Text3DRenderer::DrawInspectorImGui(const SelectionItem& item)
 		mesh->SetText(buffer);
 	}
 	TextMesh3D::Params& params = mesh->GetParams();
-	ImGui::DragFloat3("Position", &params.position.x, kDragSpeed);
-	ImGui::DragFloat("Size", &params.size, kDragSpeed * 0.1f, 0.01f, 100.0f);
-	ImGui::ColorEdit4("Color", &params.color.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+	ImGui::DragFloat3("位置", &params.position.x, kDragSpeed);
+	ImGui::DragFloat("大きさ", &params.size, kDragSpeed * 0.1f, 0.01f, 100.0f);
+	ImGui::ColorEdit4("色", &params.color.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
 	const float charCount = static_cast<float>(mesh->GetCharCount());
 	float reveal = (std::min)(params.reveal, charCount);
-	if (ImGui::SliderFloat("Reveal", &reveal, 0.0f, charCount, "%.2f"))
+	if (ImGui::SliderFloat("表示量", &reveal, 0.0f, charCount, "%.2f"))
 	{
 		params.reveal = reveal;
 	}
-	ImGui::SliderFloat("Exit", &params.exit, 0.0f, charCount, "%.2f");
+	ImGui::SliderFloat("退場量", &params.exit, 0.0f, charCount, "%.2f");
 	int style = static_cast<int>(params.style);
-	if (ImGui::Combo("Style", &style, "Fade\0Drop\0Spin\0Pop\0"))
+	if (ImGui::Combo("出方", &style, "フェード\0落下\0回転\0ポップ\0"))
 	{
 		params.style = static_cast<TextAppearStyle>(style);
 	}

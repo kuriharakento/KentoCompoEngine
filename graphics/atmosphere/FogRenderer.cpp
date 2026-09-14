@@ -180,21 +180,21 @@ void FogRenderer::Draw(Camera* camera, GBuffer* gBuffer, D3D12_CPU_DESCRIPTOR_HA
 #ifdef USE_IMGUI
 void FogRenderer::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Atmosphere Fog", [this]() { DrawImGui(); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "レンダリング", "フォグ", [this]() { DrawImGui(); });
 }
 
 void FogRenderer::DrawImGui()
 {
-	ImGui::Checkbox("Enabled", &settings_.enabled);
-	ImGui::ColorEdit3("Color", &settings_.color.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
-	ImGui::DragFloat("Density", &settings_.density, 0.001f, 0.0f, 1.0f, "%.4f");
+	ImGui::Checkbox("有効", &settings_.enabled);
+	ImGui::ColorEdit3("色", &settings_.color.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+	ImGui::DragFloat("濃さ", &settings_.density, 0.001f, 0.0f, 1.0f, "%.4f");
 	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("距離あたりの濃さ。大きいほど近くで霞む"); }
-	ImGui::DragFloat("Base Height", &settings_.baseHeight, 0.1f, -100.0f, 100.0f, "%.2f");
-	ImGui::DragFloat("Height Falloff", &settings_.heightFalloff, 0.005f, 0.0f, 5.0f, "%.3f");
-	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Base Height より上で薄くなる速さ。0 で高さに関係なく一様"); }
-	ImGui::SliderFloat("Max Opacity", &settings_.maxOpacity, 0.0f, 1.0f, "%.2f");
-	ImGui::SliderFloat("Sky Amount", &settings_.skyAmount, 0.0f, 1.0f, "%.2f");
-	if (ImGui::Button("Reset"))
+	ImGui::DragFloat("基準の高さ", &settings_.baseHeight, 0.1f, -100.0f, 100.0f, "%.2f");
+	ImGui::DragFloat("高さでの減衰", &settings_.heightFalloff, 0.005f, 0.0f, 5.0f, "%.3f");
+	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("基準の高さより上で薄くなる速さ。0 で高さに関係なく一様"); }
+	ImGui::SliderFloat("最大の不透明度", &settings_.maxOpacity, 0.0f, 1.0f, "%.2f");
+	ImGui::SliderFloat("空への掛かり具合", &settings_.skyAmount, 0.0f, 1.0f, "%.2f");
+	if (ImGui::Button("リセット"))
 	{
 		const bool enabled = settings_.enabled;
 		settings_ = Settings{};

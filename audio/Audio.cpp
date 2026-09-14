@@ -195,7 +195,7 @@ void Audio::Initialize()
 #ifdef USE_IMGUI
 	debugData_.reverbAmount = kDefaultReverbAmount;
 
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "System", "Audio Debug", [this]()
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "システム", "オーディオデバッグ", [this]()
 	{
 		this->DrawDebugWindow();
 	});
@@ -1454,24 +1454,24 @@ float Audio::ClampPitch(float pitch) const
 void Audio::DrawDebugWindow()
 {
 	// マスター設定
-	if (ImGui::CollapsingHeader("Master", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("マスター", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		if (ImGui::SliderFloat("Master Volume", &masterVolume_, 0.0f, 1.0f))
+		if (ImGui::SliderFloat("マスター音量", &masterVolume_, 0.0f, 1.0f))
 		{
 			SetMasterVolume(masterVolume_);
 		}
 
-		if (ImGui::Button("Stop All"))
+		if (ImGui::Button("全部停止"))
 		{
 			StopAll();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Pause All"))
+		if (ImGui::Button("全部一時停止"))
 		{
 			PauseAll();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Resume All"))
+		if (ImGui::Button("全部再開"))
 		{
 			ResumeAll();
 		}
@@ -1481,7 +1481,7 @@ void Audio::DrawDebugWindow()
 	}
 
 	// グループ設定
-	if (ImGui::CollapsingHeader("Groups", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("グループ", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		const SoundGroup groups[] = {SoundGroup::BGM, SoundGroup::SE, SoundGroup::Voice, SoundGroup::Ambient};
 
@@ -1493,17 +1493,17 @@ void Audio::DrawDebugWindow()
 				SetGroupVolume(groups[i], debugData_.groupVolumes[i]);
 			}
 			ImGui::SameLine();
-			if (ImGui::SmallButton("Stop"))
+			if (ImGui::SmallButton("停止"))
 			{
 				StopGroup(groups[i]);
 			}
 			ImGui::SameLine();
-			if (ImGui::SmallButton("Pause"))
+			if (ImGui::SmallButton("一時停止"))
 			{
 				PauseGroup(groups[i]);
 			}
 			ImGui::SameLine();
-			if (ImGui::SmallButton("Resume"))
+			if (ImGui::SmallButton("再開"))
 			{
 				ResumeGroup(groups[i]);
 			}
@@ -1512,10 +1512,10 @@ void Audio::DrawDebugWindow()
 	}
 
 	// リバーブ設定
-	if (ImGui::CollapsingHeader("Reverb", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("リバーブ", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		bool reverb = reverbEnabled_;
-		if (ImGui::Checkbox("Enabled", &reverb))
+		if (ImGui::Checkbox("有効", &reverb))
 		{
 			SetReverbEnabled(reverb);
 		}
@@ -1542,7 +1542,7 @@ void Audio::DrawDebugWindow()
 		}
 
 		ImGui::Separator();
-		if (ImGui::SliderFloat("Reverb Amount", &debugData_.reverbAmount, 0.0f, 1.0f, "%.2f"))
+		if (ImGui::SliderFloat("リバーブ量", &debugData_.reverbAmount, 0.0f, 1.0f, "%.2f"))
 		{
 			SetReverbAmount(debugData_.reverbAmount);
 		}
@@ -1550,11 +1550,11 @@ void Audio::DrawDebugWindow()
 	}
 
 	// 音声リスト
-	if (ImGui::CollapsingHeader("Sounds", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("サウンド", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		if (soundDataMap_.empty())
 		{
-			ImGui::TextDisabled("No sounds loaded.");
+			ImGui::TextDisabled("読み込まれたサウンドはない。");
 		}
 		else
 		{
@@ -1606,65 +1606,65 @@ void Audio::DrawDebugWindow()
 
 				if (!playing && !paused)
 				{
-					ImGui::Checkbox("Loop", &debugData_.selectedLoop);
+					ImGui::Checkbox("ループ", &debugData_.selectedLoop);
 					ImGui::SameLine();
-					if (ImGui::Button("Play"))
+					if (ImGui::Button("再生"))
 					{
 						PlayWave(debugData_.selectedSound, debugData_.selectedLoop);
 					}
 				}
 				else
 				{
-					if (ImGui::Button("Stop"))
+					if (ImGui::Button("停止"))
 					{
 						StopWave(debugData_.selectedSound);
 					}
 					ImGui::SameLine();
 					if (paused)
 					{
-						if (ImGui::Button("Resume"))
+						if (ImGui::Button("再開"))
 						{
 							Resume(debugData_.selectedSound);
 						}
 					}
 					else
 					{
-						if (ImGui::Button("Pause"))
+						if (ImGui::Button("一時停止"))
 						{
 							Pause(debugData_.selectedSound);
 						}
 					}
 				}
 
-				if (ImGui::SliderFloat("Volume", &debugData_.selectedVolume, 0.0f, 1.0f))
+				if (ImGui::SliderFloat("音量", &debugData_.selectedVolume, 0.0f, 1.0f))
 				{
 					SetVolume(debugData_.selectedSound, debugData_.selectedVolume);
 				}
 
-				if (ImGui::SliderFloat("Pitch", &debugData_.selectedPitch, 0.5f, 2.0f))
+				if (ImGui::SliderFloat("ピッチ", &debugData_.selectedPitch, 0.5f, 2.0f))
 				{
 					SetPitch(debugData_.selectedSound, debugData_.selectedPitch);
 				}
 
 				ImGui::Separator();
 				ImGui::Text("Fade");
-				ImGui::SliderFloat("Duration", &debugData_.fadeDuration, 0.1f, 5.0f, "%.1f s");
-				ImGui::SliderFloat("Target Vol", &debugData_.fadeTargetVolume, 0.0f, 1.0f);
+				ImGui::SliderFloat("フェード時間", &debugData_.fadeDuration, 0.1f, 5.0f, "%.1f s");
+				ImGui::SliderFloat("目標の音量", &debugData_.fadeTargetVolume, 0.0f, 1.0f);
 
-				if (ImGui::Button("Fade In"))
+				if (ImGui::Button("フェードイン"))
 				{
 					FadeIn(debugData_.selectedSound, debugData_.fadeDuration, debugData_.fadeTargetVolume);
 				}
 				ImGui::SameLine();
-				ImGui::Checkbox("Stop##FadeOut", &debugData_.fadeOutStop);
+				ImGui::Checkbox("最後に停止##FadeOut", &debugData_.fadeOutStop);
 				ImGui::SameLine();
-				if (ImGui::Button("Fade Out"))
+				if (ImGui::Button("フェードアウト"))
 				{
 					FadeOut(debugData_.selectedSound, debugData_.fadeDuration, debugData_.fadeOutStop);
 				}
 
 				ImGui::Separator();
-				if (ImGui::Button("Unload"))
+				if (ImGui::Button("解放"))
 				{
 					UnloadWave(debugData_.selectedSound);
 					debugData_.selectedSound.clear();

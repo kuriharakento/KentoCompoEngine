@@ -595,15 +595,15 @@ bool PostProcessManager::ReloadShaders(std::string& outError)
 #ifdef USE_IMGUI
 void PostProcessManager::RegisterDebugUI()
 {
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Post Process", [this]() { this->DrawImGui(); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "レンダリング", "ポストプロセス", [this]() { this->DrawImGui(); });
 }
 
 void PostProcessManager::DrawImGui()
 {
-	if (ImGui::CollapsingHeader("Tonemap", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("トーンマップ", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		bool enabled = tonemapEffect_->IsEnabled();
-		if (ImGui::Checkbox("Enabled##Tonemap", &enabled))
+		if (ImGui::Checkbox("有効##Tonemap", &enabled))
 		{
 			tonemapEffect_->SetEnabled(enabled);
 		}
@@ -613,28 +613,28 @@ void PostProcessManager::DrawImGui()
 		}
 
 		int mode = static_cast<int>(tonemapEffect_->GetMode());
-		if (ImGui::Combo("Mode##Tonemap", &mode, "ACES\0Reinhard\0"))
+		if (ImGui::Combo("方式##Tonemap", &mode, "ACES\0Reinhard\0"))
 		{
 			tonemapEffect_->SetMode(static_cast<TonemapMode>(mode));
 		}
 
 		float exposure = tonemapEffect_->GetExposure();
-		if (ImGui::DragFloat("Exposure", &exposure, 0.01f, 0.01f, 16.0f, "%.2f"))
+		if (ImGui::DragFloat("露出", &exposure, 0.01f, 0.01f, 16.0f, "%.2f"))
 		{
 			tonemapEffect_->SetExposure(exposure);
 		}
 	}
 
-	if (ImGui::CollapsingHeader("Bloom"))
+	if (ImGui::CollapsingHeader("ブルーム"))
 	{
 		bool enabled = bloomEffect_->IsEnabled();
-		if (ImGui::Checkbox("Enabled##Bloom", &enabled))
+		if (ImGui::Checkbox("有効##Bloom", &enabled))
 		{
 			bloomEffect_->SetEnabled(enabled);
 		}
 
 		float threshold = bloomEffect_->GetThreshold();
-		if (ImGui::DragFloat("Threshold", &threshold, 0.01f, 0.0f, 16.0f, "%.2f"))
+		if (ImGui::DragFloat("しきい値", &threshold, 0.01f, 0.0f, 16.0f, "%.2f"))
 		{
 			bloomEffect_->SetThreshold(threshold);
 		}
@@ -644,19 +644,19 @@ void PostProcessManager::DrawImGui()
 		}
 
 		float intensity = bloomEffect_->GetIntensity();
-		if (ImGui::DragFloat("Intensity", &intensity, 0.01f, 0.0f, 8.0f, "%.2f"))
+		if (ImGui::DragFloat("強さ", &intensity, 0.01f, 0.0f, 8.0f, "%.2f"))
 		{
 			bloomEffect_->SetIntensity(intensity);
 		}
 
 		float knee = bloomEffect_->GetThresholdKnee();
-		if (ImGui::DragFloat("Threshold Knee", &knee, 0.01f, 0.0f, 1.0f, "%.2f"))
+		if (ImGui::DragFloat("しきい値のなめらかさ", &knee, 0.01f, 0.0f, 1.0f, "%.2f"))
 		{
 			bloomEffect_->SetThresholdKnee(knee);
 		}
 
 		float radius = bloomEffect_->GetRadius();
-		if (ImGui::DragFloat("Radius", &radius, 0.1f, 0.0f, 64.0f, "%.1f"))
+		if (ImGui::DragFloat("半径", &radius, 0.1f, 0.0f, 64.0f, "%.1f"))
 		{
 			bloomEffect_->SetRadius(radius);
 		}

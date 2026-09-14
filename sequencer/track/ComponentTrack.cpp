@@ -265,12 +265,12 @@ bool ComponentTrack::DrawInspectorForObject(GameObject* object)
 		char propertyBuffer[128];
 		std::snprintf(componentBuffer, sizeof(componentBuffer), "%s", componentTypeName_.c_str());
 		std::snprintf(propertyBuffer, sizeof(propertyBuffer), "%s", propertyName_.c_str());
-		if (ImGui::InputText("Component Type", componentBuffer, sizeof(componentBuffer)))
+		if (ImGui::InputText("Componentの種類", componentBuffer, sizeof(componentBuffer)))
 		{
 			componentTypeName_ = componentBuffer;
 			changed = true;
 		}
-		if (ImGui::InputText("Property", propertyBuffer, sizeof(propertyBuffer)))
+		if (ImGui::InputText("項目", propertyBuffer, sizeof(propertyBuffer)))
 		{
 			propertyName_ = propertyBuffer;
 			valueType_ = ValueType::None;
@@ -281,7 +281,7 @@ bool ComponentTrack::DrawInspectorForObject(GameObject* object)
 
 	const auto& names = object->GetComponentTypeNames();
 	const auto& components = object->GetComponents();
-	if (ImGui::BeginCombo("Component Type", componentTypeName_.empty() ? "(選択)" : componentTypeName_.c_str()))
+	if (ImGui::BeginCombo("Componentの種類", componentTypeName_.empty() ? "(選択)" : componentTypeName_.c_str()))
 	{
 		for (size_t index = 0; index < names.size() && index < components.size(); ++index)
 		{
@@ -298,7 +298,7 @@ bool ComponentTrack::DrawInspectorForObject(GameObject* object)
 
 	JsonEditableBase* editable = nullptr;
 	ResolveComponent(*object, editable);
-	if (editable && ImGui::BeginCombo("Property", propertyName_.empty() ? "(選択)" : propertyName_.c_str()))
+	if (editable && ImGui::BeginCombo("項目", propertyName_.empty() ? "(選択)" : propertyName_.c_str()))
 	{
 		const nlohmann::json fields = editable->Serialize();
 		for (auto it = fields.begin(); it != fields.end(); ++it)

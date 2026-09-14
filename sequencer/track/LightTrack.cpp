@@ -279,7 +279,7 @@ bool LightTrack::Deserialize(const nlohmann::json& json)
 bool LightTrack::DrawInspector()
 {
 	int kind = static_cast<int>(kind_);
-	if (ImGui::Combo("Light Kind", &kind, "Spot\0Point\0Directional\0"))
+	if (ImGui::Combo("ライトの種類", &kind, "スポット\0ポイント\0平行光源\0"))
 	{
 		kind_ = static_cast<LightTrackKind>(kind);
 		return true;

@@ -28,7 +28,7 @@ void DebugCamera::Initialize(Camera* camera)
     isActive_ = false;
 
 #ifdef USE_IMGUI
-    DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Camera", "Debug Camera", [this]() { this->DrawImGui(); });
+    DebugUIManager::GetInstance()->RegisterSettingsPage(this, "カメラ", "デバッグカメラ", [this]() { this->DrawImGui(); });
 #endif
 }
 
@@ -208,8 +208,8 @@ void DebugCamera::DrawImGui()
     ImGui::Separator();
 
     // 移動設定
-    ImGui::SliderFloat("Move Speed", &moveSpeed_, 0.1f, 20.0f);
-    ImGui::SliderFloat("Mouse Sensitivity", &mouseSensitivity_, 0.01f, 1.0f);
+    ImGui::SliderFloat("移動速度", &moveSpeed_, 0.1f, 20.0f);
+    ImGui::SliderFloat("マウス感度", &mouseSensitivity_, 0.01f, 1.0f);
     ImGui::Text("Speed Multiplier: %.2f", speedMultiplier_);
 
     ImGui::Separator();
@@ -226,7 +226,7 @@ void DebugCamera::DrawImGui()
     ImGui::Separator();
 
     // 操作ボタン
-    if (ImGui::Button("Reset Camera"))
+    if (ImGui::Button("カメラをリセット"))
     {
         Reset();
     }

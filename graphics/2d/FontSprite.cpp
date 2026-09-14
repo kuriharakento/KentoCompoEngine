@@ -57,7 +57,7 @@ void FontSprite::Initialize(SpriteCommon* spriteCommon, const std::string& fontN
 	instances_.push_back(this);
 	if (instances_.size() == 1)
 	{
-		DebugUIManager::GetInstance()->RegisterHierarchySection(&instances_, "Font Sprites", []() { DrawHierarchyImGui(); });
+		DebugUIManager::GetInstance()->RegisterHierarchySection(&instances_, "フォントスプライト", []() { DrawHierarchyImGui(); });
 		DebugUIManager::GetInstance()->RegisterInspector(&instances_, SelectionKind::FontSprite,
 			[](const SelectionItem& item) { DrawInspectorImGui(item); });
 	}
@@ -365,7 +365,7 @@ void FontSprite::DrawImGui()
 	char textBuf[512];
 	strncpy_s(textBuf, text_.c_str(), sizeof(textBuf));
 	textBuf[sizeof(textBuf) - 1] = '\0';
-    if (ImGui::InputText("Text", textBuf, sizeof(textBuf)))
+    if (ImGui::InputText("文字", textBuf, sizeof(textBuf)))
     {
         text_ = std::string(textBuf);
         // ImGui 経由で文字列が変わったらスプライトを Ensure する
@@ -373,22 +373,22 @@ void FontSprite::DrawImGui()
     }
 
     // 位置 / スケール / スペーシング / 回転
-    ImGui::DragFloat2("Position", &position_.x, 1.0f);
-    ImGui::DragFloat("Scale", &scale_, 0.01f, 0.01f, 10.0f);
-    ImGui::DragFloat("Spacing", &spacing_, 0.1f, -200.0f, 200.0f);
-    ImGui::DragFloat("Rotation(rad)", &rotation_, 0.01f, -3.14159f, 3.14159f);
+    ImGui::DragFloat2("位置", &position_.x, 1.0f);
+    ImGui::DragFloat("拡大率", &scale_, 0.01f, 0.01f, 10.0f);
+    ImGui::DragFloat("文字間隔", &spacing_, 0.1f, -200.0f, 200.0f);
+    ImGui::DragFloat("回転 (rad)", &rotation_, 0.01f, -3.14159f, 3.14159f);
 
     // 色（RGBA）
-    ImGui::ColorEdit4("Color", &color_.x);
+    ImGui::ColorEdit4("色", &color_.x);
 
     // 表示フラグ
-    ImGui::Checkbox("Visible", &isVisible_);
+    ImGui::Checkbox("表示", &isVisible_);
 
     // アトラスパス表示（読み取り専用）
     ImGui::TextWrapped("Atlas: %s", atlasTexturePath_.c_str());
 
     // キャッシュクリア（スプライト再生成用）
-    if (ImGui::Button("Clear cached character sprites"))
+    if (ImGui::Button("文字スプライトのキャッシュを消す"))
     {
         indexSprites_.clear();
     }
