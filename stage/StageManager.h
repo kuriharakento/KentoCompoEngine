@@ -88,8 +88,12 @@ public:
 		std::unique_ptr<StageMonitor> monitor;
 	};
 
-	/** @brief モニター一式を登録して動作を開始する。 */
-	bool AddStageMonitor(std::unique_ptr<MonitorEntry> entry);
+	/**
+	 * @brief モニター一式を登録して動作を開始する。
+	 * @param entry 成功したときだけ所有権を受け取る（中身は空になる）。失敗したら呼び出し側に残る
+	 * @return 登録できたら真
+	 */
+	bool AddStageMonitor(std::unique_ptr<MonitorEntry>& entry);
 	/** @brief モニターを停止・登録解除し、所有権を返す。 */
 	std::unique_ptr<MonitorEntry> RemoveStageMonitor(const std::string& name);
 	/** @brief 保存済みの状態をモニターへ適用する。 */

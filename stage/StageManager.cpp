@@ -72,7 +72,14 @@ class CreateStageMonitorCommand final : public ICommand
 public:
 	CreateStageMonitorCommand(StageManager* manager, std::unique_ptr<StageManager::MonitorEntry> entry)
 		: manager_(manager), lifetimeId_(manager ? manager->GetLifetimeId() : 0), name_(entry ? entry->name : std::string()), entry_(std::move(entry)) {}
-	void Execute() override { if (StageManager::IsAlive(manager_, lifetimeId_) && entry_) { manager_->AddStageMonitor(std::move(entry_)); } }
+	void Execute() override
+	{
+		// 失敗したら entry_ は手元に残る。消さずに持っておき、次の Redo でやり直せるようにする
+		if (StageManager::IsAlive(manager_, lifetimeId_) && entry_ && !manager_->AddStageMonitor(entry_))
+		{
+			Logger::Log("StageManager: モニターを戻せませんでした: " + name_ + "\n", Logger::LogLevel::Warning);
+		}
+	}
 	void Undo() override { if (StageManager::IsAlive(manager_, lifetimeId_)) { entry_ = manager_->RemoveStageMonitor(name_); } }
 	std::string GetName() const override { return "Create Stage Monitor"; }
 private:
@@ -89,7 +96,14 @@ public:
 	DeleteStageMonitorCommand(StageManager* manager, std::string name)
 		: manager_(manager), lifetimeId_(manager ? manager->GetLifetimeId() : 0), name_(std::move(name)) {}
 	void Execute() override { if (StageManager::IsAlive(manager_, lifetimeId_)) { entry_ = manager_->RemoveStageMonitor(name_); } }
-	void Undo() override { if (StageManager::IsAlive(manager_, lifetimeId_) && entry_) { manager_->AddStageMonitor(std::move(entry_)); } }
+	void Undo() override
+	{
+		// 失敗したら entry_ は手元に残る（例: モニターのカメラを見ていて、消したときにカメラが残った）
+		if (StageManager::IsAlive(manager_, lifetimeId_) && entry_ && !manager_->AddStageMonitor(entry_))
+		{
+			Logger::Log("StageManager: 消したモニターを戻せませんでした: " + name_ + "\n", Logger::LogLevel::Warning);
+		}
+	}
 	std::string GetName() const override { return "Delete Stage Monitor"; }
 private:
 	// シーン所有。世代 ID が一致する間だけ使う
@@ -298,7 +312,7 @@ std::unique_ptr<StageManager::MonitorEntry> StageManager::CreateMonitor(
 	return entry;
 }
 
-bool StageManager::AddStageMonitor(std::unique_ptr<MonitorEntry> entry)
+bool StageManager::AddStageMonitor(std::unique_ptr<MonitorEntry>& entry)
 {
 	if (!entry || FindMonitor(entry->name) || !cameraManager_ || cameraManager_->GetCamera(entry->cameraName)
 		|| !GameObjectManager::HasInstance() || GameObjectManager::GetInstance()->Find(entry->name))
@@ -330,6 +344,8 @@ std::unique_ptr<StageManager::MonitorEntry> StageManager::RemoveStageMonitor(con
 		if ((*it)->name != name) { continue; }
 		std::unique_ptr<MonitorEntry> entry = std::move(*it);
 		monitors_.erase(it);
+		// カメラはモニターと一緒に消えるので、Undo で同じ所に戻せるよう今の位置を覚えてから畳む
+		entry->state = GetCurrentMonitorState(*entry);
 		entry->monitor.reset();
 		if (GameObjectManager::HasInstance()) { GameObjectManager::GetInstance()->Unregister(entry->screen.get()); }
 		const SelectionItem& selected = SelectionContext::GetInstance()->GetPrimary();
@@ -485,7 +501,7 @@ bool StageManager::Deserialize(const nlohmann::json& json, std::string& outError
 				state.framesPerSecond = monitor["framesPerSecond"].get<float>();
 			}
 			auto entry = CreateMonitor(name, camera["name"].get<std::string>(), state);
-			if (!entry || !AddStageMonitor(std::move(entry)))
+			if (!entry || !AddStageMonitor(entry))
 			{
 				Logger::Log("StageManager: モニターを作れませんでした: " + name + "\n", Logger::LogLevel::Warning);
 			}
