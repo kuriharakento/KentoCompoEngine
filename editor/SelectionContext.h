@@ -22,6 +22,7 @@ enum class SelectionKind
 	Camera,			//!< カメラ（名前で指す）
 	Text3D,			//!< 3D 文字（名前で指す）
 	FontSprite,		//!< FontSprite（デバッグ用の一意な名前で指す）
+	ParticleEffect,	//!< パーティクルの effect / emitter（デバッグ用の一意な名前で指す）
 };
 
 /**

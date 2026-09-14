@@ -7,6 +7,7 @@
  * JSONファイルからの読み込み・保存に対応。
  */
 #include <memory>
+#include <cstdint>
 #include <vector>
 #include <string>
 #include "math/Vector3.h"
@@ -146,7 +147,12 @@ public:
 	//===== プロパティ =====//
 
 	const std::string& GetName() const { return name_; }
-	void SetName(const std::string& name) { name_ = name; }
+	void SetName(const std::string& name)
+	{
+		name_ = name;
+		debugName_ = name + "##Effect" + std::to_string(debugId_);
+	}
+	const std::string& GetDebugName() const { return debugName_; }
 	const Vector3& GetPosition() const { return position_; }
 
 	/**
@@ -184,6 +190,10 @@ public:
 
 private:
 	std::string name_;
+	// 同名エフェクトを破棄順に影響されず選ぶための不変なデバッグ名
+	std::string debugName_;
+	uint64_t debugId_ = 0;
+	static uint64_t nextDebugId_;
 	std::vector<std::unique_ptr<ParticleEmitter>> emitters_;
 	Vector3 position_ = {};
 	bool isPlaying_ = false;

@@ -11,6 +11,7 @@
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
+#include "editor/SelectionContext.h"
 #include "manager/editor/DebugUIManager.h"
 
 #endif
@@ -33,7 +34,10 @@ void ParticleManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager
 	pipelineManager_->Initialize(dxCommon_);
 
 #ifdef USE_IMGUI
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Effects", "Particle Manager", [this]() { this->DrawImGui(); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Effects", "Particle Manager", [this]() { this->DrawSettingsImGui(); });
+	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "Effects", [this]() { this->DrawHierarchyImGui(); });
+	DebugUIManager::GetInstance()->RegisterInspector(this, SelectionKind::ParticleEffect,
+		[this](const SelectionItem& item) { this->DrawInspectorImGui(item); });
 #endif
 }
 
@@ -101,7 +105,7 @@ void ParticleManager::Draw()
 	}
 }
 
-void ParticleManager::DrawImGui()
+void ParticleManager::DrawSettingsImGui()
 {
 #ifdef USE_IMGUI
 
@@ -140,83 +144,90 @@ void ParticleManager::DrawImGui()
 	uint32_t srvMax    = SrvManager::kMaxSRVCount;
 	ImGui::Text("SRV Active: %u / %u  (HWM: %u)", srvActive, srvMax, srvHwm);
 	ImGui::Separator();
+#endif
+}
 
-
-
-	// エフェクトごとの詳細
-	if (ImGui::CollapsingHeader("Effects", ImGuiTreeNodeFlags_DefaultOpen))
+void ParticleManager::DrawHierarchyImGui()
+{
+#ifdef USE_IMGUI
+	const SelectionItem& primary = SelectionContext::GetInstance()->GetPrimary();
+	for (const auto& effect : effects_)
 	{
-		for (size_t effectIdx = 0; effectIdx < effects_.size(); ++effectIdx)
+		const bool isSelected = primary.kind == SelectionKind::ParticleEffect && primary.name == effect->GetDebugName();
+		if (ImGui::Selectable(effect->GetName().c_str(), isSelected))
 		{
-			auto& effect = effects_[effectIdx];
-			ImGui::PushID(static_cast<int>(effectIdx));
-
-			bool isPlaying = effect->IsPlaying();
-			if (ImGui::TreeNode(effect->GetName().c_str()))
-			{
-				if (ImGui::Checkbox("Playing", &isPlaying))
-				{
-					if (isPlaying) effect->Play();
-					else effect->Stop();
-				}
-
-				ImGui::SameLine();
-				if (ImGui::Button("Reset"))
-				{
-					effect->Reset();
-					effect->Play();
-				}
-
-				// エミッターごとの詳細
-				for (size_t i = 0; i < effect->GetEmitterCount(); ++i)
-				{
-					auto* emitter = effect->GetEmitter(i);
-					if (emitter)
-					{
-						ImGui::Text("  [%s] Particles: %d", emitter->GetName().c_str(),
-							static_cast<int>(emitter->GetParticles().size()));
-					}
-				}
-
-				ImGui::TreePop();
-			}
-
-			ImGui::PopID();
+			SelectionItem item;
+			item.kind = SelectionKind::ParticleEffect;
+			item.name = effect->GetDebugName();
+			SelectionContext::GetInstance()->Select(item);
 		}
 	}
-
-	// 直接追加されたエミッター
-	if (!emitters_.empty() && ImGui::CollapsingHeader("Standalone Emitters", ImGuiTreeNodeFlags_DefaultOpen))
+	for (const auto& emitter : emitters_)
 	{
-		for (size_t i = 0; i < emitters_.size(); ++i)
+		const bool isSelected = primary.kind == SelectionKind::ParticleEffect && primary.name == emitter->GetDebugName();
+		if (ImGui::Selectable(emitter->GetName().c_str(), isSelected))
 		{
-			auto& emitter = emitters_[i];
-			ImGui::PushID(static_cast<int>(1000 + i));
-
-			bool isEnabled = emitter->IsEnabled();
-			if (ImGui::TreeNode(emitter->GetName().c_str()))
-			{
-				if (ImGui::Checkbox("Playing", &isEnabled))
-				{
-					emitter->SetEnabled(isEnabled);
-				}
-
-				ImGui::SameLine();
-				if (ImGui::Button("Clear"))
-				{
-					emitter->ClearParticles();
-				}
-
-				ImGui::Text("Particles: %d", static_cast<int>(emitter->GetParticles().size()));
-				ImGui::Text("Mode: %s", emitter->GetSimulationMode() == SimulationMode::GPU ? "GPU" : "CPU");
-
-				ImGui::TreePop();
-			}
-
-			ImGui::PopID();
+			SelectionItem item;
+			item.kind = SelectionKind::ParticleEffect;
+			item.name = emitter->GetDebugName();
+			SelectionContext::GetInstance()->Select(item);
 		}
 	}
+#endif
+}
 
+void ParticleManager::DrawInspectorImGui(const SelectionItem& item)
+{
+#ifdef USE_IMGUI
+	for (auto& effect : effects_)
+	{
+		if (effect->GetDebugName() != item.name)
+		{
+			continue;
+		}
+		bool isPlaying = effect->IsPlaying();
+		if (ImGui::Checkbox("Playing", &isPlaying))
+		{
+			if (isPlaying) effect->Play();
+			else effect->Stop();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Reset"))
+		{
+			effect->Reset();
+			effect->Play();
+		}
+		for (size_t i = 0; i < effect->GetEmitterCount(); ++i)
+		{
+			ParticleEmitter* emitter = effect->GetEmitter(i);
+			if (emitter)
+			{
+				ImGui::Text("[%s] Particles: %d", emitter->GetName().c_str(), static_cast<int>(emitter->GetParticles().size()));
+			}
+		}
+		return;
+	}
+	for (auto& emitter : emitters_)
+	{
+		if (emitter->GetDebugName() != item.name)
+		{
+			continue;
+		}
+		bool isEnabled = emitter->IsEnabled();
+		if (ImGui::Checkbox("Playing", &isEnabled))
+		{
+			emitter->SetEnabled(isEnabled);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Clear"))
+		{
+			emitter->ClearParticles();
+		}
+		ImGui::Text("Particles: %d", static_cast<int>(emitter->GetParticles().size()));
+		ImGui::Text("Mode: %s", emitter->GetSimulationMode() == SimulationMode::GPU ? "GPU" : "CPU");
+		return;
+	}
+	ImGui::TextDisabled("エフェクトが見つからない。");
 #endif
 }
 

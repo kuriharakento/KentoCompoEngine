@@ -6,7 +6,12 @@
 
 namespace KCE
 {
-ParticleEffect::ParticleEffect() = default;
+uint64_t ParticleEffect::nextDebugId_ = 0;
+
+ParticleEffect::ParticleEffect()
+	: debugId_(++nextDebugId_)
+{
+}
 ParticleEffect::~ParticleEffect() = default;
 
 ParticleEffect::ParticleEffect(ParticleEffect&&) noexcept = default;
@@ -20,6 +25,7 @@ std::unique_ptr<ParticleEffect> ParticleEffect::LoadFromFile(const std::string& 
 void ParticleEffect::Initialize(const std::string& name)
 {
 	name_ = name;
+	debugName_ = name + "##Effect" + std::to_string(debugId_);
 }
 
 void ParticleEffect::Update(float deltaTime, CameraManager* camera)

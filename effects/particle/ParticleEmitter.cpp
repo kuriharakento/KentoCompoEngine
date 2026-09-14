@@ -10,12 +10,18 @@
 
 namespace KCE
 {
-ParticleEmitter::ParticleEmitter() = default;
+uint64_t ParticleEmitter::nextDebugId_ = 0;
+
+ParticleEmitter::ParticleEmitter()
+	: debugId_(++nextDebugId_)
+{
+}
 ParticleEmitter::~ParticleEmitter() = default;
 
 void ParticleEmitter::Initialize(const std::string& name)
 {
 	name_ = name;
+	debugName_ = name + "##Emitter" + std::to_string(debugId_);
 	particles_.reserve(maxParticles_);
 }
 

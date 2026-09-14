@@ -7,6 +7,7 @@
  * レンダラーによる描画を管理。CPU/GPUシミュレーション対応。
  */
 #include <memory>
+#include <cstdint>
 #include <vector>
 #include <string>
 #include "Particle.h"
@@ -80,6 +81,7 @@ public:
 	void ClearFollowEmitterPosition() { followingEmitter_ = false; }
 
 	const std::string& GetName() const { return name_; }
+	const std::string& GetDebugName() const { return debugName_; }
 
 	// Play/Stop制御
 	void SetEnabled(bool enabled) { enabled_ = enabled; }
@@ -198,6 +200,10 @@ private:
 private:
 	//===== 基本情報 =====//
 	std::string name_;                              ///< エミッター名
+	// 同名エミッターを破棄順に影響されず選ぶための不変なデバッグ名
+	std::string debugName_;
+	uint64_t debugId_ = 0;
+	static uint64_t nextDebugId_;
 	std::vector<Particle> particles_;               ///< アクティブなパーティクルリスト
 	std::vector<std::unique_ptr<IModule>> modules_; ///< モジュールリスト（優先度順）
 	std::unique_ptr<IRenderer> renderer_;           ///< レンダラー（描画担当）

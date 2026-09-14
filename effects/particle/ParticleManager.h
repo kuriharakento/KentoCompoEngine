@@ -19,6 +19,7 @@ class SrvManager;
 class CameraManager;
 class ParticlePipelineManager;
 class ParticleEffect;
+struct SelectionItem;
 
 /**
  * @brief パーティクルマネージャー
@@ -38,7 +39,9 @@ public:
 	/**
 	 * @brief ImGuiでデバッグ情報を表示
 	 */
-	void DrawImGui();
+	void DrawSettingsImGui();
+	void DrawHierarchyImGui();
+	void DrawInspectorImGui(const SelectionItem& item);
 
 	//===== エフェクトのロード（推奨API）=====//
 
