@@ -47,6 +47,18 @@ struct TimelineViewState
 };
 
 /**
+ * @brief シーケンサの編集欄に何を出すか
+ */
+enum class EditAreaView
+{
+	DopeSheet,	//!< ドープシートだけを全面に
+	Curve,		//!< カーブだけを全面に
+	Both,		//!< 上下に並べて見比べる
+};
+/** @brief EditAreaView の数。Tab で順に回すのに使う */
+constexpr int kEditAreaViewCount = 3;
+
+/**
  * @brief 演出シーケンサのエディタUI
  *
  * @details キーの編集はトラックの種類を問わず ICurveChannel だけを通して行う。
@@ -130,8 +142,14 @@ private:
 	 */
 	void DrawObjectGizmo(GameObject* object, const Matrix4x4& view, const Matrix4x4& projection);
 
-	/** @brief 再生・保存などのツールバー */
+	/** @brief 再生とキー編集のツールバー */
 	void DrawToolbar();
+	/** @brief ファイル・表示のメニューと、今のファイル名 */
+	void DrawMenuBar();
+	/** @brief メニューの下に横に並べる設定欄（シーケンスの情報・プレビュー・スナップ） */
+	void DrawSettingsPane();
+	/** @brief ドープシート（ルーラー・トラック行・キー） */
+	void DrawDopeSheet();
 	/** @brief 時間ルーラーとビートグリッド */
 	void DrawRuler(const ImVec2& canvasMin, float canvasWidth);
 	/** @brief 選択中の音声の波形をルーラー内に描く */
@@ -206,6 +224,24 @@ private:
 	void RequestLoadSequenceFile(const std::string& path);
 	/** @brief Resources/json/sequence にある .json の一覧を読み直す */
 	void RefreshSequenceFileList();
+	/**
+	 * @brief 今のシーケンスを保存する。成功したら保存先もこのファイルにする
+	 * @param path Resources/json/sequence からの相対パス、または絶対パス
+	 */
+	void SaveSequenceFile(const std::string& path);
+	/**
+	 * @brief 新規作成を頼む。保存していない変更があれば、捨ててよいかを先に聞く
+	 * @param path 作るファイルのパス
+	 */
+	void RequestNewSequence(const std::string& path);
+	/**
+	 * @brief 空のシーケンスを作ってすぐ保存する
+	 * @details 中身が入れ替わるので、選択と履歴を捨てる。
+	 * @param path 作るファイルのパス
+	 */
+	void CreateNewSequence(const std::string& path);
+	/** @brief どのシーケンスにも要る役（MainCam）を足す */
+	void AddRequiredBindings();
 	/** @brief 編集用カメラを自由移動させる */
 	void UpdateEditorCameraFly();
 	/** @brief 現在のプレビュー対象に応じてアクティブカメラを切り替える */
@@ -300,6 +336,21 @@ private:
 	std::string pendingLoadPath_;
 	// 次の描画で確認の小窓を開くか。一覧の中から開くと ID がずれるので、外で開く
 	bool discardPopupRequested_ = false;
+	// 保存していない変更を捨ててよいか聞いている間の、新規作成のパス。空なら読み込みの確認
+	std::string pendingNewPath_;
+	// 次の描画で「新規作成」「名前を付けて保存」の小窓を開くか。メニューの中から開くと ID がずれるため
+	bool newPopupRequested_ = false;
+	bool saveAsPopupRequested_ = false;
+	// 「新規作成」「名前を付けて保存」で打っているファイル名
+	std::array<char, 128> fileNameInput_{};
+	// メニューの下の設定欄を出すか
+	bool showSettingsPane_ = true;
+	// 編集欄に出すもの。ふだんは縦に両方並べる
+	EditAreaView editAreaView_ = EditAreaView::Both;
+	// 編集欄の上にマウスがあるか。Tab の切り替えをここだけで効かせるため
+	bool editAreaHovered_ = false;
+	// カーブ欄の高さ（ピクセル）。境目のドラッグで変わる
+	float curvePaneHeight_ = 220.0f;
 	// 最後の保存・読み込みの結果メッセージ
 	std::string statusMessage_;
 	// 状態メッセージを目立たせ始めた時刻
@@ -309,8 +360,6 @@ private:
 	int contextTrackIndex_ = -1;
 	int contextChannelIndex_ = -1;
 	float contextTime_ = 0.0f;
-	// 0: ドープシート、1: カーブ
-	int timelineMode_ = 0;
 	float curveTimeStart_ = 0.0f;
 	float curvePixelsPerSecond_ = 100.0f;
 	float curveValueCenter_ = 0.0f;

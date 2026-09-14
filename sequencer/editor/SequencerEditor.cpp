@@ -117,10 +117,127 @@ constexpr float kBezierGraphMaxValue = 1.5f;
 constexpr float kBezierHandleRadius = 5.0f;
 /** @brief ベジェの制御点を掴めるとみなす距離（ピクセル） */
 constexpr float kBezierHandleGrabRadius = 9.0f;
-/** @brief 「既存のシーケンス」一覧の幅（ピクセル） */
-constexpr float kSequenceFileComboWidth = 180.0f;
 /** @brief 保存していない変更を捨てるかを聞く小窓の ID */
 const char* const kDiscardChangesPopupId = "保存していない変更###DiscardSequenceChanges";
+/** @brief 時間の目盛りの間隔の候補（秒）。ルーラーとカーブの横軸で共通 */
+constexpr float kTimeTickSteps[] = { 0.05f, 0.1f, 0.25f, 0.5f, 1.0f, 2.0f, 5.0f, 10.0f, 30.0f, 60.0f };
+/** @brief 時間の目盛りどうしに最低限あける間隔（ピクセル） */
+constexpr float kTimeTickMinSpacing = 40.0f;
+/** @brief カーブの縦軸（値）の目盛りの間隔の候補 */
+constexpr float kValueTickSteps[] = { 0.01f, 0.05f, 0.1f, 0.25f, 0.5f, 1.0f, 2.0f, 5.0f, 10.0f, 25.0f, 50.0f, 100.0f, 250.0f, 500.0f, 1000.0f };
+/** @brief 値の目盛りどうしに最低限あける間隔（ピクセル） */
+constexpr float kValueTickMinSpacing = 30.0f;
+/** @brief 目盛りの数字と線のすき間（ピクセル） */
+constexpr float kAxisLabelPadding = 2.0f;
+/** @brief チャンネル行の左に引く、所属トラックの色帯の幅（ピクセル） */
+constexpr float kChannelBarWidth = 2.0f;
+/** @brief マウス位置の案内をカーソルから離す距離（ピクセル） */
+constexpr float kHoverLabelOffset = 8.0f;
+/** @brief 案内や凡例の文字まわりの余白（ピクセル） */
+constexpr float kLabelPadding = 3.0f;
+/** @brief カーブの凡例を画面の端から離す距離（ピクセル） */
+constexpr float kCurveLegendMargin = 8.0f;
+/** @brief カーブの凡例で、成分の色見本の一辺（ピクセル） */
+constexpr float kCurveLegendSwatch = 10.0f;
+/** @brief カーブの成分の名前。色は DrawCurveEditor の componentColors と同じ並び */
+const char* const kComponentLabels[] = { "X", "Y", "Z", "W" };
+/** @brief ドープシートで使える操作の案内 */
+const char* const kDopeSheetHint =
+	"トラック名の左の v / > : 値ごとの行を開閉\n"
+	"行をダブルクリック: キーを打つ\n"
+	"キーをクリック・ドラッグ: 選択と移動（Ctrl で追加選択）\n"
+	"空いた所から引っ張る: 範囲選択\n"
+	"右クリック: メニュー\n"
+	"ホイール: 上下 / Shift+ホイール: 左右 / Ctrl+ホイール: 拡大縮小\n"
+	"中ボタンドラッグ: 表示を動かす\n"
+	"上の目盛りをドラッグ: 再生位置";
+/** @brief カーブで使える操作の案内 */
+const char* const kCurveHint =
+	"ドープシートで選んだキー（無ければ選んだトラック）の値が、時間でどう変わるかの線。\n"
+	"横が時間、縦が値、線の色が成分（右上の凡例）。\n"
+	"点をドラッグ: 時刻と値を変える（Shift で値だけ）\n"
+	"ベジェのキーを選ぶと、黄色い取っ手で曲がり方を変えられる\n"
+	"ホイール: 縦の拡大 / Shift+ホイール: 横の拡大\n"
+	"中ボタンドラッグ: 表示を動かす / F: 選んだ線に合わせる\n"
+	"右クリック: メニュー";
+/** @brief 設定欄の列の数（シーケンス・プレビュー・スナップ） */
+constexpr int kSettingsColumnCount = 3;
+/** @brief 設定欄で、シーケンスの列を他の列の何倍の幅にするか。項目が多いため */
+constexpr float kSettingsSequenceColumnWeight = 2.0f;
+/** @brief 設定欄で、入力欄が列の幅に占める割合。残りは見出しの文字に使う */
+constexpr float kSettingsItemWidthRatio = 0.55f;
+/** @brief ドープシート欄とカーブ欄の最低の高さ（ピクセル） */
+constexpr float kPaneMinHeight = 80.0f;
+/** @brief ドープシートとカーブの境目の太さ（ピクセル） */
+constexpr float kPaneSplitterThickness = 6.0f;
+/** @brief 案内の吹き出しを折り返す幅（文字の大きさの何倍か） */
+constexpr float kHintWrapEm = 30.0f;
+/** @brief 新規作成の小窓の ID */
+const char* const kNewSequencePopupId = "新規作成###NewSequence";
+/** @brief 名前を付けて保存の小窓の ID */
+const char* const kSaveAsPopupId = "名前を付けて保存###SaveSequenceAs";
+/** @brief シーケンスのファイルの拡張子 */
+const char* const kSequenceFileExtension = ".json";
+
+/**
+ * @brief 欄の見出しと、マウスを乗せると操作の案内が出る (?) を描く
+ * @param title 見出し
+ * @param hint 案内の文章
+ */
+void DrawPaneHeader(const char* title, const char* hint)
+{
+	ImGui::TextUnformatted(title);
+	ImGui::SameLine();
+	ImGui::TextDisabled("(?)");
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::BeginTooltip();
+		ImGui::PushTextWrapPos(ImGui::GetFontSize() * kHintWrapEm);
+		ImGui::TextUnformatted(hint);
+		ImGui::PopTextWrapPos();
+		ImGui::EndTooltip();
+	}
+}
+
+/**
+ * @brief 打たれた名前をシーケンスのファイル名にする
+ * @details 拡張子が無ければ .json を付ける。シーケンスのフォルダの外に作らないよう、区切り文字は受け付けない。
+ * @param input 打たれた名前
+ * @return ファイル名。使えない名前なら空
+ */
+std::string MakeSequenceFileName(const char* input)
+{
+	std::string name(input);
+	if (name.empty() || name.find_first_of("/\\:") != std::string::npos)
+	{
+		return {};
+	}
+	if (std::filesystem::path(name).extension() != kSequenceFileExtension)
+	{
+		name += kSequenceFileExtension;
+	}
+	return name;
+}
+
+/**
+ * @brief 画面上で目盛りが詰まりすぎない間隔を候補から選ぶ
+ * @param steps 小さい順に並べた候補
+ * @param pixelsPerUnit 1単位あたりのピクセル数
+ * @param minSpacing 目盛りどうしに最低限あけるピクセル数
+ * @return 条件を満たす一番小さい候補。どれも満たさなければ一番大きい候補
+ */
+template <size_t N>
+float PickTickStep(const float (&steps)[N], float pixelsPerUnit, float minSpacing)
+{
+	for (float candidate : steps)
+	{
+		if (candidate * pixelsPerUnit >= minSpacing)
+		{
+			return candidate;
+		}
+	}
+	return steps[N - 1];
+}
 
 /**
  * @brief トラックがタイムライン上で占める行数
@@ -289,12 +406,7 @@ void SequencerEditor::Initialize(CameraManager* cameraManager, LightManager* lig
 	player_.GetBindingContext().SetLightManager(lightManager_);
 	player_.GetBindingContext().SetPostProcessManager(postProcessManager_);
 
-	// シーケンスは必ず MainCam の役を要求する
-	BindingDefinition binding;
-	binding.role = kCameraRole;
-	binding.type = BindingType::Camera;
-	binding.description = "シーケンスが動かすカメラ";
-	sequence_.AddBinding(binding);
+	AddRequiredBindings();
 
 	player_.SetSequence(&sequence_);
 
@@ -647,78 +759,7 @@ void SequencerEditor::DrawToolbar()
 	}
 	ImGui::EndDisabled();
 
-	// --- 3行目: プレビューとギズモ ---
-	if (ImGui::Checkbox("シーケンスカメラで見る", &previewThroughSequenceCamera_))
-	{
-		ApplyActiveCamera();
-	}
-	if (ImGui::IsItemHovered())
-	{
-		ImGui::SetTooltip("オフの間は編集用カメラから眺め、シーケンスカメラをギズモで操作できます");
-	}
-
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(120.0f);
-	ImGui::Combo("ギズモ", &gizmoOperation_, "移動\0回転\0スケール\0");
-	ImGui::SameLine();
-	ImGui::Checkbox("ワールド", &gizmoWorldSpace_);
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(100.0f);
-	ImGui::DragFloat("移動速度", &editorCameraSpeed_, 0.1f, 0.1f, 200.0f, "%.1f");
-
-	// --- 4行目: 保存とスナップ ---
-	char pathBuffer[256];
-	std::snprintf(pathBuffer, sizeof(pathBuffer), "%s", filePath_.c_str());
-	ImGui::SetNextItemWidth(220.0f);
-	if (ImGui::InputText("ファイル", pathBuffer, sizeof(pathBuffer)))
-	{
-		filePath_ = pathBuffer;
-	}
-
-	ImGui::SameLine();
-	if (ImGui::Button("保存"))
-	{
-		if (sequence_.SaveToFile(filePath_))
-		{
-			statusMessage_ = "保存しました: " + filePath_;
-			CommandHistory::GetInstance()->MarkSaved();
-		}
-		else
-		{
-			statusMessage_ = "保存に失敗しました: " + filePath_;
-		}
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("読み込み"))
-	{
-		RequestLoadSequenceFile(filePath_);
-	}
-
-	// 既存のシーケンスを選んで読み込む
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(kSequenceFileComboWidth);
-	if (ImGui::BeginCombo("##SequenceFiles", "既存のシーケンス..."))
-	{
-		// 開いたときだけフォルダを読み直す。開いている間に毎フレーム読むと重い
-		if (ImGui::IsWindowAppearing())
-		{
-			RefreshSequenceFileList();
-		}
-		if (sequenceFiles_.empty())
-		{
-			ImGui::TextDisabled("まだありません");
-		}
-		for (const std::string& file : sequenceFiles_)
-		{
-			if (ImGui::Selectable(file.c_str(), file == filePath_))
-			{
-				RequestLoadSequenceFile(file);
-			}
-		}
-		ImGui::EndCombo();
-	}
-
-	// 保存していない変更を捨ててよいかの確認
+	// 保存していない変更を捨ててよいかの確認。読み込みと新規作成で共用する
 	if (discardPopupRequested_)
 	{
 		ImGui::OpenPopup(kDiscardChangesPopupId);
@@ -726,27 +767,26 @@ void SequencerEditor::DrawToolbar()
 	}
 	if (ImGui::BeginPopupModal(kDiscardChangesPopupId, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::Text("保存していない変更があります。捨てて「%s」を読み込みますか？", pendingLoadPath_.c_str());
-		if (ImGui::Button("捨てて読み込む"))
+		const bool isNew = !pendingNewPath_.empty();
+		ImGui::Text(isNew ? "保存していない変更があります。捨てて「%s」を新しく作りますか？" : "保存していない変更があります。捨てて「%s」を読み込みますか？",
+			isNew ? pendingNewPath_.c_str() : pendingLoadPath_.c_str());
+		if (ImGui::Button(isNew ? "捨てて作る" : "捨てて読み込む"))
 		{
-			LoadSequenceFile(pendingLoadPath_);
+			if (isNew) { CreateNewSequence(pendingNewPath_); }
+			else { LoadSequenceFile(pendingLoadPath_); }
 			pendingLoadPath_.clear();
+			pendingNewPath_.clear();
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("やめる"))
 		{
 			pendingLoadPath_.clear();
+			pendingNewPath_.clear();
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::EndPopup();
 	}
-
-	ImGui::SameLine();
-	ImGui::Checkbox("スナップ", &snapEnabled_);
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(80.0f);
-	ImGui::DragFloat("間隔", &snapInterval_, 0.01f, 0.01f, 5.0f, "%.2f s");
 
 	if (!statusMessage_.empty())
 	{
@@ -836,17 +876,7 @@ void SequencerEditor::DrawRuler(const ImVec2& canvasMin, float canvasWidth)
 	const float startTime = view_.scrollTime;
 	const float endTime = PixelToTime(canvasMin.x + canvasWidth, left);
 
-	// 目盛りの間隔は、画面上で40ピクセル以上空くように選ぶ
-	static const float kCandidateSteps[] = { 0.05f, 0.1f, 0.25f, 0.5f, 1.0f, 2.0f, 5.0f, 10.0f, 30.0f, 60.0f };
-	float step = kCandidateSteps[0];
-	for (float candidate : kCandidateSteps)
-	{
-		step = candidate;
-		if (candidate * view_.pixelsPerSecond >= 40.0f)
-		{
-			break;
-		}
-	}
+	const float step = PickTickStep(kTimeTickSteps, view_.pixelsPerSecond, kTimeTickMinSpacing);
 
 	const float firstTick = std::floor(startTime / step) * step;
 	for (float t = firstTick; t <= endTime; t += step)
@@ -983,6 +1013,22 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 
 		const size_t rowCount = GetVisibleRowCount(trackIndex);
 		const bool hasBinding = HasRequiredBinding(*track, player_.GetBindingContext());
+		const ImU32 typeColor = [&]()
+		{
+			switch (track->GetType())
+			{
+			case TrackType::Camera: return IM_COL32(80, 130, 210, 255);
+			case TrackType::Transform: return IM_COL32(80, 175, 130, 255);
+			case TrackType::Light: return IM_COL32(210, 175, 70, 255);
+			case TrackType::PostProcess: return IM_COL32(170, 90, 190, 255);
+			case TrackType::Event: return IM_COL32(215, 100, 85, 255);
+			case TrackType::Screen: return IM_COL32(80, 175, 185, 255);
+			case TrackType::Text:
+			case TrackType::Text3D: return IM_COL32(185, 130, 200, 255);
+			case TrackType::Component: return IM_COL32(200, 125, 70, 255);
+			default: return IM_COL32(110, 110, 120, 255);
+			}
+		}();
 		for (size_t row = 0; row < rowCount; ++row, ++globalRow)
 		{
 			const float rowTop = rowY;
@@ -1040,22 +1086,8 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 
 			if (row == 0)
 			{
-				const ImU32 typeColor = [&]()
-				{
-					switch (track->GetType())
-					{
-					case TrackType::Camera: return IM_COL32(80, 130, 210, 255);
-					case TrackType::Transform: return IM_COL32(80, 175, 130, 255);
-					case TrackType::Light: return IM_COL32(210, 175, 70, 255);
-					case TrackType::PostProcess: return IM_COL32(170, 90, 190, 255);
-					case TrackType::Event: return IM_COL32(215, 100, 85, 255);
-					case TrackType::Screen: return IM_COL32(80, 175, 185, 255);
-					case TrackType::Text:
-					case TrackType::Text3D: return IM_COL32(185, 130, 200, 255);
-					case TrackType::Component: return IM_COL32(200, 125, 70, 255);
-					default: return IM_COL32(110, 110, 120, 255);
-					}
-				}();
+				// トラックの境目。どこから別のトラックかを分かりやすくする
+				drawList->AddLine(ImVec2(canvasMin.x, rowTop), ImVec2(canvasMin.x + canvasSize.x, rowTop), IM_COL32(70, 70, 80, 255));
 				drawList->AddRectFilled(ImVec2(canvasMin.x, rowTop), ImVec2(canvasMin.x + 4.0f, rowBottom), typeColor);
 				for (size_t channelIndex = 0; channelIndex < track->GetChannelCount(); ++channelIndex)
 				{
@@ -1075,6 +1107,9 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 				rowY = rowBottom;
 				continue;
 			}
+
+			// 値の行にもトラックの色を細く引いて、どのトラックの行かを分かるようにする
+			drawList->AddRectFilled(ImVec2(canvasMin.x, rowTop), ImVec2(canvasMin.x + kChannelBarWidth, rowBottom), typeColor);
 
 			// キーの描画
 			for (size_t keyIndex = 0; keyIndex < channel->GetKeyCount(); ++keyIndex)
@@ -1123,6 +1158,20 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 		}
 	}
 
+	// 行の背景でルーラーの目盛りが隠れるので、下のほうの行でも時刻を追えるよう薄く引き直す
+	{
+		const float gridStep = PickTickStep(kTimeTickSteps, view_.pixelsPerSecond, kTimeTickMinSpacing);
+		const float gridTop = canvasMin.y + view_.rulerHeight;
+		const float gridBottom = (std::min)(rowY, canvasMin.y + canvasSize.y);
+		const float gridEnd = PixelToTime(canvasMin.x + canvasSize.x, left);
+		for (int tick = static_cast<int>(std::floor(view_.scrollTime / gridStep)); static_cast<float>(tick) * gridStep <= gridEnd; ++tick)
+		{
+			const float x = TimeToPixel(static_cast<float>(tick) * gridStep, left);
+			if (x < left) { continue; }
+			drawList->AddLine(ImVec2(x, gridTop), ImVec2(x, gridBottom), IM_COL32(255, 255, 255, 14));
+		}
+	}
+
 	// --- クリックによる選択 ---
 	const ImVec2 mousePos = ImGui::GetIO().MousePos;
 	const float rowsTop = canvasMin.y + view_.rulerHeight;
@@ -1149,6 +1198,38 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 		}
 		return hit;
 	};
+
+	// マウスの下の時刻と行の名前を出す。行が多いとルーラーも見出しも遠くて読みにくいため
+	if (mouseInRows && !mouseInHeader)
+	{
+		const auto [hoverTrack, hoverRow] = findHitRow();
+		ITrack* track = hoverTrack >= 0 ? sequence_.GetTrack(static_cast<size_t>(hoverTrack)) : nullptr;
+		const float rowsOrigin = rowsTop - view_.verticalScroll;
+		const float hoverTop = rowsOrigin + std::floor((mousePos.y - rowsOrigin) / view_.trackHeight) * view_.trackHeight;
+		const float right = canvasMin.x + canvasSize.x;
+
+		drawList->AddLine(ImVec2(mousePos.x, rowsTop), ImVec2(mousePos.x, canvasMin.y + canvasSize.y), IM_COL32(255, 255, 255, 60));
+		if (track)
+		{
+			drawList->AddRect(ImVec2(canvasMin.x, hoverTop), ImVec2(right, hoverTop + view_.trackHeight), IM_COL32(255, 255, 255, 50));
+		}
+
+		char label[192];
+		ICurveChannel* hoverChannel = track && hoverRow > 0 ? track->GetChannel(static_cast<size_t>(hoverRow - 1)) : nullptr;
+		std::snprintf(label, sizeof(label), "%.2f s  %s%s%s",
+			PixelToTime(mousePos.x, left),
+			track ? track->GetName().c_str() : "",
+			hoverChannel ? " / " : "",
+			hoverChannel ? hoverChannel->GetName() : "");
+		const ImVec2 textSize = ImGui::CalcTextSize(label);
+		ImVec2 labelPos(mousePos.x + kHoverLabelOffset, (std::max)(hoverTop - textSize.y - kLabelPadding * 2.0f, rowsTop));
+		if (labelPos.x + textSize.x + kLabelPadding * 2.0f > right)
+		{
+			labelPos.x = mousePos.x - kHoverLabelOffset - textSize.x - kLabelPadding * 2.0f;
+		}
+		drawList->AddRectFilled(labelPos, ImVec2(labelPos.x + textSize.x + kLabelPadding * 2.0f, labelPos.y + textSize.y + kLabelPadding * 2.0f), IM_COL32(15, 15, 18, 220));
+		drawList->AddText(ImVec2(labelPos.x + kLabelPadding, labelPos.y + kLabelPadding), IM_COL32(230, 230, 235, 255), label);
+	}
 
 	if (mouseInRows && !mouseInHeader && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 	{
@@ -1625,6 +1706,29 @@ void SequencerEditor::DrawCurveEditor()
 	auto xToTime = [&](float x) { return curveTimeStart_ + (x - canvasMin.x) / curvePixelsPerSecond_; };
 	auto yToValue = [&](float y) { return curveValueCenter_ + (centerY - y) / curvePixelsPerValue_; };
 
+	// 目盛り。横が時間（下端に秒）、縦が値（左端に数字）
+	const ImVec2 canvasMax(canvasMin.x + canvasSize.x, canvasMin.y + canvasSize.y);
+	const float labelHeight = ImGui::GetTextLineHeight();
+	const float timeStep = PickTickStep(kTimeTickSteps, curvePixelsPerSecond_, kTimeTickMinSpacing);
+	for (int tick = static_cast<int>(std::floor(curveTimeStart_ / timeStep)); static_cast<float>(tick) * timeStep <= xToTime(canvasMax.x); ++tick)
+	{
+		const float time = static_cast<float>(tick) * timeStep;
+		const float x = timeToX(time);
+		drawList->AddLine(ImVec2(x, canvasMin.y), ImVec2(x, canvasMax.y), IM_COL32(40, 40, 46, 255));
+		char label[32];
+		std::snprintf(label, sizeof(label), "%.2f s", time);
+		drawList->AddText(ImVec2(x + kAxisLabelPadding, canvasMax.y - labelHeight - kAxisLabelPadding), IM_COL32(140, 140, 150, 255), label);
+	}
+	const float valueStep = PickTickStep(kValueTickSteps, curvePixelsPerValue_, kValueTickMinSpacing);
+	for (int tick = static_cast<int>(std::floor(yToValue(canvasMax.y) / valueStep)); static_cast<float>(tick) * valueStep <= yToValue(canvasMin.y); ++tick)
+	{
+		const float value = static_cast<float>(tick) * valueStep;
+		const float y = valueToY(value);
+		drawList->AddLine(ImVec2(canvasMin.x, y), ImVec2(canvasMax.x, y), IM_COL32(40, 40, 46, 255));
+		char label[32];
+		std::snprintf(label, sizeof(label), "%g", value);
+		drawList->AddText(ImVec2(canvasMin.x + kAxisLabelPadding, y - labelHeight), IM_COL32(140, 140, 150, 255), label);
+	}
 	drawList->AddLine(ImVec2(canvasMin.x, valueToY(0.0f)), ImVec2(canvasMin.x + canvasSize.x, valueToY(0.0f)), IM_COL32(70, 70, 76, 255));
 	static const ImU32 componentColors[] = { IM_COL32(235, 85, 85, 255), IM_COL32(90, 220, 110, 255), IM_COL32(90, 140, 240, 255), IM_COL32(190, 190, 195, 255) };
 
@@ -1694,6 +1798,50 @@ void SequencerEditor::DrawCurveEditor()
 				}
 			}
 		}
+	}
+
+	// 再生位置。ドープシートと同じ赤線
+	const float playheadX = timeToX(player_.GetTime());
+	drawList->AddLine(ImVec2(playheadX, canvasMin.y), ImVec2(playheadX, canvasMax.y), IM_COL32(255, 90, 90, 255), 1.5f);
+
+	if (visible.empty())
+	{
+		const char* const emptyText = "線で出せる値が選ばれていない。ドープシートで位置や色などのトラックかキーを選んでね（イベントなどは線にならない）";
+		const ImVec2 textSize = ImGui::CalcTextSize(emptyText);
+		drawList->AddText(ImVec2(canvasMin.x + (canvasSize.x - textSize.x) * 0.5f, canvasMin.y + (canvasSize.y - textSize.y) * 0.5f), IM_COL32(190, 190, 200, 255), emptyText);
+	}
+
+	// 凡例。どのトラックのどの値の線で、どの色が何の成分かを右上に出す
+	float legendY = canvasMin.y + kCurveLegendMargin;
+	for (const VisibleChannel& entry : visible)
+	{
+		ITrack* track = sequence_.GetTrack(static_cast<size_t>(entry.track));
+		char name[160];
+		std::snprintf(name, sizeof(name), "%s / %s", track ? track->GetName().c_str() : "", entry.curve->GetName());
+		const size_t componentCount = (std::min)(entry.curve->GetComponentCount(), std::size(kComponentLabels));
+		float width = ImGui::CalcTextSize(name).x;
+		for (size_t component = 0; component < componentCount; ++component)
+		{
+			const char* componentLabel = componentCount == 1 ? "値" : kComponentLabels[component];
+			width += kLabelPadding * 2.0f + kCurveLegendSwatch + kLabelPadding + ImGui::CalcTextSize(componentLabel).x;
+		}
+		float x = canvasMax.x - kCurveLegendMargin - width - kLabelPadding * 2.0f;
+		drawList->AddRectFilled(ImVec2(x, legendY), ImVec2(canvasMax.x - kCurveLegendMargin, legendY + labelHeight + kLabelPadding * 2.0f), IM_COL32(15, 15, 18, 220));
+		x += kLabelPadding;
+		const float textY = legendY + kLabelPadding;
+		drawList->AddText(ImVec2(x, textY), IM_COL32(220, 220, 228, 255), name);
+		x += ImGui::CalcTextSize(name).x;
+		for (size_t component = 0; component < componentCount; ++component)
+		{
+			const char* componentLabel = componentCount == 1 ? "値" : kComponentLabels[component];
+			x += kLabelPadding * 2.0f;
+			const float swatchY = textY + (labelHeight - kCurveLegendSwatch) * 0.5f;
+			drawList->AddRectFilled(ImVec2(x, swatchY), ImVec2(x + kCurveLegendSwatch, swatchY + kCurveLegendSwatch), componentColors[component]);
+			x += kCurveLegendSwatch + kLabelPadding;
+			drawList->AddText(ImVec2(x, textY), IM_COL32(220, 220, 228, 255), componentLabel);
+			x += ImGui::CalcTextSize(componentLabel).x;
+		}
+		legendY += labelHeight + kLabelPadding * 3.0f;
 	}
 
 	const SelectionItem primary = GetPrimarySelection();
@@ -1821,11 +1969,103 @@ void SequencerEditor::DrawCurveEditor()
 
 void SequencerEditor::DrawTimelineWindow()
 {
+	// メニューバーは子窓に付ける。窓そのものは DebugUIManager が開くのでフラグを渡せない
+	if (!ImGui::BeginChild("SequencerRoot", ImVec2(0.0f, 0.0f), ImGuiChildFlags_None, ImGuiWindowFlags_MenuBar))
+	{
+		ImGui::EndChild();
+		return;
+	}
+	DrawMenuBar();
 	DrawToolbar();
 	ImGui::Separator();
 
-	// メタ情報
-	if (ImGui::CollapsingHeader("シーケンス設定"))
+	// ファイルと再生のすぐ下に設定を横に並べる。編集欄に横幅を全部使わせるため
+	if (showSettingsPane_)
+	{
+		ImGui::BeginChild("SequencerSettings", ImVec2(0.0f, 0.0f), ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY);
+		DrawSettingsPane();
+		ImGui::EndChild();
+	}
+
+	// 下: ドープシートとカーブを縦に並べる。片方だけを全面に出すこともできる
+	ImGui::BeginChild("SequencerEditArea");
+	editAreaHovered_ = ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
+
+	// 表示の切り替え。今のものを押された色にしておく
+	static const char* const kViewLabels[kEditAreaViewCount] = { "ドープシート", "カーブ", "両方" };
+	for (int index = 0; index < kEditAreaViewCount; ++index)
+	{
+		if (index > 0) { ImGui::SameLine(); }
+		const bool current = static_cast<int>(editAreaView_) == index;
+		if (current) { ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive)); }
+		if (ImGui::Button(kViewLabels[index])) { editAreaView_ = static_cast<EditAreaView>(index); }
+		if (current) { ImGui::PopStyleColor(); }
+	}
+	ImGui::SameLine();
+	ImGui::TextDisabled("Tab で切り替え");
+
+	const bool showDopeSheet = editAreaView_ != EditAreaView::Curve;
+	const bool showCurve = editAreaView_ != EditAreaView::DopeSheet;
+	const bool showBoth = showDopeSheet && showCurve;
+	const ImGuiWindowFlags paneFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+	const float spacing = ImGui::GetStyle().ItemSpacing.y;
+	const float available = ImGui::GetContentRegionAvail().y;
+	const float curveMaxHeight = (std::max)(available - kPaneMinHeight - kPaneSplitterThickness - spacing * 2.0f, kPaneMinHeight);
+	curvePaneHeight_ = std::clamp(curvePaneHeight_, kPaneMinHeight, curveMaxHeight);
+	const float dopeSheetHeight = showBoth ? available - curvePaneHeight_ - kPaneSplitterThickness - spacing * 2.0f : 0.0f;
+
+	if (showDopeSheet)
+	{
+		ImGui::BeginChild("DopeSheetPane", ImVec2(0.0f, dopeSheetHeight), ImGuiChildFlags_None, paneFlags);
+		DrawDopeSheet();
+		ImGui::EndChild();
+	}
+
+	if (showBoth)
+	{
+		// 境目をドラッグしてドープシートとカーブの高さを分け直す
+		ImGui::InvisibleButton("##PaneSplitter", ImVec2(-FLT_MIN, kPaneSplitterThickness));
+		const bool splitterActive = ImGui::IsItemActive();
+		if (splitterActive || ImGui::IsItemHovered())
+		{
+			ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+		}
+		if (splitterActive)
+		{
+			curvePaneHeight_ -= ImGui::GetIO().MouseDelta.y;
+		}
+		const ImVec2 splitterMin = ImGui::GetItemRectMin();
+		const ImVec2 splitterMax = ImGui::GetItemRectMax();
+		const float splitterY = (splitterMin.y + splitterMax.y) * 0.5f;
+		ImGui::GetWindowDrawList()->AddLine(ImVec2(splitterMin.x, splitterY), ImVec2(splitterMax.x, splitterY),
+			splitterActive ? IM_COL32(150, 170, 220, 255) : IM_COL32(70, 70, 80, 255), 2.0f);
+	}
+
+	if (showCurve)
+	{
+		ImGui::BeginChild("CurvePane", ImVec2(0.0f, 0.0f), ImGuiChildFlags_None, paneFlags);
+		DrawPaneHeader("カーブ", kCurveHint);
+		DrawCurveEditor();
+		ImGui::EndChild();
+	}
+	ImGui::EndChild();
+	ImGui::EndChild();
+}
+
+void SequencerEditor::DrawSettingsPane()
+{
+	// シーケンス・プレビュー・スナップを横に3列で並べる。シーケンスは項目が多いので広めに取る
+	if (!ImGui::BeginTable("SequencerSettingsColumns", kSettingsColumnCount, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingStretchProp))
+	{
+		return;
+	}
+	ImGui::TableSetupColumn("シーケンス", ImGuiTableColumnFlags_WidthStretch, kSettingsSequenceColumnWeight);
+	ImGui::TableSetupColumn("プレビュー", ImGuiTableColumnFlags_WidthStretch, 1.0f);
+	ImGui::TableSetupColumn("スナップ", ImGuiTableColumnFlags_WidthStretch, 1.0f);
+
+	ImGui::TableNextColumn();
+	ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * kSettingsItemWidthRatio);
+	ImGui::SeparatorText("シーケンス");
 	{
 		SequenceMeta& meta = sequence_.GetMeta();
 
@@ -1921,6 +2161,44 @@ void SequencerEditor::DrawTimelineWindow()
 		}
 	}
 
+	ImGui::PopItemWidth();
+
+	ImGui::TableNextColumn();
+	ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * kSettingsItemWidthRatio);
+	ImGui::SeparatorText("プレビュー");
+	if (ImGui::Checkbox("シーケンスカメラで見る", &previewThroughSequenceCamera_))
+	{
+		ApplyActiveCamera();
+	}
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("オフの間は編集用カメラから眺め、シーケンスカメラをギズモで操作できます");
+	}
+	ImGui::Combo("ギズモ", &gizmoOperation_, "移動\0回転\0スケール\0");
+	ImGui::Checkbox("ワールド座標で動かす", &gizmoWorldSpace_);
+	ImGui::DragFloat("カメラの移動速度", &editorCameraSpeed_, 0.1f, 0.1f, 200.0f, "%.1f");
+
+	ImGui::PopItemWidth();
+
+	ImGui::TableNextColumn();
+	ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * kSettingsItemWidthRatio);
+	ImGui::SeparatorText("スナップ");
+	ImGui::Checkbox("スナップする", &snapEnabled_);
+	ImGui::DragFloat("間隔", &snapInterval_, 0.01f, 0.01f, 5.0f, "%.2f s");
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("BPM を入れているときは拍に吸い付きます");
+	}
+
+	ImGui::PopItemWidth();
+	ImGui::EndTable();
+}
+
+void SequencerEditor::DrawDopeSheet()
+{
+	DrawPaneHeader("ドープシート", kDopeSheetHint);
+	ImGui::SameLine();
+
 	// ズーム
 	ImGui::SetNextItemWidth(200.0f);
 	ImGui::DragFloat("ズーム", &view_.pixelsPerSecond, 1.0f, 5.0f, 2000.0f, "%.0f px/s");
@@ -1933,26 +2211,6 @@ void SequencerEditor::DrawTimelineWindow()
 		FrameAllKeys();
 	}
 
-	ImGui::Separator();
-	if (ImGui::BeginTabBar("SequencerViewTabs"))
-	{
-		if (ImGui::BeginTabItem("ドープシート"))
-		{
-			timelineMode_ = 0;
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("カーブ"))
-		{
-			timelineMode_ = 1;
-			ImGui::EndTabItem();
-		}
-		ImGui::EndTabBar();
-	}
-	if (timelineMode_ == 1)
-	{
-		DrawCurveEditor();
-		return;
-	}
 
 	// --- キャンバス ---
 	const ImVec2 canvasMin = ImGui::GetCursorScreenPos();
@@ -2650,6 +2908,192 @@ void SequencerEditor::LoadSequenceFile(const std::string& path)
 	}
 }
 
+void SequencerEditor::SaveSequenceFile(const std::string& path)
+{
+	if (sequence_.SaveToFile(path))
+	{
+		filePath_ = path;
+		statusMessage_ = "保存しました: " + path;
+		CommandHistory::GetInstance()->MarkSaved();
+	}
+	else
+	{
+		statusMessage_ = "保存に失敗しました: " + path;
+	}
+}
+
+void SequencerEditor::RequestNewSequence(const std::string& path)
+{
+	if (CommandHistory::GetInstance()->IsDirty())
+	{
+		pendingNewPath_ = path;
+		discardPopupRequested_ = true;
+		return;
+	}
+	CreateNewSequence(path);
+}
+
+void SequencerEditor::CreateNewSequence(const std::string& path)
+{
+	// 読み込みと同じく中身が入れ替わるので、選択と履歴を捨てる
+	player_.Stop();
+	SelectionContext::GetInstance()->ClearSelection();
+	CommandHistory::GetInstance()->Clear();
+	collapsedTracks_.clear();
+
+	sequence_.Clear();
+	AddRequiredBindings();
+	sequence_.GetMeta().name = std::filesystem::path(path).stem().string();
+
+	// すぐ保存して、一覧に出るようにしておく
+	SaveSequenceFile(path);
+	if (filePath_ == path)
+	{
+		statusMessage_ = "新しく作りました: " + path;
+	}
+	player_.EvaluateCurrentTime();
+}
+
+void SequencerEditor::AddRequiredBindings()
+{
+	// シーケンスは必ず MainCam の役を要求する
+	BindingDefinition binding;
+	binding.role = kCameraRole;
+	binding.type = BindingType::Camera;
+	binding.description = "シーケンスが動かすカメラ";
+	sequence_.AddBinding(binding);
+}
+
+void SequencerEditor::DrawMenuBar()
+{
+	if (ImGui::BeginMenuBar())
+	{
+		if (ImGui::BeginMenu("ファイル"))
+		{
+			if (ImGui::MenuItem("新規作成..."))
+			{
+				fileNameInput_.fill('\0');
+				newPopupRequested_ = true;
+			}
+			if (ImGui::BeginMenu("開く"))
+			{
+				// 開いたときだけフォルダを読み直す。開いている間に毎フレーム読むと重い
+				if (ImGui::IsWindowAppearing())
+				{
+					RefreshSequenceFileList();
+				}
+				if (sequenceFiles_.empty())
+				{
+					ImGui::TextDisabled("まだありません");
+				}
+				for (const std::string& file : sequenceFiles_)
+				{
+					if (ImGui::MenuItem(file.c_str(), nullptr, file == filePath_))
+					{
+						RequestLoadSequenceFile(file);
+					}
+				}
+				ImGui::EndMenu();
+			}
+			ImGui::Separator();
+			if (ImGui::MenuItem("保存", "Ctrl+S"))
+			{
+				SaveSequenceFile(filePath_);
+			}
+			if (ImGui::MenuItem("名前を付けて保存..."))
+			{
+				std::snprintf(fileNameInput_.data(), fileNameInput_.size(), "%s", filePath_.c_str());
+				saveAsPopupRequested_ = true;
+			}
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("表示"))
+		{
+			ImGui::MenuItem("設定欄", nullptr, &showSettingsPane_);
+			ImGui::Separator();
+			if (ImGui::MenuItem("ドープシート", "Tab", editAreaView_ == EditAreaView::DopeSheet)) { editAreaView_ = EditAreaView::DopeSheet; }
+			if (ImGui::MenuItem("カーブ", "Tab", editAreaView_ == EditAreaView::Curve)) { editAreaView_ = EditAreaView::Curve; }
+			if (ImGui::MenuItem("両方", "Tab", editAreaView_ == EditAreaView::Both)) { editAreaView_ = EditAreaView::Both; }
+			ImGui::Separator();
+			if (ImGui::MenuItem("全体を表示", "F"))
+			{
+				FrameAllKeys();
+			}
+			ImGui::EndMenu();
+		}
+
+		// 今どのファイルを触っているかを右端に出す。* は保存していない変更あり
+		char fileLabel[160];
+		std::snprintf(fileLabel, sizeof(fileLabel), "%s%s", filePath_.c_str(), CommandHistory::GetInstance()->IsDirty() ? " *" : "");
+		const float labelX = ImGui::GetWindowContentRegionMax().x - ImGui::CalcTextSize(fileLabel).x;
+		if (labelX > ImGui::GetCursorPosX())
+		{
+			ImGui::SetCursorPosX(labelX);
+		}
+		ImGui::TextUnformatted(fileLabel);
+		ImGui::EndMenuBar();
+	}
+
+	// 小窓はメニューの外で開く。メニューの中で開くと ID がずれて開かない
+	if (newPopupRequested_)
+	{
+		ImGui::OpenPopup(kNewSequencePopupId);
+		newPopupRequested_ = false;
+	}
+	if (saveAsPopupRequested_)
+	{
+		ImGui::OpenPopup(kSaveAsPopupId);
+		saveAsPopupRequested_ = false;
+	}
+
+	// 新規作成と名前を付けて保存は、名前を打つところが同じなのでまとめて描く
+	const auto drawFileNamePopup = [this](const char* popupId, bool isNew)
+	{
+		if (!ImGui::BeginPopupModal(popupId, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			return;
+		}
+		ImGui::TextUnformatted(isNew ? "新しいシーケンスのファイル名" : "保存するファイル名");
+		ImGui::TextDisabled("置き場所: Resources/json/sequence（.json は省略できる）");
+		if (ImGui::IsWindowAppearing())
+		{
+			ImGui::SetKeyboardFocusHere();
+		}
+		const bool entered = ImGui::InputText("##SequenceFileName", fileNameInput_.data(), fileNameInput_.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+		const std::string path = MakeSequenceFileName(fileNameInput_.data());
+		std::error_code error;
+		const bool exists = !path.empty() && std::filesystem::exists(Sequence::GetSequenceDirectory() / path, error);
+		if (fileNameInput_[0] != '\0' && path.empty())
+		{
+			ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.4f, 1.0f), "/ \\ : は使えない");
+		}
+		else if (exists)
+		{
+			ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.3f, 1.0f), isNew ? "同じ名前のファイルがある。別の名前にしてね" : "同じ名前のファイルがある。保存すると上書きする");
+		}
+
+		// 新規作成で既存を潰すと演出データが消えるので、上書きは名前を付けて保存のときだけ許す
+		const bool canConfirm = !path.empty() && (!isNew || !exists);
+		ImGui::BeginDisabled(!canConfirm);
+		const char* confirmLabel = isNew ? "作る" : (exists ? "上書きして保存" : "保存");
+		if (ImGui::Button(confirmLabel) || (entered && canConfirm))
+		{
+			if (isNew) { RequestNewSequence(path); }
+			else { SaveSequenceFile(path); }
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndDisabled();
+		ImGui::SameLine();
+		if (ImGui::Button("やめる"))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	};
+	drawFileNamePopup(kNewSequencePopupId, true);
+	drawFileNamePopup(kSaveAsPopupId, false);
+}
+
 void SequencerEditor::AddTrack(const std::string& typeName)
 {
 	auto command = std::make_unique<SequenceStructureCommand>(&sequence_, "Add " + typeName + " Track");
@@ -3084,6 +3528,12 @@ void SequencerEditor::HandleShortcuts()
 
 	CommandHistory* history = CommandHistory::GetInstance();
 
+	// 編集欄の上でだけ効かせる。他の窓で Tab を使う操作とぶつけないため
+	if (editAreaHovered_ && !io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_Tab, false))
+	{
+		editAreaView_ = static_cast<EditAreaView>((static_cast<int>(editAreaView_) + 1) % kEditAreaViewCount);
+	}
+
 	if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_Z, false))
 	{
 		if (io.KeyShift) { history->Redo(); }
@@ -3097,11 +3547,7 @@ void SequencerEditor::HandleShortcuts()
 	}
 	else if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S, false))
 	{
-		if (sequence_.SaveToFile(filePath_))
-		{
-			statusMessage_ = "保存しました: " + filePath_;
-			history->MarkSaved();
-		}
+		SaveSequenceFile(filePath_);
 	}
 	else if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_C, false))
 	{
