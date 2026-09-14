@@ -71,6 +71,19 @@ constexpr float kBeatLabelTop = 15.0f;
 constexpr float kBeatLabelPadding = 2.0f;
 /** @brief 波形の下にあけるすき間（ピクセル） */
 constexpr float kWaveformBottomMargin = 2.0f;
+/** @brief 範囲選択とみなすのに要るドラッグ量（ピクセル）。これより小さければただのクリック */
+constexpr float kBoxSelectMinDrag = 4.0f;
+/** @brief 貼り付けたキーを探し直すときの時刻の許容差（秒） */
+constexpr float kPastedKeyTolerance = 0.001f;
+/** @brief ベジェのグラフの1辺（ピクセル） */
+constexpr float kBezierGraphSize = 160.0f;
+/** @brief ベジェのグラフに映す値の範囲。行き過ぎる（Back 系の）制御点も掴めるよう 0〜1 より広く取る */
+constexpr float kBezierGraphMinValue = -0.5f;
+constexpr float kBezierGraphMaxValue = 1.5f;
+/** @brief ベジェの制御点の半径（ピクセル） */
+constexpr float kBezierHandleRadius = 5.0f;
+/** @brief ベジェの制御点を掴めるとみなす距離（ピクセル） */
+constexpr float kBezierHandleGrabRadius = 9.0f;
 
 /**
  * @brief トラックがタイムライン上で占める行数
@@ -110,6 +123,23 @@ ICurveChannel* GetSelectedChannel(Sequence& sequence, const SelectionItem& item)
 const SelectionItem& GetPrimarySelection()
 {
 	return SelectionContext::GetInstance()->GetPrimary();
+}
+
+/**
+ * @brief 選択の中から、今も存在するキーだけを集める
+ * @details 操作のたびに1回呼ぶだけなので、ここの確保は許す
+ */
+std::vector<SelectionItem> CollectSelectedKeys(Sequence& sequence)
+{
+	std::vector<SelectionItem> keys;
+	for (const SelectionItem& item : SelectionContext::GetInstance()->GetItems())
+	{
+		if (GetSelectedChannel(sequence, item))
+		{
+			keys.push_back(item);
+		}
+	}
+	return keys;
 }
 
 /**
@@ -832,53 +862,250 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 			}
 		}
 
+		const bool additive = ImGui::GetIO().KeyCtrl;
 		if (picked.kind == SelectionKind::SequenceKey)
 		{
-			selection->Select(picked);
-			draggingKey_ = true;
-		}
-		else if (hitTrack >= 0)
-		{
-			// キーの無い所をクリックしたらトラックを選ぶ。インスペクタで役を割り当てるため
-			SelectionItem trackItem;
-			trackItem.kind = SelectionKind::SequenceTrack;
-			trackItem.trackIndex = hitTrack;
-			selection->Select(trackItem);
+			if (additive)
+			{
+				// Ctrl+クリックは選択の足し引きだけ。掴まない
+				selection->ToggleSelection(picked);
+			}
+			else
+			{
+				// 選択中のキーを掴んだら、複数選択のまま全部動かす。掴んだキーを主選択にしておく
+				if (selection->IsSelected(picked))
+				{
+					selection->RemoveFromSelection(picked);
+					selection->AddToSelection(picked);
+				}
+				else
+				{
+					selection->Select(picked);
+				}
+				BeginKeyDrag(picked);
+			}
 		}
 		else
 		{
-			selection->ClearSelection();
-		}
-	}
-
-	// --- キーのドラッグ ---
-	if (draggingKey_ && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
-	{
-		const SelectionItem selected = GetPrimarySelection();
-		if (ICurveChannel* channel = GetSelectedChannel(sequence_, selected))
-		{
-			const float newTime = (std::max)(SnapTime(PixelToTime(mousePos.x, left)), 0.0f);
-
-			// ドラッグ中は毎フレームコマンドを発行し、MergeWith で1つにまとめる。
-			// 履歴が1ドラッグ1件になり、Undo1回で掴む前の位置に戻る。
-			size_t newIndex = static_cast<size_t>(selected.keyIndex);
-			const bool changed = ExecuteTrackEdit(sequence_, static_cast<size_t>(selected.trackIndex), "Move Key",
-				[&]() { newIndex = channel->MoveKey(static_cast<size_t>(selected.keyIndex), newTime); });
-
-			if (changed)
+			if (!additive)
 			{
-				// 時刻の変更で並び順が変わりうるので、選択のインデックスを追従させる
-				SelectionItem updated = selected;
-				updated.keyIndex = static_cast<int>(newIndex);
-				selection->Select(updated);
-				player_.EvaluateCurrentTime();
+				if (hitTrack >= 0)
+				{
+					// キーの無い所をクリックしたらトラックを選ぶ。インスペクタで役を割り当てるため
+					SelectionItem trackItem;
+					trackItem.kind = SelectionKind::SequenceTrack;
+					trackItem.trackIndex = hitTrack;
+					selection->Select(trackItem);
+				}
+				else
+				{
+					selection->ClearSelection();
+				}
+			}
+			// キーの無い所から引っ張ったら範囲選択にする
+			if (!mouseInHeader)
+			{
+				boxSelecting_ = true;
+				boxStart_ = mousePos;
 			}
 		}
 	}
 
-	if (draggingKey_ && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+	// --- キーのドラッグ ---
+	if (draggingKey_)
 	{
-		draggingKey_ = false;
+		if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+		{
+			if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+			{
+				UpdateKeyDrag(PixelToTime(mousePos.x, left));
+			}
+		}
+		else
+		{
+			EndKeyDrag();
+		}
+	}
+
+	// --- 範囲選択 ---
+	if (boxSelecting_)
+	{
+		const ImVec2 rectMin((std::min)(boxStart_.x, mousePos.x), (std::min)(boxStart_.y, mousePos.y));
+		const ImVec2 rectMax((std::max)(boxStart_.x, mousePos.x), (std::max)(boxStart_.y, mousePos.y));
+		const bool dragged = rectMax.x - rectMin.x >= kBoxSelectMinDrag || rectMax.y - rectMin.y >= kBoxSelectMinDrag;
+		if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+		{
+			if (dragged)
+			{
+				drawList->AddRectFilled(rectMin, rectMax, IM_COL32(120, 170, 255, 40));
+				drawList->AddRect(rectMin, rectMax, IM_COL32(120, 170, 255, 200));
+			}
+		}
+		else
+		{
+			// 動かさずに離したときは、上のクリックの選択をそのまま使う
+			if (dragged)
+			{
+				SelectKeysInRect(canvasMin, rectMin, rectMax, ImGui::GetIO().KeyCtrl);
+			}
+			boxSelecting_ = false;
+		}
+	}
+}
+
+void SequencerEditor::BeginKeyDrag(const SelectionItem& grabbed)
+{
+	draggedKeys_.clear();
+	dragCommands_.clear();
+	grabbedKey_ = 0;
+	for (const SelectionItem& item : CollectSelectedKeys(sequence_))
+	{
+		// 編集前の状態はトラックごとに1回だけ取る
+		const bool trackRecorded = std::any_of(draggedKeys_.begin(), draggedKeys_.end(),
+			[&item](const DraggedKey& other) { return other.trackIndex == item.trackIndex; });
+		if (!trackRecorded)
+		{
+			dragCommands_.push_back(std::make_unique<TrackEditCommand>(&sequence_, static_cast<size_t>(item.trackIndex), "Move Keys"));
+		}
+
+		DraggedKey key;
+		key.trackIndex = item.trackIndex;
+		key.channelIndex = item.channelIndex;
+		key.keyIndex = static_cast<size_t>(item.keyIndex);
+		key.originalTime = GetSelectedChannel(sequence_, item)->GetKeyTime(key.keyIndex);
+		if (item == grabbed)
+		{
+			grabbedKey_ = draggedKeys_.size();
+		}
+		draggedKeys_.push_back(key);
+	}
+	draggingKey_ = !draggedKeys_.empty();
+}
+
+void SequencerEditor::UpdateKeyDrag(float mouseTime)
+{
+	if (draggedKeys_.empty())
+	{
+		return;
+	}
+
+	// 動かす量は掴んだキーで決める。どのキーも 0 秒より前には出さない
+	float earliest = draggedKeys_.front().originalTime;
+	for (const DraggedKey& key : draggedKeys_)
+	{
+		earliest = (std::min)(earliest, key.originalTime);
+	}
+	const float delta = (std::max)(SnapTime(mouseTime) - draggedKeys_[grabbedKey_].originalTime, -earliest);
+
+	for (size_t i = 0; i < draggedKeys_.size(); ++i)
+	{
+		DraggedKey& key = draggedKeys_[i];
+		ITrack* track = sequence_.GetTrack(static_cast<size_t>(key.trackIndex));
+		ICurveChannel* channel = track ? track->GetChannel(static_cast<size_t>(key.channelIndex)) : nullptr;
+		if (!channel || key.keyIndex >= channel->GetKeyCount())
+		{
+			continue;
+		}
+
+		const size_t oldIndex = key.keyIndex;
+		const size_t newIndex = channel->MoveKey(oldIndex, key.originalTime + delta);
+		key.keyIndex = newIndex;
+		// MoveKey は抜いて入れ直すので、同じチャンネルの他のキーはその分だけ番号がずれる
+		for (size_t j = 0; j < draggedKeys_.size(); ++j)
+		{
+			DraggedKey& other = draggedKeys_[j];
+			if (j == i || other.trackIndex != key.trackIndex || other.channelIndex != key.channelIndex)
+			{
+				continue;
+			}
+			if (other.keyIndex > oldIndex) { --other.keyIndex; }
+			if (other.keyIndex >= newIndex) { ++other.keyIndex; }
+		}
+	}
+
+	// 並べ替えで番号が変わるので、選択を作り直す。掴んだキーを最後に足して主選択にする
+	const auto toItem = [](const DraggedKey& key)
+	{
+		SelectionItem item;
+		item.kind = SelectionKind::SequenceKey;
+		item.trackIndex = key.trackIndex;
+		item.channelIndex = key.channelIndex;
+		item.keyIndex = static_cast<int>(key.keyIndex);
+		return item;
+	};
+	SelectionContext* selection = SelectionContext::GetInstance();
+	selection->ClearSelection();
+	for (size_t i = 0; i < draggedKeys_.size(); ++i)
+	{
+		if (i != grabbedKey_)
+		{
+			selection->AddToSelection(toItem(draggedKeys_[i]));
+		}
+	}
+	selection->AddToSelection(toItem(draggedKeys_[grabbedKey_]));
+	player_.EvaluateCurrentTime();
+}
+
+void SequencerEditor::EndKeyDrag()
+{
+	// 何本のトラックにまたがっても、1回の Undo で掴む前に戻せるようにまとめる
+	CommandHistory* history = CommandHistory::GetInstance();
+	history->BeginTransaction("Move Keys");
+	for (auto& command : dragCommands_)
+	{
+		command->CaptureAfter();
+		if (command->HasChanged())
+		{
+			history->Execute(std::move(command));
+		}
+	}
+	history->EndTransaction();
+	dragCommands_.clear();
+	draggedKeys_.clear();
+	draggingKey_ = false;
+}
+
+void SequencerEditor::SelectKeysInRect(const ImVec2& canvasMin, const ImVec2& rectMin, const ImVec2& rectMax, bool additive)
+{
+	SelectionContext* selection = SelectionContext::GetInstance();
+	if (!additive)
+	{
+		selection->ClearSelection();
+	}
+
+	const float left = canvasMin.x + view_.headerWidth;
+	float rowY = canvasMin.y + view_.rulerHeight;
+	for (size_t trackIndex = 0; trackIndex < sequence_.GetTrackCount(); ++trackIndex)
+	{
+		ITrack* track = sequence_.GetTrack(trackIndex);
+		if (!track)
+		{
+			continue;
+		}
+		for (size_t row = 0; row < GetRowCount(track); ++row, rowY += view_.trackHeight)
+		{
+			// キーは行の真ん中に描いているので、真ん中が四角に入った行だけを見る
+			const float rowCenter = rowY + view_.trackHeight * 0.5f;
+			ICurveChannel* channel = track->GetChannel(row);
+			if (!channel || rowCenter < rectMin.y || rowCenter > rectMax.y)
+			{
+				continue;
+			}
+			for (size_t keyIndex = 0; keyIndex < channel->GetKeyCount(); ++keyIndex)
+			{
+				const float x = TimeToPixel(channel->GetKeyTime(keyIndex), left);
+				if (x < rectMin.x || x > rectMax.x)
+				{
+					continue;
+				}
+				SelectionItem item;
+				item.kind = SelectionKind::SequenceKey;
+				item.trackIndex = static_cast<int>(trackIndex);
+				item.channelIndex = static_cast<int>(row);
+				item.keyIndex = static_cast<int>(keyIndex);
+				selection->AddToSelection(item);
+			}
+		}
 	}
 }
 
@@ -1158,24 +1385,84 @@ void SequencerEditor::DrawBezierEditor()
 		player_.EvaluateCurrentTime();
 	}
 
-	// カーブのプレビュー
+	// カーブのグラフ。制御点をドラッグして形を変えられる
 	const ImVec2 graphMin = ImGui::GetCursorScreenPos();
-	const float graphSize = 160.0f;
+	const ImVec2 graphMax(graphMin.x + kBezierGraphSize, graphMin.y + kBezierGraphSize);
+	const auto toScreen = [&graphMin](float x, float y)
+	{
+		const float normalizedY = (kBezierGraphMaxValue - y) / (kBezierGraphMaxValue - kBezierGraphMinValue);
+		return ImVec2(graphMin.x + x * kBezierGraphSize, graphMin.y + normalizedY * kBezierGraphSize);
+	};
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
-	drawList->AddRectFilled(graphMin, ImVec2(graphMin.x + graphSize, graphMin.y + graphSize), IM_COL32(20, 20, 24, 255));
-	drawList->AddRect(graphMin, ImVec2(graphMin.x + graphSize, graphMin.y + graphSize), IM_COL32(80, 80, 90, 255));
+	drawList->AddRectFilled(graphMin, graphMax, IM_COL32(20, 20, 24, 255));
+	drawList->AddRect(graphMin, graphMax, IM_COL32(80, 80, 90, 255));
+	// 値の 0 と 1 の目安線。これより外は行き過ぎ
+	drawList->AddLine(toScreen(0.0f, 0.0f), toScreen(1.0f, 0.0f), IM_COL32(60, 60, 70, 255));
+	drawList->AddLine(toScreen(0.0f, 1.0f), toScreen(1.0f, 1.0f), IM_COL32(60, 60, 70, 255));
 
 	constexpr int kPreviewSegments = 48;
-	ImVec2 previousPoint(graphMin.x, graphMin.y + graphSize);
+	ImVec2 previousPoint = toScreen(0.0f, 0.0f);
 	for (int i = 1; i <= kPreviewSegments; ++i)
 	{
 		const float t = static_cast<float>(i) / static_cast<float>(kPreviewSegments);
-		const float value = ApplyBezierEasing(bezier, t);
-		const ImVec2 point(graphMin.x + t * graphSize, graphMin.y + graphSize - value * graphSize);
+		const ImVec2 point = toScreen(t, ApplyBezierEasing(bezier, t));
 		drawList->AddLine(previousPoint, point, IM_COL32(120, 200, 255, 255), 1.5f);
 		previousPoint = point;
 	}
-	ImGui::Dummy(ImVec2(graphSize, graphSize));
+
+	// 制御点。P1 は始点 (0,0) から、P2 は終点 (1,1) から伸ばす
+	const ImVec2 handle1 = toScreen(bezier.x1, bezier.y1);
+	const ImVec2 handle2 = toScreen(bezier.x2, bezier.y2);
+	drawList->AddLine(toScreen(0.0f, 0.0f), handle1, IM_COL32(200, 200, 210, 160));
+	drawList->AddLine(toScreen(1.0f, 1.0f), handle2, IM_COL32(200, 200, 210, 160));
+	drawList->AddCircleFilled(handle1, kBezierHandleRadius, bezierDragHandle_ == 1 ? IM_COL32(255, 200, 80, 255) : IM_COL32(230, 230, 240, 255));
+	drawList->AddCircleFilled(handle2, kBezierHandleRadius, bezierDragHandle_ == 2 ? IM_COL32(255, 200, 80, 255) : IM_COL32(230, 230, 240, 255));
+
+	ImGui::InvisibleButton("##bezier_graph", ImVec2(kBezierGraphSize, kBezierGraphSize));
+	const ImVec2 mouse = ImGui::GetIO().MousePos;
+	if (ImGui::IsItemActivated())
+	{
+		// 近いほうの制御点を掴む。どちらも遠ければ掴まない
+		const auto distanceTo = [&mouse](const ImVec2& point)
+		{
+			const float dx = point.x - mouse.x;
+			const float dy = point.y - mouse.y;
+			return std::sqrt(dx * dx + dy * dy);
+		};
+		const float distance1 = distanceTo(handle1);
+		const float distance2 = distanceTo(handle2);
+		bezierDragHandle_ = 0;
+		if ((std::min)(distance1, distance2) <= kBezierHandleGrabRadius)
+		{
+			bezierDragHandle_ = distance1 <= distance2 ? 1 : 2;
+		}
+	}
+	if (ImGui::IsItemActive() && bezierDragHandle_ != 0)
+	{
+		// x は単調でなければ解が一意に定まらないため 0〜1 に制限する
+		const float x = std::clamp((mouse.x - graphMin.x) / kBezierGraphSize, 0.0f, 1.0f);
+		const float y = std::clamp(
+			kBezierGraphMaxValue - (mouse.y - graphMin.y) / kBezierGraphSize * (kBezierGraphMaxValue - kBezierGraphMinValue),
+			kBezierGraphMinValue, kBezierGraphMaxValue);
+		ExecuteTrackEdit(sequence_, trackIndex, "Edit Bezier Handle", [&]()
+		{
+			if (bezierDragHandle_ == 1)
+			{
+				bezier.x1 = x;
+				bezier.y1 = y;
+			}
+			else
+			{
+				bezier.x2 = x;
+				bezier.y2 = y;
+			}
+		});
+		player_.EvaluateCurrentTime();
+	}
+	if (ImGui::IsItemDeactivated())
+	{
+		bezierDragHandle_ = 0;
+	}
 }
 
 void SequencerEditor::DrawTrackInspector(size_t trackIndex)
@@ -1642,19 +1929,170 @@ void SequencerEditor::AddKeyAtCurrentTime()
 
 void SequencerEditor::DeleteSelectedKey()
 {
-	const SelectionItem selected = GetPrimarySelection();
-	ICurveChannel* channel = GetSelectedChannel(sequence_, selected);
-	if (!channel)
+	std::vector<SelectionItem> keys = CollectSelectedKeys(sequence_);
+	if (keys.empty())
 	{
 		return;
 	}
 
-	if (ExecuteTrackEdit(sequence_, static_cast<size_t>(selected.trackIndex), "Delete Key",
-		[&]() { channel->RemoveKey(static_cast<size_t>(selected.keyIndex)); }))
+	// トラックごとにまとめ、同じチャンネルの中は後ろのキーから消す。前から消すと残りの番号がずれる
+	std::sort(keys.begin(), keys.end(), [](const SelectionItem& a, const SelectionItem& b)
+	{
+		if (a.trackIndex != b.trackIndex) { return a.trackIndex < b.trackIndex; }
+		if (a.channelIndex != b.channelIndex) { return a.channelIndex < b.channelIndex; }
+		return a.keyIndex > b.keyIndex;
+	});
+
+	CommandHistory* history = CommandHistory::GetInstance();
+	history->BeginTransaction("Delete Keys");
+	bool changed = false;
+	for (size_t begin = 0; begin < keys.size(); )
+	{
+		size_t end = begin;
+		while (end < keys.size() && keys[end].trackIndex == keys[begin].trackIndex)
+		{
+			++end;
+		}
+		ITrack* track = sequence_.GetTrack(static_cast<size_t>(keys[begin].trackIndex));
+		changed |= ExecuteTrackEdit(sequence_, static_cast<size_t>(keys[begin].trackIndex), "Delete Keys", [&]()
+		{
+			for (size_t i = begin; i < end; ++i)
+			{
+				track->GetChannel(static_cast<size_t>(keys[i].channelIndex))->RemoveKey(static_cast<size_t>(keys[i].keyIndex));
+			}
+		});
+		begin = end;
+	}
+	history->EndTransaction();
+
+	if (changed)
 	{
 		SelectionContext::GetInstance()->ClearSelection();
 		player_.EvaluateCurrentTime();
 	}
+}
+
+void SequencerEditor::CopySelectedKeys()
+{
+	const std::vector<SelectionItem> keys = CollectSelectedKeys(sequence_);
+	if (keys.empty())
+	{
+		return;
+	}
+
+	clipboard_.clear();
+	for (const SelectionItem& item : keys)
+	{
+		ICurveChannel* channel = GetSelectedChannel(sequence_, item);
+		nlohmann::json keyJson = channel->CopyKey(static_cast<size_t>(item.keyIndex));
+		if (keyJson.is_null())
+		{
+			continue;
+		}
+		ClipboardKey entry;
+		entry.trackIndex = item.trackIndex;
+		entry.channelIndex = item.channelIndex;
+		entry.trackType = sequence_.GetTrack(static_cast<size_t>(item.trackIndex))->GetTypeName();
+		entry.channelName = channel->GetName();
+		entry.offset = channel->GetKeyTime(static_cast<size_t>(item.keyIndex));
+		entry.key = std::move(keyJson);
+		clipboard_.push_back(std::move(entry));
+	}
+	if (clipboard_.empty())
+	{
+		statusMessage_ = "選んだキーはコピーに対応していません";
+		return;
+	}
+
+	// 一番早いキーを 0 にして、貼り付けたときに再生位置から並ぶようにする
+	float earliest = clipboard_.front().offset;
+	for (const ClipboardKey& entry : clipboard_)
+	{
+		earliest = (std::min)(earliest, entry.offset);
+	}
+	for (ClipboardKey& entry : clipboard_)
+	{
+		entry.offset -= earliest;
+	}
+	statusMessage_ = std::to_string(clipboard_.size()) + " 個のキーをコピーしました";
+}
+
+void SequencerEditor::PasteKeysAtCurrentTime()
+{
+	if (clipboard_.empty())
+	{
+		return;
+	}
+
+	// 貼り付け先は、コピー元と同じ番号・同じ種類のトラックの同じチャンネル。トラックを消したり並べ替えたりしていたら貼らない
+	const auto findChannel = [this](const ClipboardKey& entry) -> ICurveChannel*
+	{
+		if (entry.trackIndex < 0 || static_cast<size_t>(entry.trackIndex) >= sequence_.GetTrackCount())
+		{
+			return nullptr;
+		}
+		ITrack* track = sequence_.GetTrack(static_cast<size_t>(entry.trackIndex));
+		if (!track || entry.trackType != track->GetTypeName())
+		{
+			return nullptr;
+		}
+		ICurveChannel* channel = entry.channelIndex >= 0 ? track->GetChannel(static_cast<size_t>(entry.channelIndex)) : nullptr;
+		return channel && entry.channelName == channel->GetName() ? channel : nullptr;
+	};
+
+	const float baseTime = player_.GetTime();
+	CommandHistory* history = CommandHistory::GetInstance();
+	history->BeginTransaction("Paste Keys");
+	// トラックごとに1コマンドにする
+	std::vector<int> pastedTracks;
+	for (const ClipboardKey& entry : clipboard_)
+	{
+		if (std::find(pastedTracks.begin(), pastedTracks.end(), entry.trackIndex) != pastedTracks.end() || !findChannel(entry))
+		{
+			continue;
+		}
+		pastedTracks.push_back(entry.trackIndex);
+		ExecuteTrackEdit(sequence_, static_cast<size_t>(entry.trackIndex), "Paste Keys", [&]()
+		{
+			for (const ClipboardKey& other : clipboard_)
+			{
+				if (other.trackIndex != entry.trackIndex)
+				{
+					continue;
+				}
+				if (ICurveChannel* channel = findChannel(other))
+				{
+					channel->PasteKey(baseTime + other.offset, other.key);
+				}
+			}
+		});
+	}
+	history->EndTransaction();
+
+	// 貼り付けたキーを選び直す。後から入れたキーで番号がずれるので、時刻で探す
+	SelectionContext* selection = SelectionContext::GetInstance();
+	selection->ClearSelection();
+	size_t pastedCount = 0;
+	for (const ClipboardKey& entry : clipboard_)
+	{
+		ICurveChannel* channel = findChannel(entry);
+		const int keyIndex = channel ? channel->FindKeyAt(baseTime + entry.offset, kPastedKeyTolerance) : -1;
+		if (keyIndex < 0)
+		{
+			continue;
+		}
+		SelectionItem item;
+		item.kind = SelectionKind::SequenceKey;
+		item.trackIndex = entry.trackIndex;
+		item.channelIndex = entry.channelIndex;
+		item.keyIndex = keyIndex;
+		selection->AddToSelection(item);
+		++pastedCount;
+	}
+	statusMessage_ = pastedCount > 0
+		? std::to_string(pastedCount) + " 個のキーを貼り付けました"
+		: std::string("貼り付け先のトラックが見つかりません（コピー元と同じトラックにだけ貼れます）");
+	player_.EvaluateCurrentTime();
 }
 
 void SequencerEditor::ApplyActiveCamera()
@@ -1771,6 +2209,14 @@ void SequencerEditor::HandleShortcuts()
 			statusMessage_ = "保存しました: " + filePath_;
 			history->MarkSaved();
 		}
+	}
+	else if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_C, false))
+	{
+		CopySelectedKeys();
+	}
+	else if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_V, false))
+	{
+		PasteKeysAtCurrentTime();
 	}
 	else if (ImGui::IsKeyPressed(ImGuiKey_Space, false))
 	{

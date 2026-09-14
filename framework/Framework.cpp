@@ -347,6 +347,7 @@ void Framework::Initialize()
 	SequencerEditor::GetInstance()->SetAtmosphere(fogRenderer_.get(), beamRenderer_.get());
 	SequencerEditor::GetInstance()->SetTextOverlay(textOverlay_.get());
 	SequencerEditor::GetInstance()->GetPlayer().GetBindingContext().SetText3DRenderer(text3DRenderer_.get());
+	SequencerEditor::GetInstance()->GetPlayer().GetBindingContext().SetDepthOfFieldRenderer(depthOfFieldRenderer_.get());
 
 	// ゲームからカットシーンを再生する窓口
 	CutsceneManager* cutscene = CutsceneManager::GetInstance();
@@ -354,6 +355,7 @@ void Framework::Initialize()
 	cutscene->SetAtmosphere(fogRenderer_.get(), beamRenderer_.get());
 	cutscene->SetTextOverlay(textOverlay_.get());
 	cutscene->SetText3DRenderer(text3DRenderer_.get());
+	cutscene->SetDepthOfField(depthOfFieldRenderer_.get());
 #ifdef USE_IMGUI
 	cutscene->RegisterDebugUI();
 #endif

@@ -2,6 +2,7 @@
 #include <string>
 
 #include "sequencer/core/Curve.h"
+#include "sequencer/core/CurveSerialization.h"
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
@@ -45,6 +46,22 @@ public:
 	 *          偽を返すチャンネルには、エディタは補間とベジェの編集UIを出さない。
 	 */
 	virtual bool HasInterpolation() const { return true; }
+
+	/**
+	 * @brief キー1つをコピー用の JSON にする
+	 * @details 時刻は入れない。貼り付け先で決めるため。
+	 * @param index キーのインデックス
+	 * @return キーの中身。コピーに対応しないチャンネルなら null
+	 */
+	virtual nlohmann::json CopyKey(size_t index) const { (void)index; return nullptr; }
+
+	/**
+	 * @brief CopyKey() の JSON をキーとして貼り付ける
+	 * @param time 貼り付ける時刻（秒）
+	 * @param json CopyKey() が返した中身
+	 * @return 貼り付けたら真。対応しない、または中身が読めなければ偽
+	 */
+	virtual bool PasteKey(float time, const nlohmann::json& json) { (void)time; (void)json; return false; }
 
 	bool IsEmpty() const { return GetKeyCount() == 0; }
 
@@ -123,7 +140,6 @@ public:
 	 */
 	void SetKey(float time, const T& value)
 	{
-		constexpr float kSameTimeTolerance = 0.001f;
 		const int existing = FindKeyAt(time, kSameTimeTolerance);
 		if (existing >= 0)
 		{
@@ -131,6 +147,48 @@ public:
 			return;
 		}
 		curve_->AddKey(time, value);
+	}
+
+	nlohmann::json CopyKey(size_t index) const override
+	{
+		if (index >= curve_->GetKeyCount())
+		{
+			return nullptr;
+		}
+		const Keyframe<T>& key = curve_->GetKey(index);
+		nlohmann::json json;
+		json["value"] = CurveValueSerializer<T>::ToJson(key.value);
+		json["interp"] = InterpolationModeToString(key.interp);
+		json["bezier"] = nlohmann::json::array({ key.bezier.x1, key.bezier.y1, key.bezier.x2, key.bezier.y2 });
+		return json;
+	}
+
+	/** @details 同じ時刻にキーがあれば、補間ごと上書きする */
+	bool PasteKey(float time, const nlohmann::json& json) override
+	{
+		Keyframe<T> key;
+		if (!json.is_object() || !json.contains("value") || !CurveValueSerializer<T>::FromJson(json["value"], key.value))
+		{
+			return false;
+		}
+		key.time = time;
+		if (json.contains("interp") && json["interp"].is_string())
+		{
+			key.interp = InterpolationModeFromString(json["interp"].get<std::string>());
+		}
+		if (json.contains("bezier") && json["bezier"].is_array() && json["bezier"].size() == 4)
+		{
+			key.bezier = { json["bezier"][0].get<float>(), json["bezier"][1].get<float>(), json["bezier"][2].get<float>(), json["bezier"][3].get<float>() };
+		}
+
+		const int existing = FindKeyAt(time, kSameTimeTolerance);
+		if (existing >= 0)
+		{
+			curve_->GetKey(static_cast<size_t>(existing)) = key;
+			return true;
+		}
+		curve_->AddKey(key);
+		return true;
 	}
 
 #ifdef USE_IMGUI
@@ -141,6 +199,9 @@ public:
 #endif
 
 private:
+	// 浮動小数の誤差でキーが二重に増えないよう、1ミリ秒以内は同じ時刻とみなす
+	static constexpr float kSameTimeTolerance = 0.001f;
+
 	const char* name_;
 	Curve<T>* curve_;
 };

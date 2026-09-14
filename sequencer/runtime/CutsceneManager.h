@@ -13,6 +13,7 @@ namespace KCE
 class BeamRenderer;
 class Camera;
 class CameraManager;
+class DepthOfFieldRenderer;
 class FogRenderer;
 class TextOverlay;
 class Text3DRenderer;
@@ -109,6 +110,9 @@ public:
 
 	/** @brief Text3D トラックの探し先を渡す（Framework 所有） */
 	void SetText3DRenderer(Text3DRenderer* text3DRenderer);
+
+	/** @brief カメラトラックがピントを合わせる被写界深度を渡す（Framework 所有） */
+	void SetDepthOfField(DepthOfFieldRenderer* depthOfFieldRenderer);
 
 	void Finalize();
 
