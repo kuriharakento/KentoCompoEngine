@@ -5,6 +5,7 @@
 
 #include "core/Guid.h"
 #include "graphics/view/RenderLayer.h"
+#include "base/GraphicsTypes.h"
 
 namespace KCE
 {
@@ -98,6 +99,14 @@ public:
 	 * @return 読み込みに成功したツリー。所有権は呼び出し側へ移る
 	 */
 	std::unique_ptr<GameObject> LoadPrefab(const std::string& prefabPath) const;
+
+	/**
+	 * @brief プレハブを生成してmanager所有にする。
+	 * @param prefabPath application/Resources/json/prefab からの相対パス
+	 * @param transform 生成するrootへ適用するローカルtransform
+	 * @return 生成したroot。所有権はmanagerが持つ。失敗時はnullptr
+	 */
+	GameObject* Instantiate(const std::string& prefabPath, const Transform& transform = Transform());
 
 	/**
 	 * @brief 名前でGameObjectを検索

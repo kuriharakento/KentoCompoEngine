@@ -484,6 +484,23 @@ std::unique_ptr<GameObject> GameObjectManager::LoadPrefab(const std::string& pre
 	}
 }
 
+GameObject* GameObjectManager::Instantiate(const std::string& prefabPath, const Transform& transform)
+{
+	auto object = LoadPrefab(prefabPath);
+	if (!object)
+	{
+		return nullptr;
+	}
+	object->SetScale(transform.scale);
+	object->SetRotation(transform.rotate);
+	object->SetPosition(transform.translate);
+	object->UpdateWorldMatrix();
+	GameObject* result = object.get();
+	dynamicGameObjects_.push_back(std::move(object));
+	Register(result);
+	return result;
+}
+
 void GameObjectManager::ClearPendingDestroyObjects()
 {
 	std::vector<GameObject*> toDestroy;
