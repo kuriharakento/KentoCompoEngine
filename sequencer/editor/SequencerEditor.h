@@ -193,6 +193,19 @@ private:
 	void FrameSelectedCurves();
 	/** @brief 指定種別のトラックを追加する */
 	void AddTrack(const std::string& typeName);
+	/**
+	 * @brief シーケンスを読み込む
+	 * @details 中身が入れ替わるので、選択と履歴を捨てる。成功したら保存先もこのファイルにする。
+	 * @param path Resources/json/sequence からの相対パス、または絶対パス
+	 */
+	void LoadSequenceFile(const std::string& path);
+	/**
+	 * @brief 読み込みを頼む。保存していない変更があれば、捨ててよいかを先に聞く
+	 * @param path 読み込むパス
+	 */
+	void RequestLoadSequenceFile(const std::string& path);
+	/** @brief Resources/json/sequence にある .json の一覧を読み直す */
+	void RefreshSequenceFileList();
 	/** @brief 編集用カメラを自由移動させる */
 	void UpdateEditorCameraFly();
 	/** @brief 現在のプレビュー対象に応じてアクティブカメラを切り替える */
@@ -281,6 +294,12 @@ private:
 
 	// 保存先のファイル名
 	std::string filePath_ = "sequence.json";
+	// Resources/json/sequence にある .json のファイル名。一覧を開いたときに読み直す
+	std::vector<std::string> sequenceFiles_;
+	// 保存していない変更を捨ててよいか聞いている間の、読み込み先
+	std::string pendingLoadPath_;
+	// 次の描画で確認の小窓を開くか。一覧の中から開くと ID がずれるので、外で開く
+	bool discardPopupRequested_ = false;
 	// 最後の保存・読み込みの結果メッセージ
 	std::string statusMessage_;
 	// 状態メッセージを目立たせ始めた時刻

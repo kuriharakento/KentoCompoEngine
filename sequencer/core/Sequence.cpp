@@ -312,6 +312,11 @@ bool Sequence::Deserialize(const nlohmann::json& json, std::string* outError)
 	return true;
 }
 
+std::filesystem::path Sequence::GetSequenceDirectory()
+{
+	return PathManager::GetApplicationResourceRoot() / kSequenceDirectory;
+}
+
 bool Sequence::SaveToFile(const std::string& path) const
 {
 	const std::filesystem::path fullPath = ResolveSequencePath(path);

@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -168,6 +169,13 @@ public:
 	 * @return 読み込みに成功したら真
 	 */
 	bool LoadFromFile(const std::string& path, std::string* outError = nullptr);
+
+	/**
+	 * @brief シーケンスのファイルを置くフォルダ
+	 * @details SaveToFile / LoadFromFile が相対パスを解決するときの基準と同じ場所。
+	 * @return フォルダのフルパス（Resources/json/sequence）
+	 */
+	static std::filesystem::path GetSequenceDirectory();
 
 	/**
 	 * @brief 全トラック・全マーカーを破棄する

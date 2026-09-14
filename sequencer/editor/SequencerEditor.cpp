@@ -27,6 +27,7 @@ bool SequencerEditor::HasInstance()
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <filesystem>
 
 #include "ImGuizmo/ImGuizmo.h"
 #include "audio/Audio.h"
@@ -116,6 +117,10 @@ constexpr float kBezierGraphMaxValue = 1.5f;
 constexpr float kBezierHandleRadius = 5.0f;
 /** @brief ベジェの制御点を掴めるとみなす距離（ピクセル） */
 constexpr float kBezierHandleGrabRadius = 9.0f;
+/** @brief 「既存のシーケンス」一覧の幅（ピクセル） */
+constexpr float kSequenceFileComboWidth = 180.0f;
+/** @brief 保存していない変更を捨てるかを聞く小窓の ID */
+const char* const kDiscardChangesPopupId = "保存していない変更###DiscardSequenceChanges";
 
 /**
  * @brief トラックがタイムライン上で占める行数
@@ -686,22 +691,55 @@ void SequencerEditor::DrawToolbar()
 	ImGui::SameLine();
 	if (ImGui::Button("読み込み"))
 	{
-		// 読み込みでシーケンスの中身が入れ替わるため、選択と履歴を捨てる。
-		// 残すと、消えたトラックを指したままの選択やUndoが残ってしまう。
-		player_.Stop();
-		SelectionContext::GetInstance()->ClearSelection();
-		CommandHistory::GetInstance()->Clear();
+		RequestLoadSequenceFile(filePath_);
+	}
 
-		std::string error;
-		if (sequence_.LoadFromFile(filePath_, &error))
+	// 既存のシーケンスを選んで読み込む
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(kSequenceFileComboWidth);
+	if (ImGui::BeginCombo("##SequenceFiles", "既存のシーケンス..."))
+	{
+		// 開いたときだけフォルダを読み直す。開いている間に毎フレーム読むと重い
+		if (ImGui::IsWindowAppearing())
 		{
-			statusMessage_ = "読み込みました: " + filePath_;
-			player_.EvaluateCurrentTime();
+			RefreshSequenceFileList();
 		}
-		else
+		if (sequenceFiles_.empty())
 		{
-			statusMessage_ = "読み込みに失敗しました: " + error;
+			ImGui::TextDisabled("まだありません");
 		}
+		for (const std::string& file : sequenceFiles_)
+		{
+			if (ImGui::Selectable(file.c_str(), file == filePath_))
+			{
+				RequestLoadSequenceFile(file);
+			}
+		}
+		ImGui::EndCombo();
+	}
+
+	// 保存していない変更を捨ててよいかの確認
+	if (discardPopupRequested_)
+	{
+		ImGui::OpenPopup(kDiscardChangesPopupId);
+		discardPopupRequested_ = false;
+	}
+	if (ImGui::BeginPopupModal(kDiscardChangesPopupId, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("保存していない変更があります。捨てて「%s」を読み込みますか？", pendingLoadPath_.c_str());
+		if (ImGui::Button("捨てて読み込む"))
+		{
+			LoadSequenceFile(pendingLoadPath_);
+			pendingLoadPath_.clear();
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("やめる"))
+		{
+			pendingLoadPath_.clear();
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
 	}
 
 	ImGui::SameLine();
@@ -2564,6 +2602,53 @@ void SequencerEditor::DrawObjectGizmo(GameObject* object, const Matrix4x4& view,
 ///=============================================================================
 ///						操作
 ///=============================================================================
+
+void SequencerEditor::RefreshSequenceFileList()
+{
+	sequenceFiles_.clear();
+	std::error_code error;
+	for (const auto& entry : std::filesystem::directory_iterator(Sequence::GetSequenceDirectory(), error))
+	{
+		if (entry.is_regular_file(error) && entry.path().extension() == ".json")
+		{
+			sequenceFiles_.push_back(entry.path().filename().string());
+		}
+	}
+	std::sort(sequenceFiles_.begin(), sequenceFiles_.end());
+}
+
+void SequencerEditor::RequestLoadSequenceFile(const std::string& path)
+{
+	if (CommandHistory::GetInstance()->IsDirty())
+	{
+		pendingLoadPath_ = path;
+		discardPopupRequested_ = true;
+		return;
+	}
+	LoadSequenceFile(path);
+}
+
+void SequencerEditor::LoadSequenceFile(const std::string& path)
+{
+	// 読み込みでシーケンスの中身が入れ替わるため、選択と履歴を捨てる。
+	// 残すと、消えたトラックを指したままの選択やUndoが残ってしまう。
+	player_.Stop();
+	SelectionContext::GetInstance()->ClearSelection();
+	CommandHistory::GetInstance()->Clear();
+
+	std::string error;
+	if (sequence_.LoadFromFile(path, &error))
+	{
+		// 読めたファイルを保存先にもする。別のファイルに上書きしてしまわないように
+		filePath_ = path;
+		statusMessage_ = "読み込みました: " + path;
+		player_.EvaluateCurrentTime();
+	}
+	else
+	{
+		statusMessage_ = "読み込みに失敗しました: " + error;
+	}
+}
 
 void SequencerEditor::AddTrack(const std::string& typeName)
 {
