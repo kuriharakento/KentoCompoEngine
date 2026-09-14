@@ -13,6 +13,11 @@
 namespace KCE
 {
 class CameraManager;
+class GameObject;
+class ISubViewProvider;
+class LightManager;
+class Object3dCommon;
+class StageMonitor;
 class Text3DRenderer;
 struct SelectionItem;
 
@@ -24,6 +29,14 @@ struct SelectionItem;
 class StageManager
 {
 public:
+	static constexpr uint32_t kDefaultMonitorWidth = 480;
+	static constexpr uint32_t kDefaultMonitorHeight = 270;
+	static constexpr uint32_t kMinMonitorResolution = 16;
+	static constexpr uint32_t kMaxMonitorResolution = 4096;
+	static constexpr float kDefaultMonitorFramesPerSecond = 24.0f;
+	static constexpr float kMinMonitorFramesPerSecond = 1.0f;
+	static constexpr float kMaxMonitorFramesPerSecond = 240.0f;
+
 	StageManager() = default;
 	~StageManager();
 	/**
@@ -31,8 +44,14 @@ public:
 	 * @param stageName 拡張子を含まないステージ名
 	 * @param text3DRenderer Framework 所有。StageManager より長生きする前提
 	 * @param cameraManager Framework 所有。StageManager より長生きする前提
+	 * @param subViewProvider サブビューの作成元。Framework 所有
+	 * @param object3dCommon 画面オブジェクトの初期化元。Framework 所有
+	 * @param lightManager 画面オブジェクトの初期化元。Framework 所有
 	 */
-	void Initialize(const std::string& stageName, Text3DRenderer* text3DRenderer, CameraManager* cameraManager);
+	void Initialize(const std::string& stageName, Text3DRenderer* text3DRenderer, CameraManager* cameraManager,
+		ISubViewProvider* subViewProvider, Object3dCommon* object3dCommon, LightManager* lightManager);
+	/** @brief 所有するモニターを更新する。 */
+	void Update();
 	/** @brief 現在の内容をステージファイルへ保存する。 */
 	bool SaveToFile();
 	/** @brief ステージファイルを読む。無ければ空のステージとして成功する。 */
@@ -45,6 +64,36 @@ public:
 	std::unique_ptr<TextMesh3D> RemoveText3D(const std::string& name);
 	/** @return このステージが所有する名前なら真。 */
 	bool OwnsText3D(const std::string& name) const;
+
+	/** @brief モニターの保存・編集対象。 */
+	struct MonitorState
+	{
+		Vector3 screenPosition{};
+		Vector3 screenRotation{};
+		Vector3 screenScale{ 1.0f, 1.0f, 1.0f };
+		Vector3 cameraPosition{};
+		Vector3 cameraRotation{};
+		uint32_t width = kDefaultMonitorWidth;
+		uint32_t height = kDefaultMonitorHeight;
+		float framesPerSecond = kDefaultMonitorFramesPerSecond;
+	};
+
+	/** @brief StageManager が所有するモニター一式。 */
+	struct MonitorEntry
+	{
+		std::string name;
+		std::string cameraName;
+		MonitorState state;
+		std::unique_ptr<GameObject> screen;
+		std::unique_ptr<StageMonitor> monitor;
+	};
+
+	/** @brief モニター一式を登録して動作を開始する。 */
+	bool AddStageMonitor(std::unique_ptr<MonitorEntry> entry);
+	/** @brief モニターを停止・登録解除し、所有権を返す。 */
+	std::unique_ptr<MonitorEntry> RemoveStageMonitor(const std::string& name);
+	/** @brief 保存済みの状態をモニターへ適用する。 */
+	bool ApplyMonitorState(const std::string& name, const MonitorState& state, bool recreateView);
 	const std::string& GetStageName() const { return stageName_; }
 	uint64_t GetLifetimeId() const { return lifetimeId_; }
 	/** @brief Undo コマンドがシーン破棄後の Manager を触らないための確認。 */
@@ -52,6 +101,9 @@ public:
 
 private:
 	struct TextEntry { std::string name; std::unique_ptr<TextMesh3D> mesh; };
+	MonitorEntry* FindMonitor(const std::string& name);
+	const MonitorEntry* FindMonitor(const std::string& name) const;
+	std::unique_ptr<MonitorEntry> CreateMonitor(const std::string& name, const std::string& cameraName, const MonitorState& state);
 	nlohmann::ordered_json Serialize() const;
 	bool Deserialize(const nlohmann::json& json, std::string& outError);
 	std::filesystem::path GetFilePath() const;
@@ -65,20 +117,34 @@ private:
 #endif
 	/** @brief 保存（か読み込み）した時点の3D文字。未保存かを JSON にせず比べるために持つ */
 	struct SavedText { std::string name; std::string text; TextMesh3D::Params params; };
+	struct SavedMonitor { std::string name; std::string cameraName; MonitorState state; };
 	std::string stageName_;
 	std::vector<TextEntry> texts3D_;
+	std::vector<std::unique_ptr<MonitorEntry>> monitors_;
 	// 保存（か読み込み）した時点の中身。IsDirty() が毎フレームこれと比べる
 	std::vector<SavedText> savedTexts_;
+	std::vector<SavedMonitor> savedMonitors_;
 	uint64_t lifetimeId_ = 0;
 	// Framework 所有。StageManager より長生きする前提
 	Text3DRenderer* text3DRenderer_ = nullptr;
 	// Framework 所有。StageManager より長生きする前提
 	CameraManager* cameraManager_ = nullptr;
+	// Framework 所有。StageManager より長生きする前提
+	ISubViewProvider* subViewProvider_ = nullptr;
+	// Framework 所有。StageManager より長生きする前提
+	Object3dCommon* object3dCommon_ = nullptr;
+	// Framework 所有。StageManager より長生きする前提
+	LightManager* lightManager_ = nullptr;
 #ifdef USE_IMGUI
 	std::array<char, 128> newName_{};
 	std::array<char, 512> newText_{};
+	std::array<char, 128> newMonitorName_{};
 	bool createPopupRequested_ = false;
+	bool createMonitorPopupRequested_ = false;
 	std::string createError_;
+	std::string createMonitorError_;
+	MonitorState editStartState_{};
+	std::string editingMonitorName_;
 #endif
 };
 } // namespace KCE

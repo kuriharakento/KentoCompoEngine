@@ -42,6 +42,15 @@ public:
 	bool Initialize(ISubViewProvider* provider, CameraManager* cameraManager, const std::string& cameraName, uint32_t width, uint32_t height);
 
 	/**
+	 * @brief サブビューを指定解像度で作り直す。
+	 * @details Update 中に呼ぶ。前フレームの GPU 完了待ち後なので古いビューを安全に破棄できる。
+	 * @param width 幅
+	 * @param height 高さ
+	 * @return 作り直せたら真
+	 */
+	bool RecreateView(uint32_t width, uint32_t height);
+
+	/**
 	 * @brief 映像を映す画面オブジェクトを決める
 	 * @param screen Object3d を持つ GameObject。Finalize まで生きている前提
 	 */
@@ -76,6 +85,10 @@ private:
 	RenderView* view_ = nullptr;
 	// CameraManager が所有するカメラ
 	Camera* camera_ = nullptr;
+	// CameraManager に自分で追加したカメラだけを Finalize で削除する
+	CameraManager* cameraManager_ = nullptr;
+	std::string cameraName_;
+	bool ownsCamera_ = false;
 	// シーンが所有する画面オブジェクト
 	GameObject* screen_ = nullptr;
 	bool screenBound_ = false;

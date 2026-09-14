@@ -33,6 +33,13 @@ public:
 	 */
     void AddCamera(const std::string& name);
 
+	/**
+	 * @brief 名前付きカメラを削除する。
+	 * @param name カメラの名前
+	 * @return 削除できたら真。アクティブカメラは削除しない
+	 */
+	bool RemoveCamera(const std::string& name);
+
     /**
      * @brief カメラの取得
      * @param name カメラの名前

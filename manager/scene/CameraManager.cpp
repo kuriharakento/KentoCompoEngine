@@ -49,6 +49,17 @@ void CameraManager::AddCamera(const std::string& name) {
     }
 }
 
+bool CameraManager::RemoveCamera(const std::string& name)
+{
+	auto it = cameras_.find(name);
+	if (it == cameras_.end() || it->second.get() == activeCamera_ || it->second.get() == renderCameraOverride_)
+	{
+		return false;
+	}
+	cameras_.erase(it);
+	return true;
+}
+
 Camera* CameraManager::GetCamera(const std::string& name) {
     // 名前でカメラを検索
     auto it = cameras_.find(name);

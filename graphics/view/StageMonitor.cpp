@@ -38,6 +38,7 @@ bool StageMonitor::Initialize(ISubViewProvider* provider, CameraManager* cameraM
 		return false;
 	}
 
+	const bool cameraAlreadyExists = cameraManager->GetCamera(cameraName) != nullptr;
 	cameraManager->AddCamera(cameraName);
 	camera_ = cameraManager->GetCamera(cameraName);
 	if (!camera_)
@@ -47,6 +48,9 @@ bool StageMonitor::Initialize(ISubViewProvider* provider, CameraManager* cameraM
 	camera_->SetAspectRatio(static_cast<float>(width) / static_cast<float>(height));
 
 	provider_ = provider;
+	cameraManager_ = cameraManager;
+	cameraName_ = cameraName;
+	ownsCamera_ = !cameraAlreadyExists;
 	view_ = provider_->CreateSubView(cameraName, width, height);
 	if (!view_)
 	{
@@ -58,6 +62,32 @@ bool StageMonitor::Initialize(ISubViewProvider* provider, CameraManager* cameraM
 	// モニターは客に見せる映像なので、デバッグ用の線は映さない
 	view_->SetPassEnabled(RenderViewPass::DebugLines, false);
 	// モニターは毎フレーム描き直さなくても分からないので、テレビの速さに間引く
+	SetFramesPerSecond(kDefaultFramesPerSecond);
+	updateCount_ = 0;
+	return true;
+}
+
+bool StageMonitor::RecreateView(uint32_t width, uint32_t height)
+{
+	if (!provider_ || !camera_ || width == 0 || height == 0)
+	{
+		return false;
+	}
+	// Update の時点では前フレームの GPU 完了待ちが済んでいる。先に参照を外して古い RT を破棄する
+	BindScreenTexture(false);
+	if (view_)
+	{
+		provider_->DestroySubView(view_);
+	}
+	view_ = provider_->CreateSubView(cameraName_, width, height);
+	if (!view_)
+	{
+		return false;
+	}
+	camera_->SetAspectRatio(static_cast<float>(width) / static_cast<float>(height));
+	view_->SetCamera(camera_);
+	view_->SetLayerMask(kRenderLayerAll & ~kScreenLayer);
+	view_->SetPassEnabled(RenderViewPass::DebugLines, false);
 	SetFramesPerSecond(kDefaultFramesPerSecond);
 	updateCount_ = 0;
 	return true;
@@ -104,6 +134,13 @@ void StageMonitor::Finalize()
 	view_ = nullptr;
 	provider_ = nullptr;
 	camera_ = nullptr;
+	if (ownsCamera_ && cameraManager_)
+	{
+		cameraManager_->RemoveCamera(cameraName_);
+	}
+	cameraManager_ = nullptr;
+	cameraName_.clear();
+	ownsCamera_ = false;
 }
 
 void StageMonitor::BindScreenTexture(bool bind)
