@@ -183,6 +183,10 @@ private:
 	void CopySelectedKeys();
 	/** @brief クリップボードのキーを、再生位置を先頭にしてコピー元と同じトラックに貼り付ける */
 	void PasteKeysAtCurrentTime();
+	/** @brief コピーしたキーを指定時刻を先頭にして貼り付ける */
+	void PasteKeysAt(float time);
+	/** @brief タイムライン行の右クリックメニューを描く */
+	void DrawTimelineContextMenu();
 	/** @brief 指定種別のトラックを追加する */
 	void AddTrack(const std::string& typeName);
 	/** @brief 編集用カメラを自由移動させる */
@@ -271,6 +275,13 @@ private:
 	std::string filePath_ = "sequence.json";
 	// 最後の保存・読み込みの結果メッセージ
 	std::string statusMessage_;
+	// 状態メッセージを目立たせ始めた時刻
+	double statusMessageTime_ = 0.0;
+	std::string observedStatusMessage_;
+	// 右クリックした行と時刻
+	int contextTrackIndex_ = -1;
+	int contextChannelIndex_ = -1;
+	float contextTime_ = 0.0f;
 
 	/** @brief ドラッグ中のキー1つ分。番号は並べ替えのたびに追従させる */
 	struct DraggedKey

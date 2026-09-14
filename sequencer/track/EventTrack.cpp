@@ -73,6 +73,15 @@ bool EventTrack::EventChannel::PasteKey(float time, const nlohmann::json& json)
 	return true;
 }
 
+bool EventTrack::EventChannel::AddKeyAt(float time)
+{
+	SequenceEvent event;
+	event.time = time;
+	event.name = "Event" + std::to_string(events_->size());
+	Insert(event);
+	return true;
+}
+
 #ifdef USE_IMGUI
 bool EventTrack::EventChannel::DrawKeyValueEditor(size_t index)
 {

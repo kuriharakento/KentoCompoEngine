@@ -145,6 +145,14 @@ void TextTrack::TextChannel::RemoveKey(size_t index)
 	}
 }
 
+bool TextTrack::TextChannel::AddKeyAt(float time)
+{
+	TextEntry entry;
+	entry.start = time;
+	Insert(entry);
+	return true;
+}
+
 #ifdef USE_IMGUI
 bool TextTrack::TextChannel::DrawKeyValueEditor(size_t index)
 {

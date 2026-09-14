@@ -86,6 +86,7 @@ private:
 		nlohmann::json CopyKey(size_t index) const override;
 		/** @details イベントは同じ時刻に複数あってよいので、上書きせずに足す */
 		bool PasteKey(float time, const nlohmann::json& json) override;
+		bool AddKeyAt(float time) override;
 
 		/** @brief 時刻順を保ったまま追加する。追加後のインデックスを返す */
 		size_t Insert(const SequenceEvent& event);

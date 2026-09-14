@@ -63,6 +63,9 @@ public:
 	 */
 	virtual bool PasteKey(float time, const nlohmann::json& json) { (void)time; (void)json; return false; }
 
+	/** @brief 指定時刻に、その時刻の値または型の既定値でキーを足す。 */
+	virtual bool AddKeyAt(float time) { (void)time; return false; }
+
 	bool IsEmpty() const { return GetKeyCount() == 0; }
 
 	/**
@@ -188,6 +191,12 @@ public:
 			return true;
 		}
 		curve_->AddKey(key);
+		return true;
+	}
+
+	bool AddKeyAt(float time) override
+	{
+		SetKey(time, curve_->IsEmpty() ? T{} : curve_->Evaluate(time));
 		return true;
 	}
 

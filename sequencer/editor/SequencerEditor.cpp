@@ -201,6 +201,24 @@ bool GetBindingTypeForTrack(const ITrack& track, BindingType& outType)
 	}
 }
 
+bool HasRequiredBinding(const ITrack& track, const BindingContext& context)
+{
+	BindingType type;
+	if (!GetBindingTypeForTrack(track, type)) { return true; }
+	if (const auto* lightTrack = dynamic_cast<const LightTrack*>(&track))
+	{
+		if (lightTrack->GetKind() == LightTrackKind::Directional) { return true; }
+	}
+	if (track.GetBindingRole().empty()) { return false; }
+	switch (type)
+	{
+	case BindingType::GameObject: return context.GetGameObject(track.GetBindingRole()) != nullptr;
+	case BindingType::Camera:     return context.GetCamera(track.GetBindingRole()) != nullptr;
+	case BindingType::Light:      return !context.GetLightName(track.GetBindingRole()).empty();
+	default:                      return true;
+	}
+}
+
 /**
  * @brief トラックへの編集を1コマンドとして履歴に積む
  * @details 編集前にスナップショットを取り、edit を実行し、変化があれば積む。
@@ -694,7 +712,16 @@ void SequencerEditor::DrawToolbar()
 
 	if (!statusMessage_.empty())
 	{
-		ImGui::TextDisabled("%s", statusMessage_.c_str());
+		if (observedStatusMessage_ != statusMessage_)
+		{
+			observedStatusMessage_ = statusMessage_;
+			statusMessageTime_ = ImGui::GetTime();
+		}
+		constexpr double kStatusDisplaySeconds = 4.0;
+		if (ImGui::GetTime() - statusMessageTime_ <= kStatusDisplaySeconds)
+		{
+			ImGui::TextColored(ImVec4(1.0f, 0.78f, 0.25f, 1.0f), "%s", statusMessage_.c_str());
+		}
 	}
 }
 
@@ -909,6 +936,7 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 		}
 
 		const size_t rowCount = GetRowCount(track);
+		const bool hasBinding = HasRequiredBinding(*track, player_.GetBindingContext());
 		for (size_t row = 0; row < rowCount; ++row, ++globalRow)
 		{
 			const float rowTop = rowY;
@@ -928,7 +956,7 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 			char headerLabel[128];
 			if (channel)
 			{
-				std::snprintf(headerLabel, sizeof(headerLabel), "%s / %s", track->GetName().c_str(), channel->GetName());
+				std::snprintf(headerLabel, sizeof(headerLabel), "%s%s / %s", hasBinding ? "" : "! ", track->GetName().c_str(), channel->GetName());
 			}
 			else
 			{
@@ -938,6 +966,12 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 				ImVec2(canvasMin.x + 6.0f, rowCenter - ImGui::GetTextLineHeight() * 0.5f),
 				track->IsMuted() ? IM_COL32(110, 110, 115, 255) : IM_COL32(215, 215, 225, 255),
 				headerLabel);
+			if (!hasBinding && row == 0)
+			{
+				drawList->AddText(
+					ImVec2(canvasMin.x + 6.0f, rowCenter + ImGui::GetTextLineHeight() * 0.15f),
+					IM_COL32(255, 150, 80, 255), "対象が未割り当て");
+			}
 
 			// ミュートの切り替えボタン。先頭の行にだけ置く
 			if (row == 0)
@@ -996,9 +1030,82 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 		mousePos.x >= canvasMin.x && mousePos.x <= canvasMin.x + canvasSize.x &&
 		mousePos.y >= rowsTop && mousePos.y <= canvasMin.y + canvasSize.y;
 	const bool mouseInHeader = mouseInRows && mousePos.x < left;
+	auto findHitRow = [&]()
+	{
+		std::pair<int, int> hit{ -1, -1 };
+		float searchRowY = rowsTop - view_.verticalScroll;
+		for (size_t trackIndex = 0; trackIndex < sequence_.GetTrackCount() && hit.first < 0; ++trackIndex)
+		{
+			ITrack* track = sequence_.GetTrack(trackIndex);
+			if (!track) { continue; }
+			for (size_t row = 0; row < GetRowCount(track); ++row, searchRowY += view_.trackHeight)
+			{
+				if (mousePos.y >= searchRowY && mousePos.y < searchRowY + view_.trackHeight)
+				{
+					hit = { static_cast<int>(trackIndex), static_cast<int>(row) };
+					break;
+				}
+			}
+		}
+		return hit;
+	};
+
+	if (mouseInRows && !mouseInHeader && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+	{
+		const auto [trackIndex, channelIndex] = findHitRow();
+		ITrack* track = trackIndex >= 0 ? sequence_.GetTrack(static_cast<size_t>(trackIndex)) : nullptr;
+		ICurveChannel* channel = track && channelIndex >= 0 ? track->GetChannel(static_cast<size_t>(channelIndex)) : nullptr;
+		if (channel)
+		{
+			const float time = (std::max)(SnapTime(PixelToTime(mousePos.x, left)), 0.0f);
+			bool added = false;
+			ExecuteTrackEdit(sequence_, static_cast<size_t>(trackIndex), "Add Key", [&]()
+			{
+				if (channel->IsEmpty() && HasRequiredBinding(*track, player_.GetBindingContext()))
+				{
+					track->RecordKey(time, player_.GetBindingContext());
+					added = !channel->IsEmpty();
+				}
+				if (!added) { added = channel->AddKeyAt(time); }
+			});
+			statusMessage_ = added ? "キーを追加しました" : "この行にはキーを追加できません";
+			player_.EvaluateCurrentTime();
+		}
+	}
+
+	if (mouseInRows && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+	{
+		const auto [trackIndex, channelIndex] = findHitRow();
+		contextTrackIndex_ = trackIndex;
+		contextChannelIndex_ = channelIndex;
+		contextTime_ = (std::max)(SnapTime(PixelToTime(mousePos.x, left)), 0.0f);
+		if (trackIndex >= 0 && channelIndex >= 0 && !mouseInHeader)
+		{
+			ITrack* track = sequence_.GetTrack(static_cast<size_t>(trackIndex));
+			ICurveChannel* channel = track ? track->GetChannel(static_cast<size_t>(channelIndex)) : nullptr;
+			float bestDistance = kKeyGrabRadius;
+			SelectionItem picked;
+			for (size_t keyIndex = 0; channel && keyIndex < channel->GetKeyCount(); ++keyIndex)
+			{
+				const float distance = std::abs(TimeToPixel(channel->GetKeyTime(keyIndex), left) - mousePos.x);
+				if (distance < bestDistance)
+				{
+					bestDistance = distance;
+					picked.kind = SelectionKind::SequenceKey;
+					picked.trackIndex = trackIndex;
+					picked.channelIndex = channelIndex;
+					picked.keyIndex = static_cast<int>(keyIndex);
+				}
+			}
+			if (picked.kind == SelectionKind::SequenceKey) { selection->Select(picked); }
+		}
+		ImGui::OpenPopup("TimelineContextMenu");
+	}
+	DrawTimelineContextMenu();
 
 	// ミュートボタンなど他のウィジェットを押した場合は選択を変えない
-	if (mouseInRows && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !draggingPlayhead_ && !ImGui::IsAnyItemHovered())
+	if (mouseInRows && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) &&
+		!draggingPlayhead_ && !ImGui::IsAnyItemHovered())
 	{
 		// クリックした行がどのトラックのどのチャンネルかを求める
 		int hitTrack = -1;
@@ -1463,6 +1570,13 @@ void SequencerEditor::DrawTimelineWindow()
 
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
 	drawList->AddRectFilled(canvasMin, ImVec2(canvasMin.x + canvasSize.x, canvasMin.y + canvasSize.y), IM_COL32(26, 26, 30, 255));
+	if (sequence_.GetTrackCount() == 0)
+	{
+		drawList->AddText(
+			ImVec2(canvasMin.x + view_.headerWidth + 24.0f, canvasMin.y + view_.rulerHeight + 24.0f),
+			IM_COL32(190, 190, 200, 255),
+			"トラックを追加 → 対象を割り当て → 行をダブルクリックでキー");
+	}
 
 	// トラック名欄との境界
 	drawList->AddLine(
@@ -2268,6 +2382,11 @@ void SequencerEditor::CopySelectedKeys()
 
 void SequencerEditor::PasteKeysAtCurrentTime()
 {
+	PasteKeysAt(player_.GetTime());
+}
+
+void SequencerEditor::PasteKeysAt(float baseTime)
+{
 	if (clipboard_.empty())
 	{
 		return;
@@ -2289,7 +2408,6 @@ void SequencerEditor::PasteKeysAtCurrentTime()
 		return channel && entry.channelName == channel->GetName() ? channel : nullptr;
 	};
 
-	const float baseTime = player_.GetTime();
 	CommandHistory* history = CommandHistory::GetInstance();
 	history->BeginTransaction("Paste Keys");
 	// トラックごとに1コマンドにする
@@ -2342,6 +2460,91 @@ void SequencerEditor::PasteKeysAtCurrentTime()
 		? std::to_string(pastedCount) + " 個のキーを貼り付けました"
 		: std::string("貼り付け先のトラックが見つかりません（コピー元と同じトラックにだけ貼れます）");
 	player_.EvaluateCurrentTime();
+}
+
+void SequencerEditor::DrawTimelineContextMenu()
+{
+	if (!ImGui::BeginPopup("TimelineContextMenu")) { return; }
+	ITrack* track = contextTrackIndex_ >= 0 ? sequence_.GetTrack(static_cast<size_t>(contextTrackIndex_)) : nullptr;
+	ICurveChannel* channel = track && contextChannelIndex_ >= 0
+		? track->GetChannel(static_cast<size_t>(contextChannelIndex_)) : nullptr;
+	if (channel && ImGui::MenuItem("ここにキーを打つ"))
+	{
+		bool added = false;
+		ExecuteTrackEdit(sequence_, static_cast<size_t>(contextTrackIndex_), "Add Key", [&]() { added = channel->AddKeyAt(contextTime_); });
+		statusMessage_ = added ? "キーを追加しました" : "この行にはキーを追加できません";
+		player_.EvaluateCurrentTime();
+	}
+	if (ImGui::MenuItem("選択したキーを削除", nullptr, false, !CollectSelectedKeys(sequence_).empty())) { DeleteSelectedKey(); }
+	if (ImGui::MenuItem("コピー", nullptr, false, !CollectSelectedKeys(sequence_).empty())) { CopySelectedKeys(); }
+	if (ImGui::MenuItem("ここに貼り付け", nullptr, false, !clipboard_.empty())) { PasteKeysAt(contextTime_); }
+
+	const std::vector<SelectionItem> selected = CollectSelectedKeys(sequence_);
+	if (ImGui::BeginMenu("補間", !selected.empty()))
+	{
+		auto setInterpolation = [&](InterpolationMode mode)
+		{
+			CommandHistory* history = CommandHistory::GetInstance();
+			history->BeginTransaction("Change Interpolation");
+			for (size_t trackIndex = 0; trackIndex < sequence_.GetTrackCount(); ++trackIndex)
+			{
+				ExecuteTrackEdit(sequence_, trackIndex, "Change Interpolation", [&]()
+				{
+					for (const SelectionItem& item : selected)
+					{
+						if (item.trackIndex != static_cast<int>(trackIndex)) { continue; }
+						if (ICurveChannel* selectedChannel = GetSelectedChannel(sequence_, item))
+						{
+							if (selectedChannel->HasInterpolation())
+							{
+								selectedChannel->GetKeyInterp(static_cast<size_t>(item.keyIndex)) = mode;
+							}
+						}
+					}
+				});
+			}
+			history->EndTransaction();
+		};
+		if (ImGui::MenuItem("一定")) { setInterpolation(InterpolationMode::Constant); }
+		if (ImGui::MenuItem("直線")) { setInterpolation(InterpolationMode::Linear); }
+		if (ImGui::MenuItem("ベジェ")) { setInterpolation(InterpolationMode::Bezier); }
+		ImGui::EndMenu();
+	}
+	if (ImGui::BeginMenu("イージング", !selected.empty()))
+	{
+		struct Preset { const char* name; EasingType type; };
+		const Preset presets[] = {
+			{ "Linear", EasingType::Linear }, { "Ease In", EasingType::EaseInCubic },
+			{ "Ease Out", EasingType::EaseOutCubic }, { "Ease In Out", EasingType::EaseInOutCubic },
+		};
+		for (const Preset& preset : presets)
+		{
+			if (!ImGui::MenuItem(preset.name)) { continue; }
+			CommandHistory* history = CommandHistory::GetInstance();
+			history->BeginTransaction("Set Easing Preset");
+			for (size_t trackIndex = 0; trackIndex < sequence_.GetTrackCount(); ++trackIndex)
+			{
+				ExecuteTrackEdit(sequence_, trackIndex, "Set Easing Preset", [&]()
+				{
+					for (const SelectionItem& item : selected)
+					{
+						if (item.trackIndex != static_cast<int>(trackIndex)) { continue; }
+						if (ICurveChannel* selectedChannel = GetSelectedChannel(sequence_, item))
+						{
+							if (selectedChannel->HasInterpolation())
+							{
+								selectedChannel->GetKeyInterp(static_cast<size_t>(item.keyIndex)) = InterpolationMode::Bezier;
+								selectedChannel->GetKeyBezier(static_cast<size_t>(item.keyIndex)) = EasingTypeToBezier(preset.type);
+							}
+						}
+					}
+				});
+			}
+			history->EndTransaction();
+		}
+		ImGui::EndMenu();
+	}
+	ImGui::EndPopup();
 }
 
 void SequencerEditor::ApplyActiveCamera()

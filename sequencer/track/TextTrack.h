@@ -94,6 +94,7 @@ private:
 		InterpolationMode& GetKeyInterp(size_t index) override { (void)index; return unusedInterp_; }
 		BezierHandle& GetKeyBezier(size_t index) override { (void)index; return unusedBezier_; }
 		bool HasInterpolation() const override { return false; }
+		bool AddKeyAt(float time) override;
 
 		/** @brief 開始時刻順を保ったまま追加する。追加後のインデックスを返す */
 		size_t Insert(const TextEntry& entry);
