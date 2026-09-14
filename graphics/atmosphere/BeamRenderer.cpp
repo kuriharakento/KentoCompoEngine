@@ -16,6 +16,7 @@
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
+#include "editor/SelectionContext.h"
 #include "manager/editor/DebugUIManager.h"
 #endif
 
@@ -296,10 +297,11 @@ void BeamRenderer::Draw(Camera* camera, GBuffer* gBuffer, D3D12_CPU_DESCRIPTOR_H
 }
 
 #ifdef USE_IMGUI
-void BeamRenderer::RegisterDebugUI(LightManager* lightManager)
+void BeamRenderer::RegisterDebugUI()
 {
-	debugLightManager_ = lightManager;
 	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "Rendering", "Light Beams", [this]() { DrawImGui(); });
+	DebugUIManager::GetInstance()->RegisterInspector(this, SelectionKind::Light,
+		[this](const SelectionItem& item) { DrawSpotLightInspector(item); });
 }
 
 void BeamRenderer::DrawImGui()
@@ -313,41 +315,24 @@ void BeamRenderer::DrawImGui()
 	ImGui::DragFloat("Fade Distance", &settings_.fadeDistance, 0.05f, 0.01f, 20.0f, "%.2f");
 	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("壁や床の手前で消えていく距離。小さいと床に刺さった線が見える"); }
 	ImGui::DragFloat("Length Scale", &settings_.lengthScale, 0.01f, 0.05f, 4.0f, "%.2f");
+}
 
-	ImGui::SeparatorText("スポットライトごとの有効／無効");
-	if (!debugLightManager_ || debugLightManager_->GetSpotLights().empty())
+void BeamRenderer::DrawSpotLightInspector(const SelectionItem& item)
+{
+	if (item.lightType != SelectionLightType::Spot)
 	{
-		ImGui::TextDisabled("スポットライトがありません");
 		return;
 	}
-
-	if (ImGui::Button("All On"))
+	ImGui::SeparatorText("Beam");
+	bool enabled = IsBeamEnabled(item.name);
+	if (ImGui::Checkbox("Enabled", &enabled))
 	{
-		for (const auto& [name, light] : debugLightManager_->GetSpotLights()) { (void)light; beamEnabled_[name] = true; }
+		beamEnabled_[item.name] = enabled;
 	}
-	ImGui::SameLine();
-	if (ImGui::Button("All Off"))
+	float scale = GetBeamScale(item.name);
+	if (ImGui::DragFloat("Intensity Scale", &scale, 0.01f, 0.0f, 10.0f, "x%.2f"))
 	{
-		for (const auto& [name, light] : debugLightManager_->GetSpotLights()) { (void)light; beamEnabled_[name] = false; }
-	}
-
-	for (const auto& [name, light] : debugLightManager_->GetSpotLights())
-	{
-		(void)light;
-		ImGui::PushID(name.c_str());
-		bool enabled = IsBeamEnabled(name);
-		if (ImGui::Checkbox("##enabled", &enabled))
-		{
-			beamEnabled_[name] = enabled;
-		}
-		ImGui::SameLine();
-		float scale = GetBeamScale(name);
-		ImGui::SetNextItemWidth(120.0f);
-		if (ImGui::DragFloat(name.c_str(), &scale, 0.01f, 0.0f, 10.0f, "x%.2f"))
-		{
-			beamScale_[name] = scale;
-		}
-		ImGui::PopID();
+		beamScale_[item.name] = scale;
 	}
 }
 #endif

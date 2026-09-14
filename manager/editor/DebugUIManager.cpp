@@ -321,16 +321,19 @@ void DebugUIManager::DrawInspector()
 	}
 	else
 	{
+		bool found = false;
 		for (const auto& page : inspectorPages_)
 		{
 			if (page.kind == selected.kind)
 			{
 				page.draw(selected);
-				ImGui::End();
-				return;
+				found = true;
 			}
 		}
-		ImGui::TextUnformatted("この種類の詳細表示はまだ登録されていません。");
+		if (!found)
+		{
+			ImGui::TextUnformatted("この種類の詳細表示はまだ登録されていません。");
+		}
 	}
 	ImGui::End();
 }

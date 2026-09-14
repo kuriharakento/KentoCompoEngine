@@ -292,7 +292,7 @@ void Framework::Initialize()
 		[this](std::string& outError) { return beamRenderer_->ReloadShaders(outError); });
 #ifdef USE_IMGUI
 	fogRenderer_->RegisterDebugUI();
-	beamRenderer_->RegisterDebugUI(lightManager_.get());
+	beamRenderer_->RegisterDebugUI();
 #endif
 
 	// 画の質（アンチエイリアス・被写界深度・ボリュメトリック・床反射）

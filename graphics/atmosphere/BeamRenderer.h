@@ -16,6 +16,7 @@ class FrameConstantAllocator;
 class GBuffer;
 class LightManager;
 class SrvManager;
+struct SelectionItem;
 
 /**
  * @brief スポットライトの光の筋（ビーム）をコーンメッシュの加算合成で描くクラス
@@ -134,8 +135,9 @@ public:
 	Settings& GetSettings() { return settings_; }
 
 #ifdef USE_IMGUI
-	void RegisterDebugUI(LightManager* lightManager);
+	void RegisterDebugUI();
 	void DrawImGui();
+	void DrawSpotLightInspector(const SelectionItem& item);
 #endif
 
 private:
@@ -158,10 +160,5 @@ private:
 	std::unordered_map<std::string, bool> beamEnabled_;
 	// スポットライト名 → ビームの明るさの倍率
 	std::unordered_map<std::string, float> beamScale_;
-
-#ifdef USE_IMGUI
-	// デバッグUIでライトの一覧を出すための参照
-	LightManager* debugLightManager_ = nullptr;
-#endif
 };
 } // namespace KCE

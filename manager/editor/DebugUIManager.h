@@ -49,7 +49,7 @@ public:
 	 * @param name ページ名
 	 */
 	void RegisterSettingsPage(void* owner, const std::string& category, const std::string& name, std::function<void()> draw);
-	/** @brief 選択の種類に対応する Inspector の中身を登録する。種類ごとに1つ。 */
+	/** @brief 選択の種類に対応する Inspector の中身を登録する。同じ種類は登録順に続けて描く。 */
 	void RegisterInspector(void* owner, SelectionKind kind, std::function<void(const SelectionItem&)> draw);
 	/** @brief Scene 画像の上に描く重ね描き（ギズモなど）を登録する。 */
 	void RegisterSceneOverlay(void* owner, std::function<void()> draw);
@@ -135,7 +135,7 @@ private:
 		std::string displayName;		//!< 分類付きの表示名。毎フレーム作らないよう登録時に作る
 		std::function<void()> draw;		//!< 中身の描画
 	};
-	/** @brief Inspector の中身1つぶんの登録。 */
+	/** @brief Inspector の中身または追加欄1つぶんの登録。 */
 	struct InspectorPage
 	{
 		void* owner = nullptr;								//!< 登録元。所有しない
