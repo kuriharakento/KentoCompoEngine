@@ -18,6 +18,7 @@ class ISubViewProvider;
 class LightManager;
 class Object3dCommon;
 class StageMonitor;
+class RenderView;
 class Text3DRenderer;
 struct SelectionItem;
 
@@ -80,6 +81,25 @@ public:
 		float framesPerSecond = kDefaultMonitorFramesPerSecond;
 	};
 
+	/** @brief ステージカメラの保存・編集対象。 */
+	struct CameraState
+	{
+		Vector3 position{};
+		Vector3 rotation{};
+		uint32_t width = kDefaultMonitorWidth;
+		uint32_t height = kDefaultMonitorHeight;
+		float framesPerSecond = kDefaultMonitorFramesPerSecond;
+	};
+
+	/** @brief CameraManager のカメラと共有サブビューをまとめて所有する。 */
+	struct CameraEntry
+	{
+		std::string name;
+		CameraState state;
+		// Framework 所有。DestroySubView まで有効
+		RenderView* view = nullptr;
+	};
+
 	/** @brief StageManager が所有するモニター一式。 */
 	struct MonitorEntry
 	{
@@ -100,6 +120,10 @@ public:
 	std::unique_ptr<MonitorEntry> RemoveStageMonitor(const std::string& name);
 	/** @brief 保存済みの状態をモニターへ適用する。 */
 	bool ApplyMonitorState(const std::string& name, const MonitorState& state, bool recreateView);
+	bool AddStageCamera(std::unique_ptr<CameraEntry>& entry);
+	std::unique_ptr<CameraEntry> RemoveStageCamera(const std::string& name);
+	bool ApplyCameraState(const std::string& name, const CameraState& state, bool recreateView);
+	bool SetMonitorCamera(const std::string& monitorName, const std::string& cameraName);
 	const std::string& GetStageName() const { return stageName_; }
 	uint64_t GetLifetimeId() const { return lifetimeId_; }
 	/** @brief Undo コマンドがシーン破棄後の Manager を触らないための確認。 */
@@ -109,6 +133,9 @@ private:
 	struct TextEntry { std::string name; std::unique_ptr<TextMesh3D> mesh; };
 	MonitorEntry* FindMonitor(const std::string& name);
 	const MonitorEntry* FindMonitor(const std::string& name) const;
+	CameraEntry* FindCamera(const std::string& name);
+	const CameraEntry* FindCamera(const std::string& name) const;
+	std::unique_ptr<CameraEntry> CreateCamera(const std::string& name, const CameraState& state);
 	std::unique_ptr<MonitorEntry> CreateMonitor(const std::string& name, const std::string& cameraName, const MonitorState& state);
 	nlohmann::ordered_json Serialize() const;
 	bool Deserialize(const nlohmann::json& json, std::string& outError);
@@ -124,12 +151,15 @@ private:
 	/** @brief 保存（か読み込み）した時点の3D文字。未保存かを JSON にせず比べるために持つ */
 	struct SavedText { std::string name; std::string text; TextMesh3D::Params params; };
 	struct SavedMonitor { std::string name; std::string cameraName; MonitorState state; };
+	struct SavedCamera { std::string name; CameraState state; };
 	std::string stageName_;
 	std::vector<TextEntry> texts3D_;
 	std::vector<std::unique_ptr<MonitorEntry>> monitors_;
+	std::vector<std::unique_ptr<CameraEntry>> cameras_;
 	// 保存（か読み込み）した時点の中身。IsDirty() が毎フレームこれと比べる
 	std::vector<SavedText> savedTexts_;
 	std::vector<SavedMonitor> savedMonitors_;
+	std::vector<SavedCamera> savedCameras_;
 	uint64_t lifetimeId_ = 0;
 	// Framework 所有。StageManager より長生きする前提
 	Text3DRenderer* text3DRenderer_ = nullptr;
@@ -145,13 +175,18 @@ private:
 	std::array<char, 128> newName_{};
 	std::array<char, 512> newText_{};
 	std::array<char, 128> newMonitorName_{};
+	std::array<char, 128> newCameraName_{};
 	bool createPopupRequested_ = false;
 	bool createMonitorPopupRequested_ = false;
+	bool createCameraPopupRequested_ = false;
 	std::string createError_;
 	std::string createMonitorError_;
+	std::string createCameraError_;
 	MonitorState editStartState_{};
 	std::string editingMonitorName_;
-	bool editMonitorCameraWithGizmo_ = false;
+	CameraState editStartCameraState_{};
+	std::string editingCameraName_;
+	std::string newMonitorCameraName_;
 #endif
 };
 } // namespace KCE

@@ -17,6 +17,7 @@
 #include "graphics/3d/IRenderable3d.h"
 #include "graphics/view/StageMonitor.h"
 #include "graphics/view/ISubViewProvider.h"
+#include "graphics/view/RenderView.h"
 #include "manager/scene/CameraManager.h"
 #include "manager/editor/DebugUIManager.h"
 #ifdef USE_IMGUI
@@ -112,6 +113,80 @@ private:
 	uint64_t lifetimeId_ = 0;
 	std::string name_;
 	std::unique_ptr<StageManager::MonitorEntry> entry_;
+};
+
+class CreateStageCameraCommand final : public ICommand
+{
+public:
+	CreateStageCameraCommand(StageManager* manager, std::unique_ptr<StageManager::CameraEntry> entry)
+		: manager_(manager), lifetimeId_(manager ? manager->GetLifetimeId() : 0), name_(entry ? entry->name : std::string()), entry_(std::move(entry)) {}
+	void Execute() override { if (StageManager::IsAlive(manager_, lifetimeId_) && entry_) { manager_->AddStageCamera(entry_); } }
+	void Undo() override { if (StageManager::IsAlive(manager_, lifetimeId_)) { entry_ = manager_->RemoveStageCamera(name_); } }
+	std::string GetName() const override { return "Create Stage Camera"; }
+private:
+	StageManager* manager_ = nullptr;
+	uint64_t lifetimeId_ = 0;
+	std::string name_;
+	std::unique_ptr<StageManager::CameraEntry> entry_;
+};
+
+class DeleteStageCameraCommand final : public ICommand
+{
+public:
+	DeleteStageCameraCommand(StageManager* manager, std::string name)
+		: manager_(manager), lifetimeId_(manager ? manager->GetLifetimeId() : 0), name_(std::move(name)) {}
+	void Execute() override { if (StageManager::IsAlive(manager_, lifetimeId_)) { entry_ = manager_->RemoveStageCamera(name_); } }
+	void Undo() override { if (StageManager::IsAlive(manager_, lifetimeId_) && entry_) { manager_->AddStageCamera(entry_); } }
+	std::string GetName() const override { return "Delete Stage Camera"; }
+private:
+	StageManager* manager_ = nullptr;
+	uint64_t lifetimeId_ = 0;
+	std::string name_;
+	std::unique_ptr<StageManager::CameraEntry> entry_;
+};
+
+class EditStageCameraCommand final : public ICommand
+{
+public:
+	EditStageCameraCommand(StageManager* manager, std::string name, const StageManager::CameraState& before,
+		const StageManager::CameraState& after, bool recreateView)
+		: manager_(manager), lifetimeId_(manager ? manager->GetLifetimeId() : 0), name_(std::move(name)),
+		before_(before), after_(after), recreateView_(recreateView) {}
+	void Execute() override { Apply(after_); }
+	void Undo() override { Apply(before_); }
+	std::string GetName() const override { return "Edit Stage Camera"; }
+private:
+	void Apply(const StageManager::CameraState& state)
+	{
+		if (StageManager::IsAlive(manager_, lifetimeId_)) { manager_->ApplyCameraState(name_, state, recreateView_); }
+	}
+	StageManager* manager_ = nullptr;
+	uint64_t lifetimeId_ = 0;
+	std::string name_;
+	StageManager::CameraState before_{};
+	StageManager::CameraState after_{};
+	bool recreateView_ = false;
+};
+
+class SetMonitorCameraCommand final : public ICommand
+{
+public:
+	SetMonitorCameraCommand(StageManager* manager, std::string monitorName, std::string before, std::string after)
+		: manager_(manager), lifetimeId_(manager ? manager->GetLifetimeId() : 0), monitorName_(std::move(monitorName)),
+		before_(std::move(before)), after_(std::move(after)) {}
+	void Execute() override { Apply(after_); }
+	void Undo() override { Apply(before_); }
+	std::string GetName() const override { return "Set Monitor Camera"; }
+private:
+	void Apply(const std::string& cameraName)
+	{
+		if (StageManager::IsAlive(manager_, lifetimeId_)) { manager_->SetMonitorCamera(monitorName_, cameraName); }
+	}
+	StageManager* manager_ = nullptr;
+	uint64_t lifetimeId_ = 0;
+	std::string monitorName_;
+	std::string before_;
+	std::string after_;
 };
 
 class EditStageMonitorCommand final : public ICommand
@@ -230,9 +305,13 @@ bool SameVector3(const Vector3& a, const Vector3& b)
 bool SameMonitorState(const StageManager::MonitorState& a, const StageManager::MonitorState& b)
 {
 	return SameVector3(a.screenPosition, b.screenPosition) && SameVector3(a.screenRotation, b.screenRotation)
-		&& SameVector3(a.screenScale, b.screenScale) && SameVector3(a.cameraPosition, b.cameraPosition)
-		&& SameVector3(a.cameraRotation, b.cameraRotation) && a.width == b.width && a.height == b.height
-		&& a.framesPerSecond == b.framesPerSecond;
+		&& SameVector3(a.screenScale, b.screenScale);
+}
+
+bool SameCameraState(const StageManager::CameraState& a, const StageManager::CameraState& b)
+{
+	return SameVector3(a.position, b.position) && SameVector3(a.rotation, b.rotation)
+		&& a.width == b.width && a.height == b.height && a.framesPerSecond == b.framesPerSecond;
 }
 
 StageManager::MonitorState GetCurrentMonitorState(const StageManager::MonitorEntry& entry)
@@ -243,11 +322,6 @@ StageManager::MonitorState GetCurrentMonitorState(const StageManager::MonitorEnt
 		state.screenPosition = entry.screen->GetPosition();
 		state.screenRotation = entry.screen->GetRotation();
 		state.screenScale = entry.screen->GetScale();
-	}
-	if (entry.monitor && entry.monitor->GetCamera())
-	{
-		state.cameraPosition = entry.monitor->GetCamera()->GetTranslate();
-		state.cameraRotation = entry.monitor->GetCamera()->GetRotate();
 	}
 	return state;
 }
@@ -344,6 +418,12 @@ void StageManager::Clear()
 		entry->screen.reset();
 	}
 	monitors_.clear();
+	for (auto& entry : cameras_)
+	{
+		if (entry->view && subViewProvider_) { subViewProvider_->DestroySubView(entry->view); }
+		if (cameraManager_) { cameraManager_->RemoveCamera(entry->name); }
+	}
+	cameras_.clear();
 }
 
 StageManager::MonitorEntry* StageManager::FindMonitor(const std::string& name)
@@ -356,6 +436,124 @@ const StageManager::MonitorEntry* StageManager::FindMonitor(const std::string& n
 {
 	for (const auto& entry : monitors_) { if (entry->name == name) { return entry.get(); } }
 	return nullptr;
+}
+
+StageManager::CameraEntry* StageManager::FindCamera(const std::string& name)
+{
+	for (const auto& entry : cameras_) { if (entry->name == name) { return entry.get(); } }
+	return nullptr;
+}
+
+const StageManager::CameraEntry* StageManager::FindCamera(const std::string& name) const
+{
+	for (const auto& entry : cameras_) { if (entry->name == name) { return entry.get(); } }
+	return nullptr;
+}
+
+std::unique_ptr<StageManager::CameraEntry> StageManager::CreateCamera(const std::string& name, const CameraState& state)
+{
+	if (name.empty()) { return nullptr; }
+	auto entry = std::make_unique<CameraEntry>();
+	entry->name = name;
+	entry->state = state;
+	return entry;
+}
+
+bool StageManager::AddStageCamera(std::unique_ptr<CameraEntry>& entry)
+{
+	if (!entry || FindCamera(entry->name) || !cameraManager_ || cameraManager_->GetCamera(entry->name) || !subViewProvider_) { return false; }
+	entry->state.width = (std::clamp)(entry->state.width, kMinMonitorResolution, kMaxMonitorResolution);
+	entry->state.height = (std::clamp)(entry->state.height, kMinMonitorResolution, kMaxMonitorResolution);
+	entry->state.framesPerSecond = (std::clamp)(entry->state.framesPerSecond, kMinMonitorFramesPerSecond, kMaxMonitorFramesPerSecond);
+	cameraManager_->AddCamera(entry->name);
+	Camera* camera = cameraManager_->GetCamera(entry->name);
+	if (!camera) { return false; }
+	camera->SetTranslate(entry->state.position);
+	camera->SetRotate(entry->state.rotation);
+	camera->SetAspectRatio(static_cast<float>(entry->state.width) / static_cast<float>(entry->state.height));
+	entry->view = subViewProvider_->CreateSubView(entry->name, entry->state.width, entry->state.height);
+	if (!entry->view)
+	{
+		cameraManager_->RemoveCamera(entry->name);
+		return false;
+	}
+	entry->view->SetCamera(camera);
+	entry->view->SetLayerMask(kRenderLayerAll & ~StageMonitor::kScreenLayer);
+	entry->view->SetPassEnabled(RenderViewPass::DebugLines, false);
+	entry->view->SetUpdateInterval(1.0f / entry->state.framesPerSecond);
+	CameraEntry* added = entry.get();
+	cameras_.push_back(std::move(entry));
+	for (auto& monitor : monitors_)
+	{
+		if (monitor->cameraName == added->name && monitor->monitor) { monitor->monitor->AttachView(added->view); }
+	}
+	return true;
+}
+
+std::unique_ptr<StageManager::CameraEntry> StageManager::RemoveStageCamera(const std::string& name)
+{
+	for (auto it = cameras_.begin(); it != cameras_.end(); ++it)
+	{
+		if ((*it)->name != name) { continue; }
+		std::unique_ptr<CameraEntry> entry = std::move(*it);
+		cameras_.erase(it);
+		if (Camera* camera = cameraManager_ ? cameraManager_->GetCamera(name) : nullptr)
+		{
+			entry->state.position = camera->GetTranslate();
+			entry->state.rotation = camera->GetRotate();
+		}
+		for (auto& monitor : monitors_)
+		{
+			if (monitor->cameraName == name && monitor->monitor) { monitor->monitor->AttachView(nullptr); }
+		}
+		if (entry->view && subViewProvider_) { subViewProvider_->DestroySubView(entry->view); }
+		entry->view = nullptr;
+		if (cameraManager_) { cameraManager_->RemoveCamera(name); }
+		const SelectionItem& selected = SelectionContext::GetInstance()->GetPrimary();
+		if (selected.kind == SelectionKind::Camera && selected.name == name) { SelectionContext::GetInstance()->ClearSelection(); }
+		return entry;
+	}
+	return nullptr;
+}
+
+bool StageManager::ApplyCameraState(const std::string& name, const CameraState& state, bool recreateView)
+{
+	CameraEntry* entry = FindCamera(name);
+	Camera* camera = cameraManager_ ? cameraManager_->GetCamera(name) : nullptr;
+	if (!entry || !camera) { return false; }
+	CameraState applied = state;
+	applied.width = (std::clamp)(applied.width, kMinMonitorResolution, kMaxMonitorResolution);
+	applied.height = (std::clamp)(applied.height, kMinMonitorResolution, kMaxMonitorResolution);
+	applied.framesPerSecond = (std::clamp)(applied.framesPerSecond, kMinMonitorFramesPerSecond, kMaxMonitorFramesPerSecond);
+	camera->SetTranslate(applied.position);
+	camera->SetRotate(applied.rotation);
+	if (recreateView)
+	{
+		RenderView* replacement = subViewProvider_->CreateSubView(name, applied.width, applied.height);
+		if (!replacement) { return false; }
+		for (auto& monitor : monitors_) { if (monitor->cameraName == name && monitor->monitor) { monitor->monitor->AttachView(nullptr); } }
+		if (entry->view) { subViewProvider_->DestroySubView(entry->view); }
+		entry->view = replacement;
+		entry->view->SetCamera(camera);
+		entry->view->SetLayerMask(kRenderLayerAll & ~StageMonitor::kScreenLayer);
+		entry->view->SetPassEnabled(RenderViewPass::DebugLines, false);
+		for (auto& monitor : monitors_) { if (monitor->cameraName == name && monitor->monitor) { monitor->monitor->AttachView(entry->view); } }
+	}
+	if (!entry->view) { return false; }
+	camera->SetAspectRatio(static_cast<float>(applied.width) / static_cast<float>(applied.height));
+	entry->view->SetUpdateInterval(1.0f / applied.framesPerSecond);
+	entry->state = applied;
+	return true;
+}
+
+bool StageManager::SetMonitorCamera(const std::string& monitorName, const std::string& cameraName)
+{
+	MonitorEntry* monitor = FindMonitor(monitorName);
+	if (!monitor || (!cameraName.empty() && !FindCamera(cameraName))) { return false; }
+	monitor->cameraName = cameraName;
+	CameraEntry* camera = FindCamera(cameraName);
+	monitor->monitor->AttachView(camera ? camera->view : nullptr);
+	return true;
 }
 
 std::unique_ptr<StageManager::MonitorEntry> StageManager::CreateMonitor(
@@ -386,8 +584,7 @@ std::unique_ptr<StageManager::MonitorEntry> StageManager::CreateMonitor(
 
 bool StageManager::AddStageMonitor(std::unique_ptr<MonitorEntry>& entry)
 {
-	if (!entry || FindMonitor(entry->name) || !cameraManager_ || cameraManager_->GetCamera(entry->cameraName)
-		|| !GameObjectManager::HasInstance() || GameObjectManager::GetInstance()->Find(entry->name))
+	if (!entry || FindMonitor(entry->name) || !GameObjectManager::HasInstance() || GameObjectManager::GetInstance()->Find(entry->name))
 	{
 		return false;
 	}
@@ -395,14 +592,8 @@ bool StageManager::AddStageMonitor(std::unique_ptr<MonitorEntry>& entry)
 	entry->state.height = (std::clamp)(entry->state.height, kMinMonitorResolution, kMaxMonitorResolution);
 	entry->state.framesPerSecond = (std::clamp)(entry->state.framesPerSecond, kMinMonitorFramesPerSecond, kMaxMonitorFramesPerSecond);
 	entry->monitor = std::make_unique<StageMonitor>();
-	if (!entry->monitor->Initialize(subViewProvider_, cameraManager_, entry->cameraName, entry->state.width, entry->state.height))
-	{
-		entry->monitor.reset();
-		return false;
-	}
-	entry->monitor->GetCamera()->SetTranslate(entry->state.cameraPosition);
-	entry->monitor->GetCamera()->SetRotate(entry->state.cameraRotation);
-	entry->monitor->SetFramesPerSecond(entry->state.framesPerSecond);
+	CameraEntry* camera = FindCamera(entry->cameraName);
+	entry->monitor->AttachView(camera ? camera->view : nullptr);
 	entry->monitor->SetScreen(entry->screen.get());
 	GameObjectManager::GetInstance()->Register(entry->screen.get());
 	monitors_.push_back(std::move(entry));
@@ -416,7 +607,6 @@ std::unique_ptr<StageManager::MonitorEntry> StageManager::RemoveStageMonitor(con
 		if ((*it)->name != name) { continue; }
 		std::unique_ptr<MonitorEntry> entry = std::move(*it);
 		monitors_.erase(it);
-		// カメラはモニターと一緒に消えるので、Undo で同じ所に戻せるよう今の位置を覚えてから畳む
 		entry->state = GetCurrentMonitorState(*entry);
 		entry->monitor.reset();
 		if (GameObjectManager::HasInstance()) { GameObjectManager::GetInstance()->Unregister(entry->screen.get()); }
@@ -430,7 +620,7 @@ std::unique_ptr<StageManager::MonitorEntry> StageManager::RemoveStageMonitor(con
 bool StageManager::ApplyMonitorState(const std::string& name, const MonitorState& state, bool recreateView)
 {
 	MonitorEntry* entry = FindMonitor(name);
-	if (!entry || !entry->screen || !entry->monitor || !entry->monitor->GetCamera()) { return false; }
+	if (!entry || !entry->screen || !entry->monitor) { return false; }
 	MonitorState applied = state;
 	applied.width = (std::clamp)(applied.width, kMinMonitorResolution, kMaxMonitorResolution);
 	applied.height = (std::clamp)(applied.height, kMinMonitorResolution, kMaxMonitorResolution);
@@ -438,10 +628,7 @@ bool StageManager::ApplyMonitorState(const std::string& name, const MonitorState
 	entry->screen->SetPosition(applied.screenPosition);
 	entry->screen->SetRotation(applied.screenRotation);
 	entry->screen->SetScale(applied.screenScale);
-	entry->monitor->GetCamera()->SetTranslate(applied.cameraPosition);
-	entry->monitor->GetCamera()->SetRotate(applied.cameraRotation);
-	if (recreateView && !entry->monitor->RecreateView(applied.width, applied.height)) { return false; }
-	entry->monitor->SetFramesPerSecond(applied.framesPerSecond);
+	(void)recreateView;
 	entry->state = applied;
 	return true;
 }
@@ -470,6 +657,23 @@ nlohmann::ordered_json StageManager::Serialize() const
 		text["style"] = TextAppearStyleToString(params.style);
 		json["texts3d"].push_back(std::move(text));
 	}
+	json["cameras"] = nlohmann::ordered_json::array();
+	for (const auto& entry : cameras_)
+	{
+		CameraState state = entry->state;
+		if (Camera* camera = cameraManager_ ? cameraManager_->GetCamera(entry->name) : nullptr)
+		{
+			state.position = camera->GetTranslate();
+			state.rotation = camera->GetRotate();
+		}
+		json["cameras"].push_back({
+			{ "name", entry->name },
+			{ "position", SerializeVector3(state.position) },
+			{ "rotation", SerializeVector3(state.rotation) },
+			{ "resolution", { state.width, state.height } },
+			{ "framesPerSecond", state.framesPerSecond }
+		});
+	}
 	json["monitors"] = nlohmann::ordered_json::array();
 	for (const auto& entry : monitors_)
 	{
@@ -481,13 +685,7 @@ nlohmann::ordered_json StageManager::Serialize() const
 			{ "rotation", SerializeVector3(state.screenRotation) },
 			{ "scale", SerializeVector3(state.screenScale) }
 		};
-		monitor["camera"] = {
-			{ "name", entry->cameraName },
-			{ "position", SerializeVector3(state.cameraPosition) },
-			{ "rotation", SerializeVector3(state.cameraRotation) }
-		};
-		monitor["resolution"] = { state.width, state.height };
-		monitor["framesPerSecond"] = state.framesPerSecond;
+		monitor["camera"] = entry->cameraName;
 		json["monitors"].push_back(std::move(monitor));
 	}
 	return json;
@@ -535,6 +733,29 @@ bool StageManager::Deserialize(const nlohmann::json& json, std::string& outError
 		}
 	}
 
+	if (version >= 2 && json.contains("cameras") && !json["cameras"].is_array()) { outError = "cameras が配列ではありません"; return false; }
+	if (version >= 2 && json.contains("cameras"))
+	{
+		for (const auto& cameraJson : json["cameras"])
+		{
+			if (!cameraJson.is_object() || !cameraJson.contains("name") || !cameraJson["name"].is_string()) { continue; }
+			CameraState state;
+			if (cameraJson.contains("position")) { ReadFloatArray(cameraJson["position"], 3, &state.position.x); }
+			if (cameraJson.contains("rotation")) { ReadFloatArray(cameraJson["rotation"], 3, &state.rotation.x); }
+			if (cameraJson.contains("resolution") && cameraJson["resolution"].is_array() && cameraJson["resolution"].size() == 2)
+			{
+				state.width = cameraJson["resolution"][0].get<uint32_t>();
+				state.height = cameraJson["resolution"][1].get<uint32_t>();
+			}
+			if (cameraJson.contains("framesPerSecond") && cameraJson["framesPerSecond"].is_number())
+			{
+				state.framesPerSecond = cameraJson["framesPerSecond"].get<float>();
+			}
+			auto entry = CreateCamera(cameraJson["name"].get<std::string>(), state);
+			if (!entry || !AddStageCamera(entry)) { Logger::Log("StageManager: ステージカメラを作れませんでした\n", Logger::LogLevel::Warning); }
+		}
+	}
+
 	if (json.contains("monitors") && !json["monitors"].is_array()) { outError = "monitors が配列ではありません"; return false; }
 	if (json.contains("monitors"))
 	{
@@ -542,7 +763,7 @@ bool StageManager::Deserialize(const nlohmann::json& json, std::string& outError
 		{
 			if (!monitor.is_object() || !monitor.contains("name") || !monitor["name"].is_string()
 				|| !monitor.contains("screen") || !monitor["screen"].is_object()
-				|| !monitor.contains("camera") || !monitor["camera"].is_object())
+				|| !monitor.contains("camera"))
 			{
 				Logger::Log("StageManager: 不正なモニターを読み飛ばしました\n", Logger::LogLevel::Warning);
 				continue;
@@ -550,7 +771,8 @@ bool StageManager::Deserialize(const nlohmann::json& json, std::string& outError
 			const std::string name = monitor["name"].get<std::string>();
 			const auto& screen = monitor["screen"];
 			const auto& camera = monitor["camera"];
-			if (!camera.contains("name") || !camera["name"].is_string())
+			if ((version == 1 && (!camera.is_object() || !camera.contains("name") || !camera["name"].is_string()))
+				|| (version >= 2 && !camera.is_string()))
 			{
 				Logger::Log("StageManager: カメラ名のないモニターを読み飛ばしました: " + name + "\n", Logger::LogLevel::Warning);
 				continue;
@@ -560,19 +782,31 @@ bool StageManager::Deserialize(const nlohmann::json& json, std::string& outError
 			if (screen.contains("position")) { ReadFloatArray(screen["position"], 3, &state.screenPosition.x); }
 			if (screen.contains("rotation")) { ReadFloatArray(screen["rotation"], 3, &state.screenRotation.x); }
 			if (screen.contains("scale")) { ReadFloatArray(screen["scale"], 3, &state.screenScale.x); }
-			if (camera.contains("position")) { ReadFloatArray(camera["position"], 3, &state.cameraPosition.x); }
-			if (camera.contains("rotation")) { ReadFloatArray(camera["rotation"], 3, &state.cameraRotation.x); }
-			if (monitor.contains("resolution") && monitor["resolution"].is_array() && monitor["resolution"].size() == 2
+			if (version == 1 && camera.contains("position")) { ReadFloatArray(camera["position"], 3, &state.cameraPosition.x); }
+			if (version == 1 && camera.contains("rotation")) { ReadFloatArray(camera["rotation"], 3, &state.cameraRotation.x); }
+			if (version == 1 && monitor.contains("resolution") && monitor["resolution"].is_array() && monitor["resolution"].size() == 2
 				&& monitor["resolution"][0].is_number_unsigned() && monitor["resolution"][1].is_number_unsigned())
 			{
 				state.width = monitor["resolution"][0].get<uint32_t>();
 				state.height = monitor["resolution"][1].get<uint32_t>();
 			}
-			if (monitor.contains("framesPerSecond") && monitor["framesPerSecond"].is_number())
+			if (version == 1 && monitor.contains("framesPerSecond") && monitor["framesPerSecond"].is_number())
 			{
 				state.framesPerSecond = monitor["framesPerSecond"].get<float>();
 			}
-			auto entry = CreateMonitor(name, camera["name"].get<std::string>(), state);
+			const std::string cameraName = version == 1 ? camera["name"].get<std::string>() : camera.get<std::string>();
+			if (version == 1 && !FindCamera(cameraName))
+			{
+				CameraState cameraState;
+				cameraState.position = state.cameraPosition;
+				cameraState.rotation = state.cameraRotation;
+				cameraState.width = state.width;
+				cameraState.height = state.height;
+				cameraState.framesPerSecond = state.framesPerSecond;
+				auto cameraEntry = CreateCamera(cameraName, cameraState);
+				if (!cameraEntry || !AddStageCamera(cameraEntry)) { Logger::Log("StageManager: 旧モニターのカメラを移せませんでした: " + cameraName + "\n", Logger::LogLevel::Warning); }
+			}
+			auto entry = CreateMonitor(name, cameraName, state);
 			if (!entry || !AddStageMonitor(entry))
 			{
 				Logger::Log("StageManager: モニターを作れませんでした: " + name + "\n", Logger::LogLevel::Warning);
@@ -663,6 +897,17 @@ bool StageManager::IsDirty() const
 			return true;
 		}
 	}
+	if (cameras_.size() != savedCameras_.size()) { return true; }
+	for (size_t i = 0; i < cameras_.size(); ++i)
+	{
+		CameraState current = cameras_[i]->state;
+		if (Camera* camera = cameraManager_ ? cameraManager_->GetCamera(cameras_[i]->name) : nullptr)
+		{
+			current.position = camera->GetTranslate();
+			current.rotation = camera->GetRotate();
+		}
+		if (cameras_[i]->name != savedCameras_[i].name || !SameCameraState(current, savedCameras_[i].state)) { return true; }
+	}
 	return false;
 }
 
@@ -680,6 +925,18 @@ void StageManager::CaptureSavedState()
 	{
 		savedMonitors_.push_back({ entry->name, entry->cameraName, GetCurrentMonitorState(*entry) });
 	}
+	savedCameras_.clear();
+	savedCameras_.reserve(cameras_.size());
+	for (const auto& entry : cameras_)
+	{
+		CameraState state = entry->state;
+		if (Camera* camera = cameraManager_ ? cameraManager_->GetCamera(entry->name) : nullptr)
+		{
+			state.position = camera->GetTranslate();
+			state.rotation = camera->GetRotate();
+		}
+		savedCameras_.push_back({ entry->name, state });
+	}
 }
 
 #ifdef USE_IMGUI
@@ -688,6 +945,7 @@ void StageManager::RegisterDebugUI()
 	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "ステージ", [this]() { DrawHierarchyImGui(); });
 	DebugUIManager::GetInstance()->RegisterInspector(this, SelectionKind::Text3D, [this](const SelectionItem& item) { DrawInspectorImGui(item); });
 	DebugUIManager::GetInstance()->RegisterInspector(this, SelectionKind::StageMonitor, [this](const SelectionItem& item) { DrawInspectorImGui(item); });
+	DebugUIManager::GetInstance()->RegisterInspector(this, SelectionKind::Camera, [this](const SelectionItem& item) { DrawInspectorImGui(item); });
 	GizmoTarget textTarget;
 	textTarget.getPose = [this](const SelectionItem& item, Matrix4x4& world, uint32_t& operations)
 	{
@@ -717,16 +975,8 @@ void StageManager::RegisterDebugUI()
 		MonitorEntry* entry = FindMonitor(item.name);
 		if (!entry) { return false; }
 		entry->state = GetCurrentMonitorState(*entry);
-		if (editMonitorCameraWithGizmo_)
-		{
-			world = MakeAffineMatrix({ 1.0f, 1.0f, 1.0f }, entry->state.cameraRotation, entry->state.cameraPosition);
-			operations = kGizmoTranslate | kGizmoRotate;
-		}
-		else
-		{
-			world = MakeAffineMatrix(entry->state.screenScale, entry->state.screenRotation, entry->state.screenPosition);
-			operations = kGizmoAll;
-		}
+		world = MakeAffineMatrix(entry->state.screenScale, entry->state.screenRotation, entry->state.screenPosition);
+		operations = kGizmoAll;
 		return true;
 	};
 	monitorTarget.apply = [this](const SelectionItem& item, const GizmoResult& result, uint32_t dragId)
@@ -735,17 +985,9 @@ void StageManager::RegisterDebugUI()
 		if (!entry) { return; }
 		MonitorState before = GetCurrentMonitorState(*entry);
 		MonitorState after = before;
-		if (editMonitorCameraWithGizmo_)
-		{
-			after.cameraPosition = result.translate;
-			after.cameraRotation = result.rotate.ToEuler();
-		}
-		else
-		{
-			after.screenPosition = result.translate;
-			after.screenRotation = result.rotate.ToEuler();
-			after.screenScale = result.scale;
-		}
+		after.screenPosition = result.translate;
+		after.screenRotation = result.rotate.ToEuler();
+		after.screenScale = result.scale;
 		CommandHistory::GetInstance()->Execute(std::make_unique<StageMonitorGizmoCommand>(this, item.name, before, after, dragId));
 	};
 	SceneGizmo::GetInstance()->RegisterTarget(this, SelectionKind::StageMonitor, std::move(monitorTarget));
@@ -754,6 +996,7 @@ void StageManager::RegisterDebugUI()
 void StageManager::DrawHierarchyImGui()
 {
 	ImGui::Text("%s%s", stageName_.c_str(), IsDirty() ? " *" : "");
+	ImGui::TextDisabled("ステージカメラ: %zu / モニター: %zu", cameras_.size(), monitors_.size());
 	ImGui::SameLine();
 	if (ImGui::Button("保存")) { SaveToFile(); }
 	if (ImGui::Button("3D テキストを作る"))
@@ -762,9 +1005,24 @@ void StageManager::DrawHierarchyImGui()
 	}
 	if (ImGui::Button("モニターを作る"))
 	{
-		newMonitorName_.fill('\0'); createMonitorError_.clear(); createMonitorPopupRequested_ = true;
+		newMonitorName_.fill('\0'); createMonitorError_.clear();
+		newMonitorCameraName_ = cameras_.empty() ? std::string() : cameras_.front()->name;
+		createMonitorPopupRequested_ = true;
+	}
+	if (ImGui::Button("カメラを作る"))
+	{
+		newCameraName_.fill('\0'); createCameraError_.clear(); createCameraPopupRequested_ = true;
 	}
 	const SelectionItem& selected = SelectionContext::GetInstance()->GetPrimary();
+	for (const auto& entry : cameras_)
+	{
+		const bool isSelected = selected.kind == SelectionKind::Camera && selected.name == entry->name;
+		if (ImGui::Selectable(entry->name.c_str(), isSelected))
+		{
+			SelectionItem item; item.kind = SelectionKind::Camera; item.name = entry->name;
+			SelectionContext::GetInstance()->Select(item);
+		}
+	}
 	for (const auto& entry : monitors_)
 	{
 		const bool isSelected = selected.kind == SelectionKind::StageMonitor && selected.name == entry->name;
@@ -817,6 +1075,15 @@ void StageManager::DrawHierarchyImGui()
 	if (ImGui::BeginPopupModal("モニターを作る###CreateStageMonitor", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::InputText("名前", newMonitorName_.data(), newMonitorName_.size());
+		if (ImGui::BeginCombo("映すカメラ", newMonitorCameraName_.empty() ? "一緒に作る" : newMonitorCameraName_.c_str()))
+		{
+			if (ImGui::Selectable("一緒に作る", newMonitorCameraName_.empty())) { newMonitorCameraName_.clear(); }
+			for (const auto& camera : cameras_)
+			{
+				if (ImGui::Selectable(camera->name.c_str(), newMonitorCameraName_ == camera->name)) { newMonitorCameraName_ = camera->name; }
+			}
+			ImGui::EndCombo();
+		}
 		if (!createMonitorError_.empty())
 		{
 			ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.25f, 1.0f), "%s", createMonitorError_.c_str());
@@ -824,13 +1091,15 @@ void StageManager::DrawHierarchyImGui()
 		if (ImGui::Button("作る"))
 		{
 			const std::string name = newMonitorName_.data();
-			const std::string cameraName = name + "Cam";
+			const std::string cameraName = newMonitorCameraName_.empty() ? name + "Cam" : newMonitorCameraName_;
 			if (name.empty()) { createMonitorError_ = "名前を入力してください。"; }
 			else if (FindMonitor(name)) { createMonitorError_ = "同じ名前のモニターがあります。"; }
-			else if (cameraManager_ && cameraManager_->GetCamera(cameraName)) { createMonitorError_ = "同じ名前のカメラがあります: " + cameraName; }
+			else if (newMonitorCameraName_.empty() && cameraManager_ && cameraManager_->GetCamera(cameraName)) { createMonitorError_ = "同じ名前のカメラがあります: " + cameraName; }
 			else if (GameObjectManager::HasInstance() && GameObjectManager::GetInstance()->Find(name)) { createMonitorError_ = "同じ名前の GameObject があります。"; }
 			else
 			{
+				const bool createsCamera = newMonitorCameraName_.empty();
+				if (createsCamera) { CommandHistory::GetInstance()->BeginTransaction("Create Stage Monitor"); }
 				MonitorState state;
 				state.screenRotation = kMonitorScreenRotation;
 				state.screenScale = kMonitorScreenScale;
@@ -845,9 +1114,52 @@ void StageManager::DrawHierarchyImGui()
 					state.cameraPosition = camera->GetTranslate();
 					state.cameraRotation = camera->GetRotate();
 				}
+				if (newMonitorCameraName_.empty())
+				{
+					CameraState cameraState;
+					cameraState.position = state.cameraPosition;
+					cameraState.rotation = state.cameraRotation;
+					auto cameraEntry = CreateCamera(cameraName, cameraState);
+					CommandHistory::GetInstance()->Execute(std::make_unique<CreateStageCameraCommand>(this, std::move(cameraEntry)));
+				}
 				auto entry = CreateMonitor(name, cameraName, state);
 				CommandHistory::GetInstance()->Execute(std::make_unique<CreateStageMonitorCommand>(this, std::move(entry)));
+				if (createsCamera) { CommandHistory::GetInstance()->EndTransaction(); }
 				SelectionItem item; item.kind = SelectionKind::StageMonitor; item.name = name;
+				SelectionContext::GetInstance()->Select(item);
+				ImGui::CloseCurrentPopup();
+			}
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("キャンセル")) { ImGui::CloseCurrentPopup(); }
+		ImGui::EndPopup();
+	}
+	if (createCameraPopupRequested_)
+	{
+		ImGui::OpenPopup("カメラを作る###CreateStageCamera");
+		createCameraPopupRequested_ = false;
+	}
+	if (ImGui::BeginPopupModal("カメラを作る###CreateStageCamera", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::InputText("名前", newCameraName_.data(), newCameraName_.size());
+		if (!createCameraError_.empty()) { ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.25f, 1.0f), "%s", createCameraError_.c_str()); }
+		if (ImGui::Button("作る"))
+		{
+			const std::string name = newCameraName_.data();
+			if (name.empty()) { createCameraError_ = "名前を入力してください。"; }
+			else if (FindCamera(name) || (cameraManager_ && cameraManager_->GetCamera(name))) { createCameraError_ = "同じ名前のカメラがあります。"; }
+			else if (GameObjectManager::HasInstance() && GameObjectManager::GetInstance()->Find(name)) { createCameraError_ = "同じ名前の GameObject があります。"; }
+			else
+			{
+				CameraState state;
+				if (Camera* camera = cameraManager_ ? cameraManager_->GetActiveCamera() : nullptr)
+				{
+					state.position = camera->GetTranslate();
+					state.rotation = camera->GetRotate();
+				}
+				auto entry = CreateCamera(name, state);
+				CommandHistory::GetInstance()->Execute(std::make_unique<CreateStageCameraCommand>(this, std::move(entry)));
+				SelectionItem item; item.kind = SelectionKind::Camera; item.name = name;
 				SelectionContext::GetInstance()->Select(item);
 				ImGui::CloseCurrentPopup();
 			}
@@ -863,12 +1175,8 @@ void StageManager::DrawInspectorImGui(const SelectionItem& item)
 	if (item.kind == SelectionKind::StageMonitor)
 	{
 		MonitorEntry* entry = FindMonitor(item.name);
-		if (!entry || !entry->screen || !entry->monitor || !entry->monitor->GetCamera()) { return; }
+		if (!entry || !entry->screen || !entry->monitor) { return; }
 		entry->state = GetCurrentMonitorState(*entry);
-		ImGui::TextUnformatted("ギズモで動かす対象");
-		if (ImGui::RadioButton("画面", !editMonitorCameraWithGizmo_)) { editMonitorCameraWithGizmo_ = false; }
-		ImGui::SameLine();
-		if (ImGui::RadioButton("カメラ", editMonitorCameraWithGizmo_)) { editMonitorCameraWithGizmo_ = true; }
 		auto finishEdit = [this, entry](const MonitorState& before, bool recreateView)
 		{
 			if (ImGui::IsItemActivated())
@@ -895,33 +1203,70 @@ void StageManager::DrawInspectorImGui(const SelectionItem& item)
 		if (ImGui::DragFloat3("大きさ", &entry->state.screenScale.x, kTransformDragSpeed)) { ApplyMonitorState(entry->name, entry->state, false); }
 		finishEdit(before, false);
 
-		ImGui::SeparatorText("カメラ");
-		before = entry->state;
-		if (ImGui::DragFloat3("カメラ位置", &entry->state.cameraPosition.x, kTransformDragSpeed)) { ApplyMonitorState(entry->name, entry->state, false); }
-		finishEdit(before, false);
-		before = entry->state;
-		if (ImGui::DragFloat3("カメラ回転", &entry->state.cameraRotation.x, kTransformDragSpeed)) { ApplyMonitorState(entry->name, entry->state, false); }
-		finishEdit(before, false);
-
-		int resolution[2] = { static_cast<int>(entry->state.width), static_cast<int>(entry->state.height) };
-		before = entry->state;
-		if (ImGui::DragInt2("解像度", resolution, 1.0f, static_cast<int>(kMinMonitorResolution), static_cast<int>(kMaxMonitorResolution)))
+		ImGui::SeparatorText("映すカメラ");
+		if (ImGui::BeginCombo("カメラ", entry->cameraName.empty() ? "なし" : entry->cameraName.c_str()))
 		{
-			entry->state.width = static_cast<uint32_t>((std::clamp)(resolution[0], static_cast<int>(kMinMonitorResolution), static_cast<int>(kMaxMonitorResolution)));
-			entry->state.height = static_cast<uint32_t>((std::clamp)(resolution[1], static_cast<int>(kMinMonitorResolution), static_cast<int>(kMaxMonitorResolution)));
+			if (ImGui::Selectable("なし", entry->cameraName.empty()))
+			{
+				CommandHistory::GetInstance()->Execute(std::make_unique<SetMonitorCameraCommand>(this, entry->name, entry->cameraName, std::string()));
+			}
+			for (const auto& camera : cameras_)
+			{
+				if (ImGui::Selectable(camera->name.c_str(), entry->cameraName == camera->name))
+				{
+					CommandHistory::GetInstance()->Execute(std::make_unique<SetMonitorCameraCommand>(this, entry->name, entry->cameraName, camera->name));
+				}
+			}
+			ImGui::EndCombo();
 		}
-		finishEdit(before, true);
-		before = entry->state;
-		if (ImGui::DragFloat("描き直す回数", &entry->state.framesPerSecond, 1.0f, kMinMonitorFramesPerSecond, kMaxMonitorFramesPerSecond, "%.0f fps"))
+		if (!entry->cameraName.empty() && ImGui::Button("カメラを選択"))
 		{
-			ApplyMonitorState(entry->name, entry->state, false);
+			SelectionItem cameraItem; cameraItem.kind = SelectionKind::Camera; cameraItem.name = entry->cameraName;
+			SelectionContext::GetInstance()->Select(cameraItem);
 		}
-		finishEdit(before, false);
 
 		ImGui::Separator();
 		if (ImGui::Button("ステージから消す"))
 		{
 			CommandHistory::GetInstance()->Execute(std::make_unique<DeleteStageMonitorCommand>(this, item.name));
+		}
+		return;
+	}
+	if (item.kind == SelectionKind::Camera)
+	{
+		CameraEntry* entry = FindCamera(item.name);
+		Camera* camera = cameraManager_ ? cameraManager_->GetCamera(item.name) : nullptr;
+		if (!entry || !camera) { return; }
+		entry->state.position = camera->GetTranslate();
+		entry->state.rotation = camera->GetRotate();
+		auto finishCameraEdit = [this, entry](const CameraState& before, bool recreateView)
+		{
+			if (ImGui::IsItemActivated()) { editingCameraName_ = entry->name; editStartCameraState_ = before; }
+			if (ImGui::IsItemDeactivatedAfterEdit() && editingCameraName_ == entry->name)
+			{
+				CommandHistory::GetInstance()->Execute(std::make_unique<EditStageCameraCommand>(
+					this, entry->name, editStartCameraState_, entry->state, recreateView));
+				editingCameraName_.clear();
+			}
+		};
+		ImGui::SeparatorText("ステージカメラ");
+		int resolution[2] = { static_cast<int>(entry->state.width), static_cast<int>(entry->state.height) };
+		CameraState before = entry->state;
+		if (ImGui::DragInt2("解像度", resolution, 1.0f, static_cast<int>(kMinMonitorResolution), static_cast<int>(kMaxMonitorResolution)))
+		{
+			entry->state.width = static_cast<uint32_t>((std::clamp)(resolution[0], static_cast<int>(kMinMonitorResolution), static_cast<int>(kMaxMonitorResolution)));
+			entry->state.height = static_cast<uint32_t>((std::clamp)(resolution[1], static_cast<int>(kMinMonitorResolution), static_cast<int>(kMaxMonitorResolution)));
+		}
+		finishCameraEdit(before, true);
+		before = entry->state;
+		if (ImGui::DragFloat("描き直す回数", &entry->state.framesPerSecond, 1.0f, kMinMonitorFramesPerSecond, kMaxMonitorFramesPerSecond, "%.0f fps"))
+		{
+			ApplyCameraState(entry->name, entry->state, false);
+		}
+		finishCameraEdit(before, false);
+		if (ImGui::Button("ステージから消す"))
+		{
+			CommandHistory::GetInstance()->Execute(std::make_unique<DeleteStageCameraCommand>(this, item.name));
 		}
 		return;
 	}

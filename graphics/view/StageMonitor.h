@@ -51,6 +51,12 @@ public:
 	bool RecreateView(uint32_t width, uint32_t height);
 
 	/**
+	 * @brief 外部所有のサブビューを画面へつなぐ。
+	 * @param view StageManager 所有。次に AttachView を呼ぶまで有効
+	 */
+	void AttachView(RenderView* view);
+
+	/**
 	 * @brief 映像を映す画面オブジェクトを決める
 	 * @param screen Object3d を持つ GameObject。Finalize まで生きている前提
 	 */
