@@ -255,7 +255,8 @@ void CameraManager::DrawInspectorImGui(const SelectionItem& item)
 	{
 		camera->SetTranslate(cameraPosition);
 	}
-	Vector3 cameraRotate = camera->GetRotate();
+	// クォータニオンで回っているカメラ（ギズモ・シーケンス）は GetRotate が古いままなので、クォータニオンから出す
+	Vector3 cameraRotate = camera->GetRotateQuaternion().ToEuler();
 	if (ImGui::DragFloat3("回転", &cameraRotate.x, 0.01f, -3.14f, 3.14f))
 	{
 		camera->SetRotate(cameraRotate);

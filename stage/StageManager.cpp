@@ -500,7 +500,7 @@ std::unique_ptr<StageManager::CameraEntry> StageManager::RemoveStageCamera(const
 		if (Camera* camera = cameraManager_ ? cameraManager_->GetCamera(name) : nullptr)
 		{
 			entry->state.position = camera->GetTranslate();
-			entry->state.rotation = camera->GetRotate();
+			entry->state.rotation = camera->GetRotateQuaternion().ToEuler();
 		}
 		for (auto& monitor : monitors_)
 		{
@@ -664,7 +664,7 @@ nlohmann::ordered_json StageManager::Serialize() const
 		if (Camera* camera = cameraManager_ ? cameraManager_->GetCamera(entry->name) : nullptr)
 		{
 			state.position = camera->GetTranslate();
-			state.rotation = camera->GetRotate();
+			state.rotation = camera->GetRotateQuaternion().ToEuler();
 		}
 		json["cameras"].push_back({
 			{ "name", entry->name },
@@ -742,7 +742,9 @@ bool StageManager::Deserialize(const nlohmann::json& json, std::string& outError
 			CameraState state;
 			if (cameraJson.contains("position")) { ReadFloatArray(cameraJson["position"], 3, &state.position.x); }
 			if (cameraJson.contains("rotation")) { ReadFloatArray(cameraJson["rotation"], 3, &state.rotation.x); }
-			if (cameraJson.contains("resolution") && cameraJson["resolution"].is_array() && cameraJson["resolution"].size() == 2)
+			// 数字でない値を get すると例外で落ちるので、version 1 のモニターと同じく型を確かめてから読む
+			if (cameraJson.contains("resolution") && cameraJson["resolution"].is_array() && cameraJson["resolution"].size() == 2
+				&& cameraJson["resolution"][0].is_number_unsigned() && cameraJson["resolution"][1].is_number_unsigned())
 			{
 				state.width = cameraJson["resolution"][0].get<uint32_t>();
 				state.height = cameraJson["resolution"][1].get<uint32_t>();
@@ -904,7 +906,7 @@ bool StageManager::IsDirty() const
 		if (Camera* camera = cameraManager_ ? cameraManager_->GetCamera(cameras_[i]->name) : nullptr)
 		{
 			current.position = camera->GetTranslate();
-			current.rotation = camera->GetRotate();
+			current.rotation = camera->GetRotateQuaternion().ToEuler();
 		}
 		if (cameras_[i]->name != savedCameras_[i].name || !SameCameraState(current, savedCameras_[i].state)) { return true; }
 	}
@@ -933,7 +935,7 @@ void StageManager::CaptureSavedState()
 		if (Camera* camera = cameraManager_ ? cameraManager_->GetCamera(entry->name) : nullptr)
 		{
 			state.position = camera->GetTranslate();
-			state.rotation = camera->GetRotate();
+			state.rotation = camera->GetRotateQuaternion().ToEuler();
 		}
 		savedCameras_.push_back({ entry->name, state });
 	}
@@ -996,9 +998,9 @@ void StageManager::RegisterDebugUI()
 void StageManager::DrawHierarchyImGui()
 {
 	ImGui::Text("%s%s", stageName_.c_str(), IsDirty() ? " *" : "");
-	ImGui::TextDisabled("ステージカメラ: %zu / モニター: %zu", cameras_.size(), monitors_.size());
 	ImGui::SameLine();
 	if (ImGui::Button("保存")) { SaveToFile(); }
+	ImGui::TextDisabled("ステージカメラ: %zu / モニター: %zu", cameras_.size(), monitors_.size());
 	if (ImGui::Button("3D テキストを作る"))
 	{
 		newName_.fill('\0'); newText_.fill('\0'); createError_.clear(); createPopupRequested_ = true;
@@ -1112,7 +1114,7 @@ void StageManager::DrawHierarchyImGui()
 					const Vector3 forward = { world.m[2][0], world.m[2][1], world.m[2][2] };
 					state.screenPosition = camera->GetTranslate() + forward * kCreateDistance;
 					state.cameraPosition = camera->GetTranslate();
-					state.cameraRotation = camera->GetRotate();
+					state.cameraRotation = camera->GetRotateQuaternion().ToEuler();
 				}
 				if (newMonitorCameraName_.empty())
 				{
@@ -1155,7 +1157,7 @@ void StageManager::DrawHierarchyImGui()
 				if (Camera* camera = cameraManager_ ? cameraManager_->GetActiveCamera() : nullptr)
 				{
 					state.position = camera->GetTranslate();
-					state.rotation = camera->GetRotate();
+					state.rotation = camera->GetRotateQuaternion().ToEuler();
 				}
 				auto entry = CreateCamera(name, state);
 				CommandHistory::GetInstance()->Execute(std::make_unique<CreateStageCameraCommand>(this, std::move(entry)));
@@ -1238,7 +1240,7 @@ void StageManager::DrawInspectorImGui(const SelectionItem& item)
 		Camera* camera = cameraManager_ ? cameraManager_->GetCamera(item.name) : nullptr;
 		if (!entry || !camera) { return; }
 		entry->state.position = camera->GetTranslate();
-		entry->state.rotation = camera->GetRotate();
+		entry->state.rotation = camera->GetRotateQuaternion().ToEuler();
 		auto finishCameraEdit = [this, entry](const CameraState& before, bool recreateView)
 		{
 			if (ImGui::IsItemActivated()) { editingCameraName_ = entry->name; editStartCameraState_ = before; }
