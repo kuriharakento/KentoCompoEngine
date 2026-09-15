@@ -29,7 +29,7 @@ namespace GameObjectComponent
  *
  * @note シングルトンパターンで実装されています
  */
-class CollisionManager
+class GameObjectCollisionManager
 {
 public:
 	/** @brief レイが最初に当たった相手。 */
@@ -42,9 +42,9 @@ public:
 	};
 	/**
 	 * @brief シングルトンインスタンスを取得
-	 * @return CollisionManagerのインスタンス
+	 * @return GameObjectCollisionManagerのインスタンス
 	 */
-	static CollisionManager* GetInstance();
+	static GameObjectCollisionManager* GetInstance();
 
 	/**
 	 * @brief マネージャーを初期化
@@ -118,15 +118,15 @@ public:
 
 private:
 	// シングルトンインスタンス
-	static std::unique_ptr<CollisionManager> instance_;
-	friend std::unique_ptr<CollisionManager> std::make_unique<CollisionManager>();
+	static std::unique_ptr<GameObjectCollisionManager> instance_;
+	friend std::unique_ptr<GameObjectCollisionManager> std::make_unique<GameObjectCollisionManager>();
 
-	CollisionManager() = default;
-	CollisionManager(const CollisionManager&) = delete;
-	CollisionManager& operator=(const CollisionManager&) = delete;
+	GameObjectCollisionManager() = default;
+	GameObjectCollisionManager(const GameObjectCollisionManager&) = delete;
+	GameObjectCollisionManager& operator=(const GameObjectCollisionManager&) = delete;
 
 public:
-	~CollisionManager();
+	~GameObjectCollisionManager();
 
 #ifdef USE_IMGUI
 	void DrawImGui();

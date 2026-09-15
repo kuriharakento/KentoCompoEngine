@@ -7,7 +7,7 @@
 
 namespace KCE
 {
-class CollisionManager;
+class GameObjectCollisionManager;
 enum class ColliderType { AABB, Sphere, OBB, Ray };
 namespace GameObjectComponent
 {

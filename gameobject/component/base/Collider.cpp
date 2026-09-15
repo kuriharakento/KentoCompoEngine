@@ -1,6 +1,6 @@
 #include "Collider.h"
 #include "engine/gameobject/base/GameObject.h"
-#include "engine/gameobject/component/collision/CollisionManager.h"
+#include "engine/gameobject/component/collision/GameObjectCollisionManager.h"
 #include "math/MathUtils.h"
 
 namespace KCE::GameObjectComponent
@@ -8,11 +8,11 @@ namespace KCE::GameObjectComponent
 void Collider::OnEnable()
 {
     ResetPreviousPosition();
-    CollisionManager::GetInstance()->Register(this);
+    GameObjectCollisionManager::GetInstance()->Register(this);
 }
 void Collider::OnDisable()
 {
-    CollisionManager::GetInstance()->Unregister(this);
+    GameObjectCollisionManager::GetInstance()->Unregister(this);
 }
 void Collider::ResetPreviousPosition()
 {

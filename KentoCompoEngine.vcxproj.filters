@@ -375,7 +375,7 @@
     <ClCompile Include="gameobject\component\collision\CollisionAlgorithm.cpp">
       <Filter>gameobject\component\collision</Filter>
     </ClCompile>
-    <ClCompile Include="gameobject\component\collision\CollisionManager.cpp">
+    <ClCompile Include="gameobject\component\collision\GameObjectCollisionManager.cpp">
       <Filter>gameobject\component\collision</Filter>
     </ClCompile>
     <ClCompile Include="gameobject\component\collision\CollisionUtils.cpp">
@@ -953,7 +953,7 @@
     <ClInclude Include="gameobject\component\collision\CollisionAlgorithm.h">
       <Filter>gameobject\component\collision</Filter>
     </ClInclude>
-    <ClInclude Include="gameobject\component\collision\CollisionManager.h">
+    <ClInclude Include="gameobject\component\collision\GameObjectCollisionManager.h">
       <Filter>gameobject\component\collision</Filter>
     </ClInclude>
     <ClInclude Include="gameobject\component\collision\CollisionUtils.h">

@@ -68,7 +68,7 @@
     <ClCompile Include="gameobject\component\base\Component.cpp" />
     <ClCompile Include="gameobject\component\collision\AABBCollider.cpp" />
     <ClCompile Include="gameobject\component\collision\CollisionAlgorithm.cpp" />
-    <ClCompile Include="gameobject\component\collision\CollisionManager.cpp" />
+    <ClCompile Include="gameobject\component\collision\GameObjectCollisionManager.cpp" />
     <ClCompile Include="gameobject\component\collision\CollisionUtils.cpp" />
     <ClCompile Include="gameobject\component\collision\OBBCollider.cpp" />
     <ClCompile Include="gameobject\component\collision\RayCollider.cpp" />
@@ -266,7 +266,7 @@
     <ClInclude Include="gameobject\component\base\Component.h" />
     <ClInclude Include="gameobject\component\collision\AABBCollider.h" />
     <ClInclude Include="gameobject\component\collision\CollisionAlgorithm.h" />
-    <ClInclude Include="gameobject\component\collision\CollisionManager.h" />
+    <ClInclude Include="gameobject\component\collision\GameObjectCollisionManager.h" />
     <ClInclude Include="gameobject\component\collision\CollisionUtils.h" />
     <ClInclude Include="gameobject\component\collision\OBBCollider.h" />
     <ClInclude Include="gameobject\component\collision\RayCollider.h" />

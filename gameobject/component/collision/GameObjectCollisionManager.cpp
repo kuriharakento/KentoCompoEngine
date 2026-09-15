@@ -1,4 +1,4 @@
-#include "CollisionManager.h"
+#include "GameObjectCollisionManager.h"
 #include <algorithm>
 #include <unordered_set>
 #include <limits>
@@ -20,17 +20,17 @@ namespace KCE
 {
 using namespace GameObjectComponent;
 
-std::unique_ptr<CollisionManager> CollisionManager::instance_ = nullptr;
+std::unique_ptr<GameObjectCollisionManager> GameObjectCollisionManager::instance_ = nullptr;
 
-CollisionManager* CollisionManager::GetInstance()
+GameObjectCollisionManager* GameObjectCollisionManager::GetInstance()
 {
 	if (instance_ == nullptr)
 	{
-		instance_ = std::make_unique<CollisionManager>();
+		instance_ = std::make_unique<GameObjectCollisionManager>();
 	}
 	return instance_.get();
 }
-void CollisionManager::Initialize()
+void GameObjectCollisionManager::Initialize()
 {
 	colliders_.clear();
 #ifdef USE_IMGUI
@@ -201,7 +201,7 @@ void CollisionManager::Initialize()
 	};
 }
 
-void CollisionManager::Finalize()
+void GameObjectCollisionManager::Finalize()
 {
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
@@ -216,7 +216,7 @@ void CollisionManager::Finalize()
 	instance_.reset();
 }
 
-CollisionManager::~CollisionManager()
+GameObjectCollisionManager::~GameObjectCollisionManager()
 {
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
@@ -226,7 +226,7 @@ CollisionManager::~CollisionManager()
 #endif
 }
 
-void CollisionManager::Register(Collider* collider)
+void GameObjectCollisionManager::Register(Collider* collider)
 {
 	if (collider && std::find(colliders_.begin(), colliders_.end(), collider) == colliders_.end()) colliders_.push_back(collider);
 	raycastCandidates_.reserve(colliders_.size());
@@ -234,7 +234,7 @@ void CollisionManager::Register(Collider* collider)
 	removedColliders_.erase(std::remove(removedColliders_.begin(), removedColliders_.end(), collider), removedColliders_.end());
 }
 
-void CollisionManager::Unregister(Collider* collider)
+void GameObjectCollisionManager::Unregister(Collider* collider)
 {
 	GameObject* owner = collider ? collider->GetOwner() : nullptr;
 	if (!collider || !owner)
@@ -335,7 +335,7 @@ void CollisionManager::Unregister(Collider* collider)
 	EndDispatch();
 }
 
-void CollisionManager::EndDispatch()
+void GameObjectCollisionManager::EndDispatch()
 {
 	--dispatchDepth_;
 	if (dispatchDepth_ == 0)
@@ -345,7 +345,7 @@ void CollisionManager::EndDispatch()
 	}
 }
 
-void CollisionManager::NotifyColliderExit(const CollisionPair& pair, const Collider* removing)
+void GameObjectCollisionManager::NotifyColliderExit(const CollisionPair& pair, const Collider* removing)
 {
 	// 先の通知で外された側は解放済みかもしれない。相手の情報も作れないので、この組は送らない
 	const auto isAlive = [this, removing](const Collider* collider) { return collider == removing || !WasRemoved(collider); };
@@ -368,7 +368,7 @@ void CollisionManager::NotifyColliderExit(const CollisionPair& pair, const Colli
 	}
 }
 
-void CollisionManager::NotifyObjectExit(const ObjectPair& objects)
+void GameObjectCollisionManager::NotifyObjectExit(const ObjectPair& objects)
 {
 	// 破棄中の側は解放済みかもしれないので触らない
 	const auto isAlive = [this](const GameObject* object)
@@ -387,12 +387,12 @@ void CollisionManager::NotifyObjectExit(const ObjectPair& objects)
 	}
 }
 
-bool CollisionManager::WasRemoved(const Collider* collider) const
+bool GameObjectCollisionManager::WasRemoved(const Collider* collider) const
 {
 	return std::find(removedColliders_.begin(), removedColliders_.end(), collider) != removedColliders_.end();
 }
 
-void CollisionManager::CheckCollisions()
+void GameObjectCollisionManager::CheckCollisions()
 {
 	nextCollisions_.clear();
 	collisionDetails_.clear();
@@ -650,7 +650,7 @@ void CollisionManager::CheckCollisions()
 	EndDispatch();
 }
 
-void CollisionManager::UpdatePreviousPositions()
+void GameObjectCollisionManager::UpdatePreviousPositions()
 {
 	for (auto& collider : colliders_)
 	{
@@ -659,7 +659,7 @@ void CollisionManager::UpdatePreviousPositions()
 	}
 }
 
-bool CollisionManager::Raycast(const Ray& ray, uint32_t mask, RaycastHit& outHit) const
+bool GameObjectCollisionManager::Raycast(const Ray& ray, uint32_t mask, RaycastHit& outHit) const
 {
 	raycastCandidates_.clear();
 	const Vector3 end = ray.start + ray.direction * ray.length;
@@ -713,7 +713,7 @@ bool CollisionManager::Raycast(const Ray& ray, uint32_t mask, RaycastHit& outHit
 	return true;
 }
 
-std::string CollisionManager::GetColliderTypeString(ColliderType type) const
+std::string GameObjectCollisionManager::GetColliderTypeString(ColliderType type) const
 {
 	switch (type)
 	{
@@ -729,7 +729,7 @@ std::string CollisionManager::GetColliderTypeString(ColliderType type) const
 	return "Unknown";
 }
 
-void CollisionManager::LogCollision(const std::string& phase, const Collider* a, const Collider* b)
+void GameObjectCollisionManager::LogCollision(const std::string& phase, const Collider* a, const Collider* b)
 {
 #ifdef _DEBUG
 	std::string tagA = a->GetOwner()->GetTag();
@@ -744,7 +744,7 @@ void CollisionManager::LogCollision(const std::string& phase, const Collider* a,
 }
 
 #ifdef USE_IMGUI
-void CollisionManager::DrawImGui()
+void GameObjectCollisionManager::DrawImGui()
 {
 	ImGui::SeparatorText("コライダー");
 	if (ImGui::CollapsingHeader("一覧"))
