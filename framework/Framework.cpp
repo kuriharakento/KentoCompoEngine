@@ -30,6 +30,7 @@
 #include "gameobject/manager/GameObjectManager.h"
 // editor
 #include "editor/EditorContext.h"
+#include "editor/SceneGizmo.h"
 #include "editor/SceneViewContext.h"
 #include "editor/SelectionContext.h"
 #include "editor/command/CommandHistory.h"
@@ -81,6 +82,7 @@ void Framework::Initialize()
 	// DebugUIManager と ConsoleLog の初期化
 	DebugUIManager::GetInstance()->Initialize();
 	ConsoleLog::GetInstance()->Initialize();
+	SceneGizmo::GetInstance()->Initialize();
 
 	// 読み込みを並べて回すワーカー。起動時の素材読み込みから使う
 	jobSystem_ = std::make_unique<JobSystem>();
@@ -438,6 +440,7 @@ void Framework::Finalize()
 	ShaderHotReload::GetInstance()->Finalize();
 	CutsceneManager::GetInstance()->Finalize();
 	SequencerEditor::GetInstance()->Finalize();
+	SceneGizmo::GetInstance()->Finalize();
 	SceneViewContext::GetInstance()->Finalize();
 	SelectionContext::GetInstance()->Finalize();
 	CommandHistory::GetInstance()->Finalize();

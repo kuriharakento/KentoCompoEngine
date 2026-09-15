@@ -146,6 +146,7 @@
     <ClCompile Include="graphics\npr\OutlineRenderer.cpp" />
     <ClCompile Include="graphics\shader\ShaderHotReload.cpp" />
     <ClCompile Include="editor\EditorContext.cpp" />
+    <ClCompile Include="editor\SceneGizmo.cpp" />
     <ClCompile Include="editor\SceneViewContext.cpp" />
     <ClCompile Include="editor\SelectionContext.cpp" />
     <ClCompile Include="editor\command\CommandHistory.cpp" />
@@ -375,6 +376,7 @@
     <ClInclude Include="graphics\shader\ShaderHotReload.h" />
     <ClInclude Include="core\SchemaVersion.h" />
     <ClInclude Include="editor\EditorContext.h" />
+    <ClInclude Include="editor\SceneGizmo.h" />
     <ClInclude Include="editor\SceneViewContext.h" />
     <ClInclude Include="editor\SelectionContext.h" />
     <ClInclude Include="editor\command\CommandHistory.h" />

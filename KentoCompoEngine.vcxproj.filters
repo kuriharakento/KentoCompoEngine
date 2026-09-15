@@ -618,6 +618,9 @@
     <ClCompile Include="editor\EditorContext.cpp">
       <Filter>editor</Filter>
     </ClCompile>
+    <ClCompile Include="editor\SceneGizmo.cpp">
+      <Filter>editor</Filter>
+    </ClCompile>
     <ClCompile Include="editor\SceneViewContext.cpp">
       <Filter>editor</Filter>
     </ClCompile>
@@ -1284,6 +1287,9 @@
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="editor\EditorContext.h">
+      <Filter>editor</Filter>
+    </ClInclude>
+    <ClInclude Include="editor\SceneGizmo.h">
       <Filter>editor</Filter>
     </ClInclude>
     <ClInclude Include="editor\SceneViewContext.h">
