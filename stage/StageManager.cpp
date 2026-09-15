@@ -15,6 +15,8 @@
 #include "gameobject/base/GameObject.h"
 #include "gameobject/manager/GameObjectManager.h"
 #include "graphics/3d/IRenderable3d.h"
+#include "graphics/3d/Object3d.h"
+#include "graphics/3d/Model.h"
 #include "graphics/view/StageMonitor.h"
 #include "graphics/view/ISubViewProvider.h"
 #include "graphics/view/RenderView.h"
@@ -34,8 +36,63 @@ constexpr const char* kMonitorScreenModel = "plane";
 constexpr Vector3 kMonitorScreenScale = { 1.2f, 0.675f, 1.0f };
 constexpr Vector3 kMonitorScreenRotation = { 0.0f, std::numbers::pi_v<float>, 0.0f };
 constexpr float kTransformDragSpeed = 0.05f;
+constexpr float kAspect16x9 = 16.0f / 9.0f;
+constexpr float kAspect4x3 = 4.0f / 3.0f;
+constexpr float kAspect1x1 = 1.0f;
+constexpr float kAspect9x16 = 9.0f / 16.0f;
+constexpr float kAspect21x9 = 21.0f / 9.0f;
+constexpr float kUvCenter = 0.5f;
+constexpr MonitorAspect kMonitorAspects[] = {
+	MonitorAspect::Aspect16x9, MonitorAspect::Aspect4x3, MonitorAspect::Aspect1x1,
+	MonitorAspect::Aspect9x16, MonitorAspect::Aspect21x9, MonitorAspect::Free
+};
+constexpr const char* kMonitorAspectLabels[] = { "16:9", "4:3", "1:1", "9:16", "21:9", "自由" };
 uint64_t gNextLifetimeId = 1;
 std::unordered_map<const StageManager*, uint64_t> gLiveManagers;
+
+const char* MonitorAspectToString(MonitorAspect aspect)
+{
+	switch (aspect)
+	{
+	case MonitorAspect::Aspect16x9: return "16:9";
+	case MonitorAspect::Aspect4x3: return "4:3";
+	case MonitorAspect::Aspect1x1: return "1:1";
+	case MonitorAspect::Aspect9x16: return "9:16";
+	case MonitorAspect::Aspect21x9: return "21:9";
+	case MonitorAspect::Free: return "Free";
+	}
+	return "Free";
+}
+
+MonitorAspect MonitorAspectFromString(const std::string& value)
+{
+	if (value == "16:9") { return MonitorAspect::Aspect16x9; }
+	if (value == "4:3") { return MonitorAspect::Aspect4x3; }
+	if (value == "1:1") { return MonitorAspect::Aspect1x1; }
+	if (value == "9:16") { return MonitorAspect::Aspect9x16; }
+	if (value == "21:9") { return MonitorAspect::Aspect21x9; }
+	return MonitorAspect::Free;
+}
+
+float GetMonitorAspectRatio(MonitorAspect aspect)
+{
+	switch (aspect)
+	{
+	case MonitorAspect::Aspect16x9: return kAspect16x9;
+	case MonitorAspect::Aspect4x3: return kAspect4x3;
+	case MonitorAspect::Aspect1x1: return kAspect1x1;
+	case MonitorAspect::Aspect9x16: return kAspect9x16;
+	case MonitorAspect::Aspect21x9: return kAspect21x9;
+	case MonitorAspect::Free: return 0.0f;
+	}
+	return 0.0f;
+}
+
+void ConstrainMonitorScale(Vector3& scale, MonitorAspect aspect)
+{
+	const float ratio = GetMonitorAspectRatio(aspect);
+	if (ratio > 0.0f) { scale.y = scale.x / ratio; }
+}
 
 class CreateStageTextCommand final : public ICommand
 {
@@ -305,7 +362,7 @@ bool SameVector3(const Vector3& a, const Vector3& b)
 bool SameMonitorState(const StageManager::MonitorState& a, const StageManager::MonitorState& b)
 {
 	return SameVector3(a.screenPosition, b.screenPosition) && SameVector3(a.screenRotation, b.screenRotation)
-		&& SameVector3(a.screenScale, b.screenScale);
+		&& SameVector3(a.screenScale, b.screenScale) && a.aspect == b.aspect;
 }
 
 bool SameCameraState(const StageManager::CameraState& a, const StageManager::CameraState& b)
@@ -485,7 +542,11 @@ bool StageManager::AddStageCamera(std::unique_ptr<CameraEntry>& entry)
 	cameras_.push_back(std::move(entry));
 	for (auto& monitor : monitors_)
 	{
-		if (monitor->cameraName == added->name && monitor->monitor) { monitor->monitor->AttachView(added->view); }
+		if (monitor->cameraName == added->name && monitor->monitor)
+		{
+			monitor->monitor->AttachView(added->view);
+			UpdateMonitorCrop(*monitor);
+		}
 	}
 	return true;
 }
@@ -543,6 +604,10 @@ bool StageManager::ApplyCameraState(const std::string& name, const CameraState& 
 	camera->SetAspectRatio(static_cast<float>(applied.width) / static_cast<float>(applied.height));
 	entry->view->SetUpdateInterval(1.0f / applied.framesPerSecond);
 	entry->state = applied;
+	for (auto& monitor : monitors_)
+	{
+		if (monitor->cameraName == name) { UpdateMonitorCrop(*monitor); }
+	}
 	return true;
 }
 
@@ -553,6 +618,7 @@ bool StageManager::SetMonitorCamera(const std::string& monitorName, const std::s
 	monitor->cameraName = cameraName;
 	CameraEntry* camera = FindCamera(cameraName);
 	monitor->monitor->AttachView(camera ? camera->view : nullptr);
+	UpdateMonitorCrop(*monitor);
 	return true;
 }
 
@@ -595,6 +661,7 @@ bool StageManager::AddStageMonitor(std::unique_ptr<MonitorEntry>& entry)
 	CameraEntry* camera = FindCamera(entry->cameraName);
 	entry->monitor->AttachView(camera ? camera->view : nullptr);
 	entry->monitor->SetScreen(entry->screen.get());
+	UpdateMonitorCrop(*entry);
 	GameObjectManager::GetInstance()->Register(entry->screen.get());
 	monitors_.push_back(std::move(entry));
 	return true;
@@ -630,7 +697,37 @@ bool StageManager::ApplyMonitorState(const std::string& name, const MonitorState
 	entry->screen->SetScale(applied.screenScale);
 	(void)recreateView;
 	entry->state = applied;
+	UpdateMonitorCrop(*entry);
 	return true;
+}
+
+void StageManager::UpdateMonitorCrop(MonitorEntry& entry)
+{
+	auto* object = entry.screen ? dynamic_cast<Object3d*>(entry.screen->GetRenderable3d()) : nullptr;
+	Model* model = object ? object->GetModel() : nullptr;
+	if (!model) { return; }
+	Vector3 uvScale{ 1.0f, 1.0f, 1.0f };
+	Vector3 uvTranslate{};
+	const CameraEntry* camera = FindCamera(entry.cameraName);
+	const float screenAspect = entry.state.screenScale.y != 0.0f
+		? std::abs(entry.state.screenScale.x / entry.state.screenScale.y) : 0.0f;
+	const float cameraAspect = camera && camera->state.height != 0
+		? static_cast<float>(camera->state.width) / static_cast<float>(camera->state.height) : 0.0f;
+	if (screenAspect > 0.0f && cameraAspect > 0.0f)
+	{
+		if (screenAspect < cameraAspect)
+		{
+			uvScale.x = screenAspect / cameraAspect;
+			uvTranslate.x = (1.0f - uvScale.x) * kUvCenter;
+		}
+		else if (screenAspect > cameraAspect)
+		{
+			uvScale.y = cameraAspect / screenAspect;
+			uvTranslate.y = (1.0f - uvScale.y) * kUvCenter;
+		}
+	}
+	model->SetUVScale(uvScale);
+	model->SetUVTranslate(uvTranslate);
 }
 
 std::filesystem::path StageManager::GetFilePath() const
@@ -686,6 +783,7 @@ nlohmann::ordered_json StageManager::Serialize() const
 			{ "scale", SerializeVector3(state.screenScale) }
 		};
 		monitor["camera"] = entry->cameraName;
+		monitor["aspect"] = MonitorAspectToString(state.aspect);
 		json["monitors"].push_back(std::move(monitor));
 	}
 	return json;
@@ -781,6 +879,9 @@ bool StageManager::Deserialize(const nlohmann::json& json, std::string& outError
 			}
 			MonitorState state;
 			state.screenScale = kMonitorScreenScale;
+			// aspect が無い旧ファイルは、保存済みの縦横を変えない
+			state.aspect = monitor.contains("aspect") && monitor["aspect"].is_string()
+				? MonitorAspectFromString(monitor["aspect"].get<std::string>()) : MonitorAspect::Free;
 			if (screen.contains("position")) { ReadFloatArray(screen["position"], 3, &state.screenPosition.x); }
 			if (screen.contains("rotation")) { ReadFloatArray(screen["rotation"], 3, &state.screenRotation.x); }
 			if (screen.contains("scale")) { ReadFloatArray(screen["scale"], 3, &state.screenScale.x); }
@@ -990,6 +1091,8 @@ void StageManager::RegisterDebugUI()
 		after.screenPosition = result.translate;
 		after.screenRotation = result.rotate.ToEuler();
 		after.screenScale = result.scale;
+		// 固定比率は横幅を基準にする。縦長へ切り替えても操作の基準を変えない
+		ConstrainMonitorScale(after.screenScale, after.aspect);
 		CommandHistory::GetInstance()->Execute(std::make_unique<StageMonitorGizmoCommand>(this, item.name, before, after, dragId));
 	};
 	SceneGizmo::GetInstance()->RegisterTarget(this, SelectionKind::StageMonitor, std::move(monitorTarget));
@@ -1105,6 +1208,7 @@ void StageManager::DrawHierarchyImGui()
 				MonitorState state;
 				state.screenRotation = kMonitorScreenRotation;
 				state.screenScale = kMonitorScreenScale;
+				state.aspect = MonitorAspect::Aspect16x9;
 				state.width = kDefaultMonitorWidth;
 				state.height = kDefaultMonitorHeight;
 				state.framesPerSecond = StageMonitor::kDefaultFramesPerSecond;
@@ -1195,6 +1299,22 @@ void StageManager::DrawInspectorImGui(const SelectionItem& item)
 		};
 
 		ImGui::SeparatorText("画面");
+		if (ImGui::BeginCombo("比率", kMonitorAspectLabels[static_cast<size_t>(entry->state.aspect)]))
+		{
+			for (size_t i = 0; i < std::size(kMonitorAspects); ++i)
+			{
+				if (ImGui::Selectable(kMonitorAspectLabels[i], entry->state.aspect == kMonitorAspects[i]))
+				{
+					MonitorState beforeAspect = entry->state;
+					MonitorState afterAspect = beforeAspect;
+					afterAspect.aspect = kMonitorAspects[i];
+					ConstrainMonitorScale(afterAspect.screenScale, afterAspect.aspect);
+					CommandHistory::GetInstance()->Execute(std::make_unique<EditStageMonitorCommand>(
+						this, entry->name, beforeAspect, afterAspect, false));
+				}
+			}
+			ImGui::EndCombo();
+		}
 		MonitorState before = entry->state;
 		if (ImGui::DragFloat3("位置", &entry->state.screenPosition.x, kTransformDragSpeed)) { ApplyMonitorState(entry->name, entry->state, false); }
 		finishEdit(before, false);
@@ -1202,7 +1322,20 @@ void StageManager::DrawInspectorImGui(const SelectionItem& item)
 		if (ImGui::DragFloat3("回転", &entry->state.screenRotation.x, kTransformDragSpeed)) { ApplyMonitorState(entry->name, entry->state, false); }
 		finishEdit(before, false);
 		before = entry->state;
-		if (ImGui::DragFloat3("大きさ", &entry->state.screenScale.x, kTransformDragSpeed)) { ApplyMonitorState(entry->name, entry->state, false); }
+		if (entry->state.aspect == MonitorAspect::Free)
+		{
+			if (ImGui::DragFloat3("大きさ", &entry->state.screenScale.x, kTransformDragSpeed)) { ApplyMonitorState(entry->name, entry->state, false); }
+		}
+		else
+		{
+			float width = entry->state.screenScale.x;
+			if (ImGui::DragFloat("幅", &width, kTransformDragSpeed))
+			{
+				entry->state.screenScale.x = width;
+				ConstrainMonitorScale(entry->state.screenScale, entry->state.aspect);
+				ApplyMonitorState(entry->name, entry->state, false);
+			}
+		}
 		finishEdit(before, false);
 
 		ImGui::SeparatorText("映すカメラ");
