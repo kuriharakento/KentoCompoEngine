@@ -101,6 +101,13 @@ void StageMonitor::SetFramesPerSecond(float framesPerSecond)
 	}
 }
 
+void StageMonitor::AttachView(RenderView* view)
+{
+	BindScreenTexture(false);
+	view_ = view;
+	updateCount_ = 0;
+}
+
 void StageMonitor::SetScreen(GameObject* screen)
 {
 	BindScreenTexture(false);

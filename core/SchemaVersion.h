@@ -18,7 +18,7 @@ constexpr int kGameObjectSchemaVersion = 1;
 constexpr int kSequenceSchemaVersion = 1;
 
 /** @brief ステージファイルの現在のスキーマバージョン */
-constexpr int kStageSchemaVersion = 1;
+constexpr int kStageSchemaVersion = 2;
 
 /**
  * @brief JSONに書かれていたバージョンが読み込み可能かどうか
