@@ -547,6 +547,13 @@ private:
 	Vector4 startSpotLightColor_ = KCE::VectorColorCodes::White;   // 開始色
 	Vector4 endSpotLightColor_ = KCE::VectorColorCodes::Red;       // 終了色
 
+	// ライト種類ごとのデバッグ表示。既定では全ライトのマークを出す
+	bool showDirectionalLightDebug_ = true;
+	bool showPointLightDebug_ = true;
+	bool showSpotLightDebug_ = true;
+	// 有効にすると選択中のライトだけを描く
+	bool showSelectedLightOnly_ = false;
+
 	// ディレクショナルライトデータ
 	DirectionalLight directionalLight_;
 	// ディレクショナルライト用定数バッファ
