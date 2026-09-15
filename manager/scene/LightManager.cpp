@@ -13,6 +13,9 @@
 #include "math/MatrixFunc.h"
 // editor
 #include "editor/SceneViewContext.h"
+#include "editor/SceneGizmo.h"
+#include "editor/command/CommandHistory.h"
+#include "editor/command/ICommand.h"
 #include "externals/imgui/imgui.h"
 #include "time/TimeManager.h"
 // debug
@@ -26,12 +29,108 @@ namespace
 constexpr float kDebugMarkRadius = 0.2f;
 constexpr float kMinDebugBrightness = 0.35f;
 constexpr float kDirectionEpsilon = 0.001f;
+constexpr float kDirectionParallelThreshold = 0.999f;
 constexpr float kUnselectedDirectionLength = 1.0f;
 constexpr float kSelectedDirectionLength = 5.0f;
 constexpr float kDirectionalCameraDistance = 5.0f;
 constexpr float kDirectionalCameraHeight = 1.5f;
 constexpr int kRangeCircleSegments = 24;
 constexpr int kSpotConeEdgeInterval = 6;
+
+struct LightGizmoState
+{
+	Vector3 position{};
+	Vector3 direction{ 0.0f, 0.0f, 1.0f };
+};
+
+Quaternion MakeLightRotation(const Vector3& direction)
+{
+	const Vector3 forward = Vector3::Normalize(direction);
+	if (forward.IsZero(kDirectionEpsilon)) return Quaternion::Identity();
+	const Vector3 worldUp = std::abs(forward.y) > kDirectionParallelThreshold
+		? Vector3{ 0.0f, 0.0f, 1.0f }
+		: Vector3{ 0.0f, 1.0f, 0.0f };
+	const Vector3 right = Vector3::Normalize(Vector3::Cross(worldUp, forward));
+	const Vector3 up = Vector3::Cross(forward, right);
+	Matrix4x4 basis = MakeIdentity4x4();
+	basis.m[0][0] = right.x; basis.m[0][1] = right.y; basis.m[0][2] = right.z;
+	basis.m[1][0] = up.x; basis.m[1][1] = up.y; basis.m[1][2] = up.z;
+	basis.m[2][0] = forward.x; basis.m[2][1] = forward.y; basis.m[2][2] = forward.z;
+	return Quaternion::FromMatrix(basis);
+}
+
+Vector3 GetGizmoForward(const Quaternion& rotation)
+{
+	const Matrix4x4 basis = rotation.ToMatrix();
+	return Vector3::Normalize({ basis.m[2][0], basis.m[2][1], basis.m[2][2] });
+}
+
+bool GetDirectionalDisplayPosition(Vector3& position)
+{
+	Camera* camera = SceneViewContext::HasInstance() ? SceneViewContext::GetInstance()->GetCamera() : nullptr;
+	if (!camera) return false;
+	const Matrix4x4& cameraWorld = camera->GetWorldMatrix();
+	const Vector3 cameraPosition = { cameraWorld.m[3][0], cameraWorld.m[3][1], cameraWorld.m[3][2] };
+	const Vector3 cameraForward = { cameraWorld.m[2][0], cameraWorld.m[2][1], cameraWorld.m[2][2] };
+	const Vector3 cameraUp = { cameraWorld.m[1][0], cameraWorld.m[1][1], cameraWorld.m[1][2] };
+	position = cameraPosition + cameraForward * kDirectionalCameraDistance + cameraUp * kDirectionalCameraHeight;
+	return true;
+}
+
+class LightGizmoCommand final : public ICommand
+{
+public:
+	LightGizmoCommand(LightManager* manager, SelectionLightType type, std::string name,
+		const LightGizmoState& before, const LightGizmoState& after, uint32_t dragId)
+		: manager_(manager), type_(type), name_(std::move(name)), before_(before), after_(after), dragId_(dragId) {}
+
+	void Execute() override { Apply(after_); }
+	void Undo() override { Apply(before_); }
+	std::string GetName() const override { return "Move Light"; }
+	bool MergeWith(const ICommand* next) override
+	{
+		const auto* other = dynamic_cast<const LightGizmoCommand*>(next);
+		if (!other || other->manager_ != manager_ || other->type_ != type_ || other->name_ != name_ || other->dragId_ != dragId_)
+		{
+			return false;
+		}
+		after_ = other->after_;
+		return true;
+	}
+
+private:
+	void Apply(const LightGizmoState& state) const
+	{
+		if (!manager_) return;
+		switch (type_)
+		{
+		case SelectionLightType::Directional:
+		{
+			DirectionalLight light = manager_->GetDirectionalLight();
+			light.direction = state.direction;
+			manager_->SetDirectionalLight(light);
+			break;
+		}
+		case SelectionLightType::Point:
+			manager_->SetPointLightPosition(name_, state.position);
+			break;
+		case SelectionLightType::Spot:
+			manager_->SetSpotLightPosition(name_, state.position);
+			manager_->SetSpotLightDirection(name_, state.direction);
+			break;
+		default:
+			break;
+		}
+	}
+
+	// Framework が所有し、CommandHistory より長く生きる
+	LightManager* manager_ = nullptr;
+	SelectionLightType type_ = SelectionLightType::None;
+	std::string name_;
+	LightGizmoState before_{};
+	LightGizmoState after_{};
+	uint32_t dragId_ = 0;
+};
 
 Vector4 MakeVisibleDebugColor(const Vector4& source)
 {
@@ -89,6 +188,10 @@ LightManager::~LightManager()
 	{
 		DebugUIManager::GetInstance()->Unregister(this);
 	}
+	if (SceneGizmo::HasInstance())
+	{
+		SceneGizmo::GetInstance()->Unregister(this);
+	}
 #endif
 	// 定数バッファのアンマップ
 	if (lightCountResource_)
@@ -124,6 +227,75 @@ void LightManager::Initialize(DirectXCommon* dxCommon)
 	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "シーン", "ライト", [this]() { this->DrawImGui(); });
 	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "ライト", [this]() { this->DrawHierarchyImGui(); });
 	DebugUIManager::GetInstance()->RegisterInspector(this, SelectionKind::Light, [this](const SelectionItem& item) { this->DrawInspectorImGui(item); });
+
+	GizmoTarget lightTarget;
+	lightTarget.getPose = [this](const SelectionItem& item, Matrix4x4& world, uint32_t& operations)
+	{
+		Vector3 position{};
+		Vector3 direction{ 0.0f, 0.0f, 1.0f };
+		switch (item.lightType)
+		{
+		case SelectionLightType::Directional:
+			if (!GetDirectionalDisplayPosition(position)) return false;
+			direction = directionalLight_.direction;
+			operations = kGizmoRotate;
+			break;
+		case SelectionLightType::Point:
+		{
+			const auto found = pointLights_.find(item.name);
+			if (found == pointLights_.end()) return false;
+			position = found->second.gpuData.position;
+			operations = kGizmoTranslate;
+			break;
+		}
+		case SelectionLightType::Spot:
+		{
+			const auto found = spotLights_.find(item.name);
+			if (found == spotLights_.end()) return false;
+			position = found->second.gpuData.position;
+			direction = found->second.gpuData.direction;
+			operations = kGizmoTranslate | kGizmoRotate;
+			break;
+		}
+		default:
+			return false;
+		}
+		world = Multiply(MakeLightRotation(direction).ToMatrix(), MakeTranslateMatrix(position));
+		return true;
+	};
+	lightTarget.apply = [this](const SelectionItem& item, const GizmoResult& after, uint32_t dragId)
+	{
+		LightGizmoState before;
+		LightGizmoState moved;
+		moved.position = after.translate;
+		moved.direction = GetGizmoForward(after.rotate);
+		switch (item.lightType)
+		{
+		case SelectionLightType::Directional:
+			before.direction = directionalLight_.direction;
+			break;
+		case SelectionLightType::Point:
+		{
+			const auto found = pointLights_.find(item.name);
+			if (found == pointLights_.end()) return;
+			before.position = found->second.gpuData.position;
+			break;
+		}
+		case SelectionLightType::Spot:
+		{
+			const auto found = spotLights_.find(item.name);
+			if (found == spotLights_.end()) return;
+			before.position = found->second.gpuData.position;
+			before.direction = found->second.gpuData.direction;
+			break;
+		}
+		default:
+			return;
+		}
+		CommandHistory::GetInstance()->Execute(std::make_unique<LightGizmoCommand>(
+			this, item.lightType, item.name, before, moved, dragId));
+	};
+	SceneGizmo::GetInstance()->RegisterTarget(this, SelectionKind::Light, std::move(lightTarget));
 #endif
 }
 
@@ -238,11 +410,8 @@ void LightManager::DrawDebugLines()
 	if (showDirectionalLightDebug_ && (!showSelectedLightOnly_ || directionalSelected)
 		&& SceneViewContext::HasInstance() && SceneViewContext::GetInstance()->GetCamera())
 	{
-		const Matrix4x4& cameraWorld = SceneViewContext::GetInstance()->GetCamera()->GetWorldMatrix();
-		const Vector3 cameraPosition = { cameraWorld.m[3][0], cameraWorld.m[3][1], cameraWorld.m[3][2] };
-		const Vector3 cameraForward = { cameraWorld.m[2][0], cameraWorld.m[2][1], cameraWorld.m[2][2] };
-		const Vector3 cameraUp = { cameraWorld.m[1][0], cameraWorld.m[1][1], cameraWorld.m[1][2] };
-		const Vector3 origin = cameraPosition + cameraForward * kDirectionalCameraDistance + cameraUp * kDirectionalCameraHeight;
+		Vector3 origin{};
+		GetDirectionalDisplayPosition(origin);
 		const Vector3 direction = Vector3::Normalize(directionalLight_.direction);
 		const Vector4 color = MakeVisibleDebugColor(directionalLight_.color);
 		lineManager->DrawArrow(origin, direction, directionalSelected ? kSelectedDirectionLength : kUnselectedDirectionLength, color);
