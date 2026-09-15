@@ -1,5 +1,6 @@
 #include "LightManager.h"
 
+#include <algorithm>
 #include <numbers>
 #include <cmath>
 #include "DirectXTex/d3dx12.h"
@@ -11,6 +12,7 @@
 #include "math/Easing.h"
 #include "math/MatrixFunc.h"
 // editor
+#include "editor/SceneViewContext.h"
 #include "externals/imgui/imgui.h"
 #include "time/TimeManager.h"
 // debug
@@ -19,6 +21,60 @@
 
 namespace KCE
 {
+namespace
+{
+constexpr float kDebugMarkRadius = 0.2f;
+constexpr float kMinDebugBrightness = 0.35f;
+constexpr float kDirectionEpsilon = 0.001f;
+constexpr float kUnselectedDirectionLength = 1.0f;
+constexpr float kSelectedDirectionLength = 5.0f;
+constexpr float kDirectionalCameraDistance = 5.0f;
+constexpr float kDirectionalCameraHeight = 1.5f;
+constexpr int kRangeCircleSegments = 24;
+constexpr int kSpotConeEdgeInterval = 6;
+
+Vector4 MakeVisibleDebugColor(const Vector4& source)
+{
+	const float brightest = (std::max)({ source.x, source.y, source.z });
+	if (brightest <= kDirectionEpsilon)
+	{
+		return { kMinDebugBrightness, kMinDebugBrightness, kMinDebugBrightness, 1.0f };
+	}
+	const float scale = (std::max)(1.0f, kMinDebugBrightness / brightest);
+	return {
+		(std::min)(source.x * scale, 1.0f),
+		(std::min)(source.y * scale, 1.0f),
+		(std::min)(source.z * scale, 1.0f),
+		1.0f
+	};
+}
+
+bool IsLightSelected(const SelectionItem& selected, SelectionLightType type, const std::string& name)
+{
+	return selected.kind == SelectionKind::Light && selected.lightType == type && selected.name == name;
+}
+
+void DrawCircle(LineManager* lineManager, const Vector3& center, const Vector3& axisA, const Vector3& axisB,
+	float radius, const Vector4& color)
+{
+	for (int i = 0; i < kRangeCircleSegments; ++i)
+	{
+		const float angle1 = static_cast<float>(i) / kRangeCircleSegments * 2.0f * std::numbers::pi_v<float>;
+		const float angle2 = static_cast<float>(i + 1) / kRangeCircleSegments * 2.0f * std::numbers::pi_v<float>;
+		const Vector3 point1 = center + (axisA * std::cos(angle1) + axisB * std::sin(angle1)) * radius;
+		const Vector3 point2 = center + (axisA * std::cos(angle2) + axisB * std::sin(angle2)) * radius;
+		lineManager->DrawLine(point1, point2, color);
+	}
+}
+
+void DrawRangeSphere(LineManager* lineManager, const Vector3& center, float radius, const Vector4& color)
+{
+	DrawCircle(lineManager, center, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, radius, color);
+	DrawCircle(lineManager, center, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 1.0f }, radius, color);
+	DrawCircle(lineManager, center, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f }, radius, color);
+}
+} // namespace
+
 LightManager::LightManager()
 {
 	// ライトの数を初期化
@@ -174,62 +230,66 @@ void LightManager::DrawDebugLines()
 {
 	auto* lineManager = LineManager::GetInstance();
 	if (!lineManager) return;
+	const SelectionItem& selected = SelectionContext::GetInstance()->GetPrimary();
+	static const std::string kDirectionalLightName;
 
 	// ディレクショナルライトの可視化
+	const bool directionalSelected = IsLightSelected(selected, SelectionLightType::Directional, kDirectionalLightName);
+	if (showDirectionalLightDebug_ && (!showSelectedLightOnly_ || directionalSelected)
+		&& SceneViewContext::HasInstance() && SceneViewContext::GetInstance()->GetCamera())
 	{
-		Vector3 origin = { 0.0f, 10.0f, 0.0f }; // シーン中央上空
-		Vector3 dir = Vector3::Normalize(directionalLight_.direction);
-		// 黄色の矢印でディレクショナルライトの方向を表示
-		lineManager->DrawArrow(origin, dir, 5.0f, { 1.0f, 1.0f, 0.0f, 1.0f });
+		const Matrix4x4& cameraWorld = SceneViewContext::GetInstance()->GetCamera()->GetWorldMatrix();
+		const Vector3 cameraPosition = { cameraWorld.m[3][0], cameraWorld.m[3][1], cameraWorld.m[3][2] };
+		const Vector3 cameraForward = { cameraWorld.m[2][0], cameraWorld.m[2][1], cameraWorld.m[2][2] };
+		const Vector3 cameraUp = { cameraWorld.m[1][0], cameraWorld.m[1][1], cameraWorld.m[1][2] };
+		const Vector3 origin = cameraPosition + cameraForward * kDirectionalCameraDistance + cameraUp * kDirectionalCameraHeight;
+		const Vector3 direction = Vector3::Normalize(directionalLight_.direction);
+		const Vector4 color = MakeVisibleDebugColor(directionalLight_.color);
+		lineManager->DrawArrow(origin, direction, directionalSelected ? kSelectedDirectionLength : kUnselectedDirectionLength, color);
 	}
 
 	// ポイントライトの可視化
-	for (auto& [name, light] : pointLights_) {
-		Vector3 pos = light.gpuData.position;
-		float radius = light.gpuData.radius;
-		// ライトの色で球を描画
-		Vector4 color = light.gpuData.color;
-		color.w = 1.0f;
-		lineManager->DrawSphere(pos, 0.2f, color); // 小さい球でライト位置を表示
-		// 半径を白いワイヤーフレーム球で表示
-		lineManager->DrawSphere(pos, radius, { 1.0f, 1.0f, 1.0f, 0.3f });
+	if (showPointLightDebug_)
+	{
+		for (const auto& [name, light] : pointLights_)
+		{
+			const bool isSelected = IsLightSelected(selected, SelectionLightType::Point, name);
+			if (showSelectedLightOnly_ && !isSelected) continue;
+			const Vector3& position = light.gpuData.position;
+			const Vector4 color = MakeVisibleDebugColor(light.gpuData.color);
+			lineManager->DrawSphere(position, kDebugMarkRadius, color);
+			if (isSelected) DrawRangeSphere(lineManager, position, light.gpuData.radius, color);
+		}
 	}
 
 	// スポットライトの可視化
-	for (auto& [name, light] : spotLights_) {
-		Vector3 pos = light.gpuData.position;
-		Vector3 dir = Vector3::Normalize(light.gpuData.direction);
-		float distance = light.gpuData.distance;
-		// ライトの色で矢印を描画（方向と距離を表示）
-		Vector4 color = light.gpuData.color;
-		color.w = 1.0f;
-		lineManager->DrawArrow(pos, dir, distance, color);
-		// 小さい球でライト位置を表示
-		lineManager->DrawSphere(pos, 0.2f, color);
-		
-		// コーン（円錐）の外縁を表示
-		float angle = std::acos(light.gpuData.cosAngle);
-		float coneRadius = distance * std::tan(angle);
-		Vector3 coneEnd = pos + dir * distance;
-		
-		// 円錐の底面を近似的に描画（8本の線で円を描く）
-		Vector3 right = Vector3::Cross(dir, Vector3{ 0.0f, 1.0f, 0.0f });
-		if (right.Length() < 0.001f) {
-			right = Vector3::Cross(dir, Vector3{ 1.0f, 0.0f, 0.0f });
-		}
-		right = Vector3::Normalize(right);
-		Vector3 up = Vector3::Cross(right, dir);
-		
-		const int segments = 8;
-		for (int i = 0; i < segments; ++i) {
-			float angle1 = static_cast<float>(i) / segments * 2.0f * 3.14159265f;
-			float angle2 = static_cast<float>(i + 1) / segments * 2.0f * 3.14159265f;
-			Vector3 p1 = coneEnd + (right * std::cos(angle1) + up * std::sin(angle1)) * coneRadius;
-			Vector3 p2 = coneEnd + (right * std::cos(angle2) + up * std::sin(angle2)) * coneRadius;
-			lineManager->DrawLine(p1, p2, color);
-			// コーンのエッジ
-			if (i % 2 == 0) {
-				lineManager->DrawLine(pos, p1, { color.x * 0.5f, color.y * 0.5f, color.z * 0.5f, 0.5f });
+	if (showSpotLightDebug_)
+	{
+		for (const auto& [name, light] : spotLights_)
+		{
+			const bool isSelected = IsLightSelected(selected, SelectionLightType::Spot, name);
+			if (showSelectedLightOnly_ && !isSelected) continue;
+			const Vector3& position = light.gpuData.position;
+			const Vector3 direction = Vector3::Normalize(light.gpuData.direction);
+			const Vector4 color = MakeVisibleDebugColor(light.gpuData.color);
+			lineManager->DrawSphere(position, kDebugMarkRadius, color);
+			lineManager->DrawArrow(position, direction,
+				isSelected ? light.gpuData.distance : kUnselectedDirectionLength, color);
+			if (!isSelected) continue;
+
+			const float coneAngle = std::acos((std::clamp)(light.gpuData.cosAngle, -1.0f, 1.0f));
+			const float coneRadius = light.gpuData.distance * std::tan(coneAngle);
+			const Vector3 coneEnd = position + direction * light.gpuData.distance;
+			Vector3 right = Vector3::Cross(direction, { 0.0f, 1.0f, 0.0f });
+			if (right.Length() < kDirectionEpsilon) right = Vector3::Cross(direction, { 1.0f, 0.0f, 0.0f });
+			right = Vector3::Normalize(right);
+			const Vector3 up = Vector3::Cross(right, direction);
+			DrawCircle(lineManager, coneEnd, right, up, coneRadius, color);
+			for (int i = 0; i < kRangeCircleSegments; i += kSpotConeEdgeInterval)
+			{
+				const float angle = static_cast<float>(i) / kRangeCircleSegments * 2.0f * std::numbers::pi_v<float>;
+				const Vector3 edge = coneEnd + (right * std::cos(angle) + up * std::sin(angle)) * coneRadius;
+				lineManager->DrawLine(position, edge, color);
 			}
 		}
 	}
@@ -409,6 +469,12 @@ void LightManager::CreateConstantBuffer()
 void LightManager::DrawImGui()
 {
 #ifdef USE_IMGUI
+	ImGui::SeparatorText("デバッグ表示");
+	ImGui::Checkbox("ディレクショナルライト", &showDirectionalLightDebug_);
+	ImGui::Checkbox("ポイントライト", &showPointLightDebug_);
+	ImGui::Checkbox("スポットライト", &showSpotLightDebug_);
+	ImGui::Checkbox("選んでいるライトだけ", &showSelectedLightOnly_);
+
 	if (ImGui::BeginTabBar("LightTabs"))
 	{
 		/*--------------[ ライトオプションタブ ]-----------------*/
