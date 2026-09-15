@@ -22,6 +22,17 @@ class RenderView;
 class Text3DRenderer;
 struct SelectionItem;
 
+/** @brief ステージモニター画面の縦横比。 */
+enum class MonitorAspect
+{
+	Aspect16x9,
+	Aspect4x3,
+	Aspect1x1,
+	Aspect9x16,
+	Aspect21x9,
+	Free,
+};
+
 /**
  * @brief ステージに置く物を所有し、編集とファイル保存をまとめる。
  *
@@ -79,6 +90,7 @@ public:
 		uint32_t width = kDefaultMonitorWidth;
 		uint32_t height = kDefaultMonitorHeight;
 		float framesPerSecond = kDefaultMonitorFramesPerSecond;
+		MonitorAspect aspect = MonitorAspect::Free;
 	};
 
 	/** @brief ステージカメラの保存・編集対象。 */
@@ -137,6 +149,7 @@ private:
 	const CameraEntry* FindCamera(const std::string& name) const;
 	std::unique_ptr<CameraEntry> CreateCamera(const std::string& name, const CameraState& state);
 	std::unique_ptr<MonitorEntry> CreateMonitor(const std::string& name, const std::string& cameraName, const MonitorState& state);
+	void UpdateMonitorCrop(MonitorEntry& entry);
 	nlohmann::ordered_json Serialize() const;
 	bool Deserialize(const nlohmann::json& json, std::string& outError);
 	std::filesystem::path GetFilePath() const;
