@@ -7,6 +7,8 @@
 #include "effects/particle/renderer/IRenderer.h"
 #include "time/TimeManager.h"
 #include "time/Timer.h"
+#include "editor/SceneGizmo.h"
+#include "editor/command/CommandHistory.h"
 #include <algorithm>
 
 #ifdef USE_IMGUI
@@ -18,6 +20,32 @@
 
 namespace KCE
 {
+namespace
+{
+class ParticlePositionCommand final : public ICommand
+{
+public:
+	ParticlePositionCommand(ParticleManager* manager, std::string name, const Vector3& before, const Vector3& after, uint32_t dragId)
+		: manager_(manager), name_(std::move(name)), before_(before), after_(after), dragId_(dragId) {}
+	void Execute() override { if (manager_) { manager_->SetDebugPosition(name_, after_); } }
+	void Undo() override { if (manager_) { manager_->SetDebugPosition(name_, before_); } }
+	std::string GetName() const override { return "Move Particle Effect"; }
+	bool MergeWith(const ICommand* next) override
+	{
+		const auto* command = dynamic_cast<const ParticlePositionCommand*>(next);
+		if (!command || command->manager_ != manager_ || command->name_ != name_ || command->dragId_ != dragId_) { return false; }
+		after_ = command->after_;
+		return true;
+	}
+private:
+	// シングルトンは履歴より長生きする
+	ParticleManager* manager_ = nullptr;
+	std::string name_;
+	Vector3 before_{};
+	Vector3 after_{};
+	uint32_t dragId_ = 0;
+};
+}
 
 ParticleManager* ParticleManager::GetInstance()
 {
@@ -38,6 +66,22 @@ void ParticleManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager
 	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "エフェクト", [this]() { this->DrawHierarchyImGui(); });
 	DebugUIManager::GetInstance()->RegisterInspector(this, SelectionKind::ParticleEffect,
 		[this](const SelectionItem& item) { this->DrawInspectorImGui(item); });
+	GizmoTarget target;
+	target.getPose = [this](const SelectionItem& item, Matrix4x4& world, uint32_t& operations)
+	{
+		Vector3 position;
+		if (!GetDebugPosition(item.name, position)) { return false; }
+		world = MakeAffineMatrix({ 1.0f, 1.0f, 1.0f }, {}, position);
+		operations = kGizmoTranslate;
+		return true;
+	};
+	target.apply = [this](const SelectionItem& item, const GizmoResult& after, uint32_t dragId)
+	{
+		Vector3 before;
+		if (!GetDebugPosition(item.name, before)) { return; }
+		CommandHistory::GetInstance()->Execute(std::make_unique<ParticlePositionCommand>(this, item.name, before, after.translate, dragId));
+	};
+	SceneGizmo::GetInstance()->RegisterTarget(this, SelectionKind::ParticleEffect, std::move(target));
 #endif
 }
 
@@ -48,6 +92,7 @@ void ParticleManager::Finalize()
 	{
 		DebugUIManager::GetInstance()->Unregister(this);
 	}
+	if (SceneGizmo::HasInstance()) { SceneGizmo::GetInstance()->Unregister(this); }
 #endif
 	effects_.clear();
 	effectPools_.clear();
@@ -55,6 +100,32 @@ void ParticleManager::Finalize()
 	emitters_.clear();
 	effectDefinitions_.clear();
 	pipelineManager_.reset();
+}
+
+bool ParticleManager::GetDebugPosition(const std::string& name, Vector3& position) const
+{
+	for (const auto& effect : effects_)
+	{
+		if (effect->GetDebugName() == name) { position = effect->GetPosition(); return true; }
+	}
+	for (const auto& emitter : emitters_)
+	{
+		if (emitter->GetDebugName() == name) { position = emitter->GetPosition(); return true; }
+	}
+	return false;
+}
+
+bool ParticleManager::SetDebugPosition(const std::string& name, const Vector3& position)
+{
+	for (auto& effect : effects_)
+	{
+		if (effect->GetDebugName() == name) { effect->SetPosition(position); return true; }
+	}
+	for (auto& emitter : emitters_)
+	{
+		if (emitter->GetDebugName() == name) { emitter->SetPosition(position); return true; }
+	}
+	return false;
 }
 
 void ParticleManager::Update(CameraManager* camera)

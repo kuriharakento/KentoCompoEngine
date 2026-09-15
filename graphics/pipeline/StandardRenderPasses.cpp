@@ -379,6 +379,10 @@ void ForwardOpaquePass::Execute(const RenderPassContext& ctx)
 	{
 		ctx.lightManager->DrawDebugLines();
 	}
+	if (ctx.cameraManager)
+	{
+		ctx.cameraManager->DrawDebugLines();
+	}
 #endif
 
 	LineManager::GetInstance()->RenderLines();

@@ -3,6 +3,10 @@
 
 // system
 #include "base/Logger.h"
+#include "editor/SceneGizmo.h"
+#include "editor/SceneViewContext.h"
+#include "editor/command/CommandHistory.h"
+#include "manager/graphics/LineManager.h"
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
@@ -12,6 +16,45 @@
 
 namespace KCE
 {
+namespace
+{
+constexpr float kFrustumDepth = 3.0f;
+constexpr float kCameraMarkRadius = 0.2f;
+constexpr float kCameraDirectionLength = 1.0f;
+constexpr Vector4 kCameraDebugColor = { 0.3f, 0.8f, 1.0f, 1.0f };
+
+class CameraGizmoCommand final : public ICommand
+{
+public:
+	CameraGizmoCommand(CameraManager* manager, std::string name, const Transform& before, const Transform& after, uint32_t dragId)
+		: manager_(manager), name_(std::move(name)), before_(before), after_(after), dragId_(dragId) {}
+	void Execute() override { Apply(after_); }
+	void Undo() override { Apply(before_); }
+	std::string GetName() const override { return "Move Camera"; }
+	bool MergeWith(const ICommand* next) override
+	{
+		const auto* command = dynamic_cast<const CameraGizmoCommand*>(next);
+		if (!command || command->manager_ != manager_ || command->name_ != name_ || command->dragId_ != dragId_) { return false; }
+		after_ = command->after_;
+		return true;
+	}
+private:
+	void Apply(const Transform& transform)
+	{
+		if (Camera* camera = manager_ ? manager_->GetCamera(name_) : nullptr)
+		{
+			camera->SetTranslate(transform.translate);
+			camera->SetRotate(transform.rotate);
+		}
+	}
+	// Framework が所有し、履歴より長生きする
+	CameraManager* manager_ = nullptr;
+	std::string name_;
+	Transform before_{};
+	Transform after_{};
+	uint32_t dragId_ = 0;
+};
+}
 
 void CameraManager::Initialize(DirectXCommon* dxCommon)
 {
@@ -21,6 +64,25 @@ void CameraManager::Initialize(DirectXCommon* dxCommon)
 	// 一覧は Hierarchy、選んだカメラの詳細は Inspector に出す
 	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "カメラ", [this]() { this->DrawHierarchyImGui(); });
 	DebugUIManager::GetInstance()->RegisterInspector(this, SelectionKind::Camera, [this](const SelectionItem& item) { this->DrawInspectorImGui(item); });
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "シーン", "カメラ", [this]() { this->DrawSettingsImGui(); });
+	GizmoTarget target;
+	target.getPose = [this](const SelectionItem& item, Matrix4x4& world, uint32_t& operations)
+	{
+		Camera* camera = GetCamera(item.name);
+		if (!camera || (SceneViewContext::HasInstance() && camera == SceneViewContext::GetInstance()->GetCamera())) { return false; }
+		world = MakeAffineMatrix({ 1.0f, 1.0f, 1.0f }, camera->GetRotate(), camera->GetTranslate());
+		operations = kGizmoTranslate | kGizmoRotate;
+		return true;
+	};
+	target.apply = [this](const SelectionItem& item, const GizmoResult& after, uint32_t dragId)
+	{
+		Camera* camera = GetCamera(item.name);
+		if (!camera) { return; }
+		Transform before{ { 1.0f, 1.0f, 1.0f }, camera->GetRotate(), camera->GetTranslate() };
+		Transform moved{ { 1.0f, 1.0f, 1.0f }, after.rotate.ToEuler(), after.translate };
+		CommandHistory::GetInstance()->Execute(std::make_unique<CameraGizmoCommand>(this, item.name, before, moved, dragId));
+	};
+	SceneGizmo::GetInstance()->RegisterTarget(this, SelectionKind::Camera, std::move(target));
 #endif
 }
 
@@ -31,6 +93,7 @@ CameraManager::~CameraManager()
 	{
 		DebugUIManager::GetInstance()->Unregister(this);
 	}
+	if (SceneGizmo::HasInstance()) { SceneGizmo::GetInstance()->Unregister(this); }
 #endif
 }
 
@@ -92,6 +155,45 @@ void CameraManager::Update() {
 
     // アクティブカメラを更新
     activeCamera_->Update();
+}
+
+void CameraManager::DrawDebugLines()
+{
+#ifdef _DEBUG
+	if (!drawDebugLines_) { return; }
+	LineManager* lines = LineManager::GetInstance();
+	const SelectionItem& selected = SelectionContext::GetInstance()->GetPrimary();
+	Camera* viewCamera = SceneViewContext::HasInstance() ? SceneViewContext::GetInstance()->GetCamera() : nullptr;
+	for (const auto& [name, cameraOwner] : cameras_)
+	{
+		Camera* camera = cameraOwner.get();
+		if (camera == viewCamera) { continue; }
+		camera->Update();
+		const Matrix4x4& world = camera->GetWorldMatrix();
+		const Vector3 origin = camera->GetTranslate();
+		const Vector3 right{ world.m[0][0], world.m[0][1], world.m[0][2] };
+		const Vector3 up{ world.m[1][0], world.m[1][1], world.m[1][2] };
+		const Vector3 forward{ world.m[2][0], world.m[2][1], world.m[2][2] };
+		lines->DrawLine(origin - right * kCameraMarkRadius, origin + right * kCameraMarkRadius, kCameraDebugColor);
+		lines->DrawLine(origin - up * kCameraMarkRadius, origin + up * kCameraMarkRadius, kCameraDebugColor);
+		const bool isSelected = selected.kind == SelectionKind::Camera && selected.name == name;
+		if (!isSelected)
+		{
+			lines->DrawLine(origin, origin + forward * kCameraDirectionLength, kCameraDebugColor);
+			continue;
+		}
+		const float halfHeight = std::tan(camera->GetFovY() * 0.5f) * kFrustumDepth;
+		const float halfWidth = halfHeight * camera->GetAspectRatio();
+		const Vector3 center = origin + forward * kFrustumDepth;
+		const Vector3 corners[4] = { center + up * halfHeight - right * halfWidth, center + up * halfHeight + right * halfWidth,
+			center - up * halfHeight + right * halfWidth, center - up * halfHeight - right * halfWidth };
+		for (int i = 0; i < 4; ++i)
+		{
+			lines->DrawLine(origin, corners[i], kCameraDebugColor);
+			lines->DrawLine(corners[i], corners[(i + 1) % 4], kCameraDebugColor);
+		}
+	}
+#endif
 }
 
 #ifdef USE_IMGUI
@@ -157,6 +259,11 @@ void CameraManager::DrawInspectorImGui(const SelectionItem& item)
 	{
 		camera->SetRotate(cameraRotate);
 	}
+}
+
+void CameraManager::DrawSettingsImGui()
+{
+	ImGui::Checkbox("デバッグラインを表示", &drawDebugLines_);
 }
 #endif
 } // namespace KCE
