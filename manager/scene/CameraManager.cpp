@@ -23,10 +23,17 @@ constexpr float kCameraMarkRadius = 0.2f;
 constexpr float kCameraDirectionLength = 1.0f;
 constexpr Vector4 kCameraDebugColor = { 0.3f, 0.8f, 1.0f, 1.0f };
 
+// カメラの姿勢。シーケンスやカットシーンはクォータニオンで回すので、オイラー角に落とさずに持つ
+struct CameraGizmoState
+{
+	Vector3 translate{};
+	Quaternion rotate = Quaternion::Identity();
+};
+
 class CameraGizmoCommand final : public ICommand
 {
 public:
-	CameraGizmoCommand(CameraManager* manager, std::string name, const Transform& before, const Transform& after, uint32_t dragId)
+	CameraGizmoCommand(CameraManager* manager, std::string name, const CameraGizmoState& before, const CameraGizmoState& after, uint32_t dragId)
 		: manager_(manager), name_(std::move(name)), before_(before), after_(after), dragId_(dragId) {}
 	void Execute() override { Apply(after_); }
 	void Undo() override { Apply(before_); }
@@ -39,19 +46,19 @@ public:
 		return true;
 	}
 private:
-	void Apply(const Transform& transform)
+	void Apply(const CameraGizmoState& state)
 	{
 		if (Camera* camera = manager_ ? manager_->GetCamera(name_) : nullptr)
 		{
-			camera->SetTranslate(transform.translate);
-			camera->SetRotate(transform.rotate);
+			camera->SetTranslate(state.translate);
+			camera->SetRotateQuaternion(state.rotate);
 		}
 	}
 	// Framework が所有し、履歴より長生きする
 	CameraManager* manager_ = nullptr;
 	std::string name_;
-	Transform before_{};
-	Transform after_{};
+	CameraGizmoState before_{};
+	CameraGizmoState after_{};
 	uint32_t dragId_ = 0;
 };
 }
@@ -70,7 +77,8 @@ void CameraManager::Initialize(DirectXCommon* dxCommon)
 	{
 		Camera* camera = GetCamera(item.name);
 		if (!camera || (SceneViewContext::HasInstance() && camera == SceneViewContext::GetInstance()->GetCamera())) { return false; }
-		world = MakeAffineMatrix({ 1.0f, 1.0f, 1.0f }, camera->GetRotate(), camera->GetTranslate());
+		// オイラー角から組むと、クォータニオンで回っているカメラ（シーケンス・カットシーン）と向きが合わない
+		world = Multiply(camera->GetRotateQuaternion().ToMatrix(), MakeTranslateMatrix(camera->GetTranslate()));
 		operations = kGizmoTranslate | kGizmoRotate;
 		return true;
 	};
@@ -78,8 +86,8 @@ void CameraManager::Initialize(DirectXCommon* dxCommon)
 	{
 		Camera* camera = GetCamera(item.name);
 		if (!camera) { return; }
-		Transform before{ { 1.0f, 1.0f, 1.0f }, camera->GetRotate(), camera->GetTranslate() };
-		Transform moved{ { 1.0f, 1.0f, 1.0f }, after.rotate.ToEuler(), after.translate };
+		const CameraGizmoState before{ camera->GetTranslate(), camera->GetRotateQuaternion() };
+		const CameraGizmoState moved{ after.translate, after.rotate };
 		CommandHistory::GetInstance()->Execute(std::make_unique<CameraGizmoCommand>(this, item.name, before, moved, dragId));
 	};
 	SceneGizmo::GetInstance()->RegisterTarget(this, SelectionKind::Camera, std::move(target));

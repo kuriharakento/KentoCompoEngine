@@ -95,7 +95,7 @@ public:
      * @brief 更新処理
      * @details アクティブカメラの更新
      */
-	void Update();
+    void Update();
 	/** @brief 登録カメラのデバッグ形状をラインへ積む。 */
 	void DrawDebugLines();
 
@@ -110,6 +110,7 @@ public:
 	 * @param item SelectionKind::Camera の選択
 	 */
 	void DrawInspectorImGui(const SelectionItem& item);
+	/** @brief カメラの設定ページ（デバッグ線の表示）を描く */
 	void DrawSettingsImGui();
 #endif
 
@@ -128,6 +129,7 @@ private:
 
 	// DirectXCommonへのポインタ（カメラのGPUバッファ初期化用）
 	DirectXCommon* dxCommon_ = nullptr;
+	// カメラの位置・向き・視錐台の線を出すか（Settings の「シーン > カメラ」で切り替える）
 	bool drawDebugLines_ = true;
 };
 } // namespace KCE
