@@ -344,6 +344,8 @@
     <ClInclude Include="scene\interface\ISceneState.h" />
     <ClInclude Include="scene\manager\SceneManager.h" />
     <ClInclude Include="scene\SceneContext.h" />
+    <ClInclude Include="time\ClockId.h" />
+    <ClInclude Include="time\ClockRef.h" />
     <ClInclude Include="time\TimeManager.h" />
     <ClInclude Include="time\Timer.h" />
     <ClInclude Include="time\TimerManager.h" />

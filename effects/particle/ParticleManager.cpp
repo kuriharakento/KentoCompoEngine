@@ -133,15 +133,16 @@ void ParticleManager::Update(CameraManager* camera)
 	// 前フレームの描画が完全に終わったため、ゴミ箱内の古いレンダラーを安全に破棄する
 	rendererTrashBin_.clear();
 
-	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
-	float unscaledDeltaTime = TimeManager::GetInstance().GetGameContext().realDeltaTime;
+	const TimeManager& time = TimeManager::GetInstance();
 
-	// エフェクトの更新（再生中 or 残存パーティクルがある間は継続）
+	// エフェクトの更新（再生中 or 残存パーティクルがある間は継続）。
+	// エフェクトごとの時計で進める（出した GameObject の時計に合わせる、などのため）。DeltaTimeType はその時計の倍率あり / なし
 	for (auto& effect : effects_)
 	{
 		if (effect->IsPlaying() || !effect->IsFinished())
 		{
-			float dt = (effect->GetDeltaTimeType() == DeltaTimeType::RealDeltaTime) ? unscaledDeltaTime : deltaTime;
+			const TimeContext& context = time.GetContext(effect->GetClock());
+			float dt = (effect->GetDeltaTimeType() == DeltaTimeType::RealDeltaTime) ? context.realDeltaTime : context.deltaTime;
 			effect->Update(dt, camera);
 		}
 	}
@@ -149,7 +150,7 @@ void ParticleManager::Update(CameraManager* camera)
 	// 直接追加されたエミッターの更新（後方互換）
 	for (auto& emitter : emitters_)
 	{
-		emitter->Update(deltaTime, camera);
+		emitter->Update(time.GetDeltaTime(emitter->GetClock()), camera);
 	}
 
 	// 終了したエフェクトを削除

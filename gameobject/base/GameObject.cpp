@@ -133,7 +133,8 @@ void GameObject::Update()
 	// 3Dモデルの更新
 	if (renderable3d_)
 	{
-		float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
+		// アニメーションも自分の時計で進める（敵だけ止めたときにアニメも止まるように）
+		float deltaTime = GetDeltaTime();
 		Camera* camera = object3dCommon_ ? object3dCommon_->GetDefaultCamera() : nullptr;
 		renderable3d_->Update(deltaTime, camera);
 	}
@@ -157,6 +158,31 @@ void GameObject::Update()
 		}
 	}
 
+}
+
+ClockId GameObject::GetClock() const
+{
+	// 自分に指定があって、その時計がまだあればそれ。無ければ親に聞く（子は親の時計で動く）
+	if (clock_.IsSpecified() && TimeManager::GetInstance().IsValid(clock_))
+	{
+		return clock_;
+	}
+	return parent_ ? parent_->GetClock() : TimeManager::GetInstance().GameClock();
+}
+
+void GameObject::SetClock(std::string_view clockName)
+{
+	// 名前はここで1回だけ探して番号で覚える（毎フレーム名前で探さない）
+	clock_ = TimeManager::GetInstance().FindClock(clockName);
+	if (!clock_.IsSpecified())
+	{
+		Logger::Log("GameObject: 時計が見つからないので親の時計で動かします: " + std::string(clockName) + "（" + name_ + "）\n", Logger::LogLevel::Warning);
+	}
+}
+
+float GameObject::GetDeltaTime() const
+{
+	return TimeManager::GetInstance().GetDeltaTime(GetClock());
 }
 
 void GameObject::LateUpdate()

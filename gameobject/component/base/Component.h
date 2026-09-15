@@ -44,6 +44,8 @@ public:
     bool IsEnabled() const { return enabled_; }
     /** @brief 所有する GameObject を返す。所有権は移らない。 */
     GameObject* GetOwner() const { return owner_; }
+    /** @brief 持ち主の GameObject の時計の、倍率を掛けた1フレームの経過時間。Update ではこれを使う */
+    float GetDeltaTime() const;
 private:
     friend class KCE::GameObject;
     // owner_ は GameObject が所有し、Component より長く生きる。

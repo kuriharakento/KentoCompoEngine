@@ -38,9 +38,10 @@ public:
      * @brief 新しいタイマーを追加（パラメータ指定）
      * @param name タイマーの識別名
      * @param duration 継続時間（秒）
-     * @param deltaType 使用するデルタタイムのタイプ
+     * @param deltaType その時計の、倍率を掛けた時間（DeltaTime）か掛けない時間（RealDeltaTime）か
+     * @param clock 進める時計。指定なしなら Game
      */
-    void AddTimer(const std::string& name, float duration, DeltaTimeType deltaType = DeltaTimeType::DeltaTime);
+    void AddTimer(const std::string& name, float duration, DeltaTimeType deltaType = DeltaTimeType::DeltaTime, ClockId clock = {});
 
     /**
      * @brief 既存のタイマーオブジェクトを追加
