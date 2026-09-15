@@ -241,7 +241,11 @@ private:
 	void AddRequiredBindings();
 	/** @brief 編集用カメラを自由移動させる */
 	void UpdateEditorCameraFly();
-	/** @brief 現在のプレビュー対象に応じてアクティブカメラを切り替える */
+	/**
+	 * @brief 現在のプレビュー対象に応じてアクティブカメラを切り替える
+	 * @details オンにするときは直前のカメラを覚えておき、オフにしたらそこへ戻す。
+	 *          シーンのデバッグカメラは元のカメラを動かしているので、別のカメラへ切り替えると操作が効かなくなる。
+	 */
 	void ApplyActiveCamera();
 	/**
 	 * @brief プレビュー用の割り当てをバインディングコンテキストへ反映する
@@ -304,6 +308,8 @@ private:
 	std::string sequenceCameraName_;
 	// 編集用の自由移動カメラの名前
 	std::string editorCameraName_;
+	// シーケンスカメラで見る前にアクティブだったカメラの名前。オフにしたらここへ戻す
+	std::string cameraBeforePreview_;
 
 	// エディタでのプレビュー用の割り当て（役 → GameObject の GUID）
 	std::unordered_map<std::string, Guid> previewObjectBindings_;

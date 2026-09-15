@@ -3486,7 +3486,21 @@ void SequencerEditor::ApplyActiveCamera()
 		return;
 	}
 
-	cameraManager_->SetActiveCamera(previewThroughSequenceCamera_ ? sequenceCameraName_ : editorCameraName_);
+	if (previewThroughSequenceCamera_)
+	{
+		// 戻すときのために、シーケンスカメラへ切り替える前のカメラを覚えておく
+		const std::string& current = cameraManager_->GetActiveCameraName();
+		if (current != sequenceCameraName_)
+		{
+			cameraBeforePreview_ = current;
+		}
+		cameraManager_->SetActiveCamera(sequenceCameraName_);
+		return;
+	}
+
+	// 元のカメラへ戻す。シーンが切り替わって消えていたときだけ編集用カメラにする
+	const bool canRestore = !cameraBeforePreview_.empty() && cameraManager_->GetCamera(cameraBeforePreview_) != nullptr;
+	cameraManager_->SetActiveCamera(canRestore ? cameraBeforePreview_ : editorCameraName_);
 }
 
 void SequencerEditor::UpdateEditorCameraFly()
