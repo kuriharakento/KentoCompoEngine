@@ -42,6 +42,10 @@ public:
 	void DrawSettingsImGui();
 	void DrawHierarchyImGui();
 	void DrawInspectorImGui(const SelectionItem& item);
+	/** @brief デバッグ名で再生位置を読み取る。 */
+	bool GetDebugPosition(const std::string& name, Vector3& position) const;
+	/** @brief デバッグ名で再生位置を書き戻す。 */
+	bool SetDebugPosition(const std::string& name, const Vector3& position);
 
 	//===== エフェクトのロード（推奨API）=====//
 

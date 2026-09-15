@@ -64,6 +64,8 @@ public:
 	std::unique_ptr<TextMesh3D> RemoveText3D(const std::string& name);
 	/** @return このステージが所有する名前なら真。 */
 	bool OwnsText3D(const std::string& name) const;
+	/** @return ステージ所有の3D文字。見つからなければ nullptr。 */
+	TextMesh3D* GetOwnedText3D(const std::string& name);
 
 	/** @brief モニターの保存・編集対象。 */
 	struct MonitorState
@@ -149,6 +151,7 @@ private:
 	std::string createMonitorError_;
 	MonitorState editStartState_{};
 	std::string editingMonitorName_;
+	bool editMonitorCameraWithGizmo_ = false;
 #endif
 };
 } // namespace KCE

@@ -9,6 +9,7 @@
 #include "base/PathManager.h"
 #include "core/SchemaVersion.h"
 #include "editor/SelectionContext.h"
+#include "editor/SceneGizmo.h"
 #include "editor/command/CommandHistory.h"
 #include "graphics/text/Text3DRenderer.h"
 #include "gameobject/base/GameObject.h"
@@ -137,6 +138,67 @@ private:
 	bool recreateView_ = false;
 };
 
+class StageTextGizmoCommand final : public ICommand
+{
+public:
+	StageTextGizmoCommand(StageManager* manager, std::string name, const TextMesh3D::Params& before,
+		const TextMesh3D::Params& after, uint32_t dragId)
+		: manager_(manager), lifetimeId_(manager ? manager->GetLifetimeId() : 0), name_(std::move(name)), before_(before), after_(after), dragId_(dragId) {}
+	void Execute() override { Apply(after_); }
+	void Undo() override { Apply(before_); }
+	std::string GetName() const override { return "Move 3D Text"; }
+	bool MergeWith(const ICommand* next) override
+	{
+		const auto* command = dynamic_cast<const StageTextGizmoCommand*>(next);
+		if (!command || command->manager_ != manager_ || command->name_ != name_ || command->dragId_ != dragId_) { return false; }
+		after_ = command->after_;
+		return true;
+	}
+private:
+	void Apply(const TextMesh3D::Params& params)
+	{
+		if (StageManager::IsAlive(manager_, lifetimeId_))
+		{
+			if (TextMesh3D* text = manager_->GetOwnedText3D(name_)) { text->GetParams() = params; }
+		}
+	}
+	StageManager* manager_ = nullptr;
+	uint64_t lifetimeId_ = 0;
+	std::string name_;
+	TextMesh3D::Params before_{};
+	TextMesh3D::Params after_{};
+	uint32_t dragId_ = 0;
+};
+
+class StageMonitorGizmoCommand final : public ICommand
+{
+public:
+	StageMonitorGizmoCommand(StageManager* manager, std::string name, const StageManager::MonitorState& before,
+		const StageManager::MonitorState& after, uint32_t dragId)
+		: manager_(manager), lifetimeId_(manager ? manager->GetLifetimeId() : 0), name_(std::move(name)), before_(before), after_(after), dragId_(dragId) {}
+	void Execute() override { Apply(after_); }
+	void Undo() override { Apply(before_); }
+	std::string GetName() const override { return "Move Stage Monitor"; }
+	bool MergeWith(const ICommand* next) override
+	{
+		const auto* command = dynamic_cast<const StageMonitorGizmoCommand*>(next);
+		if (!command || command->manager_ != manager_ || command->name_ != name_ || command->dragId_ != dragId_) { return false; }
+		after_ = command->after_;
+		return true;
+	}
+private:
+	void Apply(const StageManager::MonitorState& state)
+	{
+		if (StageManager::IsAlive(manager_, lifetimeId_)) { manager_->ApplyMonitorState(name_, state, false); }
+	}
+	StageManager* manager_ = nullptr;
+	uint64_t lifetimeId_ = 0;
+	std::string name_;
+	StageManager::MonitorState before_{};
+	StageManager::MonitorState after_{};
+	uint32_t dragId_ = 0;
+};
+
 nlohmann::ordered_json SerializeVector3(const Vector3& value) { return { value.x, value.y, value.z }; }
 nlohmann::ordered_json SerializeVector4(const Vector4& value) { return { value.x, value.y, value.z, value.w }; }
 bool ReadFloatArray(const nlohmann::json& json, size_t count, float* output)
@@ -195,9 +257,19 @@ StageManager::~StageManager()
 {
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance()) { DebugUIManager::GetInstance()->Unregister(this); }
+	if (SceneGizmo::HasInstance()) { SceneGizmo::GetInstance()->Unregister(this); }
 #endif
 	Clear();
 	gLiveManagers.erase(this);
+}
+
+TextMesh3D* StageManager::GetOwnedText3D(const std::string& name)
+{
+	for (TextEntry& entry : texts3D_)
+	{
+		if (entry.name == name) { return entry.mesh.get(); }
+	}
+	return nullptr;
 }
 
 bool StageManager::IsAlive(const StageManager* manager, uint64_t lifetimeId)
@@ -616,6 +688,67 @@ void StageManager::RegisterDebugUI()
 	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "ステージ", [this]() { DrawHierarchyImGui(); });
 	DebugUIManager::GetInstance()->RegisterInspector(this, SelectionKind::Text3D, [this](const SelectionItem& item) { DrawInspectorImGui(item); });
 	DebugUIManager::GetInstance()->RegisterInspector(this, SelectionKind::StageMonitor, [this](const SelectionItem& item) { DrawInspectorImGui(item); });
+	GizmoTarget textTarget;
+	textTarget.getPose = [this](const SelectionItem& item, Matrix4x4& world, uint32_t& operations)
+	{
+		TextMesh3D* text = GetOwnedText3D(item.name);
+		if (!text) { return false; }
+		const TextMesh3D::Params& params = text->GetParams();
+		world = MakeAffineMatrix({ params.scale, params.scale, params.scale }, params.rotation.ToEuler(), params.position);
+		operations = kGizmoAll;
+		return true;
+	};
+	textTarget.apply = [this](const SelectionItem& item, const GizmoResult& result, uint32_t dragId)
+	{
+		TextMesh3D* text = GetOwnedText3D(item.name);
+		if (!text) { return; }
+		TextMesh3D::Params before = text->GetParams();
+		TextMesh3D::Params after = before;
+		after.position = result.translate;
+		after.rotation = result.rotate;
+		after.scale = (result.scale.x + result.scale.y + result.scale.z) / 3.0f;
+		CommandHistory::GetInstance()->Execute(std::make_unique<StageTextGizmoCommand>(this, item.name, before, after, dragId));
+	};
+	SceneGizmo::GetInstance()->RegisterTarget(this, SelectionKind::Text3D, std::move(textTarget));
+
+	GizmoTarget monitorTarget;
+	monitorTarget.getPose = [this](const SelectionItem& item, Matrix4x4& world, uint32_t& operations)
+	{
+		MonitorEntry* entry = FindMonitor(item.name);
+		if (!entry) { return false; }
+		entry->state = GetCurrentMonitorState(*entry);
+		if (editMonitorCameraWithGizmo_)
+		{
+			world = MakeAffineMatrix({ 1.0f, 1.0f, 1.0f }, entry->state.cameraRotation, entry->state.cameraPosition);
+			operations = kGizmoTranslate | kGizmoRotate;
+		}
+		else
+		{
+			world = MakeAffineMatrix(entry->state.screenScale, entry->state.screenRotation, entry->state.screenPosition);
+			operations = kGizmoAll;
+		}
+		return true;
+	};
+	monitorTarget.apply = [this](const SelectionItem& item, const GizmoResult& result, uint32_t dragId)
+	{
+		MonitorEntry* entry = FindMonitor(item.name);
+		if (!entry) { return; }
+		MonitorState before = GetCurrentMonitorState(*entry);
+		MonitorState after = before;
+		if (editMonitorCameraWithGizmo_)
+		{
+			after.cameraPosition = result.translate;
+			after.cameraRotation = result.rotate.ToEuler();
+		}
+		else
+		{
+			after.screenPosition = result.translate;
+			after.screenRotation = result.rotate.ToEuler();
+			after.screenScale = result.scale;
+		}
+		CommandHistory::GetInstance()->Execute(std::make_unique<StageMonitorGizmoCommand>(this, item.name, before, after, dragId));
+	};
+	SceneGizmo::GetInstance()->RegisterTarget(this, SelectionKind::StageMonitor, std::move(monitorTarget));
 }
 
 void StageManager::DrawHierarchyImGui()
@@ -732,6 +865,10 @@ void StageManager::DrawInspectorImGui(const SelectionItem& item)
 		MonitorEntry* entry = FindMonitor(item.name);
 		if (!entry || !entry->screen || !entry->monitor || !entry->monitor->GetCamera()) { return; }
 		entry->state = GetCurrentMonitorState(*entry);
+		ImGui::TextUnformatted("ギズモで動かす対象");
+		if (ImGui::RadioButton("画面", !editMonitorCameraWithGizmo_)) { editMonitorCameraWithGizmo_ = false; }
+		ImGui::SameLine();
+		if (ImGui::RadioButton("カメラ", editMonitorCameraWithGizmo_)) { editMonitorCameraWithGizmo_ = true; }
 		auto finishEdit = [this, entry](const MonitorState& before, bool recreateView)
 		{
 			if (ImGui::IsItemActivated())
