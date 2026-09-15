@@ -42,6 +42,13 @@ constexpr float kFrameRate = 60.0f;
 constexpr float kFrameRateCheckMargin = 65.0f;
 // マイクロ秒から秒への変換係数
 constexpr float kMicrosecondsPerSecond = 1000000.0f;
+// シェーダーの最適化。最適化を外す（-Od）と GPU で何倍も遅くなり、計測で Lighting が 1 ピクセルあたり重く出ていた。
+// PIX でシェーダーの行を追いたいときだけ KCE_SHADER_DEBUG を定義して最適化を外す（デバッグ情報の -Zi はどちらでも付く）
+#ifdef KCE_SHADER_DEBUG
+constexpr LPCWSTR kShaderOptimizationArgument = L"-Od";
+#else
+constexpr LPCWSTR kShaderOptimizationArgument = L"-O3";
+#endif
 
 void DirectXCommon::Initialize(WinApp* winApp)
 {
@@ -815,7 +822,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::TryCompileShader(const std::wstr
 		L"-E", L"main",
 		L"-T", profile,
 		L"-Zi", L"-Qembed_debug",
-		L"-Od",
+		kShaderOptimizationArgument,
 		L"-Zpr",
 	};
 
@@ -905,7 +912,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileSharder(const std::wstrin
 		L"-E", L"main",					//エントリーポイントの指定。基本的にmain以外にはしない
 		L"-T", profile,					//Sharderprofileの設定
 		L"-Zi", L"-Qembed_debug",		//デバッグ用の情報を埋め込む
-		L"-Od",							//最適化を外しておく
+		kShaderOptimizationArgument,	//最適化する（KCE_SHADER_DEBUG のときだけ外す）
 		L"-Zpr",						//メモリレイアウトは行優先
 	};
 
