@@ -215,15 +215,33 @@ void LineManager::DrawArrow(const Vector3& start, const Vector3& direction, floa
     right = Vector3::Normalize(right);
     up = Vector3::Normalize(Vector3::Cross(dir, right));
 
-    // 矢じりの長さを計算
-    float headLength = length * kArrowHeadScale;
-    // 矢じりの左右の羽を計算
-    Vector3 leftWing = Vector3::Rotate(-dir, up, kArrowWingAngle) * headLength;
-    Vector3 rightWing = Vector3::Rotate(-dir, up, -kArrowWingAngle) * headLength;
+    // 矢じりの長さの下限と上限。短い矢でも見えて、長い矢で大きくなりすぎないように挟む
+    constexpr float kArrowHeadMinLength = 0.15f;
+    constexpr float kArrowHeadMaxLength = 1.0f;
 
-    // 矢じりの左右の羽を描画
-    DrawLine(end, end + leftWing, color);
-    DrawLine(end, end + rightWing, color);
+    // 矢じりの長さを計算。dir はもう長さを持っているので、向きだけにしてから掛ける
+    float headLength = length * kArrowHeadScale;
+    if (headLength < kArrowHeadMinLength)
+    {
+        headLength = kArrowHeadMinLength;
+    }
+    if (headLength > kArrowHeadMaxLength)
+    {
+        headLength = kArrowHeadMaxLength;
+    }
+    const Vector3 back = Vector3::Normalize(-dir);
+
+    // 羽は上下左右の4本。1平面だけだと、横から見たときに1本の線にしか見えない
+    const Vector3 wings[] = {
+        Vector3::Rotate(back, up, kArrowWingAngle),
+        Vector3::Rotate(back, up, -kArrowWingAngle),
+        Vector3::Rotate(back, right, kArrowWingAngle),
+        Vector3::Rotate(back, right, -kArrowWingAngle),
+    };
+    for (const Vector3& wing : wings)
+    {
+        DrawLine(end, end + wing * headLength, color);
+    }
 }
 
 void LineManager::DrawAxis(const Vector3& position, float scale)

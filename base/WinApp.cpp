@@ -124,21 +124,22 @@ void WinApp::Finalize()
 
 bool WinApp::ProcessMessage()
 {
-	MSG msg;
-	// メッセージがあれば処理
-	if(PeekMessage(&msg,nullptr,0,0,PM_REMOVE))
+	// 溜まっているメッセージは全部処理する。1フレーム1個だと、右ドラッグ中のマウス移動やキーの押しっぱなしで
+	// メッセージが溜まり、操作の後のクリックが順番待ちになって遅れて届く
+	MSG msg{};
+	bool quit = false;
+	while(PeekMessage(&msg,nullptr,0,0,PM_REMOVE))
 	{
+		// 終了メッセージを受け取った場合はtrueを返す
+		if(msg.message == WM_QUIT)
+		{
+			quit = true;
+		}
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
 
-	// 終了メッセージを受け取った場合はtrueを返す
-	if(msg.message == WM_QUIT)
-	{
-		return true;
-	}
-
-	return false;
+	return quit;
 }
 
 void WinApp::Resize(uint32_t width, uint32_t height)

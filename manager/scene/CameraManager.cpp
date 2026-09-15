@@ -20,7 +20,6 @@ namespace
 {
 constexpr float kFrustumDepth = 3.0f;
 constexpr float kCameraMarkRadius = 0.2f;
-constexpr float kCameraDirectionLength = 1.0f;
 constexpr Vector4 kCameraDebugColor = { 0.3f, 0.8f, 1.0f, 1.0f };
 
 // カメラの姿勢。シーケンスやカットシーンはクォータニオンで回すので、オイラー角に落とさずに持つ
@@ -170,11 +169,11 @@ void CameraManager::DrawDebugLines()
 #ifdef _DEBUG
 	if (!drawDebugLines_) { return; }
 	LineManager* lines = LineManager::GetInstance();
-	const SelectionItem& selected = SelectionContext::GetInstance()->GetPrimary();
 	Camera* viewCamera = SceneViewContext::HasInstance() ? SceneViewContext::GetInstance()->GetCamera() : nullptr;
-	for (const auto& [name, cameraOwner] : cameras_)
+	// どこを向いて何を映しているかが一目で分かるよう、選んでいなくても全部のカメラに視錐台を出す
+	for (const auto& entry : cameras_)
 	{
-		Camera* camera = cameraOwner.get();
+		Camera* camera = entry.second.get();
 		if (camera == viewCamera) { continue; }
 		camera->Update();
 		const Matrix4x4& world = camera->GetWorldMatrix();
@@ -184,12 +183,6 @@ void CameraManager::DrawDebugLines()
 		const Vector3 forward{ world.m[2][0], world.m[2][1], world.m[2][2] };
 		lines->DrawLine(origin - right * kCameraMarkRadius, origin + right * kCameraMarkRadius, kCameraDebugColor);
 		lines->DrawLine(origin - up * kCameraMarkRadius, origin + up * kCameraMarkRadius, kCameraDebugColor);
-		const bool isSelected = selected.kind == SelectionKind::Camera && selected.name == name;
-		if (!isSelected)
-		{
-			lines->DrawLine(origin, origin + forward * kCameraDirectionLength, kCameraDebugColor);
-			continue;
-		}
 		const float halfHeight = std::tan(camera->GetFovY() * 0.5f) * kFrustumDepth;
 		const float halfWidth = halfHeight * camera->GetAspectRatio();
 		const Vector3 center = origin + forward * kFrustumDepth;

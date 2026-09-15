@@ -407,14 +407,15 @@ void LightManager::DrawDebugLines()
 
 	// ディレクショナルライトの可視化
 	const bool directionalSelected = IsLightSelected(selected, SelectionLightType::Directional, kDirectionalLightName);
-	if (showDirectionalLightDebug_ && (!showSelectedLightOnly_ || directionalSelected)
+	// 位置を持たないのでカメラの前について回る。常に出すと画面に居座るので、選んでいるときだけ出す
+	if (showDirectionalLightDebug_ && directionalSelected
 		&& SceneViewContext::HasInstance() && SceneViewContext::GetInstance()->GetCamera())
 	{
 		Vector3 origin{};
 		GetDirectionalDisplayPosition(origin);
 		const Vector3 direction = Vector3::Normalize(directionalLight_.direction);
 		const Vector4 color = MakeVisibleDebugColor(directionalLight_.color);
-		lineManager->DrawArrow(origin, direction, directionalSelected ? kSelectedDirectionLength : kUnselectedDirectionLength, color);
+		lineManager->DrawArrow(origin, direction, kSelectedDirectionLength, color);
 	}
 
 	// ポイントライトの可視化
