@@ -360,10 +360,14 @@ void DirectXCommon::InitializeDevice()
 #ifdef _DEBUG
 	Microsoft::WRL::ComPtr<ID3D12Debug1> debugController;
 	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
-		//デバッグレイヤーを有効化する
+		//デバッグレイヤーを有効化する（Debug では必ずオン。切らないこと）
 		debugController->EnableDebugLayer();
-		//さらにGPU側でもチェックを行うようにする
+#ifdef KCE_GPU_VALIDATION
+		//さらにGPU側でもチェックを行うようにする。
+		//全シェーダーのリソースを読む命令に確認が埋め込まれ、毎フレーム GPU が数倍重くなるので、ふだんは切っておく。
+		//見た目がおかしいのにデバッグレイヤーが何も言わないとき（数フレームに1回だけ状態を間違えるなど）に、KCE_GPU_VALIDATION を定義して探す
 		debugController->SetEnableGPUBasedValidation(TRUE);
+#endif
 	}
 #endif
 
