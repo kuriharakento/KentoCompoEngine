@@ -142,8 +142,8 @@ void Framework::Initialize()
 	Audio::GetInstance()->SetDebugWindowVisible(true);
 #endif // USE_IMGUI
 
-	// 時間管理クラスの初期化
-	TimeManager::GetInstance();
+	// 時間管理クラスの初期化。Settings のページは DebugUIManager の初期化の後に登録する
+	TimeManager::GetInstance().RegisterDebugUI();
 
 	// タイマーマネージャーの初期化
 	TimerManager::GetInstance();
@@ -448,6 +448,7 @@ void Framework::Finalize()
 	CutsceneManager::GetInstance()->Finalize();
 	SequencerEditor::GetInstance()->Finalize();
 	SceneGizmo::GetInstance()->Finalize();
+	TimeManager::GetInstance().UnregisterDebugUI();
 	SceneViewContext::GetInstance()->Finalize();
 	SelectionContext::GetInstance()->Finalize();
 	CommandHistory::GetInstance()->Finalize();

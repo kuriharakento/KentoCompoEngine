@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <string_view>
 #include <algorithm>
 #include <unordered_map>
 #include <vector>
@@ -19,6 +20,8 @@
 #include "jsonEditor/JsonEditableBase.h"
 // core
 #include "core/Guid.h"
+// time
+#include "time/ClockId.h"
 // graphics
 #include "graphics/view/RenderLayer.h"
 
@@ -402,6 +405,27 @@ public: // アクセッサ
 	GameObject* GetParent() const { return parent_; }
 
 	/**
+	 * @brief この GameObject（と子・コンポーネント）が使う時計を決める
+	 * @param clock TimeManager::CreateClock で作った時計。指定なしに戻すと親の時計を使う
+	 */
+	void SetClock(ClockId clock) { clock_ = clock; }
+
+	/**
+	 * @brief 名前で使う時計を決める。ここで1回だけ探して番号で覚える
+	 * @param clockName 時計の名前。見つからなければ警告を出し、指定なし（親の時計）に戻す。時計は起動時に作っておく
+	 */
+	void SetClock(std::string_view clockName);
+
+	/**
+	 * @brief 使う時計を返す
+	 * @return 自分に指定があればそれ、無ければ（か消えていれば）親の時計、親もいなければ Game
+	 */
+	ClockId GetClock() const;
+
+	/** @brief 使う時計の、倍率を掛けた1フレームの経過時間 */
+	float GetDeltaTime() const;
+
+	/**
 	 * @brief アタッチされている全コンポーネントを取得
 	 */
 	const std::vector<std::unique_ptr<GameObjectComponent::Component>>& GetComponents() const { return components_; }
@@ -506,6 +530,9 @@ private:
 	std::unordered_map<std::string, std::unique_ptr<GameObject>> children_;
 	// 親オブジェクトへのポインタ
 	GameObject* parent_ = nullptr;
+
+	// 使う時計。指定なしなら親の時計（それも無ければ Game）
+	ClockId clock_{};
 };
 
 /**

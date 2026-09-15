@@ -35,13 +35,14 @@ TimerManager::~TimerManager()
     Clear();
 }
 
-void TimerManager::AddTimer(const std::string& name, float duration, DeltaTimeType deltaType)
+void TimerManager::AddTimer(const std::string& name, float duration, DeltaTimeType deltaType, ClockId clock)
 {
     // 同名のタイマーが存在しない場合のみ追加
     if (timers_.find(name) == timers_.end())
     {
         // タイマーを生成して追加
         timers_[name] = std::make_unique<Timer>(name, duration, deltaType);
+        timers_[name]->SetClock(clock);
 		// 追加と同時に開始
 		timers_[name]->Start();
     }
@@ -76,16 +77,15 @@ void TimerManager::Update()
     // 全タイマーを更新
     for (auto it = timers_.begin(); it != timers_.end(); )
     {
-        // 時間経過のタイプに応じて適切なデルタタイムで更新
+        // タイマーの時計の、倍率あり（DeltaTime）か倍率なし（RealDeltaTime）の時間で更新
+        const TimeContext& context = TimeManager::GetInstance().GetContext(it->second->GetClock());
         if (it->second->GetDeltaTimeType() == DeltaTimeType::DeltaTime)
         {
-            // タイムスケール適用済みの時間で更新
-            it->second->Update(TimeManager::GetInstance().GetGameContext().deltaTime);
+            it->second->Update(context.deltaTime);
         }
         else
         {
-            // 実時間で更新
-            it->second->Update(TimeManager::GetInstance().GetGameContext().realDeltaTime);
+            it->second->Update(context.realDeltaTime);
         }
 
         // タイマーが終了したら削除

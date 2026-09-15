@@ -1184,6 +1184,12 @@
     <ClInclude Include="scene\manager\SceneManager.h">
       <Filter>scene\manager</Filter>
     </ClInclude>
+    <ClInclude Include="time\ClockId.h">
+      <Filter>time</Filter>
+    </ClInclude>
+    <ClInclude Include="time\ClockRef.h">
+      <Filter>time</Filter>
+    </ClInclude>
     <ClInclude Include="time\TimeManager.h">
       <Filter>time</Filter>
     </ClInclude>

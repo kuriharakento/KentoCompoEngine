@@ -144,6 +144,13 @@ public:
 	void SetDeltaTimeType(DeltaTimeType type) { deltaTimeType_ = type; }
 	DeltaTimeType GetDeltaTimeType() const { return deltaTimeType_; }
 
+	/**
+	 * @brief 進める時計を決める（例: 出したプレイヤーの GameObject::GetClock()）
+	 * @param clock 指定なしなら Game。DeltaTimeType はこの時計の倍率あり / なしを選ぶ
+	 */
+	void SetClock(ClockId clock) { clock_ = clock; }
+	ClockId GetClock() const { return clock_; }
+
 	//===== プロパティ =====//
 
 	const std::string& GetName() const { return name_; }
@@ -199,5 +206,7 @@ private:
 	bool isPlaying_ = false;
 	bool isAutoRemove_ = true;
 	DeltaTimeType deltaTimeType_ = DeltaTimeType::DeltaTime;
+	// 進める時計。指定なしなら Game
+	ClockId clock_{};
 };
 } // namespace KCE

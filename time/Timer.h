@@ -2,6 +2,8 @@
 #include <string>
 #include <functional>
 
+#include "time/ClockId.h"
+
 namespace KCE
 {
 /**
@@ -145,6 +147,13 @@ public:
 	 */
 	DeltaTimeType GetDeltaTimeType() const { return deltaTimeType_; }
 
+	/**
+	 * @brief 進める時計を決める
+	 * @param clock 指定なしなら Game。DeltaTimeType はこの時計の倍率あり / なしを選ぶ
+	 */
+	void SetClock(ClockId clock) { clock_ = clock; }
+	ClockId GetClock() const { return clock_; }
+
 private:
     std::string name_;      // タイマー名
     float duration_;        // 継続時間
@@ -153,6 +162,7 @@ private:
     bool finished_;         // 終了フラグ
 
 	DeltaTimeType deltaTimeType_ = DeltaTimeType::DeltaTime; // 時間経過のタイプ
+	ClockId clock_{};       // 進める時計。指定なしなら Game
 
     std::function<void()> onStart;      // 開始時コールバック
     std::function<void(float)> onTick_; // 毎フレームコールバック

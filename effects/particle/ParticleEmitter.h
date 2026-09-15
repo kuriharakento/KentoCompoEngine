@@ -13,6 +13,7 @@
 #include "Particle.h"
 #include "ParticleTypes.h"
 #include <base/GraphicsTypes.h>
+#include "time/ClockId.h"
 
 namespace KCE
 {
@@ -82,6 +83,13 @@ public:
 
 	const std::string& GetName() const { return name_; }
 	const std::string& GetDebugName() const { return debugName_; }
+
+	/**
+	 * @brief 進める時計を決める。ParticleManager に直接足したエミッターだけに効く（エフェクトの中のエミッターはエフェクトの時計で進む）
+	 * @param clock 指定なしなら Game
+	 */
+	void SetClock(ClockId clock) { clock_ = clock; }
+	ClockId GetClock() const { return clock_; }
 
 	// Play/Stop制御
 	void SetEnabled(bool enabled) { enabled_ = enabled; }
@@ -226,6 +234,8 @@ private:
 	uint32_t nextParticleId_ = 0;                   ///< 次に生成するパーティクルのID
 	bool modulesSorted_ = false;                    ///< モジュールが優先度順にソート済みか
 	bool enabled_ = true;                           ///< エミッター有効フラグ
+	// 進める時計。指定なしなら Game（ParticleManager に直接足したときだけ使う）
+	ClockId clock_{};
 
 	//===== ライフサイクル設定 =====//
 	float duration_ = 0.0f;                         ///< 持続時間（0 = 無限）
