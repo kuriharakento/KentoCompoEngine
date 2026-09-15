@@ -6,6 +6,7 @@
 #include "manager/graphics/TextureManager.h"
 #include "manager/graphics/SkinnedModelManager.h"
 #include "base/DirectXCommon.h"
+#include "graphics/pipeline/DrawCallCounter.h"
 
 namespace KCE
 {
@@ -54,6 +55,7 @@ void SkinnedModel::Draw()
 		commandList->SetGraphicsRootConstantBufferView(0, meshResource.materialBuffer->GetGPUVirtualAddress());
 		commandList->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetSrvHandleGPU(meshResource.textureIndex));
 		commandList->DrawIndexedInstanced(meshResource.indexCount, 1, 0, 0, 0);
+		DrawCallCounter::Add();
 	}
 }
 
@@ -66,6 +68,7 @@ void SkinnedModel::DrawShadow()
 		commandList->IASetVertexBuffers(0, 1, &meshResource.vertexBufferView);
 		commandList->IASetIndexBuffer(&meshResource.indexBufferView);
 		commandList->DrawIndexedInstanced(meshResource.indexCount, 1, 0, 0, 0);
+		DrawCallCounter::Add();
 	}
 }
 
@@ -80,6 +83,7 @@ void SkinnedModel::DrawGBuffer()
 		commandList->SetGraphicsRootConstantBufferView(2, meshResource.materialBuffer->GetGPUVirtualAddress());
 		commandList->SetGraphicsRootDescriptorTable(3, TextureManager::GetInstance()->GetSrvHandleGPU(meshResource.textureIndex));
 		commandList->DrawIndexedInstanced(meshResource.indexCount, 1, 0, 0, 0);
+		DrawCallCounter::Add();
 	}
 }
 

@@ -29,6 +29,7 @@
 #include "graphics/deferred/DeferredRenderer.h"
 // render pipeline
 #include "graphics/pipeline/RenderPipeline.h"
+#include "graphics/pipeline/RenderProfiler.h"
 // view
 #include "graphics/view/ISubViewProvider.h"
 #include "graphics/view/RenderView.h"
@@ -280,6 +281,8 @@ protected: // メンバ変数
 	std::unique_ptr<RenderPipeline> renderPipeline_;
 	// サブビュー用の、シーンだけを描くパイプライン
 	std::unique_ptr<RenderPipeline> subViewPipeline_;
+	// パスごとの GPU 時間とドローコール数の計測
+	std::unique_ptr<RenderProfiler> renderProfiler_;
 	// 毎フレーム描くサブビュー（所有しない）
 	std::vector<RenderView*> subViews_;
 	// CreateSubView で作ったビュー（こちらは所有する）

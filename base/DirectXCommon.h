@@ -141,6 +141,12 @@ public:
 	ID3D12GraphicsCommandList* GetCommandList() { return commandList_.Get(); }
 
 	/**
+	 * @brief コマンドキューを取得
+	 * @return コマンドキューへのポインタ（タイムスタンプの周波数を取るのに使う）
+	 */
+	ID3D12CommandQueue* GetCommandQueue() { return commandQueue_.Get(); }
+
+	/**
 	 * @brief DXCコンパイラを取得
 	 * @return DXCコンパイラへのポインタ
 	 */

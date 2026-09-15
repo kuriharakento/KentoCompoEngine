@@ -13,6 +13,7 @@
 // manager
 #include "base/PathManager.h"
 #include "base/Logger.h"
+#include "graphics/pipeline/DrawCallCounter.h"
 #include "manager/graphics/TextureManager.h"
 
 namespace KCE
@@ -175,6 +176,7 @@ void Model::Draw()
 
 		// インデックス付き描画コマンドを発行
 		commandList->DrawIndexedInstanced(meshResource.indexCount, 1, 0, 0, 0);
+		DrawCallCounter::Add();
 	}
 }
 
@@ -193,6 +195,7 @@ void Model::DrawShadow()
 
 		// インデックス付き描画コマンドを発行
 		commandList->DrawIndexedInstanced(meshResource.indexCount, 1, 0, 0, 0);
+		DrawCallCounter::Add();
 	}
 }
 
@@ -217,6 +220,7 @@ void Model::DrawGBuffer()
 
 		// インデックス付き描画コマンドを発行
 		commandList->DrawIndexedInstanced(meshResource.indexCount, 1, 0, 0, 0);
+		DrawCallCounter::Add();
 	}
 }
 

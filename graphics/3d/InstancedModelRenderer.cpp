@@ -9,6 +9,7 @@
 #include "math/MatrixFunc.h"
 #include "manager/graphics/InstancedModelPipelineManager.h"
 #include "engine/manager/graphics/ShadowMapManager.h"
+#include "graphics/pipeline/DrawCallCounter.h"
 #include <d3dcompiler.h>
 #include <cassert>
 
@@ -143,6 +144,7 @@ void InstancedModelRenderer::DrawInstanced(Camera* camera, LightManager* lightMa
         commandList->IASetIndexBuffer(&mesh.indexBufferView);
 
         commandList->DrawIndexedInstanced(mesh.indexCount, currentInstanceCount_, 0, 0, 0);
+        DrawCallCounter::Add();
     }
 }
 
@@ -176,6 +178,7 @@ void InstancedModelRenderer::DrawInstancedGBuffer(Camera* camera)
         commandList->IASetIndexBuffer(&mesh.indexBufferView);
 
         commandList->DrawIndexedInstanced(mesh.indexCount, currentInstanceCount_, 0, 0, 0);
+        DrawCallCounter::Add();
     }
 }
 
@@ -211,6 +214,7 @@ void InstancedModelRenderer::DrawInstancedShadow(Camera* camera, ShadowMapManage
         commandList->IASetIndexBuffer(&mesh.indexBufferView);
 
         commandList->DrawIndexedInstanced(mesh.indexCount, currentInstanceCount_, 0, 0, 0);
+        DrawCallCounter::Add();
     }
 }
 } // namespace KCE

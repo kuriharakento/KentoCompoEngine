@@ -372,6 +372,13 @@ void Framework::Initialize()
 	renderPipeline_->RegisterDebugUI();
 #endif
 
+	// パスごとの GPU 時間とドローコール数の計測（本編もサブビューも、パイプラインを回すたびに積む）
+	renderProfiler_ = std::make_unique<RenderProfiler>();
+	renderProfiler_->Initialize(dxCommon_.get());
+#ifdef USE_IMGUI
+	renderProfiler_->RegisterDebugUI();
+#endif
+
 	// サブビュー（中継映像、カメラプレビュー、反射）用のパイプライン。
 	// シャドウマップは本編と共有するため含めない。
 	subViewPipeline_ = std::make_unique<RenderPipeline>();
@@ -489,6 +496,7 @@ void Framework::Finalize()
 	// パスは各マネージャーを参照するだけで所有しないため、解放順は問わない
 	renderPipeline_.reset();
 	subViewPipeline_.reset();
+	renderProfiler_.reset();
 	// 反射のサブビューは自分が持っているので、ビューを消す前に畳む
 	if (planarReflection_)
 	{
@@ -595,6 +603,7 @@ RenderPassContext Framework::MakeRenderPassContext(RenderView* view, RenderTextu
 	ctx.depthOfFieldRenderer = depthOfFieldRenderer_.get();
 	ctx.volumetricLightRenderer = volumetricLightRenderer_.get();
 	ctx.planarReflection = planarReflection_.get();
+	ctx.renderProfiler = renderProfiler_.get();
 	return ctx;
 }
 
@@ -618,7 +627,11 @@ void Framework::ExecuteRenderPipeline(RenderTexture* outputTarget)
 		GameObjectManager::GetInstance()->SetRenderLayerMask(mainView_->GetLayerMask());
 	}
 
+	// 前のフレームの計測結果を読んでから、このフレームの計測を始める
+	renderProfiler_->BeginFrame();
 	renderPipeline_->Execute(MakeRenderPassContext(mainView_.get(), outputTarget));
+	// コマンドリストを閉じる（PostDraw）前に、測った値を読み出し用へ移す
+	renderProfiler_->EndFrame();
 }
 
 void Framework::RegisterSubView(RenderView* view)

@@ -133,6 +133,7 @@
     <ClCompile Include="graphics\2d\TextSprite.cpp" />
     <ClCompile Include="graphics\2d\TextSpritePipeline.cpp" />
     <ClCompile Include="graphics\pipeline\RenderPipeline.cpp" />
+    <ClCompile Include="graphics\pipeline\RenderProfiler.cpp" />
     <ClCompile Include="graphics\pipeline\StandardRenderPasses.cpp" />
     <ClCompile Include="graphics\view\RenderView.cpp" />
     <ClCompile Include="graphics\view\StageMonitor.cpp" />
@@ -353,6 +354,8 @@
     <ClInclude Include="graphics\pipeline\RenderPassContext.h" />
     <ClInclude Include="graphics\FrameConstantAllocator.h" />
     <ClInclude Include="graphics\pipeline\RenderPipeline.h" />
+    <ClInclude Include="graphics\pipeline\RenderProfiler.h" />
+    <ClInclude Include="graphics\pipeline\DrawCallCounter.h" />
     <ClInclude Include="graphics\pipeline\StandardRenderPasses.h" />
     <ClInclude Include="graphics\view\RenderLayer.h" />
     <ClInclude Include="graphics\view\ISubViewProvider.h" />

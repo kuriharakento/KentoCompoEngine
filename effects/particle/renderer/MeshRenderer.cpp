@@ -9,6 +9,7 @@
 #include "effects/particle/ParticleManager.h"
 #include "manager/graphics/TextureManager.h"
 #include "manager/effect/ParticlePipelineManager.h"
+#include "graphics/pipeline/DrawCallCounter.h"
 #include <d3d12.h>
 #include <numbers>
 
@@ -294,6 +295,7 @@ void MeshRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 		drawCount,
 		0, 0, 0
 	);
+	DrawCallCounter::Add();
 }
 
 void MeshRenderer::Initialize(const std::string& texturePath)

@@ -549,6 +549,9 @@
     <ClCompile Include="graphics\pipeline\RenderPipeline.cpp">
       <Filter>graphics\pipeline</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\pipeline\RenderProfiler.cpp">
+      <Filter>graphics\pipeline</Filter>
+    </ClCompile>
     <ClCompile Include="graphics\pipeline\StandardRenderPasses.cpp">
       <Filter>graphics\pipeline</Filter>
     </ClCompile>
@@ -1209,6 +1212,12 @@
       <Filter>graphics\pipeline</Filter>
     </ClInclude>
     <ClInclude Include="graphics\pipeline\RenderPipeline.h">
+      <Filter>graphics\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\pipeline\RenderProfiler.h">
+      <Filter>graphics\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\pipeline\DrawCallCounter.h">
       <Filter>graphics\pipeline</Filter>
     </ClInclude>
     <ClInclude Include="graphics\pipeline\StandardRenderPasses.h">

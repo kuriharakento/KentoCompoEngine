@@ -12,6 +12,7 @@ class LightManager;
 class Object3dCommon;
 class OutlineRenderer;
 class PostProcessManager;
+class RenderProfiler;
 class RenderTexture;
 class RenderView;
 class SceneManager;
@@ -102,6 +103,10 @@ struct RenderPassContext
 	 *          複数ビューで描いたとき最後に書いた値で全ビューが描かれる。
 	 */
 	FrameConstantAllocator* frameConstantAllocator = nullptr;
+
+	// --- 計測 ---
+	//! パスごとの GPU 時間とドローコール数を測る。無ければ測らない
+	RenderProfiler* renderProfiler = nullptr;
 
 	// --- 大気 ---
 	//! 大気フォグ

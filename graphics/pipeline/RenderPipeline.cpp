@@ -2,6 +2,9 @@
 
 #include <algorithm>
 
+#include "graphics/pipeline/RenderProfiler.h"
+#include "graphics/view/RenderView.h"
+
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
 #include "manager/editor/DebugUIManager.h"
@@ -94,11 +97,21 @@ void RenderPipeline::Execute(const RenderPassContext& ctx)
 		return;
 	}
 
+	// サブビューの分もこの関数を入れ子で通るので、計測はビュー名を付けて積む
+	RenderProfiler* profiler = ctx.renderProfiler;
 	for (const auto& pass : passes_)
 	{
 		if (pass && pass->ShouldExecute(ctx))
 		{
+			if (profiler)
+			{
+				profiler->BeginPass(ctx.view->GetName().c_str(), pass->GetName());
+			}
 			pass->Execute(ctx);
+			if (profiler)
+			{
+				profiler->EndPass();
+			}
 		}
 	}
 }
