@@ -136,15 +136,8 @@ private:
 	void DrawInspectorWindow();
 	/** @brief GameObject のインスペクタにシーケンサ連携を描画する */
 	void DrawGameObjectSequencerInspector(const SelectionItem& item);
-	/** @brief シーンへのオーバーレイ（Sceneエリア）。ギズモを描く */
-	void DrawSceneOverlay();
-	/**
-	 * @brief 選択中の GameObject をギズモで動かす
-	 * @param object 対象。所有しない（この呼び出しの間だけ使う）
-	 * @param view 描画しているカメラのビュー行列
-	 * @param projection 描画しているカメラの射影行列
-	 */
-	void DrawObjectGizmo(GameObject* object, const Matrix4x4& view, const Matrix4x4& projection);
+	/** @brief シーケンスのカメラを SceneGizmo に登録する。何も選んでいないときにギズモで動かせるように */
+	void RegisterSequenceCameraGizmo();
 
 	/** @brief 再生とキー編集のツールバー */
 	void DrawToolbar();
@@ -333,14 +326,6 @@ private:
 
 	// シーケンスカメラ視点でプレビューするか
 	bool previewThroughSequenceCamera_ = false;
-	// ギズモの操作モード（0:移動 1:回転 2:拡大縮小。カメラは拡大縮小しないので 2 のときは移動として扱う）
-	int gizmoOperation_ = 0;
-	// ギズモをワールド座標で操作するか
-	bool gizmoWorldSpace_ = true;
-	// オブジェクトのギズモを掴んだ回数。ドラッグごとに別の Undo にするための番号
-	uint32_t gizmoDragId_ = 0;
-	// 前のフレームでオブジェクトのギズモを掴んでいたか
-	bool gizmoWasUsing_ = false;
 
 	// グリッドスナップを有効にするか
 	bool snapEnabled_ = true;

@@ -4,6 +4,9 @@
 #include "engine/gameobject/manager/GameObjectManager.h"
 #include "manager/editor/DebugUIManager.h"
 #include "editor/SelectionContext.h"
+#include "editor/SceneGizmo.h"
+#include "editor/command/CommandHistory.h"
+#include "sequencer/editor/SequencerCommands.h"
 #include "externals/imgui/imgui.h"
 #include <algorithm>
 #include <filesystem>
@@ -62,6 +65,39 @@ void GameObjectEditor::Initialize()
 			this->DrawInspectorImGui();
 		}
 	);
+
+	// 選んでいる GameObject をギズモで動かす。対象は毎回選択から引き直す（消えたオブジェクトを掴まないため）
+	GizmoTarget objectTarget;
+	objectTarget.getPose = [](const SelectionItem&, Matrix4x4& world, uint32_t& operations)
+	{
+		GameObject* object = SelectionContext::GetInstance()->GetPrimaryGameObject();
+		if (!object)
+		{
+			return false;
+		}
+		world = MakeAffineMatrix(object->GetScale(), object->GetRotation(), object->GetPosition());
+		operations = kGizmoAll;
+		return true;
+	};
+	objectTarget.apply = [](const SelectionItem&, const GizmoResult& after, uint32_t dragId)
+	{
+		GameObject* object = SelectionContext::GetInstance()->GetPrimaryGameObject();
+		if (!object)
+		{
+			return;
+		}
+		Transform before;
+		before.scale = object->GetScale();
+		before.rotate = object->GetRotation();
+		before.translate = object->GetPosition();
+		// 回転はエンジンのオイラー角の規約にそろえる
+		Transform moved;
+		moved.scale = after.scale;
+		moved.rotate = after.rotate.ToEuler();
+		moved.translate = after.translate;
+		CommandHistory::GetInstance()->Execute(std::make_unique<GameObjectTransformCommand>(object->GetGuid(), before, moved, dragId));
+	};
+	SceneGizmo::GetInstance()->RegisterTarget(this, SelectionKind::GameObject, std::move(objectTarget));
 #endif
 }
 
@@ -71,6 +107,11 @@ void GameObjectEditor::Finalize()
 	if (DebugUIManager::HasInstance())
 	{
 		DebugUIManager::GetInstance()->Unregister(this);
+	}
+	// SceneGizmo は先に片付いていることがある
+	if (SceneGizmo::HasInstance())
+	{
+		SceneGizmo::GetInstance()->Unregister(this);
 	}
 #endif
 	selected_ = nullptr;
