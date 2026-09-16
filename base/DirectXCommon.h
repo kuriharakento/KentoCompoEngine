@@ -35,6 +35,17 @@ public:
 	 */
 	void PostDraw();
 
+	/** @brief PostDraw内のCPU時間を測るか設定する */
+	void SetCpuTimingEnabled(bool enabled) { cpuTimingEnabled_ = enabled; }
+	/** @brief 前回のPostDrawでCPU時間を測れたか */
+	bool HasCpuTiming() const { return cpuTimingValid_; }
+	/** @brief コマンド実行とPresentの時間（ms） */
+	float GetExecutePresentMilliseconds() const { return executePresentMilliseconds_; }
+	/** @brief GPU完了待ちの時間（ms） */
+	float GetGpuWaitMilliseconds() const { return gpuWaitMilliseconds_; }
+	/** @brief FPS固定待ちの時間（ms） */
+	float GetFpsWaitMilliseconds() const { return fpsWaitMilliseconds_; }
+
 	/**
 	 * @brief バッファリソースの生成
 	 * @param sizeInBytes バッファサイズ（バイト単位）
@@ -308,6 +319,11 @@ private:
 
 	
 private:
+	bool cpuTimingEnabled_ = false;
+	bool cpuTimingValid_ = false;
+	float executePresentMilliseconds_ = 0.0f;
+	float gpuWaitMilliseconds_ = 0.0f;
+	float fpsWaitMilliseconds_ = 0.0f;
 	// WindowsAPIへのポインタ
 	WinApp* winApp_ = nullptr;
 	// DirectX12デバイス

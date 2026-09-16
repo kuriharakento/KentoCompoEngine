@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <d3d12.h>
@@ -21,6 +22,20 @@ class DirectXCommon;
 class RenderProfiler
 {
 public:
+	enum class CpuSection : uint32_t
+	{
+		Frame,
+		Update,
+		FrameworkUpdate,
+		SceneUpdate,
+		RenderCommands,
+		ImGui,
+		ExecutePresent,
+		GpuWait,
+		FpsWait,
+		Count
+	};
+
 	RenderProfiler() = default;
 	~RenderProfiler();
 
@@ -45,6 +60,24 @@ public:
 
 	/** @brief 直近の BeginPass の計測を終える */
 	void EndPass();
+
+	/**
+	 * @brief 前フレームのCPU計測を確定し、このフレームの計測を始める
+	 * @param executePresentMs コマンド実行とPresentの時間
+	 * @param gpuWaitMs GPU完了待ちの時間
+	 * @param fpsWaitMs FPS固定待ちの時間
+	 * @param postDrawTimingValid DirectXCommonの3区間を測れたか
+	 */
+	void BeginCpuFrame(float executePresentMs, float gpuWaitMs, float fpsWaitMs, bool postDrawTimingValid);
+
+	/** @brief CPU区間の計測を始める */
+	void BeginCpuSection(CpuSection section);
+
+	/** @brief CPU区間の計測を終える */
+	void EndCpuSection(CpuSection section);
+
+	/** @brief Settingsのチェック状態を返す */
+	bool IsEnabled() const { return enabled_; }
 
 #ifdef USE_IMGUI
 	/** @brief Settings のページ（レンダリング > 描画の計測）を登録する */
@@ -89,10 +122,22 @@ private:
 		uint64_t lastSeen = 0;
 	};
 
+	static constexpr uint32_t kCpuHistoryLength = 120;
+	static constexpr uint32_t kCpuSectionCount = static_cast<uint32_t>(CpuSection::Count);
+
+	struct CpuHistory
+	{
+		std::array<float, kCpuHistoryLength> samples{};
+		uint32_t count = 0;
+		uint32_t next = 0;
+	};
+
 	/** @brief 前のフレームのタイムスタンプを読んで、結果の表を更新する */
 	void ReadResults();
 	/** @brief クエリヒープなどが揃っていて測れるか */
 	bool IsReady() const;
+	void PushCpuSample(CpuSection section, float milliseconds);
+	void GetCpuStats(CpuSection section, float& average, float& maximum) const;
 
 	// 所有しない。Framework が持ち、このクラスより長生きする
 	DirectXCommon* dxCommon_ = nullptr;
@@ -121,6 +166,12 @@ private:
 	uint64_t readCount_ = 0;
 	float frameGpuMs_ = 0.0f;
 	uint32_t resultFrameDrawCalls_ = 0;
+	std::array<CpuHistory, kCpuSectionCount> cpuHistory_{};
+	std::array<float, kCpuSectionCount> cpuFrameMs_{};
+	std::array<std::chrono::steady_clock::time_point, kCpuSectionCount> cpuSectionBegin_{};
+	std::array<bool, kCpuSectionCount> cpuSectionOpen_{};
+	std::chrono::steady_clock::time_point cpuFrameBegin_{};
+	bool cpuCollecting_ = false;
 	// 計測するか（Settings で切り替える）
 	bool enabled_ = true;
 };
