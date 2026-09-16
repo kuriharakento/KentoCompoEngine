@@ -3510,8 +3510,10 @@ void SequencerEditor::UpdateEditorCameraFly()
 		return;
 	}
 
+	// 編集用カメラで見ているときだけ動かす。
+	// 見ていないのに動くと、main をデバッグカメラで動かしたときに同じ右ドラッグで裏で一緒に動き、視錐台の線がズレて見える
 	Camera* camera = cameraManager_->GetCamera(editorCameraName_);
-	if (!camera)
+	if (!camera || cameraManager_->GetPrimaryCamera() != camera)
 	{
 		return;
 	}
