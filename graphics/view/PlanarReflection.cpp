@@ -46,12 +46,12 @@ PlanarReflection::~PlanarReflection()
 #endif
 }
 
-bool PlanarReflection::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, ISubViewProvider* provider, CameraManager* cameraManager, uint32_t width, uint32_t height)
+bool PlanarReflection::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, ISubViewProvider* provider, uint32_t width, uint32_t height)
 {
 	dxCommon_ = dxCommon;
 	srvManager_ = srvManager;
 	provider_ = provider;
-	if (!provider_ || !cameraManager)
+	if (!provider_)
 	{
 		return false;
 	}
@@ -69,14 +69,15 @@ bool PlanarReflection::Initialize(DirectXCommon* dxCommon, SrvManager* srvManage
 		return false;
 	}
 
-	cameraManager->AddCamera(kCameraName);
-	camera_ = cameraManager->GetCamera(kCameraName);
+	// 本編のカメラを鏡映して動かすだけの裏方なので、CameraManager には登録せず自分で持つ
+	camera_ = std::make_unique<Camera>();
+	camera_->InitializeConstantBuffer(dxCommon_);
 	view_ = provider_->CreateSubView(kCameraName, ReducedSize(width), ReducedSize(height));
-	if (!view_ || !camera_)
+	if (!view_)
 	{
 		return false;
 	}
-	view_->SetCamera(camera_);
+	view_->SetCamera(camera_.get());
 	view_->SetLayerMask(kRenderLayerAll & ~kReflectorLayer);
 	// 床に映った輪郭線はほとんど見えないので省く（反射は毎フレーム描くので、少しでも軽くする）
 	view_->SetPassEnabled(RenderViewPass::Outline, false);
@@ -95,7 +96,8 @@ void PlanarReflection::Finalize()
 	}
 	view_ = nullptr;
 	provider_ = nullptr;
-	camera_ = nullptr;
+	// ビューは登録を外したので、もうこのカメラで描かれない
+	camera_.reset();
 	hasImage_ = false;
 }
 

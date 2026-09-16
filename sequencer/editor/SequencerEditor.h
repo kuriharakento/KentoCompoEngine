@@ -239,8 +239,6 @@ private:
 	void CreateNewSequence(const std::string& path);
 	/** @brief どのシーケンスにも要る役（MainCam）を足す */
 	void AddRequiredBindings();
-	/** @brief 編集用カメラを自由移動させる */
-	void UpdateEditorCameraFly();
 	/**
 	 * @brief 現在のプレビュー対象に応じてアクティブカメラを切り替える
 	 * @details オンにするときは直前のカメラを覚えておき、オフにしたらそこへ戻す。
@@ -306,8 +304,6 @@ private:
 	PostProcessManager* postProcessManager_ = nullptr;
 	// シーケンスが駆動するカメラの名前
 	std::string sequenceCameraName_;
-	// 編集用の自由移動カメラの名前
-	std::string editorCameraName_;
 	// シーケンスカメラで見る前にアクティブだったカメラの名前。オフにしたらここへ戻す
 	std::string cameraBeforePreview_;
 
@@ -432,8 +428,6 @@ private:
 	size_t tapCount_ = 0;
 	// 別々のUI操作をUndoで一緒にしないための番号
 	uint32_t metaEditId_ = 0;
-	// 編集用カメラの移動速度
-	float editorCameraSpeed_ = 8.0f;
 	// 初期化済みかどうか
 	bool initialized_ = false;
 };

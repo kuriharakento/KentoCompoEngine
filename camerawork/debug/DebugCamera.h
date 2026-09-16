@@ -16,6 +16,7 @@ namespace KCE
  * - LShift: 下降
  * - マウス右クリック: 視点回転
  * - Tab: デバッグUIの表示切り替え
+ * 右ドラッグしている間だけ動かす（WASD も右ドラッグ中だけ効く）。エディタでは Scene の上で掴んだときだけ。
  * ImGuiデバッグUIで移動速度・マウス感度の調整が可能。
  */
 class DebugCamera : public CameraWorkBase
@@ -109,6 +110,12 @@ private:
     void UpdateMouseLook();
 
     /**
+     * @brief マウスが Scene の画像の上にあるか
+     * @return 上にあれば真。Scene が無い（ImGui 無し・ゲーム画面だけ）ときも真
+     */
+    bool IsMouseOverSceneView() const;
+
+    /**
      * @brief ImGuiデバッグUIの描画
      */
     void DrawImGui();
@@ -144,13 +151,15 @@ private:
     // マウス感度係数
     float mouseSensitivity_ = 0.001f;
 
-    // 水平回転角度（度）
+    // 水平回転角度（ラジアン）
     float yaw_ = 0.0f;
-    // 垂直回転角度（度）
+    // 垂直回転角度（ラジアン）
     float pitch_ = 0.0f;
 
     // アクティブ状態フラグ
     bool isActive_ = false;
+    // 右ドラッグでカメラを掴んでいる間は真。掴んでいない間はカメラにもマウスの設定にも触らない
+    bool dragging_ = false;
     // デバッグUI表示フラグ
     bool showDebugUI_ = true;
 

@@ -93,6 +93,13 @@ public:
 		BlendingOut, //!< 終わってゲームのカメラへ戻っている途中
 	};
 
+	/**
+	 * @brief シーケンスが動かすカメラの名前
+	 * @details ゲーム中のカットシーンとエディタのプレビューで同じ1台を使う。
+	 *          両方が同時に動かしたときは、後から更新するカットシーン（Framework::Update でシーケンサの後）の姿勢になる
+	 */
+	static constexpr const char* kSequenceCameraName = "SequenceCamera";
+
 	static CutsceneManager* GetInstance();
 	static bool HasInstance();
 

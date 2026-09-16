@@ -157,6 +157,12 @@ void Framework::Initialize()
 	cameraManager_->SetActiveCamera("main");
 	cameraManager_->GetActiveCamera()->SetTranslate({ 0.0f, kDefaultCameraY, kDefaultCameraZ });
 	cameraManager_->GetActiveCamera()->SetRotate({ 0.0f, 0.0f, 0.0f });
+#ifdef USE_IMGUI
+	// エディタで視点を動かす口はここだけにする（シーンごとやシーケンサに持たせると、同じ右ドラッグで二重に動く）
+	debugCamera_ = std::make_unique<DebugCamera>();
+	debugCamera_->Initialize(cameraManager_->GetCamera("main"));
+	debugCamera_->Start(cameraManager_->GetActiveCamera()->GetTranslate(), cameraManager_->GetActiveCamera()->GetRotate());
+#endif
 
 	// 3Dオブジェクト共通部に初期カメラをセット
 	objectCommon_->SetDefaultCamera(cameraManager_->GetActiveCamera());
@@ -308,7 +314,7 @@ void Framework::Initialize()
 		volumetricLightRenderer_ = std::make_unique<VolumetricLightRenderer>();
 		volumetricLightRenderer_->Initialize(dxCommon_.get(), srvManager_.get(), width, height);
 		planarReflection_ = std::make_unique<PlanarReflection>();
-		planarReflection_->Initialize(dxCommon_.get(), srvManager_.get(), this, cameraManager_.get(), width, height);
+		planarReflection_->Initialize(dxCommon_.get(), srvManager_.get(), this, width, height);
 
 		shaderHotReload->Register(fxaaRenderer_.get(), "FXAA",
 			[this](std::string& outError) { return fxaaRenderer_->ReloadShaders(outError); });
@@ -444,6 +450,9 @@ void Framework::Finalize()
 	jobSystem_.reset();
 
 	// エディタ層は、登録先の DebugUIManager より先に片付ける
+#ifdef USE_IMGUI
+	debugCamera_.reset();
+#endif
 	ShaderHotReload::GetInstance()->Finalize();
 	CutsceneManager::GetInstance()->Finalize();
 	SequencerEditor::GetInstance()->Finalize();
@@ -558,6 +567,11 @@ void Framework::Update()
 
 	// ゲームから再生されたカットシーンの更新（カメラのブレンドもここで行う）
 	CutsceneManager::GetInstance()->Update();
+
+#ifdef USE_IMGUI
+	// デバッグカメラは右ドラッグしている間だけ main に触る
+	debugCamera_->Update();
+#endif
 
 	// カメラの更新
 	cameraManager_->Update();

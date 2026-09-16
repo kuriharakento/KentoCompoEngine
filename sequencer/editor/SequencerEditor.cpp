@@ -42,6 +42,7 @@ bool SequencerEditor::HasInstance()
 #include "manager/scene/LightManager.h"
 #include "sequencer/core/TrackFactory.h"
 #include "sequencer/editor/SequencerCommands.h"
+#include "sequencer/runtime/CutsceneManager.h"
 #include "sequencer/track/CameraTrack.h"
 #include "sequencer/track/ComponentTrack.h"
 #include "sequencer/track/LightTrack.h"
@@ -52,10 +53,10 @@ namespace
 {
 /** @brief シーケンスカメラに割り当てる役の名前 */
 const char* const kCameraRole = "MainCam";
-/** @brief 編集用の自由移動カメラの名前 */
-const char* const kEditorCameraName = "SequencerEditorCamera";
-/** @brief シーケンスが駆動するカメラの名前 */
-const char* const kSequenceCameraName = "SequencerCamera";
+/** @brief プレビュー前のカメラが消えていたときに戻す先。Framework が必ず作る */
+const char* const kFallbackCameraName = "main";
+/** @brief シーケンスが駆動するカメラの名前。ゲーム中のカットシーンと同じ1台を使う */
+const char* const kSequenceCameraName = CutsceneManager::kSequenceCameraName;
 
 class PreviewObjectBindingCommand : public ICommand
 {
@@ -402,21 +403,12 @@ void SequencerEditor::Initialize(CameraManager* cameraManager, LightManager* lig
 	lightManager_ = lightManager;
 	postProcessManager_ = postProcessManager;
 	sequenceCameraName_ = kSequenceCameraName;
-	editorCameraName_ = kEditorCameraName;
 
 	if (cameraManager_)
 	{
-		// シーケンスが駆動するカメラと、それを外から眺めるための編集用カメラを用意する。
-		// 1台しか無いとギズモを自分自身の視点から動かすことになり、まともに置けない。
+		// シーケンスが駆動するカメラを用意する（カットシーンと同じ1台。先に作られていればそれを使う）。
+		// 外から眺めるときは main を Framework のデバッグカメラで動かす
 		cameraManager_->AddCamera(sequenceCameraName_);
-		cameraManager_->AddCamera(editorCameraName_);
-
-		if (Camera* editorCamera = cameraManager_->GetCamera(editorCameraName_))
-		{
-			editorCamera->SetTranslate({ 0.0f, 4.0f, -14.0f });
-			editorCamera->SetRotate({ 0.0f, 0.0f, 0.0f });
-		}
-
 		SetSequenceCamera(cameraManager_->GetCamera(sequenceCameraName_));
 	}
 
@@ -790,7 +782,6 @@ void SequencerEditor::Update()
 
 	ApplyPreviewBindings();
 	HandleShortcuts();
-	UpdateEditorCameraFly();
 	player_.Update();
 }
 
@@ -2343,9 +2334,8 @@ void SequencerEditor::DrawSettingsPane()
 	}
 	if (ImGui::IsItemHovered())
 	{
-		ImGui::SetTooltip("オフの間は編集用カメラから眺め、シーケンスカメラをギズモで操作できます");
+		ImGui::SetTooltip("オフの間は元のカメラ（main）から眺め、シーケンスカメラをギズモで操作できます。視点は Scene の上で右ドラッグ + WASD で動かします");
 	}
-	ImGui::DragFloat("カメラの移動速度", &editorCameraSpeed_, 0.1f, 0.1f, 200.0f, "%.1f");
 
 	ImGui::PopItemWidth();
 
@@ -3498,84 +3488,9 @@ void SequencerEditor::ApplyActiveCamera()
 		return;
 	}
 
-	// 元のカメラへ戻す。シーンが切り替わって消えていたときだけ編集用カメラにする
+	// 元のカメラへ戻す。シーンが切り替わって消えていたときは、Framework が必ず作る main に戻す
 	const bool canRestore = !cameraBeforePreview_.empty() && cameraManager_->GetCamera(cameraBeforePreview_) != nullptr;
-	cameraManager_->SetActiveCamera(canRestore ? cameraBeforePreview_ : editorCameraName_);
-}
-
-void SequencerEditor::UpdateEditorCameraFly()
-{
-	if (!cameraManager_ || previewThroughSequenceCamera_)
-	{
-		return;
-	}
-
-	// 編集用カメラで見ているときだけ動かす。
-	// 見ていないのに動くと、main をデバッグカメラで動かしたときに同じ右ドラッグで裏で一緒に動き、視錐台の線がズレて見える
-	Camera* camera = cameraManager_->GetCamera(editorCameraName_);
-	if (!camera || cameraManager_->GetPrimaryCamera() != camera)
-	{
-		return;
-	}
-
-	// シーンビューの上で右ドラッグしている間だけ操作を受け付ける。
-	// そうしないと、他のウィンドウを触っている間にカメラが動いてしまう。
-	if (!SceneViewContext::HasInstance())
-	{
-		return;
-	}
-
-	const SceneViewRect& rect = SceneViewContext::GetInstance()->GetViewportRect();
-	if (!rect.IsValid())
-	{
-		return;
-	}
-
-	ImGuiIO& io = ImGui::GetIO();
-	const bool mouseInScene =
-		io.MousePos.x >= rect.x && io.MousePos.x <= rect.x + rect.width &&
-		io.MousePos.y >= rect.y && io.MousePos.y <= rect.y + rect.height;
-
-	if (!ImGui::IsMouseDown(ImGuiMouseButton_Right) || (!mouseInScene && !ImGui::IsMouseDragging(ImGuiMouseButton_Right)))
-	{
-		return;
-	}
-
-	// 視点回転
-	constexpr float kLookSensitivity = 0.003f;
-	Vector3 rotate = camera->GetRotate();
-	rotate.y += io.MouseDelta.x * kLookSensitivity;
-	rotate.x += io.MouseDelta.y * kLookSensitivity;
-	// 真上・真下で反転しないよう制限する
-	rotate.x = std::clamp(rotate.x, -1.55f, 1.55f);
-	camera->SetRotate(rotate);
-
-	// ホイールで移動速度を変える
-	if (io.MouseWheel != 0.0f)
-	{
-		editorCameraSpeed_ = std::clamp(editorCameraSpeed_ * (1.0f + io.MouseWheel * 0.1f), 0.1f, 200.0f);
-	}
-
-	// 移動。編集モードではゲーム時間が止まるため、実時間の差分を使う
-	const float deltaTime = io.DeltaTime;
-	const Matrix4x4 world = camera->GetWorldMatrix();
-	const Vector3 forward = { world.m[2][0], world.m[2][1], world.m[2][2] };
-	const Vector3 right = { world.m[0][0], world.m[0][1], world.m[0][2] };
-	const Vector3 up = { world.m[1][0], world.m[1][1], world.m[1][2] };
-
-	Vector3 move = { 0.0f, 0.0f, 0.0f };
-	if (ImGui::IsKeyDown(ImGuiKey_W)) { move += forward; }
-	if (ImGui::IsKeyDown(ImGuiKey_S)) { move -= forward; }
-	if (ImGui::IsKeyDown(ImGuiKey_D)) { move += right; }
-	if (ImGui::IsKeyDown(ImGuiKey_A)) { move -= right; }
-	if (ImGui::IsKeyDown(ImGuiKey_E)) { move += up; }
-	if (ImGui::IsKeyDown(ImGuiKey_Q)) { move -= up; }
-
-	if (move.x != 0.0f || move.y != 0.0f || move.z != 0.0f)
-	{
-		const float speed = editorCameraSpeed_ * (io.KeyShift ? 3.0f : 1.0f);
-		camera->SetTranslate(camera->GetTranslate() + move.Normalize() * speed * deltaTime);
-	}
+	cameraManager_->SetActiveCamera(canRestore ? cameraBeforePreview_ : kFallbackCameraName);
 }
 
 void SequencerEditor::HandleShortcuts()
