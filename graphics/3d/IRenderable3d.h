@@ -2,6 +2,7 @@
 
 #include "base/GraphicsTypes.h"
 #include "light/DirectionalLight.h"
+#include "math/AABB.h"
 
 namespace KCE
 {
@@ -194,6 +195,13 @@ public:
 	virtual void SetRenderQueue(RenderQueue queue) = 0;
 
 	virtual RenderingType GetRenderingType() const = 0;
+
+	/**
+	 * @brief モデルのローカルの境界箱（視錐台カリング用）
+	 * @param outBounds 受け取り先
+	 * @return 持っていれば真。偽なら省かずに必ず描く
+	 */
+	virtual bool TryGetLocalBounds(AABB& outBounds) const { (void)outBounds; return false; }
 
 	/**
 	 * @brief レンダリングタイプの設定

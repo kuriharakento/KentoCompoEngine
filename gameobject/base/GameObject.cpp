@@ -210,7 +210,8 @@ void GameObject::Draw3D(CameraManager* camera)
 	ApplyTransformToObject3D(camera);
 
 	// 子の再帰描画でも半透明を不透明パスへ混ぜない。
-	if (renderable3d_->GetRenderQueue() == RenderQueue::Opaque)
+	// 見えなければ描く命令だけ飛ばす。行列は上で確定させてあるので、子の位置は親が見えなくても狂わない
+	if (renderable3d_->GetRenderQueue() == RenderQueue::Opaque && GameObjectManager::GetInstance()->IsRenderableVisible(renderable3d_.get()))
 	{
 		renderable3d_->Draw();
 	}
@@ -292,8 +293,11 @@ void GameObject::DrawShadow(Camera* camera)
 			renderable3d_->Update(0.0f, camera);
 		}
 
-		// renderable3dを通してシャドウマップへの深度書き込みを行う
-		renderable3d_->DrawShadowOnly();
+		// renderable3dを通してシャドウマップへの深度書き込みを行う。ライトの範囲に入らなければ飛ばす
+		if (GameObjectManager::GetInstance()->IsRenderableVisible(renderable3d_.get()))
+		{
+			renderable3d_->DrawShadowOnly();
+		}
 	}
 
 	// 子オブジェクトのシャドウ描画
@@ -316,8 +320,8 @@ void GameObject::DrawGBuffer(CameraManager* camera)
 		ApplyTransformToObject3D(camera);
 	}
 
-	// renderable3dを通してG-Bufferへの描画を行う
-	if (renderable3d_->GetRenderQueue() == RenderQueue::Opaque)
+	// renderable3dを通してG-Bufferへの描画を行う。見えなければ描く命令だけ飛ばす
+	if (renderable3d_->GetRenderQueue() == RenderQueue::Opaque && GameObjectManager::GetInstance()->IsRenderableVisible(renderable3d_.get()))
 	{
 		renderable3d_->DrawGBuffer();
 	}

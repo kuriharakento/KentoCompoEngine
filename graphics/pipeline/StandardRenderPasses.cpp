@@ -199,7 +199,10 @@ void ShadowMapPass::Execute(const RenderPassContext& ctx)
 			ctx.shadowMapManager->SetCurrentShadowMatrixAddress(cascadeMatrixAddress);
 		}
 
+		// このカスケードの範囲に入らない GameObject は影を描かない（深度は GPU でも切られるので結果は同じ）
+		GameObjectManager::GetInstance()->SetShadowCullingViewProjection(&ctx.lightManager->GetCascadeViewProjection(cascade));
 		ctx.sceneManager->DrawShadow();
+		GameObjectManager::GetInstance()->SetShadowCullingViewProjection(nullptr);
 		ctx.shadowMapManager->EndShadowPass();
 	}
 
@@ -236,7 +239,10 @@ void ShadowMapPass::Execute(const RenderPassContext& ctx)
 			ctx.shadowMapManager->SetCurrentShadowMatrixAddress(spotMatrixAddress);
 		}
 
+		// スポットライトの照らす範囲に入らない GameObject は影を描かない
+		GameObjectManager::GetInstance()->SetShadowCullingViewProjection(&ctx.lightManager->GetSpotLightShadowMatrix(name));
 		ctx.sceneManager->DrawShadow();
+		GameObjectManager::GetInstance()->SetShadowCullingViewProjection(nullptr);
 		ctx.shadowMapManager->EndShadowPass();
 		ctx.shadowMapManager->MarkSpotLightShadowRedrawn(name, lightState, casterState);
 	}

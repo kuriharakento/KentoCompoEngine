@@ -8,6 +8,7 @@
 #include "ModelCommon.h"
 // math
 #include "base/GraphicsTypes.h"
+#include "math/AABB.h"
 #include "math/MathUtils.h"
 
 namespace KCE
@@ -196,6 +197,18 @@ public: // アクセッサ
 	float GetShininess() const { return meshResources_.empty() ? 30.0f : meshResources_[0].gpuMaterial->shininess; }
 
 	/**
+	 * @brief 全メッシュの頂点を囲むローカルの境界箱（視錐台カリング用）
+	 * @param outBounds 受け取り先
+	 * @return 頂点が1つでもあれば真
+	 */
+	bool TryGetLocalBounds(AABB& outBounds) const
+	{
+		if (!hasLocalBounds_) { return false; }
+		outBounds = localBounds_;
+		return true;
+	}
+
+	/**
 	 * @brief モデルデータの取得
 	 * @return モデルデータへの参照
 	 */
@@ -287,6 +300,10 @@ private:
 
 	// モデルデータ
 	ModelData modelData_;
+
+	// 読み込み時に全頂点から測ったローカルの境界箱。毎フレーム頂点を回さないように持っておく
+	AABB localBounds_;
+	bool hasLocalBounds_ = false;
 
 	// メッシュリソース（マルチメッシュ対応）
 	std::vector<MeshResource> meshResources_;

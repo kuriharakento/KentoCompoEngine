@@ -210,6 +210,9 @@ public: // アクセッサ
 
 	RenderingType GetRenderingType() const override { return renderingType_; }
 
+	// TryGetLocalBounds は上書きしない（常に描く）。スキンメッシュはボーンの行列で拡大・移動されることがあり、
+	// バインドポーズの頂点の範囲では実際に描かれる位置を囲めず、見えているキャラを消してしまうため
+
 	/**
 	 * @brief レンダリングタイプの設定
 	 */

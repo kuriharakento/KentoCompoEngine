@@ -14,6 +14,7 @@ class CameraManager;
 class Camera;
 class Object3dCommon;
 class Object3d;
+class IRenderable3d;
 class LightManager;
 
 /**
@@ -169,6 +170,33 @@ public:
 	 */
 	RenderLayerMask GetRenderLayerMask() const { return renderLayerMask_; }
 
+	/**
+	 * @brief 影を描く間だけ、視錐台カリングに使うライトのビュー×プロジェクション行列を設定する
+	 * @details 影は SceneManager からアプリのシーンを経由して描くので、レイヤーマスクと同じく
+	 *          描く直前に設定して直後に nullptr へ戻す。nullptr の間は影を省かない（ポイントライトなど）
+	 * @param viewProjection ライトの行列。描き終わるまで生きていること（所有しない）
+	 */
+	void SetShadowCullingViewProjection(const Matrix4x4* viewProjection) { shadowCullingViewProjection_ = viewProjection; }
+
+	/**
+	 * @brief 今描いているビュー（または影）で、この描画物が見えるか
+	 * @details モデルの AABB をワールドへ移し、8つの角を行列でクリップ空間へ送って、全部が同じ面の外なら見えないとする。
+	 *          AABB を持たない描画物、判定する行列が無いとき、カリングを切っているときは常に真。
+	 *          見えた数・省いた数はフレームごとに数えて、描画の計測ページに出す
+	 * @param renderable 描画物。ワールド行列はこのビュー用に確定している前提
+	 * @return 描くなら真
+	 */
+	bool IsRenderableVisible(const IRenderable3d* renderable);
+
+	/** @brief 視錐台カリングを使うか（比べるときに切る） */
+	void SetCullingEnabled(bool enabled) { cullingEnabled_ = enabled; }
+	bool IsCullingEnabled() const { return cullingEnabled_; }
+
+	/** @brief 前のフレームで GameObject を描いた数（全ビューと影の合計） */
+	uint32_t GetLastFrameDrawnCount() const { return lastFrameDrawnCount_; }
+	/** @brief 前のフレームで視錐台の外として省いた数（全ビューと影の合計） */
+	uint32_t GetLastFrameCulledCount() const { return lastFrameCulledCount_; }
+
 public:
 	~GameObjectManager() = default;
 
@@ -191,6 +219,20 @@ private:
 
 	// 現在描いているビューの描画対象レイヤー
 	RenderLayerMask renderLayerMask_ = kRenderLayerAll;
+
+	// 今描いているビューのビュー×プロジェクション。Draw3D などの間だけ指す（カメラが持つ行列。所有しない）
+	const Matrix4x4* viewCullingViewProjection_ = nullptr;
+	// 影を描いている間のライトの行列。ShadowMapPass が設定して戻す（LightManager が持つ行列。所有しない）
+	const Matrix4x4* shadowCullingViewProjection_ = nullptr;
+	// 視錐台カリングを使うか
+	bool cullingEnabled_ = true;
+	// このフレームと前のフレームの、描いた数・省いた数
+	uint32_t drawnCount_ = 0;
+	uint32_t culledCount_ = 0;
+	uint32_t lastFrameDrawnCount_ = 0;
+	uint32_t lastFrameCulledCount_ = 0;
+	// 数を数えているフレーム（TimeManager のフレーム番号）
+	uint64_t countedFrame_ = 0;
 
 	// 動的に作成され、マネージャーが所有するGameObjectのリスト
 	std::vector<std::unique_ptr<GameObject>> dynamicGameObjects_;

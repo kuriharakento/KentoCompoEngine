@@ -319,6 +319,9 @@ public: /*========[ セッター ]========*/
 
 	RenderingType GetRenderingType() const override { return renderingType_; }
 
+	/** @brief モデルの読み込み時に測ったローカルの境界箱 */
+	bool TryGetLocalBounds(AABB& outBounds) const override { return model_ && model_->TryGetLocalBounds(outBounds); }
+
 	/**
 	 * @brief シャドウを落とすかどうかの設定
 	 * @param cast trueで影を落とす、falseで落とさない

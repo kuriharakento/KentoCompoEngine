@@ -5,6 +5,7 @@
 
 #include "base/DirectXCommon.h"
 #include "base/Logger.h"
+#include "gameobject/manager/GameObjectManager.h"
 #include "graphics/pipeline/DrawCallCounter.h"
 
 #ifdef USE_IMGUI
@@ -359,6 +360,19 @@ void RenderProfiler::RegisterDebugUI()
 void RenderProfiler::DrawImGui()
 {
 	ImGui::Checkbox("計測する", &enabled_);
+	// GameObject の視錐台カリング。切って比べられるように、描いた数・省いた数と並べる
+	if (GameObjectManager::HasInstance())
+	{
+		GameObjectManager* objects = GameObjectManager::GetInstance();
+		bool culling = objects->IsCullingEnabled();
+		if (ImGui::Checkbox("GameObject の視錐台カリング", &culling))
+		{
+			objects->SetCullingEnabled(culling);
+		}
+		ImGui::SameLine();
+		ImGui::Text("描いた: %u    省いた: %u", objects->GetLastFrameDrawnCount(), objects->GetLastFrameCulledCount());
+		ImGui::TextDisabled("GameObject を描いた回数で、全ビュー（本編・モニター・反射）と影の合計。スキンメッシュは省かない");
+	}
 	float frameAverage = 0.0f;
 	float frameMaximum = 0.0f;
 	GetCpuStats(CpuSection::Frame, frameAverage, frameMaximum);
