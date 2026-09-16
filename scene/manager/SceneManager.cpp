@@ -13,6 +13,13 @@ namespace KCE
 {
 SceneManager::~SceneManager()
 {
+#ifdef USE_IMGUI
+	// メニューや小窓から消えた this を呼ばないように外す
+	if (DebugUIManager::HasInstance())
+	{
+		DebugUIManager::GetInstance()->Unregister(this);
+	}
+#endif
 	//現在のシーンを終了
 	currentScene_->Finalize();
 }
@@ -78,6 +85,10 @@ void SceneManager::Initialize(const SceneContext& context)
 			ImGui::Text("State: %s", currentScene_->GetCurrentStateName().c_str());
 		}
 	});
+
+	// メニューバーの「シーン」と、切り替え前の確認
+	DebugUIManager::GetInstance()->RegisterMainMenu(this, "シーン", [this]() { DrawSceneMenu(); });
+	DebugUIManager::GetInstance()->RegisterDialog(this, [this]() { DrawSceneChangeDialog(); });
 #endif
 }
 
@@ -161,4 +172,93 @@ void SceneManager::ReserveNextScene()
 		currentScene_->Initialize();
 	}
 }
+
+#ifdef USE_IMGUI
+namespace
+{
+constexpr const char* kSceneChangePopupName = "保存していない変更があります";
+}
+
+void SceneManager::RequestSceneChangeFromMenu(const std::string& sceneName)
+{
+	// 同じフレームに2回予約すると ChangeScene の assert に当たるので、予約済みなら受けない
+	if (nextScene_)
+	{
+		return;
+	}
+	if (currentScene_ && currentScene_->HasUnsavedChanges())
+	{
+		pendingSceneName_ = sceneName;
+		sceneChangePopupRequested_ = true;
+		return;
+	}
+	ChangeScene(sceneName);
+}
+
+void SceneManager::DrawSceneMenu()
+{
+	// 一覧はメニューを開いた瞬間だけ作る（開いている間も毎フレーム作らない）
+	if (ImGui::IsWindowAppearing() || menuSceneNames_.empty())
+	{
+		menuSceneNames_ = SceneFactory::GetRegisteredSceneNames();
+		for (std::string& name : menuSceneNames_)
+		{
+			if (name.ends_with(sceneStr))
+			{
+				name.resize(name.size() - sceneStr.size());
+			}
+		}
+	}
+
+	// 今のシーン名は "〇〇Scene" なので、同じ形にして比べる
+	for (const std::string& name : menuSceneNames_)
+	{
+		const bool isCurrent = currentSceneName_.size() == name.size() + sceneStr.size()
+			&& currentSceneName_.starts_with(name) && currentSceneName_.ends_with(sceneStr);
+		if (ImGui::MenuItem(name.c_str(), nullptr, isCurrent))
+		{
+			RequestSceneChangeFromMenu(name);
+		}
+	}
+
+	ImGui::Separator();
+	if (ImGui::MenuItem("今のシーンを読み直す") && currentSceneName_.ends_with(sceneStr))
+	{
+		RequestSceneChangeFromMenu(currentSceneName_.substr(0, currentSceneName_.size() - sceneStr.size()));
+	}
+}
+
+void SceneManager::DrawSceneChangeDialog()
+{
+	if (sceneChangePopupRequested_)
+	{
+		ImGui::OpenPopup(kSceneChangePopupName);
+		sceneChangePopupRequested_ = false;
+	}
+	if (!ImGui::BeginPopupModal(kSceneChangePopupName, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		return;
+	}
+
+	ImGui::Text("今のシーンに保存していない変更があります。");
+	ImGui::Text("切り替えると変更は失われます。");
+	ImGui::Separator();
+	if (ImGui::Button("保存しないで切り替える"))
+	{
+		if (!nextScene_ && !pendingSceneName_.empty())
+		{
+			ChangeScene(pendingSceneName_);
+		}
+		pendingSceneName_.clear();
+		ImGui::CloseCurrentPopup();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("キャンセル"))
+	{
+		pendingSceneName_.clear();
+		ImGui::CloseCurrentPopup();
+	}
+	ImGui::EndPopup();
+}
+#endif
 } // namespace KCE

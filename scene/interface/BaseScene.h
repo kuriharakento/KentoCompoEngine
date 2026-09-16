@@ -154,6 +154,12 @@ public:
     virtual void DrawImGui() {}
 
     /**
+     * @brief 保存していない変更があるか。シーンの切り替え・読み直しの前に確認を出すかに使う
+     * @return 捨てると困る変更があれば真。既定は偽
+     */
+    virtual bool HasUnsavedChanges() const { return false; }
+
+    /**
      * @brief 共通更新処理。
      */
     virtual void CommonUpdate() {}
