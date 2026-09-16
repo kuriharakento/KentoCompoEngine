@@ -231,4 +231,15 @@ private:
 	// 前回 Update した時刻
 	std::chrono::steady_clock::time_point lastUpdate_;
 };
+
+// --- 最初からある時計を TimeManager::GetInstance() なしで取る（例: KCE::GameClock().GetDeltaTime()） ---
+
+/** @brief 実時間の根っこの時計 */
+inline ClockId RealClock() { return TimeManager::GetInstance().RealClock(); }
+/** @brief ゲームの時計 */
+inline ClockId GameClock() { return TimeManager::GetInstance().GameClock(); }
+/** @brief UI の時計 */
+inline ClockId UIClock() { return TimeManager::GetInstance().UIClock(); }
+/** @brief 編集中に動かすものの時計 */
+inline ClockId EditorClock() { return TimeManager::GetInstance().EditorClock(); }
 } // namespace KCE

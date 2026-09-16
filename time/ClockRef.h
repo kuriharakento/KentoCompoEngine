@@ -35,6 +35,25 @@ public:
 	/** @brief ClockId を受け取る口にそのまま渡すため */
 	operator ClockId() const { return Get(); }
 
+	// --- ClockId と同じ口（例: kEnemyClock.GetDeltaTime()）。見つからない間は読む口は Game、操作の口は何もしない ---
+
+	/** @brief このフレームの時間 */
+	const TimeContext& GetContext() const { return Get().GetContext(); }
+	/** @brief 倍率を掛けた1フレームの経過時間 */
+	float GetDeltaTime() const { return Get().GetDeltaTime(); }
+	/** @brief 倍率を掛けない1フレームの経過時間（止まっていれば 0） */
+	float GetRealDeltaTime() const { return Get().GetRealDeltaTime(); }
+	/** @brief 倍率を変える */
+	void SetTimeScale(float scale) const { Get().SetTimeScale(scale); }
+	/** @brief 止める。子も止まる */
+	void Pause() const { Get().Pause(); }
+	/** @brief 動かす */
+	void Resume() const { Get().Resume(); }
+	/** @brief この時計そのものが止められているか */
+	bool IsPaused() const { return Get().IsPaused(); }
+	/** @brief ヒットストップする */
+	void StartHitStop(float durationSeconds) const { Get().StartHitStop(durationSeconds); }
+
 	/** @brief 時計の名前 */
 	constexpr std::string_view GetName() const { return name_; }
 
