@@ -278,6 +278,37 @@ ClockId ClockRef::Get() const
 	return cached_;
 }
 
+bool ClockId::IsValid() const { return TimeManager::GetInstance().IsValid(*this); }
+const TimeContext& ClockId::GetContext() const { return TimeManager::GetInstance().GetContext(*this); }
+float ClockId::GetDeltaTime() const { return GetContext().deltaTime; }
+float ClockId::GetRealDeltaTime() const { return GetContext().realDeltaTime; }
+
+// TimeManager の ClockId 版は無効な番号を Game として扱うので、操作は有効なときだけ渡す
+void ClockId::SetTimeScale(float scale) const
+{
+	if (IsValid()) { TimeManager::GetInstance().SetTimeScale(*this, scale); }
+}
+
+void ClockId::Pause() const
+{
+	if (IsValid()) { TimeManager::GetInstance().Pause(*this); }
+}
+
+void ClockId::Resume() const
+{
+	if (IsValid()) { TimeManager::GetInstance().Resume(*this); }
+}
+
+bool ClockId::IsPaused() const
+{
+	return IsValid() && TimeManager::GetInstance().IsPaused(*this);
+}
+
+void ClockId::StartHitStop(float durationSeconds) const
+{
+	if (IsValid()) { TimeManager::GetInstance().StartHitStop(*this, durationSeconds); }
+}
+
 #ifdef USE_IMGUI
 void TimeManager::RegisterDebugUI()
 {

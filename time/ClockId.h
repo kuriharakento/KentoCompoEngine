@@ -3,6 +3,8 @@
 
 namespace KCE
 {
+struct TimeContext;
+
 /**
  * @brief TimeManager の時計を指す番号
  *
@@ -22,6 +24,34 @@ struct ClockId
 
 	/** @brief 時計が指定されているか（消えていても真。消えたかは TimeManager::IsValid で見る） */
 	bool IsSpecified() const { return index != kInvalidIndex; }
+
+	// --- この時計の時間と操作。TimeManager を呼ぶだけ（例: owner->GetClock().GetDeltaTime()） ---
+
+	/** @brief 今もある時計か */
+	bool IsValid() const;
+	/** @brief このフレームの時間。無効か指定なしなら Game の時間 */
+	const TimeContext& GetContext() const;
+	/** @brief 倍率を掛けた1フレームの経過時間。無効か指定なしなら Game の値 */
+	float GetDeltaTime() const;
+	/** @brief 倍率を掛けない1フレームの経過時間（止まっていれば 0）。無効か指定なしなら Game の値 */
+	float GetRealDeltaTime() const;
+
+	/**
+	 * @brief 倍率を変える（1.0 が標準、0 で止まる）
+	 * @details 操作の口は、無効か指定なしなら何もしない（間違えて Game を止めないように）。Real には効かない
+	 */
+	void SetTimeScale(float scale) const;
+	/** @brief 止める。子も止まる。無効なら何もしない */
+	void Pause() const;
+	/** @brief 動かす。無効なら何もしない */
+	void Resume() const;
+	/** @brief この時計そのものが止められているか。無効なら偽 */
+	bool IsPaused() const;
+	/**
+	 * @brief 指定した実時間だけ、この時計（と子）の更新時間を 0 にする。無効なら何もしない
+	 * @param durationSeconds 秒。負数は 0 として扱う
+	 */
+	void StartHitStop(float durationSeconds) const;
 
 	bool operator==(const ClockId& other) const { return index == other.index && generation == other.generation; }
 	bool operator!=(const ClockId& other) const { return !(*this == other); }
