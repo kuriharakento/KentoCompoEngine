@@ -376,8 +376,8 @@ private:
 	DWORD savedWindowStyle_ = 0;
 	WINDOWPLACEMENT savedWindowPlacement_ = { sizeof(WINDOWPLACEMENT) };
 	bool isFullscreen_ = false;
-	// FPS固定用の基準時間
-	std::chrono::steady_clock::time_point reference_;
+	// FPS固定で、次のフレームを始めてよい時刻
+	std::chrono::steady_clock::time_point nextFrameDeadline_;
 	// レンダーテクスチャのクリア値
 	D3D12_CLEAR_VALUE clearValue_;
 };

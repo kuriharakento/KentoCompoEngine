@@ -37,11 +37,11 @@ constexpr UINT kSamplerDescriptorCount = 1;
 // 256バイトアラインメント用マスク
 constexpr size_t kAlignmentMask = 255;
 // フレームレート（FPS）
-constexpr float kFrameRate = 60.0f;
-// FPSチェック用マージンフレームレート
-constexpr float kFrameRateCheckMargin = 65.0f;
-// マイクロ秒から秒への変換係数
-constexpr float kMicrosecondsPerSecond = 1000000.0f;
+constexpr int64_t kFrameRate = 60;
+// 1フレームの長さ（1/60 秒。ナノ秒で持って端数の丸めを小さくする）
+constexpr std::chrono::nanoseconds kFramePeriod(1'000'000'000 / kFrameRate);
+// 締め切りのこれより手前までは sleep で寝る。sleep の寝過ごし（1ms 前後）より少し長くしておく
+constexpr std::chrono::milliseconds kFrameSleepMargin(2);
 // シェーダーの最適化。最適化を外す（-Od）と GPU で何倍も遅くなり、計測で Lighting が 1 ピクセルあたり重く出ていた。
 // PIX でシェーダーの行を追いたいときだけ KCE_SHADER_DEBUG を定義して最適化を外す（デバッグ情報の -Zi はどちらでも付く）
 #ifdef KCE_SHADER_DEBUG
@@ -691,35 +691,34 @@ void DirectXCommon::InitializeDXCCompiler()
 
 void DirectXCommon::InitializeFixFPS()
 {
-	//現在時間を記録する
-	reference_ = std::chrono::steady_clock::now();
+	// 最初の締め切りは今から1フレーム後
+	nextFrameDeadline_ = std::chrono::steady_clock::now() + kFramePeriod;
 }
 
 void DirectXCommon::UpdateFixFPS()
 {
-	// 1/60秒ぴったりの時間
-	const std::chrono::microseconds kMinTime(uint64_t(kMicrosecondsPerSecond / kFrameRate));
-	// 1/60秒よりわずかに短い時間
-	const std::chrono::microseconds kMinCheckTime(uint64_t(kMicrosecondsPerSecond / kFrameRateCheckMargin));
+	using Clock = std::chrono::steady_clock;
 
-	// 現在時間を取得
-	std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-	// 前回記録からの経過時間を取得する
-	std::chrono::microseconds elapsed = std::chrono::duration_cast<std::chrono::microseconds>(now - reference_);
-
-	// 1/60秒（よりわずかに短い時間）経っていない場合
-	if(elapsed < kMinCheckTime)
+	// 締め切りの少し前までは普通に寝る。sleep は 1ms 前後寝過ごすので、締め切りの直前では寝ない
+	Clock::time_point now = Clock::now();
+	if (now + kFrameSleepMargin < nextFrameDeadline_)
 	{
-		// 1/60秒経過するまで微小なスリープを繰り返す
-		while(std::chrono::steady_clock::now() - reference_ < kMinTime)
-		{
-			// 1マイクロ秒スリープ
-			std::this_thread::sleep_for(std::chrono::microseconds(1));
-		}
+		std::this_thread::sleep_for(nextFrameDeadline_ - kFrameSleepMargin - now);
 	}
-	// 現在時間の記録をする
-	reference_ = std::chrono::steady_clock::now();
+	// 残りは譲りながら待って、締め切りちょうどで抜ける
+	while (Clock::now() < nextFrameDeadline_)
+	{
+		std::this_thread::yield();
+	}
 
+	// 次の締め切りは「今」ではなく前の締め切りから足す。数十 µs の遅れが毎フレーム積み重ならないように。
+	// ただし1フレーム以上遅れていたら（読み込みや止まった後）、取り返そうと連続で回さず今から数え直す
+	nextFrameDeadline_ += kFramePeriod;
+	now = Clock::now();
+	if (nextFrameDeadline_ < now)
+	{
+		nextFrameDeadline_ = now + kFramePeriod;
+	}
 }
 
 Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> DirectXCommon::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptor,
