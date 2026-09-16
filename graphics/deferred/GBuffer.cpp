@@ -8,7 +8,22 @@ namespace KCE
 {
 GBuffer::~GBuffer()
 {
-	// ComPtrで自動解放
+	// テクスチャは ComPtr で自動解放。SRV の番号は返さないと、サブビューを作り直すたびに減っていく
+	if (!srvManager_)
+	{
+		return;
+	}
+	for (uint32_t index : srvIndices_)
+	{
+		if (index != 0)
+		{
+			srvManager_->Free(index);
+		}
+	}
+	if (depthSrvIndex_ != 0)
+	{
+		srvManager_->Free(depthSrvIndex_);
+	}
 }
 
 void GBuffer::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, uint32_t width, uint32_t height)

@@ -179,6 +179,13 @@ public: // ゲッター
     bool HasSpotLightShadowMap(const std::string& name) const;
 
     /**
+     * @brief スポットライトのシャドウマップを捨てて、SRV の番号を返す
+     * @param name ライトの名前。無ければ何もしない
+     * @details このフレームの描画を積む前（Update 中）に呼ぶ。描画中に呼ぶと、積んだコマンドが消えたテクスチャを指す
+     */
+    void RemoveSpotLightShadowMap(const std::string& name);
+
+    /**
      * @brief ポイントライトシャドウマップが存在するか
      * @param name ライトの名前
      * @return 存在する場合true
