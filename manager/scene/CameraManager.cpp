@@ -202,6 +202,7 @@ void CameraManager::DrawHierarchyImGui()
 {
 	// 選ばれているかは今の選択と直接比べる（毎フレーム選択を作らない）
 	const SelectionItem& primary = SelectionContext::GetInstance()->GetPrimary();
+	std::string pendingRemoveName;
 	for (const auto& [name, camera] : cameras_)
 	{
 		(void)camera;
@@ -214,6 +215,17 @@ void CameraManager::DrawHierarchyImGui()
 			item.name = name;
 			SelectionContext::GetInstance()->Select(item);
 		}
+		// 右クリックで削除。ループ中に消すと回している map が壊れるので、名前だけ覚えて後で消す
+		if (ImGui::BeginPopupContextItem())
+		{
+			ImGui::BeginDisabled(!CanRemoveFromEditor(name));
+			if (ImGui::MenuItem("削除"))
+			{
+				pendingRemoveName = name;
+			}
+			ImGui::EndDisabled();
+			ImGui::EndPopup();
+		}
 		if (name == activeCameraName_)
 		{
 			ImGui::SameLine();
@@ -222,11 +234,37 @@ void CameraManager::DrawHierarchyImGui()
 		ImGui::PopID();
 	}
 
-	// カメラの追加ボタン
+	if (!pendingRemoveName.empty())
+	{
+		SelectionItem removed;
+		removed.kind = SelectionKind::Camera;
+		removed.name = pendingRemoveName;
+		SelectionContext::GetInstance()->RemoveFromSelection(removed);
+		if (RemoveCamera(pendingRemoveName))
+		{
+			editorCameraNames_.erase(pendingRemoveName);
+		}
+	}
+
+	// カメラの追加ボタン。消した後は個数から作る名前が既存と被るので、空いている番号を探す
 	if (ImGui::Button("カメラを追加"))
 	{
-		AddCamera("camera" + std::to_string(cameras_.size()));
+		size_t index = cameras_.size();
+		while (cameras_.contains("camera" + std::to_string(index)))
+		{
+			++index;
+		}
+		const std::string name = "camera" + std::to_string(index);
+		AddCamera(name);
+		editorCameraNames_.insert(name);
 	}
+}
+
+bool CameraManager::CanRemoveFromEditor(const std::string& name) const
+{
+	auto it = cameras_.find(name);
+	return it != cameras_.end() && editorCameraNames_.contains(name)
+		&& it->second.get() != activeCamera_ && it->second.get() != renderCameraOverride_;
 }
 
 void CameraManager::DrawInspectorImGui(const SelectionItem& item)
@@ -260,6 +298,28 @@ void CameraManager::DrawInspectorImGui(const SelectionItem& item)
 	if (ImGui::DragFloat3("回転", &cameraRotate.x, 0.01f, -3.14f, 3.14f))
 	{
 		camera->SetRotate(cameraRotate);
+	}
+
+	// 消せるのは画面で作ったカメラだけ。ほかはシステムがポインタを持っているので、理由を出して押せなくする
+	ImGui::Separator();
+	const bool canRemove = CanRemoveFromEditor(item.name);
+	ImGui::BeginDisabled(!canRemove);
+	if (ImGui::Button("このカメラを削除"))
+	{
+		// item は選択の中身を指していることがあるので、選択を外す前に写しておく
+		const SelectionItem removed = item;
+		SelectionContext::GetInstance()->RemoveFromSelection(removed);
+		if (RemoveCamera(removed.name))
+		{
+			editorCameraNames_.erase(removed.name);
+		}
+		ImGui::EndDisabled();
+		return;
+	}
+	ImGui::EndDisabled();
+	if (!canRemove)
+	{
+		ImGui::TextDisabled(item.name == activeCameraName_ ? "使用中のカメラは削除できません" : "エンジンが使っているカメラは削除できません");
 	}
 }
 
