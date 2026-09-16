@@ -83,6 +83,13 @@ public:
      */
     bool HasTimer(const std::string& name) const;
 
+    /**
+     * @brief 時計を指定していないタイマーが使う時計を決める
+     * @param clock 指定なしなら Game。タイマーごとに Timer::SetClock で上書きできる
+     */
+    void SetDefaultClock(ClockId clock) { defaultClock_ = clock; }
+    ClockId GetDefaultClock() const { return defaultClock_; }
+
 #ifdef USE_IMGUI
     /** @brief DebugUIManager 経由で描画されるデバッグ情報 */
     void DrawImGui();
@@ -96,5 +103,6 @@ private:
     TimerManager& operator=(TimerManager&&) = delete;
 
     std::unordered_map<std::string, std::unique_ptr<Timer>> timers_; // タイマー格納用マップ
+    ClockId defaultClock_{};                                         // 時計を指定していないタイマーが使う時計。指定なしなら Game
 };
 } // namespace KCE

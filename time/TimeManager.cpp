@@ -31,20 +31,19 @@ TimeManager::TimeManager()
 {
 	lastUpdate_ = std::chrono::steady_clock::now();
 
-	// 最初からある時計。番号を kRealIndex・kGameIndex・kUIIndex に揃える
-	auto real = std::make_unique<Clock>();
-	real->name = "Real";
-	clocks_.push_back(std::move(real));
+	// 最初からある時計。番号を kRealIndex・kGameIndex・kUIIndex・kEditorIndex に揃える
+	AddBuiltInClock("Real", ClockId::kInvalidIndex);
+	AddBuiltInClock("Game", kRealIndex);
+	AddBuiltInClock("UI", kRealIndex);
+	AddBuiltInClock("Editor", kRealIndex);
+}
 
-	auto game = std::make_unique<Clock>();
-	game->name = "Game";
-	game->parent = kRealIndex;
-	clocks_.push_back(std::move(game));
-
-	auto ui = std::make_unique<Clock>();
-	ui->name = "UI";
-	ui->parent = kRealIndex;
-	clocks_.push_back(std::move(ui));
+void TimeManager::AddBuiltInClock(const std::string& name, uint32_t parent)
+{
+	auto clock = std::make_unique<Clock>();
+	clock->name = name;
+	clock->parent = parent;
+	clocks_.push_back(std::move(clock));
 }
 
 void TimeManager::Update()
@@ -92,6 +91,7 @@ ClockId TimeManager::MakeId(uint32_t index) const
 ClockId TimeManager::RealClock() const { return MakeId(kRealIndex); }
 ClockId TimeManager::GameClock() const { return MakeId(kGameIndex); }
 ClockId TimeManager::UIClock() const { return MakeId(kUIIndex); }
+ClockId TimeManager::EditorClock() const { return MakeId(kEditorIndex); }
 
 bool TimeManager::IsValid(ClockId clock) const
 {
@@ -153,7 +153,7 @@ ClockId TimeManager::FindClock(std::string_view name) const
 
 void TimeManager::RemoveClock(ClockId clock)
 {
-	if (!IsValid(clock) || clock.index <= kUIIndex)
+	if (!IsValid(clock) || clock.index < kBuiltInClockCount)
 	{
 		return;
 	}

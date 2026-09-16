@@ -141,7 +141,9 @@ void ParticleManager::Update(CameraManager* camera)
 	{
 		if (effect->IsPlaying() || !effect->IsFinished())
 		{
-			const TimeContext& context = time.GetContext(effect->GetClock());
+			// エフェクトが時計を指定していなければ、マネージャーの既定（指定なしなら Game）で進める
+			const ClockId clock = effect->GetClock().IsSpecified() ? effect->GetClock() : defaultClock_;
+			const TimeContext& context = time.GetContext(clock);
 			float dt = (effect->GetDeltaTimeType() == DeltaTimeType::RealDeltaTime) ? context.realDeltaTime : context.deltaTime;
 			effect->Update(dt, camera);
 		}
@@ -150,7 +152,7 @@ void ParticleManager::Update(CameraManager* camera)
 	// 直接追加されたエミッターの更新（後方互換）
 	for (auto& emitter : emitters_)
 	{
-		emitter->Update(time.GetDeltaTime(emitter->GetClock()), camera);
+		emitter->Update(time.GetDeltaTime(emitter->GetClock().IsSpecified() ? emitter->GetClock() : defaultClock_), camera);
 	}
 
 	// 終了したエフェクトを削除

@@ -301,8 +301,8 @@ void LightManager::Initialize(DirectXCommon* dxCommon)
 
 void LightManager::Update()
 {
-	// フレーム間の経過時間を取得
-	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
+	// フレーム間の経過時間を取得。時計を指定していなければ Game
+	float deltaTime = TimeManager::GetInstance().GetDeltaTime(clock_);
 
 	/*--------------[ ポイントライトの更新 ]-----------------*/
 	for (auto& [name, light] : pointLights_) {

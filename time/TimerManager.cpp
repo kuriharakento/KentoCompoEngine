@@ -78,7 +78,9 @@ void TimerManager::Update()
     for (auto it = timers_.begin(); it != timers_.end(); )
     {
         // タイマーの時計の、倍率あり（DeltaTime）か倍率なし（RealDeltaTime）の時間で更新
-        const TimeContext& context = TimeManager::GetInstance().GetContext(it->second->GetClock());
+        // タイマーが時計を指定していなければ、マネージャーの既定（指定なしなら Game）で進める
+        const ClockId clock = it->second->GetClock().IsSpecified() ? it->second->GetClock() : defaultClock_;
+        const TimeContext& context = TimeManager::GetInstance().GetContext(clock);
         if (it->second->GetDeltaTimeType() == DeltaTimeType::DeltaTime)
         {
             it->second->Update(context.deltaTime);

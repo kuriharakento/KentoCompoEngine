@@ -8,6 +8,7 @@
 #include "light/PointLight.h"
 #include "light/SpotLight.h"
 #include "editor/SelectionContext.h"
+#include "time/ClockId.h"
 // system
 #include "base/DirectXCommon.h"
 // math
@@ -45,6 +46,13 @@ public:
 	 * @details グラデーション処理とGPUデータの更新を行う
 	 */
 	void Update();
+
+	/**
+	 * @brief ライトのグラデーションを進める時計を決める
+	 * @param clock 指定なしなら Game
+	 */
+	void SetClock(ClockId clock) { clock_ = clock; }
+	ClockId GetClock() const { return clock_; }
 
 	/**
 	 * @brief 描画処理
@@ -546,6 +554,9 @@ private:
 	// スポットライトのグラデーション用色
 	Vector4 startSpotLightColor_ = KCE::VectorColorCodes::White;   // 開始色
 	Vector4 endSpotLightColor_ = KCE::VectorColorCodes::Red;       // 終了色
+
+	// グラデーションを進める時計。指定なしなら Game
+	ClockId clock_{};
 
 	// ライト種類ごとのデバッグ表示。既定では全ライトのマークを出す
 	bool showDirectionalLightDebug_ = true;

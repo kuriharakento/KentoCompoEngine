@@ -6,6 +6,7 @@
 
 #include "graphics/RenderFormats.h"
 #include "graphics/view/RenderLayer.h"
+#include "time/ClockId.h"
 
 namespace KCE
 {
@@ -121,6 +122,13 @@ public:
 	float GetUpdateInterval() const { return updateInterval_; }
 
 	/**
+	 * @brief 描き直す間隔を測る時計を決める
+	 * @param clock 指定なしなら Editor（編集中でも描き直す）。ゲームの一時停止で止めたいなら Game を指す
+	 */
+	void SetClock(ClockId clock) { clock_ = clock; }
+	ClockId GetClock() const { return clock_; }
+
+	/**
 	 * @brief 経過時間を進めて、このフレームで描き直すかを決める
 	 * @details 一度も描いていなければ必ず描く（作りたての絵は読めない状態のため）。
 	 *          大きく遅れたときに、取り戻そうとして連続で描かないよう余りは捨てる。
@@ -184,6 +192,8 @@ private:
 	// 描画するかどうか
 	bool enabled_ = true;
 	// 描き直す間隔（秒）。0 以下なら毎フレーム
+	// 描き直す間隔を測る時計。指定なしなら Editor
+	ClockId clock_{};
 	float updateInterval_ = 0.0f;
 	// 前に描いてからの経過（秒）
 	float timeSinceUpdate_ = 0.0f;

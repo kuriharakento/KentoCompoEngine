@@ -143,6 +143,13 @@ public:
 	bool IsPlaying() const { return state_ != State::Idle; }
 	State GetState() const { return state_; }
 
+	/**
+	 * @brief カットシーンの進行を測る時計を決める
+	 * @param clock 指定なしなら Editor（編集中やゲームの一時停止中でも進む）。ゲームと一緒に止めたいなら Game を指す
+	 */
+	void SetClock(ClockId clock) { clock_ = clock; }
+	ClockId GetClock() const { return clock_; }
+
 #ifdef USE_IMGUI
 	void RegisterDebugUI();
 	void DrawImGui();
@@ -176,6 +183,8 @@ private:
 	State state_ = State::Idle;
 	bool skipped_ = false;
 
+	// 進行を測る時計。指定なしなら Editor
+	ClockId clock_{};
 	// 段階に入ってからの経過時間（秒、実時間）
 	float stateTime_ = 0.0f;
 
