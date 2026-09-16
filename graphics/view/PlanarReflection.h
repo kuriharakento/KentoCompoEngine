@@ -32,8 +32,9 @@ class PlanarReflection
 {
 public:
 	/** @brief 反射する床を置くレイヤー。反射の絵には描かない */
-	static constexpr uint32_t kReflectorLayerIndex = 2;
-	static constexpr RenderLayerMask kReflectorLayer = MakeRenderLayerMask(kReflectorLayerIndex);
+	static constexpr uint32_t kReflectorLayerIndex = kRenderLayerReflectorIndex;
+	static constexpr RenderLayerMask kReflectorLayer = kRenderLayerReflector;
+	static_assert(kReflectorLayer == MakeRenderLayerMask(kReflectorLayerIndex));
 
 	struct Settings
 	{
