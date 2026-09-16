@@ -28,6 +28,7 @@
 #include "graphics/pipeline/StandardRenderPasses.h"
 #include "graphics/view/RenderView.h"
 #include "gameobject/manager/GameObjectManager.h"
+#include "gameobject/component/collision/GameObjectCollisionManager.h"
 // editor
 #include "editor/EditorContext.h"
 #include "editor/SceneGizmo.h"
@@ -448,6 +449,19 @@ void Framework::Finalize()
 
 	// 仕事がマネージャーを触ってるかもしれないので、何より先にワーカーを止める
 	jobSystem_.reset();
+
+	// GameObject の管理を明示的に閉じる。閉じないとマネージャーはプロセス終了時の静的変数の片付けまで残り、
+	// そこで壊れる GameObject（static に置いた物や、マネージャー自身が持つ物）が壊れかけのマネージャーから Unregister して落ちる。
+	// 持っている GameObject は GPU のリソースを持つので、デバイスより先に、エディタ（GameObjectEditor）への通知が届くうちに閉じる
+	if (GameObjectManager::HasInstance())
+	{
+		GameObjectManager::GetInstance()->Finalize();
+	}
+	// 当たり判定の管理も同じ理由で閉じる。GameObject（のコライダー）を片付けた後に閉じる
+	if (GameObjectCollisionManager::HasInstance())
+	{
+		GameObjectCollisionManager::GetInstance()->Finalize();
+	}
 
 	// エディタ層は、登録先の DebugUIManager より先に片付ける
 #ifdef USE_IMGUI

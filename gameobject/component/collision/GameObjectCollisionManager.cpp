@@ -30,6 +30,11 @@ GameObjectCollisionManager* GameObjectCollisionManager::GetInstance()
 	}
 	return instance_.get();
 }
+
+bool GameObjectCollisionManager::HasInstance()
+{
+	return instance_ != nullptr;
+}
 void GameObjectCollisionManager::Initialize()
 {
 	colliders_.clear();

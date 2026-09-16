@@ -47,6 +47,12 @@ public:
 	static GameObjectCollisionManager* GetInstance();
 
 	/**
+	 * @brief インスタンスがあるか
+	 * @return あれば真。外すだけの処理（Unregister）は、無ければ作らずに何もしない
+	 */
+	static bool HasInstance();
+
+	/**
 	 * @brief マネージャーを初期化
 	 *
 	 * 登録されているコライダーをクリアします。

@@ -12,7 +12,11 @@ void Collider::OnEnable()
 }
 void Collider::OnDisable()
 {
-    GameObjectCollisionManager::GetInstance()->Unregister(this);
+    // 終了処理でマネージャーが閉じた後に外れることがある。GetInstance だと作り直してしまうので、あるときだけ外す
+    if (GameObjectCollisionManager::HasInstance())
+    {
+        GameObjectCollisionManager::GetInstance()->Unregister(this);
+    }
 }
 void Collider::ResetPreviousPosition()
 {
