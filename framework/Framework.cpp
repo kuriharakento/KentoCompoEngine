@@ -687,7 +687,10 @@ void Framework::RenderSubView(RenderView* view)
 	}
 	// 間隔を決めたビュー（24fps のモニターなど）は、時間が来たフレームだけ描く。
 	// 描かないフレームは前の絵がそのまま使われる
-	if (!view->AdvanceAndCheckUpdate(TimeManager::GetInstance().GetUIContext().realDeltaTime))
+	// ビューが時計を指定していなければ Editor（編集中やゲームの一時停止中でも描き直す）
+	TimeManager& time = TimeManager::GetInstance();
+	const ClockId viewClock = view->GetClock().IsSpecified() ? view->GetClock() : time.EditorClock();
+	if (!view->AdvanceAndCheckUpdate(time.GetRealDeltaTime(viewClock)))
 	{
 		return;
 	}

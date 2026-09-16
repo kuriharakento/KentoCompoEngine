@@ -29,10 +29,13 @@ struct TimeContext
  * @brief 時計（時間の流れ）を管理する
  *
  * - 時計は親子でつながり、deltaTime は「親の deltaTime × 自分の倍率」になる。自分か親が止まっていれば 0
- * - 最初からあるのは Real（実時間の根っこ）・Game（Real の子。一時停止とヒットストップ）・UI（Real の子）
- * - アプリは起動時に CreateClock で好きな時計を足せる（例: Game の子に Player と Enemy を作り、Enemy だけ止める）。
- *   シーンではなく起動時に作ると、どのシーンやエディタからでも同じ名前で使える
- * - 時計は名前で読み書きできる（ClockId を持って回らなくていい）。毎フレームたくさん呼ぶ所は ClockId の口の方が少し速い
+ * - 最初からあるのは4本。エンジンの都合で要る分だけで、ゲームごとの時計（Player・Enemy など）はアプリが足す
+ *   - Real  : 実時間の根っこ。止まらない・倍率 1
+ *   - Game  : Real の子。ゲームの時間。一時停止・ヒットストップ・倍率が効く
+ *   - UI    : Real の子。ゲームを止めても動く UI 用
+ *   - Editor: Real の子。編集中に動かすもの（シーケンサの再生、カットシーン、モニターの描き直しなど）
+ * - アプリは起動時に CreateClock で好きな時計を足せる。シーンではなく起動時に作ると、どのシーンやエディタからでも同じ名前で使える
+ * - 時計は名前でも ClockId でも、名前を1回だけ探して覚える ClockRef でも指せる
  * - 時計そのものはここが持つ。使う側が覚えるのは名前か ClockId だけ
  * - 1フレームの経過時間は上限で抑える（読み込みやブレークポイントの後に物が飛ばないように）
  * - Update は毎フレーム1回、メインスレッドから呼ぶ
@@ -62,6 +65,8 @@ public:
 	ClockId GameClock() const;
 	/** @brief UI の時計（Real の子）。ゲームの一時停止の影響を受けない */
 	ClockId UIClock() const;
+	/** @brief 編集中に動かすものの時計（Real の子）。シーケンサの再生・カットシーン・モニターの描き直しなど */
+	ClockId EditorClock() const;
 
 	// --- 時計を足す・探す・消す ---
 
@@ -86,7 +91,7 @@ public:
 	 */
 	ClockId FindClock(std::string_view name) const;
 
-	/** @brief 時計を消す。子も一緒に消える。Real・Game・UI は消せない */
+	/** @brief 時計を消す。子も一緒に消える。最初からある4本は消せない */
 	void RemoveClock(ClockId clock);
 
 	/** @brief 今もある時計か */
@@ -196,6 +201,9 @@ private:
 	static constexpr uint32_t kRealIndex = 0;
 	static constexpr uint32_t kGameIndex = 1;
 	static constexpr uint32_t kUIIndex = 2;
+	static constexpr uint32_t kEditorIndex = 3;
+	// ここまでは消せない
+	static constexpr uint32_t kBuiltInClockCount = 4;
 
 	/** @brief ClockId を配列の番号にする。無効か指定なしなら Game */
 	uint32_t Resolve(ClockId clock) const;
@@ -205,6 +213,8 @@ private:
 	uint32_t FindIndexOrWarn(std::string_view name) const;
 	/** @brief 配列の番号から ClockId を作る */
 	ClockId MakeId(uint32_t index) const;
+	/** @brief 最初からある時計を1本作る */
+	void AddBuiltInClock(const std::string& name, uint32_t parent);
 #ifdef USE_IMGUI
 	/** @brief 時計を親子の木で並べる */
 	void DrawImGui();

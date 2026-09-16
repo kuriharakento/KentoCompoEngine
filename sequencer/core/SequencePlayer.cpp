@@ -158,12 +158,13 @@ void SequencePlayer::Update()
 	}
 	else
 	{
-		// 音声が無い場合は実時間で進める。
+		// 音声が無い場合は時計で進める。
 		// ゲームのタイムスケールに引きずられると、スロー演出中に
 		// シーケンサ自身まで遅くなってしまう。
-		// ゲーム側の realDeltaTime は一時停止（編集モード）とヒットストップで 0 になるので、
-		// 止まらない UI 側の時間を使う。これが無いと編集モードで再生しても時間が進まない
-		newTime += TimeManager::GetInstance().GetUIContext().realDeltaTime;
+		// 既定は Editor（止まらない）。これが無いと編集モードで再生しても時間が進まない。
+		// ゲームと一緒に止めたい場合は SetClock(Game) を指す
+		TimeManager& time = TimeManager::GetInstance();
+		newTime += time.GetRealDeltaTime(clock_.IsSpecified() ? clock_ : time.EditorClock());
 	}
 
 	if (duration > 0.0f && newTime >= duration)

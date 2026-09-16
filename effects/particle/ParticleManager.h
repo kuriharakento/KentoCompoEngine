@@ -186,6 +186,13 @@ public:
 	 */
 	bool RemoveEffect(const std::string& name);
 
+	/**
+	 * @brief 時計を指定していないエフェクト・エミッターが使う時計を決める
+	 * @param clock 指定なしなら Game。エフェクトごとに ParticleEffect::SetClock で上書きできる
+	 */
+	void SetDefaultClock(ClockId clock) { defaultClock_ = clock; }
+	ClockId GetDefaultClock() const { return defaultClock_; }
+
 private:
 	ParticleManager() = default;
 	~ParticleManager() = default;
@@ -209,6 +216,9 @@ private:
 
 	// 直接追加されたエミッター（後方互換用）
 	std::vector<std::unique_ptr<ParticleEmitter>> emitters_;
+
+	// 時計を指定していないエフェクト・エミッターが使う時計。指定なしなら Game
+	ClockId defaultClock_{};
 
 	std::unique_ptr<ParticlePipelineManager> pipelineManager_;
 	DirectXCommon* dxCommon_ = nullptr;

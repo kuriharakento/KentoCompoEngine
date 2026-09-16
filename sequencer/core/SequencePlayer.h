@@ -3,6 +3,7 @@
 #include <string>
 
 #include "sequencer/core/BindingContext.h"
+#include "time/ClockId.h"
 #include "sequencer/core/Sequence.h"
 
 namespace KCE
@@ -148,6 +149,13 @@ public:
 	 */
 	void SetEventCallback(EventCallback callback) { eventCallback_ = std::move(callback); }
 
+	/**
+	 * @brief 再生を進める時計を決める（音声が無いときの時間の進め方）
+	 * @param clock 指定なしなら Editor（編集中やゲームの一時停止中でも進む）。ゲームと一緒に止めたいなら Game を指す
+	 */
+	void SetClock(ClockId clock) { clock_ = clock; }
+	ClockId GetClock() const { return clock_; }
+
 private:
 	/**
 	 * @brief (from, to] の範囲にあるイベントを発火する
@@ -177,6 +185,8 @@ private:
 	Sequence* sequence_ = nullptr;
 	// 役と実体の対応
 	BindingContext bindingContext_;
+	// 再生を進める時計。指定なしなら Editor
+	ClockId clock_{};
 	// 現在時刻（秒）
 	float time_ = 0.0f;
 	// 再生状態
