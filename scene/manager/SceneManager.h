@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "engine/scene/interface/BaseScene.h"
 #include "scene/SceneContext.h"
@@ -64,6 +65,18 @@ private: //メンバ関数
 	//次のシーンが予約されているか
 	void ReserveNextScene();
 
+#ifdef USE_IMGUI
+	/**
+	 * @brief メニューからシーンを切り替える。保存していない変更があれば確認の小窓を出す
+	 * @param sceneName 末尾の "Scene" を除いた名前（ChangeScene と同じ）
+	 */
+	void RequestSceneChangeFromMenu(const std::string& sceneName);
+	/** @brief メニューバーの「シーン」の中身を描く */
+	void DrawSceneMenu();
+	/** @brief 保存していない変更を捨てて切り替えるかの確認を描く。毎フレーム呼ばれる */
+	void DrawSceneChangeDialog();
+#endif
+
 private: //メンバ変数
 	const std::string sceneStr = "Scene";
 
@@ -81,5 +94,14 @@ private: //メンバ変数
 
 	//シーンコンテキスト
 	SceneContext context_{};
+
+#ifdef USE_IMGUI
+	// メニューに並べるシーン名（末尾の "Scene" を除いたもの）。メニューを開いたときだけ作り直す
+	std::vector<std::string> menuSceneNames_;
+	// 確認の後で切り替える先。空なら確認待ちなし
+	std::string pendingSceneName_;
+	// 次のフレームで確認の小窓を開く。メニューの中で開くとメニューと一緒に閉じるため
+	bool sceneChangePopupRequested_ = false;
+#endif
 };
 } // namespace KCE

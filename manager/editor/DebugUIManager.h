@@ -59,6 +59,18 @@ public:
 	 * @param draw 一覧の描画。選んだら SelectionContext へ伝える
 	 */
 	void RegisterHierarchySection(void* owner, const std::string& name, std::function<void()> draw);
+	/**
+	 * @brief 上のメニューバーにメニューを登録する。メニューは登録順に並ぶ。
+	 * @param name メニュー名。同じ名前を複数が登録したら、1つのメニューに登録順で続けて描く（間に区切り線）
+	 * @param draw メニューが開いている間だけ呼ばれる中身の描画
+	 */
+	void RegisterMainMenu(void* owner, const std::string& name, std::function<void()> draw);
+	/**
+	 * @brief 毎フレーム呼ばれる小窓（確認のモーダルなど）の描画を登録する。
+	 * @details メニューの中で OpenPopup すると、メニューが閉じるときに一緒に閉じる。
+	 *          メニューではフラグを立てるだけにして、開くのと中身はここで描く
+	 */
+	void RegisterDialog(void* owner, std::function<void()> draw);
 	/** @brief owner が登録した項目をすべて外す。 */
 	void Unregister(void* owner);
 	/** @brief 登録を全部外す。覚えた表示状態は消さない。 */
@@ -80,6 +92,8 @@ public:
 	const std::vector<std::string>& GetDockWindowNames(EditorDock dock);
 	/** @brief メニューに独立ウィンドウの表示切り替えを並べる。 */
 	void DrawWindowMenu();
+	/** @brief 登録されたメニューと小窓を描く。BeginMainMenuBar の中で毎フレーム呼ぶ。 */
+	void DrawMainMenus();
 	/** @brief UI の拡大率を返す。 */
 	float GetUIScale() const { return uiScale_; }
 	/** @brief UI の拡大率を変える。文字と余白をまとめて拡大し、imgui.ini に覚える。 */
@@ -96,6 +110,8 @@ public:
 	void RegisterInspector(void*, SelectionKind, std::function<void(const SelectionItem&)>) {}
 	void RegisterSceneOverlay(void*, std::function<void()>) {}
 	void RegisterHierarchySection(void*, const std::string&, std::function<void()>) {}
+	void RegisterMainMenu(void*, const std::string&, std::function<void()>) {}
+	void RegisterDialog(void*, std::function<void()>) {}
 	void Unregister(void*) {}
 	void Clear() {}
 	void Draw() {}
@@ -105,6 +121,7 @@ public:
 	void ClearLayoutResetRequest() {}
 	const std::vector<std::string>& GetDockWindowNames(EditorDock) { static const std::vector<std::string> empty; return empty; }
 	void DrawWindowMenu() {}
+	void DrawMainMenus() {}
 	float GetUIScale() const { return 1.0f; }
 	void SetUIScale(float) {}
 	bool IsShowConsole() const { return false; }
@@ -155,6 +172,19 @@ private:
 		std::string name;				//!< 折りたたみ見出し
 		std::function<void()> draw;		//!< 一覧の描画
 	};
+	/** @brief メニューバーのメニュー1つぶんの登録。 */
+	struct MainMenu
+	{
+		void* owner = nullptr;			//!< 登録元。所有しない
+		std::string name;				//!< メニュー名
+		std::function<void()> draw;		//!< 開いている間の中身
+	};
+	/** @brief 毎フレーム描く小窓1つぶんの登録。 */
+	struct Dialog
+	{
+		void* owner = nullptr;			//!< 登録元。所有しない
+		std::function<void()> draw;		//!< 小窓の描画
+	};
 
 	/** @brief 1つの Hierarchy に、登録された区画を並べて描く。 */
 	void DrawHierarchy();
@@ -187,6 +217,8 @@ private:
 	std::vector<InspectorPage> inspectorPages_;
 	std::vector<Overlay> overlays_;
 	std::vector<HierarchySection> hierarchySections_;
+	std::vector<MainMenu> mainMenus_;
+	std::vector<Dialog> dialogs_;
 	// GetDockWindowNames の結果。呼ぶたびに作り直すが、領域は使い回す
 	std::array<std::vector<std::string>, kEditorDockCount> dockWindowNames_;
 	std::string selectedSettingsPage_;

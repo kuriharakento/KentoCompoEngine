@@ -234,6 +234,40 @@ void DebugUIManager::RegisterHierarchySection(void* owner, const std::string& na
 	hierarchySections_.push_back({ owner, name, std::move(draw) });
 }
 
+void DebugUIManager::RegisterMainMenu(void* owner, const std::string& name, std::function<void()> draw)
+{
+	if (!owner || name.empty() || !draw)
+	{
+		return;
+	}
+	for (auto& menu : mainMenus_)
+	{
+		if (menu.owner == owner && menu.name == name)
+		{
+			menu.draw = std::move(draw);
+			return;
+		}
+	}
+	mainMenus_.push_back({ owner, name, std::move(draw) });
+}
+
+void DebugUIManager::RegisterDialog(void* owner, std::function<void()> draw)
+{
+	if (!owner || !draw)
+	{
+		return;
+	}
+	for (auto& dialog : dialogs_)
+	{
+		if (dialog.owner == owner)
+		{
+			dialog.draw = std::move(draw);
+			return;
+		}
+	}
+	dialogs_.push_back({ owner, std::move(draw) });
+}
+
 void DebugUIManager::Unregister(void* owner)
 {
 	if (!owner)
@@ -246,6 +280,8 @@ void DebugUIManager::Unregister(void* owner)
 	std::erase_if(inspectorPages_, removeOwner);
 	std::erase_if(overlays_, removeOwner);
 	std::erase_if(hierarchySections_, removeOwner);
+	std::erase_if(mainMenus_, removeOwner);
+	std::erase_if(dialogs_, removeOwner);
 	RebuildSettingsCategories();
 }
 
@@ -257,6 +293,8 @@ void DebugUIManager::Clear()
 	inspectorPages_.clear();
 	overlays_.clear();
 	hierarchySections_.clear();
+	mainMenus_.clear();
+	dialogs_.clear();
 	for (auto& names : dockWindowNames_)
 	{
 		names.clear();
@@ -475,6 +513,49 @@ const std::vector<std::string>& DebugUIManager::GetDockWindowNames(EditorDock do
 		names.push_back(fixedName);
 	}
 	return names;
+}
+
+void DebugUIManager::DrawMainMenus()
+{
+	// 同じ名前のメニューは、最初に出てきた位置に1つだけ出して中身を続けて描く。
+	// 数は少ないので、毎フレーム確保しないよう配列をそのまま二重に回す
+	for (size_t i = 0; i < mainMenus_.size(); ++i)
+	{
+		const std::string& name = mainMenus_[i].name;
+		bool drawnBefore = false;
+		for (size_t j = 0; j < i; ++j)
+		{
+			if (mainMenus_[j].name == name)
+			{
+				drawnBefore = true;
+				break;
+			}
+		}
+		if (drawnBefore || !ImGui::BeginMenu(name.c_str()))
+		{
+			continue;
+		}
+		bool first = true;
+		for (size_t j = i; j < mainMenus_.size(); ++j)
+		{
+			if (mainMenus_[j].name != name)
+			{
+				continue;
+			}
+			if (!first)
+			{
+				ImGui::Separator();
+			}
+			first = false;
+			mainMenus_[j].draw();
+		}
+		ImGui::EndMenu();
+	}
+
+	for (const Dialog& dialog : dialogs_)
+	{
+		dialog.draw();
+	}
 }
 
 void DebugUIManager::DrawWindowMenu()
