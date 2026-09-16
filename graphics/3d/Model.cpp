@@ -1,5 +1,6 @@
 #include "Model.h"
 
+#include <algorithm>
 #include <cassert>
 #include <fstream>
 #include <sstream>
@@ -35,6 +36,34 @@ constexpr float kVertexW = 1.0f;
 // デフォルトテクスチャパス
 const std::string kDefaultTexturePath = "textures/white1x1.png";
 
+namespace
+{
+/**
+ * @brief 全メッシュの頂点を囲む境界箱を測る
+ * @return 頂点が1つでもあれば真
+ */
+bool ComputeLocalBounds(const ModelData& modelData, AABB& outBounds)
+{
+	bool found = false;
+	for (const MeshData& mesh : modelData.meshes)
+	{
+		for (const VertexData& vertex : mesh.vertices)
+		{
+			const Vector3 position{ vertex.position.x, vertex.position.y, vertex.position.z };
+			if (!found)
+			{
+				outBounds = AABB(position, position);
+				found = true;
+				continue;
+			}
+			outBounds.min_ = Vector3{ (std::min)(outBounds.min_.x, position.x), (std::min)(outBounds.min_.y, position.y), (std::min)(outBounds.min_.z, position.z) };
+			outBounds.max_ = Vector3{ (std::max)(outBounds.max_.x, position.x), (std::max)(outBounds.max_.y, position.y), (std::max)(outBounds.max_.z, position.z) };
+		}
+	}
+	return found;
+}
+} // namespace
+
 Model::Model(const Model& other)
 {
 	// ModelCommonは同じものを使う（通常共有でOK）
@@ -42,6 +71,8 @@ Model::Model(const Model& other)
 
 	// modelData_は単純コピーでOK（頂点・マテリアル情報など）
 	modelData_ = other.modelData_;
+	localBounds_ = other.localBounds_;
+	hasLocalBounds_ = other.hasLocalBounds_;
 
 	// メッシュリソースとマテリアルリソースを再生成
 	CreateMeshResources();
@@ -118,6 +149,8 @@ bool Model::Initialize(ModelCommon* modelCommon, ParsedModel&& parsed)
 {
 	modelCommon_ = modelCommon;
 	modelData_ = std::move(parsed.modelData);
+	// 視錐台カリング用に、読み込んだ時点で1回だけ測る
+	hasLocalBounds_ = ComputeLocalBounds(modelData_, localBounds_);
 
 	// 全マテリアルのテクスチャを読み込み
 	for (auto& material : modelData_.materials)

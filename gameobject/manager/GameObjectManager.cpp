@@ -12,12 +12,46 @@
 #include <nlohmann/json.hpp>
 #include "manager/scene/CameraManager.h"
 #include "manager/editor/GameObjectEditor.h"
+#include "base/Camera.h"
+#include "graphics/3d/IRenderable3d.h"
+#include "math/AABB.h"
+#include "time/TimeManager.h"
 
 namespace KCE
 {
 namespace
 {
 constexpr int kPrefabVersion = 1;
+constexpr uint32_t kAabbCornerCount = 8;
+
+/**
+ * @brief ローカルの AABB が、行列で送ったクリップ空間で完全に外にあるか
+ * @details 8つの角が全部、同じ面（左右上下・手前・奥）の外にあれば外とする。
+ *          角がばらばらの面の外にあるだけなら中に入っているかもしれないので、外とは言わない（描きすぎる側に倒す）。
+ *          行は行ベクトル（v * M）、深度は DirectX の 0〜w
+ */
+bool IsAabbOutsideClip(const AABB& bounds, const Matrix4x4& localToClip)
+{
+	// 面ごとに「全部の角がこの面の外か」を持つ。左・右・下・上・手前・奥
+	bool outside[6] = { true, true, true, true, true, true };
+	for (uint32_t i = 0; i < kAabbCornerCount; ++i)
+	{
+		const float x = (i & 1) ? bounds.max_.x : bounds.min_.x;
+		const float y = (i & 2) ? bounds.max_.y : bounds.min_.y;
+		const float z = (i & 4) ? bounds.max_.z : bounds.min_.z;
+		const float cx = x * localToClip.m[0][0] + y * localToClip.m[1][0] + z * localToClip.m[2][0] + localToClip.m[3][0];
+		const float cy = x * localToClip.m[0][1] + y * localToClip.m[1][1] + z * localToClip.m[2][1] + localToClip.m[3][1];
+		const float cz = x * localToClip.m[0][2] + y * localToClip.m[1][2] + z * localToClip.m[2][2] + localToClip.m[3][2];
+		const float cw = x * localToClip.m[0][3] + y * localToClip.m[1][3] + z * localToClip.m[2][3] + localToClip.m[3][3];
+		outside[0] = outside[0] && cx < -cw;
+		outside[1] = outside[1] && cx > cw;
+		outside[2] = outside[2] && cy < -cw;
+		outside[3] = outside[3] && cy > cw;
+		outside[4] = outside[4] && cz < 0.0f;
+		outside[5] = outside[5] && cz > cw;
+	}
+	return outside[0] || outside[1] || outside[2] || outside[3] || outside[4] || outside[5];
+}
 
 std::unique_ptr<GameObject> DeserializePrefabNode(
 	const nlohmann::json& node, Object3dCommon* object3dCommon, LightManager* lightManager)
@@ -214,8 +248,41 @@ void GameObjectManager::Update()
 	ClearPendingDestroyObjects();
 }
 
+bool GameObjectManager::IsRenderableVisible(const IRenderable3d* renderable)
+{
+	// フレームが変わったら数を締める（Update を呼ばないシーンもあるので、フレーム番号で見る）
+	const uint64_t frame = TimeManager::GetInstance().GetFrameCount();
+	if (frame != countedFrame_)
+	{
+		lastFrameDrawnCount_ = drawnCount_;
+		lastFrameCulledCount_ = culledCount_;
+		drawnCount_ = 0;
+		culledCount_ = 0;
+		countedFrame_ = frame;
+	}
+
+	// 影を描いている間はライトの行列、そうでなければビューの行列で判定する
+	const Matrix4x4* viewProjection = shadowCullingViewProjection_ ? shadowCullingViewProjection_ : viewCullingViewProjection_;
+	AABB bounds;
+	if (!cullingEnabled_ || !renderable || !viewProjection || !renderable->TryGetLocalBounds(bounds))
+	{
+		++drawnCount_;
+		return true;
+	}
+	if (IsAabbOutsideClip(bounds, renderable->GetWorldMatrix() * *viewProjection))
+	{
+		++culledCount_;
+		return false;
+	}
+	++drawnCount_;
+	return true;
+}
+
 void GameObjectManager::Draw3D(CameraManager* camera)
 {
+	// このビューのカメラで省く。描き終わったら外す（影や別のビューで古い行列を使わないように）
+	Camera* viewCamera = camera ? camera->GetActiveCamera() : nullptr;
+	viewCullingViewProjection_ = viewCamera ? &viewCamera->GetViewProjectionMatrix() : nullptr;
 	for (auto* obj : gameObjects_)
 	{
 		if (obj->IsActive())
@@ -237,6 +304,7 @@ void GameObjectManager::Draw3D(CameraManager* camera)
 			obj->Draw3D(camera);
 		}
 	}
+	viewCullingViewProjection_ = nullptr;
 }
 
 void GameObjectManager::DrawTransparent(CameraManager* camera, const std::vector<Object3d*>& sceneObjects)
@@ -246,6 +314,8 @@ void GameObjectManager::DrawTransparent(CameraManager* camera, const std::vector
 		return;
 	}
 	const Vector3 cameraPosition = camera->GetActiveCamera()->GetTranslate();
+	// GameObject の半透明だけ、このビューのカメラで省く（シーンが直接持つ物は今まで通り全部描く）
+	viewCullingViewProjection_ = &camera->GetActiveCamera()->GetViewProjectionMatrix();
 	struct Entry
 	{
 		IRenderable3d* object;
@@ -275,7 +345,8 @@ void GameObjectManager::DrawTransparent(CameraManager* camera, const std::vector
 		if (renderable)
 		{
 			if (IsVisibleInLayerMask(obj->GetRenderLayer(), renderLayerMask_) &&
-				renderable->GetRenderQueue() == RenderQueue::Transparent)
+				renderable->GetRenderQueue() == RenderQueue::Transparent &&
+				IsRenderableVisible(renderable))
 			{
 				const auto world = obj->GetWorldMatrix();
 				const Vector3 offset{ world.m[3][0] - cameraPosition.x, world.m[3][1] - cameraPosition.y, world.m[3][2] - cameraPosition.z };
@@ -294,6 +365,7 @@ void GameObjectManager::DrawTransparent(CameraManager* camera, const std::vector
 	{
 		collect(collect, root);
 	}
+	viewCullingViewProjection_ = nullptr;
 	// シーンへ直接登録されたオブジェクトも同じキューでソートする。
 	for (auto* object : sceneObjects)
 	{
@@ -341,6 +413,9 @@ void GameObjectManager::DrawShadow(Camera* camera)
 
 void GameObjectManager::DrawGBuffer(CameraManager* camera)
 {
+	// カメラを渡されないときは行列を確定できないので省かない
+	Camera* viewCamera = camera ? camera->GetActiveCamera() : nullptr;
+	viewCullingViewProjection_ = viewCamera ? &viewCamera->GetViewProjectionMatrix() : nullptr;
 	for (auto* obj : gameObjects_)
 	{
 		if (obj->IsActive())
@@ -367,6 +442,7 @@ void GameObjectManager::DrawGBuffer(CameraManager* camera)
 			obj->DrawGBuffer(camera);
 		}
 	}
+	viewCullingViewProjection_ = nullptr;
 }
 
 GameObject* GameObjectManager::Find(const std::string& name) const
