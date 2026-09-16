@@ -2,6 +2,7 @@
 #include "editor/SelectionContext.h"
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <memory>
 #include "base/Camera.h"
 
@@ -115,6 +116,14 @@ public:
 #endif
 
 private:
+	/**
+	 * @brief 画面から消してよいカメラかを返す。
+	 * @param name カメラの名前
+	 * @return 画面の「カメラを追加」で作っていて、アクティブでも描画中でもなければ真
+	 */
+	bool CanRemoveFromEditor(const std::string& name) const;
+
+private:
     // カメラの名前とunique_ptrで管理されたカメラインスタンスのマップ
     std::unordered_map<std::string, std::unique_ptr<Camera>> cameras_;
 
@@ -131,5 +140,8 @@ private:
 	DirectXCommon* dxCommon_ = nullptr;
 	// カメラの位置・向き・視錐台の線を出すか（Settings の「シーン > カメラ」で切り替える）
 	bool drawDebugLines_ = true;
+	// 画面の「カメラを追加」で作ったカメラの名前。
+	// ほかのシステム（モニター・反射・カットシーン等）はカメラのポインタを持ち続けるので、ここにあるものだけ画面から消せる
+	std::unordered_set<std::string> editorCameraNames_;
 };
 } // namespace KCE
