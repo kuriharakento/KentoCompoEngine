@@ -140,6 +140,8 @@ void DirectXCommon::PreDraw()
 void DirectXCommon::PostDraw()
 {
 	HRESULT hr;
+	using CpuClock = std::chrono::steady_clock;
+	cpuTimingValid_ = false;
 
 	/*--------------[ バックバッファの番号取得 ]-----------------*/
 
@@ -170,12 +172,14 @@ void DirectXCommon::PostDraw()
 
 	//GPU二コマンドリストの実行を行わせる
 	Microsoft::WRL::ComPtr<ID3D12CommandList> commandLists[] = { commandList_ };
+	const CpuClock::time_point executePresentBegin = cpuTimingEnabled_ ? CpuClock::now() : CpuClock::time_point{};
 	commandQueue_->ExecuteCommandLists(1, commandLists->GetAddressOf());
 
 	/*--------------[ GPU画面の交換を通知 ]-----------------*/
 
 	//GPUとOSに画面の交換を行うように通知する
 	swapChain_->Present(1, 0);
+	const CpuClock::time_point executePresentEnd = cpuTimingEnabled_ ? CpuClock::now() : CpuClock::time_point{};
 
 	/*--------------[ Fenceの値を更新 ]-----------------*/
 
@@ -192,6 +196,7 @@ void DirectXCommon::PostDraw()
 
 	//Fenceの値が指定したSignal値にたどり着いているか確認する
 	//GetCompleteValueの初期値はFence制作時に渡した初期値
+	const CpuClock::time_point gpuWaitBegin = cpuTimingEnabled_ ? CpuClock::now() : CpuClock::time_point{};
 	if (fence_->GetCompletedValue() < fenceValue_)
 	{
 		HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
@@ -206,10 +211,20 @@ void DirectXCommon::PostDraw()
 		WaitForSingleObject(fenceEvent, INFINITE);
 		CloseHandle(fenceEvent);
 	}
+	const CpuClock::time_point gpuWaitEnd = cpuTimingEnabled_ ? CpuClock::now() : CpuClock::time_point{};
 
 	/*--------------[ FPS固定 ]-----------------*/
 
+	const CpuClock::time_point fpsWaitBegin = cpuTimingEnabled_ ? CpuClock::now() : CpuClock::time_point{};
 	UpdateFixFPS();
+	if (cpuTimingEnabled_)
+	{
+		const CpuClock::time_point fpsWaitEnd = CpuClock::now();
+		executePresentMilliseconds_ = std::chrono::duration<float, std::milli>(executePresentEnd - executePresentBegin).count();
+		gpuWaitMilliseconds_ = std::chrono::duration<float, std::milli>(gpuWaitEnd - gpuWaitBegin).count();
+		fpsWaitMilliseconds_ = std::chrono::duration<float, std::milli>(fpsWaitEnd - fpsWaitBegin).count();
+		cpuTimingValid_ = true;
+	}
 
 	/*--------------[ コマンドアロケータのリセット ]-----------------*/
 

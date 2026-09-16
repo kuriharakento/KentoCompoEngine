@@ -1,5 +1,6 @@
 #include "graphics/pipeline/RenderProfiler.h"
 
+#include <algorithm>
 #include <cstring>
 
 #include "base/DirectXCommon.h"
@@ -27,6 +28,18 @@ constexpr double kMillisecondsPerSecond = 1000.0;
 constexpr uint32_t kInvalidSample = UINT32_MAX;
 // 表でパス名を字下げする幅（入れ子1段あたりの文字数）
 constexpr int kIndentPerDepth = 2;
+constexpr const char* kCpuSectionNames[] = {
+	"フレーム全体",
+	"更新 全体",
+	"  Framework::Update",
+	"  シーン Update",
+	"描画コマンド",
+	"ImGui",
+	"実行と Present",
+	"GPU 待ち",
+	"FPS 固定の待ち"
+};
+static_assert(std::size(kCpuSectionNames) == static_cast<size_t>(RenderProfiler::CpuSection::Count));
 
 template <size_t N>
 void CopyName(char (&destination)[N], const char* source)
@@ -183,6 +196,79 @@ void RenderProfiler::EndPass()
 	dxCommon_->GetCommandList()->EndQuery(queryHeap_.Get(), D3D12_QUERY_TYPE_TIMESTAMP, kFrameQueryCount + index * 2 + 1);
 }
 
+void RenderProfiler::BeginCpuFrame(float executePresentMs, float gpuWaitMs, float fpsWaitMs, bool postDrawTimingValid)
+{
+	const auto now = std::chrono::steady_clock::now();
+	if (cpuCollecting_ && postDrawTimingValid)
+	{
+		cpuFrameMs_[static_cast<uint32_t>(CpuSection::Frame)] =
+			std::chrono::duration<float, std::milli>(now - cpuFrameBegin_).count();
+		cpuFrameMs_[static_cast<uint32_t>(CpuSection::ExecutePresent)] = executePresentMs;
+		cpuFrameMs_[static_cast<uint32_t>(CpuSection::GpuWait)] = gpuWaitMs;
+		cpuFrameMs_[static_cast<uint32_t>(CpuSection::FpsWait)] = fpsWaitMs;
+		for (uint32_t i = 0; i < kCpuSectionCount; ++i)
+		{
+			PushCpuSample(static_cast<CpuSection>(i), cpuFrameMs_[i]);
+		}
+	}
+
+	cpuCollecting_ = enabled_;
+	cpuSectionOpen_.fill(false);
+	if (!cpuCollecting_)
+	{
+		return;
+	}
+	cpuFrameMs_.fill(0.0f);
+	cpuFrameBegin_ = now;
+}
+
+void RenderProfiler::BeginCpuSection(CpuSection section)
+{
+	if (!cpuCollecting_)
+	{
+		return;
+	}
+	const uint32_t index = static_cast<uint32_t>(section);
+	cpuSectionBegin_[index] = std::chrono::steady_clock::now();
+	cpuSectionOpen_[index] = true;
+}
+
+void RenderProfiler::EndCpuSection(CpuSection section)
+{
+	const uint32_t index = static_cast<uint32_t>(section);
+	if (!cpuCollecting_ || !cpuSectionOpen_[index])
+	{
+		return;
+	}
+	cpuFrameMs_[index] += std::chrono::duration<float, std::milli>(
+		std::chrono::steady_clock::now() - cpuSectionBegin_[index]).count();
+	cpuSectionOpen_[index] = false;
+}
+
+void RenderProfiler::PushCpuSample(CpuSection section, float milliseconds)
+{
+	CpuHistory& history = cpuHistory_[static_cast<uint32_t>(section)];
+	history.samples[history.next] = milliseconds;
+	history.next = (history.next + 1) % kCpuHistoryLength;
+	history.count = (std::min)(history.count + 1, kCpuHistoryLength);
+}
+
+void RenderProfiler::GetCpuStats(CpuSection section, float& average, float& maximum) const
+{
+	const CpuHistory& history = cpuHistory_[static_cast<uint32_t>(section)];
+	average = 0.0f;
+	maximum = 0.0f;
+	for (uint32_t i = 0; i < history.count; ++i)
+	{
+		average += history.samples[i];
+		maximum = (std::max)(maximum, history.samples[i]);
+	}
+	if (history.count > 0)
+	{
+		average /= static_cast<float>(history.count);
+	}
+}
+
 void RenderProfiler::ReadResults()
 {
 	const uint32_t queryCount = kFrameQueryCount + sampleCount_ * 2;
@@ -273,6 +359,44 @@ void RenderProfiler::RegisterDebugUI()
 void RenderProfiler::DrawImGui()
 {
 	ImGui::Checkbox("計測する", &enabled_);
+	float frameAverage = 0.0f;
+	float frameMaximum = 0.0f;
+	GetCpuStats(CpuSection::Frame, frameAverage, frameMaximum);
+	const float measuredFps = frameAverage > 0.0f ? static_cast<float>(kMillisecondsPerSecond) / frameAverage : 0.0f;
+	ImGui::Text("CPU 実測: %.2f FPS    フレーム平均: %.3f ms    最大: %.3f ms", measuredFps, frameAverage, frameMaximum);
+	float measuredAverage = 0.0f;
+	for (CpuSection section : { CpuSection::Update, CpuSection::RenderCommands, CpuSection::ImGui,
+		CpuSection::ExecutePresent, CpuSection::GpuWait, CpuSection::FpsWait })
+	{
+		float average = 0.0f;
+		float maximum = 0.0f;
+		GetCpuStats(section, average, maximum);
+		measuredAverage += average;
+	}
+	ImGui::Text("計測区間の合計: %.3f ms    その他: %.3f ms", measuredAverage, frameAverage - measuredAverage);
+	const ImGuiTableFlags cpuTableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp;
+	if (ImGui::BeginTable("##CpuFrameProfiler", 3, cpuTableFlags))
+	{
+		ImGui::TableSetupColumn("CPU 区間");
+		ImGui::TableSetupColumn("平均 (ms)");
+		ImGui::TableSetupColumn("最大 (ms)");
+		ImGui::TableHeadersRow();
+		for (uint32_t i = 0; i < kCpuSectionCount; ++i)
+		{
+			float average = 0.0f;
+			float maximum = 0.0f;
+			GetCpuStats(static_cast<CpuSection>(i), average, maximum);
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			ImGui::TextUnformatted(kCpuSectionNames[i]);
+			ImGui::TableNextColumn();
+			ImGui::Text("%.3f", average);
+			ImGui::TableNextColumn();
+			ImGui::Text("%.3f", maximum);
+		}
+		ImGui::EndTable();
+	}
+	ImGui::Separator();
 	if (!IsReady())
 	{
 		ImGui::TextDisabled("この環境ではタイムスタンプを測れません");
