@@ -11,6 +11,7 @@ class CameraManager;
 class GameObject;
 class ISubViewProvider;
 class RenderView;
+struct Frustum;
 
 /**
  * @brief 別カメラの映像を、ステージ上の画面オブジェクトに映すモニター
@@ -67,6 +68,19 @@ public:
 	 * @brief 毎フレーム呼ぶ。映像が1回描かれた後で画面にテクスチャを差す
 	 */
 	void Update();
+
+	/**
+	 * @brief 画面のワールドAABBが視錐台に少しでも入っているか調べる
+	 * @param frustum 本編カメラの視錐台
+	 * @return 画面が見える可能性があれば真
+	 */
+	bool IsScreenVisible(const Frustum& frustum) const;
+
+	/**
+	 * @brief モニター映像の描き直しを有効・無効にする
+	 * @details 見える状態へ戻ったときは更新間隔を待たず描き直す。
+	 */
+	void SetViewVisible(bool visible);
 
 	/**
 	 * @brief 画面のテクスチャを戻して、サブビューを破棄する
