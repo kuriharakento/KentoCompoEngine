@@ -522,6 +522,25 @@ void LightManager::AddSpotLight(const std::string& name)
 	++lightCount_.spotLightCount;
 }
 
+void LightManager::RemovePointLight(const std::string& name)
+{
+	// 数は Update で map から数え直すので、ここでは map と名前の一覧だけ外す
+	if (pointLights_.erase(name) == 0)
+	{
+		return;
+	}
+	std::erase(pointLightNames_, name);
+}
+
+void LightManager::RemoveSpotLight(const std::string& name)
+{
+	if (spotLights_.erase(name) == 0)
+	{
+		return;
+	}
+	std::erase(spotLightNames_, name);
+}
+
 void LightManager::Clear()
 {
 	// 全てのライトをクリア

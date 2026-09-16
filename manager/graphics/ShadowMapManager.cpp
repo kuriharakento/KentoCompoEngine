@@ -444,6 +444,19 @@ bool ShadowMapManager::HasSpotLightShadowMap(const std::string& name) const {
     return spotLightShadowMaps_.find(name) != spotLightShadowMaps_.end();
 }
 
+void ShadowMapManager::RemoveSpotLightShadowMap(const std::string& name)
+{
+	auto it = spotLightShadowMaps_.find(name);
+	if (it == spotLightShadowMaps_.end())
+	{
+		return;
+	}
+	srvManager_->Free(it->second.srvIndex);
+	spotLightShadowMaps_.erase(it);
+	// 同じ名前でまた作ったとき、古い描画済みの印で描き直しを飛ばさないように
+	spotLightShadowCache_.erase(name);
+}
+
 bool ShadowMapManager::HasPointLightShadowMap(const std::string& name) const {
     return pointLightShadowMaps_.find(name) != pointLightShadowMaps_.end();
 }

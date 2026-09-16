@@ -79,6 +79,20 @@ public:
 	void AddSpotLight(const std::string& name);
 
 	/**
+	 * @brief ポイントライトを1つ外す
+	 * @param name ライトの名前。無ければ何もしない
+	 * @details シャドウマップは ShadowMapManager が持つので、要るならそちらも外す
+	 */
+	void RemovePointLight(const std::string& name);
+
+	/**
+	 * @brief スポットライトを1つ外す
+	 * @param name ライトの名前。無ければ何もしない
+	 * @details シャドウマップは ShadowMapManager が持つので、ShadowMapManager::RemoveSpotLightShadowMap も呼ぶ
+	 */
+	void RemoveSpotLight(const std::string& name);
+
+	/**
 	 * @brief 全ライトの削除
 	 */
 	void Clear();

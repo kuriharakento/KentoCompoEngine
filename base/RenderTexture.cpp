@@ -13,6 +13,14 @@ constexpr UINT kRtvDescriptorCount = 1;
 // ミップレベル数
 constexpr UINT kMipLevels = 1;
 
+RenderTexture::~RenderTexture()
+{
+	// 返さないと、サブビューを作り直すたびに番号が減っていく（シーンを行き来すると増え続ける）
+	if (srvManager_ && srvIndex_ != 0)
+	{
+		srvManager_->Free(srvIndex_);
+	}
+}
 
 void RenderTexture::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, uint32_t width, uint32_t height, DXGI_FORMAT format, const Vector4& clearColor)
 {

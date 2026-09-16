@@ -16,6 +16,13 @@ class SrvManager;
 class RenderTexture  
 {  
 public:
+    RenderTexture() = default;
+    /** @brief SRV の番号を SrvManager に返す。SrvManager はこれより長く生きる前提 */
+    ~RenderTexture();
+    // 番号を二重に返さないよう、コピーはしない
+    RenderTexture(const RenderTexture&) = delete;
+    RenderTexture& operator=(const RenderTexture&) = delete;
+
     /**
      * @brief 初期化
      * @param dxCommon DirectXCommonへのポインタ
