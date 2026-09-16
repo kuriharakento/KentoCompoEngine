@@ -342,12 +342,32 @@ public: // アクセッサ
 
 	// === 描画レイヤー関連 ===
 	/**
-	 * @brief 描画レイヤーの設定
-	 * @details ビューごとに描く対象を絞り込むために使う。
-	 *          ビューのマスクとビット積が0になるオブジェクトは、そのビューには描かれない。
-	 * @param layer 所属させるレイヤー（MakeRenderLayerMask で作る）
+	 * @brief 描画レイヤーを上書きする
+	 * @details 既定レイヤーからも外れる。今の所属を残す場合は AddRenderLayer を使う。
+	 *          0にするとどのビューにも描かれない。子の GameObject には伝えない。
+	 * @param layer 新しいレイヤーマスク
 	 */
 	void SetRenderLayer(RenderLayerMask layer) { renderLayer_ = layer; }
+
+	/**
+	 * @brief 今の所属を残して描画レイヤーを足す
+	 * @param layer 足すレイヤーマスク
+	 */
+	void AddRenderLayer(RenderLayerMask layer) { renderLayer_ |= layer; }
+
+	/**
+	 * @brief 指定した描画レイヤーを外す
+	 * @details 全部外れて0になると、どのビューにも描かれない。子の GameObject には伝えない。
+	 * @param layer 外すレイヤーマスク
+	 */
+	void RemoveRenderLayer(RenderLayerMask layer) { renderLayer_ &= ~layer; }
+
+	/**
+	 * @brief 指定した描画レイヤーのどれかに入っているか調べる
+	 * @param layer 調べるレイヤーマスク
+	 * @return 1つ以上の所属が一致すれば真
+	 */
+	bool IsInRenderLayer(RenderLayerMask layer) const { return (renderLayer_ & layer) != 0; }
 
 	/**
 	 * @brief 描画レイヤーの取得
@@ -518,7 +538,7 @@ private:
 	std::string name_ = "";
 	// 安定ID。生成時に自動採番し、シーンのロード時のみ保存値で上書きする
 	Guid guid_ = Guid::Generate();
-	// 所属する描画レイヤー。ビューごとの描き分けに使う
+	// 所属する描画レイヤーの集合。ビューごとの描き分けに使う
 	RenderLayerMask renderLayer_ = kRenderLayerDefault;
 	// アクティブ状態フラグ
 	bool isActive_;

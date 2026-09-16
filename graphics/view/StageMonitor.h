@@ -23,8 +23,9 @@ class StageMonitor
 {
 public:
 	/** @brief 画面オブジェクトを置くレイヤー。モニターのカメラからは見えない */
-	static constexpr uint32_t kScreenLayerIndex = 1;
-	static constexpr RenderLayerMask kScreenLayer = MakeRenderLayerMask(kScreenLayerIndex);
+	static constexpr uint32_t kScreenLayerIndex = kRenderLayerMonitorScreenIndex;
+	static constexpr RenderLayerMask kScreenLayer = kRenderLayerMonitorScreen;
+	static_assert(kScreenLayer == MakeRenderLayerMask(kScreenLayerIndex));
 	/** @brief 映像を描き直す回数（1秒あたり）。本物のテレビのように 24fps で十分 */
 	static constexpr float kDefaultFramesPerSecond = 24.0f;
 
