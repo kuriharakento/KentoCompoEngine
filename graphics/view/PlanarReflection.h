@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <d3d12.h>
+#include <memory>
 #include <string>
 
 #include "graphics/postfx/FullscreenPass.h"
@@ -11,7 +12,6 @@
 namespace KCE
 {
 class Camera;
-class CameraManager;
 class DirectXCommon;
 class FrameConstantAllocator;
 class GBuffer;
@@ -69,11 +69,12 @@ public:
 
 	/**
 	 * @brief サブビューとカメラを用意する
+	 * @details 反射用のカメラは自分で持ち、CameraManager には登録しない（カメラの一覧・ギズモ・デバッグ線に出さない）
 	 * @param provider サブビューの作成元。Finalize まで生きている前提
 	 * @param width 画面の幅（反射はこの半分で描く）
 	 * @param height 画面の高さ
 	 */
-	bool Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, ISubViewProvider* provider, CameraManager* cameraManager, uint32_t width, uint32_t height);
+	bool Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, ISubViewProvider* provider, uint32_t width, uint32_t height);
 
 	/** @brief サブビューを消す */
 	void Finalize();
@@ -107,8 +108,8 @@ private:
 	ISubViewProvider* provider_ = nullptr;
 	// provider_ が所有する
 	RenderView* view_ = nullptr;
-	// CameraManager が所有する
-	Camera* camera_ = nullptr;
+	// 反射用のカメラ。view_ が描くときに指すので、view_ を消すまで持っておく
+	std::unique_ptr<Camera> camera_;
 
 	FullscreenPass pass_;
 	Settings settings_;

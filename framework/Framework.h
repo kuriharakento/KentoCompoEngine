@@ -8,6 +8,7 @@
 #include "engine/scene/manager/SceneManager.h"
 #include "manager/scene/CameraManager.h"
 #include "manager/scene/LightManager.h"
+#include "camerawork/debug/DebugCamera.h"
 // system
 #include "base/DirectXCommon.h"
 #include "base/JobSystem.h"
@@ -241,6 +242,10 @@ protected: // メンバ変数
 	std::unique_ptr<FrameConstantAllocator> frameConstantAllocator_;
 	// カメラマネージャー
 	std::unique_ptr<CameraManager> cameraManager_;
+#ifdef USE_IMGUI
+	// どのシーンでも main を Scene の上の右ドラッグで動かすデバッグカメラ。操作するカメラは cameraManager_ が持つ
+	std::unique_ptr<DebugCamera> debugCamera_;
+#endif
 	// シーンマネージャー
 	std::unique_ptr<SceneManager> sceneManager_;
 	// シーンファクトリ

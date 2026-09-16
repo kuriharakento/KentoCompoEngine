@@ -1,13 +1,16 @@
 #include "DebugCamera.h"
 #include "math/MathUtils.h"
 #include <algorithm>
+#include <numbers>
 #include <DirectXMath.h>
 
 // system
+#include "base/Camera.h"
 #include "input/Input.h"
 
 #ifdef USE_IMGUI
 #include "imgui/imgui.h"
+#include "editor/SceneViewContext.h"
 #include "manager/editor/DebugUIManager.h"
 
 #endif
@@ -17,10 +20,9 @@ namespace KCE
 
 // 60FPS想定のフレームデルタタイム
 constexpr float kFrameDeltaTime = 0.016f;
-// ピッチ制限最小値（度）
-constexpr float kPitchLimitMin = -80.0f;
-// ピッチ制限最大値（度）
-constexpr float kPitchLimitMax = 80.0f;
+// ピッチ制限（ラジアン。角度はラジアンで持つので、80 度をラジアンにしておく）
+constexpr float kPitchLimitMax = 80.0f * std::numbers::pi_v<float> / 180.0f;
+constexpr float kPitchLimitMin = -kPitchLimitMax;
 
 void DebugCamera::Initialize(Camera* camera)
 {
@@ -59,17 +61,59 @@ void DebugCamera::Update()
 {
     if (!isActive_ || !camera_) return;
 
+    // 右ドラッグしている間だけカメラに触る。
+    // 触っていない間も回転を書くと、シーンやカットシーンが動かしたカメラを毎フレーム戻してしまう
+    const bool rightPressed = Input::GetInstance()->IsMouseButtonPressed(2);
+    if (!dragging_)
+    {
+        if (!rightPressed || !IsMouseOverSceneView())
+        {
+            return;
+        }
+        // 掴んだ瞬間に今の向きから始める。前回離したときの角度を使うと、他で動かされた分だけ向きが飛ぶ
+        const Vector3 euler = camera_->GetRotateQuaternion().ToEuler();
+        pitch_ = euler.x;
+        yaw_ = euler.y;
+        dragging_ = true;
+        Input::GetInstance()->SetMouseLockEnabled(true);
+        Input::GetInstance()->SetMouseVisible(false);
+    }
+    else if (!rightPressed)
+    {
+        // 離したらマウスを戻す。戻すのはこの1回だけで、ふだんはゲーム側の設定に触らない
+        dragging_ = false;
+        Input::GetInstance()->SetMouseLockEnabled(false);
+        Input::GetInstance()->SetMouseVisible(true);
+        return;
+    }
+
     // 各種更新処理を実行
     UpdateMouseLook();
     UpdateMovement();
 }
 
+bool DebugCamera::IsMouseOverSceneView() const
+{
+#ifdef USE_IMGUI
+    // Scene の上で掴んだときだけ動かす。他のウィンドウで右クリックしてもカメラが動かないように
+    if (!SceneViewContext::HasInstance())
+    {
+        return true;
+    }
+    const SceneViewRect& rect = SceneViewContext::GetInstance()->GetViewportRect();
+    if (!rect.IsValid())
+    {
+        return true;
+    }
+    const ImVec2 mouse = ImGui::GetIO().MousePos;
+    return mouse.x >= rect.x && mouse.x <= rect.x + rect.width && mouse.y >= rect.y && mouse.y <= rect.y + rect.height;
+#else
+    return true;
+#endif
+}
+
 void DebugCamera::UpdateMovement()
 {
-	// もし右クリックが押されていない場合、移動処理をスキップ
-    if(Input::GetInstance()->IsMouseButtonPressed(2) == false){
-        return;
-	}
 
     Vector3 currentPos = camera_->GetTranslate();
     Vector3 moveDirection = { 0.0f, 0.0f, 0.0f };
@@ -116,10 +160,6 @@ void DebugCamera::UpdateMovement()
 
 void DebugCamera::UpdateMouseLook()
 {
-    // マウス右クリック時のみ視点操作を有効化
-    Input::GetInstance()->SetMouseLockEnabled(Input::GetInstance()->IsMouseButtonPressed(2));
-	Input::GetInstance()->SetMouseVisible(!Input::GetInstance()->IsMouseButtonPressed(2));
-
     // マウスの移動量を取得
     float deltaX = Input::GetInstance()->GetMouseDeltaX();
     float deltaY = Input::GetInstance()->GetMouseDeltaY();
@@ -138,6 +178,13 @@ void DebugCamera::UpdateMouseLook()
 void DebugCamera::Stop()
 {
     isActive_ = false;
+    // 掴んだまま止めると、マウスが隠れて固定されたままになる
+    if (dragging_)
+    {
+        dragging_ = false;
+        Input::GetInstance()->SetMouseLockEnabled(false);
+        Input::GetInstance()->SetMouseVisible(true);
+    }
 }
 
 void DebugCamera::Reset()
@@ -197,6 +244,15 @@ Vector3 DebugCamera::GetUpVector() const
 void DebugCamera::DrawImGui()
 {
 #ifdef USE_IMGUI
+
+    // オフにすると、シーンが自分でカメラを動かすときに邪魔しない
+    bool active = isActive_;
+    if (ImGui::Checkbox("有効（Scene の上で右ドラッグ + WASD）", &active))
+    {
+        if (active) { isActive_ = true; }
+        else { Stop(); }
+    }
+    ImGui::Separator();
 
     // 現在の位置・回転情報
     Vector3 pos = camera_->GetTranslate();

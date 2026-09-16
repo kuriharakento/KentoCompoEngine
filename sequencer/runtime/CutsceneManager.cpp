@@ -18,8 +18,6 @@ namespace KCE
 {
 namespace
 {
-/** @brief カットシーン用カメラの名前 */
-const char* const kCutsceneCameraName = "CutsceneCamera";
 /** @brief シーケンスがカメラとして要求する役 */
 const char* const kCameraRole = "MainCam";
 
@@ -66,8 +64,8 @@ void CutsceneManager::Initialize(CameraManager* cameraManager, LightManager* lig
 	cameraManager_ = cameraManager;
 	if (cameraManager_)
 	{
-		cameraManager_->AddCamera(kCutsceneCameraName);
-		cutsceneCamera_ = cameraManager_->GetCamera(kCutsceneCameraName);
+		cameraManager_->AddCamera(kSequenceCameraName);
+		cutsceneCamera_ = cameraManager_->GetCamera(kSequenceCameraName);
 	}
 
 	player_.GetBindingContext().SetLightManager(lightManager);
@@ -177,7 +175,7 @@ bool CutsceneManager::Play(const CutsceneRequest& request, std::string* outError
 		cutsceneCamera_->SetRotateQuaternion(blendFromRotation_);
 		cutsceneCamera_->SetFovY(blendFromFov_);
 	}
-	cameraManager_->SetActiveCamera(kCutsceneCameraName);
+	cameraManager_->SetActiveCamera(kSequenceCameraName);
 
 	if (request_.lockInput)
 	{
