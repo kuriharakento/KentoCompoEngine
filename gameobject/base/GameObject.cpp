@@ -206,8 +206,8 @@ void GameObject::Draw3D(CameraManager* camera)
 {
 	if (!isActive_ || !renderable3d_) { return; }
 
-	// Transform情報をObject3Dに適用（親子関係を考慮）
-	ApplyTransformToObject3D(camera);
+	// 行列はフレームに1回だけ確定させる（ビューごとに計算し直さない）
+	EnsureRenderTransform();
 
 	// 子の再帰描画でも半透明を不透明パスへ混ぜない。
 	// 見えなければ描く命令だけ飛ばす。行列は上で確定させてあるので、子の位置は親が見えなくても狂わない
@@ -276,22 +276,9 @@ void GameObject::DrawShadow(Camera* camera)
 	// 影を落とす設定の場合のみ描画を行う
 	if (castShadow)
 	{
-		// シャドウパスはDraw3D前に実行されるため、ワールド行列を先に確定させる
-		// （ECSのObject3dSystem::DrawShadowと同様の処理）
-		renderable3d_->SetTranslate(transform_.translate);
-		renderable3d_->SetRotate(transform_.rotate);
-		renderable3d_->SetScale(transform_.scale);
-
-		if (parent_ && parent_->GetRenderable3d())
-		{
-			Matrix4x4 localMatrix = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
-			Matrix4x4 worldMatrix = localMatrix * parent_->GetRenderable3d()->GetWorldMatrix();
-			renderable3d_->UpdateMatrixWithWorld(worldMatrix, camera);
-		}
-		else
-		{
-			renderable3d_->Update(0.0f, camera);
-		}
+		// 影は Draw3D より先に描くが、行列は描画の前に確定させてあるので使うだけ
+		(void)camera;
+		EnsureRenderTransform();
 
 		// renderable3dを通してシャドウマップへの深度書き込みを行う。ライトの範囲に入らなければ飛ばす
 		if (GameObjectManager::GetInstance()->IsRenderableVisible(renderable3d_.get()))
@@ -314,11 +301,8 @@ void GameObject::DrawGBuffer(CameraManager* camera)
 {
 	if (!isActive_ || !renderable3d_) { return; }
 
-	// Transform情報をObject3Dに適用（親子関係を考慮）
-	if (camera)
-	{
-		ApplyTransformToObject3D(camera);
-	}
+	// 行列はフレームに1回だけ確定させる（ビューごとに計算し直さない）
+	EnsureRenderTransform();
 
 	// renderable3dを通してG-Bufferへの描画を行う。見えなければ描く命令だけ飛ばす
 	if (renderable3d_->GetRenderQueue() == RenderQueue::Opaque && GameObjectManager::GetInstance()->IsRenderableVisible(renderable3d_.get()))
@@ -339,6 +323,19 @@ void GameObject::DrawGBuffer(CameraManager* camera)
 void GameObject::UpdateTransform(CameraManager* camera)
 {
 	ApplyTransformToObject3D(camera);
+}
+
+void GameObject::EnsureRenderTransform()
+{
+	if (!renderable3d_) { return; }
+	const uint64_t frame = TimeManager::GetInstance().GetFrameCount();
+	if (renderTransformFrame_ == frame) { return; }
+
+	// 子は親の行列を掛けるので、親を先に確定させる
+	if (parent_) { parent_->EnsureRenderTransform(); }
+	renderTransformFrame_ = frame;
+	// ビューに依存する WVP は Object3d が描く直前に作るので、カメラは渡さない（既定のカメラで作られる分は使われない）
+	ApplyTransformToObject3D(nullptr);
 }
 
 void GameObject::UpdateWorldMatrix()
@@ -472,12 +469,12 @@ void GameObject::ApplyTransformToObject3D(CameraManager* camera)
 		Matrix4x4 parentWorldMatrix = parent_->renderable3d_->GetWorldMatrix();
 		Matrix4x4 worldMatrix = localMatrix * parentWorldMatrix;
 
-		renderable3d_->UpdateMatrixWithWorld(worldMatrix, camera->GetActiveCamera());
+		renderable3d_->UpdateMatrixWithWorld(worldMatrix, camera ? camera->GetActiveCamera() : nullptr);
 	}
 	else
 	{
 		// 親がない場合：通常の更新処理
-		renderable3d_->Update(0.0f, camera->GetActiveCamera());
+		renderable3d_->Update(0.0f, camera ? camera->GetActiveCamera() : nullptr);
 	}
 }
 

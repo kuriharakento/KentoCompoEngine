@@ -139,6 +139,14 @@ public:
 	void UpdateTransform(CameraManager* camera);
 
 	/**
+	 * @brief このフレームの描画に使うワールド行列を確定させる（フレームに1回だけ計算する）
+	 * @details 描画前に GameObjectManager が全員分まとめて呼ぶ。描画の中でも呼ぶが、計算済みなら何もしない。
+	 *          親を先に確定させてから自分を計算するので、子は親の最新の行列を使える。
+	 *          ビューごとの WVP は描く直前に Object3d が作るので、ここではビューに依存しない行列だけ作る
+	 */
+	void EnsureRenderTransform();
+
+	/**
 	 * @brief コンポーネントの追加
 	 *
 	 * 指定された名前でコンポーネントを追加します。
@@ -530,6 +538,8 @@ private:
 	// 更新処理中フラグ
 	bool isUpdating_ = false;
 	bool isDestroying_ = false;
+	// 描画用の行列を最後に確定させたフレーム（TimeManager のフレーム番号）。同じフレームでは計算し直さない
+	uint64_t renderTransformFrame_ = UINT64_MAX;
 
 	// === オブジェクト基本情報 ===
 	// オブジェクトのタグ（分類用）
