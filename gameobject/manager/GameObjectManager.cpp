@@ -248,6 +248,30 @@ void GameObjectManager::Update()
 	ClearPendingDestroyObjects();
 }
 
+void GameObjectManager::UpdateRenderTransforms()
+{
+	// 親から子の順に確定させる。子は EnsureRenderTransform の中で親を先に確定させるので、並びの順番に頼らない
+	const auto ensureTree = [](const auto& self, GameObject* obj) -> void
+	{
+		if (!obj->IsActive())
+		{
+			return;
+		}
+		obj->EnsureRenderTransform();
+		for (const auto& [name, child] : obj->GetChildren())
+		{
+			if (child)
+			{
+				self(self, child.get());
+			}
+		}
+	};
+	for (auto* obj : gameObjects_)
+	{
+		ensureTree(ensureTree, obj);
+	}
+}
+
 bool GameObjectManager::IsRenderableVisible(const IRenderable3d* renderable)
 {
 	// フレームが変わったら数を締める（Update を呼ばないシーンもあるので、フレーム番号で見る）

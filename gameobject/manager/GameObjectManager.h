@@ -87,6 +87,13 @@ public:
 	void DrawGBuffer(CameraManager* camera = nullptr);
 
 	/**
+	 * @brief このフレームの描画に使う行列を、登録された GameObject とその子の全員分まとめて確定させる
+	 * @details 描画パイプラインの頭で1回呼ぶ（Framework::ExecuteRenderPipeline）。
+	 *          これまでは Draw3D・DrawGBuffer・影・モニター・反射と、ビューを描くたびに同じ行列を計算し直していた
+	 */
+	void UpdateRenderTransforms();
+
+	/**
 	 * @brief 動的なGameObjectの作成
 	 * @param name オブジェクト名
 	 * @param tag タグ

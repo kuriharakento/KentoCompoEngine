@@ -654,6 +654,8 @@ void Framework::ExecuteRenderPipeline(RenderTexture* outputTarget)
 	if (GameObjectManager::HasInstance())
 	{
 		GameObjectManager::GetInstance()->SetRenderLayerMask(mainView_->GetLayerMask());
+		// 更新が全部終わった後、どのビューを描くより前に、行列を全員分1回だけ確定させる
+		GameObjectManager::GetInstance()->UpdateRenderTransforms();
 	}
 
 	// 前のフレームの計測結果を読んでから、このフレームの計測を始める
