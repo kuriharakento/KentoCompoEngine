@@ -216,6 +216,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="animation\AnimationPoseCache.cpp">
+      <Filter>animation</Filter>
+    </ClCompile>
     <ClCompile Include="animation\Animator.cpp">
       <Filter>animation</Filter>
     </ClCompile>
@@ -680,6 +683,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="animation\AnimationPoseCache.h">
+      <Filter>animation</Filter>
+    </ClInclude>
     <ClInclude Include="animation\Animator.h">
       <Filter>animation</Filter>
     </ClInclude>
