@@ -22,6 +22,7 @@
 #include "graphics/view/RenderView.h"
 #include "manager/scene/CameraManager.h"
 #include "manager/editor/DebugUIManager.h"
+#include "math/Frustum.h"
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
 #endif
@@ -428,6 +429,35 @@ void StageManager::Initialize(const std::string& stageName, Text3DRenderer* text
 
 void StageManager::Update()
 {
+	Camera* primaryCamera = cameraManager_ ? cameraManager_->GetPrimaryCamera() : nullptr;
+	Frustum mainFrustum{};
+	if (primaryCamera)
+	{
+		mainFrustum = Frustum::FromViewProjection(primaryCamera->GetViewProjectionMatrix());
+	}
+	for (const auto& camera : cameras_)
+	{
+		bool anyScreenVisible = primaryCamera == nullptr;
+		if (primaryCamera)
+		{
+			for (const auto& monitor : monitors_)
+			{
+				if (monitor->cameraName == camera->name && monitor->monitor && monitor->monitor->IsScreenVisible(mainFrustum))
+				{
+					anyScreenVisible = true;
+					break;
+				}
+			}
+		}
+		if (camera->view && camera->view->IsEnabled() != anyScreenVisible)
+		{
+			camera->view->SetEnabled(anyScreenVisible);
+			if (anyScreenVisible)
+			{
+				camera->view->RequestImmediateUpdate();
+			}
+		}
+	}
 	for (const auto& entry : monitors_)
 	{
 		if (entry->monitor) { entry->monitor->Update(); }

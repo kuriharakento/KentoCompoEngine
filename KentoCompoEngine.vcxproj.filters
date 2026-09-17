@@ -1136,6 +1136,9 @@
     <ClInclude Include="math\Easing.h">
       <Filter>math</Filter>
     </ClInclude>
+    <ClInclude Include="math\Frustum.h">
+      <Filter>math</Filter>
+    </ClInclude>
     <ClInclude Include="math\MathUtils.h">
       <Filter>math</Filter>
     </ClInclude>

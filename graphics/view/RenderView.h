@@ -113,6 +113,9 @@ public:
 	void SetEnabled(bool enabled) { enabled_ = enabled; }
 	bool IsEnabled() const { return enabled_; }
 
+	/** @brief 次に有効なフレームでは更新間隔を待たず描き直す */
+	void RequestImmediateUpdate() { hasRendered_ = false; }
+
 	/**
 	 * @brief 何秒ごとに描き直すか
 	 * @details テレビのように 24fps で十分なモニターなどで使う。描かないフレームは前の絵が残る。

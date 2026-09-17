@@ -327,6 +327,7 @@
     <ClInclude Include="math\AABB.h" />
     <ClInclude Include="math\BlendMode.h" />
     <ClInclude Include="math\Easing.h" />
+    <ClInclude Include="math\Frustum.h" />
     <ClInclude Include="math\MathUtils.h" />
     <ClInclude Include="math\MatrixFunc.h" />
     <ClInclude Include="math\OBB.h" />
