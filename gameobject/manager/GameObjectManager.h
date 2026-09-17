@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "core/Guid.h"
+#include "gameobject/manager/GameObjectRenderer.h"
 #include "graphics/view/RenderLayer.h"
 #include "base/GraphicsTypes.h"
 
@@ -196,13 +197,13 @@ public:
 	bool IsRenderableVisible(const IRenderable3d* renderable);
 
 	/** @brief 視錐台カリングを使うか（比べるときに切る） */
-	void SetCullingEnabled(bool enabled) { cullingEnabled_ = enabled; }
-	bool IsCullingEnabled() const { return cullingEnabled_; }
+	void SetCullingEnabled(bool enabled) { renderer_.SetCullingEnabled(enabled); }
+	bool IsCullingEnabled() const { return renderer_.IsCullingEnabled(); }
 
 	/** @brief 前のフレームで GameObject を描いた数（全ビューと影の合計） */
-	uint32_t GetLastFrameDrawnCount() const { return lastFrameDrawnCount_; }
+	uint32_t GetLastFrameDrawnCount() const { return renderer_.GetLastFrameDrawnCount(); }
 	/** @brief 前のフレームで視錐台の外として省いた数（全ビューと影の合計） */
-	uint32_t GetLastFrameCulledCount() const { return lastFrameCulledCount_; }
+	uint32_t GetLastFrameCulledCount() const { return renderer_.GetLastFrameCulledCount(); }
 
 public:
 	~GameObjectManager() = default;
@@ -227,19 +228,19 @@ private:
 	// 現在描いているビューの描画対象レイヤー
 	RenderLayerMask renderLayerMask_ = kRenderLayerAll;
 
-	// 今描いているビューのビュー×プロジェクション。Draw3D などの間だけ指す（カメラが持つ行列。所有しない）
+	// 今描いているビューのビュー×プロジェクション。GameObject を直接描く経路の判定だけに使う（カメラが持つ行列。所有しない）
 	const Matrix4x4* viewCullingViewProjection_ = nullptr;
 	// 影を描いている間のライトの行列。ShadowMapPass が設定して戻す（LightManager が持つ行列。所有しない）
 	const Matrix4x4* shadowCullingViewProjection_ = nullptr;
-	// 視錐台カリングを使うか
-	bool cullingEnabled_ = true;
-	// このフレームと前のフレームの、描いた数・省いた数
-	uint32_t drawnCount_ = 0;
-	uint32_t culledCount_ = 0;
-	uint32_t lastFrameDrawnCount_ = 0;
-	uint32_t lastFrameCulledCount_ = 0;
-	// 数を数えているフレーム（TimeManager のフレーム番号）
-	uint64_t countedFrame_ = 0;
+	// 描く物の一覧と、ビューごとの見えている物のリスト
+	GameObjectRenderer renderer_;
+	// 半透明を距離で並べるときの作業用。毎フレーム確保しないよう使い回す
+	struct TransparentEntry
+	{
+		IRenderable3d* object = nullptr;
+		float distanceSquared = 0.0f;
+	};
+	std::vector<TransparentEntry> transparentEntries_;
 
 	// 動的に作成され、マネージャーが所有するGameObjectのリスト
 	std::vector<std::unique_ptr<GameObject>> dynamicGameObjects_;

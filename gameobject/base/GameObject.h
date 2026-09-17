@@ -115,6 +115,13 @@ public:
 	virtual void Draw3D(CameraManager* camera);
 
 	/**
+	 * @brief 自分の Behaviour の 3D 描画だけを呼ぶ（子はたどらない）
+	 * @details GameObjectManager は描画物を Renderer のリストで描き、Behaviour はこれで別に呼ぶ
+	 * @param camera カメラ管理クラス
+	 */
+	void DrawBehaviours3D(CameraManager* camera);
+
+	/**
 	 * @brief 2D描画処理
 	 */
 	virtual void Draw2D();

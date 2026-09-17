@@ -250,14 +250,50 @@ void GameObjectManager::Update()
 
 void GameObjectManager::UpdateRenderTransforms()
 {
-	// 親から子の順に確定させる。子は EnsureRenderTransform の中で親を先に確定させるので、並びの順番に頼らない
-	const auto ensureTree = [](const auto& self, GameObject* obj) -> void
+	// 行列の確定と、描く物の一覧づくりを1回で済ませる
+	renderer_.Collect(gameObjects_);
+}
+
+bool GameObjectManager::IsRenderableVisible(const IRenderable3d* renderable)
+{
+	// GameObject を直接描く経路（GameObject::Draw3D など）用。GameObjectManager の描画は Renderer のリストを使う
+	const Matrix4x4* viewProjection = shadowCullingViewProjection_ ? shadowCullingViewProjection_ : viewCullingViewProjection_;
+	AABB bounds;
+	if (!renderer_.IsCullingEnabled() || !renderable || !viewProjection || !renderable->TryGetLocalBounds(bounds))
+	{
+		renderer_.CountDrawn();
+		return true;
+	}
+	if (IsAabbOutsideClip(bounds, renderable->GetWorldMatrix() * *viewProjection))
+	{
+		renderer_.CountCulled();
+		return false;
+	}
+	renderer_.CountDrawn();
+	return true;
+}
+
+void GameObjectManager::Draw3D(CameraManager* camera)
+{
+	renderer_.EnsureCollected(gameObjects_);
+	Camera* viewCamera = camera ? camera->GetActiveCamera() : nullptr;
+	const Matrix4x4* viewProjection = viewCamera ? &viewCamera->GetViewProjectionMatrix() : nullptr;
+	for (const GameObjectRenderer::Entry* entry : renderer_.GatherVisible(GameObjectRenderer::Pass::Forward, viewProjection, renderLayerMask_))
+	{
+		entry->renderable->Draw();
+	}
+
+	// Behaviour の 3D 描画（エフェクト・デバッグ表示など）は、描画物の有無や描き方に関係なく、このビューのレイヤーに入る物全部で呼ぶ
+	const auto drawBehaviours = [&](const auto& self, GameObject* obj) -> void
 	{
 		if (!obj->IsActive())
 		{
 			return;
 		}
-		obj->EnsureRenderTransform();
+		if (IsVisibleInLayerMask(obj->GetRenderLayer(), renderLayerMask_))
+		{
+			obj->DrawBehaviours3D(camera);
+		}
 		for (const auto& [name, child] : obj->GetChildren())
 		{
 			if (child)
@@ -268,67 +304,8 @@ void GameObjectManager::UpdateRenderTransforms()
 	};
 	for (auto* obj : gameObjects_)
 	{
-		ensureTree(ensureTree, obj);
+		drawBehaviours(drawBehaviours, obj);
 	}
-}
-
-bool GameObjectManager::IsRenderableVisible(const IRenderable3d* renderable)
-{
-	// フレームが変わったら数を締める（Update を呼ばないシーンもあるので、フレーム番号で見る）
-	const uint64_t frame = TimeManager::GetInstance().GetFrameCount();
-	if (frame != countedFrame_)
-	{
-		lastFrameDrawnCount_ = drawnCount_;
-		lastFrameCulledCount_ = culledCount_;
-		drawnCount_ = 0;
-		culledCount_ = 0;
-		countedFrame_ = frame;
-	}
-
-	// 影を描いている間はライトの行列、そうでなければビューの行列で判定する
-	const Matrix4x4* viewProjection = shadowCullingViewProjection_ ? shadowCullingViewProjection_ : viewCullingViewProjection_;
-	AABB bounds;
-	if (!cullingEnabled_ || !renderable || !viewProjection || !renderable->TryGetLocalBounds(bounds))
-	{
-		++drawnCount_;
-		return true;
-	}
-	if (IsAabbOutsideClip(bounds, renderable->GetWorldMatrix() * *viewProjection))
-	{
-		++culledCount_;
-		return false;
-	}
-	++drawnCount_;
-	return true;
-}
-
-void GameObjectManager::Draw3D(CameraManager* camera)
-{
-	// このビューのカメラで省く。描き終わったら外す（影や別のビューで古い行列を使わないように）
-	Camera* viewCamera = camera ? camera->GetActiveCamera() : nullptr;
-	viewCullingViewProjection_ = viewCamera ? &viewCamera->GetViewProjectionMatrix() : nullptr;
-	for (auto* obj : gameObjects_)
-	{
-		if (obj->IsActive())
-		{
-			// 現在描いているビューの対象でなければ飛ばす
-			if (!IsVisibleInLayerMask(obj->GetRenderLayer(), renderLayerMask_))
-			{
-				continue;
-			}
-
-			// Renderable3dが存在し、かつRenderingTypeがDeferredの場合は、DrawGBufferで描画されるためDraw3Dでは描画しない
-			if (auto* renderable = obj->GetRenderable3d())
-			{
-				if (renderable->GetRenderQueue() != RenderQueue::Opaque || renderable->GetRenderingType() == RenderingType::Deferred)
-				{
-					continue;
-				}
-			}
-			obj->Draw3D(camera);
-		}
-	}
-	viewCullingViewProjection_ = nullptr;
 }
 
 void GameObjectManager::DrawTransparent(CameraManager* camera, const std::vector<Object3d*>& sceneObjects)
@@ -337,78 +314,37 @@ void GameObjectManager::DrawTransparent(CameraManager* camera, const std::vector
 	{
 		return;
 	}
-	const Vector3 cameraPosition = camera->GetActiveCamera()->GetTranslate();
-	// GameObject の半透明だけ、このビューのカメラで省く（シーンが直接持つ物は今まで通り全部描く）
-	viewCullingViewProjection_ = &camera->GetActiveCamera()->GetViewProjectionMatrix();
-	struct Entry
+	renderer_.EnsureCollected(gameObjects_);
+	const Camera* viewCamera = camera->GetActiveCamera();
+	const Vector3 cameraPosition = viewCamera->GetTranslate();
+	const auto distanceSquared = [&cameraPosition](const Matrix4x4& world)
 	{
-		IRenderable3d* object;
-		float distanceSquared;
+		const Vector3 offset{ world.m[3][0] - cameraPosition.x, world.m[3][1] - cameraPosition.y, world.m[3][2] - cameraPosition.z };
+		return offset.x * offset.x + offset.y * offset.y + offset.z * offset.z;
 	};
-	std::vector<Entry> entries;
-	std::vector<GameObject*> roots;
-	for (auto* obj : gameObjects_)
+
+	transparentEntries_.clear();
+	// GameObject の半透明は、このビューで見えている物だけ
+	for (const GameObjectRenderer::Entry* entry : renderer_.GatherVisible(GameObjectRenderer::Pass::Transparent, &viewCamera->GetViewProjectionMatrix(), renderLayerMask_))
 	{
-		while (obj->GetParent())
-		{
-			obj = obj->GetParent();
-		}
-		if (std::find(roots.begin(), roots.end(), obj) == roots.end())
-		{
-			roots.push_back(obj);
-		}
+		transparentEntries_.push_back({ entry->renderable, distanceSquared(entry->renderable->GetWorldMatrix()) });
 	}
-	// 親を先に更新し、未登録の子も一度だけ収集して全体でソートする。
-	const auto collect = [&](const auto& self, GameObject* obj) -> void
-	{
-		if (!obj->IsActive())
-		{
-			return;
-		}
-		auto* renderable = obj->GetRenderable3d();
-		if (renderable)
-		{
-			if (IsVisibleInLayerMask(obj->GetRenderLayer(), renderLayerMask_) &&
-				renderable->GetRenderQueue() == RenderQueue::Transparent &&
-				IsRenderableVisible(renderable))
-			{
-				const auto world = obj->GetWorldMatrix();
-				const Vector3 offset{ world.m[3][0] - cameraPosition.x, world.m[3][1] - cameraPosition.y, world.m[3][2] - cameraPosition.z };
-				entries.push_back({ renderable, offset.x * offset.x + offset.y * offset.y + offset.z * offset.z });
-			}
-		}
-		for (const auto& [name, child] : obj->GetChildren())
-		{
-			if (child)
-			{
-				self(self, child.get());
-			}
-		}
-	};
-	for (auto* root : roots)
-	{
-		collect(collect, root);
-	}
-	viewCullingViewProjection_ = nullptr;
-	// シーンへ直接登録されたオブジェクトも同じキューでソートする。
+	// シーンへ直接登録されたオブジェクトも同じキューでソートする（こちらは今まで通り省かない）
 	for (auto* object : sceneObjects)
 	{
 		if (!object || object->GetRenderQueue() != RenderQueue::Transparent ||
-			std::any_of(entries.begin(), entries.end(), [object](const Entry& entry) { return entry.object == object; }))
+			std::any_of(transparentEntries_.begin(), transparentEntries_.end(), [object](const TransparentEntry& entry) { return entry.object == object; }))
 		{
 			continue;
 		}
-		const auto world = object->GetWorldMatrix();
-		const Vector3 offset{ world.m[3][0] - cameraPosition.x, world.m[3][1] - cameraPosition.y, world.m[3][2] - cameraPosition.z };
-		entries.push_back({ object, offset.x * offset.x + offset.y * offset.y + offset.z * offset.z });
+		transparentEntries_.push_back({ object, distanceSquared(object->GetWorldMatrix()) });
 	}
-	std::stable_sort(entries.begin(), entries.end(), [](const Entry& a, const Entry& b)
+	std::stable_sort(transparentEntries_.begin(), transparentEntries_.end(), [](const TransparentEntry& a, const TransparentEntry& b)
 	{
 		return a.distanceSquared > b.distanceSquared;
 	});
-	for (const auto& entry : entries)
+	for (const auto& entry : transparentEntries_)
 	{
-		// 子の再帰描画を避け、収集したオブジェクト単位の順序を維持する。
 		entry.object->Draw();
 	}
 }
@@ -426,47 +362,25 @@ void GameObjectManager::Draw2D()
 
 void GameObjectManager::DrawShadow(Camera* camera)
 {
-	for (auto* obj : gameObjects_)
+	(void)camera;
+	renderer_.EnsureCollected(gameObjects_);
+	// ライトの行列は ShadowMapPass が設定する。無いとき（ポイントライト）は省かない
+	for (const GameObjectRenderer::Entry* entry : renderer_.GatherVisible(GameObjectRenderer::Pass::Shadow, shadowCullingViewProjection_, kRenderLayerAll))
 	{
-		if (obj->IsActive())
-		{
-			obj->DrawShadow(camera);
-		}
+		entry->renderable->DrawShadowOnly();
 	}
 }
 
 void GameObjectManager::DrawGBuffer(CameraManager* camera)
 {
-	// カメラを渡されないときは行列を確定できないので省かない
+	renderer_.EnsureCollected(gameObjects_);
+	// カメラを渡されないときは判定しない
 	Camera* viewCamera = camera ? camera->GetActiveCamera() : nullptr;
-	viewCullingViewProjection_ = viewCamera ? &viewCamera->GetViewProjectionMatrix() : nullptr;
-	for (auto* obj : gameObjects_)
+	const Matrix4x4* viewProjection = viewCamera ? &viewCamera->GetViewProjectionMatrix() : nullptr;
+	for (const GameObjectRenderer::Entry* entry : renderer_.GatherVisible(GameObjectRenderer::Pass::GBuffer, viewProjection, renderLayerMask_))
 	{
-		if (obj->IsActive())
-		{
-			// 現在描いているビューの対象でなければ飛ばす
-			if (!IsVisibleInLayerMask(obj->GetRenderLayer(), renderLayerMask_))
-			{
-				continue;
-			}
-
-			// Renderable3dが存在し、かつRenderingTypeがDeferredのもののみ描画する
-			if (auto* renderable = obj->GetRenderable3d())
-			{
-				if (renderable->GetRenderQueue() != RenderQueue::Opaque || renderable->GetRenderingType() != RenderingType::Deferred)
-				{
-					continue;
-				}
-			}
-			else
-			{
-				// Renderable3dを持たないオブジェクトはGBufferパスでは何もしない
-				continue;
-			}
-			obj->DrawGBuffer(camera);
-		}
+		entry->renderable->DrawGBuffer();
 	}
-	viewCullingViewProjection_ = nullptr;
 }
 
 GameObject* GameObjectManager::Find(const std::string& name) const
