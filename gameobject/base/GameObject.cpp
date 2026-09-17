@@ -226,6 +226,12 @@ void GameObject::Draw3D(CameraManager* camera)
 	}
 
 	// アクションコンポーネントの描画（エフェクト、UI、デバッグ表示など）
+	DrawBehaviours3D(camera);
+}
+
+void GameObject::DrawBehaviours3D(CameraManager* camera)
+{
+	if (!isActive_) { return; }
 	for (auto& component : components_)
 	{
 		if (component->activeInHierarchy_)

@@ -393,6 +393,9 @@
     <ClCompile Include="gameobject\manager\GameObjectManager.cpp">
       <Filter>gameobject\manager</Filter>
     </ClCompile>
+    <ClCompile Include="gameobject\manager\GameObjectRenderer.cpp">
+      <Filter>gameobject\manager</Filter>
+    </ClCompile>
     <ClCompile Include="graphics\2d\FontSprite.cpp">
       <Filter>graphics\2d</Filter>
     </ClCompile>
@@ -975,6 +978,9 @@
       <Filter>gameobject\component\collision</Filter>
     </ClInclude>
     <ClInclude Include="gameobject\manager\GameObjectManager.h">
+      <Filter>gameobject\manager</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\manager\GameObjectRenderer.h">
       <Filter>gameobject\manager</Filter>
     </ClInclude>
     <ClInclude Include="graphics\2d\FontSprite.h">
