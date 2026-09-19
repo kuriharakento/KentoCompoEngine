@@ -145,6 +145,8 @@ bool GameObjectManager::HasInstance()
 void GameObjectManager::Initialize()
 {
 	gameObjects_.clear();
+	updateObjects_.clear();
+	registeredObjects_.clear();
 	dynamicGameObjects_.clear();
 	cachedObject3dCommon_ = nullptr;
 	cachedLightManager_ = nullptr;
@@ -161,6 +163,8 @@ void GameObjectManager::Finalize()
 		}
 	}
 	gameObjects_.clear();
+	updateObjects_.clear();
+	registeredObjects_.clear();
 
 	// 二重解放・再帰的呼び出し時のイテレータ破壊を防ぐため、一旦ローカル変数に移してからクリアする
 	auto toDestroy = std::move(dynamicGameObjects_);
@@ -175,8 +179,7 @@ void GameObjectManager::Register(GameObject* gameObject)
 {
 	if (gameObject)
 	{
-		auto it = std::find(gameObjects_.begin(), gameObjects_.end(), gameObject);
-		if (it == gameObjects_.end())
+		if (registeredObjects_.insert(gameObject).second)
 		{
 			gameObjects_.push_back(gameObject);
 		}
@@ -203,8 +206,11 @@ void GameObjectManager::Unregister(GameObject* gameObject)
 			GameObjectEditor::GetInstance()->OnGameObjectRemoved(gameObject);
 		}
 
-		// 管理リストから削除
-		gameObjects_.erase(std::remove(gameObjects_.begin(), gameObjects_.end(), gameObject), gameObjects_.end());
+		// 管理リストから削除。登録中かどうかは更新ループから O(1) で確認できる
+		if (registeredObjects_.erase(gameObject) != 0)
+		{
+			gameObjects_.erase(std::remove(gameObjects_.begin(), gameObjects_.end(), gameObject), gameObjects_.end());
+		}
 
 		// 二重解放・再帰的デストラクトを防ぐため、一時的に取り出してローカル変数で保持してから解放する
 		std::unique_ptr<GameObject> toDelete = nullptr;
@@ -226,19 +232,19 @@ void GameObjectManager::Unregister(GameObject* gameObject)
 
 void GameObjectManager::Update()
 {
-	// 安全ループ（Update内の Register/Unregister に備えてコピーを取る）
-	auto tempObjects = gameObjects_;
-	for (auto* obj : tempObjects)
+	// フレーム頭の対象だけを固定する。領域は使い回し、更新中の Register/Unregister では壊れない
+	updateObjects_.clear();
+	updateObjects_.insert(updateObjects_.end(), gameObjects_.begin(), gameObjects_.end());
+	for (auto* obj : updateObjects_)
 	{
-		auto it = std::find(gameObjects_.begin(), gameObjects_.end(), obj);
-		if (it != gameObjects_.end() && obj->IsActive() && !obj->IsPendingDestroy())
+		if (registeredObjects_.contains(obj) && obj->IsActive() && !obj->IsPendingDestroy())
 		{
 			obj->Update();
 		}
 	}
-	for (auto* obj : tempObjects)
+	for (auto* obj : updateObjects_)
 	{
-		if (std::find(gameObjects_.begin(), gameObjects_.end(), obj) != gameObjects_.end() && obj->IsActive() && !obj->IsPendingDestroy())
+		if (registeredObjects_.contains(obj) && obj->IsActive() && !obj->IsPendingDestroy())
 		{
 			obj->LateUpdate();
 		}

@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <unordered_set>
 
 #include "core/Guid.h"
 #include "gameobject/manager/GameObjectRenderer.h"
@@ -224,6 +225,10 @@ private:
 
 	// 管理しているGameObjectのリスト（非所有ポインタ）
 	std::vector<GameObject*> gameObjects_;
+	// 更新開始時の登録一覧。更新中の追加・削除で反復が壊れないよう、確保領域を使い回す
+	std::vector<GameObject*> updateObjects_;
+	// 登録解除で本体が破棄されても、ポインタを逆参照せず登録中か判定する
+	std::unordered_set<GameObject*> registeredObjects_;
 
 	// 現在描いているビューの描画対象レイヤー
 	RenderLayerMask renderLayerMask_ = kRenderLayerAll;

@@ -27,6 +27,8 @@ class Collider : public Component
 {
 public:
     ~Collider() override = default;
+    /** @brief コライダーはワールド行列の確定後に更新する。 */
+    bool IsCollider() const override { return true; }
     /** @brief 有効化時に衝突管理へ登録し、前位置を現在位置へ合わせる。 */
     void OnEnable() override;
     /** @brief 無効化時に衝突管理から登録解除する。 */

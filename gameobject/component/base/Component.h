@@ -26,6 +26,8 @@ public:
     virtual void OnDisable() {}
     /** @brief 破棄直前に一度だけ呼ばれる。 */
     virtual void OnDestroy() {}
+    /** @brief ワールド行列の確定後に更新するコライダーか返す。 */
+    virtual bool IsCollider() const { return false; }
     /** @brief コライダーの組が触れ始めたときに呼ばれる。 */
     virtual void OnCollisionEnter(const CollisionInfo&) {}
     /** @brief コライダーの組が触れている間に呼ばれる。 */

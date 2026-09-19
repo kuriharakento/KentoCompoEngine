@@ -123,7 +123,7 @@ void GameObject::Update()
 				component->Start();
 				component->started_ = true;
 			}
-			if (!dynamic_cast<GameObjectComponent::Collider*>(component.get()))
+			if (!component->IsCollider())
 			{
 				component->Update();
 			}
@@ -143,7 +143,7 @@ void GameObject::Update()
 	UpdateWorldMatrix();
 	for (auto& component : components_)
 	{
-		if (component->activeInHierarchy_ && dynamic_cast<GameObjectComponent::Collider*>(component.get()))
+		if (component->activeInHierarchy_ && component->IsCollider())
 		{
 			component->Update();
 		}
