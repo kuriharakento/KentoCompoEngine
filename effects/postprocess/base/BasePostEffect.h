@@ -117,6 +117,39 @@ struct alignas(16) PostEffectParams
 	// 16バイトアラインメント用パディング
 	float pad5;
 
+	/** @brief ガウシアンブラー */
+	int gaussianBlurEnabled;
+	float gaussianBlurRadius;
+	float gaussianBlurStrength;
+	float pad6;
+
+	/** @brief ディフュージョン */
+	int diffusionEnabled;
+	float diffusionRadius;
+	float diffusionIntensity;
+	float pad7;
+
+	/** @brief ラジアルブラー */
+	int radialBlurEnabled;
+	int radialBlurSampleCount;
+	Vector2 radialBlurCenter;
+	float radialBlurStrength;
+	float radialBlurBlend;
+	float pad8[2];
+
+	/** @brief カラーグレーディング */
+	int colorGradingEnabled;
+	float pad9[3];
+	Vector3 colorGradingLift;
+	float pad10;
+	Vector3 colorGradingGamma;
+	float pad11;
+	Vector3 colorGradingGain;
+	float pad12;
+	float colorGradingSaturation;
+	float colorGradingContrast;
+	float pad13[2];
+
 	/**
 	 * @brief パラメータの等価比較演算子
 	 * @param other 比較対象のパラメータ
@@ -154,7 +187,24 @@ struct alignas(16) PostEffectParams
 			bloomMix == other.bloomMix &&
 			tonemapEnabled == other.tonemapEnabled &&
 			tonemapExposure == other.tonemapExposure &&
-			tonemapMode == other.tonemapMode;
+			tonemapMode == other.tonemapMode &&
+			gaussianBlurEnabled == other.gaussianBlurEnabled &&
+			gaussianBlurRadius == other.gaussianBlurRadius &&
+			gaussianBlurStrength == other.gaussianBlurStrength &&
+			diffusionEnabled == other.diffusionEnabled &&
+			diffusionRadius == other.diffusionRadius &&
+			diffusionIntensity == other.diffusionIntensity &&
+			radialBlurEnabled == other.radialBlurEnabled &&
+			radialBlurSampleCount == other.radialBlurSampleCount &&
+			radialBlurCenter == other.radialBlurCenter &&
+			radialBlurStrength == other.radialBlurStrength &&
+			radialBlurBlend == other.radialBlurBlend &&
+			colorGradingEnabled == other.colorGradingEnabled &&
+			colorGradingLift == other.colorGradingLift &&
+			colorGradingGamma == other.colorGradingGamma &&
+			colorGradingGain == other.colorGradingGain &&
+			colorGradingSaturation == other.colorGradingSaturation &&
+			colorGradingContrast == other.colorGradingContrast;
 	}
 
 	/**
@@ -189,7 +239,17 @@ static_assert(offsetof(PostEffectParams, bloomMix) == 172, "HLSLのレイアウ�
 static_assert(offsetof(PostEffectParams, tonemapEnabled) == 176, "HLSLのレイアウトと一致していません");
 static_assert(offsetof(PostEffectParams, tonemapExposure) == 180, "HLSLのレイアウトと一致していません");
 static_assert(offsetof(PostEffectParams, tonemapMode) == 184, "HLSLのレイアウトと一致していません");
-static_assert(sizeof(PostEffectParams) == 192, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, gaussianBlurEnabled) == 192, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, diffusionEnabled) == 208, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, radialBlurEnabled) == 224, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, radialBlurStrength) == 240, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, radialBlurBlend) == 244, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, colorGradingEnabled) == 256, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, colorGradingLift) == 272, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, colorGradingGamma) == 288, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, colorGradingGain) == 304, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, colorGradingSaturation) == 320, "HLSLのレイアウトと一致していません");
+static_assert(sizeof(PostEffectParams) == 336, "HLSLのレイアウトと一致していません");
 
 /**
  * @brief ポストエフェクトの基底クラス
