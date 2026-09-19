@@ -692,53 +692,106 @@ void PostProcessManager::DrawImGui()
 	if (ImGui::CollapsingHeader("ガウシアンブラー"))
 	{
 		bool enabled = gaussianBlurEffect_->IsEnabled();
-		if (ImGui::Checkbox("有効##GaussianBlur", &enabled)) gaussianBlurEffect_->SetEnabled(enabled);
+		if (ImGui::Checkbox("有効##GaussianBlur", &enabled))
+		{
+			gaussianBlurEffect_->SetEnabled(enabled);
+		}
 		float radius = gaussianBlurEffect_->GetRadius();
-		if (ImGui::DragFloat("半径##GaussianBlur", &radius, kBlurRadiusDragSpeed, kMinUnitValue, kMaxBlurRadius, "%.1f")) gaussianBlurEffect_->SetRadius(radius);
+		if (ImGui::DragFloat("半径##GaussianBlur", &radius, kBlurRadiusDragSpeed, kMinUnitValue, kMaxBlurRadius, "%.1f"))
+		{
+			gaussianBlurEffect_->SetRadius(radius);
+		}
 		float strength = gaussianBlurEffect_->GetStrength();
-		if (ImGui::DragFloat("強さ##GaussianBlur", &strength, kPostFxDragSpeed, kMinUnitValue, kMaxUnitValue, "%.2f")) gaussianBlurEffect_->SetStrength(strength);
+		if (ImGui::DragFloat("強さ##GaussianBlur", &strength, kPostFxDragSpeed, kMinUnitValue, kMaxUnitValue, "%.2f"))
+		{
+			gaussianBlurEffect_->SetStrength(strength);
+		}
 	}
 
 	if (ImGui::CollapsingHeader("ディフュージョン"))
 	{
 		bool enabled = diffusionEffect_->IsEnabled();
-		if (ImGui::Checkbox("有効##Diffusion", &enabled)) diffusionEffect_->SetEnabled(enabled);
+		if (ImGui::Checkbox("有効##Diffusion", &enabled))
+		{
+			diffusionEffect_->SetEnabled(enabled);
+		}
 		float radius = diffusionEffect_->GetRadius();
-		if (ImGui::DragFloat("半径##Diffusion", &radius, kBlurRadiusDragSpeed, kMinUnitValue, kMaxBlurRadius, "%.1f")) diffusionEffect_->SetRadius(radius);
+		if (ImGui::DragFloat("半径##Diffusion", &radius, kBlurRadiusDragSpeed, kMinUnitValue, kMaxBlurRadius, "%.1f"))
+		{
+			diffusionEffect_->SetRadius(radius);
+		}
 		float intensity = diffusionEffect_->GetIntensity();
-		if (ImGui::DragFloat("強さ##Diffusion", &intensity, kPostFxDragSpeed, kMinUnitValue, kMaxUnitValue, "%.2f")) diffusionEffect_->SetIntensity(intensity);
+		if (ImGui::DragFloat("強さ##Diffusion", &intensity, kPostFxDragSpeed, kMinUnitValue, kMaxUnitValue, "%.2f"))
+		{
+			diffusionEffect_->SetIntensity(intensity);
+		}
 	}
 
 	if (ImGui::CollapsingHeader("ラジアルブラー"))
 	{
 		bool enabled = radialBlurEffect_->IsEnabled();
-		if (ImGui::Checkbox("有効##RadialBlur", &enabled)) radialBlurEffect_->SetEnabled(enabled);
+		if (ImGui::Checkbox("有効##RadialBlur", &enabled))
+		{
+			radialBlurEffect_->SetEnabled(enabled);
+		}
 		Vector2 center = radialBlurEffect_->GetCenter();
 		float centerValues[] = { center.x, center.y };
-		if (ImGui::DragFloat2("中心##RadialBlur", centerValues, kPostFxDragSpeed, kMinUnitValue, kMaxUnitValue, "%.2f")) radialBlurEffect_->SetCenter({ centerValues[0], centerValues[1] });
+		if (ImGui::DragFloat2("中心##RadialBlur", centerValues, kPostFxDragSpeed, kMinUnitValue, kMaxUnitValue, "%.2f"))
+		{
+			radialBlurEffect_->SetCenter({ centerValues[0], centerValues[1] });
+		}
 		float strength = radialBlurEffect_->GetStrength();
-		if (ImGui::DragFloat("強さ##RadialBlur", &strength, kPostFxDragSpeed, kMinUnitValue, kMaxRadialStrength, "%.3f")) radialBlurEffect_->SetStrength(strength);
+		if (ImGui::DragFloat("強さ##RadialBlur", &strength, kPostFxDragSpeed, kMinUnitValue, kMaxRadialStrength, "%.3f"))
+		{
+			radialBlurEffect_->SetStrength(strength);
+		}
 		int samples = radialBlurEffect_->GetSampleCount();
-		if (ImGui::SliderInt("サンプル数##RadialBlur", &samples, kMinRadialSamples, kMaxRadialSamples)) radialBlurEffect_->SetSampleCount(samples);
+		if (ImGui::SliderInt("サンプル数##RadialBlur", &samples, kMinRadialSamples, kMaxRadialSamples))
+		{
+			radialBlurEffect_->SetSampleCount(samples);
+		}
+		float blend = radialBlurEffect_->GetBlend();
+		if (ImGui::DragFloat("混ぜ具合##RadialBlur", &blend, kPostFxDragSpeed, kMinUnitValue, kMaxUnitValue, "%.2f"))
+		{
+			radialBlurEffect_->SetBlend(blend);
+		}
 	}
 
 	if (ImGui::CollapsingHeader("カラーグレーディング"))
 	{
 		bool enabled = colorGradingEffect_->IsEnabled();
-		if (ImGui::Checkbox("有効##ColorGrading", &enabled)) colorGradingEffect_->SetEnabled(enabled);
+		if (ImGui::Checkbox("有効##ColorGrading", &enabled))
+		{
+			colorGradingEffect_->SetEnabled(enabled);
+		}
 		Vector3 lift = colorGradingEffect_->GetLift();
 		float liftValues[] = { lift.x, lift.y, lift.z };
-		if (ImGui::DragFloat3("リフト", liftValues, kPostFxDragSpeed, kMinLift, kMaxUnitValue, "%.2f")) colorGradingEffect_->SetLift({ liftValues[0], liftValues[1], liftValues[2] });
+		if (ImGui::DragFloat3("リフト", liftValues, kPostFxDragSpeed, kMinLift, kMaxUnitValue, "%.2f"))
+		{
+			colorGradingEffect_->SetLift({ liftValues[0], liftValues[1], liftValues[2] });
+		}
 		Vector3 gamma = colorGradingEffect_->GetGamma();
 		float gammaValues[] = { gamma.x, gamma.y, gamma.z };
-		if (ImGui::DragFloat3("ガンマ", gammaValues, kPostFxDragSpeed, kMinGamma, kMaxColorMultiplier, "%.2f")) colorGradingEffect_->SetGamma({ gammaValues[0], gammaValues[1], gammaValues[2] });
+		if (ImGui::DragFloat3("ガンマ", gammaValues, kPostFxDragSpeed, kMinGamma, kMaxColorMultiplier, "%.2f"))
+		{
+			colorGradingEffect_->SetGamma({ gammaValues[0], gammaValues[1], gammaValues[2] });
+		}
 		Vector3 gain = colorGradingEffect_->GetGain();
 		float gainValues[] = { gain.x, gain.y, gain.z };
-		if (ImGui::DragFloat3("ゲイン", gainValues, kPostFxDragSpeed, kMinUnitValue, kMaxColorMultiplier, "%.2f")) colorGradingEffect_->SetGain({ gainValues[0], gainValues[1], gainValues[2] });
+		if (ImGui::DragFloat3("ゲイン", gainValues, kPostFxDragSpeed, kMinUnitValue, kMaxColorMultiplier, "%.2f"))
+		{
+			colorGradingEffect_->SetGain({ gainValues[0], gainValues[1], gainValues[2] });
+		}
 		float saturation = colorGradingEffect_->GetSaturation();
-		if (ImGui::DragFloat("彩度", &saturation, kPostFxDragSpeed, kMinUnitValue, kMaxColorMultiplier, "%.2f")) colorGradingEffect_->SetSaturation(saturation);
+		if (ImGui::DragFloat("彩度", &saturation, kPostFxDragSpeed, kMinUnitValue, kMaxColorMultiplier, "%.2f"))
+		{
+			colorGradingEffect_->SetSaturation(saturation);
+		}
 		float contrast = colorGradingEffect_->GetContrast();
-		if (ImGui::DragFloat("コントラスト", &contrast, kPostFxDragSpeed, kMinUnitValue, kMaxColorMultiplier, "%.2f")) colorGradingEffect_->SetContrast(contrast);
+		if (ImGui::DragFloat("コントラスト", &contrast, kPostFxDragSpeed, kMinUnitValue, kMaxColorMultiplier, "%.2f"))
+		{
+			colorGradingEffect_->SetContrast(contrast);
+		}
 	}
 }
 #endif

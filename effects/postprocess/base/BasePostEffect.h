@@ -134,7 +134,8 @@ struct alignas(16) PostEffectParams
 	int radialBlurSampleCount;
 	Vector2 radialBlurCenter;
 	float radialBlurStrength;
-	float pad8[3];
+	float radialBlurBlend;
+	float pad8[2];
 
 	/** @brief カラーグレーディング */
 	int colorGradingEnabled;
@@ -197,6 +198,7 @@ struct alignas(16) PostEffectParams
 			radialBlurSampleCount == other.radialBlurSampleCount &&
 			radialBlurCenter == other.radialBlurCenter &&
 			radialBlurStrength == other.radialBlurStrength &&
+			radialBlurBlend == other.radialBlurBlend &&
 			colorGradingEnabled == other.colorGradingEnabled &&
 			colorGradingLift == other.colorGradingLift &&
 			colorGradingGamma == other.colorGradingGamma &&
@@ -241,6 +243,7 @@ static_assert(offsetof(PostEffectParams, gaussianBlurEnabled) == 192, "HLSLの�
 static_assert(offsetof(PostEffectParams, diffusionEnabled) == 208, "HLSLのレイアウトと一致していません");
 static_assert(offsetof(PostEffectParams, radialBlurEnabled) == 224, "HLSLのレイアウトと一致していません");
 static_assert(offsetof(PostEffectParams, radialBlurStrength) == 240, "HLSLのレイアウトと一致していません");
+static_assert(offsetof(PostEffectParams, radialBlurBlend) == 244, "HLSLのレイアウトと一致していません");
 static_assert(offsetof(PostEffectParams, colorGradingEnabled) == 256, "HLSLのレイアウトと一致していません");
 static_assert(offsetof(PostEffectParams, colorGradingLift) == 272, "HLSLのレイアウトと一致していません");
 static_assert(offsetof(PostEffectParams, colorGradingGamma) == 288, "HLSLのレイアウトと一致していません");

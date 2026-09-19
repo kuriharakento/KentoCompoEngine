@@ -24,10 +24,16 @@ public:
 	void SetSampleCount(int sampleCount);
 	/** @brief サンプル数を返す。 */
 	int GetSampleCount() const { return sampleCount_; }
+	/** @brief 元の絵への混ぜ具合を設定する。 */
+	void SetBlend(float blend);
+	/** @brief 元の絵への混ぜ具合を返す。 */
+	float GetBlend() const { return blend_; }
 
 private:
 	Vector2 center_ = { 0.5f, 0.5f };
 	float strength_ = 0.05f;
 	int sampleCount_ = 8;
+	// 1.0 で全部ブラー、0.0 で元の絵のまま
+	float blend_ = 1.0f;
 };
 } // namespace KCE

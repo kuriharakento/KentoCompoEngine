@@ -71,7 +71,8 @@ cbuffer PostEffectParams : register(b0)
     int radialBlurSampleCount;
     float2 radialBlurCenter;
     float radialBlurStrength;
-    float3 pad8;
+    float radialBlurBlend;
+    float2 pad8;
 
     // Color grading
     int colorGradingEnabled;
@@ -188,15 +189,20 @@ PixelShaderOutput main(VertexShaderOutput input)
     {
         int sampleCount = clamp(radialBlurSampleCount, 2, kMaxRadialSamples);
         float2 direction = uv - radialBlurCenter;
-        float3 radialColor = 0.0;
+        // 中心のサンプルはここまでの結果を使う。元テクスチャから取り直すと、
+        // 歪みやぼかしの結果を捨ててしまう
+        float3 radialColor = color;
         [loop]
-        for (int sampleIndex = 0; sampleIndex < sampleCount; ++sampleIndex)
+        for (int sampleIndex = 1; sampleIndex < sampleCount; ++sampleIndex)
         {
             float progress = (float)sampleIndex / (float)(sampleCount - 1);
             float2 sampleUV = saturate(uv - direction * radialBlurStrength * progress);
             radialColor += gTexture.Sample(gSampler, sampleUV).rgb;
         }
-        color = radialColor / (float)sampleCount;
+        radialColor /= (float)sampleCount;
+        // ずらした先は元テクスチャから引くので、前段の結果が乗るのは中心分だけ。
+        // 1パスで完結させている都合の割り切り
+        color = lerp(color, radialColor, saturate(radialBlurBlend));
     }
     
     // 走査線（条件付き）

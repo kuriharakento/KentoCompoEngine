@@ -10,6 +10,7 @@ void RadialBlurEffect::ApplyEffect(PostEffectParams& params)
 	params.radialBlurCenter = center_;
 	params.radialBlurStrength = strength_;
 	params.radialBlurSampleCount = sampleCount_;
+	params.radialBlurBlend = blend_;
 }
 
 void RadialBlurEffect::SetCenter(const Vector2& center)
@@ -25,5 +26,10 @@ void RadialBlurEffect::SetStrength(float strength)
 void RadialBlurEffect::SetSampleCount(int sampleCount)
 {
 	sampleCount_ = sampleCount;
+}
+
+void RadialBlurEffect::SetBlend(float blend)
+{
+	blend_ = blend;
 }
 } // namespace KCE
