@@ -161,6 +161,8 @@ void InstancedModelRenderer::DrawInstanced(Camera* camera, LightManager* lightMa
 
 void InstancedModelRenderer::DrawInstancedGBuffer(Camera* camera)
 {
+    // G-Buffer のシェーダーはカメラを見ない（WVP は行列バッファに入っている）
+    (void)camera;
     if (currentInstanceCount_ == 0 || !model_)
     {
         return;
@@ -176,12 +178,12 @@ void InstancedModelRenderer::DrawInstancedGBuffer(Camera* camera)
 
     // 2. 共通定数バインド
     commandList->SetGraphicsRootShaderResourceView(1, instancedResource_->GetGPUVirtualAddress());
-    commandList->SetGraphicsRootConstantBufferView(4, camera->GetConstantBufferAddress());
 
     // 3. メッシュごとの描画
     for (const auto& mesh : model_->GetMeshResources())
     {
-        commandList->SetGraphicsRootConstantBufferView(0, mesh.materialBuffer->GetGPUVirtualAddress());
+        // GBufferPass.PS.hlsl は材質を b2 で読む。ここを間違えるとカメラの中身を材質として読んでしまう
+        commandList->SetGraphicsRootConstantBufferView(4, mesh.materialBuffer->GetGPUVirtualAddress());
         commandList->SetGraphicsRootDescriptorTable(2, srvManager_->GetGPUDescriptorHandle(mesh.textureIndex));
 
         D3D12_VERTEX_BUFFER_VIEW vbv = mesh.vertexBufferView;
