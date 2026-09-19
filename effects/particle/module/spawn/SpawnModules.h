@@ -10,6 +10,7 @@
 #include "effects/particle/ParticleEmitter.h"
 #include "math/Vector3.h"
 #include "math/Vector4.h"
+#include <algorithm>
 
 namespace KCE
 {
@@ -33,6 +34,7 @@ public:
 	 */
 	void Execute(ParticleContext& context) override
 	{
+		if (spawnRate_ <= 0.0f) return;
 		timeSinceLastSpawn_ += context.deltaTime;
 		float spawnInterval = 1.0f / spawnRate_;
 
@@ -40,7 +42,10 @@ public:
 		{
 			if (context.particles->size() >= context.maxParticles)
 			{
-				timeSinceLastSpawn_ = 0.0f; // これ以上は追加しないのでリセット
+				// Preserve one due spawn. Dead particles are removed later in the
+				// emitter update, so discarding the whole accumulator here leaves
+				// the pool under-filled by one frame at capacity.
+				timeSinceLastSpawn_ = (std::min)(timeSinceLastSpawn_, spawnInterval);
 				break;
 			}
 			Particle particle;

@@ -7,7 +7,6 @@
  * JSONファイルからの読み込み・保存に対応。
  */
 #include <memory>
-#include <cstdint>
 #include <vector>
 #include <string>
 #include "math/Vector3.h"
@@ -144,28 +143,16 @@ public:
 	void SetDeltaTimeType(DeltaTimeType type) { deltaTimeType_ = type; }
 	DeltaTimeType GetDeltaTimeType() const { return deltaTimeType_; }
 
-	/**
-	 * @brief 進める時計を決める（例: 出したプレイヤーの GameObject::GetClock()）
-	 * @param clock 指定なしなら Game。DeltaTimeType はこの時計の倍率あり / なしを選ぶ
-	 */
-	void SetClock(ClockId clock) { clock_ = clock; }
-	ClockId GetClock() const { return clock_; }
-
 	//===== プロパティ =====//
 
 	const std::string& GetName() const { return name_; }
-	void SetName(const std::string& name)
-	{
-		name_ = name;
-		debugName_ = name + "##Effect" + std::to_string(debugId_);
-	}
-	const std::string& GetDebugName() const { return debugName_; }
+	void SetName(const std::string& name) { name_ = name; }
 	const Vector3& GetPosition() const { return position_; }
 
 	/**
 	 * @brief JSONファイルに保存
 	 */
-	void SaveToFile(const std::string& jsonPath);
+	bool SaveToFile(const std::string& jsonPath);
 
 	//===== マルチソース管理API（バッチング用） =====//
 
@@ -197,16 +184,10 @@ public:
 
 private:
 	std::string name_;
-	// 同名エフェクトを破棄順に影響されず選ぶための不変なデバッグ名
-	std::string debugName_;
-	uint64_t debugId_ = 0;
-	static uint64_t nextDebugId_;
 	std::vector<std::unique_ptr<ParticleEmitter>> emitters_;
 	Vector3 position_ = {};
 	bool isPlaying_ = false;
 	bool isAutoRemove_ = true;
 	DeltaTimeType deltaTimeType_ = DeltaTimeType::DeltaTime;
-	// 進める時計。指定なしなら Game
-	ClockId clock_{};
 };
 } // namespace KCE

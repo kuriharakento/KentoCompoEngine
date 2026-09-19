@@ -1,6 +1,7 @@
 #pragma once
 #include <d3d12.h>
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <wrl.h>
 #include <unordered_map>
@@ -52,6 +53,15 @@ public:
 	void LoadTexture(const std::string& filePath, ResourceLifetime lifetime = ResourceLifetime::Scene);
 
 	/**
+	 * @brief テクスチャをリニア色空間で読み込む
+	 * @param filePath テクスチャファイルパス
+	 * @param lifetime 解放タイミング
+	 * @details 発光マスクのように色ではなく数値として使うテクスチャ向け。
+	 *          sRGB版とは別枠で持つので、同じパスを両方で読んでも衝突しない。
+	 */
+	void LoadTextureLinear(const std::string& filePath, ResourceLifetime lifetime = ResourceLifetime::Scene);
+
+	/**
 	 * @brief テクスチャをまとめて読む。ファイルの展開とミップマップ作りだけワーカーで並べて回す
 	 * @details GPU のリソース・転送・SRV は並べた順にメインスレッドで作るので、
 	 *          SRV の番号の並びは LoadTexture を順に呼んだときと同じ。メインスレッドから呼ぶこと。
@@ -95,6 +105,29 @@ public: // アクセッサ
 	 * @return テクスチャインデックス
 	 */
 	uint32_t GetTextureIndexByFilePath(const std::string& filePath);
+
+	/**
+	 * @brief ファイルパスからリニア版テクスチャのインデックスを取得
+	 * @param filePath テクスチャファイルパス
+	 * @return テクスチャインデックス。未読み込みならフォールバックのインデックス
+	 */
+	uint32_t GetLinearTextureIndexByFilePath(const std::string& filePath);
+
+	/**
+	 * @brief 読み込み済みなら SRV インデックスを取り出す
+	 * @param filePath テクスチャファイルパス
+	 * @param outIndex 見つかったインデックス。見つからなければ kInvalidSrvIndex
+	 * @return 読み込み済みで SRV が生きていれば true
+	 * @note GetTextureIndexByFilePath と違い、フォールバックに逃がさず失敗を返す。
+	 */
+	bool TryGetTextureIndexByFilePath(const std::string& filePath, uint32_t& outIndex) const;
+
+	/**
+	 * @brief そのパスのテクスチャがファイルとして存在するか調べる
+	 * @param filePath テクスチャファイルパス
+	 * @return 見つかれば true。読み込みはしない
+	 */
+	bool CheckTextureExists(const std::string& filePath) const;
 
 	/**
 	 * @brief インデックスからメタデータを取得
@@ -212,7 +245,14 @@ private: // メンバ関数
 	 * @param mipImages 展開結果の書き込み先
 	 * @return 失敗したら FAILED な値
 	 */
-	HRESULT DecodeTexture(const std::string& filePath, DirectX::ScratchImage& mipImages) const;
+	HRESULT DecodeTexture(const std::string& filePath, DirectX::ScratchImage& mipImages, bool forceSrgb = true) const;
+
+	/**
+	 * @brief テクスチャの実ファイルを探す
+	 * @param filePath 指定パス。相対でもファイル名だけでもよい
+	 * @return 見つかったパス。無ければ空
+	 */
+	std::optional<std::filesystem::path> ResolveTexturePath(const std::string& filePath) const;
 
 	/**
 	 * @brief 展開済みの画像から GPU のリソース・転送・SRV を作って登録する。メインスレッド専用

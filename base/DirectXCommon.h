@@ -146,6 +146,18 @@ public:
 	ID3D12Device* GetDevice() { return device_.Get(); }
 
 	/**
+	 * @brief GPUが処理し終えたフェンス値を取得
+	 * @return 完了済みのフェンス値。フェンス未作成なら0
+	 */
+	uint64_t GetCompletedFenceValue() const { return fence_ ? fence_->GetCompletedValue() : 0; }
+
+	/**
+	 * @brief 次にシグナルされるフェンス値を取得
+	 * @return 現在のフェンス値 + 1。今積んだコマンドの完了判定に使う
+	 */
+	uint64_t GetNextFenceValue() const { return fenceValue_ + 1; }
+
+	/**
 	 * @brief コマンドリストを取得
 	 * @return コマンドリストへのポインタ
 	 */

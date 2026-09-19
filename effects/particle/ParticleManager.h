@@ -11,6 +11,7 @@
 #include <string>
 #include <unordered_map>
 #include "ParticleEmitter.h"
+#include "effects/particle/diagnostics/ParticleDiagnostics.h"
 
 namespace KCE
 {
@@ -19,7 +20,7 @@ class SrvManager;
 class CameraManager;
 class ParticlePipelineManager;
 class ParticleEffect;
-struct SelectionItem;
+class GPUSimulator;
 
 /**
  * @brief パーティクルマネージャー
@@ -39,13 +40,7 @@ public:
 	/**
 	 * @brief ImGuiでデバッグ情報を表示
 	 */
-	void DrawSettingsImGui();
-	void DrawHierarchyImGui();
-	void DrawInspectorImGui(const SelectionItem& item);
-	/** @brief デバッグ名で再生位置を読み取る。 */
-	bool GetDebugPosition(const std::string& name, Vector3& position) const;
-	/** @brief デバッグ名で再生位置を書き戻す。 */
-	bool SetDebugPosition(const std::string& name, const Vector3& position);
+	void DrawImGui();
 
 	//===== エフェクトのロード（推奨API）=====//
 
@@ -154,11 +149,18 @@ public:
 	 */
 	void RemoveEffect(ParticleEffect* effect);
 
+	/** プール中のEffectをGPU fence完了後に実破棄する。 */
+	void PurgeEffectPools();
+	size_t GetPooledEffectCount() const;
+
 	/**
 	 * @brief レンダラーを遅延破棄キュー（ゴミ箱）に追加
 	 * @param renderer 破棄するレンダラー
 	 */
 	void AddRendererToTrashBin(std::unique_ptr<IRenderer> renderer);
+
+	/** GPUが旧bufferを参照している間、Simulatorの破棄を次フレームまで遅延する。 */
+	void AddSimulatorToTrashBin(std::unique_ptr<GPUSimulator> simulator);
 
 	//===== アクセサ =====//
 
@@ -186,16 +188,9 @@ public:
 	 */
 	bool RemoveEffect(const std::string& name);
 
-	/**
-	 * @brief 時計を指定していないエフェクト・エミッターが使う時計を決める
-	 * @param clock 指定なしなら Game。エフェクトごとに ParticleEffect::SetClock で上書きできる
-	 */
-	void SetDefaultClock(ClockId clock) { defaultClock_ = clock; }
-	ClockId GetDefaultClock() const { return defaultClock_; }
-
 private:
 	ParticleManager() = default;
-	~ParticleManager() = default;
+	~ParticleManager();
 	ParticleManager(const ParticleManager&) = delete;
 	ParticleManager& operator=(const ParticleManager&) = delete;
 
@@ -212,13 +207,15 @@ private:
 	std::unordered_map<std::string, std::vector<std::unique_ptr<ParticleEffect>>> effectPools_;
 
 	// 遅延破棄するレンダラーリスト（GPU使用中のリソース安全破棄用）
-	std::vector<std::unique_ptr<IRenderer>> rendererTrashBin_;
+	struct RetiredRenderer { uint64_t fenceValue; std::unique_ptr<IRenderer> resource; };
+	struct RetiredSimulator { uint64_t fenceValue; std::unique_ptr<GPUSimulator> resource; };
+	struct RetiredEffect { uint64_t fenceValue; std::unique_ptr<ParticleEffect> resource; };
+	std::vector<RetiredRenderer> rendererTrashBin_;
+	std::vector<RetiredSimulator> simulatorTrashBin_;
+	std::vector<RetiredEffect> effectTrashBin_;
 
 	// 直接追加されたエミッター（後方互換用）
 	std::vector<std::unique_ptr<ParticleEmitter>> emitters_;
-
-	// 時計を指定していないエフェクト・エミッターが使う時計。指定なしなら Game
-	ClockId defaultClock_{};
 
 	std::unique_ptr<ParticlePipelineManager> pipelineManager_;
 	DirectXCommon* dxCommon_ = nullptr;
