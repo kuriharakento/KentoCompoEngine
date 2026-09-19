@@ -348,15 +348,27 @@
     <ClCompile Include="effects\postprocess\BloomEffect.cpp">
       <Filter>effects\postprocess</Filter>
     </ClCompile>
+	<ClCompile Include="effects\postprocess\ColorGradingEffect.cpp">
+	  <Filter>effects\postprocess</Filter>
+	</ClCompile>
     <ClCompile Include="effects\postprocess\CRTEffect.cpp">
       <Filter>effects\postprocess</Filter>
     </ClCompile>
+	<ClCompile Include="effects\postprocess\DiffusionEffect.cpp">
+	  <Filter>effects\postprocess</Filter>
+	</ClCompile>
+	<ClCompile Include="effects\postprocess\GaussianBlurEffect.cpp">
+	  <Filter>effects\postprocess</Filter>
+	</ClCompile>
     <ClCompile Include="effects\postprocess\GrayscaleEffect.cpp">
       <Filter>effects\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="effects\postprocess\NoiseEffect.cpp">
       <Filter>effects\postprocess</Filter>
     </ClCompile>
+	<ClCompile Include="effects\postprocess\RadialBlurEffect.cpp">
+	  <Filter>effects\postprocess</Filter>
+	</ClCompile>
     <ClCompile Include="effects\postprocess\VignetteEffect.cpp">
       <Filter>effects\postprocess</Filter>
     </ClCompile>
@@ -935,9 +947,18 @@
     <ClInclude Include="effects\postprocess\BloomEffect.h">
       <Filter>effects\postprocess</Filter>
     </ClInclude>
+	<ClInclude Include="effects\postprocess\ColorGradingEffect.h">
+	  <Filter>effects\postprocess</Filter>
+	</ClInclude>
     <ClInclude Include="effects\postprocess\CRTEffect.h">
       <Filter>effects\postprocess</Filter>
     </ClInclude>
+	<ClInclude Include="effects\postprocess\DiffusionEffect.h">
+	  <Filter>effects\postprocess</Filter>
+	</ClInclude>
+	<ClInclude Include="effects\postprocess\GaussianBlurEffect.h">
+	  <Filter>effects\postprocess</Filter>
+	</ClInclude>
     <ClInclude Include="effects\postprocess\GrayscaleEffect.h">
       <Filter>effects\postprocess</Filter>
     </ClInclude>
@@ -947,6 +968,9 @@
     <ClInclude Include="effects\postprocess\NoiseEffect.h">
       <Filter>effects\postprocess</Filter>
     </ClInclude>
+	<ClInclude Include="effects\postprocess\RadialBlurEffect.h">
+	  <Filter>effects\postprocess</Filter>
+	</ClInclude>
     <ClInclude Include="effects\postprocess\VignetteEffect.h">
       <Filter>effects\postprocess</Filter>
     </ClInclude>

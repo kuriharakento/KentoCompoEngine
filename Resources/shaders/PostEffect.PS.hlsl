@@ -53,7 +53,57 @@ cbuffer PostEffectParams : register(b0)
     float tonemapExposure;
     int tonemapMode;
     float pad5;
+
+    // Gaussian blur
+    int gaussianBlurEnabled;
+    float gaussianBlurRadius;
+    float gaussianBlurStrength;
+    float pad6;
+
+    // Diffusion
+    int diffusionEnabled;
+    float diffusionRadius;
+    float diffusionIntensity;
+    float pad7;
+
+    // Radial blur
+    int radialBlurEnabled;
+    int radialBlurSampleCount;
+    float2 radialBlurCenter;
+    float radialBlurStrength;
+    float3 pad8;
+
+    // Color grading
+    int colorGradingEnabled;
+    float3 pad9;
+    float3 colorGradingLift;
+    float pad10;
+    float3 colorGradingGamma;
+    float pad11;
+    float3 colorGradingGain;
+    float pad12;
+    float colorGradingSaturation;
+    float colorGradingContrast;
+    float2 pad13;
 };
+
+static const int kMaxRadialSamples = 32;
+static const float kMinimumGamma = 0.001;
+
+float3 sampleSoftBlur(float2 uv, float radius)
+{
+    const float2 texel = invScreenSize * radius;
+    float3 result = gTexture.Sample(gSampler, uv).rgb * 0.227027;
+    result += gTexture.Sample(gSampler, saturate(uv + float2(texel.x, 0.0))).rgb * 0.158108;
+    result += gTexture.Sample(gSampler, saturate(uv - float2(texel.x, 0.0))).rgb * 0.158108;
+    result += gTexture.Sample(gSampler, saturate(uv + float2(0.0, texel.y))).rgb * 0.158108;
+    result += gTexture.Sample(gSampler, saturate(uv - float2(0.0, texel.y))).rgb * 0.158108;
+    result += gTexture.Sample(gSampler, saturate(uv + texel)).rgb * 0.035635;
+    result += gTexture.Sample(gSampler, saturate(uv - texel)).rgb * 0.035635;
+    result += gTexture.Sample(gSampler, saturate(uv + float2(texel.x, -texel.y))).rgb * 0.035635;
+    result += gTexture.Sample(gSampler, saturate(uv + float2(-texel.x, texel.y))).rgb * 0.035635;
+    return result;
+}
 
 // ACES のフィルミックカーブ近似（Krzysztof Narkowicz）
 // ハイライトの立ち上がりが自然で、白飽和したときの色転びが少ない
@@ -101,7 +151,7 @@ PixelShaderOutput main(VertexShaderOutput input)
     // 変数を宣言（初期値はベースカラー取得までやる）
     float4 baseColor = gTexture.Sample(gSampler, uv);
     float3 color = baseColor.rgb;
-    
+
     // 歪み（重いので条件付き）
     if (crtEnabled != 0 && distortionEnabled != 0)
     {
@@ -119,6 +169,34 @@ PixelShaderOutput main(VertexShaderOutput input)
         float b = gTexture.Sample(gSampler, uv - chromOffset).b;
         float3 chromColor = float3(r, baseColor.g, b);
         color = lerp(color, chromColor, 1.0);
+    }
+
+    if (gaussianBlurEnabled != 0)
+    {
+        float3 blurred = sampleSoftBlur(uv, gaussianBlurRadius);
+        color = lerp(color, blurred, saturate(gaussianBlurStrength));
+    }
+
+    if (diffusionEnabled != 0)
+    {
+        float3 diffused = sampleSoftBlur(uv, diffusionRadius);
+        float3 screened = 1.0 - (1.0 - color) * (1.0 - diffused);
+        color = lerp(color, screened, saturate(diffusionIntensity));
+    }
+
+    if (radialBlurEnabled != 0)
+    {
+        int sampleCount = clamp(radialBlurSampleCount, 2, kMaxRadialSamples);
+        float2 direction = uv - radialBlurCenter;
+        float3 radialColor = 0.0;
+        [loop]
+        for (int sampleIndex = 0; sampleIndex < sampleCount; ++sampleIndex)
+        {
+            float progress = (float)sampleIndex / (float)(sampleCount - 1);
+            float2 sampleUV = saturate(uv - direction * radialBlurStrength * progress);
+            radialColor += gTexture.Sample(gSampler, sampleUV).rgb;
+        }
+        color = radialColor / (float)sampleCount;
     }
     
     // 走査線（条件付き）
@@ -172,6 +250,18 @@ PixelShaderOutput main(VertexShaderOutput input)
     {
         color *= tonemapExposure;
         color = (tonemapMode == 0) ? tonemapACES(color) : tonemapReinhard(color);
+    }
+
+    // カラーグレーディングはLDRへ落とした後に適用する。
+    if (colorGradingEnabled != 0)
+    {
+        color = max(color + colorGradingLift, 0.0);
+        color = pow(color, rcp(max(colorGradingGamma, kMinimumGamma.xxx)));
+        color *= colorGradingGain;
+        float luminance = dot(color, float3(0.2126, 0.7152, 0.0722));
+        color = lerp(luminance.xxx, color, colorGradingSaturation);
+        color = (color - 0.5) * colorGradingContrast + 0.5;
+        color = saturate(color);
     }
 
     PixelShaderOutput output;

@@ -7,8 +7,12 @@
 // effects
 #include "effects/postprocess/BloomEffect.h"
 #include "effects/postprocess/CRTEffect.h"
+#include "effects/postprocess/ColorGradingEffect.h"
+#include "effects/postprocess/DiffusionEffect.h"
+#include "effects/postprocess/GaussianBlurEffect.h"
 #include "effects/postprocess/GrayscaleEffect.h"
 #include "effects/postprocess/NoiseEffect.h"
+#include "effects/postprocess/RadialBlurEffect.h"
 #include "effects/postprocess/TonemapEffect.h"
 #include "effects/postprocess/VignetteEffect.h"
 
@@ -124,6 +128,10 @@ public:
     std::unique_ptr<CRTEffect> crtEffect_;             // CRTエフェクト
     std::unique_ptr<BloomEffect> bloomEffect_;         // ブルームエフェクト
     std::unique_ptr<TonemapEffect> tonemapEffect_;     // トーンマップ（HDR→LDR）
+	std::unique_ptr<GaussianBlurEffect> gaussianBlurEffect_;
+	std::unique_ptr<DiffusionEffect> diffusionEffect_;
+	std::unique_ptr<RadialBlurEffect> radialBlurEffect_;
+	std::unique_ptr<ColorGradingEffect> colorGradingEffect_;
 
     /**
      * @brief ブライトパスパラメータ
