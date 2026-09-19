@@ -61,74 +61,7 @@ cbuffer Constants : register(b0)
 
     float4x4 emitterWorld;
 
-    // 追加モジュールパラメータ (アプローチB)
-    uint hasDrag;
-    float dragMin;
-    float dragMax;
-    float paddingDrag;
-    
-    uint hasColorFade;
-    uint colorFadeUseInitial;
-    uint colorFadeEasing;
-    float paddingCF;
-    float4 colorFadeStart;
-    float4 colorFadeEnd;
-    
-    uint hasScaleOL;
-    uint scaleOLEasing;
-    float2 paddingScaleOL;
-    float3 scaleOLStart;
-    float paddingS1;
-    float3 scaleOLEnd;
-    float paddingS2;
-
-    // Noise
-    uint hasNoise;
-    float noiseStrength;
-    float noiseFrequency;
-    float paddingNoise;
-
-    // RotationOverLifetime
-    uint hasRotationOL;
-    float rotOLStartSpeed;
-    float rotOLEndSpeed;
-    uint rotOLEasing;
-
-    // AlphaFade
-    uint hasAlphaFade;
-    float alphaFadeStart;
-    float alphaFadeEnd;
-    uint alphaFadeEaseIn;
-    uint alphaFadeEaseOut;
-    float3 paddingAlpha;
-
-    // VelocityOverLifetime
-    uint hasVelocityOL;
-    float velocityOLStart;
-    float velocityOLEnd;
-    float paddingVelocityOL;
-
-    // StretchByVelocity
-    uint hasStretchByVelocity;
-    float stretchFactor;
-    float minStretch;
-    float maxStretch;
-    uint stretchPreserveVolume;
-    float3 paddingStretch;
-
-    // Flicker
-    uint hasFlicker;
-    float flickerFrequency;
-    float flickerMinAlpha;
-    float flickerMaxAlpha;
-    uint flickerRandomPhase;
-    uint flickerUseNoise;
-    float2 paddingFlicker;
-
-    // FaceVelocity
-    uint hasFaceVelocity;
-    uint faceVelocityUse2D;
-    float2 paddingFaceVelocity;
+	// 旧モジュール用の定数はモジュールプログラムに置き換えたので消した
 	uint hasTextureSheet;
 	uint textureSheetColumns;
 	uint textureSheetRows;
@@ -173,6 +106,7 @@ StructuredBuffer<ParticleEvent> sourceEvents : register(t0);
 ByteAddressBuffer sourceEventCounter : register(t1);
 ByteAddressBuffer moduleProgram : register(t2);
 StructuredBuffer<float4> moduleLut : register(t3);
+RWStructuredBuffer<uint> eventMatches : register(u5);
 
 float4 SampleModuleLut(uint offset, uint count, float ratio)
 {
@@ -211,7 +145,8 @@ float ApplyEasing(uint type, float t)
 // 決定論的乱数 (C++と同じハッシュ関数)
 float DeterministicRandom(uint id, uint subSeed)
 {
-    uint x = id + subSeed * 0x9e3779b9u;
+    // オフセットを足さないと id=0 かつ subSeed=0 で必ず 0 になる
+    uint x = id + subSeed * 0x9e3779b9u + 0x6a09e667u;
     x = ((x >> 16) ^ x) * 0x45d9f3bu;
     x = ((x >> 16) ^ x) * 0x45d9f3bu;
     x = (x >> 16) ^ x;
@@ -357,23 +292,14 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         if (hasGpuEventSource != 0 && claim >= emitterState[0].regularSpawnCount)
         {
+            // prepare が詰めたリストを引くだけ。ここで線形探索すると spawn 数×イベント数になる
             uint wanted = claim - emitterState[0].regularSpawnCount;
-            uint sourceCount = min(sourceEventCounter.Load(0), maxParticles);
-            [loop]
-            for (uint sourceIndex = 0; sourceIndex < sourceCount; ++sourceIndex)
+            if (wanted < emitterState[0].eventSpawnCount)
             {
-                ParticleEvent sourceEvent = sourceEvents[sourceIndex];
-                bool matches = sourceEvent.type == gpuEventTrigger &&
-                    DeterministicRandom(sourceEvent.particleId, 17) <= gpuEventProbability;
-                if (!matches) continue;
-                if (wanted == 0)
-                {
-                    p.position = sourceEvent.position;
-                    if (gpuEventInheritVelocity != 0) p.velocity = sourceEvent.velocity * gpuEventVelocityScale;
-                    if (gpuEventInheritColor != 0) { p.color = sourceEvent.color; p.initialColor = sourceEvent.color; }
-                    break;
-                }
-                wanted--;
+                ParticleEvent sourceEvent = sourceEvents[eventMatches[wanted]];
+                p.position = sourceEvent.position;
+                if (gpuEventInheritVelocity != 0) p.velocity = sourceEvent.velocity * gpuEventVelocityScale;
+                if (gpuEventInheritColor != 0) { p.color = sourceEvent.color; p.initialColor = sourceEvent.color; }
             }
         }
 
@@ -391,26 +317,8 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         }
     }
     
-    // 寿命チェック
-    if (p.age >= p.lifetime)
-    {
-        uint eventIndex;
-        eventCounter.InterlockedAdd(0, 1, eventIndex);
-        if (eventIndex < maxParticles)
-        {
-            ParticleEvent deathEvent;
-            deathEvent.position = p.position;
-            deathEvent.type = 1;
-            deathEvent.velocity = p.velocity;
-            deathEvent.particleId = p.id;
-            deathEvent.color = p.color;
-            particleEvents[eventIndex] = deathEvent;
-        }
-        p.flags &= ~FLAG_ALIVE;
-        particles[index] = p;
-        return;
-    }
-    
+    // 寿命切れは冒頭の retire で処理済み。ここでは生きてるものだけ来る
+
     float lifeRatio = saturate(p.age / p.lifetime);
 
     // Data-driven packed module program. Records are 64 bytes and may be
@@ -445,39 +353,9 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         }
     }
 
-    // 1. DragModule (空気抵抗)
-    if (hasDrag != 0)
-    {
-        float r = DeterministicRandom(p.id, 0); // subSeed = 0
-        float d = lerp(dragMin, dragMax, r);
-        float factor = 1.0f - d * deltaTime;
-        p.velocity *= saturate(factor);
-    }
-
-    // 1.2 VelocityOverLifetimeModule (寿命に応じた速度乗算)
-    if (hasVelocityOL != 0)
-    {
-        float multiplier = lerp(velocityOLStart, velocityOLEnd, lifeRatio);
-        float dampFactor = 1.0f - (1.0f - multiplier) * deltaTime;
-        p.velocity *= dampFactor;
-    }
-    
     // 重力を適用
     p.velocity += gravity * deltaTime;
 
-    // 4. NoiseModule (シンプルなサイン波ノイズ風の動き)
-    if (hasNoise != 0)
-    {
-        float t = p.age * noiseFrequency;
-        float idOffset = float(p.id);
-        float3 noiseVal = float3(
-            sin(t * 2.0f + idOffset * 0.1f) * noiseStrength,
-            sin(t * 2.3f + idOffset * 0.2f) * noiseStrength,
-            sin(t * 2.7f + idOffset * 0.3f) * noiseStrength
-        );
-        p.velocity += noiseVal * deltaTime;
-    }
-    
     // 位置を更新
     p.position += p.velocity * deltaTime;
 
@@ -549,115 +427,12 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         }
     }
     
-    // 2. ColorFadeModule
-    if (hasColorFade != 0)
+    // モジュールで色を触らないなら、寿命に応じてαを落とす
+    if (!programHasColorFade)
     {
-        float t = ApplyEasing(colorFadeEasing, lifeRatio);
-        float4 effectiveStart = (colorFadeUseInitial != 0) ? p.initialColor : colorFadeStart;
-        p.color = lerp(effectiveStart, colorFadeEnd, t);
-    }
-    else if (!programHasColorFade)
-    {
-        // デフォルトのカラーフェード（寿命に応じてアルファを減少）
         p.color.a = saturate(1.0f - lifeRatio);
     }
 
-    // 3. ScaleOverLifetimeModule
-    if (hasScaleOL != 0)
-    {
-        float t = ApplyEasing(scaleOLEasing, lifeRatio);
-        p.scale = lerp(scaleOLStart, scaleOLEnd, t);
-    }
-
-    // 3.5. StretchByVelocityModule (速度によるスケール伸長)
-    if (hasStretchByVelocity != 0)
-    {
-        float speed = length(p.velocity);
-        float stretch = 1.0f + speed * stretchFactor;
-        stretch = clamp(stretch, minStretch, maxStretch);
-        p.scale.y = stretch;
-        if (stretchPreserveVolume != 0)
-        {
-            float shrink = 1.0f / sqrt(stretch);
-            p.scale.x = shrink;
-            p.scale.z = shrink;
-        }
-    }
-
-    // 4.5. FaceVelocityModule (進行方向アライメント)
-    if (hasFaceVelocity != 0)
-    {
-        float speedSq = dot(p.velocity, p.velocity);
-        if (speedSq > 0.0001f)
-        {
-            if (faceVelocityUse2D != 0)
-            {
-                p.rotation.z = atan2(p.velocity.y, p.velocity.x) - (3.14159265f * 0.5f);
-            }
-            else
-            {
-                float3 normDirection = normalize(p.velocity);
-                float yaw = atan2(normDirection.x, normDirection.z);
-                float pitch = atan2(normDirection.y, sqrt(normDirection.x * normDirection.x + normDirection.z * normDirection.z));
-                p.rotation.x = -pitch;
-                p.rotation.y = yaw;
-                p.rotation.z = 0.0f;
-            }
-        }
-    }
-
-    // 5. RotationOverLifetimeModule (回転速度のイージング変化と加算)
-    if (hasRotationOL != 0)
-    {
-        float t = ApplyEasing(rotOLEasing, lifeRatio);
-        float speed = lerp(rotOLStartSpeed, rotOLEndSpeed, t);
-        // Z軸まわりの回転（ラジアンへ変換して加算）
-        float angleRad = speed * deltaTime * (3.14159265f / 180.0f);
-        p.rotation.z += angleRad;
-    }
-
-    // 6. AlphaFadeModule (アルファ値のみをシンプルにフェード)
-    if (hasAlphaFade != 0)
-    {
-        float t = lifeRatio;
-        if (alphaFadeEaseIn != 0 && alphaFadeEaseOut != 0)
-        {
-            t = t * t * (3.0f - 2.0f * t); // smoothstep
-        }
-        else if (alphaFadeEaseIn != 0)
-        {
-            t = t * t;
-        }
-        else if (alphaFadeEaseOut != 0)
-        {
-            t = 1.0f - (1.0f - t) * (1.0f - t);
-        }
-        p.color.a = lerp(alphaFadeStart, alphaFadeEnd, t);
-    }
-
-    // 6.5. FlickerModule (アルファ値の点滅)
-    if (hasFlicker != 0)
-    {
-        float t = p.age * flickerFrequency;
-        if (flickerRandomPhase != 0)
-        {
-            t += float(p.id) * 0.1f;
-        }
-        
-        float alphaVal = 0.0f;
-        if (flickerUseNoise != 0)
-        {
-            // ノイズベース
-            alphaVal = (sin(t * 2.0f) + sin(t * 3.7f) + 2.0f) * 0.25f;
-        }
-        else
-        {
-            // シンプルなサイン波
-            alphaVal = (sin(t * 3.14159265f * 2.0f) + 1.0f) * 0.5f;
-        }
-        p.color.a = flickerMinAlpha + (flickerMaxAlpha - flickerMinAlpha) * alphaVal;
-    }
-    
     // Never allow NaN/Inf payloads to reach SV_Position. Undefined rasterizer
     // input can produce a transient full-screen triangle on some drivers.
     if (!IsFiniteParticle(p))

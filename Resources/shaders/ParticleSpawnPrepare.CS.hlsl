@@ -48,6 +48,7 @@ RWStructuredBuffer<EmitterState> emitterState : register(u2);
 struct ParticleEvent { float3 position; uint type; float3 velocity; uint particleId; float4 color; };
 StructuredBuffer<ParticleEvent> sourceEvents : register(t0);
 ByteAddressBuffer sourceEventCounter : register(t1);
+RWStructuredBuffer<uint> eventMatches : register(u5);
 
 float EventRandom(uint id)
 {
@@ -95,7 +96,12 @@ void CSMain(uint3 id : SV_DispatchThreadID)
             }
         }
 
-		uint retainedRateCount = min(rateCount, (uint)ceil(max(gpuSpawnRate, 0.0f) * max(gpuSpawnLifetime, 0.001f)) + 1u);
+		// 同時に生きられる数は rate * lifetime が上限。1フレームに大量に溜まっても
+		// それ以上は出しても即死ぬだけなので捨てる。切り上げの誤差分だけ1個足す
+		const uint kRateCeilMargin = 1u;
+		const float kMinLifetime = 0.001f;
+		uint maxLiveFromRate = (uint)ceil(max(gpuSpawnRate, 0.0f) * max(gpuSpawnLifetime, kMinLifetime)) + kRateCeilMargin;
+		uint retainedRateCount = min(rateCount, maxLiveFromRate);
 		uint droppedRateCount = rateCount - retainedRateCount;
 		state.rateSpawnCount = min(retainedRateCount, maxParticles);
 		state.regularSpawnCount = min(state.rateSpawnCount + burstCount, maxParticles);
@@ -103,12 +109,16 @@ void CSMain(uint3 id : SV_DispatchThreadID)
         if (hasGpuEventSource != 0)
         {
             uint sourceCount = min(sourceEventCounter.Load(0), maxParticles);
+            // 数えるついでに番号を詰める。spawn 側はこれを引くだけで済む
             [loop]
             for (uint i = 0; i < sourceCount; ++i)
             {
                 ParticleEvent evt = sourceEvents[i];
                 if (evt.type == gpuEventTrigger && EventRandom(evt.particleId) <= gpuEventProbability)
+                {
+                    eventMatches[state.eventSpawnCount] = i;
                     state.eventSpawnCount++;
+                }
             }
         }
         state.eventSpawnCount = min(state.eventSpawnCount, maxParticles - state.regularSpawnCount);

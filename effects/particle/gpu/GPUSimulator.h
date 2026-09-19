@@ -62,74 +62,7 @@ struct GPUParticleConstants
 	uint32_t simulationSpace;  ///< シミュレーション空間（0=World, 1=Local）
 	Matrix4x4 emitterWorld;    ///< エミッターのワールド行列
 
-	//===== 追加モジュールパラメータ (アプローチB) =====//
-	uint32_t hasDrag;          ///< Drag有効フラグ
-	float dragMin;             ///< 最小Drag
-	float dragMax;             ///< 最大Drag
-	float paddingDrag;
-	
-	uint32_t hasColorFade;     ///< ColorFade有効フラグ
-	uint32_t colorFadeUseInitial; ///< 初期カラー使用フラグ
-	uint32_t colorFadeEasing;  ///< イージングタイプ (EasingType)
-	float paddingCF;
-	Vector4 colorFadeStart;    ///< 開始カラー
-	Vector4 colorFadeEnd;      ///< 終了カラー
-	
-	uint32_t hasScaleOL;       ///< ScaleOverLifetime有効フラグ
-	uint32_t scaleOLEasing;    ///< イージングタイプ (EasingType)
-	float paddingScaleOL[2];
-	Vector3 scaleOLStart;      ///< 開始スケール
-	float paddingS1;
-	Vector3 scaleOLEnd;        ///< 終了スケール
-	float paddingS2;
-
-	// Noise
-	uint32_t hasNoise;         ///< Noise有効フラグ
-	float noiseStrength;       ///< Noise強度
-	float noiseFrequency;      ///< Noise周波数
-	float paddingNoise;
-
-	// RotationOverLifetime
-	uint32_t hasRotationOL;    ///< RotationOverLifetime有効フラグ
-	float rotOLStartSpeed;     ///< 開始回転速度
-	float rotOLEndSpeed;       ///< 終了回転速度
-	uint32_t rotOLEasing;      ///< イージングタイプ (EasingType)
-
-	// AlphaFade
-	uint32_t hasAlphaFade;     ///< AlphaFade有効フラグ
-	float alphaFadeStart;      ///< 開始アルファ
-	float alphaFadeEnd;        ///< 終了アルファ
-	uint32_t alphaFadeEaseIn;  ///< EaseInフラグ
-	uint32_t alphaFadeEaseOut; ///< EaseOutフラグ
-	float paddingAlpha[3];
-
-	// VelocityOverLifetime
-	uint32_t hasVelocityOL;    ///< VelocityOverLifetime有効フラグ
-	float velocityOLStart;     ///< 開始乗数
-	float velocityOLEnd;       ///< 終了乗数
-	float paddingVelocityOL;
-
-	// StretchByVelocity
-	uint32_t hasStretchByVelocity; ///< StretchByVelocity有効フラグ
-	float stretchFactor;       ///< ストレッチ係数
-	float minStretch;          ///< 最小ストレッチ
-	float maxStretch;          ///< 最大ストレッチ
-	uint32_t stretchPreserveVolume; ///< 体積維持フラグ (0=無効, 1=有効)
-	float paddingStretch[3];
-
-	// Flicker
-	uint32_t hasFlicker;       ///< Flicker有効フラグ
-	float flickerFrequency;    ///< 周波数
-	float flickerMinAlpha;     ///< 最小アルファ
-	float flickerMaxAlpha;     ///< 最大アルファ
-	uint32_t flickerRandomPhase; ///< ランダムフェーズフラグ
-	uint32_t flickerUseNoise;  ///< ノイズベース点滅フラグ
-	float paddingFlicker[2];
-
-	// FaceVelocity
-	uint32_t hasFaceVelocity;   ///< FaceVelocity有効フラグ
-	uint32_t faceVelocityUse2D;  ///< 2Dアライメントフラグ (0=3D, 1=2D)
-	float paddingFaceVelocity[2];
+	// 旧モジュール用の定数はモジュールプログラム(moduleProgram)に置き換えたので消した
 	uint32_t hasTextureSheet;
 	uint32_t textureSheetColumns;
 	uint32_t textureSheetRows;
@@ -208,6 +141,13 @@ public:
 	void DispatchPure(float deltaTime, CameraManager* camera, const std::vector<std::unique_ptr<class IModule>>& modules, const Matrix4x4& emitterWorld, uint32_t simulationSpace, bool emitting, bool resetEmitterState);
 	void SetEventSource(GPUSimulator* source, uint32_t trigger, float probability, bool inheritVelocity, float velocityScale, bool inheritColor);
 	void ClearEventSource();
+
+	/**
+	 * @brief 購読者リストから外す
+	 * @param subscriber 外す相手
+	 * @details 解除は SetEventSource / ClearEventSource / デストラクタから呼ばれる。
+	 */
+	void RemoveEventSubscriber(GPUSimulator* subscriber);
 	bool SupportsPureGPU(const std::vector<std::unique_ptr<class IModule>>& modules, RendererType rendererType) const;
 
 	/**
@@ -322,6 +262,9 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> eventCounterResetBuffer_;
 	uint32_t eventSrvIndex_ = SrvManager::kInvalidSrvIndex;
 	uint32_t eventUavIndex_ = SrvManager::kInvalidSrvIndex;
+	// マッチしたイベントの番号リスト。prepare が詰めて、spawn がそのまま引く
+	Microsoft::WRL::ComPtr<ID3D12Resource> eventMatchBuffer_;
+	uint32_t eventMatchUavIndex_ = SrvManager::kInvalidSrvIndex;
 	uint32_t eventCounterSrvIndex_ = SrvManager::kInvalidSrvIndex;
 	uint32_t eventCounterUavIndex_ = SrvManager::kInvalidSrvIndex;
 	uint32_t nullEventSrvIndex_ = SrvManager::kInvalidSrvIndex;
@@ -373,7 +316,12 @@ private:
 	bool pureGpuDispatch_ = false;
 	bool pureGpuEmitting_ = false;
 	bool pureGpuResetEmitterState_ = false;
+	// イベントの発生元。所有しない。
+	// 相手が死ぬときに向こうの eventSubscribers_ 経由で nullptr にされるので、ぶら下がりは残らない
 	GPUSimulator* eventSource_ = nullptr;
+	// このシミュレーターのイベントを見ている相手。所有しない。
+	// 自分が死ぬときに相手の eventSource_ を切るために持つ
+	std::vector<GPUSimulator*> eventSubscribers_;
 	uint32_t eventTrigger_ = 1;
 	float eventProbability_ = 1.0f;
 	bool eventInheritVelocity_ = false;

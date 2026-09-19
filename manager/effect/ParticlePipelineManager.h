@@ -103,7 +103,8 @@ private:
 	Microsoft::WRL::ComPtr<IDxcBlob> ribbonPixelShader_;
 	Microsoft::WRL::ComPtr<IDxcBlob> ribbonSingleTargetPixelShader_;
 	double prewarmMilliseconds_ = 0.0;
-	bool selectiveBloomOutputEnabled_ = true;
+	// 既定は単一RT。選択的ブルームでMRTを張る側が明示的に有効化する
+	bool selectiveBloomOutputEnabled_ = false;
 	uint32_t psoCreationCount_ = 0;
 };
 } // namespace KCE

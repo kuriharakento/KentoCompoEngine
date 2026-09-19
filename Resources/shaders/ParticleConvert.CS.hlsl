@@ -50,37 +50,7 @@ cbuffer Constants : register(b0)
 
     float4x4 emitterWorld;
 
-    // 追加モジュールパラメータ (アプローチB)
-    uint hasDrag;
-    float dragMin;
-    float dragMax;
-    float paddingDrag;
-    
-    uint hasColorFade;
-    uint colorFadeUseInitial;
-    uint colorFadeEasing;
-    float paddingCF;
-    float4 colorFadeStart;
-    float4 colorFadeEnd;
-    
-    uint hasScaleOL;
-    uint scaleOLEasing;
-    float2 paddingScaleOL;
-    float3 scaleOLStart;
-    float paddingS1;
-    float3 scaleOLEnd;
-    float paddingS2;
-
-    uint hasNoise; float noiseStrength; float noiseFrequency; float paddingNoise;
-    uint hasRotationOL; float rotOLStartSpeed; float rotOLEndSpeed; uint rotOLEasing;
-    uint hasAlphaFade; float alphaFadeStart; float alphaFadeEnd; uint alphaFadeEaseIn;
-    uint alphaFadeEaseOut; float3 paddingAlpha;
-    uint hasVelocityOL; float velocityOLStart; float velocityOLEnd; float paddingVelocityOL;
-    uint hasStretchByVelocity; float stretchFactor; float minStretch; float maxStretch;
-    uint stretchPreserveVolume; float3 paddingStretch;
-    uint hasFlicker; float flickerFrequency; float flickerMinAlpha; float flickerMaxAlpha;
-    uint flickerRandomPhase; uint flickerUseNoise; float2 paddingFlicker;
-    uint hasFaceVelocity; uint faceVelocityUse2D; float2 paddingFaceVelocity;
+	// 旧モジュール用の定数はモジュールプログラムに置き換えたので消した
     uint hasTextureSheet; uint textureSheetColumns; uint textureSheetRows; uint paddingTextureSheet;
     uint pureGpuEnabled; uint spawnCount; uint spawnSerialBase; uint spawnSeed;
     float3 initialVelocityMin; float initialLifetimeMin;

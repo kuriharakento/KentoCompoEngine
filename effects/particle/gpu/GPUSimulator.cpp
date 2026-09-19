@@ -57,6 +57,17 @@ GPUSimulator::GPUSimulator() = default;
 
 GPUSimulator::~GPUSimulator()
 {
+	// 購読関係を両側から外す。どちらが先に死んでもぶら下がりを残さない
+	ClearEventSource();
+	for (GPUSimulator* subscriber : eventSubscribers_)
+	{
+		if (subscriber)
+		{
+			subscriber->eventSource_ = nullptr;
+		}
+	}
+	eventSubscribers_.clear();
+
 	// 定数バッファのアンマップ
 	if (constantBuffer_)
 	{
@@ -71,7 +82,7 @@ GPUSimulator::~GPUSimulator()
 void GPUSimulator::ReleaseDescriptors()
 {
 	uint32_t* descriptors[] = { &particleSrvIndex_, &particleUavIndex_, &renderSrvIndex_, &renderUavIndex_,
-		&spawnCounterUavIndex_, &drawArgumentsUavIndex_, &emitterStateUavIndex_, &eventSrvIndex_, &eventUavIndex_,
+		&spawnCounterUavIndex_, &drawArgumentsUavIndex_, &emitterStateUavIndex_, &eventSrvIndex_, &eventUavIndex_, &eventMatchUavIndex_,
 		&eventCounterSrvIndex_, &eventCounterUavIndex_, &nullEventSrvIndex_, &nullEventCounterSrvIndex_,
 		&ribbonPrefixUavIndex_, &ribbonGroupCountUavIndex_, &ribbonGroupOffsetUavIndex_, &ribbonVertexUavIndex_,
 		&ribbonDrawArgumentsUavIndex_, &ribbonSortUavIndex_, &moduleProgramSrvIndex_, &moduleLutSrvIndex_ };
@@ -97,7 +108,7 @@ void GPUSimulator::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, u
 	// An emitter needs all of its descriptors or none of them. A contiguous
 	// transaction prevents a half-initialized simulator when the global heap is
 	// exhausted and also makes rollback deterministic.
-	constexpr uint32_t kDescriptorCount = 21;
+	constexpr uint32_t kDescriptorCount = 22;
 	uint32_t descriptorBase = SrvManager::kInvalidSrvIndex;
 	if (!srvManager_->TryAllocateRange(kDescriptorCount, descriptorBase))
 	{
@@ -114,6 +125,7 @@ void GPUSimulator::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, u
 	emitterStateUavIndex_ = nextDescriptor++;
 	eventSrvIndex_ = nextDescriptor++;
 	eventUavIndex_ = nextDescriptor++;
+	eventMatchUavIndex_ = nextDescriptor++;
 	eventCounterSrvIndex_ = nextDescriptor++;
 	eventCounterUavIndex_ = nextDescriptor++;
 	nullEventSrvIndex_ = nextDescriptor++;
@@ -234,6 +246,12 @@ void GPUSimulator::CreateBuffers()
 			sizeof(GPUParticleEvent) * maxParticles_, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 		RequireD3D(device->CreateCommittedResource(&defaultHeap, D3D12_HEAP_FLAG_NONE, &eventDesc,
 			D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&eventBuffer_)), "event buffer");
+
+		// マッチしたイベントの番号を詰めるリスト。spawn 側が線形探索しないで済むようにする
+		D3D12_RESOURCE_DESC matchDesc = CD3DX12_RESOURCE_DESC::Buffer(
+			sizeof(uint32_t) * maxParticles_, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+		RequireD3D(device->CreateCommittedResource(&defaultHeap, D3D12_HEAP_FLAG_NONE, &matchDesc,
+			D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&eventMatchBuffer_)), "event match buffer");
 
 		D3D12_RESOURCE_DESC counterDesc = CD3DX12_RESOURCE_DESC::Buffer(
 			sizeof(uint32_t), D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
@@ -416,6 +434,14 @@ void GPUSimulator::CreateBuffers()
 		uavDesc.Buffer.NumElements = maxParticles_;
 		uavDesc.Buffer.StructureByteStride = sizeof(GPUParticleEvent);
 		device->CreateUnorderedAccessView(eventBuffer_.Get(), nullptr, &uavDesc, srvManager_->GetCPUDescriptorHandle(eventUavIndex_));
+
+		D3D12_UNORDERED_ACCESS_VIEW_DESC matchUav{};
+		matchUav.Format = DXGI_FORMAT_UNKNOWN;
+		matchUav.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+		matchUav.Buffer.NumElements = maxParticles_;
+		matchUav.Buffer.StructureByteStride = sizeof(uint32_t);
+		device->CreateUnorderedAccessView(eventMatchBuffer_.Get(), nullptr, &matchUav,
+			srvManager_->GetCPUDescriptorHandle(eventMatchUavIndex_));
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC counterSrv{};
 		counterSrv.Format = DXGI_FORMAT_R32_TYPELESS;
@@ -649,7 +675,19 @@ void GPUSimulator::ClearParticles()
 void GPUSimulator::SetEventSource(GPUSimulator* source, uint32_t trigger, float probability,
 	bool inheritVelocity, float velocityScale, bool inheritColor)
 {
-	eventSource_ = source;
+	if (eventSource_ != source)
+	{
+		if (eventSource_)
+		{
+			eventSource_->RemoveEventSubscriber(this);
+		}
+		eventSource_ = source;
+		if (eventSource_)
+		{
+			// 相手が先に消えたら向こうから切ってもらう
+			eventSource_->eventSubscribers_.push_back(this);
+		}
+	}
 	eventTrigger_ = trigger;
 	eventProbability_ = (std::clamp)(probability, 0.0f, 1.0f);
 	eventInheritVelocity_ = inheritVelocity;
@@ -659,7 +697,16 @@ void GPUSimulator::SetEventSource(GPUSimulator* source, uint32_t trigger, float 
 
 void GPUSimulator::ClearEventSource()
 {
-	eventSource_ = nullptr;
+	if (eventSource_)
+	{
+		eventSource_->RemoveEventSubscriber(this);
+		eventSource_ = nullptr;
+	}
+}
+
+void GPUSimulator::RemoveEventSubscriber(GPUSimulator* subscriber)
+{
+	std::erase(eventSubscribers_, subscriber);
 }
 
 bool GPUSimulator::SupportsPureGPU(const std::vector<std::unique_ptr<class IModule>>& modules, RendererType rendererType) const
@@ -744,70 +791,6 @@ void GPUSimulator::UpdateConstantBuffer(float deltaTime, const std::vector<std::
 		constantData_->simulationSpace = simulationSpace;
 		constantData_->emitterWorld = emitterWorld;
 
-		// デフォルト初期値（モジュールが無効な場合）
-		constantData_->hasDrag = 0;
-		constantData_->hasColorFade = 0;
-		constantData_->hasScaleOL = 0;
-		constantData_->dragMin = 0.0f;
-		constantData_->dragMax = 0.0f;
-		constantData_->paddingDrag = 0.0f;
-		constantData_->colorFadeUseInitial = 0;
-		constantData_->colorFadeEasing = 0;
-		constantData_->paddingCF = 0.0f;
-		constantData_->colorFadeStart = { 1.0f, 1.0f, 1.0f, 1.0f };
-		constantData_->colorFadeEnd = { 1.0f, 1.0f, 1.0f, 1.0f };
-		constantData_->scaleOLEasing = 0;
-		constantData_->paddingScaleOL[0] = 0.0f;
-		constantData_->paddingScaleOL[1] = 0.0f;
-		constantData_->scaleOLStart = { 1.0f, 1.0f, 1.0f };
-		constantData_->paddingS1 = 0.0f;
-		constantData_->scaleOLEnd = { 1.0f, 1.0f, 1.0f };
-		constantData_->paddingS2 = 0.0f;
-
-		constantData_->hasNoise = 0;
-		constantData_->noiseStrength = 0.0f;
-		constantData_->noiseFrequency = 0.0f;
-		constantData_->paddingNoise = 0.0f;
-		constantData_->hasRotationOL = 0;
-		constantData_->rotOLStartSpeed = 0.0f;
-		constantData_->rotOLEndSpeed = 0.0f;
-		constantData_->rotOLEasing = 0;
-		constantData_->hasAlphaFade = 0;
-		constantData_->alphaFadeStart = 0.0f;
-		constantData_->alphaFadeEnd = 0.0f;
-		constantData_->alphaFadeEaseIn = 0;
-		constantData_->alphaFadeEaseOut = 0;
-		constantData_->paddingAlpha[0] = 0.0f;
-		constantData_->paddingAlpha[1] = 0.0f;
-		constantData_->paddingAlpha[2] = 0.0f;
-
-		constantData_->hasVelocityOL = 0;
-		constantData_->velocityOLStart = 1.0f;
-		constantData_->velocityOLEnd = 1.0f;
-		constantData_->paddingVelocityOL = 0.0f;
-
-		constantData_->hasStretchByVelocity = 0;
-		constantData_->stretchFactor = 0.0f;
-		constantData_->minStretch = 1.0f;
-		constantData_->maxStretch = 1.0f;
-		constantData_->stretchPreserveVolume = 0;
-		constantData_->paddingStretch[0] = 0.0f;
-		constantData_->paddingStretch[1] = 0.0f;
-		constantData_->paddingStretch[2] = 0.0f;
-
-		constantData_->hasFlicker = 0;
-		constantData_->flickerFrequency = 0.0f;
-		constantData_->flickerMinAlpha = 0.0f;
-		constantData_->flickerMaxAlpha = 0.0f;
-		constantData_->flickerRandomPhase = 0;
-		constantData_->flickerUseNoise = 0;
-		constantData_->paddingFlicker[0] = 0.0f;
-		constantData_->paddingFlicker[1] = 0.0f;
-
-		constantData_->hasFaceVelocity = 0;
-		constantData_->faceVelocityUse2D = 0;
-		constantData_->paddingFaceVelocity[0] = 0.0f;
-		constantData_->paddingFaceVelocity[1] = 0.0f;
 		constantData_->hasTextureSheet = 0;
 		constantData_->textureSheetColumns = 1;
 		constantData_->textureSheetRows = 1;
@@ -868,116 +851,6 @@ void GPUSimulator::UpdateConstantBuffer(float deltaTime, const std::vector<std::
 				constantData_->gpuBurstInterval = m->GetInterval();
 				constantData_->gpuBurstDelay = m->GetDelay();
 				constantData_->gpuBurstLoops = m->GetLoops();
-			}
-			else if (module->GetName() == std::string("Drag"))
-			{
-				auto* m = dynamic_cast<DragModule*>(module.get());
-				if (m)
-				{
-					constantData_->hasDrag = 1;
-					constantData_->dragMin = m->GetMinDrag();
-					constantData_->dragMax = m->GetMaxDrag();
-				}
-			}
-			else if (module->GetName() == std::string("ColorFade"))
-			{
-				auto* m = dynamic_cast<ColorFadeModule*>(module.get());
-				if (m)
-				{
-					constantData_->hasColorFade = 1;
-					constantData_->colorFadeUseInitial = m->GetUseInitialColor() ? 1 : 0;
-					constantData_->colorFadeEasing = static_cast<uint32_t>(m->GetEasingType());
-					constantData_->colorFadeStart = m->GetStartColor();
-					constantData_->colorFadeEnd = m->GetEndColor();
-				}
-			}
-			else if (module->GetName() == std::string("ScaleOverLifetime"))
-			{
-				auto* m = dynamic_cast<ScaleOverLifetimeModule*>(module.get());
-				if (m)
-				{
-					constantData_->hasScaleOL = 1;
-					constantData_->scaleOLEasing = static_cast<uint32_t>(m->GetEasingType());
-					constantData_->scaleOLStart = m->GetStartScale();
-					constantData_->scaleOLEnd = m->GetEndScale();
-				}
-			}
-			else if (module->GetName() == std::string("Noise"))
-			{
-				auto* m = dynamic_cast<NoiseModule*>(module.get());
-				if (m)
-				{
-					constantData_->hasNoise = 1;
-					constantData_->noiseStrength = m->GetStrength();
-					constantData_->noiseFrequency = m->GetFrequency();
-				}
-			}
-			else if (module->GetName() == std::string("RotationOverLifetime"))
-			{
-				auto* m = dynamic_cast<RotationOverLifetimeModule*>(module.get());
-				if (m)
-				{
-					constantData_->hasRotationOL = 1;
-					constantData_->rotOLStartSpeed = m->GetStartSpeed();
-					constantData_->rotOLEndSpeed = m->GetEndSpeed();
-					constantData_->rotOLEasing = static_cast<uint32_t>(m->GetEasingType());
-				}
-			}
-			else if (module->GetName() == std::string("AlphaFade"))
-			{
-				auto* m = dynamic_cast<AlphaFadeModule*>(module.get());
-				if (m)
-				{
-					constantData_->hasAlphaFade = 1;
-					constantData_->alphaFadeStart = m->GetStartAlpha();
-					constantData_->alphaFadeEnd = m->GetEndAlpha();
-					constantData_->alphaFadeEaseIn = m->GetEaseIn() ? 1 : 0;
-					constantData_->alphaFadeEaseOut = m->GetEaseOut() ? 1 : 0;
-				}
-			}
-			else if (module->GetName() == std::string("VelocityOverLifetime"))
-			{
-				auto* m = dynamic_cast<VelocityOverLifetimeModule*>(module.get());
-				if (m)
-				{
-					constantData_->hasVelocityOL = 1;
-					constantData_->velocityOLStart = m->GetStartMultiplier();
-					constantData_->velocityOLEnd = m->GetEndMultiplier();
-				}
-			}
-			else if (module->GetName() == std::string("StretchByVelocity"))
-			{
-				auto* m = dynamic_cast<StretchByVelocityModule*>(module.get());
-				if (m)
-				{
-					constantData_->hasStretchByVelocity = 1;
-					constantData_->stretchFactor = m->GetStretchFactor();
-					constantData_->minStretch = m->GetMinStretch();
-					constantData_->maxStretch = m->GetMaxStretch();
-					constantData_->stretchPreserveVolume = m->GetPreserveVolume() ? 1 : 0;
-				}
-			}
-			else if (module->GetName() == std::string("Flicker"))
-			{
-				auto* m = dynamic_cast<FlickerModule*>(module.get());
-				if (m)
-				{
-					constantData_->hasFlicker = 1;
-					constantData_->flickerFrequency = m->GetFrequency();
-					constantData_->flickerMinAlpha = m->GetMinAlpha();
-					constantData_->flickerMaxAlpha = m->GetMaxAlpha();
-					constantData_->flickerRandomPhase = m->GetRandomPhase() ? 1 : 0;
-					constantData_->flickerUseNoise = m->GetUseNoise() ? 1 : 0;
-				}
-			}
-			else if (module->GetName() == std::string("FaceVelocity"))
-			{
-				auto* m = dynamic_cast<FaceVelocityModule*>(module.get());
-				if (m)
-				{
-					constantData_->hasFaceVelocity = 1;
-					constantData_->faceVelocityUse2D = m->IsUse2DAlignment() ? 1 : 0;
-				}
 			}
 			else if (auto* m = dynamic_cast<TextureSheetModule*>(module.get()))
 			{
@@ -1079,9 +952,6 @@ void GPUSimulator::UpdateModuleProgram(const std::vector<std::unique_ptr<class I
 		else if (auto* value = dynamic_cast<FlickerModule*>(module.get()))
 		{ writeUInt(10); writeFloat(value->GetFrequency()); writeFloat(value->GetMinAlpha()); writeFloat(value->GetMaxAlpha()); writeUInt(value->GetRandomPhase() ? 1u : 0u); writeUInt(value->GetUseNoise() ? 1u : 0u); nextRecord(); }
 	}
-	constantData_->hasDrag = constantData_->hasVelocityOL = constantData_->hasNoise = 0;
-	constantData_->hasColorFade = constantData_->hasScaleOL = constantData_->hasStretchByVelocity = 0;
-	constantData_->hasFaceVelocity = constantData_->hasRotationOL = constantData_->hasAlphaFade = constantData_->hasFlicker = 0;
 	std::memcpy(moduleProgramData_, &count, sizeof(count));
 	ParticleDiagnostics::GetInstance()->RecordGpuEmitter(pureGpuDispatch_, count, lutCursor, 22u);
 }
@@ -1160,9 +1030,14 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera, const std::v
 		commandList->SetComputeRootDescriptorTable(7, srvManager_->GetGPUDescriptorHandle(sourceCounterSrv));
 		commandList->SetComputeRootDescriptorTable(8, srvManager_->GetGPUDescriptorHandle(moduleProgramSrvIndex_));
 		commandList->SetComputeRootDescriptorTable(9, srvManager_->GetGPUDescriptorHandle(moduleLutSrvIndex_));
+		commandList->SetComputeRootDescriptorTable(10, srvManager_->GetGPUDescriptorHandle(eventMatchUavIndex_));
 		commandList->Dispatch(1, 1, 1);
-		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::UAV(emitterStateBuffer_.Get());
-		commandList->ResourceBarrier(1, &barrier);
+		// prepare が書いた emitterState と eventMatches を本体が読むので両方待つ
+		D3D12_RESOURCE_BARRIER barriers[2] = {
+			CD3DX12_RESOURCE_BARRIER::UAV(emitterStateBuffer_.Get()),
+			CD3DX12_RESOURCE_BARRIER::UAV(eventMatchBuffer_.Get())
+		};
+		commandList->ResourceBarrier(2, barriers);
 	}
 
 	// パイプラインとルートシグネチャを設定
@@ -1178,6 +1053,7 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera, const std::v
 	commandList->SetComputeRootDescriptorTable(7, srvManager_->GetGPUDescriptorHandle(sourceCounterSrv));
 	commandList->SetComputeRootDescriptorTable(8, srvManager_->GetGPUDescriptorHandle(moduleProgramSrvIndex_));
 	commandList->SetComputeRootDescriptorTable(9, srvManager_->GetGPUDescriptorHandle(moduleLutSrvIndex_));
+	commandList->SetComputeRootDescriptorTable(10, srvManager_->GetGPUDescriptorHandle(eventMatchUavIndex_));
 
 	// スレッドグループ数を計算してディスパッチ (現在アクティブなパーティクル数基準)
 	uint32_t groupCount = (particleCount_ + GPUSimulator::kThreadGroupSize - 1) / GPUSimulator::kThreadGroupSize;

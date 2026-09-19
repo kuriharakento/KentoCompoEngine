@@ -11,7 +11,7 @@ namespace KCE
 namespace
 {
 	// ルートパラメータ数
-	constexpr uint32_t kSimulationRootParamCount = 10;
+	constexpr uint32_t kSimulationRootParamCount = 11;
 	constexpr uint32_t kConverterRootParamCount = 5;
 	
 	// デスクリプタレンジ数
@@ -141,13 +141,18 @@ void GPUParticlePipeline::CreateRootSignature()
 	moduleProgramRange.NumDescriptors = 1;
 	moduleProgramRange.BaseShaderRegister = 2;
 	moduleProgramRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	D3D12_DESCRIPTOR_RANGE eventMatchRange{};
+	eventMatchRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+	eventMatchRange.NumDescriptors = 1;
+	eventMatchRange.BaseShaderRegister = 5;
+	eventMatchRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 	D3D12_DESCRIPTOR_RANGE moduleLutRange{};
 	moduleLutRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	moduleLutRange.NumDescriptors = 1;
 	moduleLutRange.BaseShaderRegister = 3;
 	moduleLutRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-	D3D12_ROOT_PARAMETER rootParams[10]{};
+	D3D12_ROOT_PARAMETER rootParams[kSimulationRootParamCount]{};
 
 	// ルートパラメータ0: 定数バッファ（シミュレーションパラメータ）
 	rootParams[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
@@ -193,6 +198,11 @@ void GPUParticlePipeline::CreateRootSignature()
 	rootParams[9].DescriptorTable.NumDescriptorRanges = 1;
 	rootParams[9].DescriptorTable.pDescriptorRanges = &moduleLutRange;
 	rootParams[9].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	// ルートパラメータ10: マッチしたイベントの番号を詰めたリスト(u5)
+	rootParams[10].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParams[10].DescriptorTable.NumDescriptorRanges = 1;
+	rootParams[10].DescriptorTable.pDescriptorRanges = &eventMatchRange;
+	rootParams[10].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
 	// ルートシグネチャをシリアライズして作成
 	D3D12_ROOT_SIGNATURE_DESC desc{};
