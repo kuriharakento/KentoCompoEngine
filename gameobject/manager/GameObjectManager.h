@@ -5,6 +5,7 @@
 #include <unordered_set>
 
 #include "core/Guid.h"
+#include "gameobject/manager/GameObjectInstancing.h"
 #include "gameobject/manager/GameObjectRenderer.h"
 #include "graphics/view/RenderLayer.h"
 #include "base/GraphicsTypes.h"
@@ -18,6 +19,7 @@ class Object3dCommon;
 class Object3d;
 class IRenderable3d;
 class LightManager;
+class GBufferPipeline;
 
 /**
  * @brief GameObjectを一括管理するマネージャークラス（シングルトン）
@@ -197,6 +199,20 @@ public:
 	 */
 	bool IsRenderableVisible(const IRenderable3d* renderable);
 
+	/**
+	 * @brief G-Buffer を描く間の描画設定を持っているパイプラインを教える
+	 * @details まとめて描く分は自前のパイプラインへ切り替えるので、続けて1体ずつ描く分のために戻す必要がある。
+	 *          DeferredRenderer::BeginGeometryPass が毎回設定する（所有しない）
+	 */
+	void SetGBufferPipeline(GBufferPipeline* pipeline) { gBufferPipeline_ = pipeline; }
+
+	/** @brief 同じモデルをまとめて1回で描くのを使うか（比べるときに切る） */
+	void SetInstancingEnabled(bool enabled) { instancing_.SetEnabled(enabled); }
+	bool IsInstancingEnabled() const { return instancing_.IsEnabled(); }
+	/** @brief 前のフレームでまとめて描いた物の数と、まとまりの数 */
+	uint32_t GetLastFrameInstancedCount() const { return lastFrameInstancedCount_; }
+	uint32_t GetLastFrameInstancedGroupCount() const { return lastFrameInstancedGroupCount_; }
+
 	/** @brief 視錐台カリングを使うか（比べるときに切る） */
 	void SetCullingEnabled(bool enabled) { renderer_.SetCullingEnabled(enabled); }
 	bool IsCullingEnabled() const { return renderer_.IsCullingEnabled(); }
@@ -220,6 +236,13 @@ private:
 	 */
 	void ClearPendingDestroyObjects();
 
+	/**
+	 * @brief 見えている物をまとめて描ける分と1体ずつ描く分に分ける
+	 * @param visible そのビューで見えている物
+	 * @param camera そのビューのカメラ。nullptr なら全部1体ずつになる
+	 */
+	void PrepareInstancing(const std::vector<const GameObjectRenderer::Entry*>& visible, Camera* camera);
+
 private:
 	static std::unique_ptr<GameObjectManager> instance_;
 
@@ -239,6 +262,16 @@ private:
 	const Matrix4x4* shadowCullingViewProjection_ = nullptr;
 	// 描く物の一覧と、ビューごとの見えている物のリスト
 	GameObjectRenderer renderer_;
+	// 同じモデルをまとめて1回で描く分
+	GameObjectInstancing instancing_;
+	// G-Buffer パスの描画設定。DeferredRenderer が持つ（所有しない）
+	GBufferPipeline* gBufferPipeline_ = nullptr;
+	// 前のフレームにまとめて描いた数（全ビューの合計）
+	uint32_t lastFrameInstancedCount_ = 0;
+	uint32_t lastFrameInstancedGroupCount_ = 0;
+	uint32_t instancedCount_ = 0;
+	uint32_t instancedGroupCount_ = 0;
+	uint64_t instancedCountedFrame_ = 0;
 	// 半透明を距離で並べるときの作業用。毎フレーム確保しないよう使い回す
 	struct TransparentEntry
 	{

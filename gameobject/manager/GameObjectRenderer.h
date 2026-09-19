@@ -10,6 +10,8 @@
 namespace KCE
 {
 class GameObject;
+class Model;
+class Object3d;
 class IRenderable3d;
 
 /**
@@ -40,6 +42,10 @@ public:
 		RenderQueue queue = RenderQueue::Opaque;
 		RenderingType renderingType = RenderingType::Forward;
 		bool castShadow = true;
+		// まとめて描ける物なら、まとめ先の元モデル（ModelManager が持つ）。まとめられないなら nullptr
+		Model* instancedModel = nullptr;
+		// 静的モデルならその Object3d。所有しない
+		Object3d* object3d = nullptr;
 	};
 
 	/** @brief どのパスのリストを作るか */

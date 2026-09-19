@@ -15,6 +15,8 @@
 #include "base/Camera.h"
 #include "graphics/3d/IRenderable3d.h"
 #include "math/AABB.h"
+#include "graphics/3d/Object3dCommon.h"
+#include "graphics/deferred/GBufferPipeline.h"
 #include "time/TimeManager.h"
 
 namespace KCE
@@ -254,6 +256,28 @@ void GameObjectManager::Update()
 	ClearPendingDestroyObjects();
 }
 
+void GameObjectManager::PrepareInstancing(const std::vector<const GameObjectRenderer::Entry*>& visible, Camera* camera)
+{
+	if (cachedObject3dCommon_)
+	{
+		instancing_.Initialize(cachedObject3dCommon_->GetDXCommon(), cachedObject3dCommon_->GetSrvManager());
+	}
+	instancing_.Build(visible, camera);
+
+	// 数はフレーム番号で締める（ビューごとに足していく）
+	const uint64_t frame = TimeManager::GetInstance().GetFrameCount();
+	if (frame != instancedCountedFrame_)
+	{
+		lastFrameInstancedCount_ = instancedCount_;
+		lastFrameInstancedGroupCount_ = instancedGroupCount_;
+		instancedCount_ = 0;
+		instancedGroupCount_ = 0;
+		instancedCountedFrame_ = frame;
+	}
+	instancedCount_ += instancing_.GetLastInstancedCount();
+	instancedGroupCount_ += instancing_.GetLastGroupCount();
+}
+
 void GameObjectManager::UpdateRenderTransforms()
 {
 	// 行列の確定と、描く物の一覧づくりを1回で済ませる
@@ -284,7 +308,16 @@ void GameObjectManager::Draw3D(CameraManager* camera)
 	renderer_.EnsureCollected(gameObjects_);
 	Camera* viewCamera = camera ? camera->GetActiveCamera() : nullptr;
 	const Matrix4x4* viewProjection = viewCamera ? &viewCamera->GetViewProjectionMatrix() : nullptr;
-	for (const GameObjectRenderer::Entry* entry : renderer_.GatherVisible(GameObjectRenderer::Pass::Forward, viewProjection, renderLayerMask_))
+	const auto& visible = renderer_.GatherVisible(GameObjectRenderer::Pass::Forward, viewProjection, renderLayerMask_);
+	// 同じモデル・同じ見た目の物はまとめて1回で描く。まとめられなかった分だけ1体ずつ描く
+	PrepareInstancing(visible, viewCamera);
+	instancing_.DrawForward(viewCamera, cachedLightManager_, instancing_.GetShadowMapManagerFromObjects());
+	if (instancing_.GetLastGroupCount() > 0 && cachedObject3dCommon_)
+	{
+		// まとめて描く分でパイプラインを切り替えたので、1体ずつ描く分のために戻す
+		cachedObject3dCommon_->CommonRenderingSetting();
+	}
+	for (const GameObjectRenderer::Entry* entry : instancing_.GetSingles())
 	{
 		entry->renderable->Draw();
 	}
@@ -383,7 +416,15 @@ void GameObjectManager::DrawGBuffer(CameraManager* camera)
 	// カメラを渡されないときは判定しない
 	Camera* viewCamera = camera ? camera->GetActiveCamera() : nullptr;
 	const Matrix4x4* viewProjection = viewCamera ? &viewCamera->GetViewProjectionMatrix() : nullptr;
-	for (const GameObjectRenderer::Entry* entry : renderer_.GatherVisible(GameObjectRenderer::Pass::GBuffer, viewProjection, renderLayerMask_))
+	const auto& visible = renderer_.GatherVisible(GameObjectRenderer::Pass::GBuffer, viewProjection, renderLayerMask_);
+	PrepareInstancing(visible, viewCamera);
+	instancing_.DrawGBuffer(viewCamera);
+	if (instancing_.GetLastGroupCount() > 0 && gBufferPipeline_)
+	{
+		// まとめて描く分でパイプラインを切り替えたので、1体ずつ描く分のために戻す
+		gBufferPipeline_->SetPipeline();
+	}
+	for (const GameObjectRenderer::Entry* entry : instancing_.GetSingles())
 	{
 		entry->renderable->DrawGBuffer();
 	}

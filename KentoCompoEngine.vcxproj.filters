@@ -402,6 +402,9 @@
     <ClCompile Include="gameobject\component\render\ModelRendererComponent.cpp">
       <Filter>gameobject\component\render</Filter>
     </ClCompile>
+    <ClCompile Include="gameobject\manager\GameObjectInstancing.cpp">
+      <Filter>gameobject\manager</Filter>
+    </ClCompile>
     <ClCompile Include="gameobject\manager\GameObjectRenderer.cpp">
       <Filter>gameobject\manager</Filter>
     </ClCompile>
@@ -997,6 +1000,9 @@
     </ClInclude>
     <ClInclude Include="gameobject\component\render\ModelRendererComponent.h">
       <Filter>gameobject\component\render</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\manager\GameObjectInstancing.h">
+      <Filter>gameobject\manager</Filter>
     </ClInclude>
     <ClInclude Include="gameobject\manager\GameObjectRenderer.h">
       <Filter>gameobject\manager</Filter>

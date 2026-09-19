@@ -4,6 +4,7 @@
 
 #include "gameobject/base/GameObject.h"
 #include "gameobject/component/base/IRenderableComponent.h"
+#include "gameobject/manager/GameObjectInstancing.h"
 #include "graphics/3d/IRenderable3d.h"
 #include "graphics/3d/Object3d.h"
 #include "math/Frustum.h"
@@ -72,6 +73,9 @@ void GameObjectRenderer::AddEntry(GameObject* object, IRenderable3d* renderable,
 	entry.queue = renderable->GetRenderQueue();
 	entry.renderingType = renderable->GetRenderingType();
 	entry.castShadow = castShadow;
+	// まとめて描けるかは物ごとに1回だけ見る。ビューごとに見直さない
+	entry.object3d = dynamic_cast<Object3d*>(renderable);
+	entry.instancedModel = entry.object3d ? GameObjectInstancing::FindSharedModel(entry.object3d) : nullptr;
 	entries_.push_back(entry);
 }
 

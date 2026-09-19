@@ -6,6 +6,7 @@
 #include "manager/scene/CameraManager.h"
 #include "base/Camera.h"
 #include "base/Logger.h"
+#include "gameobject/manager/GameObjectManager.h"
 #include "graphics/FrameConstantAllocator.h"
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
@@ -135,6 +136,11 @@ void DeferredRenderer::BeginGeometryPass(GBuffer* gBuffer)
 
 	gBuffer->BeginGeometryPass();
 	gBufferPipeline_->SetPipeline();
+	// まとめて描く分でパイプラインを切り替えた後に戻せるよう、今の設定を教えておく
+	if (GameObjectManager::HasInstance())
+	{
+		GameObjectManager::GetInstance()->SetGBufferPipeline(gBufferPipeline_.get());
+	}
 }
 
 void DeferredRenderer::EndGeometryPass(GBuffer* gBuffer)

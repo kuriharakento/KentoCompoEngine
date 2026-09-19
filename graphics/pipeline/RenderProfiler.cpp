@@ -371,6 +371,14 @@ void RenderProfiler::DrawImGui()
 		}
 		ImGui::SameLine();
 		ImGui::Text("描いた: %u    省いた: %u", objects->GetLastFrameDrawnCount(), objects->GetLastFrameCulledCount());
+
+		// 同じモデルをまとめて1回で描く分。切って比べられるようにしておく
+		bool instancing = objects->IsInstancingEnabled();
+		if (ImGui::Checkbox("同じモデルをまとめて描く", &instancing))
+		{
+			objects->SetInstancingEnabled(instancing);
+		}
+		ImGui::Text("まとめた: %u    まとまり: %u", objects->GetLastFrameInstancedCount(), objects->GetLastFrameInstancedGroupCount());
 		ImGui::TextDisabled("GameObject を描いた回数で、全ビュー（本編・モニター・反射）と影の合計。スキンメッシュは省かない");
 	}
 	float frameAverage = 0.0f;

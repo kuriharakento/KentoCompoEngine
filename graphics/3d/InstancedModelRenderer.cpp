@@ -12,6 +12,7 @@
 #include "graphics/pipeline/DrawCallCounter.h"
 #include <d3dcompiler.h>
 #include <cassert>
+#include <cstring>
 
 namespace KCE
 {
@@ -48,7 +49,7 @@ void InstancedModelRenderer::Initialize(DirectXCommon* dxCommon, SrvManager* srv
     srvManager_->CreateSRVforStructuredBuffer(srvIndex_, instancedResource_.Get(), maxInstances_, (UINT)elementSize);
 }
 
-void InstancedModelRenderer::UpdateBuffer(const Matrix4x4* matrices, uint32_t count, Camera* camera)
+void InstancedModelRenderer::UpdateBuffer(const Matrix4x4* matrices, uint32_t count, Camera* camera, bool applyRootMatrix)
 {
     currentInstanceCount_ = (count > maxInstances_) ? maxInstances_ : count;
     if (currentInstanceCount_ == 0 || !mappedMatrices_ || !camera)
@@ -61,7 +62,7 @@ void InstancedModelRenderer::UpdateBuffer(const Matrix4x4* matrices, uint32_t co
 
     // モデルのルートノード行列を取得（座標系変換や初期スケールが含まれる場合がある）
     Matrix4x4 rootMatrix = MakeIdentity4x4();
-    if (model_)
+    if (model_ && applyRootMatrix)
     {
         rootMatrix = model_->GetModelData().rootNode.localMatrix;
     }
@@ -80,6 +81,16 @@ void InstancedModelRenderer::UpdateBuffer(const Matrix4x4* matrices, uint32_t co
 
         mappedData[i] = data;
     }
+}
+
+void InstancedModelRenderer::UpdateBufferDirect(const TransformationMatrix* data, uint32_t count)
+{
+    currentInstanceCount_ = (count > maxInstances_) ? maxInstances_ : count;
+    if (currentInstanceCount_ == 0 || !mappedMatrices_ || !data)
+    {
+        return;
+    }
+    std::memcpy(mappedMatrices_, data, sizeof(TransformationMatrix) * currentInstanceCount_);
 }
 
 void InstancedModelRenderer::DrawInstanced(Camera* camera, LightManager* lightManager, ShadowMapManager* shadowMapManager)

@@ -167,7 +167,7 @@ public: /*========[ セッター ]========*/
 	 * @brief モデルの設定（ムーブ）
 	 * @param model 設定するモデル
 	 */
-	void SetModel(std::unique_ptr<Model> model) { model_ = std::move(model); }
+	void SetModel(std::unique_ptr<Model> model) { model_ = std::move(model); modelName_.clear(); }
 
 	/**
 	 * @brief モデルの設定（ファイルパスから）
@@ -177,7 +177,12 @@ public: /*========[ セッター ]========*/
 	{
 		Model* model = ModelManager::GetInstance()->FindModel(filePath);
 		model_ = model ? std::make_unique<Model>(*model) : nullptr;
+		// 素材をいじれるようモデルは1体ごとに複製する。まとめて描くときに元を引き直せるよう、名前を控えておく
+		modelName_ = model ? filePath : std::string();
 	}
+
+	/** @return SetModel で指定したモデル名。unique_ptr で直接差し替えた場合は空 */
+	const std::string& GetModelName() const { return modelName_; }
 
 	/**
 	 * @brief モデルの取得
@@ -214,6 +219,12 @@ public: /*========[ セッター ]========*/
 	 * @return ワールド行列
 	 */
 	Matrix4x4 GetWorldMatrix() const override { return transformationMatrixData_ ? transformationMatrixData_->World : MakeIdentity4x4(); }
+
+	/**
+	 * @return このフレームの行列（ワールドと逆転置は確定済み、WVP は直前に描いたビューの物）。
+	 *         まとめて描くときに計算し直さないために読む。まだ作られていなければ nullptr
+	 */
+	const TransformationMatrix* GetTransformationMatrixData() const { return transformationMatrixData_; }
 
 	/**
 	 * @brief 色の設定
@@ -297,6 +308,8 @@ public: /*========[ セッター ]========*/
 	 * @param shadowMapManager シャドウマップマネージャーへのポインタ
 	 */
 	void SetShadowMapManager(ShadowMapManager* shadowMapManager) { shadowMapManager_ = shadowMapManager; }
+	/** @return 設定されていればカスケードシャドウの管理。所有しない */
+	ShadowMapManager* GetShadowMapManager() const { return shadowMapManager_; }
 
 	/**
 	 * @brief シャドウの無効化
@@ -387,6 +400,8 @@ private: /*========[ メンバ変数 ]========*/
 
 	// モデル
 	std::unique_ptr<Model> model_ = nullptr;
+	// SetModel(ファイル名) で指定したモデル名。まとめて描くときのまとめ分けに使う
+	std::string modelName_;
 
 	// ライトマネージャーへのポインタ
 	LightManager* lightManager_ = nullptr;

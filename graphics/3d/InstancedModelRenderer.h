@@ -36,8 +36,18 @@ public:
      * @param matrices 描画対象のTransform(ワールド行列)配列
      * @param count 有効なインスタンス数
      * @param camera 使用するカメラ（WVP計算用）
+     * @param applyRootMatrix モデルのルートノード行列を掛けるか。
+     *        渡す行列に既に掛かっている場合（Object3d のワールド行列など）は false にする
      */
-    void UpdateBuffer(const Matrix4x4* matrices, uint32_t count, Camera* camera);
+    void UpdateBuffer(const Matrix4x4* matrices, uint32_t count, Camera* camera, bool applyRootMatrix = true);
+
+    /**
+     * @brief 計算済みの行列をそのまま入れる
+     * @param data WVP・ワールド・逆転置まで作ってある行列の配列
+     * @param count 有効なインスタンス数
+     * @details 呼ぶ側が既に行列を持っている場合に使う。ここでは何も計算しない
+     */
+    void UpdateBufferDirect(const TransformationMatrix* data, uint32_t count);
 
     /**
      * @brief インスタンス描画命令の発行
