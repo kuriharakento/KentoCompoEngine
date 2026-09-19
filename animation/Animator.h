@@ -132,9 +132,11 @@ private:
 	float playbackSpeed_ = 1.0f;
 
 	// 共有しない場合と、停止中のポーズを保持する領域
-	AnimationPose localPose_;
+	mutable AnimationPose localPose_;
 	// キャッシュが所有するポーズ。次のフレームまでの非所有参照
-	const AnimationPose* sharedPose_ = nullptr;
+	mutable const AnimationPose* sharedPose_ = nullptr;
+	// sharedPose_ を受け取ったフレーム。次のフレームには枠が使い回されている前提で扱う
+	mutable uint64_t sharedPoseFrame_ = 0;
 
 	bool poseSharingEnabled_ = true;
 	// 既定は30fps相当。再生時刻そのものは丸めない

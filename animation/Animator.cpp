@@ -154,7 +154,9 @@ void Animator::CalculateBoneTransforms(bool allowSharing)
 	if (poseSharingEnabled_ && allowSharing)
 	{
 		const AnimationPoseKey key = MakePoseKey(true);
-		sharedPose_ = &cache.FindOrCreate(key, TimeManager::GetInstance().GetFrameCount());
+		const uint64_t frame = TimeManager::GetInstance().GetFrameCount();
+		sharedPose_ = &cache.FindOrCreate(key, frame);
+		sharedPoseFrame_ = frame;
 		return;
 	}
 	sharedPose_ = nullptr;
@@ -177,6 +179,18 @@ AnimationPoseKey Animator::MakePoseKey(bool quantizeTime) const
 
 const AnimationPose& Animator::GetActivePose() const
 {
-	return sharedPose_ ? *sharedPose_ : localPose_;
+	if (!sharedPose_)
+	{
+		return localPose_;
+	}
+	// 更新されなかったフレームに描かれると、共有の枠は別のポーズに使い回されているかもしれない。
+	// そのときは自分の領域へ計算し直して、以降はそれを使う
+	if (sharedPoseFrame_ != TimeManager::GetInstance().GetFrameCount())
+	{
+		AnimationPoseCache::GetInstance().Evaluate(MakePoseKey(false), localPose_);
+		sharedPose_ = nullptr;
+		return localPose_;
+	}
+	return *sharedPose_;
 }
 } // namespace KCE
