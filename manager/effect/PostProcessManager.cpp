@@ -27,6 +27,12 @@ constexpr int kMaxRadialSamples = 32;
 constexpr float kMinGamma = 0.01f;
 constexpr float kMaxColorMultiplier = 4.0f;
 constexpr float kMinLift = -1.0f;
+constexpr float kMaxScanlineCount = 2048.0f;
+constexpr float kScanlineCountDragSpeed = 1.0f;
+constexpr float kMaxDistortionStrength = 1.0f;
+constexpr float kMaxChromAberrationOffset = 0.05f;
+constexpr float kChromAberrationDragSpeed = 0.001f;
+constexpr float kMaxGrainSize = 8.0f;
 }
 
 PostProcessManager::PostProcessManager() {}
@@ -791,6 +797,126 @@ void PostProcessManager::DrawImGui()
 		if (ImGui::DragFloat("コントラスト", &contrast, kPostFxDragSpeed, kMinUnitValue, kMaxColorMultiplier, "%.2f"))
 		{
 			colorGradingEffect_->SetContrast(contrast);
+		}
+	}
+
+	if (ImGui::CollapsingHeader("グレースケール"))
+	{
+		bool enabled = grayscaleEffect_->IsEnabled();
+		if (ImGui::Checkbox("有効##Grayscale", &enabled))
+		{
+			grayscaleEffect_->SetEnabled(enabled);
+		}
+		float intensity = grayscaleEffect_->GetIntensity();
+		if (ImGui::DragFloat("強さ##Grayscale", &intensity, kPostFxDragSpeed, kMinUnitValue, kMaxUnitValue, "%.2f"))
+		{
+			grayscaleEffect_->SetIntensity(intensity);
+		}
+	}
+
+	if (ImGui::CollapsingHeader("ビネット"))
+	{
+		bool enabled = vignetteEffect_->IsEnabled();
+		if (ImGui::Checkbox("有効##Vignette", &enabled))
+		{
+			vignetteEffect_->SetEnabled(enabled);
+		}
+		float intensity = vignetteEffect_->GetIntensity();
+		if (ImGui::DragFloat("強さ##Vignette", &intensity, kPostFxDragSpeed, kMinUnitValue, kMaxUnitValue, "%.2f"))
+		{
+			vignetteEffect_->SetIntensity(intensity);
+		}
+		float radius = vignetteEffect_->GetRadius();
+		if (ImGui::DragFloat("半径##Vignette", &radius, kPostFxDragSpeed, kMinUnitValue, kMaxUnitValue, "%.2f"))
+		{
+			vignetteEffect_->SetRadius(radius);
+		}
+		float softness = vignetteEffect_->GetSoftness();
+		if (ImGui::DragFloat("柔らかさ##Vignette", &softness, kPostFxDragSpeed, kMinUnitValue, kMaxUnitValue, "%.2f"))
+		{
+			vignetteEffect_->SetSoftness(softness);
+		}
+		Vector3 color = vignetteEffect_->GetColor();
+		float colorValues[] = { color.x, color.y, color.z };
+		if (ImGui::ColorEdit3("色##Vignette", colorValues))
+		{
+			vignetteEffect_->SetColor({ colorValues[0], colorValues[1], colorValues[2] });
+		}
+	}
+
+	if (ImGui::CollapsingHeader("ノイズ"))
+	{
+		bool enabled = noiseEffect_->IsEnabled();
+		if (ImGui::Checkbox("有効##Noise", &enabled))
+		{
+			noiseEffect_->SetEnabled(enabled);
+		}
+		float intensity = noiseEffect_->GetIntensity();
+		if (ImGui::DragFloat("強さ##Noise", &intensity, kPostFxDragSpeed, kMinUnitValue, kMaxUnitValue, "%.2f"))
+		{
+			noiseEffect_->SetIntensity(intensity);
+		}
+		float grainSize = noiseEffect_->GetGrainSize();
+		if (ImGui::DragFloat("粒の大きさ##Noise", &grainSize, kPostFxDragSpeed, kMinUnitValue, kMaxGrainSize, "%.2f"))
+		{
+			noiseEffect_->SetGrainSize(grainSize);
+		}
+		float luminanceAffect = noiseEffect_->GetLuminanceAffect();
+		if (ImGui::DragFloat("暗部への効き##Noise", &luminanceAffect, kPostFxDragSpeed, kMinUnitValue, kMaxUnitValue, "%.2f"))
+		{
+			noiseEffect_->SetLuminanceAffect(luminanceAffect);
+		}
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("時間を送っている箇所が無いので、今はノイズが動きません");
+		}
+	}
+
+	if (ImGui::CollapsingHeader("CRT"))
+	{
+		bool enabled = crtEffect_->IsEnabled();
+		if (ImGui::Checkbox("有効##Crt", &enabled))
+		{
+			crtEffect_->SetEnabled(enabled);
+		}
+
+		// 以下の3つは CRT 全体が有効なときだけ効く
+		bool scanline = crtEffect_->IsScanlineEnabled();
+		if (ImGui::Checkbox("走査線##Crt", &scanline))
+		{
+			crtEffect_->SetScanlineEnabled(scanline ? 1 : 0);
+		}
+		float scanlineIntensity = crtEffect_->GetScanlineIntensity();
+		if (ImGui::DragFloat("走査線の強さ##Crt", &scanlineIntensity, kPostFxDragSpeed, kMinUnitValue, kMaxUnitValue, "%.2f"))
+		{
+			crtEffect_->SetScanlineIntensity(scanlineIntensity);
+		}
+		float scanlineCount = crtEffect_->GetScanlineCount();
+		if (ImGui::DragFloat("走査線の本数##Crt", &scanlineCount, kScanlineCountDragSpeed, kMinUnitValue, kMaxScanlineCount, "%.0f"))
+		{
+			crtEffect_->SetScanlineCount(scanlineCount);
+		}
+
+		bool distortion = crtEffect_->IsDistortionEnabled();
+		if (ImGui::Checkbox("樽型の歪み##Crt", &distortion))
+		{
+			crtEffect_->SetDistortionEnabled(distortion ? 1 : 0);
+		}
+		float distortionStrength = crtEffect_->GetDistortionStrength();
+		if (ImGui::DragFloat("歪みの強さ##Crt", &distortionStrength, kPostFxDragSpeed, kMinUnitValue, kMaxDistortionStrength, "%.2f"))
+		{
+			crtEffect_->SetDistortionStrength(distortionStrength);
+		}
+
+		bool chrom = crtEffect_->IsChromaticAberrationEnabled();
+		if (ImGui::Checkbox("色収差##Crt", &chrom))
+		{
+			crtEffect_->SetChromaticAberrationEnabled(chrom ? 1 : 0);
+		}
+		float chromOffset = crtEffect_->GetChromaticAberrationOffset();
+		if (ImGui::DragFloat("色収差のずれ量##Crt", &chromOffset, kChromAberrationDragSpeed, kMinUnitValue, kMaxChromAberrationOffset, "%.3f"))
+		{
+			crtEffect_->SetChromaticAberrationOffset(chromOffset);
 		}
 	}
 }
