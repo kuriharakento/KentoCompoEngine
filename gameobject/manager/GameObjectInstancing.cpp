@@ -81,18 +81,40 @@ Model* GameObjectInstancing::FindSharedModel(const Object3d* object3d)
 
 void GameObjectInstancing::Build(const std::vector<const GameObjectRenderer::Entry*>& visible, Camera* camera)
 {
+	if (!camera)
+	{
+		// ビューの行列が作れないなら、まとめずに今まで通り1体ずつ描く
+		singles_.clear();
+		activeGroups_.clear();
+		lastInstancedCount_ = 0;
+		lastGroupCount_ = 0;
+		singles_.insert(singles_.end(), visible.begin(), visible.end());
+		return;
+	}
+	const Matrix4x4 viewProjection = camera->GetViewProjectionMatrix();
+	BuildInternal(visible, &viewProjection);
+}
+
+void GameObjectInstancing::BuildForShadow(const std::vector<const GameObjectRenderer::Entry*>& visible)
+{
+	// 影のシェーダーが使うのはワールド行列とライトの行列だけなので、WVP は作らない
+	BuildInternal(visible, nullptr);
+}
+
+void GameObjectInstancing::BuildInternal(const std::vector<const GameObjectRenderer::Entry*>& visible, const Matrix4x4* viewProjection)
+{
 	singles_.clear();
 	activeGroups_.clear();
 	lastInstancedCount_ = 0;
 	lastGroupCount_ = 0;
 
-	if (!enabled_ || !camera || !dxCommon_ || !srvManager_)
+	if (!enabled_ || !dxCommon_ || !srvManager_)
 	{
 		singles_.insert(singles_.end(), visible.begin(), visible.end());
 		return;
 	}
 
-	for (auto& [name, group] : groups_)
+	for (auto& [model, group] : groups_)
 	{
 		group.entries.clear();
 		group.instanceData.clear();
@@ -116,15 +138,14 @@ void GameObjectInstancing::Build(const std::vector<const GameObjectRenderer::Ent
 	}
 
 	// まとまりが小さいとまとめても得しないので、そのぶんは1体ずつ描く
-	for (auto& [name, group] : groups_)
+	for (auto& [model, group] : groups_)
 	{
 		if (group.entries.size() < kMinInstancesPerGroup)
 		{
 			singles_.insert(singles_.end(), group.entries.begin(), group.entries.end());
 			continue;
 		}
-		// ワールドと逆転置は EnsureRenderTransform で確定済みなので使い回す。ここではビューの WVP だけ作る
-		const Matrix4x4 viewProjection = camera->GetViewProjectionMatrix();
+		// ワールドと逆転置は EnsureRenderTransform で確定済みなので使い回す。ここで作るのはビューの WVP だけ
 		for (const GameObjectRenderer::Entry* entry : group.entries)
 		{
 			const TransformationMatrix* source = entry->object3d->GetTransformationMatrixData();
@@ -137,7 +158,7 @@ void GameObjectInstancing::Build(const std::vector<const GameObjectRenderer::Ent
 			TransformationMatrix data;
 			data.World = source->World;
 			data.WorldInverseTranspose = source->WorldInverseTranspose;
-			data.WVP = source->World * viewProjection;
+			data.WVP = viewProjection ? (source->World * *viewProjection) : source->World;
 			group.instanceData.push_back(data);
 		}
 		if (!group.renderer)
@@ -169,12 +190,13 @@ void GameObjectInstancing::DrawGBuffer(Camera* camera)
 	}
 }
 
-void GameObjectInstancing::DrawShadow(Camera* camera, ShadowMapManager* shadowMapManager)
+void GameObjectInstancing::DrawShadow(ShadowMapManager* shadowMapManager)
 {
 	for (Group* group : activeGroups_)
 	{
 		group->renderer->UpdateBufferDirect(group->instanceData.data(), static_cast<uint32_t>(group->instanceData.size()));
-		group->renderer->DrawInstancedShadow(camera, shadowMapManager);
+		// 影のシェーダーはカメラを見ないので渡さない
+		group->renderer->DrawInstancedShadow(nullptr, shadowMapManager);
 	}
 }
 } // namespace KCE

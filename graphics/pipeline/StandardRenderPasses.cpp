@@ -180,6 +180,8 @@ void ShadowMapPass::Execute(const RenderPassContext& ctx)
 
 	auto* commandList = ctx.dxCommon->GetCommandList();
 	ctx.shadowMapManager->BeginFrame();
+	// まとめて描く分でパイプラインを切り替えた後に戻せるよう、影の描画設定を教えておく
+	GameObjectManager::GetInstance()->SetShadowMapPipeline(ctx.shadowMapPipeline);
 
 	// カスケードシャドウ行列を計算する
 	ctx.lightManager->UpdateCascadeShadowMatrices(

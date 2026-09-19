@@ -17,6 +17,7 @@
 #include "math/AABB.h"
 #include "graphics/3d/Object3dCommon.h"
 #include "graphics/deferred/GBufferPipeline.h"
+#include "graphics/shadow/ShadowMapPipeline.h"
 #include "time/TimeManager.h"
 
 namespace KCE
@@ -263,7 +264,21 @@ void GameObjectManager::PrepareInstancing(const std::vector<const GameObjectRend
 		instancing_.Initialize(cachedObject3dCommon_->GetDXCommon(), cachedObject3dCommon_->GetSrvManager());
 	}
 	instancing_.Build(visible, camera);
+	CountInstanced();
+}
 
+void GameObjectManager::PrepareShadowInstancing(const std::vector<const GameObjectRenderer::Entry*>& visible)
+{
+	if (cachedObject3dCommon_)
+	{
+		instancing_.Initialize(cachedObject3dCommon_->GetDXCommon(), cachedObject3dCommon_->GetSrvManager());
+	}
+	instancing_.BuildForShadow(visible);
+	CountInstanced();
+}
+
+void GameObjectManager::CountInstanced()
+{
 	// 数はフレーム番号で締める（ビューごとに足していく）
 	const uint64_t frame = TimeManager::GetInstance().GetFrameCount();
 	if (frame != instancedCountedFrame_)
@@ -404,7 +419,16 @@ void GameObjectManager::DrawShadow(Camera* camera)
 	(void)camera;
 	renderer_.EnsureCollected(gameObjects_);
 	// ライトの行列は ShadowMapPass が設定する。無いとき（ポイントライト）は省かない
-	for (const GameObjectRenderer::Entry* entry : renderer_.GatherVisible(GameObjectRenderer::Pass::Shadow, shadowCullingViewProjection_, kRenderLayerAll))
+	const auto& visible = renderer_.GatherVisible(GameObjectRenderer::Pass::Shadow, shadowCullingViewProjection_, kRenderLayerAll);
+	// 見える物はライトごとに違うので、ライトごとにまとめ直す
+	PrepareShadowInstancing(visible);
+	instancing_.DrawShadow(instancing_.GetShadowMapManagerFromObjects());
+	if (instancing_.GetLastGroupCount() > 0 && shadowMapPipeline_)
+	{
+		// まとめて描く分でパイプラインを切り替えたので、1体ずつ描く分のために戻す
+		shadowMapPipeline_->SetPipeline();
+	}
+	for (const GameObjectRenderer::Entry* entry : instancing_.GetSingles())
 	{
 		entry->renderable->DrawShadowOnly();
 	}

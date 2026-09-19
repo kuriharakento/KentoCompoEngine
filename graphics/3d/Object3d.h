@@ -218,13 +218,14 @@ public: /*========[ セッター ]========*/
 	 * @brief ワールド行列の取得
 	 * @return ワールド行列
 	 */
-	Matrix4x4 GetWorldMatrix() const override { return transformationMatrixData_ ? transformationMatrixData_->World : MakeIdentity4x4(); }
+	Matrix4x4 GetWorldMatrix() const override { return cpuMatrices_.World; }
 
 	/**
 	 * @return このフレームの行列（ワールドと逆転置は確定済み、WVP は直前に描いたビューの物）。
-	 *         まとめて描くときに計算し直さないために読む。まだ作られていなければ nullptr
+	 *         まとめて描くときに計算し直さないために読む。まだ作られていなければ nullptr。
+	 *         GPU のアップロード領域は読むと遅いので、CPU 側の写しを返す
 	 */
-	const TransformationMatrix* GetTransformationMatrixData() const { return transformationMatrixData_; }
+	const TransformationMatrix* GetTransformationMatrixData() const { return transformationMatrixData_ ? &cpuMatrices_ : nullptr; }
 
 	/**
 	 * @brief 色の設定
@@ -388,6 +389,8 @@ private: /*========[ 描画用変数 ]========*/
 
 	// 座標変換行列データへのポインタ
 	TransformationMatrix* transformationMatrixData_ = nullptr;
+	// 上と同じ中身の CPU 側の写し。アップロード領域は書き込み向けで読むと遅いので、読むときはこちらを見る
+	TransformationMatrix cpuMatrices_{ MakeIdentity4x4(), MakeIdentity4x4(), MakeIdentity4x4() };
 	// ディレクショナルライトデータへのポインタ
 	DirectionalLight* directionalLightData_ = nullptr;
 	// カメラデータへのポインタ

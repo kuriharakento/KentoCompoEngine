@@ -55,6 +55,14 @@ public:
 	 */
 	void Build(const std::vector<const GameObjectRenderer::Entry*>& visible, Camera* camera);
 
+	/**
+	 * @brief 影のパス用にまとめ分けする
+	 * @param visible そのライト（カスケード1枚・スポット1つ）で見えている物
+	 * @details 影のシェーダーはワールド行列とライトの行列しか使わないので、ビューの行列は要らない。
+	 *          見える物はライトごとに違うので、ライトごとに呼ぶ
+	 */
+	void BuildForShadow(const std::vector<const GameObjectRenderer::Entry*>& visible);
+
 	/** @brief Build でまとめられなかった物。次に Build を呼ぶまで有効 */
 	const std::vector<const GameObjectRenderer::Entry*>& GetSingles() const { return singles_; }
 
@@ -63,7 +71,7 @@ public:
 	/** @brief まとめた分を描く（G-Buffer） */
 	void DrawGBuffer(Camera* camera);
 	/** @brief まとめた分を描く（影） */
-	void DrawShadow(Camera* camera, ShadowMapManager* shadowMapManager);
+	void DrawShadow(ShadowMapManager* shadowMapManager);
 
 	/** @brief Build のときに描画物から拾ったカスケードシャドウの管理。無ければ nullptr */
 	ShadowMapManager* GetShadowMapManagerFromObjects() const { return shadowMapManagerFromObjects_; }
@@ -86,6 +94,12 @@ public:
 	uint32_t GetLastGroupCount() const { return lastGroupCount_; }
 
 private:
+	/**
+	 * @brief まとめ分けの本体
+	 * @param viewProjection ビューの行列。nullptr なら WVP を作らない（影のパス）
+	 */
+	void BuildInternal(const std::vector<const GameObjectRenderer::Entry*>& visible, const Matrix4x4* viewProjection);
+
 	struct Group
 	{
 		// ModelManager が持つ元のモデル。所有しない

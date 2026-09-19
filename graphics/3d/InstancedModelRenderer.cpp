@@ -215,7 +215,11 @@ void InstancedModelRenderer::DrawInstancedShadow(Camera* camera, ShadowMapManage
         commandList->SetGraphicsRootConstantBufferView(0, shadowMatrixAddr);
     }
     commandList->SetGraphicsRootShaderResourceView(1, instancedResource_->GetGPUVirtualAddress());
-    commandList->SetGraphicsRootConstantBufferView(4, camera->GetConstantBufferAddress());
+    // 影のシェーダーはカメラを見ないので、渡されなければ何も入れない
+    if (camera)
+    {
+        commandList->SetGraphicsRootConstantBufferView(4, camera->GetConstantBufferAddress());
+    }
 
     // 3. メッシュごとの描画 (影用なのでマテリアルやテクスチャは不要)
     for (const auto& mesh : model_->GetMeshResources())

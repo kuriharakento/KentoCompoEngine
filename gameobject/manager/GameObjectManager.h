@@ -20,6 +20,7 @@ class Object3d;
 class IRenderable3d;
 class LightManager;
 class GBufferPipeline;
+class ShadowMapPipeline;
 
 /**
  * @brief GameObjectを一括管理するマネージャークラス（シングルトン）
@@ -206,6 +207,13 @@ public:
 	 */
 	void SetGBufferPipeline(GBufferPipeline* pipeline) { gBufferPipeline_ = pipeline; }
 
+	/**
+	 * @brief 影を描く間の描画設定を持っているパイプラインを教える
+	 * @details G-Buffer と同じ理由で、まとめて描いた後に1体ずつ描く分のために戻す必要がある。
+	 *          ShadowMapPass が毎フレーム設定する（所有しない）
+	 */
+	void SetShadowMapPipeline(ShadowMapPipeline* pipeline) { shadowMapPipeline_ = pipeline; }
+
 	/** @brief 同じモデルをまとめて1回で描くのを使うか（比べるときに切る） */
 	void SetInstancingEnabled(bool enabled) { instancing_.SetEnabled(enabled); }
 	bool IsInstancingEnabled() const { return instancing_.IsEnabled(); }
@@ -243,6 +251,15 @@ private:
 	 */
 	void PrepareInstancing(const std::vector<const GameObjectRenderer::Entry*>& visible, Camera* camera);
 
+	/**
+	 * @brief 影のパス用にまとめ分けする
+	 * @param visible そのライトで見えている物
+	 */
+	void PrepareShadowInstancing(const std::vector<const GameObjectRenderer::Entry*>& visible);
+
+	/** @brief まとめて描いた数をこのフレームに足す */
+	void CountInstanced();
+
 private:
 	static std::unique_ptr<GameObjectManager> instance_;
 
@@ -266,6 +283,8 @@ private:
 	GameObjectInstancing instancing_;
 	// G-Buffer パスの描画設定。DeferredRenderer が持つ（所有しない）
 	GBufferPipeline* gBufferPipeline_ = nullptr;
+	// 影のパスの描画設定。ShadowSystem が持つ（所有しない）
+	ShadowMapPipeline* shadowMapPipeline_ = nullptr;
 	// 前のフレームにまとめて描いた数（全ビューの合計）
 	uint32_t lastFrameInstancedCount_ = 0;
 	uint32_t lastFrameInstancedGroupCount_ = 0;

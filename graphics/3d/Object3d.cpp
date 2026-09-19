@@ -275,16 +275,18 @@ void Object3d::UpdateMatrix(Camera* camera)
 	if (model_)
 	{
 		const Matrix4x4& local = model_->GetModelData().rootNode.localMatrix;
-		transformationMatrixData_->WVP = local * worldViewProjectionMatrix;
-		transformationMatrixData_->World = local * worldMatrix;
+		cpuMatrices_.WVP = local * worldViewProjectionMatrix;
+		cpuMatrices_.World = local * worldMatrix;
 	}
 	else
 	{
-		transformationMatrixData_->WVP = worldViewProjectionMatrix;
-		transformationMatrixData_->World = worldMatrix;
+		cpuMatrices_.WVP = worldViewProjectionMatrix;
+		cpuMatrices_.World = worldMatrix;
 	}
 
-	transformationMatrixData_->WorldInverseTranspose = worldInverseTransposeMatrix;
+	cpuMatrices_.WorldInverseTranspose = worldInverseTransposeMatrix;
+	// GPU のアップロード領域へはまとめて1回だけ書く
+	*transformationMatrixData_ = cpuMatrices_;
 
 	// ライト情報を更新（LightManagerからディレクショナルライトを同期）
 	if (directionalLightData_ && lightManager_)
@@ -308,7 +310,8 @@ void Object3d::UpdateWorldMatrix()
 	if (model_)
 	{
 		const Matrix4x4& local = model_->GetModelData().rootNode.localMatrix;
-		transformationMatrixData_->World = local * worldMatrix;
+		cpuMatrices_.World = local * worldMatrix;
+		*transformationMatrixData_ = cpuMatrices_;
 	}
 	
 }
@@ -348,16 +351,18 @@ void Object3d::UpdateMatrixWithWorld(const Matrix4x4& worldMatrix, Camera* camer
 	if (model_)
 	{
 		const Matrix4x4& local = model_->GetModelData().rootNode.localMatrix;
-		transformationMatrixData_->WVP = local * worldViewProjectionMatrix;
-		transformationMatrixData_->World = local * worldMatrix;
+		cpuMatrices_.WVP = local * worldViewProjectionMatrix;
+		cpuMatrices_.World = local * worldMatrix;
 	}
 	else
 	{
-		transformationMatrixData_->WVP = worldViewProjectionMatrix;
-		transformationMatrixData_->World = worldMatrix;
+		cpuMatrices_.WVP = worldViewProjectionMatrix;
+		cpuMatrices_.World = worldMatrix;
 	}
 
-	transformationMatrixData_->WorldInverseTranspose = worldInverseTransposeMatrix;
+	cpuMatrices_.WorldInverseTranspose = worldInverseTransposeMatrix;
+	// GPU のアップロード領域へはまとめて1回だけ書く
+	*transformationMatrixData_ = cpuMatrices_;
 }
 
 void Object3d::CreateWvpData()
