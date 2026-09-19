@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "gameobject/base/GameObject.h"
+#include "gameobject/component/base/IRenderableComponent.h"
 #include "graphics/3d/IRenderable3d.h"
 #include "graphics/3d/Object3d.h"
 #include "math/Frustum.h"
@@ -56,6 +57,24 @@ bool MatchesPass(const GameObjectRenderer::Entry& entry, GameObjectRenderer::Pas
 }
 } // namespace
 
+void GameObjectRenderer::AddEntry(GameObject* object, IRenderable3d* renderable, bool castShadow)
+{
+	Entry entry;
+	entry.object = object;
+	entry.renderable = renderable;
+	AABB localBounds;
+	entry.hasBounds = renderable->TryGetLocalBounds(localBounds);
+	if (entry.hasBounds)
+	{
+		entry.worldBounds = TransformBounds(localBounds, renderable->GetWorldMatrix());
+	}
+	entry.layer = object->GetRenderLayer();
+	entry.queue = renderable->GetRenderQueue();
+	entry.renderingType = renderable->GetRenderingType();
+	entry.castShadow = castShadow;
+	entries_.push_back(entry);
+}
+
 void GameObjectRenderer::Collect(const std::vector<GameObject*>& roots)
 {
 	entries_.clear();
@@ -72,23 +91,20 @@ void GameObjectRenderer::Collect(const std::vector<GameObject*>& roots)
 		object->EnsureRenderTransform();
 		if (IRenderable3d* renderable = object->GetRenderable3d())
 		{
-			Entry entry;
-			entry.object = object;
-			entry.renderable = renderable;
-			AABB localBounds;
-			entry.hasBounds = renderable->TryGetLocalBounds(localBounds);
-			if (entry.hasBounds)
-			{
-				entry.worldBounds = TransformBounds(localBounds, renderable->GetWorldMatrix());
-			}
-			entry.layer = object->GetRenderLayer();
-			entry.queue = renderable->GetRenderQueue();
-			entry.renderingType = renderable->GetRenderingType();
+			bool castShadow = true;
 			if (const Object3d* object3d = object->GetObject3d())
 			{
-				entry.castShadow = object3d->GetCastShadow();
+				castShadow = object3d->GetCastShadow();
 			}
-			entries_.push_back(entry);
+			AddEntry(object, renderable, castShadow);
+		}
+		// 描画物を持つコンポーネント（ModelRendererComponent など）も同じ一覧に入れる
+		for (const GameObjectComponent::IRenderableComponent* renderer : object->GetRenderableComponents())
+		{
+			if (IRenderable3d* renderable = renderer->GetRenderable3d())
+			{
+				AddEntry(object, renderable, renderer->GetCastShadow());
+			}
 		}
 		for (const auto& [name, child] : object->GetChildren())
 		{

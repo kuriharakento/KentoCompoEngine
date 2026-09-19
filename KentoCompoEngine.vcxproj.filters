@@ -100,6 +100,9 @@
     <Filter Include="gameobject\component\collision">
       <UniqueIdentifier>{BBCDF40B-D3E0-F2C0-A002-EABFE1C27DD0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="gameobject\component\render">
+      <UniqueIdentifier>{11DE619A-D3D3-4C3E-8F51-7FF6C2987F24}</UniqueIdentifier>
+    </Filter>
     <Filter Include="gameobject\manager">
       <UniqueIdentifier>{4A09B422-6E9F-1643-B156-B33340B14893}</UniqueIdentifier>
     </Filter>
@@ -395,6 +398,9 @@
     </ClCompile>
     <ClCompile Include="gameobject\manager\GameObjectManager.cpp">
       <Filter>gameobject\manager</Filter>
+    </ClCompile>
+    <ClCompile Include="gameobject\component\render\ModelRendererComponent.cpp">
+      <Filter>gameobject\component\render</Filter>
     </ClCompile>
     <ClCompile Include="gameobject\manager\GameObjectRenderer.cpp">
       <Filter>gameobject\manager</Filter>
@@ -985,6 +991,12 @@
     </ClInclude>
     <ClInclude Include="gameobject\manager\GameObjectManager.h">
       <Filter>gameobject\manager</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\component\base\IRenderableComponent.h">
+      <Filter>gameobject\component\base</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\component\render\ModelRendererComponent.h">
+      <Filter>gameobject\component\render</Filter>
     </ClInclude>
     <ClInclude Include="gameobject\manager\GameObjectRenderer.h">
       <Filter>gameobject\manager</Filter>

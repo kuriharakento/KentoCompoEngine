@@ -333,15 +333,25 @@ void GameObject::UpdateTransform(CameraManager* camera)
 
 void GameObject::EnsureRenderTransform()
 {
-	if (!renderable3d_) { return; }
 	const uint64_t frame = TimeManager::GetInstance().GetFrameCount();
 	if (renderTransformFrame_ == frame) { return; }
 
 	// 子は親の行列を掛けるので、親を先に確定させる
 	if (parent_) { parent_->EnsureRenderTransform(); }
 	renderTransformFrame_ = frame;
+
+	// 描画物を持たない GameObject でも、子が使えるようにワールド行列は作っておく
+	const Matrix4x4 localMatrix = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
+	renderWorldMatrix_ = parent_ ? localMatrix * parent_->renderWorldMatrix_ : localMatrix;
 	// ビューに依存する WVP は Object3d が描く直前に作るので、カメラは渡さない（既定のカメラで作られる分は使われない）
 	ApplyTransformToObject3D(nullptr);
+	// 子は今まで通り描画物のワールド行列（モデルのローカル行列を含む）に乗せる
+	if (renderable3d_) { renderWorldMatrix_ = renderable3d_->GetWorldMatrix(); }
+
+	for (GameObjectComponent::IRenderableComponent* renderer : renderableComponents_)
+	{
+		renderer->UpdateRenderTransform();
+	}
 }
 
 void GameObject::UpdateWorldMatrix()
@@ -472,7 +482,8 @@ void GameObject::ApplyTransformToObject3D(CameraManager* camera)
 			transform_.translate
 		);
 
-		Matrix4x4 parentWorldMatrix = parent_->renderable3d_->GetWorldMatrix();
+		// 親が描画物を持たないこともあるので、確定させたワールド行列を使う
+		Matrix4x4 parentWorldMatrix = parent_->renderable3d_ ? parent_->renderable3d_->GetWorldMatrix() : parent_->renderWorldMatrix_;
 		Matrix4x4 worldMatrix = localMatrix * parentWorldMatrix;
 
 		renderable3d_->UpdateMatrixWithWorld(worldMatrix, camera ? camera->GetActiveCamera() : nullptr);
@@ -528,6 +539,11 @@ GameObjectComponent::Component* GameObject::AddComponentImmediate(std::unique_pt
 	result->awakeCalled_ = true;
 	components_.push_back(std::move(comp));
 	componentTypeNames_.push_back(typeName);
+	if (auto* renderer = dynamic_cast<GameObjectComponent::IRenderableComponent*>(result))
+	{
+		// 型を見るのは追加のときだけ。毎フレームは一覧をそのまま回す
+		renderableComponents_.push_back(renderer);
+	}
 	SyncComponentActivation();
 	return result;
 }
@@ -549,6 +565,10 @@ void GameObject::RemoveComponentImmediate(const std::string& name)
 	}
 	component->OnDestroy();
 	component->destroyed_ = true;
+	if (auto* renderer = dynamic_cast<GameObjectComponent::IRenderableComponent*>(component.get()))
+	{
+		std::erase(renderableComponents_, renderer);
+	}
 	components_.erase(components_.begin() + index);
 	componentTypeNames_.erase(nameIt);
 }

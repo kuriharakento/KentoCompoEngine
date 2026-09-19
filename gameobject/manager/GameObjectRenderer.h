@@ -86,6 +86,9 @@ public:
 	size_t GetEntryCount() const { return entries_.size(); }
 
 private:
+	/** @brief 一覧に1つ足す。本体の描画物と、描画物を持つコンポーネントの両方から呼ぶ */
+	void AddEntry(GameObject* object, IRenderable3d* renderable, bool castShadow);
+
 	/** @brief フレームが変わっていたら、数を前のフレームへ締める */
 	void RollCounters();
 

@@ -75,6 +75,7 @@
     <ClCompile Include="gameobject\component\collision\RayCollider.cpp" />
     <ClCompile Include="gameobject\component\collision\SphereCollider.cpp" />
     <ClCompile Include="gameobject\manager\GameObjectManager.cpp" />
+    <ClCompile Include="gameobject\component\render\ModelRendererComponent.cpp" />
     <ClCompile Include="gameobject\manager\GameObjectRenderer.cpp" />
     <ClCompile Include="graphics\2d\FontSprite.cpp" />
     <ClCompile Include="graphics\2d\NumberSprite.cpp" />
@@ -277,6 +278,8 @@
     <ClInclude Include="gameobject\component\collision\RayCollider.h" />
     <ClInclude Include="gameobject\component\collision\SphereCollider.h" />
     <ClInclude Include="gameobject\manager\GameObjectManager.h" />
+    <ClInclude Include="gameobject\component\base\IRenderableComponent.h" />
+    <ClInclude Include="gameobject\component\render\ModelRendererComponent.h" />
     <ClInclude Include="gameobject\manager\GameObjectRenderer.h" />
     <ClInclude Include="graphics\2d\FontSprite.h" />
     <ClInclude Include="graphics\2d\NumberSprite.h" />

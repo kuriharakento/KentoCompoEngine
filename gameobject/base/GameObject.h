@@ -16,6 +16,7 @@
 #include "engine/gameobject/component/base/Behaviour.h"
 #include "engine/gameobject/component/base/Collider.h"
 #include "engine/gameobject/component/base/ComponentFactory.h"
+#include "engine/gameobject/component/base/IRenderableComponent.h"
 // json
 #include "jsonEditor/JsonEditableBase.h"
 // core
@@ -289,6 +290,19 @@ public: // アクセッサ
 	IRenderable3d* GetRenderable3d() const { return renderable3d_.get(); }
 
 	/**
+	 * @brief 描く物を持つコンポーネントの一覧
+	 * @details コンポーネントの追加・削除のときに作り直すので、毎フレームの型判定は要らない。
+	 *          GameObjectRenderer が本体の描画物と一緒に集める。所有権は移らない
+	 */
+	const std::vector<GameObjectComponent::IRenderableComponent*>& GetRenderableComponents() const { return renderableComponents_; }
+
+	/**
+	 * @brief EnsureRenderTransform で確定させた、このフレームの描画用ワールド行列
+	 * @details 描画物を持たない GameObject でも正しい値が入る。子はこれに自分のローカル行列を掛ける
+	 */
+	const Matrix4x4& GetRenderWorldMatrix() const { return renderWorldMatrix_; }
+
+	/**
 	 * @brief Object3Dインスタンスの取得（互換用）
 	 * @return Object3Dのポインタ（静的モデルの場合のみ有効）
 	 */
@@ -547,6 +561,10 @@ private:
 	bool isDestroying_ = false;
 	// 描画用の行列を最後に確定させたフレーム（TimeManager のフレーム番号）。同じフレームでは計算し直さない
 	uint64_t renderTransformFrame_ = UINT64_MAX;
+	// このフレームの描画用ワールド行列。描画物があればその行列に合わせる（モデルのローカル行列まで含んだもの）
+	Matrix4x4 renderWorldMatrix_ = MakeIdentity4x4();
+	// 描く物を持つコンポーネント。components_ の中身を指すだけで所有しない
+	std::vector<GameObjectComponent::IRenderableComponent*> renderableComponents_;
 
 	// === オブジェクト基本情報 ===
 	// オブジェクトのタグ（分類用）
