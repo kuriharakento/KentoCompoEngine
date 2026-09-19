@@ -55,7 +55,27 @@ public:
      * @param inputTexture 入力テクスチャ
      * @details ブルームが有効な場合はマルチパス処理、それ以外はシングルパス処理を行う
      */
-    void Draw(RenderTexture* inputTexture, RenderTexture* outputRT = nullptr);
+    void Draw(RenderTexture* inputTexture, RenderTexture* outputRT = nullptr, RenderTexture* selectiveBloomSource = nullptr);
+
+    /**
+     * @brief ブルームが有効か
+     * @return 有効なら true
+     */
+    bool IsBloomEnabled() const { return bloomEffect_ && bloomEffect_->IsEnabled(); }
+
+    /**
+     * @brief 選択的ブルームが有効か
+     * @return 有効なら true
+     * @details 明るさで拾うのではなく、発光用のRTに書かれたものだけをぼかす。
+     *          ブルーム自体が切れていれば false。
+     */
+    bool IsSelectiveBloomEnabled() const { return IsBloomEnabled() && selectiveBloomModeEnabled_; }
+
+    /**
+     * @brief 選択的ブルームの有効無効を切り替える
+     * @param enabled 有効にするなら true
+     */
+    void SetSelectiveBloomModeEnabled(bool enabled) { selectiveBloomModeEnabled_ = enabled; }
 
     /**
      * @brief ブライトパスレンダリング
@@ -188,7 +208,7 @@ private:
      * @brief ブルーム付きレンダリング
      * @param inputTexture 入力テクスチャ
      */
-    void RenderWithBloom(RenderTexture* inputTexture, RenderTexture* outputRT = nullptr);
+    void RenderWithBloom(RenderTexture* inputTexture, RenderTexture* outputRT = nullptr, RenderTexture* selectiveBloomSource = nullptr);
 
     /**
      * @brief ブルーム用レンダーターゲットが設定されているかチェック
@@ -221,6 +241,9 @@ private:
 
     RenderTexture* brightPassRT_ = nullptr;      // ブライトパス用レンダーターゲット
     RenderTexture* blurRT_[2] = { nullptr, nullptr }; // ブラー用レンダーターゲット
+    // 選択的ブルームを使うか。既定はOFF。ONにすると明るさで拾う通常のブルームは
+    // 効かなくなり、発光を有効にしたものだけが光る
+    bool selectiveBloomModeEnabled_ = false;
 
     PostEffectParams params_;    // 現在のエフェクトパラメータ
     PostEffectParams preParams_; // 前フレームのエフェクトパラメータ

@@ -93,6 +93,13 @@ public:
 	GBuffer* GetGBuffer() const { return gBuffer_.get(); }
 	RenderTexture* GetSceneColor() const { return sceneColor_.get(); }
 
+	/**
+	 * @brief 選択的ブルーム用の発光バッファを取得
+	 * @return 発光バッファ。所有しない
+	 * @details 光らせたいものだけがここに書く。ポストプロセスはこれをぼかしてシーンに足す。
+	 */
+	RenderTexture* GetBloomMask() const { return bloomMask_.get(); }
+
 	uint32_t GetWidth() const { return width_; }
 	uint32_t GetHeight() const { return height_; }
 
@@ -186,6 +193,8 @@ private:
 	std::unique_ptr<GBuffer> gBuffer_;
 	// シーンの描画結果（HDR）
 	std::unique_ptr<RenderTexture> sceneColor_;
+	// 選択的ブルーム用。シーンカラーと同じ大きさ・形式で持つ
+	std::unique_ptr<RenderTexture> bloomMask_;
 
 	uint32_t width_ = 0;
 	uint32_t height_ = 0;

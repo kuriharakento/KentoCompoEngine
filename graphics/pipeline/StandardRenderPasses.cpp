@@ -23,6 +23,7 @@
 #include "gameobject/base/GameObject.h"
 #include "gameobject/manager/GameObjectManager.h"
 #include "manager/effect/PostProcessManager.h"
+#include "manager/effect/ParticlePipelineManager.h"
 #include "manager/graphics/LineManager.h"
 #include "manager/graphics/ShadowMapManager.h"
 #include "manager/scene/CameraManager.h"
@@ -428,7 +429,26 @@ void TransparentPass::Execute(const RenderPassContext& ctx)
 		ctx.dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(kRootParamShadowMatrix, ctx.lightManager->GetShadowMatrixGPUAddress());
 	}
 	ctx.sceneManager->DrawTransparent();
+
+	// パーティクルだけは発光バッファにも書ける。光らせたいものがここしか無いので、
+	// MRT にするのもこの描画の間だけにして、他のパスは1枚のままにしておく
+	RenderTexture* bloomMask = ctx.view->GetBloomMask();
+	const bool selectiveBloom = ctx.postProcessManager && bloomMask &&
+		ctx.postProcessManager->IsSelectiveBloomEnabled();
+	ParticleManager::GetInstance()->GetPipelineManager()->SetSelectiveBloomOutputEnabled(selectiveBloom);
+	if (selectiveBloom)
+	{
+		bloomMask->PrepareAsRenderTarget();
+		const D3D12_CPU_DESCRIPTOR_HANDLE targets[] = { rtv, bloomMask->GetRTVHandle() };
+		ctx.dxCommon->GetCommandList()->OMSetRenderTargets(2, targets, FALSE, &dsv);
+	}
 	ParticleManager::GetInstance()->Draw();
+	if (selectiveBloom)
+	{
+		// ポストプロセスが読めるようにしてから、描画先を元の1枚に戻す
+		bloomMask->EndRender();
+		ctx.dxCommon->GetCommandList()->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
+	}
 }
 
 bool Text3DPass::ShouldExecute(const RenderPassContext& ctx) const
@@ -592,7 +612,9 @@ void PostProcessPass::Execute(const RenderPassContext& ctx)
 	// FXAA を掛けるときは、一度 FXAA の入力へ描かせてから、均しながら本来の出力先へ書く。
 	// 出力先が nullptr の場合はバックバッファへ直接描かれる
 	const bool useFxaa = ctx.fxaaRenderer && ctx.fxaaRenderer->IsActive();
-	ctx.postProcessManager->Draw(ctx.view->GetSceneColor(), useFxaa ? ctx.fxaaRenderer->GetInputTarget() : ctx.outputTarget);
+	// 選択的ブルームなら、明るさで拾わずに発光バッファをぼかす
+	RenderTexture* bloomMask = ctx.postProcessManager->IsSelectiveBloomEnabled() ? ctx.view->GetBloomMask() : nullptr;
+	ctx.postProcessManager->Draw(ctx.view->GetSceneColor(), useFxaa ? ctx.fxaaRenderer->GetInputTarget() : ctx.outputTarget, bloomMask);
 	if (useFxaa)
 	{
 		ctx.fxaaRenderer->Apply(ctx.outputTarget, ctx.frameConstantAllocator);

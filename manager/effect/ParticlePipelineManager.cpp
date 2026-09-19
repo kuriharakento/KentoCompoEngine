@@ -277,7 +277,7 @@ void ParticlePipelineManager::CreateGraphicsPipelineState(BlendMode mode, bool b
 	graphicsPipelineStateDesc.RTVFormats[0] = kSceneColorFormat;
 	if (bloomTargetEnabled)
 	{
-		graphicsPipelineStateDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		graphicsPipelineStateDesc.RTVFormats[1] = kSceneColorFormat;
 	}
 	graphicsPipelineStateDesc.BlendState.IndependentBlendEnable = TRUE;
 	auto& bloomBlend = graphicsPipelineStateDesc.BlendState.RenderTarget[1];
@@ -521,7 +521,7 @@ void ParticlePipelineManager::CreateRibbonPipelineState(BlendMode mode, bool blo
 	graphicsPipelineStateDesc.RTVFormats[0] = kSceneColorFormat;
 	if (bloomTargetEnabled)
 	{
-		graphicsPipelineStateDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		graphicsPipelineStateDesc.RTVFormats[1] = kSceneColorFormat;
 	}
 	graphicsPipelineStateDesc.BlendState.IndependentBlendEnable = TRUE;
 	auto& bloomBlend = graphicsPipelineStateDesc.BlendState.RenderTarget[1];

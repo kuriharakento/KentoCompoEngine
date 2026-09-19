@@ -116,6 +116,20 @@ void RenderTexture::BeginRender() {
     dxCommon_->GetCommandList()->ClearRenderTargetView(rtvHandle_, clearColor, 0, nullptr);
 }
 
+void RenderTexture::PrepareAsRenderTarget() {
+    if (currentState_ != D3D12_RESOURCE_STATE_RENDER_TARGET) {
+        auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            texture_.Get(),
+            currentState_,
+            D3D12_RESOURCE_STATE_RENDER_TARGET);
+        dxCommon_->GetCommandList()->ResourceBarrier(1, &barrier);
+        currentState_ = D3D12_RESOURCE_STATE_RENDER_TARGET;
+    }
+
+    float clearColor[] = { clearColor_.x, clearColor_.y, clearColor_.z, clearColor_.w };
+    dxCommon_->GetCommandList()->ClearRenderTargetView(rtvHandle_, clearColor, 0, nullptr);
+}
+
 void RenderTexture::EndRender() {
     if (currentState_ != D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE) {
         auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(

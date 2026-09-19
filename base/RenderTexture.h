@@ -47,6 +47,13 @@ public:
     void BeginRender();
 
     /**
+     * @brief 描画先として使える状態にしてクリアだけする
+     * @details BeginRender と違ってレンダーターゲットのバインドはしない。
+     *          MRT の2枚目のように、呼ぶ側がまとめてバインドしたい場合に使う。
+     */
+    void PrepareAsRenderTarget();
+
+    /**
      * @brief レンダリング終了
      */
     void EndRender();

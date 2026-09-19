@@ -416,13 +416,13 @@ void PostProcessManager::Resize(uint32_t width, uint32_t height)
 }
 
 
-void PostProcessManager::Draw(RenderTexture* inputTexture, RenderTexture* outputRT)
+void PostProcessManager::Draw(RenderTexture* inputTexture, RenderTexture* outputRT, RenderTexture* selectiveBloomSource)
 {
 	// ブルームが有効かつ、必要なレンダーターゲットが存在する場合
 	if (bloomEffect_->IsEnabled() && HasBloomRenderTargets())
 	{
 		// マルチパス・ブルーム処理
-		RenderWithBloom(inputTexture, outputRT);
+		RenderWithBloom(inputTexture, outputRT, selectiveBloomSource);
 	}
 	else
 	{
@@ -431,20 +431,25 @@ void PostProcessManager::Draw(RenderTexture* inputTexture, RenderTexture* output
 	}
 }
 
-void PostProcessManager::RenderWithBloom(RenderTexture* inputTexture, RenderTexture* outputRT)
+void PostProcessManager::RenderWithBloom(RenderTexture* inputTexture, RenderTexture* outputRT, RenderTexture* selectiveBloomSource)
 {
 	// ブルームのマルチパス処理
 
-	// 1. ブライトパス（明るい部分の抽出）
-	RenderBrightPass(inputTexture, brightPassRT_);
+	// ぼかす元を決める。選択的ブルームなら明るさで拾わず、
+	// 発光用RTに書かれたものだけを使う
+	RenderTexture* blurSource = selectiveBloomSource;
+	if (!blurSource)
+	{
+		RenderBrightPass(inputTexture, brightPassRT_);
+		blurSource = brightPassRT_;
+	}
 
-	// 2. 水平方向ブラー
-	RenderBlurPass(brightPassRT_, blurRT_[0], true);
+	// ぼかす(水平→垂直)
+	RenderBlurPass(blurSource, blurRT_[0], true);
 
-	// 3. 垂直方向ブラー
 	RenderBlurPass(blurRT_[0], blurRT_[1], false);
 
-	// 4. 最終合成（シーン + ブルーム）
+	// シーンにブルームを合成する
 	RenderFinalComposite(inputTexture, blurRT_[1], outputRT);
 }
 
@@ -664,6 +669,16 @@ void PostProcessManager::DrawImGui()
 		if (ImGui::Checkbox("有効##Bloom", &enabled))
 		{
 			bloomEffect_->SetEnabled(enabled);
+		}
+
+		bool selective = selectiveBloomModeEnabled_;
+		if (ImGui::Checkbox("発光したものだけ光らせる##SelectiveBloom", &selective))
+		{
+			selectiveBloomModeEnabled_ = selective;
+		}
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("ONにすると、しきい値で拾うのをやめて発光を有効にしたものだけが光る");
 		}
 
 		float threshold = bloomEffect_->GetThreshold();
