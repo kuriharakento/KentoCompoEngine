@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="animation\AnimationPoseCache.cpp" />
     <ClCompile Include="animation\Animator.cpp" />
     <ClCompile Include="audio\Audio.cpp" />
     <ClCompile Include="base\Camera.cpp" />
@@ -172,6 +173,7 @@
     <ClCompile Include="stage\StageManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="animation\AnimationPoseCache.h" />
     <ClInclude Include="animation\Animator.h" />
     <ClInclude Include="audio\Audio.h" />
     <ClInclude Include="base\Camera.h" />

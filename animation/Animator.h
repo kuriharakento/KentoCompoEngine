@@ -2,8 +2,8 @@
 #include <vector>
 #include <string>
 
+#include "animation/AnimationPoseCache.h"
 #include "base/GraphicsTypes.h"
-#include "math/Quaternion.h"
 
 namespace KCE
 {
@@ -61,10 +61,24 @@ public:
 	 */
 	void SetPlaybackSpeed(float speed) { playbackSpeed_ = speed; }
 
+	/** @brief 同じポーズの共有を使うか設定する（既定は有効） */
+	void SetPoseSharingEnabled(bool enabled);
+	/** @brief 同じポーズの共有を使うか */
+	bool IsPoseSharingEnabled() const { return poseSharingEnabled_; }
+
+	/**
+	 * @brief 共有ポーズの時刻をまとめる幅を設定する。
+	 * @param intervalSeconds 秒単位の幅。0以下なら丸めず、完全に同じ時刻だけ共有する。
+	 */
+	void SetPoseQuantizationInterval(float intervalSeconds);
+	/** @brief 共有ポーズの時刻をまとめる幅を取得する */
+	float GetPoseQuantizationInterval() const { return poseQuantizationInterval_; }
+
 	/**
 	 * @brief 最終ボーン行列の取得（GPU用）
+	 * @details 共有中の参照は、この Animator を同じフレームで更新してから描画する間だけ有効。
 	 */
-	const std::vector<Matrix4x4>& GetFinalBoneMatrices() const { return finalBoneMatrices_; }
+	const std::vector<Matrix4x4>& GetFinalBoneMatrices() const;
 
 	/**
 	 * @brief 特定ボーンのワールド行列を取得（ボーンアタッチ用）
@@ -90,28 +104,13 @@ private:
 	/**
 	 * @brief ボーン行列の計算
 	 */
-	void CalculateBoneTransforms();
+	void CalculateBoneTransforms(bool allowSharing);
 
-	/**
-	 * @brief 位置キーフレームの補間
-	 */
-	Vector3 InterpolatePosition(const std::vector<AnimationKey<Vector3>>& keys, float time) const;
+	/** @brief 現在のクリップと描画用時刻から共有鍵を作る */
+	AnimationPoseKey MakePoseKey(bool quantizeTime) const;
 
-	/**
-	 * @brief 回転キーフレームの補間
-	 */
-	Quaternion InterpolateRotation(const std::vector<AnimationKey<Quaternion>>& keys, float time) const;
-
-	/**
-	 * @brief スケールキーフレームの補間
-	 */
-	Vector3 InterpolateScale(const std::vector<AnimationKey<Vector3>>& keys, float time) const;
-
-	/**
-	 * @brief キーフレームのインデックスを検索
-	 */
-	template <typename T>
-	uint32_t FindKeyIndex(const std::vector<AnimationKey<T>>& keys, float time) const;
+	/** @brief 現在参照しているポーズ */
+	const AnimationPose& GetActivePose() const;
 
 private:
 	// スケルトンへのポインタ
@@ -132,14 +131,14 @@ private:
 	// 再生速度
 	float playbackSpeed_ = 1.0f;
 
-	// ボーンごとのローカル変換行列
-	std::vector<Matrix4x4> localBoneMatrices_;
+	// 共有しない場合と、停止中のポーズを保持する領域
+	AnimationPose localPose_;
+	// キャッシュが所有するポーズ。次のフレームまでの非所有参照
+	const AnimationPose* sharedPose_ = nullptr;
 
-	// ボーンごとのグローバル変換行列
-	std::vector<Matrix4x4> globalBoneMatrices_;
-
-	// 最終ボーン行列（GPU送信用: offsetMatrix × globalTransform）
-	std::vector<Matrix4x4> finalBoneMatrices_;
+	bool poseSharingEnabled_ = true;
+	// 既定は30fps相当。再生時刻そのものは丸めない
+	float poseQuantizationInterval_ = 1.0f / 30.0f;
 
 	// ルートのワールド行列
 	Matrix4x4 worldMatrix_;
