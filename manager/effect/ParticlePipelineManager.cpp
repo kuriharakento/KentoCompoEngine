@@ -1,4 +1,5 @@
 #include "ParticlePipelineManager.h"
+#include "graphics/RenderFormats.h"
 
 #include <cassert>
 #include <chrono>
@@ -273,7 +274,7 @@ void ParticlePipelineManager::CreateGraphicsPipelineState(BlendMode mode, bool b
 	graphicsPipelineStateDesc.DepthStencilState = depthStencilDesc;
 	graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	graphicsPipelineStateDesc.NumRenderTargets = bloomTargetEnabled ? 2 : 1;
-	graphicsPipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	graphicsPipelineStateDesc.RTVFormats[0] = kSceneColorFormat;
 	if (bloomTargetEnabled)
 	{
 		graphicsPipelineStateDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -517,7 +518,7 @@ void ParticlePipelineManager::CreateRibbonPipelineState(BlendMode mode, bool blo
 	graphicsPipelineStateDesc.DepthStencilState = depthStencilDesc;
 	graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	graphicsPipelineStateDesc.NumRenderTargets = bloomTargetEnabled ? 2 : 1;
-	graphicsPipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	graphicsPipelineStateDesc.RTVFormats[0] = kSceneColorFormat;
 	if (bloomTargetEnabled)
 	{
 		graphicsPipelineStateDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;
