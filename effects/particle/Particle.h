@@ -4,6 +4,8 @@
 #include "math/Quaternion.h"
 #include "math/MatrixFunc.h"
 #include <cstdint>
+#include <cstddef>
+#include <type_traits>
 
 namespace KCE
 {
@@ -66,6 +68,25 @@ struct alignas(16) Particle
 	float NormalizedAge() const { return lifetime > 0.0f ? age / lifetime : 1.0f; }
 };
 // Total: 128 bytes (16バイトの倍数) - initialColorフィールド追加
+
+static_assert(std::is_standard_layout_v<Particle>, "Particle must be standard layout");
+static_assert(sizeof(Particle) == 128, "Particle size must be 128 bytes");
+static_assert(alignof(Particle) == 16, "Particle alignment must be 16");
+
+static_assert(offsetof(Particle, position) == 0, "offsetof position must be 0");
+static_assert(offsetof(Particle, velocity) == 16, "offsetof velocity must be 16");
+static_assert(offsetof(Particle, scale) == 32, "offsetof scale must be 32");
+static_assert(offsetof(Particle, rotation) == 48, "offsetof rotation must be 48");
+static_assert(offsetof(Particle, color) == 64, "offsetof color must be 64");
+static_assert(offsetof(Particle, initialColor) == 80, "offsetof initialColor must be 80");
+static_assert(offsetof(Particle, age) == 96, "offsetof age must be 96");
+static_assert(offsetof(Particle, lifetime) == 100, "offsetof lifetime must be 100");
+static_assert(offsetof(Particle, ribbonWidth) == 104, "offsetof ribbonWidth must be 104");
+static_assert(offsetof(Particle, flags) == 108, "offsetof flags must be 108");
+static_assert(offsetof(Particle, id) == 112, "offsetof id must be 112");
+static_assert(offsetof(Particle, ribbonId) == 116, "offsetof ribbonId must be 116");
+static_assert(offsetof(Particle, spriteIndex) == 120, "offsetof spriteIndex must be 120");
+static_assert(offsetof(Particle, pad3) == 124, "offsetof pad3 must be 124");
 
 /**
  * @brief GPU転送用パーティクルインスタンスデータ

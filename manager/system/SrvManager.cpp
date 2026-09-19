@@ -10,7 +10,8 @@ constexpr float kCubemapMinLODClamp = 0.0f;        // キューブマップの�
 constexpr UINT kDescriptorHeapCount = 1;           // セットするディスクリプタヒープ数
 
 // 最大SRV数（512個：一般的なゲームで十分な数、GPUメモリ効率のバランス）
-const uint32_t SrvManager::kMaxSRVCount = 512;
+// GPUパーティクルがエミッタごとにUAVを何本も取るので512では足りない
+const uint32_t SrvManager::kMaxSRVCount = 4096;
 
 void SrvManager::Initialize(DirectXCommon* dxCommon)
 {
@@ -31,9 +32,20 @@ uint32_t SrvManager::AllocateReusable()
 	{
 		uint32_t index = freeList_.back();
 		freeList_.pop_back();
+		MarkAllocated(index, 1, true);
 		return index;
 	}
 	return Allocate();
+}
+
+void SrvManager::MarkAllocated(uint32_t startIndex, uint32_t count, bool used)
+{
+	const size_t end = static_cast<size_t>(startIndex) + count;
+	if (allocated_.size() < end)
+	{
+		allocated_.resize(end, 0);
+	}
+	std::fill(allocated_.begin() + startIndex, allocated_.begin() + end, used ? 1 : 0);
 }
 
 uint32_t SrvManager::Allocate()
@@ -42,9 +54,10 @@ uint32_t SrvManager::Allocate()
 	assert(useIndex_ < kMaxSRVCount);
 
 	// 返却用にインデックスを保存
-	int index = useIndex_;
+	uint32_t index = useIndex_;
 	// 次回確保用にインデックスを進める
 	useIndex_++;
+	MarkAllocated(index, 1, true);
 	// 確保したインデックスを返す
 	return index;
 }
@@ -56,6 +69,7 @@ void SrvManager::Free(uint32_t index)
 		return;
 	}
 	freeList_.push_back(index);
+	MarkAllocated(index, 1, false);
 }
 
 uint32_t SrvManager::AllocateRange(uint32_t count)
@@ -67,8 +81,32 @@ uint32_t SrvManager::AllocateRange(uint32_t count)
 	uint32_t startIndex = useIndex_;
 	// 指定数だけインデックスを進める
 	useIndex_ += count;
+	MarkAllocated(startIndex, count, true);
 
 	return startIndex;
+}
+
+bool SrvManager::TryAllocate(uint32_t& outIndex)
+{
+	outIndex = kInvalidSrvIndex;
+	if (IsMaxSRVCount())
+	{
+		return false;
+	}
+	outIndex = AllocateReusable();
+	return true;
+}
+
+bool SrvManager::TryAllocateRange(uint32_t count, uint32_t& outStartIndex)
+{
+	outStartIndex = kInvalidSrvIndex;
+	// 連番で取るので末尾の空きだけを見る。freeList_ の穴は使えない
+	if (count == 0 || useIndex_ + count > kMaxSRVCount)
+	{
+		return false;
+	}
+	outStartIndex = AllocateRange(count);
+	return true;
 }
 
 void SrvManager::CreateSRVforTexture2D(uint32_t srvIndex, ID3D12Resource* pResource, DXGI_FORMAT format, UINT mipLevels)

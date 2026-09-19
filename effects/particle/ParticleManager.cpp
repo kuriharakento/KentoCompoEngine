@@ -5,47 +5,23 @@
 #include "manager/scene/CameraManager.h"
 #include "manager/effect/ParticlePipelineManager.h"
 #include "effects/particle/renderer/IRenderer.h"
+#include "effects/particle/gpu/GPUSimulator.h"
 #include "time/TimeManager.h"
 #include "time/Timer.h"
-#include "editor/SceneGizmo.h"
-#include "editor/command/CommandHistory.h"
 #include <algorithm>
+#include <chrono>
+#include "effects/particle/diagnostics/ParticleDiagnostics.h"
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
-#include "editor/SelectionContext.h"
 #include "manager/editor/DebugUIManager.h"
 
 #endif
 
 namespace KCE
 {
-namespace
-{
-class ParticlePositionCommand final : public ICommand
-{
-public:
-	ParticlePositionCommand(ParticleManager* manager, std::string name, const Vector3& before, const Vector3& after, uint32_t dragId)
-		: manager_(manager), name_(std::move(name)), before_(before), after_(after), dragId_(dragId) {}
-	void Execute() override { if (manager_) { manager_->SetDebugPosition(name_, after_); } }
-	void Undo() override { if (manager_) { manager_->SetDebugPosition(name_, before_); } }
-	std::string GetName() const override { return "Move Particle Effect"; }
-	bool MergeWith(const ICommand* next) override
-	{
-		const auto* command = dynamic_cast<const ParticlePositionCommand*>(next);
-		if (!command || command->manager_ != manager_ || command->name_ != name_ || command->dragId_ != dragId_) { return false; }
-		after_ = command->after_;
-		return true;
-	}
-private:
-	// シングルトンは履歴より長生きする
-	ParticleManager* manager_ = nullptr;
-	std::string name_;
-	Vector3 before_{};
-	Vector3 after_{};
-	uint32_t dragId_ = 0;
-};
-}
+
+ParticleManager::~ParticleManager() = default;
 
 ParticleManager* ParticleManager::GetInstance()
 {
@@ -62,26 +38,7 @@ void ParticleManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager
 	pipelineManager_->Initialize(dxCommon_);
 
 #ifdef USE_IMGUI
-	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "エフェクト", "パーティクルマネージャー", [this]() { this->DrawSettingsImGui(); });
-	DebugUIManager::GetInstance()->RegisterHierarchySection(this, "エフェクト", [this]() { this->DrawHierarchyImGui(); });
-	DebugUIManager::GetInstance()->RegisterInspector(this, SelectionKind::ParticleEffect,
-		[this](const SelectionItem& item) { this->DrawInspectorImGui(item); });
-	GizmoTarget target;
-	target.getPose = [this](const SelectionItem& item, Matrix4x4& world, uint32_t& operations)
-	{
-		Vector3 position;
-		if (!GetDebugPosition(item.name, position)) { return false; }
-		world = MakeAffineMatrix({ 1.0f, 1.0f, 1.0f }, {}, position);
-		operations = kGizmoTranslate;
-		return true;
-	};
-	target.apply = [this](const SelectionItem& item, const GizmoResult& after, uint32_t dragId)
-	{
-		Vector3 before;
-		if (!GetDebugPosition(item.name, before)) { return; }
-		CommandHistory::GetInstance()->Execute(std::make_unique<ParticlePositionCommand>(this, item.name, before, after.translate, dragId));
-	};
-	SceneGizmo::GetInstance()->RegisterTarget(this, SelectionKind::ParticleEffect, std::move(target));
+	DebugUIManager::GetInstance()->RegisterWindow(this, "パーティクル###Particle Manager", [this]() { this->DrawImGui(); }, EditorDock::Right);
 #endif
 }
 
@@ -92,59 +49,42 @@ void ParticleManager::Finalize()
 	{
 		DebugUIManager::GetInstance()->Unregister(this);
 	}
-	if (SceneGizmo::HasInstance()) { SceneGizmo::GetInstance()->Unregister(this); }
 #endif
 	effects_.clear();
 	effectPools_.clear();
 	rendererTrashBin_.clear();
+	simulatorTrashBin_.clear();
+	effectTrashBin_.clear();
 	emitters_.clear();
 	effectDefinitions_.clear();
 	pipelineManager_.reset();
 }
 
-bool ParticleManager::GetDebugPosition(const std::string& name, Vector3& position) const
-{
-	for (const auto& effect : effects_)
-	{
-		if (effect->GetDebugName() == name) { position = effect->GetPosition(); return true; }
-	}
-	for (const auto& emitter : emitters_)
-	{
-		if (emitter->GetDebugName() == name) { position = emitter->GetPosition(); return true; }
-	}
-	return false;
-}
-
-bool ParticleManager::SetDebugPosition(const std::string& name, const Vector3& position)
-{
-	for (auto& effect : effects_)
-	{
-		if (effect->GetDebugName() == name) { effect->SetPosition(position); return true; }
-	}
-	for (auto& emitter : emitters_)
-	{
-		if (emitter->GetDebugName() == name) { emitter->SetPosition(position); return true; }
-	}
-	return false;
-}
-
 void ParticleManager::Update(CameraManager* camera)
 {
-	// 前フレームの描画が完全に終わったため、ゴミ箱内の古いレンダラーを安全に破棄する
-	rendererTrashBin_.clear();
+	auto* diag = ParticleDiagnostics::GetInstance();
+	diag->EndFrameCounters();
+	diag->BeginFrameCounters();
 
-	const TimeManager& time = TimeManager::GetInstance();
+	ParticleScopeTimer timer(ParticleProfileScope::ManagerUpdate);
 
-	// エフェクトの更新（再生中 or 残存パーティクルがある間は継続）。
-	// エフェクトごとの時計で進める（出した GameObject の時計に合わせる、などのため）。DeltaTimeType はその時計の倍率あり / なし
+	// Fence completion, rather than frame count, owns GPU resource lifetime.
+	// This remains correct when PostDraw stops waiting every frame or when
+	// multiple frames are in flight.
+	const uint64_t completedFence = dxCommon_ ? dxCommon_->GetCompletedFenceValue() : UINT64_MAX;
+	std::erase_if(rendererTrashBin_, [completedFence](const RetiredRenderer& retired) { return retired.fenceValue <= completedFence; });
+	std::erase_if(simulatorTrashBin_, [completedFence](const RetiredSimulator& retired) { return retired.fenceValue <= completedFence; });
+	std::erase_if(effectTrashBin_, [completedFence](const RetiredEffect& retired) { return retired.fenceValue <= completedFence; });
+
+	float deltaTime = TimeManager::GetInstance().GetGameContext().deltaTime;
+	float unscaledDeltaTime = TimeManager::GetInstance().GetGameContext().realDeltaTime;
+
+	// エフェクトの更新（再生中 or 残存パーティクルがある間は継続）
 	for (auto& effect : effects_)
 	{
 		if (effect->IsPlaying() || !effect->IsFinished())
 		{
-			// エフェクトが時計を指定していなければ、マネージャーの既定（指定なしなら Game）で進める
-			const ClockId clock = effect->GetClock().IsSpecified() ? effect->GetClock() : defaultClock_;
-			const TimeContext& context = time.GetContext(clock);
-			float dt = (effect->GetDeltaTimeType() == DeltaTimeType::RealDeltaTime) ? context.realDeltaTime : context.deltaTime;
+			float dt = (effect->GetDeltaTimeType() == DeltaTimeType::RealDeltaTime) ? unscaledDeltaTime : deltaTime;
 			effect->Update(dt, camera);
 		}
 	}
@@ -152,7 +92,7 @@ void ParticleManager::Update(CameraManager* camera)
 	// 直接追加されたエミッターの更新（後方互換）
 	for (auto& emitter : emitters_)
 	{
-		emitter->Update(time.GetDeltaTime(emitter->GetClock().IsSpecified() ? emitter->GetClock() : defaultClock_), camera);
+		emitter->Update(deltaTime, camera);
 	}
 
 	// 終了したエフェクトを削除
@@ -179,7 +119,7 @@ void ParticleManager::Draw()
 	}
 }
 
-void ParticleManager::DrawSettingsImGui()
+void ParticleManager::DrawImGui()
 {
 #ifdef USE_IMGUI
 
@@ -195,7 +135,7 @@ void ParticleManager::DrawSettingsImGui()
 			auto* emitter = effect->GetEmitter(i);
 			if (emitter)
 			{
-				totalParticles += static_cast<uint32_t>(emitter->GetParticles().size());
+				totalParticles += emitter->GetActiveParticleCount();
 				totalEmitters++;
 			}
 		}
@@ -204,13 +144,13 @@ void ParticleManager::DrawSettingsImGui()
 	// 直接追加されたエミッター
 	for (const auto& emitter : emitters_)
 	{
-		totalParticles += static_cast<uint32_t>(emitter->GetParticles().size());
+		totalParticles += emitter->GetActiveParticleCount();
 		totalEmitters++;
 	}
 
-	ImGui::Text("パーティクルの合計: %u", totalParticles);
-	ImGui::Text("エミッターの合計: %u", totalEmitters);
-	ImGui::Text("動いているエフェクト: %d", static_cast<int>(effects_.size()));
+	ImGui::Text("Total Particles: %u", totalParticles);
+	ImGui::Text("Total Emitters: %u", totalEmitters);
+	ImGui::Text("Active Effects: %d", static_cast<int>(effects_.size()));
 
 	// SRV使用状況（Active = 実使用中、HWM = 確保した最大インデックス）
 	uint32_t srvActive = srvManager_->GetActiveSRVCount();
@@ -218,90 +158,83 @@ void ParticleManager::DrawSettingsImGui()
 	uint32_t srvMax    = SrvManager::kMaxSRVCount;
 	ImGui::Text("SRV Active: %u / %u  (HWM: %u)", srvActive, srvMax, srvHwm);
 	ImGui::Separator();
-#endif
-}
 
-void ParticleManager::DrawHierarchyImGui()
-{
-#ifdef USE_IMGUI
-	const SelectionItem& primary = SelectionContext::GetInstance()->GetPrimary();
-	for (const auto& effect : effects_)
-	{
-		const bool isSelected = primary.kind == SelectionKind::ParticleEffect && primary.name == effect->GetDebugName();
-		if (ImGui::Selectable(effect->GetDebugName().c_str(), isSelected))
-		{
-			SelectionItem item;
-			item.kind = SelectionKind::ParticleEffect;
-			item.name = effect->GetDebugName();
-			SelectionContext::GetInstance()->Select(item);
-		}
-	}
-	for (const auto& emitter : emitters_)
-	{
-		const bool isSelected = primary.kind == SelectionKind::ParticleEffect && primary.name == emitter->GetDebugName();
-		if (ImGui::Selectable(emitter->GetDebugName().c_str(), isSelected))
-		{
-			SelectionItem item;
-			item.kind = SelectionKind::ParticleEffect;
-			item.name = emitter->GetDebugName();
-			SelectionContext::GetInstance()->Select(item);
-		}
-	}
-#endif
-}
 
-void ParticleManager::DrawInspectorImGui(const SelectionItem& item)
-{
-#ifdef USE_IMGUI
-	for (auto& effect : effects_)
+
+	// エフェクトごとの詳細
+	if (ImGui::CollapsingHeader("Effects", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		if (effect->GetDebugName() != item.name)
+		for (size_t effectIdx = 0; effectIdx < effects_.size(); ++effectIdx)
 		{
-			continue;
-		}
-		bool isPlaying = effect->IsPlaying();
-		if (ImGui::Checkbox("再生中", &isPlaying))
-		{
-			if (isPlaying) effect->Play();
-			else effect->Stop();
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("リセット"))
-		{
-			effect->Reset();
-			effect->Play();
-		}
-		for (size_t i = 0; i < effect->GetEmitterCount(); ++i)
-		{
-			ParticleEmitter* emitter = effect->GetEmitter(i);
-			if (emitter)
+			auto& effect = effects_[effectIdx];
+			ImGui::PushID(static_cast<int>(effectIdx));
+
+			bool isPlaying = effect->IsPlaying();
+			if (ImGui::TreeNode(effect->GetName().c_str()))
 			{
-				ImGui::Text("[%s] Particles: %d", emitter->GetName().c_str(), static_cast<int>(emitter->GetParticles().size()));
+				if (ImGui::Checkbox("Playing", &isPlaying))
+				{
+					if (isPlaying) effect->Play();
+					else effect->Stop();
+				}
+
+				ImGui::SameLine();
+				if (ImGui::Button("Reset"))
+				{
+					effect->Reset();
+					effect->Play();
+				}
+
+				// エミッターごとの詳細
+				for (size_t i = 0; i < effect->GetEmitterCount(); ++i)
+				{
+					auto* emitter = effect->GetEmitter(i);
+					if (emitter)
+					{
+						ImGui::Text("  [%s] Particles: %d", emitter->GetName().c_str(),
+							static_cast<int>(emitter->GetActiveParticleCount()));
+					}
+				}
+
+				ImGui::TreePop();
 			}
+
+			ImGui::PopID();
 		}
-		return;
 	}
-	for (auto& emitter : emitters_)
+
+	// 直接追加されたエミッター
+	if (!emitters_.empty() && ImGui::CollapsingHeader("Standalone Emitters", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		if (emitter->GetDebugName() != item.name)
+		for (size_t i = 0; i < emitters_.size(); ++i)
 		{
-			continue;
+			auto& emitter = emitters_[i];
+			ImGui::PushID(static_cast<int>(1000 + i));
+
+			bool isEnabled = emitter->IsEnabled();
+			if (ImGui::TreeNode(emitter->GetName().c_str()))
+			{
+				if (ImGui::Checkbox("Playing", &isEnabled))
+				{
+					emitter->SetEnabled(isEnabled);
+				}
+
+				ImGui::SameLine();
+				if (ImGui::Button("Clear"))
+				{
+					emitter->ClearParticles();
+				}
+
+				ImGui::Text("Particles: %d", static_cast<int>(emitter->GetActiveParticleCount()));
+				ImGui::Text("Mode: %s", emitter->GetSimulationMode() == SimulationMode::GPU ? "GPU" : "CPU");
+
+				ImGui::TreePop();
+			}
+
+			ImGui::PopID();
 		}
-		bool isEnabled = emitter->IsEnabled();
-		if (ImGui::Checkbox("再生中", &isEnabled))
-		{
-			emitter->SetEnabled(isEnabled);
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("消す"))
-		{
-			emitter->ClearParticles();
-		}
-		ImGui::Text("パーティクル数: %d", static_cast<int>(emitter->GetParticles().size()));
-		ImGui::Text("方式: %s", emitter->GetSimulationMode() == SimulationMode::GPU ? "GPU" : "CPU");
-		return;
 	}
-	ImGui::TextDisabled("エフェクトが見つからない。");
+
 #endif
 }
 
@@ -519,6 +452,31 @@ void ParticleManager::Clear()
 	emitters_.clear();
 }
 
+size_t ParticleManager::GetPooledEffectCount() const
+{
+	size_t count = 0;
+	for (const auto& [name, pool] : effectPools_)
+	{
+		(void)name;
+		count += pool.size();
+	}
+	return count;
+}
+
+void ParticleManager::PurgeEffectPools()
+{
+	const uint64_t fence = dxCommon_ ? dxCommon_->GetNextFenceValue() : 0;
+	for (auto& [name, pool] : effectPools_)
+	{
+		(void)name;
+		for (auto& effect : pool)
+		{
+			if (effect) effectTrashBin_.push_back({ fence, std::move(effect) });
+		}
+	}
+	effectPools_.clear();
+}
+
 void ParticleManager::RemoveEffect(ParticleEffect* effect)
 {
 	for (auto it = effects_.begin(); it != effects_.end();)
@@ -527,7 +485,13 @@ void ParticleManager::RemoveEffect(ParticleEffect* effect)
 		{
 			std::string name = (*it)->GetName();
 			(*it)->ResetForPool();
-			effectPools_[name].push_back(std::move(*it));
+			auto& pool = effectPools_[name];
+			// Avoid unbounded descriptor retention when many one-shot asset names
+			// are created. Excess instances are retired behind the GPU fence.
+			if (pool.size() < 2 && GetPooledEffectCount() < 16)
+				pool.push_back(std::move(*it));
+			else
+				effectTrashBin_.push_back({ dxCommon_ ? dxCommon_->GetNextFenceValue() : 0, std::move(*it) });
 			effects_.erase(it);
 			break;
 		}
@@ -546,7 +510,11 @@ void ParticleManager::RemoveFinishedEffects()
 		{
 			std::string name = (*it)->GetName();
 			(*it)->ResetForPool();
-			effectPools_[name].push_back(std::move(*it));
+			auto& pool = effectPools_[name];
+			if (pool.size() < 2 && GetPooledEffectCount() < 16)
+				pool.push_back(std::move(*it));
+			else
+				effectTrashBin_.push_back({ dxCommon_ ? dxCommon_->GetNextFenceValue() : 0, std::move(*it) });
 			it = effects_.erase(it);
 		}
 		else
@@ -575,7 +543,11 @@ bool ParticleManager::RemoveEffect(const std::string& name)
 		{
 			std::string effectName = (*it)->GetName();
 			(*it)->ResetForPool();
-			effectPools_[effectName].push_back(std::move(*it));
+			auto& pool = effectPools_[effectName];
+			if (pool.size() < 2 && GetPooledEffectCount() < 16)
+				pool.push_back(std::move(*it));
+			else
+				effectTrashBin_.push_back({ dxCommon_ ? dxCommon_->GetNextFenceValue() : 0, std::move(*it) });
 			it = effects_.erase(it);
 			removed = true;
 		}
@@ -591,7 +563,15 @@ void ParticleManager::AddRendererToTrashBin(std::unique_ptr<IRenderer> renderer)
 {
 	if (renderer)
 	{
-		rendererTrashBin_.push_back(std::move(renderer));
+		rendererTrashBin_.push_back({ dxCommon_ ? dxCommon_->GetNextFenceValue() : 0, std::move(renderer) });
+	}
+}
+
+void ParticleManager::AddSimulatorToTrashBin(std::unique_ptr<GPUSimulator> simulator)
+{
+	if (simulator)
+	{
+		simulatorTrashBin_.push_back({ dxCommon_ ? dxCommon_->GetNextFenceValue() : 0, std::move(simulator) });
 	}
 }
 } // namespace KCE

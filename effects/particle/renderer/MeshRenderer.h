@@ -60,6 +60,8 @@ public:
 	 * @param texturePath テクスチャファイルパス
 	 */
 	void SetTexture(const std::string& texturePath) override;
+	void SetEmissiveTexture(const std::string& texturePath) override;
+	std::string GetEmissiveTexturePath() const override { return emissiveTexturePath_; }
 
 	/**
 	 * @brief GPU描画モードを設定
@@ -67,7 +69,7 @@ public:
 	 * @param srvIndex GPUパーティクルバッファのSRVインデックス
 	 * @param count GPUパーティクル数
 	 */
-	void SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count) override;
+	void SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count, ID3D12Resource* drawArguments = nullptr) override;
 
 	/**
 	 * @brief モデルパスを設定（外部メッシュファイル用）
@@ -164,8 +166,16 @@ private:
 	bool isGPUMode_ = false;                                    ///< GPUシミュレーションモードフラグ
 	uint32_t gpuSrvIndex_ = 0;                                  ///< GPUパーティクルバッファのSRVインデックス
 	uint32_t gpuParticleCount_ = 0;                             ///< GPUパーティクル数
+	ID3D12Resource* gpuDrawArguments_ = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12CommandSignature> indexedDrawCommandSignature_;
+	Microsoft::WRL::ComPtr<ID3D12Resource> indexedDrawArguments_;
+	Microsoft::WRL::ComPtr<ID3D12Resource> indexedDrawArgumentsUpload_;
+	D3D12_DRAW_INDEXED_ARGUMENTS* indexedDrawArgumentsData_ = nullptr;
+	D3D12_RESOURCE_STATES indexedDrawArgumentsState_ = D3D12_RESOURCE_STATE_COMMON;
 
 	uint32_t textureIndex_ = 0;                                 ///< テクスチャのSRVインデックス
+	uint32_t emissiveTextureIndex_ = 0;
+	std::string emissiveTexturePath_;
 	std::string texturePath_;                                   ///< テクスチャファイルパス
 
 public:

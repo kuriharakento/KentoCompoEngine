@@ -10,6 +10,7 @@
 #include "effects/particle/module/ModulePriorities.h"
 #include "effects/particle/ParticleEmitter.h"
 #include "effects/particle/ParticleEasing.h"
+#include "effects/particle/dynamic/DynamicInput.h"
 #include "math/Vector3.h"
 
 namespace KCE
@@ -110,6 +111,7 @@ for (auto& particle : *context.particles)
 if (particle.IsAlive())
 {
 float t = particle.NormalizedAge();
+			if (useGradient_) { particle.color = gradient_.Evaluate(t); continue; }
 
 // 開始カラーを決定
 Vector4 effectiveStartColor = startColor_;
@@ -140,12 +142,19 @@ bool GetUseInitialColor() const { return useInitialColor_; }
 
 void SetEasingType(EasingType type) { easingType_ = type; }
 EasingType GetEasingType() const { return easingType_; }
+void SetGradient(const ColorGradient& gradient) { gradient_ = gradient; useGradient_ = true; }
+void ClearGradient() { useGradient_ = false; }
+bool HasGradient() const { return useGradient_; }
+ColorGradient& GetGradient() { return gradient_; }
+const ColorGradient& GetGradient() const { return gradient_; }
 
 private:
 Vector4 startColor_ = { 1, 1, 1, 1 };
 Vector4 endColor_ = { 1, 1, 1, 0 };
 bool useInitialColor_ = false; // trueの場合、パーティクルの初期カラーからフェード
 EasingType easingType_ = EasingType::Linear;
+ColorGradient gradient_;
+bool useGradient_ = false;
 };
 
 /**
@@ -164,6 +173,7 @@ for (auto& particle : *context.particles)
 if (particle.IsAlive())
 {
 float t = particle.NormalizedAge();
+			if (useCurve_) t = curve_.Evaluate(t);
 particle.scale = ApplyEasing<Vector3>(easingType_, startScale_, endScale_, t);
 }
 }
@@ -181,10 +191,17 @@ Vector3 GetEndScale() const { return endScale_; }
 
 void SetEasingType(EasingType type) { easingType_ = type; }
 EasingType GetEasingType() const { return easingType_; }
+void SetCurve(const AnimationCurve& curve) { curve_ = curve; useCurve_ = true; }
+void ClearCurve() { useCurve_ = false; }
+bool HasCurve() const { return useCurve_; }
+AnimationCurve& GetCurve() { return curve_; }
+const AnimationCurve& GetCurve() const { return curve_; }
 
 private:
 Vector3 startScale_ = { 1, 1, 1 };
 Vector3 endScale_ = { 0, 0, 0 };
 EasingType easingType_ = EasingType::Linear;
+AnimationCurve curve_;
+bool useCurve_ = false;
 };
 } // namespace KCE

@@ -6,12 +6,7 @@
 
 namespace KCE
 {
-uint64_t ParticleEffect::nextDebugId_ = 0;
-
-ParticleEffect::ParticleEffect()
-	: debugId_(++nextDebugId_)
-{
-}
+ParticleEffect::ParticleEffect() = default;
 ParticleEffect::~ParticleEffect() = default;
 
 ParticleEffect::ParticleEffect(ParticleEffect&&) noexcept = default;
@@ -25,7 +20,6 @@ std::unique_ptr<ParticleEffect> ParticleEffect::LoadFromFile(const std::string& 
 void ParticleEffect::Initialize(const std::string& name)
 {
 	name_ = name;
-	debugName_ = name + "##Effect" + std::to_string(debugId_);
 }
 
 void ParticleEffect::Update(float deltaTime, CameraManager* camera)
@@ -34,7 +28,7 @@ void ParticleEffect::Update(float deltaTime, CameraManager* camera)
 	bool hasActiveParticles = false;
 	for (const auto& emitter : emitters_)
 	{
-		if (!emitter->GetParticles().empty())
+		if (!emitter->IsComplete())
 		{
 			hasActiveParticles = true;
 			break;
@@ -58,8 +52,18 @@ void ParticleEffect::Update(float deltaTime, CameraManager* camera)
 	}
 
 	// 各エミッターを更新
-	for (auto& emitter : emitters_)
+	for (size_t emitterIndex = 0; emitterIndex < emitters_.size(); ++emitterIndex)
 	{
+		auto& emitter = emitters_[emitterIndex];
+		const int sourceIndex = emitter->GetGPUEventSourceEmitterIndex();
+		if (sourceIndex >= 0 && sourceIndex < static_cast<int>(emitterIndex))
+		{
+			emitter->BindGPUEventSource(emitters_[sourceIndex].get());
+		}
+		else
+		{
+			emitter->BindGPUEventSource(nullptr);
+		}
 		emitter->Update(deltaTime, camera);
 	}
 
@@ -70,7 +74,7 @@ void ParticleEffect::Update(float deltaTime, CameraManager* camera)
 		bool allComplete = true;
 		for (const auto& emitter : emitters_)
 		{
-			if (emitter->IsEmitting() || !emitter->GetParticles().empty())
+			if (!emitter->IsComplete())
 			{
 				allComplete = false;
 				break;
@@ -188,7 +192,7 @@ bool ParticleEffect::IsFinished() const
 
 	for (const auto& emitter : emitters_)
 	{
-		if (!emitter->GetParticles().empty())
+		if (!emitter->IsComplete())
 		{
 			return false;
 		}
@@ -196,9 +200,9 @@ bool ParticleEffect::IsFinished() const
 	return true;
 }
 
-void ParticleEffect::SaveToFile(const std::string& jsonPath)
+bool ParticleEffect::SaveToFile(const std::string& jsonPath)
 {
-	ParticleEffectSerializer::Save(*this, jsonPath);
+	return ParticleEffectSerializer::Save(*this, jsonPath);
 }
 
 uint32_t ParticleEffect::RegisterSource(Transform* transform)

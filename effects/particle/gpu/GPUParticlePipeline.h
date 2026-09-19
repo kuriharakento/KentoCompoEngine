@@ -52,6 +52,13 @@ public:
 	 * @return パイプラインステート
 	 */
 	ID3D12PipelineState* GetPipelineState() const { return pipelineState_.Get(); }
+	ID3D12PipelineState* GetSpawnPreparePipelineState() const { return spawnPreparePipelineState_.Get(); }
+	ID3D12RootSignature* GetRibbonComputeRootSignature() const { return ribbonComputeRootSignature_.Get(); }
+	ID3D12PipelineState* GetRibbonPrefixPipelineState() const { return ribbonPrefixPipelineState_.Get(); }
+	ID3D12PipelineState* GetRibbonScanPipelineState() const { return ribbonScanPipelineState_.Get(); }
+	ID3D12PipelineState* GetRibbonSortInitializePipelineState() const { return ribbonSortInitializePipelineState_.Get(); }
+	ID3D12PipelineState* GetRibbonSortPipelineState() const { return ribbonSortPipelineState_.Get(); }
+	ID3D12PipelineState* GetRibbonEmitPipelineState() const { return ribbonEmitPipelineState_.Get(); }
 
 	/**
 	 * @brief コンバーター用ルートシグネチャを取得
@@ -121,6 +128,9 @@ private:
 	 * @brief シミュレーション用パイプラインステートを作成
 	 */
 	void CreatePipelineState();
+	void CompileSpawnPrepareShader();
+	void CreateSpawnPreparePipelineState();
+	void CreateRibbonComputePipeline();
 
 	/**
 	 * @brief レンダリング変換用コンピュートシェーダーをコンパイル
@@ -150,6 +160,14 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState_;
 	Microsoft::WRL::ComPtr<ID3DBlob> shaderBlob_;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> spawnPreparePipelineState_;
+	Microsoft::WRL::ComPtr<ID3DBlob> spawnPrepareShaderBlob_;
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> ribbonComputeRootSignature_;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> ribbonPrefixPipelineState_;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> ribbonScanPipelineState_;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> ribbonSortInitializePipelineState_;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> ribbonSortPipelineState_;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> ribbonEmitPipelineState_;
 
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> converterRootSignature_;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> converterPipelineState_;

@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <algorithm>
+#include <cmath>
 
 #include "math/MatrixFunc.h"
 #include "math/Vector2.h"
@@ -71,8 +73,79 @@ struct Material
     float toonAmount;
     // リムライトの強さ（0 で無効）
     float rimStrength;
+    // 発光色(rgb)と強さ(a)。選択的ブルームで使う
+    // ここから先はシェーダ側の materialPadding の後ろに乗るので、既存のオフセットは動かない
+    Vector4 emissiveColorIntensity = { 1.0f, 1.0f, 1.0f, 1.0f };
+    // 発光の有効無効
+    uint32_t emissiveEnabled = 0;
+    // 発光マスクの取り方（EmissiveSource）
+    uint32_t emissiveSource = 0;
+    // ブルームへの寄与率
+    float bloomContribution = 1.0f;
+    // パディング（アラインメント用）
+    float emissivePadding = 0.0f;
 };
-static_assert(sizeof(Material) == 112, "Material のサイズがシェーダー側と一致しません");
+// 先頭112バイトまでは発光を読まないシェーダー（Object3d / GBufferPass など）と共通。
+// 末尾の発光分はそれらが宣言しないだけなので、足してもオフセットは動かない。
+static_assert(sizeof(Material) == 144, "Material のサイズがシェーダー側と一致しません");
+
+/**
+ * @brief 発光マスクの取り方
+ */
+enum class EmissiveSource : uint32_t
+{
+	// マスクを使わず一律に光らせる
+	Uniform = 0,
+	// ベーステクスチャの色をそのままマスクにする
+	BaseTextureMask = 1,
+	// 専用の発光テクスチャをマスクにする
+	EmissiveTexture = 2,
+};
+
+/**
+ * @brief 発光の設定値
+ *
+ * CPU側で持つ形。GPUへ渡すときは Material の emissive* に詰める。
+ */
+struct EmissiveSettings
+{
+	bool enabled = false;
+	EmissiveSource source = EmissiveSource::Uniform;
+	Vector3 color = { 1.0f, 1.0f, 1.0f };
+	float intensity = 1.0f;
+	float bloomContribution = 1.0f;
+};
+
+// 発光の値域。NaNや極端な値がブルームに流れるとフレーム全体が白飛びする
+inline constexpr float kEmissiveMaxColor = 16.0f;
+inline constexpr float kEmissiveMaxIntensity = 64.0f;
+
+/**
+ * @brief 発光設定を安全な範囲に丸める
+ * @param input 入力設定
+ * @param output 丸めた結果。失敗時は触らない
+ * @return 値が正常なら true。NaN や不正な source なら false
+ */
+inline bool TryNormalizeEmissiveSettings(const EmissiveSettings& input, EmissiveSettings& output)
+{
+	const auto source = static_cast<uint32_t>(input.source);
+	if (source > static_cast<uint32_t>(EmissiveSource::EmissiveTexture) ||
+		!std::isfinite(input.color.x) || !std::isfinite(input.color.y) || !std::isfinite(input.color.z) ||
+		!std::isfinite(input.intensity) || !std::isfinite(input.bloomContribution))
+	{
+		return false;
+	}
+
+	output = input;
+	output.color = {
+		(std::clamp)(input.color.x, 0.0f, kEmissiveMaxColor),
+		(std::clamp)(input.color.y, 0.0f, kEmissiveMaxColor),
+		(std::clamp)(input.color.z, 0.0f, kEmissiveMaxColor)
+	};
+	output.intensity = (std::clamp)(input.intensity, 0.0f, kEmissiveMaxIntensity);
+	output.bloomContribution = (std::clamp)(input.bloomContribution, 0.0f, 1.0f);
+	return true;
+}
 
 /**
  * @brief 座標変換行列データ

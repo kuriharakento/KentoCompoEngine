@@ -7,6 +7,8 @@
 #include "manager/graphics/TextureManager.h"
 #include "base/DirectXCommon.h"
 #include "base/GraphicsTypes.h"
+#include "base/Logger.h"
+#include "effects/particle/diagnostics/ParticleDiagnostics.h"
 
 namespace KCE
 {
@@ -38,7 +40,8 @@ void SpriteRenderer::Initialize(const std::string& texturePath)
 	std::string path = texturePath.empty() ? "./Resources/uvChecker.png" : texturePath;
 	texturePath_ = path;
 	TextureManager::GetInstance()->LoadTexture(path);
-	textureIndex_ = TextureManager::GetInstance()->GetTextureIndexByFilePath(path);
+	TextureManager::GetInstance()->TryGetTextureIndexByFilePath(path, textureIndex_);
+	SetEmissiveTexture("");
 
 	auto* pm = ParticleManager::GetInstance();
 	InitializeBuffers(pm->GetDxCommon(), pm->GetSrvManager());
@@ -47,6 +50,13 @@ void SpriteRenderer::Initialize(const std::string& texturePath)
 
 void SpriteRenderer::InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
+	D3D12_INDIRECT_ARGUMENT_DESC indirectArg{};
+	indirectArg.Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW;
+	D3D12_COMMAND_SIGNATURE_DESC signatureDesc{};
+	signatureDesc.ByteStride = sizeof(D3D12_DRAW_ARGUMENTS);
+	signatureDesc.NumArgumentDescs = 1;
+	signatureDesc.pArgumentDescs = &indirectArg;
+	dxCommon->GetDevice()->CreateCommandSignature(&signatureDesc, nullptr, IID_PPV_ARGS(&drawCommandSignature_));
 	materialResource_ = dxCommon->CreateBufferResource(sizeof(Material));
 	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
 	materialData_->color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -74,7 +84,11 @@ void SpriteRenderer::InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvM
 	instancingResource_ = dxCommon->CreateBufferResource(sizeof(ParticleGPU) * kMaxParticles);
 	instancingResource_->Map(0, nullptr, reinterpret_cast<void**>(&instancingData_));
 
-	instancingSrvIndex_ = srvManager->Allocate();
+	if (!srvManager->TryAllocate(instancingSrvIndex_))
+	{
+		Logger::Log("SpriteRenderer initialization failed: descriptor heap exhausted\n", Logger::LogLevel::Error);
+		return;
+	}
 	srvManager->CreateSRVforStructuredBuffer(
 		instancingSrvIndex_,
 		instancingResource_.Get(),
@@ -85,6 +99,8 @@ void SpriteRenderer::InitializeBuffers(DirectXCommon* dxCommon, SrvManager* srvM
 
 void SpriteRenderer::Update(const std::vector<Particle>& particles, CameraManager* camera)
 {
+	ParticleScopeTimer timer(ParticleProfileScope::RendererUpdatePerCall);
+
 	if (isGPUMode_)
 	{
 		instanceCount_ = 0;
@@ -117,16 +133,37 @@ void SpriteRenderer::Update(const std::vector<Particle>& particles, CameraManage
 
 void SpriteRenderer::SetTexture(const std::string& texturePath)
 {
+	auto* textures = TextureManager::GetInstance();
+	textures->LoadTexture(texturePath);
+	uint32_t newIndex = SrvManager::kInvalidSrvIndex;
+	if (!textures->TryGetTextureIndexByFilePath(texturePath, newIndex)) return;
 	texturePath_ = texturePath;
-	TextureManager::GetInstance()->LoadTexture(texturePath);
-	textureIndex_ = TextureManager::GetInstance()->GetTextureIndexByFilePath(texturePath);
+	textureIndex_ = newIndex;
+}
+
+void SpriteRenderer::SetEmissiveTexture(const std::string& texturePath)
+{
+	emissiveTexturePath_ = texturePath;
+	// Emissive texture未指定時は、全経路で共有する無発光テクスチャを使用する。
+	const std::string fallback = "./Resources/textures/emissive_black_1x1.png";
+	const std::string path = emissiveTexturePath_.empty() || !TextureManager::GetInstance()->CheckTextureExists(emissiveTexturePath_) ? fallback : emissiveTexturePath_;
+	TextureManager::GetInstance()->LoadTextureLinear(path);
+	emissiveTextureIndex_ = TextureManager::GetInstance()->GetLinearTextureIndexByFilePath(path);
 }
 
 void SpriteRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
+	const uint32_t particleSrvIndex = isGPUMode_ ? gpuSrvIndex_ : instancingSrvIndex_;
+	if (!srvManager || !srvManager->IsAllocated(particleSrvIndex) || !srvManager->IsAllocated(textureIndex_)) return;
+	ParticleScopeTimer timer(ParticleProfileScope::RendererDrawRecordingPerCall);
+
 	if (materialData_)
 	{
 		materialData_->color = tintColor_;
+		materialData_->emissiveColorIntensity = { emissiveSettings_.color.x, emissiveSettings_.color.y, emissiveSettings_.color.z, emissiveSettings_.intensity };
+		materialData_->emissiveEnabled = emissiveSettings_.enabled ? 1u : 0u;
+		materialData_->emissiveSource = static_cast<uint32_t>(emissiveSettings_.source);
+		materialData_->bloomContribution = emissiveSettings_.bloomContribution;
 	}
 
 	uint32_t drawCount = isGPUMode_ ? gpuParticleCount_ : instanceCount_;
@@ -137,7 +174,7 @@ void SpriteRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 	auto pipelineManager = ParticleManager::GetInstance()->GetPipelineManager();
 
 	// パイプライン設定
-	commandList->SetPipelineState(pipelineManager->GetPipelineState(blendMode_));
+	commandList->SetPipelineState(pipelineManager->GetPipelineState(blendMode_, emissiveSettings_.enabled));
 	commandList->SetGraphicsRootSignature(pipelineManager->GetRootSignature());
 
 	// プリミティブトポロジ設定
@@ -156,20 +193,28 @@ void SpriteRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 
 	// テクスチャ (Slot 2)
 	commandList->SetGraphicsRootDescriptorTable(2, srvManager->GetGPUDescriptorHandle(textureIndex_));
+	commandList->SetGraphicsRootDescriptorTable(4, srvManager->GetGPUDescriptorHandle(emissiveTextureIndex_));
 
 	// インスタンシングデータ (Slot 1 - VertexShader用)
-	uint32_t index = isGPUMode_ ? gpuSrvIndex_ : instancingSrvIndex_;
-	commandList->SetGraphicsRootDescriptorTable(1, srvManager->GetGPUDescriptorHandle(index));
+	commandList->SetGraphicsRootDescriptorTable(1, srvManager->GetGPUDescriptorHandle(particleSrvIndex));
 
 	// 描画
-	commandList->DrawInstanced(4, drawCount, 0, 0);
+	if (isGPUMode_ && gpuDrawArguments_ && drawCommandSignature_)
+	{
+		commandList->ExecuteIndirect(drawCommandSignature_.Get(), 1, gpuDrawArguments_, 0, nullptr, 0);
+	}
+	else
+	{
+		commandList->DrawInstanced(4, drawCount, 0, 0);
+	}
 }
 
-void SpriteRenderer::SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count)
+void SpriteRenderer::SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count, ID3D12Resource* drawArguments)
 {
 	isGPUMode_ = enable;
 	gpuSrvIndex_ = srvIndex;
 	gpuParticleCount_ = count;
+	gpuDrawArguments_ = drawArguments;
 }
 
 void SpriteRenderer::UpdateInstanceData(const Particle& particle, const Matrix4x4& billboardMatrix, CameraManager* camera)

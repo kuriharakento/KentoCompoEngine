@@ -45,6 +45,8 @@ public:
 		minOffset_ = min;
 		maxOffset_ = max;
 	}
+	Vector3 GetMinOffset() const { return minOffset_; }
+	Vector3 GetMaxOffset() const { return maxOffset_; }
 
 private:
 	Vector3 minOffset_ = {};
@@ -207,7 +209,7 @@ private:
 class AssignRibbonIdModule : public IModule
 {
 public:
-	AssignRibbonIdModule(uint32_t groupCount = 1) : groupCount_(groupCount) {}
+	AssignRibbonIdModule(uint32_t groupCount = 1) : groupCount_((std::max)(1u, groupCount)) {}
 
 	void Execute(ParticleContext& context) override
 	{

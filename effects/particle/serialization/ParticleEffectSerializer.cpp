@@ -7,6 +7,7 @@
 #include "effects/particle/module/spawn/SpawnModules.h"
 #include "effects/particle/module/spawn/InitialModules.h"
 #include "effects/particle/module/spawn/SpawnShapeModules.h"
+#include "effects/particle/module/spawn/SubEmitterModule.h"
 #include "effects/particle/module/update/UpdateModules.h"
 #include "effects/particle/module/update/BehaviorModules.h"
 #include "effects/particle/module/update/AdvancedModules.h"
@@ -15,8 +16,11 @@
 #include "effects/particle/module/update/TextureSheetModule.h"
 #include "effects/particle/module/update/MotionEffectModules.h"
 #include "effects/particle/module/update/NaturalBehaviorModules.h"
+#include "effects/particle/module/ModuleRuntime.h"
 #include "time/Timer.h"
 #include <fstream>
+#include <cmath>
+#include <type_traits>
 
 // nlohmann/json を有効化
 #define USE_NLOHMANN_JSON
@@ -29,6 +33,146 @@ using json = nlohmann::json;
 // 前方宣言（プライベートヘルパー関数）
 static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data);
 static void SaveEmitter(const ParticleEmitter& emitter, json& data);
+static constexpr uint32_t kParticleAssetFormatVersion = 2;
+static constexpr size_t kMaxSerializedEmitters = 1024;
+static constexpr size_t kMaxSerializedModules = 256;
+static constexpr uint32_t kMaxSerializedParticles = 1000000;
+
+static bool IsFiniteNumber(const json& value)
+{
+	if (!value.is_number()) return true;
+	return std::isfinite(value.get<double>());
+}
+
+static bool ValidateFiniteRecursive(const json& value)
+{
+	if (!IsFiniteNumber(value)) return false;
+	if (value.is_array()) for (const auto& child : value) if (!ValidateFiniteRecursive(child)) return false;
+	if (value.is_object()) for (auto it = value.begin(); it != value.end(); ++it) if (!ValidateFiniteRecursive(it.value())) return false;
+	return true;
+}
+
+static bool ValidateRendererData(const json& data)
+{
+	if (!data.is_object()) return false;
+	const std::string type = data.value("type", "Sprite");
+	if (type != "Sprite" && type != "Ribbon" && type != "Mesh") return false;
+	const int blendMode = data.value("blendMode", 1);
+	if (blendMode < static_cast<int>(BlendMode::Alpha) || blendMode > static_cast<int>(BlendMode::ColorDodge)) return false;
+	const std::string texture = data.value("texture", "./Resources/uvChecker.png");
+	if (texture.empty() || texture.size() > 1024) return false;
+
+	if (data.contains("tintColor") && !data["tintColor"].is_object()) return false;
+	if (type == "Ribbon")
+	{
+		const int textureMode = data.value("textureMode", 0);
+		if (textureMode < static_cast<int>(RibbonTextureMode::Stretch) || textureMode > static_cast<int>(RibbonTextureMode::Tile)) return false;
+		if (data.value("trailWidth", 0.5f) < 0.0f || data.value("trailLifetime", 1.0f) <= 0.0f ||
+			data.value("recordInterval", 0.016f) <= 0.0f || data.value("minSegmentDistance", 0.1f) < 0.0f ||
+			data.value("tileScale", 1.0f) <= 0.0f) return false;
+	}
+	if (type == "Mesh")
+	{
+		const int primitiveType = data.value("primitiveType", 0);
+		if (primitiveType < static_cast<int>(PrimitiveType::Plane) || primitiveType > static_cast<int>(PrimitiveType::Custom) ||
+			data.value("scale", 1.0f) <= 0.0f) return false;
+		if (data.contains("primitiveOptions"))
+		{
+			const auto& options = data["primitiveOptions"];
+			if (!options.is_object()) return false;
+			const uint32_t segments = options.value("segments", 16u);
+			const uint32_t rings = options.value("rings", 8u);
+			const uint32_t points = options.value("points", 5u);
+			if (segments < 3 || segments > 4096 || rings < 1 || rings > 4096 || points < 2 || points > 4096 ||
+				options.value("innerRadius", 0.5f) < 0.0f || options.value("outerRadius", 1.0f) <= 0.0f ||
+				options.value("tubeRadius", 0.3f) < 0.0f || options.value("turns", 2.0f) <= 0.0f) return false;
+			if (options.contains("cubeSize") && !options["cubeSize"].is_object()) return false;
+			if (options.contains("cubeFaceVisible"))
+			{
+				const auto& faces = options["cubeFaceVisible"];
+				if (!faces.is_array() || faces.size() != 6) return false;
+				for (const auto& face : faces) if (!face.is_boolean()) return false;
+			}
+		}
+	}
+	return true;
+}
+
+static bool ValidateModuleParameter(const json& module, const ModuleParameterSchema& schema)
+{
+	if (!module.contains(schema.id)) return true;
+	const auto& value = module[schema.id];
+	auto inRange = [&](double number)
+	{
+		return !schema.hasRange || (number >= static_cast<double>(schema.minimum) && number <= static_cast<double>(schema.maximum));
+	};
+	switch (schema.type)
+	{
+	case ModuleParameterType::Float:
+		return value.is_number() && inRange(value.get<double>());
+	case ModuleParameterType::UInt:
+		return value.is_number_unsigned() && inRange(value.get<double>());
+	case ModuleParameterType::Int:
+	case ModuleParameterType::Enum:
+		return value.is_number_integer() && inRange(value.get<double>());
+	case ModuleParameterType::Bool:
+		return value.is_boolean();
+	case ModuleParameterType::Vector3:
+		// InitialRotation v1 also stores a scalar compatibility field beside
+		// minAngle_v3/maxAngle_v3. Preserve that asset format until migration.
+		return value.is_number() || (value.is_object() && value.contains("x") && value.contains("y") && value.contains("z") &&
+			value["x"].is_number() && value["y"].is_number() && value["z"].is_number());
+	case ModuleParameterType::Vector4:
+		return value.is_object() &&
+			((value.contains("x") && value.contains("y") && value.contains("z") && value.contains("w") &&
+				value["x"].is_number() && value["y"].is_number() && value["z"].is_number() && value["w"].is_number()) ||
+			 (value.contains("r") && value.contains("g") && value.contains("b") && value.contains("a") &&
+				value["r"].is_number() && value["g"].is_number() && value["b"].is_number() && value["a"].is_number()));
+	case ModuleParameterType::String:
+		return value.is_string() && value.get_ref<const std::string&>().size() <= 1024;
+	case ModuleParameterType::Curve:
+	case ModuleParameterType::Gradient:
+		return value.is_object() && value.size() <= 4096;
+	case ModuleParameterType::StructArray:
+		return value.is_array() && value.size() <= 1024;
+	}
+	return false;
+}
+
+static bool ValidateModuleData(const json& module, const ModuleDescriptor& descriptor)
+{
+	if (!module.is_object() || module.size() > 256) return false;
+	for (const auto& parameter : descriptor.parameters)
+	{
+		if (!ValidateModuleParameter(module, parameter)) return false;
+	}
+	return true;
+}
+
+static json SaveBindingValue(const ModuleParameterValue& value)
+{
+	return std::visit([](const auto& typed) -> json
+	{
+		using T = std::decay_t<decltype(typed)>;
+		if constexpr (std::is_same_v<T, Vector3>) return { {"x", typed.x}, {"y", typed.y}, {"z", typed.z} };
+		else if constexpr (std::is_same_v<T, Vector4>) return { {"x", typed.x}, {"y", typed.y}, {"z", typed.z}, {"w", typed.w} };
+		else return typed;
+	}, value);
+}
+
+static bool LoadBindingValue(const json& value, ModuleParameterType type, ModuleParameterValue& output)
+{
+	if (type == ModuleParameterType::Float && value.is_number()) { output = value.get<float>(); return true; }
+	if (type == ModuleParameterType::Vector3 && value.is_object())
+	{
+		output = Vector3{ value.value("x", 0.0f), value.value("y", 0.0f), value.value("z", 0.0f) }; return true;
+	}
+	if (type == ModuleParameterType::Vector4 && value.is_object())
+	{
+		output = Vector4{ value.value("x", 0.0f), value.value("y", 0.0f), value.value("z", 0.0f), value.value("w", 0.0f) }; return true;
+	}
+	return false;
+}
 
 std::unique_ptr<ParticleEffect> ParticleEffectSerializer::Load(const std::string& path)
 {
@@ -42,7 +186,13 @@ std::unique_ptr<ParticleEffect> ParticleEffectSerializer::Load(const std::string
 	try
 	{
 		json data = json::parse(file);
+		if (!data.is_object() || !ValidateFiniteRecursive(data)) return nullptr;
+		const uint32_t formatVersion = data.value("formatVersion", 1u);
+		if (formatVersion == 0 || formatVersion > kParticleAssetFormatVersion) return nullptr;
+		if (data.contains("emitters") && (!data["emitters"].is_array() || data["emitters"].size() > kMaxSerializedEmitters)) return nullptr;
 
+		const int deltaTimeType = data.value("deltaTimeType", 0);
+		if (deltaTimeType < 0 || deltaTimeType > 1) return nullptr;
 		auto effect = std::make_unique<ParticleEffect>();
 		effect->Initialize(data.value("name", "UnnamedEffect"));
 
@@ -57,7 +207,7 @@ std::unique_ptr<ParticleEffect> ParticleEffectSerializer::Load(const std::string
 		}
 
 		// タイムスケール設定
-		effect->SetDeltaTimeType(static_cast<DeltaTimeType>(data.value("deltaTimeType", 0)));
+		effect->SetDeltaTimeType(static_cast<DeltaTimeType>(deltaTimeType));
 
 		// エミッター
 		if (data.contains("emitters") && data["emitters"].is_array())
@@ -65,11 +215,19 @@ std::unique_ptr<ParticleEffect> ParticleEffectSerializer::Load(const std::string
 			for (const auto& emitterData : data["emitters"])
 			{
 				auto emitter = LoadEmitter(emitterData);
-				if (emitter)
-				{
-					effect->AddEmitter(std::move(emitter));
-				}
+				if (!emitter) return nullptr;
+				effect->AddEmitter(std::move(emitter));
 			}
+		}
+		for (size_t i = 0; i < effect->GetEmitterCount(); ++i)
+		{
+			const auto* emitter = effect->GetEmitter(i);
+			const int followIndex = emitter->GetFollowEmitterIndex();
+			const int eventSourceIndex = emitter->GetGPUEventSourceEmitterIndex();
+			if (followIndex < -1 || followIndex >= static_cast<int>(effect->GetEmitterCount())) return nullptr;
+			// GPU event producers must precede consumers so the same command list can
+			// transition the producer stream to SRV before the consumer dispatch.
+			if (eventSourceIndex < -1 || eventSourceIndex >= static_cast<int>(i)) return nullptr;
 		}
 
 		return effect;
@@ -91,6 +249,8 @@ bool ParticleEffectSerializer::Save(const ParticleEffect& effect, const std::str
 {
 #ifdef USE_NLOHMANN_JSON
 	json data;
+	data["formatVersion"] = kParticleAssetFormatVersion;
+	data["moduleSchemaVersion"] = 1;
 
 	data["name"] = effect.GetName();
 
@@ -131,12 +291,49 @@ bool ParticleEffectSerializer::Save(const ParticleEffect& effect, const std::str
 #ifdef USE_NLOHMANN_JSON
 static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 {
+	if (!data.is_object()) return nullptr;
+	if (data.contains("renderer") && !ValidateRendererData(data["renderer"])) return nullptr;
+	const uint32_t maxParticles = data.value("maxParticles", 1000u);
+	const int simulationMode = data.value("simulationMode", 0);
+	const int loopBehavior = data.value("loopBehavior", 1);
+	const int inactiveResponse = data.value("inactiveResponse", 0);
+	const uint32_t gpuEventTrigger = data.value("gpuEventTrigger", 1u);
+	const float gpuEventProbability = data.value("gpuEventProbability", 1.0f);
+	const float duration = data.value("duration", 0.0f);
+	const float startDelay = data.value("startDelay", 0.0f);
+	const float minMoveDistance = data.value("minMoveDistance", 0.05f);
+	const int loopCount = data.value("loopCount", 1);
+	if (maxParticles == 0 || maxParticles > kMaxSerializedParticles || simulationMode < 0 || simulationMode > 1 ||
+		loopBehavior < 0 || loopBehavior > 2 || inactiveResponse < 0 || inactiveResponse > 1 ||
+		gpuEventTrigger > 1 || gpuEventProbability < 0.0f || gpuEventProbability > 1.0f ||
+		duration < 0.0f || startDelay < 0.0f || minMoveDistance < 0.0f || loopCount < 1) return nullptr;
+	if (data.contains("modules") && (!data["modules"].is_array() || data["modules"].size() > kMaxSerializedModules)) return nullptr;
 	auto emitter = std::make_unique<ParticleEmitter>();
 	emitter->Initialize(data.value("name", "UnnamedEmitter"));
+	if (data.contains("parameters"))
+	{
+		if (!data["parameters"].is_array() || data["parameters"].size() > 256) return nullptr;
+		for (const auto& parameter : data["parameters"])
+		{
+			if (!parameter.is_object()) return nullptr;
+			const std::string name = parameter.value("name", "");
+			const std::string type = parameter.value("type", "");
+			if (name.empty() || name.size() > 128 || !parameter.contains("value")) return nullptr;
+			const auto& value = parameter["value"];
+			if (type == "float" && value.is_number()) emitter->GetParameterStore().Set(name, value.get<float>());
+			else if (type == "uint" && value.is_number_unsigned()) emitter->GetParameterStore().Set(name, value.get<uint32_t>());
+			else if (type == "int" && value.is_number_integer()) emitter->GetParameterStore().Set(name, value.get<int32_t>());
+			else if (type == "bool" && value.is_boolean()) emitter->GetParameterStore().Set(name, value.get<bool>());
+			else if (type == "string" && value.is_string() && value.get_ref<const std::string&>().size() <= 1024) emitter->GetParameterStore().Set(name, value.get<std::string>());
+			else if (type == "vector3" && value.is_object()) emitter->GetParameterStore().Set(name, Vector3{ value.value("x", 0.0f), value.value("y", 0.0f), value.value("z", 0.0f) });
+			else if (type == "vector4" && value.is_object()) emitter->GetParameterStore().Set(name, Vector4{ value.value("x", 0.0f), value.value("y", 0.0f), value.value("z", 0.0f), value.value("w", 0.0f) });
+			else return nullptr;
+		}
+	}
 
 	// 基本設定
-	emitter->SetMaxParticles(data.value("maxParticles", 1000u));
-	emitter->SetSimulationMode(static_cast<SimulationMode>(data.value("simulationMode", 0)));
+	emitter->SetMaxParticles(maxParticles);
+	emitter->SetSimulationMode(static_cast<SimulationMode>(simulationMode));
 
 	if (data.contains("position"))
 	{
@@ -159,16 +356,21 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 
 	// Follow Emitter Index (同じエフェクト内の別エミッターを追従)
 	emitter->SetFollowEmitterIndex(data.value("followEmitterIndex", -1));
+	emitter->SetGPUEventSourceEmitterIndex(data.value("gpuEventSourceEmitterIndex", -1));
+	emitter->SetGPUEventTrigger(gpuEventTrigger);
+	emitter->SetGPUEventProbability(gpuEventProbability);
+	emitter->SetGPUEventVelocityInheritance(data.value("gpuEventInheritVelocity", false), data.value("gpuEventVelocityScale", 1.0f));
+	emitter->SetGPUEventInheritColor(data.value("gpuEventInheritColor", false));
 
 	// 移動時のみ生成
 	emitter->SetSpawnOnlyWhenMoving(data.value("spawnOnlyWhenMoving", false));
-	emitter->SetMinMoveDistance(data.value("minMoveDistance", 0.05f));
+	emitter->SetMinMoveDistance(minMoveDistance);
 
 	// ライフサイクル設定
-	emitter->SetDuration(data.value("duration", 0.0f));
-	emitter->SetStartDelay(data.value("startDelay", 0.0f));
+	emitter->SetDuration(duration);
+	emitter->SetStartDelay(startDelay);
 	emitter->SetLoopBehavior(static_cast<LoopBehavior>(data.value("loopBehavior", 1))); // default: Infinite
-	emitter->SetLoopCount(data.value("loopCount", 1));
+	emitter->SetLoopCount(loopCount);
 	emitter->SetInactiveResponse(static_cast<InactiveResponse>(data.value("inactiveResponse", 0))); // default: Complete
 
 	// モジュール
@@ -176,7 +378,13 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 	{
 		for (const auto& moduleData : data["modules"])
 		{
+			if (!moduleData.is_object()) return nullptr;
 			std::string type = moduleData.value("type", "");
+			const ModuleDescriptor* descriptor = ModuleDescriptorRegistry::GetInstance().Find(type);
+			if (!descriptor) return nullptr;
+			const uint32_t moduleVersion = moduleData.value("version", 1u);
+			if (moduleVersion == 0 || moduleVersion > descriptor->version) return nullptr;
+			if (!ValidateModuleData(moduleData, *descriptor)) return nullptr;
 
 			if (type == "SpawnRate")
 			{
@@ -224,6 +432,19 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 				m->SetSpawnLocation(static_cast<SpawnLocation>(moduleData.value("spawnLocation", 0)));
 				m->SetArcAngle(moduleData.value("arcAngle", 360.0f));
 				emitter->AddModule(std::move(m));
+			}
+			else if (type == "InitialPosition")
+			{
+				Vector3 minOffset{}, maxOffset{};
+				if (moduleData.contains("min"))
+				{
+					minOffset = { moduleData["min"].value("x", 0.0f), moduleData["min"].value("y", 0.0f), moduleData["min"].value("z", 0.0f) };
+				}
+				if (moduleData.contains("max"))
+				{
+					maxOffset = { moduleData["max"].value("x", 0.0f), moduleData["max"].value("y", 0.0f), moduleData["max"].value("z", 0.0f) };
+				}
+				emitter->AddModule(std::make_unique<InitialPositionModule>(minOffset, maxOffset));
 			}
 			else if (type == "InitialLifetime")
 			{
@@ -294,6 +515,30 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 				m->SetGroupCount(moduleData.value("groupCount", 1u));
 				emitter->AddModule(std::move(m));
 			}
+			else if (type == "SubEmitter")
+			{
+				if (moduleData.contains("configs") && (!moduleData["configs"].is_array() || moduleData["configs"].size() > 64)) return nullptr;
+				auto m = std::make_unique<SubEmitterModule>();
+				if (moduleData.contains("configs")) for (const auto& configData : moduleData["configs"])
+				{
+					if (!configData.is_object()) return nullptr;
+					SubEmitterConfig config;
+					config.effectPath = configData.value("effectPath", "");
+					const int trigger = configData.value("trigger", static_cast<int>(SubEmitterTrigger::OnDeath));
+					config.probability = configData.value("probability", 1.0f);
+					config.continuousRate = configData.value("continuousRate", 10.0f);
+					if (config.effectPath.size() > 1024 || trigger < 0 || trigger > 3 ||
+						config.probability < 0.0f || config.probability > 1.0f || config.continuousRate <= 0.0f) return nullptr;
+					config.trigger = static_cast<SubEmitterTrigger>(trigger);
+					config.inheritPosition = configData.value("inheritPosition", true);
+					config.inheritVelocity = configData.value("inheritVelocity", false);
+					config.inheritVelocityScale = configData.value("inheritVelocityScale", 0.5f);
+					config.inheritColor = configData.value("inheritColor", false);
+					config.inheritScale = configData.value("inheritScale", false);
+					m->AddConfig(config);
+				}
+				emitter->AddModule(std::move(m));
+			}
 			else if (type == "Gravity")
 			{
 				auto m = std::make_unique<GravityModule>();
@@ -355,6 +600,17 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 					m->SetEndColor(ec);
 				}
 				m->SetEasingType(static_cast<EasingType>(moduleData.value("easingType", 0)));
+				if (moduleData.contains("gradient"))
+				{
+					if (!moduleData["gradient"].is_array() || moduleData["gradient"].size() > 64) return nullptr;
+					ColorGradient gradient;
+					for (const auto& key : moduleData["gradient"])
+					{
+						if (!key.is_object()) return nullptr;
+						gradient.AddKey(key.value("time", 0.0f), { key.value("r", 1.0f), key.value("g", 1.0f), key.value("b", 1.0f), key.value("a", 1.0f) });
+					}
+					m->SetGradient(gradient);
+				}
 				emitter->AddModule(std::move(m));
 			}
 			else if (type == "ScaleOverLifetime")
@@ -377,6 +633,17 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 					m->SetEndScale(es);
 				}
 				m->SetEasingType(static_cast<EasingType>(moduleData.value("easingType", 0)));
+				if (moduleData.contains("curve"))
+				{
+					if (!moduleData["curve"].is_array() || moduleData["curve"].size() > 64) return nullptr;
+					AnimationCurve curve;
+					for (const auto& key : moduleData["curve"])
+					{
+						if (!key.is_object()) return nullptr;
+						curve.AddKey(key.value("time", 0.0f), key.value("value", 0.0f));
+					}
+					m->SetCurve(curve);
+				}
 				emitter->AddModule(std::move(m));
 			}
 			// Phase 3: New modules
@@ -794,6 +1061,49 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 				m->SetHeightAxis(moduleData.value("heightAxis", 1));
 				emitter->AddModule(std::move(m));
 			}
+			else
+			{
+				// Registry entries must never be silently ignored by the migration loader.
+				return nullptr;
+			}
+		}
+	}
+
+	if (data.contains("dynamicInputs"))
+	{
+		const auto& bindings = data["dynamicInputs"];
+		if (!bindings.is_array() || bindings.size() > 1024) return nullptr;
+		for (const auto& entry : bindings)
+		{
+			if (!entry.is_object()) return nullptr;
+			DynamicParameterBinding binding;
+			binding.moduleId = entry.value("module", "");
+			binding.parameterId = entry.value("parameter", "");
+			const int type = entry.value("type", -1);
+			const int mode = entry.value("mode", -1);
+			if (type < static_cast<int>(ModuleParameterType::Float) || type > static_cast<int>(ModuleParameterType::StructArray) ||
+				mode < static_cast<int>(DynamicBindingMode::Constant) || mode > static_cast<int>(DynamicBindingMode::EmitterParameter)) return nullptr;
+			binding.type = static_cast<ModuleParameterType>(type);
+			binding.mode = static_cast<DynamicBindingMode>(mode);
+			binding.emitterParameter = entry.value("emitterParameter", "");
+			if (!entry.contains("fallback") || !entry.contains("minimum") || !entry.contains("maximum") ||
+				!LoadBindingValue(entry["fallback"], binding.type, binding.fallback) ||
+				!LoadBindingValue(entry["minimum"], binding.type, binding.minimum) ||
+				!LoadBindingValue(entry["maximum"], binding.type, binding.maximum)) return nullptr;
+			if (entry.contains("keys"))
+			{
+				if (!entry["keys"].is_array() || entry["keys"].size() > 1024) return nullptr;
+				for (const auto& key : entry["keys"])
+				{
+					if (!key.is_object() || !key.contains("value")) return nullptr;
+					DynamicBindingKey parsed;
+					parsed.time = key.value("time", -1.0f);
+					if (parsed.time < 0.0f || parsed.time > 1.0f || !key["value"].is_object()) return nullptr;
+					parsed.value = { key["value"].value("x", 0.0f), key["value"].value("y", 0.0f), key["value"].value("z", 0.0f), key["value"].value("w", 0.0f) };
+					binding.keys.push_back(parsed);
+				}
+			}
+			if (!emitter->SetDynamicBinding(std::move(binding))) return nullptr;
 		}
 	}
 
@@ -870,9 +1180,35 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 			renderer->SetScale(rendererData.value("scale", 1.0f));
 			emitter->SetRenderer(std::move(renderer));
 		}
+		else
+		{
+			return nullptr;
+		}
 
 		if (auto* renderer = emitter->GetRenderer())
 		{
+			if (rendererData.contains("emissive"))
+			{
+				const auto& emissive = rendererData["emissive"];
+				if (!emissive.is_object()) return nullptr;
+				EmissiveSettings settings;
+				settings.enabled = emissive.value("enabled", false);
+				const std::string source = emissive.value("source", "Uniform");
+				if (source == "Uniform") settings.source = EmissiveSource::Uniform;
+				else if (source == "BaseTextureMask") settings.source = EmissiveSource::BaseTextureMask;
+				else if (source == "EmissiveTexture") settings.source = EmissiveSource::EmissiveTexture;
+				else return nullptr;
+				if (emissive.contains("color"))
+				{
+					const auto& color = emissive["color"];
+					if (!color.is_object()) return nullptr;
+					settings.color = { color.value("r", 1.0f), color.value("g", 1.0f), color.value("b", 1.0f) };
+				}
+				settings.intensity = emissive.value("intensity", 1.0f);
+				settings.bloomContribution = emissive.value("bloomContribution", 1.0f);
+				renderer->SetEmissiveSettings(settings);
+				renderer->SetEmissiveTexture(emissive.value("texture", ""));
+			}
 			if (rendererData.contains("tintColor"))
 			{
 				Vector4 tint;
@@ -911,6 +1247,46 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 		{"z", emitter.GetFollowOffset().z}
 	};
 	data["followEmitterIndex"] = emitter.GetFollowEmitterIndex();
+	data["gpuEventSourceEmitterIndex"] = emitter.GetGPUEventSourceEmitterIndex();
+	data["gpuEventTrigger"] = emitter.GetGPUEventTrigger();
+	data["gpuEventProbability"] = emitter.GetGPUEventProbability();
+	data["gpuEventInheritVelocity"] = emitter.GetGPUEventInheritVelocity();
+	data["gpuEventVelocityScale"] = emitter.GetGPUEventVelocityScale();
+	data["gpuEventInheritColor"] = emitter.GetGPUEventInheritColor();
+	data["parameters"] = json::array();
+	for (const auto& [name, value] : emitter.GetParameterStore().GetValues())
+	{
+		json entry;
+		entry["name"] = name;
+		std::visit([&](const auto& typedValue)
+		{
+			using T = std::decay_t<decltype(typedValue)>;
+			if constexpr (std::is_same_v<T, float>) { entry["type"] = "float"; entry["value"] = typedValue; }
+			else if constexpr (std::is_same_v<T, uint32_t>) { entry["type"] = "uint"; entry["value"] = typedValue; }
+			else if constexpr (std::is_same_v<T, int32_t>) { entry["type"] = "int"; entry["value"] = typedValue; }
+			else if constexpr (std::is_same_v<T, bool>) { entry["type"] = "bool"; entry["value"] = typedValue; }
+			else if constexpr (std::is_same_v<T, std::string>) { entry["type"] = "string"; entry["value"] = typedValue; }
+			else if constexpr (std::is_same_v<T, Vector3>) { entry["type"] = "vector3"; entry["value"] = { {"x", typedValue.x}, {"y", typedValue.y}, {"z", typedValue.z} }; }
+			else if constexpr (std::is_same_v<T, Vector4>) { entry["type"] = "vector4"; entry["value"] = { {"x", typedValue.x}, {"y", typedValue.y}, {"z", typedValue.z}, {"w", typedValue.w} }; }
+		}, value);
+		data["parameters"].push_back(std::move(entry));
+	}
+	data["dynamicInputs"] = json::array();
+	for (const auto& binding : emitter.GetDynamicBindings())
+	{
+		json entry = {
+			{"module", binding.moduleId}, {"parameter", binding.parameterId},
+			{"type", static_cast<int>(binding.type)}, {"mode", static_cast<int>(binding.mode)},
+			{"emitterParameter", binding.emitterParameter}, {"fallback", SaveBindingValue(binding.fallback)},
+			{"minimum", SaveBindingValue(binding.minimum)}, {"maximum", SaveBindingValue(binding.maximum)},
+			{"keys", json::array()}
+		};
+		for (const auto& key : binding.keys)
+		{
+			entry["keys"].push_back({ {"time", key.time}, {"value", {{"x", key.value.x}, {"y", key.value.y}, {"z", key.value.z}, {"w", key.value.w}}} });
+		}
+		data["dynamicInputs"].push_back(std::move(entry));
+	}
 
 	// 移動時のみ生成
 	data["spawnOnlyWhenMoving"] = emitter.GetSpawnOnlyWhenMoving();
@@ -933,6 +1309,10 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 		json moduleData;
 		std::string type = module->GetName();
 		moduleData["type"] = type;
+		if (const auto* descriptor = ModuleDescriptorRegistry::GetInstance().Find(type))
+		{
+			moduleData["version"] = descriptor->version;
+		}
 
 		// 各モジュールタイプ別にパラメータを保存
 		if (auto* m = dynamic_cast<const SpawnRateModule*>(module))
@@ -962,6 +1342,13 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 			moduleData["initialSpeed"] = m->GetInitialSpeed();
 			moduleData["spawnLocation"] = static_cast<int>(m->GetSpawnLocation());
 			moduleData["arcAngle"] = m->GetArcAngle();
+		}
+		else if (auto* m = dynamic_cast<const InitialPositionModule*>(module))
+		{
+			const Vector3 minOffset = m->GetMinOffset();
+			const Vector3 maxOffset = m->GetMaxOffset();
+			moduleData["min"] = {{"x", minOffset.x}, {"y", minOffset.y}, {"z", minOffset.z}};
+			moduleData["max"] = {{"x", maxOffset.x}, {"y", maxOffset.y}, {"z", maxOffset.z}};
 		}
 		else if (auto* m = dynamic_cast<const InitialLifetimeModule*>(module))
 		{
@@ -993,6 +1380,24 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 		{
 			moduleData["groupCount"] = m->GetGroupCount();
 		}
+		else if (auto* m = dynamic_cast<const SubEmitterModule*>(module))
+		{
+			moduleData["configs"] = json::array();
+			for (const auto& config : m->GetConfigs())
+			{
+				moduleData["configs"].push_back({
+					{ "effectPath", config.effectPath },
+					{ "trigger", static_cast<int>(config.trigger) },
+					{ "inheritPosition", config.inheritPosition },
+					{ "inheritVelocity", config.inheritVelocity },
+					{ "inheritVelocityScale", config.inheritVelocityScale },
+					{ "inheritColor", config.inheritColor },
+					{ "inheritScale", config.inheritScale },
+					{ "probability", config.probability },
+					{ "continuousRate", config.continuousRate }
+				});
+			}
+		}
 		else if (auto* m = dynamic_cast<const GravityModule*>(module))
 		{
 			Vector3 minG = m->GetMinGravity();
@@ -1013,6 +1418,11 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 			moduleData["start"] = {{"r", start.x}, {"g", start.y}, {"b", start.z}, {"a", start.w}};
 			moduleData["end"] = {{"r", end.x}, {"g", end.y}, {"b", end.z}, {"a", end.w}};
 			moduleData["easingType"] = static_cast<int>(m->GetEasingType());
+			if (m->HasGradient())
+			{
+				moduleData["gradient"] = json::array();
+				for (const auto& key : m->GetGradient().keys) moduleData["gradient"].push_back({ {"time", key.time}, {"r", key.color.x}, {"g", key.color.y}, {"b", key.color.z}, {"a", key.color.w} });
+			}
 		}
 		else if (auto* m = dynamic_cast<const ScaleOverLifetimeModule*>(module))
 		{
@@ -1021,6 +1431,11 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 			moduleData["start"] = {{"x", start.x}, {"y", start.y}, {"z", start.z}};
 			moduleData["end"] = {{"x", end.x}, {"y", end.y}, {"z", end.z}};
 			moduleData["easingType"] = static_cast<int>(m->GetEasingType());
+			if (m->HasCurve())
+			{
+				moduleData["curve"] = json::array();
+				for (const auto& key : m->GetCurve().keys) moduleData["curve"].push_back({ {"time", key.time}, {"value", key.value} });
+			}
 		}
 		// Phase 3: New modules
 		else if (auto* m = dynamic_cast<const AccelerationModule*>(module))
@@ -1092,10 +1507,6 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 			moduleData["startSpeed"] = m->GetStartSpeed();
 			moduleData["endSpeed"] = m->GetEndSpeed();
 			moduleData["easingType"] = static_cast<int>(m->GetEasingType());
-		}
-		else if (auto* m = dynamic_cast<const FaceVelocityModule*>(module))
-		{
-			// パラメータなし
 		}
 		else if (auto* m = dynamic_cast<const JitterModule*>(module))
 		{
@@ -1271,6 +1682,18 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 			{"texture", renderer->GetTexturePath()},
 			{"blendMode", static_cast<int>(renderer->GetBlendMode())}
 		};
+		const EmissiveSettings& emissive = renderer->GetEmissiveSettings();
+		const char* source = "Uniform";
+		if (emissive.source == EmissiveSource::BaseTextureMask) source = "BaseTextureMask";
+		else if (emissive.source == EmissiveSource::EmissiveTexture) source = "EmissiveTexture";
+		data["renderer"]["emissive"] = {
+			{"enabled", emissive.enabled},
+			{"source", source},
+			{"color", {{"r", emissive.color.x}, {"g", emissive.color.y}, {"b", emissive.color.z}}},
+			{"intensity", emissive.intensity},
+			{"bloomContribution", emissive.bloomContribution}
+		};
+		data["renderer"]["emissive"]["texture"] = renderer->GetEmissiveTexturePath();
 
 		// Trail(Ribbon)固有の設定
 		if (auto* trailRenderer = dynamic_cast<const TrailRenderer*>(renderer))

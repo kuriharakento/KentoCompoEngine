@@ -61,6 +61,30 @@ public:
 	uint32_t AllocateRange(uint32_t count);
 
 	/**
+	 * @brief 1つ確保する。空きが無ければ失敗を返す。
+	 * @param outIndex 確保できたSRVインデックス。失敗時は kInvalidSrvIndex
+	 * @return 確保できたら true
+	 * @note アサートで止めたくない場所用。GPUパーティクルのように
+	 *       実行中に確保と解放を繰り返す側が使う。
+	 */
+	bool TryAllocate(uint32_t& outIndex);
+
+	/**
+	 * @brief 連続で確保する。空きが足りなければ失敗を返す。
+	 * @param count 確保する数
+	 * @param outStartIndex 開始インデックス。失敗時は kInvalidSrvIndex
+	 * @return 確保できたら true
+	 */
+	bool TryAllocateRange(uint32_t count, uint32_t& outStartIndex);
+
+	/**
+	 * @brief その番号が今使われているか調べる
+	 * @param index 調べるSRVインデックス
+	 * @return 確保済みなら true。未確保・解放済み・範囲外なら false
+	 */
+	bool IsAllocated(uint32_t index) const { return index < allocated_.size() && allocated_[index] != 0; }
+
+	/**
 	 * @brief 2DテクスチャのSRVを作成する
 	 * 
 	 * 通常の2Dテクスチャ用のSRVを指定されたインデックスに作成します。
@@ -203,6 +227,17 @@ private:
 
 	// 解放済みインデックスリスト
 	std::vector<uint32_t> freeList_;
+
+	// 番号ごとの使用中フラグ。IsAllocated を毎フレーム引いても重くならないように持つ
+	std::vector<uint8_t> allocated_;
+
+	/**
+	 * @brief 使用中フラグをまとめて立てる／降ろす
+	 * @param startIndex 開始インデックス
+	 * @param count 個数
+	 * @param used true で使用中、false で未使用
+	 */
+	void MarkAllocated(uint32_t startIndex, uint32_t count, bool used);
 
 public:
 	/**

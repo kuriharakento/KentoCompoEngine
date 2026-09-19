@@ -1,6 +1,7 @@
 #pragma once
 #include "effects/particle/ParticleTypes.h"
 #include <cstdint>
+#include <d3d12.h>
 
 namespace KCE
 {
@@ -76,6 +77,6 @@ public:
 	 * @param cmdList D3D12コマンドリストポインタ
 	 * @param deltaTime 経過時間
 	 */
-	virtual void DispatchGPU(class GPUSimulator* simulator, struct ID3D12GraphicsCommandList* cmdList, float deltaTime) {}
+	virtual void DispatchGPU(class GPUSimulator* simulator, ID3D12GraphicsCommandList* cmdList, float deltaTime) { (void)simulator; (void)cmdList; (void)deltaTime; }
 };
 } // namespace KCE
