@@ -2,6 +2,7 @@
 #include "engine/scene/factory/SceneFactory.h"
 #include <assert.h>
 
+#include "base/Logger.h"
 #include "externals/imgui/imgui.h"
 #include "effects/particle/ParticleManager.h"
 #include "manager/editor/DebugUIManager.h"
@@ -21,7 +22,10 @@ SceneManager::~SceneManager()
 	}
 #endif
 	//現在のシーンを終了
-	currentScene_->Finalize();
+	if (currentScene_)
+	{
+		currentScene_->Finalize();
+	}
 }
 
 void SceneManager::Initialize(const SceneContext& context)
@@ -34,6 +38,8 @@ void SceneManager::Initialize(const SceneContext& context)
 
 	//最初のシーンを生成
 	currentScene_ = sceneFactory_->CreateScene(startSceneName);
+	// 最初のシーンが無いと何も動かせないので、ここは止める（名前はログに出ている）
+	assert(currentScene_ && "start scene is not registered");
 	currentScene_->SetSceneManager(this);
 	currentScene_->Initialize();
 	currentSceneName_ = startSceneName;
@@ -120,26 +126,45 @@ void SceneManager::DrawGBuffer()
 	currentScene_->DrawGBuffer();
 }
 
-void SceneManager::ChangeScene(const std::string& sceneName)
+bool SceneManager::ChangeScene(const std::string& sceneName)
 {
-	//nullチェック
 	assert(sceneFactory_);
-	assert(nextScene_ == nullptr);
 
-	// Sceneという文字列をつけてシーン名を作成
-	const std::string fullSceneName = sceneName + "Scene";
+	// "Title" と "TitleScene" のどちらで来ても "TitleScene" にそろえる
+	const std::string fullSceneName = sceneName.ends_with(sceneStr) ? sceneName : sceneName + sceneStr;
 
-	//次のシーンを生成
-	nextScene_ = sceneFactory_->CreateScene(fullSceneName);
-	//次のシーンの名前をセット
+	// 名前の打ち間違いで今のシーンを捨てないよう、予約の時点で弾く
+	if (!SceneFactory::HasScene(fullSceneName))
+	{
+		Logger::Log("[SceneManager Error] Scene is not registered: '" + fullSceneName + "'\n");
+		return false;
+	}
+
+	if (HasPendingScene() && nextSceneName_ != fullSceneName)
+	{
+		Logger::Log("[SceneManager] Scene change overwritten: '" + nextSceneName_ + "' -> '" + fullSceneName + "'\n");
+	}
+
+	// シーンを作るのは切り替えのときなので、ここでは名前だけ覚える
 	nextSceneName_ = fullSceneName;
+	return true;
 }
 
 void SceneManager::ReserveNextScene()
 {
 	//次のシーンが予約されているなら
-	if (nextScene_)
+	if (HasPendingScene())
 	{
+		const std::string nextName = nextSceneName_;
+		nextSceneName_.clear();
+
+		// 今のシーンを畳む前に作っておく。作れなければ今のシーンのまま続ける
+		std::unique_ptr<BaseScene> nextScene = sceneFactory_->CreateScene(nextName);
+		if (!nextScene)
+		{
+			return;
+		}
+
 		//現在のシーンを終了
 		currentScene_->Finalize();
 		currentScene_.reset();
@@ -156,10 +181,8 @@ void SceneManager::ReserveNextScene()
 		}
 
 		//シーンを切り替え
-		currentScene_ = std::move(nextScene_);
-		currentSceneName_ = nextSceneName_;
-		nextScene_.reset();
-		nextSceneName_ = "";
+		currentScene_ = std::move(nextScene);
+		currentSceneName_ = nextName;
 		//次のシーンを初期化
 		currentScene_->SetSceneManager(this);
 		currentScene_->Initialize();
@@ -174,11 +197,6 @@ constexpr const char* kSceneChangePopupName = "保存していない変更があ
 
 void SceneManager::RequestSceneChangeFromMenu(const std::string& sceneName)
 {
-	// 同じフレームに2回予約すると ChangeScene の assert に当たるので、予約済みなら受けない
-	if (nextScene_)
-	{
-		return;
-	}
 	if (currentScene_ && currentScene_->HasUnsavedChanges())
 	{
 		pendingSceneName_ = sceneName;
@@ -238,7 +256,7 @@ void SceneManager::DrawSceneChangeDialog()
 	ImGui::Separator();
 	if (ImGui::Button("保存しないで切り替える"))
 	{
-		if (!nextScene_ && !pendingSceneName_.empty())
+		if (!pendingSceneName_.empty())
 		{
 			ChangeScene(pendingSceneName_);
 		}
