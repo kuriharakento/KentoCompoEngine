@@ -6,6 +6,8 @@
 
 namespace KCE
 {
+class CameraManager;
+
 /**
  * @brief デバッグ用フリーカメラクラス
  * 
@@ -18,10 +20,17 @@ namespace KCE
  * - Tab: デバッグUIの表示切り替え
  * 右ドラッグしている間だけ動かす（WASD も右ドラッグ中だけ効く）。エディタでは Scene の上で掴んだときだけ。
  * ImGuiデバッグUIで移動速度・マウス感度の調整が可能。
+ *
+ * - F9 か SetEnabled でオン・オフする。オフの間は右クリックに反応しない
+ * - 動かすのは専用のカメラ（kCameraName）。オンの間は CameraManager の表示用の差し替えで画面に映す
+ * - アクティブカメラには触らないので、オフにするとその時点の本来のカメラに戻る
  */
 class DebugCamera : public CameraWorkBase
 {
 public:
+    // CameraManager に作る専用カメラの名前
+    static constexpr const char* kCameraName = "DebugCamera";
+
     DebugCamera() = default;
     virtual ~DebugCamera();
 
@@ -39,12 +48,17 @@ public:
     void Update() override;
 
     /**
-     * @brief デバッグカメラを開始
-     * @param initialPosition 初期位置（デフォルト: {0.0f, 20.0f, -10.0f}）
-     * @param initialRotation 初期回転（ラジアン、デフォルト: {1.1f, 0.0f, 0.0f}）
+     * @brief 画面の差し替えに使う CameraManager を渡す。Initialize の後、SetEnabled より前に呼ぶ。
+     * @param cameraManager Framework が持つ CameraManager（所有しない）
      */
-    void Start(const Vector3& initialPosition = { 0.0f, 20.0f, -10.0f },
-               const Vector3& initialRotation = { 1.1f, 0.0f, 0.0f });
+    void SetCameraManager(CameraManager* cameraManager) { cameraManager_ = cameraManager; }
+
+    /**
+     * @brief オン・オフを切り替える。
+     * @param enabled オンにするなら true
+     * @details オンにした瞬間、今映っているカメラの位置と向きを引き継いで、そこから動かし始める。
+     */
+    void SetEnabled(bool enabled);
 
     /**
      * @brief デバッグカメラを停止
@@ -156,8 +170,10 @@ private:
     // 垂直回転角度（ラジアン）
     float pitch_ = 0.0f;
 
-    // アクティブ状態フラグ
+    // アクティブ状態フラグ（オン・オフ）
     bool isActive_ = false;
+    // 画面の差し替え先。Framework が持っていて、このクラスより後に壊れる
+    CameraManager* cameraManager_ = nullptr;
     // 右ドラッグでカメラを掴んでいる間は真。掴んでいない間はカメラにもマウスの設定にも触らない
     bool dragging_ = false;
     // デバッグUI表示フラグ

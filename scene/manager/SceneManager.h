@@ -20,6 +20,12 @@ public: //メンバ関数
 	//コンストラクタ
 	SceneManager(SceneFactory* sceneFactory) : currentScene_(nullptr), sceneFactory_(sceneFactory), context_{} {}
 
+	/**
+	 * @brief 最初に開くシーンを決める。Initialize より前に呼ぶ。
+	 * @param sceneName "Title" でも "TitleScene" でもよい
+	 */
+	void SetStartSceneName(const std::string& sceneName);
+
 	//初期化
 	void Initialize(const SceneContext& context);
 	//更新
@@ -96,6 +102,8 @@ private: //メンバ変数
 
 	//シーンの名前
 	std::string currentSceneName_ = "";
+	// 最初に開くシーン（"〇〇Scene" の形）。ゲーム側が GameConfig で決める
+	std::string startSceneName_ = "TitleScene";
 	// 予約中の切り替え先（"〇〇Scene" の形）。空なら予約なし
 	std::string nextSceneName_ = "";
 

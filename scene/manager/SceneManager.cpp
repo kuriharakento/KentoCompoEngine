@@ -28,13 +28,17 @@ SceneManager::~SceneManager()
 	}
 }
 
+void SceneManager::SetStartSceneName(const std::string& sceneName)
+{
+	startSceneName_ = sceneName.ends_with(sceneStr) ? sceneName : sceneName + sceneStr;
+}
+
 void SceneManager::Initialize(const SceneContext& context)
 {
 	//コンテキストをセット
 	context_ = context;
 
-	//初期シーンの名前
-	std::string startSceneName = "TitleScene";
+	const std::string& startSceneName = startSceneName_;
 
 	//最初のシーンを生成
 	currentScene_ = sceneFactory_->CreateScene(startSceneName);

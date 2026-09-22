@@ -1,4 +1,5 @@
 #pragma once
+#include "framework/GameConfig.h"
 
 // effects
 #include "base/RenderTexture.h"
@@ -214,9 +215,33 @@ protected:
 	 */
 	virtual void OnResize(uint32_t width, uint32_t height) {}
 
+	/**
+	 * @brief ゲームごとの起動時の設定を作る。Framework::Initialize の頭で1回だけ呼ばれる。
+	 * @return 設定。上書きしなければ既定値
+	 */
+	virtual GameConfig CreateGameConfig() const { return {}; }
+
+	/** @brief CreateGameConfig で受け取った設定 */
+	const GameConfig& GetGameConfig() const { return gameConfig_; }
+
+	/**
+	 * @brief デバッグカメラがオンか。ゲーム側で操作を止めるのに使う。
+	 * @return オンなら true。エディタのビルドでなければ常に false
+	 */
+	bool IsDebugCameraEnabled() const
+	{
+#ifdef USE_IMGUI
+		return debugCamera_ && debugCamera_->IsActive();
+#else
+		return false;
+#endif
+	}
+
 protected: // メンバ変数
 	// 終了リクエストフラグ
 	bool endRequest_ = false;
+	// ゲームごとの起動時の設定
+	GameConfig gameConfig_;
 	// ウィンドウアプリケーション
 	std::unique_ptr<WinApp> winApp_;
 	// DirectXCommon
@@ -243,7 +268,7 @@ protected: // メンバ変数
 	// カメラマネージャー
 	std::unique_ptr<CameraManager> cameraManager_;
 #ifdef USE_IMGUI
-	// どのシーンでも main を Scene の上の右ドラッグで動かすデバッグカメラ。操作するカメラは cameraManager_ が持つ
+	// どのシーンでも使える、専用カメラを動かすデバッグカメラ。操作するカメラは cameraManager_ が持つ
 	std::unique_ptr<DebugCamera> debugCamera_;
 #endif
 	// シーンマネージャー

@@ -64,9 +64,12 @@ void Framework::Initialize()
 {
 	/*----- システムの初期化（順序重要） -----*/
 
+	// ゲームごとの設定を先にもらっておく
+	gameConfig_ = CreateGameConfig();
+
 	// 1. ウィンドウアプリケーションの初期化
 	winApp_ = std::make_unique<WinApp>();
-	winApp_->Initialize();
+	winApp_->Initialize(gameConfig_.windowTitle);
 
 	// 2. DirectXCommonの初期化
 	dxCommon_ = std::make_unique<DirectXCommon>();
@@ -160,9 +163,14 @@ void Framework::Initialize()
 	cameraManager_->GetActiveCamera()->SetRotate({ 0.0f, 0.0f, 0.0f });
 #ifdef USE_IMGUI
 	// エディタで視点を動かす口はここだけにする（シーンごとやシーケンサに持たせると、同じ右ドラッグで二重に動く）
+	// 動かすのは専用のカメラ。オンの間だけ画面をこのカメラに差し替える
+	cameraManager_->AddCamera(DebugCamera::kCameraName);
+	// オフの間も最後の位置に視錐台が残って邪魔なので隠しておく
+	cameraManager_->SetDebugLineVisible(DebugCamera::kCameraName, false);
 	debugCamera_ = std::make_unique<DebugCamera>();
-	debugCamera_->Initialize(cameraManager_->GetCamera("main"));
-	debugCamera_->Start(cameraManager_->GetActiveCamera()->GetTranslate(), cameraManager_->GetActiveCamera()->GetRotate());
+	debugCamera_->Initialize(cameraManager_->GetCamera(DebugCamera::kCameraName));
+	debugCamera_->SetCameraManager(cameraManager_.get());
+	debugCamera_->SetEnabled(gameConfig_.debugCameraEnabledOnStart);
 #endif
 
 	// 3Dオブジェクト共通部に初期カメラをセット
@@ -174,6 +182,7 @@ void Framework::Initialize()
 
 	// シーンマネージャーの初期化
 	sceneManager_ = std::make_unique<SceneManager>(sceneFactory_.get());
+	sceneManager_->SetStartSceneName(gameConfig_.startSceneName);
 
 	/*----- ライト・ライン管理の初期化 -----*/
 
@@ -583,7 +592,7 @@ void Framework::Update()
 	CutsceneManager::GetInstance()->Update();
 
 #ifdef USE_IMGUI
-	// デバッグカメラは右ドラッグしている間だけ main に触る
+	// デバッグカメラの切り替え（F9）と、オンの間の右ドラッグ操作
 	debugCamera_->Update();
 #endif
 
