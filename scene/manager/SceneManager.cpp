@@ -77,13 +77,6 @@ void SceneManager::Initialize(const SceneContext& context)
 				ChangeScene(label);
 			}
 		}
-
-		// --- シーンのステート表示（デバッグ UI） ---
-		if (currentScene_)
-		{
-			ImGui::SeparatorText("シーンの状態");
-			ImGui::Text("State: %s", currentScene_->GetCurrentStateName().c_str());
-		}
 	});
 
 	// メニューバーの「シーン」と、切り替え前の確認
