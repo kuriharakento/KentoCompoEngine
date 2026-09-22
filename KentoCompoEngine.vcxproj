@@ -363,8 +363,9 @@
     <ClInclude Include="scene\factory\SceneNames.h" />
     <ClInclude Include="scene\interface\AbstractSceneFactory.h" />
     <ClInclude Include="scene\interface\BaseScene.h" />
-    <ClInclude Include="scene\interface\ISceneState.h" />
     <ClInclude Include="scene\manager\SceneManager.h" />
+    <ClInclude Include="scene\state\SceneState.h" />
+    <ClInclude Include="scene\state\StateMachine.h" />
     <ClInclude Include="scene\SceneContext.h" />
     <ClInclude Include="time\ClockId.h" />
     <ClInclude Include="time\ClockRef.h" />

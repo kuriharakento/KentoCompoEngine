@@ -1,5 +1,4 @@
 #pragma once
-#include "engine/scene/interface/ISceneState.h"
 #include <vector>
 #include "gameobject/manager/GameObjectManager.h"
 #include <memory>
@@ -13,23 +12,20 @@
 
 #include <d3d12.h>
 
-#include "engine/scene/state/SceneStateMachine.h"
-
 namespace KCE
 {
 class SceneManager;
 
 /**
- * @brief 各シーンの共通処理と状態フックを提供する基底クラス
+ * @brief 各シーンの共通処理を提供する基底クラス
+ *
+ * - 段階（演出 → プレイなど）を分けたいシーンは、StateMachine をメンバに持つ
  */
 class BaseScene
 {
 public:
-    BaseScene()
-    {
-        stateMachine_.SetOwner(this);
-    }
-    
+    BaseScene() = default;
+
     virtual ~BaseScene()
     {
 #ifdef USE_IMGUI
@@ -138,14 +134,7 @@ public:
      */
     void Update()
     {
-        // 共通更新処理
         CommonUpdate();
-
-        // 状態別更新処理
-        if (!isPaused_)
-        {
-            stateMachine_.Update();
-        }
     }
 
     /**
@@ -175,63 +164,6 @@ public:
 
 	SceneManager* GetSceneManager() const { return sceneManager_; }
 
-    /**
-     * @brief ステートマシンの参照取得。
-     */
-    SceneStateMachine& GetStateMachine() { return stateMachine_; }
-    const SceneStateMachine& GetStateMachine() const { return stateMachine_; }
-
-    /**
-     * @brief ステートの事前登録。
-     */
-    void RegisterState(const std::string& name, std::unique_ptr<ISceneState> state)
-    {
-        stateMachine_.RegisterState(name, std::move(state));
-    }
-
-    /**
-     * @brief 登録済みのステートに切り替える。
-     * @param name 切り替え先のステート名
-     */
-    void ChangeState(const std::string& name)
-    {
-        stateMachine_.ChangeState(name);
-    }
-
-    /**
-     * @brief 一時停止の要求。
-     */
-    void RequestPause()
-    {
-        isPaused_ = true;
-    }
-
-    /**
-     * @brief 一時停止の解除（復帰）。
-     */
-    void RequestResume()
-    {
-        isPaused_ = false;
-    }
-
-    /**
-     * @brief 一時停止中かどうかを取得。
-     * @return 一時停止中なら true
-     */
-    bool IsPaused() const
-    {
-        return isPaused_;
-    }
-
-    /**
-     * @brief 現在のステート名を取得（デバッグ用）。
-     * @return ステート名の文字列参照
-     */
-    const std::string& GetCurrentStateName() const
-    {
-        return stateMachine_.GetCurrentStateName();
-    }
-
 protected:
     /**
      * @brief 派生クラスの後片付け用フック。
@@ -240,13 +172,8 @@ protected:
 
     // シーンマネージャー（非所有ポインタ）
     SceneManager* sceneManager_ = nullptr;
-    // ステートマシン
-    SceneStateMachine stateMachine_{this};
 
 private:
-    // ポーズ中フラグ
-    bool isPaused_ = false;
-
     // 描画対象オブジェクトリスト
     std::vector<Object3d*> objects_;
 };

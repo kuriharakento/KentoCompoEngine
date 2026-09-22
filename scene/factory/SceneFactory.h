@@ -43,6 +43,16 @@ public:
 	}
 
 	/**
+	 * @brief シーンが登録されているか。
+	 * @param sceneName シーン識別名（"TitleScene" の形）
+	 * @return 登録されていれば true
+	 */
+	static bool HasScene(const std::string& sceneName)
+	{
+		return GetRegistry().contains(sceneName);
+	}
+
+	/**
 	 * @brief 登録済みの全シーン名リストを取得する（ImGuiデバッグUI等用）。
 	 * @return シーン識別名のリスト
 	 */

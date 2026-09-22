@@ -18,7 +18,7 @@ public: //メンバ関数
 	//デストラクタ
 	~SceneManager();
 	//コンストラクタ
-	SceneManager(SceneFactory* sceneFactory) : currentScene_(nullptr), nextScene_(nullptr), sceneFactory_(sceneFactory), context_{} {}
+	SceneManager(SceneFactory* sceneFactory) : currentScene_(nullptr), sceneFactory_(sceneFactory), context_{} {}
 
 	//初期化
 	void Initialize(const SceneContext& context);
@@ -33,9 +33,17 @@ public: //メンバ関数
 	//G-Buffer描画（ディファードレンダリング）
 	void DrawGBuffer();
 
-	//シーンの変更
+	/**
+	 * @brief シーンの切り替えを予約する。次の Update の頭で切り替わる。
+	 * @param sceneName "Title" でも "TitleScene" でもよい
+	 * @return 予約できたら true。登録されていない名前ならログを出して false（今のシーンのまま）
+	 * @details 同じフレームに何回呼んでも、最後の1回が効く。シーンを作るのは切り替えのときなので、
+	 *          予約した時点では次のシーンのコンストラクタは走らない
+	 */
+	bool ChangeScene(const std::string& sceneName);
 
-	void ChangeScene(const std::string& sceneName);
+	/** @brief 切り替えを予約しているか */
+	bool HasPendingScene() const { return !nextSceneName_.empty(); }
 
 public: //アクセッサ
 	//カメラマネージャーの取得
@@ -82,14 +90,13 @@ private: //メンバ変数
 
 	//今のシーン
 	std::unique_ptr<BaseScene> currentScene_;
-	//次のシーン
-	std::unique_ptr<BaseScene> nextScene_;
 
 	//シーンファクトリー
 	SceneFactory* sceneFactory_;
 
 	//シーンの名前
 	std::string currentSceneName_ = "";
+	// 予約中の切り替え先（"〇〇Scene" の形）。空なら予約なし
 	std::string nextSceneName_ = "";
 
 	//シーンコンテキスト
