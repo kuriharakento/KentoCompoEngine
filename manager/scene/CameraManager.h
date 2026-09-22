@@ -58,7 +58,27 @@ public:
      * @brief 現在のアクティブカメラを取得
      * @return アクティブカメラへのポインタ
      */
-	Camera* GetActiveCamera() { return renderCameraOverride_ ? renderCameraOverride_ : activeCamera_; }
+	Camera* GetActiveCamera()
+	{
+		if (renderCameraOverride_)
+		{
+			return renderCameraOverride_;
+		}
+		return viewCameraOverride_ ? viewCameraOverride_ : activeCamera_;
+	}
+
+	/**
+	 * @brief 画面に映すカメラを、解除するまで差し替える（デバッグカメラ用）
+	 *
+	 * @details アクティブカメラ（GetPrimaryCamera）には触らないので、シーンやカットシーンが
+	 *          SetActiveCamera しても差し替えは外れない。解除すればその時点の本来のカメラに戻る。
+	 *          サブビューの描画中は SetRenderCameraOverride の方が優先される。
+	 * @param camera 差し替えるカメラ（所有しない）。CameraManager が持つカメラを渡す
+	 */
+	void SetViewCameraOverride(Camera* camera) { viewCameraOverride_ = camera; }
+
+	/** @brief 画面に映すカメラの差し替えを解除する */
+	void ClearViewCameraOverride() { viewCameraOverride_ = nullptr; }
 
 	/**
 	 * @brief 描画中だけアクティブカメラを差し替える
@@ -100,6 +120,17 @@ public:
 	/** @brief 登録カメラのデバッグ形状をラインへ積む。 */
 	void DrawDebugLines();
 
+	/**
+	 * @brief カメラごとに、視錐台のデバッグラインを出すか決める。
+	 * @param name カメラの名前
+	 * @param visible 出すなら true（既定は出す）
+	 * @details ふだん使わないカメラ（SequenceCamera など）は隠しておいて、使うときだけ Inspector で出す。
+	 */
+	void SetDebugLineVisible(const std::string& name, bool visible);
+
+	/** @brief そのカメラの視錐台を出すか */
+	bool IsDebugLineVisible(const std::string& name) const { return !hiddenDebugLineNames_.contains(name); }
+
 #ifdef USE_IMGUI
 	/**
 	 * @brief カメラの一覧を描く。Hierarchy に出し、選んだら SelectionContext へ伝える
@@ -132,6 +163,8 @@ private:
 
     // 描画中だけアクティブカメラを差し替えるためのポインタ
     Camera* renderCameraOverride_ = nullptr;
+	// 解除するまで画面に映すカメラ（デバッグカメラ）。所有は cameras_
+	Camera* viewCameraOverride_ = nullptr;
 
 	// 現在のアクティブカメラの名前
 	std::string activeCameraName_;
@@ -143,5 +176,7 @@ private:
 	// 画面の「カメラを追加」で作ったカメラの名前。
 	// ほかのシステム（モニター・反射・カットシーン等）はカメラのポインタを持ち続けるので、ここにあるものだけ画面から消せる
 	std::unordered_set<std::string> editorCameraNames_;
+	// 視錐台を出さないカメラの名前
+	std::unordered_set<std::string> hiddenDebugLineNames_;
 };
 } // namespace KCE

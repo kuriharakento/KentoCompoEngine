@@ -122,7 +122,8 @@ void CameraManager::AddCamera(const std::string& name) {
 bool CameraManager::RemoveCamera(const std::string& name)
 {
 	auto it = cameras_.find(name);
-	if (it == cameras_.end() || it->second.get() == activeCamera_ || it->second.get() == renderCameraOverride_)
+	if (it == cameras_.end() || it->second.get() == activeCamera_ || it->second.get() == renderCameraOverride_
+		|| it->second.get() == viewCameraOverride_)
 	{
 		return false;
 	}
@@ -162,6 +163,12 @@ void CameraManager::Update() {
 
     // アクティブカメラを更新
     activeCamera_->Update();
+
+	// 差し替えて映しているカメラも、行列を作っておかないと画面に反映されない
+	if (viewCameraOverride_ && viewCameraOverride_ != activeCamera_)
+	{
+		viewCameraOverride_->Update();
+	}
 }
 
 void CameraManager::DrawDebugLines()
@@ -174,7 +181,7 @@ void CameraManager::DrawDebugLines()
 	for (const auto& entry : cameras_)
 	{
 		Camera* camera = entry.second.get();
-		if (camera == viewCamera) { continue; }
+		if (camera == viewCamera || hiddenDebugLineNames_.contains(entry.first)) { continue; }
 		camera->Update();
 		const Matrix4x4& world = camera->GetWorldMatrix();
 		const Vector3 origin = camera->GetTranslate();
@@ -195,6 +202,18 @@ void CameraManager::DrawDebugLines()
 		}
 	}
 #endif
+}
+
+void CameraManager::SetDebugLineVisible(const std::string& name, bool visible)
+{
+	if (visible)
+	{
+		hiddenDebugLineNames_.erase(name);
+	}
+	else
+	{
+		hiddenDebugLineNames_.insert(name);
+	}
 }
 
 #ifdef USE_IMGUI
@@ -264,7 +283,8 @@ bool CameraManager::CanRemoveFromEditor(const std::string& name) const
 {
 	auto it = cameras_.find(name);
 	return it != cameras_.end() && editorCameraNames_.contains(name)
-		&& it->second.get() != activeCamera_ && it->second.get() != renderCameraOverride_;
+		&& it->second.get() != activeCamera_ && it->second.get() != renderCameraOverride_
+		&& it->second.get() != viewCameraOverride_;
 }
 
 void CameraManager::DrawInspectorImGui(const SelectionItem& item)
@@ -285,6 +305,12 @@ void CameraManager::DrawInspectorImGui(const SelectionItem& item)
 	else if (ImGui::Button("このカメラを使う"))
 	{
 		SetActiveCamera(item.name);
+	}
+
+	bool debugLineVisible = IsDebugLineVisible(item.name);
+	if (ImGui::Checkbox("視錐台を表示", &debugLineVisible))
+	{
+		SetDebugLineVisible(item.name, debugLineVisible);
 	}
 
 	// 触ったときだけ書き戻す。毎フレーム書くと、シーケンサーがクォータニオンで回したカメラをオイラー角に戻してしまう

@@ -58,7 +58,7 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 	return DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
-void WinApp::Initialize()
+void WinApp::Initialize(const std::wstring& title)
 {
 	// DPI Awareness の設定 (Per-Monitor DPI Aware V2)
 	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
@@ -92,7 +92,7 @@ void WinApp::Initialize()
 	// ウィンドウの生成
 	hwnd_ = CreateWindow(
 		wc_.lpszClassName,
-		L"KentoCompo",
+		title.c_str(),
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,

@@ -983,6 +983,9 @@
     <ClInclude Include="framework\Framework.h">
       <Filter>framework</Filter>
     </ClInclude>
+    <ClInclude Include="framework\GameConfig.h">
+      <Filter>framework</Filter>
+    </ClInclude>
     <ClInclude Include="gameobject\base\GameObject.h">
       <Filter>gameobject\base</Filter>
     </ClInclude>

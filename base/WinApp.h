@@ -25,8 +25,9 @@ public:
 public:
 	/**
 	 * @brief 初期化
+	 * @param title ウィンドウのタイトル
 	 */
-	void Initialize();
+	void Initialize(const std::wstring& title = L"KentoCompo");
 
 	/**
 	 * @brief ウィンドウタイトルを変更する。

@@ -451,6 +451,11 @@ void SequencerEditor::RegisterSequenceCameraGizmo()
 		{
 			return false;
 		}
+		// 視錐台を隠しているときは使っていない扱いにして、ギズモも出さない
+		if (cameraManager_ && !cameraManager_->IsDebugLineVisible(sequenceCameraName_))
+		{
+			return false;
+		}
 		// CameraManager はアクティブなカメラしか行列を作り直さない。シーケンスのカメラはアクティブでないので、
 		// ここで作り直さないとギズモで動かしても古い行列のまま描かれて、元の位置に戻って見える
 		targetCamera->Update();

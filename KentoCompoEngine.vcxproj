@@ -278,6 +278,7 @@
 	<ClInclude Include="effects\postprocess\RadialBlurEffect.h" />
     <ClInclude Include="effects\postprocess\VignetteEffect.h" />
     <ClInclude Include="framework\Framework.h" />
+    <ClInclude Include="framework\GameConfig.h" />
     <ClInclude Include="gameobject\base\GameObject.h" />
     <ClInclude Include="gameobject\component\base\ComponentFactory.h" />
     <ClInclude Include="gameobject\component\base\Behaviour.h" />

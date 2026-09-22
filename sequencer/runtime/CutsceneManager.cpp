@@ -66,6 +66,8 @@ void CutsceneManager::Initialize(CameraManager* cameraManager, LightManager* lig
 	{
 		cameraManager_->AddCamera(kSequenceCameraName);
 		cutsceneCamera_ = cameraManager_->GetCamera(kSequenceCameraName);
+		// ふだんは使わないので視錐台は隠しておく。見たいときは Inspector で出す
+		cameraManager_->SetDebugLineVisible(kSequenceCameraName, false);
 	}
 
 	player_.GetBindingContext().SetLightManager(lightManager);

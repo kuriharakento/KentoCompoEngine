@@ -7,6 +7,7 @@
 // system
 #include "base/Camera.h"
 #include "input/Input.h"
+#include "manager/scene/CameraManager.h"
 
 #ifdef USE_IMGUI
 #include "imgui/imgui.h"
@@ -44,21 +45,41 @@ DebugCamera::~DebugCamera()
 #endif
 }
 
-void DebugCamera::Start(const Vector3& initialPosition, const Vector3& initialRotation)
+void DebugCamera::SetEnabled(bool enabled)
 {
-    // カメラの初期状態を設定
-    camera_->SetTranslate(initialPosition);
-    camera_->SetRotate(initialRotation);
+    if (enabled == isActive_ || !camera_ || !cameraManager_)
+    {
+        return;
+    }
+    if (!enabled)
+    {
+        Stop();
+        return;
+    }
 
-    // 回転状態を初期化（ラジアンから度に変換済みの値を使用）
-    yaw_ = initialRotation.y;
-    pitch_ = initialRotation.x;
+    // 今映っているカメラから始める。差し替える前なので GetActiveCamera は本来のカメラを返す
+    if (const Camera* source = cameraManager_->GetActiveCamera())
+    {
+        camera_->SetTranslate(source->GetTranslate());
+        camera_->SetRotateQuaternion(source->GetRotateQuaternion());
+        camera_->SetFovY(source->GetFovY());
+    }
+    const Vector3 euler = camera_->GetRotateQuaternion().ToEuler();
+    pitch_ = euler.x;
+    yaw_ = euler.y;
 
+    cameraManager_->SetViewCameraOverride(camera_);
     isActive_ = true;
 }
 
 void DebugCamera::Update()
 {
+    // オフの間も切り替えだけは受け付ける。Raw なのでカットシーンのロック中でも効く
+    if (Input::GetInstance()->TriggerKeyRaw(DIK_F9))
+    {
+        SetEnabled(!isActive_);
+    }
+
     if (!isActive_ || !camera_) return;
 
     // 右ドラッグしている間だけカメラに触る。
@@ -178,6 +199,10 @@ void DebugCamera::UpdateMouseLook()
 void DebugCamera::Stop()
 {
     isActive_ = false;
+    if (cameraManager_)
+    {
+        cameraManager_->ClearViewCameraOverride();
+    }
     // 掴んだまま止めると、マウスが隠れて固定されたままになる
     if (dragging_)
     {
@@ -245,12 +270,11 @@ void DebugCamera::DrawImGui()
 {
 #ifdef USE_IMGUI
 
-    // オフにすると、シーンが自分でカメラを動かすときに邪魔しない
+    // オフにすると、元のカメラの映像に戻って、右クリックもゲームに渡る
     bool active = isActive_;
-    if (ImGui::Checkbox("有効（Scene の上で右ドラッグ + WASD）", &active))
+    if (ImGui::Checkbox("有効 (F9)（Scene の上で右ドラッグ + WASD）", &active))
     {
-        if (active) { isActive_ = true; }
-        else { Stop(); }
+        SetEnabled(active);
     }
     ImGui::Separator();
 
