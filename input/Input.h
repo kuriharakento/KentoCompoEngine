@@ -113,11 +113,46 @@ public:
 
     /**
      * @brief デッドゾーンを設定
-     * 
+     *
      * アナログスティックの入力がこの値以下の場合、入力なしとして扱います。
      * @param deadZone デッドゾーンの閾値（0.0〜1.0）
      */
     void SetDeadZone(float deadZone);
+
+    /**
+     * @brief ゲームパッドが接続されているかチェック
+     * @param gamepadIndex ゲームパッドのインデックス（0〜3）
+     * @return 接続されている場合true
+     */
+    bool IsConnected(DWORD gamepadIndex) const;
+
+    /**
+     * @brief 左スティックの入力値を取得（デッドゾーン適用済み、-1.0〜1.0）
+     * @param gamepadIndex ゲームパッドのインデックス（0〜3）
+     * @return 左スティックの座標（x, y）
+     */
+    KCE::Vector2 GetLeftStick(DWORD gamepadIndex) const;
+
+    /**
+     * @brief 右スティックの入力値を取得（デッドゾーン適用済み、-1.0〜1.0）
+     * @param gamepadIndex ゲームパッドのインデックス（0〜3）
+     * @return 右スティックの座標（x, y）
+     */
+    KCE::Vector2 GetRightStick(DWORD gamepadIndex) const;
+
+    /**
+     * @brief 左トリガーの入力値を取得（0.0〜1.0）
+     * @param gamepadIndex ゲームパッドのインデックス（0〜3）
+     * @return 左トリガーの押し込み量
+     */
+    float GetLeftTrigger(DWORD gamepadIndex) const;
+
+    /**
+     * @brief 右トリガーの入力値を取得（0.0〜1.0）
+     * @param gamepadIndex ゲームパッドのインデックス（0〜3）
+     * @return 右トリガーの押し込み量
+     */
+    float GetRightTrigger(DWORD gamepadIndex) const;
 
     /**
      * @brief ゲームパッドの振動を設定

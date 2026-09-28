@@ -3,7 +3,9 @@
 #include "base/Logger.h"
 #include "editor/SceneViewContext.h"
 
+#include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstring>
 
 #ifdef USE_IMGUI
@@ -397,6 +399,76 @@ bool Input::ReleaseButton(DWORD gamepadIndex, DWORD buttonCode) const
 void Input::SetDeadZone(float deadZone)
 {
     deadZone_ = deadZone;
+}
+
+bool Input::IsConnected(DWORD gamepadIndex) const
+{
+    if (gamepadIndex >= kMaxGamepadCount)
+        return false;
+    return gamepads_[gamepadIndex].isConnected;
+}
+
+namespace {
+// スティックの生値にデッドゾーンを適用し、-1.0〜1.0に正規化する
+float ApplyStickDeadZone(SHORT rawValue, float deadZone)
+{
+    constexpr float kStickMax = 32767.0f;
+    float normalized = static_cast<float>(rawValue) / kStickMax;
+    float magnitude = std::fabs(normalized);
+    if (magnitude <= deadZone)
+        return 0.0f;
+
+    // デッドゾーンの外側を0.0〜1.0にリスケール
+    float sign = normalized < 0.0f ? -1.0f : 1.0f;
+    float scaled = (magnitude - deadZone) / (1.0f - deadZone);
+    return sign * (std::min)(scaled, 1.0f);
+}
+} // namespace
+
+KCE::Vector2 Input::GetLeftStick(DWORD gamepadIndex) const
+{
+    if (gamepadIndex >= kMaxGamepadCount || !gamepads_[gamepadIndex].isConnected)
+        return KCE::Vector2{ 0.0f, 0.0f };
+
+    const XINPUT_GAMEPAD& pad = gamepads_[gamepadIndex].state.Gamepad;
+    return KCE::Vector2{
+        ApplyStickDeadZone(pad.sThumbLX, deadZone_),
+        ApplyStickDeadZone(pad.sThumbLY, deadZone_)
+    };
+}
+
+KCE::Vector2 Input::GetRightStick(DWORD gamepadIndex) const
+{
+    if (gamepadIndex >= kMaxGamepadCount || !gamepads_[gamepadIndex].isConnected)
+        return KCE::Vector2{ 0.0f, 0.0f };
+
+    const XINPUT_GAMEPAD& pad = gamepads_[gamepadIndex].state.Gamepad;
+    return KCE::Vector2{
+        ApplyStickDeadZone(pad.sThumbRX, deadZone_),
+        ApplyStickDeadZone(pad.sThumbRY, deadZone_)
+    };
+}
+
+float Input::GetLeftTrigger(DWORD gamepadIndex) const
+{
+    if (gamepadIndex >= kMaxGamepadCount || !gamepads_[gamepadIndex].isConnected)
+        return 0.0f;
+
+    BYTE value = gamepads_[gamepadIndex].state.Gamepad.bLeftTrigger;
+    if (value <= XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+        return 0.0f;
+    return static_cast<float>(value) / 255.0f;
+}
+
+float Input::GetRightTrigger(DWORD gamepadIndex) const
+{
+    if (gamepadIndex >= kMaxGamepadCount || !gamepads_[gamepadIndex].isConnected)
+        return 0.0f;
+
+    BYTE value = gamepads_[gamepadIndex].state.Gamepad.bRightTrigger;
+    if (value <= XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+        return 0.0f;
+    return static_cast<float>(value) / 255.0f;
 }
 
 void Input::SetVibration(DWORD gamepadIndex, WORD leftMotor, WORD rightMotor)
