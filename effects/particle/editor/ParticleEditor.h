@@ -18,6 +18,7 @@ class ParticleEmitter;
 class DirectXCommon;
 class SrvManager;
 class CameraManager;
+class PostProcessManager;
 
 /**
  * @brief パーティクルエディタ
@@ -35,8 +36,9 @@ public:
 	 * @brief 初期化
 	 * @param dxCommon DirectXCommonポインタ
 	 * @param srvManager SrvManagerポインタ
+	 * @param postProcessManager PostProcessManagerポインタ（Emissive有効化時に選択的ブルームを自動有効化するために使用。nullptr可）
 	 */
-	void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager);
+	void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, PostProcessManager* postProcessManager = nullptr);
 
 	/**
 	 * @brief 更新（ImGui描画）
@@ -157,6 +159,7 @@ private:
 
 	DirectXCommon* dxCommon_ = nullptr;
 	SrvManager* srvManager_ = nullptr;
+	PostProcessManager* postProcessManager_ = nullptr;
 
 	bool isVisible_ = false;
 	bool showDebug_ = true;  // デバッグ表示ON/OFF

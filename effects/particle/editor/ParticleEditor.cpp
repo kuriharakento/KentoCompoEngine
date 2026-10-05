@@ -25,6 +25,7 @@
 #include "manager/graphics/TextureManager.h"
 #include "manager/graphics/LineManager.h"
 #include "manager/effect/ParticlePipelineManager.h"
+#include "manager/effect/PostProcessManager.h"
 #include "math/BlendMode.h"
 #include "time/TimeManager.h"
 #include "time/Timer.h"
@@ -77,11 +78,12 @@ ParticleEditor::~ParticleEditor()
 	}
 }
 
-void ParticleEditor::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)
+void ParticleEditor::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager, PostProcessManager* postProcessManager)
 {
 	dxCommon_ = dxCommon;
 	srvManager_ = srvManager;
-	
+	postProcessManager_ = postProcessManager;
+
 	// 初期エフェクトを作成
 	NewEffect();
 
@@ -2261,7 +2263,16 @@ void ParticleEditor::DrawRendererPanel()
 
 			ImGui::SeparatorText("Selective Bloom");
 			EmissiveSettings emissive = renderer->GetEmissiveSettings();
-			if (ImGui::Checkbox("Enabled##Emissive", &emissive.enabled)) renderer->SetEmissiveEnabled(emissive.enabled);
+			if (ImGui::Checkbox("Enabled##Emissive", &emissive.enabled))
+			{
+				renderer->SetEmissiveEnabled(emissive.enabled);
+				// Emissiveを有効化した際は、ポストプロセス側の選択的ブルームも自動で有効化する
+				// （個別にEmissiveをONにしても、選択的ブルームがOFFのままだと光らないため）
+				if (emissive.enabled && postProcessManager_)
+				{
+					postProcessManager_->SetSelectiveBloomModeEnabled(true);
+				}
+			}
 			const char* emissiveSources[] = { "Uniform", "Base Texture Mask", "Emissive Texture" };
 			int emissiveSource = static_cast<int>(emissive.source);
 			if (ImGui::Combo("Source##Emissive", &emissiveSource, emissiveSources, IM_ARRAYSIZE(emissiveSources)))
