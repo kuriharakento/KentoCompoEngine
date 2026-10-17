@@ -87,6 +87,9 @@
     <ClCompile Include="graphics\2d\FontSprite.cpp" />
     <ClCompile Include="graphics\2d\NumberSprite.cpp" />
     <ClCompile Include="graphics\2d\Sprite.cpp" />
+    <ClCompile Include="graphics\2d\AnimatedSprite.cpp" />
+    <ClCompile Include="graphics\2d\SpriteAnimationClip.cpp" />
+    <ClCompile Include="graphics\2d\SpriteAnimator.cpp" />
     <ClCompile Include="graphics\2d\SpriteCommon.cpp" />
     <ClCompile Include="graphics\3d\InstancedModelRenderer.cpp" />
     <ClCompile Include="graphics\3d\Model.cpp" />
@@ -159,6 +162,7 @@
     <ClCompile Include="editor\EditorContext.cpp" />
     <ClCompile Include="editor\SceneGizmo.cpp" />
     <ClCompile Include="editor\SceneViewContext.cpp" />
+    <ClCompile Include="editor\SpriteAnimationEditor.cpp" />
     <ClCompile Include="editor\SelectionContext.cpp" />
     <ClCompile Include="editor\command\CommandHistory.cpp" />
     <ClCompile Include="sequencer\core\BindingContext.cpp" />
@@ -299,6 +303,9 @@
     <ClInclude Include="graphics\2d\FontSprite.h" />
     <ClInclude Include="graphics\2d\NumberSprite.h" />
     <ClInclude Include="graphics\2d\Sprite.h" />
+    <ClInclude Include="graphics\2d\AnimatedSprite.h" />
+    <ClInclude Include="graphics\2d\SpriteAnimationClip.h" />
+    <ClInclude Include="graphics\2d\SpriteAnimator.h" />
     <ClInclude Include="graphics\2d\SpriteCommon.h" />
     <ClInclude Include="graphics\3d\InstancedModelRenderer.h" />
     <ClInclude Include="graphics\3d\IRenderable3d.h" />
@@ -407,6 +414,7 @@
     <ClInclude Include="editor\EditorContext.h" />
     <ClInclude Include="editor\SceneGizmo.h" />
     <ClInclude Include="editor\SceneViewContext.h" />
+    <ClInclude Include="editor\SpriteAnimationEditor.h" />
     <ClInclude Include="editor\SelectionContext.h" />
     <ClInclude Include="editor\command\CommandHistory.h" />
     <ClInclude Include="editor\command\CompositeCommand.h" />

@@ -22,6 +22,7 @@
 #include "graphics/2d/SpriteCommon.h"
 #include "graphics/2d/GlyphAtlas.h"
 #include "graphics/2d/TextOverlay.h"
+#include "editor/SpriteAnimationEditor.h"
 #include "graphics/text/Text3DRenderer.h"
 #include "graphics/3d/Object3dCommon.h"
 // shadow
@@ -260,6 +261,8 @@ protected: // メンバ変数
 	std::unique_ptr<TextSpritePipeline> textSpritePipeline_;
 	// 歌詞テロップと会話枠。シーケンサの Text トラックが中身を決める
 	std::unique_ptr<TextOverlay> textOverlay_;
+	// スプライトアニメーションの編集ウィンドウ。DebugUIManager に登録するので、先に片付ける
+	std::unique_ptr<SpriteAnimationEditor> spriteAnimationEditor_;
 	// 3D 空間の文字。文字列はシーンが持ち、名前で登録する
 	std::unique_ptr<Text3DRenderer> text3DRenderer_;
 	// 3Dオブジェクト共通部
