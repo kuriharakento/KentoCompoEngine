@@ -18,11 +18,12 @@ constexpr int kJsonIndent = 4;
 constexpr int kNoKey = -1;
 } // namespace
 
-size_t SpriteAnimationClip::AddKey(float time, const std::string& texturePath)
+size_t SpriteAnimationClip::AddKey(float time, const std::string& texturePath, float duration)
 {
 	SpriteAnimationKey key;
 	key.time = (std::max)(time, 0.0f);
 	key.texturePath = texturePath;
+	key.duration = (std::max)(duration, kSpriteAnimationMinKeyDuration);
 
 	// 同時刻なら後ろに入れる（upper_bound）
 	auto it = std::upper_bound(keys_.begin(), keys_.end(), key.time,
@@ -48,9 +49,9 @@ size_t SpriteAnimationClip::MoveKey(size_t index, float newTime)
 	}
 
 	// 取り出して入れ直すだけで、時刻順が保たれる
-	const std::string texturePath = keys_[index].texturePath;
+	const SpriteAnimationKey key = keys_[index];
 	RemoveKey(index);
-	return AddKey(newTime, texturePath);
+	return AddKey(newTime, key.texturePath, key.duration);
 }
 
 void SpriteAnimationClip::SetKeyTexture(size_t index, const std::string& texturePath)
@@ -60,6 +61,39 @@ void SpriteAnimationClip::SetKeyTexture(size_t index, const std::string& texture
 		return;
 	}
 	keys_[index].texturePath = texturePath;
+}
+
+void SpriteAnimationClip::SetKeyDuration(size_t index, float duration)
+{
+	if (index >= keys_.size())
+	{
+		return;
+	}
+	duration = (std::max)(duration, kSpriteAnimationMinKeyDuration);
+
+	// 途中のキーは、後ろをずらして次のキーの位置を合わせる
+	if (index + 1 < keys_.size())
+	{
+		const float delta = keys_[index].time + duration - keys_[index + 1].time;
+		for (size_t i = index + 1; i < keys_.size(); ++i)
+		{
+			keys_[i].time += delta;
+		}
+	}
+	keys_[index].duration = duration;
+}
+
+float SpriteAnimationClip::GetKeyDisplayDuration(size_t index) const
+{
+	if (index >= keys_.size())
+	{
+		return 0.0f;
+	}
+	if (index + 1 < keys_.size())
+	{
+		return keys_[index + 1].time - keys_[index].time;
+	}
+	return keys_[index].duration;
 }
 
 float SpriteAnimationClip::WrapTime(float time) const
@@ -111,7 +145,7 @@ bool SpriteAnimationClip::Deserialize(const nlohmann::json& json)
 		// 手書きの JSON は並びが保証されないので、AddKey で時刻順に入れ直す
 		for (const SpriteAnimationKey& key : keys)
 		{
-			loaded.AddKey(key.time, key.texturePath);
+			loaded.AddKey(key.time, key.texturePath, key.duration);
 		}
 		loaded.isLooping_ = json.value(kKeyLoop, true);
 	}

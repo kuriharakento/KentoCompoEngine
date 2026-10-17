@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -7,6 +8,9 @@
 
 namespace KCE
 {
+class Sprite;
+class SpriteCommon;
+
 /**
  * @brief スプライトアニメーションの編集ウィンドウ
  *
@@ -14,18 +18,28 @@ namespace KCE
  *          タイムライン上のキーの位置に、そのキーの画像をサムネイルで出す。
  *          画像1〜最後の画像までが1ループで、総秒数は最後のキーの時刻で決まる。
  *          ウィンドウは DebugUIManager に登録するので、描画の呼び出しは要らない。
- *          プレビューは ImGui の画像で出す（Sprite は使わない）。
+ *          プレビューは2つある。エディタ内の小さな枠（ImGui の画像）と、
+ *          「ゲーム画面に表示」を入れたときにゲーム画面の 2D 描画で実際に出す Sprite。
  */
 class SpriteAnimationEditor
 {
 public:
+	// Sprite を前方宣言のまま unique_ptr で持つので、生成と破棄は cpp 側に置く
+	SpriteAnimationEditor();
 	~SpriteAnimationEditor();
 
 	/**
 	 * @brief ウィンドウを DebugUIManager に登録する
 	 * @details TextureManager と DebugUIManager の初期化後に呼ぶ。
+	 * @param spriteCommon 画面表示のプレビューに使う共通部。所有しない（Framework が先に壊さない）
 	 */
-	void Initialize();
+	void Initialize(SpriteCommon* spriteCommon);
+
+	/**
+	 * @brief 「ゲーム画面に表示」がオンなら、今の時刻の画像を実際のスプライトとして描く
+	 * @details 2D 描画パスの中（スプライト共通設定の後）から呼ぶ。オフなら何もしない。
+	 */
+	void DrawScenePreview();
 
 	/**
 	 * @brief 編集中のクリップを返す
@@ -72,6 +86,19 @@ private:
 #endif
 
 private:
+	// 画面表示のプレビューに使う共通部。所有しない（Framework が保持し、エディタより後に壊れる）
+	SpriteCommon* spriteCommon_ = nullptr;
+	// 画面表示のプレビュー用スプライト。最初に描くときに作る
+	std::unique_ptr<Sprite> previewSprite_;
+	// 今 previewSprite_ に貼っている画像。変わったときだけ SetTexture する
+	std::string previewTexturePath_;
+	// ゲーム画面に出すか
+	bool showOnScreen_ = false;
+	// 画面表示の中心位置（Sprite の 1920x1080 座標）
+	std::array<float, 2> previewPosition_ = { 960.0f, 540.0f };
+	// 画面表示の拡大率（画像の元の大きさに対する倍率）
+	float previewScale_ = 1.0f;
+
 	// 編集中のクリップ
 	SpriteAnimationClip clip_;
 	// 再生時刻（秒）。停止中は総秒数より先にも置ける（キーを足す位置を決めるため）
@@ -82,14 +109,22 @@ private:
 	bool isPlaying_ = false;
 	// 選択中のキー。無ければ -1
 	int selectedKey_ = -1;
-	// ドラッグ中のキーを掴んでいるか
-	bool isDraggingKey_ = false;
-	// キーを掴んだ位置と、キーの時刻とのずれ（秒）。掴んだ瞬間にキーが跳ばないようにする
+	// タイムラインで何を掴んでいるか
+	enum class DragMode
+	{
+		None,		//!< 何も掴んでいない（再生ヘッドを動かす）
+		MoveKey,	//!< キーの時刻を動かす
+		ResizeKey,	//!< キーの右端を動かして表示時間を変える
+	};
+	DragMode dragMode_ = DragMode::None;
+	// 掴んだ位置と、掴んだ場所（キーの時刻か右端）とのずれ（秒）。掴んだ瞬間に跳ばないようにする
 	float dragOffsetSeconds_ = 0.0f;
 	// タイムラインの拡大率（1秒あたりのピクセル数）
 	float pixelsPerSecond_ = 160.0f;
 	// 次に足すキーの画像
 	std::string pendingTexture_;
+	// 次に足すキーの表示時間（秒）
+	float newKeyDuration_ = kSpriteAnimationDefaultKeyDuration;
 	// 保存名（拡張子なし）
 	std::array<char, 64> nameBuffer_{};
 	// 選べる画像の一覧（アプリのリソースの textures 以下からの相対パス）

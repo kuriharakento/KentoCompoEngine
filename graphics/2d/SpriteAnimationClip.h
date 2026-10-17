@@ -6,9 +6,15 @@
 
 namespace KCE
 {
+// キーを足すときの表示時間の初期値（秒）
+inline constexpr float kSpriteAnimationDefaultKeyDuration = 0.1f;
+// 表示時間の下限（秒）。0以下だと見えないコマや総秒数0のループができるので避ける
+inline constexpr float kSpriteAnimationMinKeyDuration = 0.01f;
+
 /**
  * @brief アニメーションの1コマ（キー）
- * @details JSON のキー名はメンバ変数名と同じ（NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE が自動で作る）。
+ * @details JSON のキー名はメンバ変数名と同じ（NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT が自動で作る）。
+ *          duration が無い古い JSON は初期値で読む。
  */
 struct SpriteAnimationKey
 {
@@ -16,14 +22,17 @@ struct SpriteAnimationKey
 	float time = 0.0f;
 	// 表示するテクスチャのパス。TextureManager で読み込めるもの
 	std::string texturePath;
+	// このコマを出しておく時間（秒）。次のキーがある間は次のキーの時刻が優先され、
+	// 最後のキーだけがこの値でループの長さを決める
+	float duration = kSpriteAnimationDefaultKeyDuration;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SpriteAnimationKey, time, texturePath)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(SpriteAnimationKey, time, texturePath, duration)
 
 /**
  * @brief スプライトを画像ごとの時刻で切り替えるアニメーションのデータ
  *
- * @details 画像1〜最後の画像までを1ループとする。ループ長は最後のキーの時刻なので、
- *          キーを動かすと総秒数も変わる（最後のキーはループの切れ目に出す画像）。
+ * @details 画像1〜最後の画像までを1ループとする。ループ長は「最後のキーの時刻 + その表示時間」なので、
+ *          キーを動かしたり表示時間を変えたりすると総秒数も変わる。
  *          キー同士の空白では、直前のキーの画像を出したままにする。
  *          描画物を持たない純粋なデータで、FindKeyIndex は時刻だけで結果が決まる。
  */
@@ -34,9 +43,10 @@ public:
 	 * @brief キーを追加する（時刻順を保つ）
 	 * @param time 切り替わる時刻（秒）。負なら0にする
 	 * @param texturePath テクスチャのパス
+	 * @param duration 表示時間（秒）。下限未満は下限にする
 	 * @return 追加後のインデックス。同時刻のキーがあれば、その後ろに入る
 	 */
-	size_t AddKey(float time, const std::string& texturePath);
+	size_t AddKey(float time, const std::string& texturePath, float duration = kSpriteAnimationDefaultKeyDuration);
 
 	/**
 	 * @brief キーを削除する
@@ -58,6 +68,23 @@ public:
 	 * @param texturePath 新しいテクスチャのパス
 	 */
 	void SetKeyTexture(size_t index, const std::string& texturePath);
+
+	/**
+	 * @brief キーの表示時間を変える
+	 * @details 最後のキーなら、その分だけ総秒数が変わる。
+	 *          途中のキーなら、次のキーが「このキーの時刻 + 表示時間」に来るよう、
+	 *          後ろのキーをまとめてずらす（後ろの間隔はそのまま）。
+	 * @param index 対象のキー。範囲外なら何もしない
+	 * @param duration 新しい表示時間（秒）。下限未満は下限にする
+	 */
+	void SetKeyDuration(size_t index, float duration);
+
+	/**
+	 * @brief キーが画面に出ている時間を返す
+	 * @param index 対象のキー。範囲外なら0
+	 * @return 次のキーまでの時間。最後のキーならその表示時間
+	 */
+	float GetKeyDisplayDuration(size_t index) const;
 
 	/**
 	 * @brief 全キーを消す
@@ -116,10 +143,10 @@ public:
 	static std::string BuildFilePath(const std::string& name);
 
 	/**
-	 * @brief 総秒数（= 最後のキーの時刻）
+	 * @brief 総秒数（= 最後のキーの時刻 + その表示時間）
 	 * @return 総秒数。キーが無ければ0
 	 */
-	float GetDuration() const { return keys_.empty() ? 0.0f : keys_.back().time; }
+	float GetDuration() const { return keys_.empty() ? 0.0f : keys_.back().time + keys_.back().duration; }
 
 	const std::vector<SpriteAnimationKey>& GetKeys() const { return keys_; }
 	bool IsLooping() const { return isLooping_; }
