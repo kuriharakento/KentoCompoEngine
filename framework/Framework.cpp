@@ -262,6 +262,10 @@ void Framework::Initialize()
 	// GameObjectエディターの初期化
 	GameObjectEditor::GetInstance()->Initialize();
 
+	// スプライトアニメーションエディターの初期化
+	spriteAnimationEditor_ = std::make_unique<SpriteAnimationEditor>();
+	spriteAnimationEditor_->Initialize();
+
 	// 演出シーケンサの初期化。編集用カメラをここで追加するため、
 	// カメラマネージャーの初期化より後に行う。
 	SequencerEditor::GetInstance()->Initialize(cameraManager_.get(), lightManager_.get(), postProcessManager_.get());
@@ -476,6 +480,7 @@ void Framework::Finalize()
 #ifdef USE_IMGUI
 	debugCamera_.reset();
 #endif
+	spriteAnimationEditor_.reset();
 	ShaderHotReload::GetInstance()->Finalize();
 	CutsceneManager::GetInstance()->Finalize();
 	SequencerEditor::GetInstance()->Finalize();

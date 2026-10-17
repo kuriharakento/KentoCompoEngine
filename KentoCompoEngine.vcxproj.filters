@@ -330,6 +330,9 @@
     <ClCompile Include="editor\SceneViewContext.cpp">
       <Filter>editor</Filter>
     </ClCompile>
+    <ClCompile Include="editor\SpriteAnimationEditor.cpp">
+      <Filter>editor</Filter>
+    </ClCompile>
     <ClCompile Include="editor\SelectionContext.cpp">
       <Filter>editor</Filter>
     </ClCompile>
@@ -466,6 +469,15 @@
       <Filter>graphics\2d</Filter>
     </ClCompile>
     <ClCompile Include="graphics\2d\Sprite.cpp">
+      <Filter>graphics\2d</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\2d\AnimatedSprite.cpp">
+      <Filter>graphics\2d</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\2d\SpriteAnimationClip.cpp">
+      <Filter>graphics\2d</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\2d\SpriteAnimator.cpp">
       <Filter>graphics\2d</Filter>
     </ClCompile>
     <ClCompile Include="graphics\2d\SpriteCommon.cpp">
@@ -887,6 +899,9 @@
     <ClInclude Include="editor\SceneViewContext.h">
       <Filter>editor</Filter>
     </ClInclude>
+    <ClInclude Include="editor\SpriteAnimationEditor.h">
+      <Filter>editor</Filter>
+    </ClInclude>
     <ClInclude Include="editor\SelectionContext.h">
       <Filter>editor</Filter>
     </ClInclude>
@@ -1098,6 +1113,15 @@
       <Filter>graphics\2d</Filter>
     </ClInclude>
     <ClInclude Include="graphics\2d\Sprite.h">
+      <Filter>graphics\2d</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\2d\AnimatedSprite.h">
+      <Filter>graphics\2d</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\2d\SpriteAnimationClip.h">
+      <Filter>graphics\2d</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\2d\SpriteAnimator.h">
       <Filter>graphics\2d</Filter>
     </ClInclude>
     <ClInclude Include="graphics\2d\SpriteCommon.h">
