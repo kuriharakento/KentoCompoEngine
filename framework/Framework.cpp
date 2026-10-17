@@ -264,7 +264,7 @@ void Framework::Initialize()
 
 	// スプライトアニメーションエディターの初期化
 	spriteAnimationEditor_ = std::make_unique<SpriteAnimationEditor>();
-	spriteAnimationEditor_->Initialize();
+	spriteAnimationEditor_->Initialize(spriteCommon_.get());
 
 	// 演出シーケンサの初期化。編集用カメラをここで追加するため、
 	// カメラマネージャーの初期化より後に行う。
@@ -628,6 +628,7 @@ RenderPassContext Framework::MakeRenderPassContext(RenderView* view, RenderTextu
 	ctx.skybox = skybox_.get();
 	ctx.objectCommon = objectCommon_.get();
 	ctx.spriteCommon = spriteCommon_.get();
+	ctx.spriteAnimationEditor = spriteAnimationEditor_.get();
 	ctx.shadowMapManager = shadowMapManager_.get();
 	ctx.shadowMapPipeline = shadowMapPipeline_.get();
 	ctx.shadowNearPlane = shadowNearPlane_;

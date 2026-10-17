@@ -3,6 +3,7 @@
 #include "base/Camera.h"
 #include "base/DirectXCommon.h"
 #include "base/RenderTexture.h"
+#include "editor/SpriteAnimationEditor.h"
 #include "effects/particle/ParticleManager.h"
 #include "graphics/2d/SpriteCommon.h"
 #include "graphics/2d/TextOverlay.h"
@@ -632,6 +633,12 @@ void Sprite2DPass::Execute(const RenderPassContext& ctx)
 
 	ApplyCommon2DRenderingSetting(ctx);
 	ctx.sceneManager->Draw2D();
+
+	// スプライトアニメーションエディタの画面表示プレビュー
+	if (ctx.spriteAnimationEditor)
+	{
+		ctx.spriteAnimationEditor->DrawScenePreview();
+	}
 
 	// 歌詞や会話はシーンの 2D より手前に重ねる
 	if (ctx.textOverlay)

@@ -19,6 +19,7 @@ class SceneManager;
 class ShadowMapManager;
 class ShadowMapPipeline;
 class Skybox;
+class SpriteAnimationEditor;
 class SpriteCommon;
 class SrvManager;
 class TextOverlay;
@@ -58,6 +59,8 @@ struct RenderPassContext
 	// --- 描画の共通設定 ---
 	Object3dCommon* objectCommon = nullptr;
 	SpriteCommon* spriteCommon = nullptr;
+	//! スプライトアニメーションの画面表示プレビュー。2D 描画パスが呼ぶ（所有しない）
+	SpriteAnimationEditor* spriteAnimationEditor = nullptr;
 
 	// --- シャドウ ---
 	ShadowMapManager* shadowMapManager = nullptr;
