@@ -330,10 +330,10 @@
     <ClCompile Include="editor\SceneViewContext.cpp">
       <Filter>editor</Filter>
     </ClCompile>
-    <ClCompile Include="editor\SpriteAnimationEditor.cpp">
+    <ClCompile Include="editor\SelectionContext.cpp">
       <Filter>editor</Filter>
     </ClCompile>
-    <ClCompile Include="editor\SelectionContext.cpp">
+    <ClCompile Include="editor\SpriteAnimationEditor.cpp">
       <Filter>editor</Filter>
     </ClCompile>
     <ClCompile Include="editor\command\CommandHistory.cpp">
@@ -459,6 +459,9 @@
     <ClCompile Include="gameobject\manager\GameObjectRenderer.cpp">
       <Filter>gameobject\manager</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\2d\AnimatedSprite.cpp">
+      <Filter>graphics\2d</Filter>
+    </ClCompile>
     <ClCompile Include="graphics\2d\FontSprite.cpp">
       <Filter>graphics\2d</Filter>
     </ClCompile>
@@ -469,9 +472,6 @@
       <Filter>graphics\2d</Filter>
     </ClCompile>
     <ClCompile Include="graphics\2d\Sprite.cpp">
-      <Filter>graphics\2d</Filter>
-    </ClCompile>
-    <ClCompile Include="graphics\2d\AnimatedSprite.cpp">
       <Filter>graphics\2d</Filter>
     </ClCompile>
     <ClCompile Include="graphics\2d\SpriteAnimationClip.cpp">
@@ -899,10 +899,10 @@
     <ClInclude Include="editor\SceneViewContext.h">
       <Filter>editor</Filter>
     </ClInclude>
-    <ClInclude Include="editor\SpriteAnimationEditor.h">
+    <ClInclude Include="editor\SelectionContext.h">
       <Filter>editor</Filter>
     </ClInclude>
-    <ClInclude Include="editor\SelectionContext.h">
+    <ClInclude Include="editor\SpriteAnimationEditor.h">
       <Filter>editor</Filter>
     </ClInclude>
     <ClInclude Include="editor\command\CommandHistory.h">
@@ -1103,6 +1103,9 @@
     <ClInclude Include="gameobject\manager\GameObjectRenderer.h">
       <Filter>gameobject\manager</Filter>
     </ClInclude>
+    <ClInclude Include="graphics\2d\AnimatedSprite.h">
+      <Filter>graphics\2d</Filter>
+    </ClInclude>
     <ClInclude Include="graphics\2d\FontSprite.h">
       <Filter>graphics\2d</Filter>
     </ClInclude>
@@ -1113,9 +1116,6 @@
       <Filter>graphics\2d</Filter>
     </ClInclude>
     <ClInclude Include="graphics\2d\Sprite.h">
-      <Filter>graphics\2d</Filter>
-    </ClInclude>
-    <ClInclude Include="graphics\2d\AnimatedSprite.h">
       <Filter>graphics\2d</Filter>
     </ClInclude>
     <ClInclude Include="graphics\2d\SpriteAnimationClip.h">
