@@ -48,6 +48,11 @@ public:
 	 */
 	void Finalize();
 
+	/** @brief Object3dCommon の設定 */
+	void SetObject3dCommon(Object3dCommon* object3dCommon) { cachedObject3dCommon_ = object3dCommon; }
+	/** @brief LightManager の設定 */
+	void SetLightManager(LightManager* lightManager) { cachedLightManager_ = lightManager; }
+
 	/**
 	 * @brief GameObjectの登録
 	 * @param gameObject 登録するオブジェクト
