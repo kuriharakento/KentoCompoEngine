@@ -5,6 +5,7 @@
 #include "audio/Audio.h"
 #include "base/Logger.h"
 #include "input/Input.h"
+#include "input/SensorInput.h"
 
 // system
 #include "graphics/2d/SpriteCommon.h"
@@ -139,6 +140,9 @@ void Framework::Initialize()
 
 	// 入力の初期化
 	Input::GetInstance()->Initialize(winApp_.get());
+
+	// センサー入力の初期化。接続はゲーム側で Connect を呼んだときに始まる
+	SensorInput::GetInstance()->Initialize();
 
 	// オーディオの初期化
 	Audio::GetInstance()->Initialize();
@@ -508,6 +512,7 @@ void Framework::Finalize()
 	ParticleManager::GetInstance()->Finalize();
 	InstancedModelPipelineManager::GetInstance()->Finalize();
 	SkinningPipelineManager::GetInstance()->Finalize();
+	SensorInput::GetInstance()->Finalize();
 	Input::GetInstance()->Finalize();
 	lightManager_.reset();
 	LineManager::GetInstance()->Finalize();
@@ -580,6 +585,7 @@ void Framework::Update()
 
 	// 入力の更新
 	Input::GetInstance()->Update();
+	SensorInput::GetInstance()->Update();
 
 	// 時間計測の更新
 	TimeManager::GetInstance().Update();

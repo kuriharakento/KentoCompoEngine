@@ -107,6 +107,8 @@
     <ClCompile Include="graphics\shadow\ShadowMapPipeline.cpp" />
     <ClCompile Include="graphics\shadow\ShadowSystem.cpp" />
     <ClCompile Include="input\Input.cpp" />
+    <ClCompile Include="input\SensorInput.cpp" />
+    <ClCompile Include="input\SerialPort.cpp" />
     <ClCompile Include="jsonEditor\JsonEditableBase.cpp" />
     <ClCompile Include="jsonEditor\JsonEditorImGuiUtils.cpp" />
     <ClCompile Include="jsonEditor\JsonSerialization.cpp" />
@@ -325,6 +327,8 @@
     <ClInclude Include="graphics\shadow\ShadowMapPipeline.h" />
     <ClInclude Include="graphics\shadow\ShadowSystem.h" />
     <ClInclude Include="input\Input.h" />
+    <ClInclude Include="input\SensorInput.h" />
+    <ClInclude Include="input\SerialPort.h" />
     <ClInclude Include="jsonEditor\IJsonEditable.h" />
     <ClInclude Include="jsonEditor\JsonEditableBase.h" />
     <ClInclude Include="jsonEditor\JsonEditorImGuiUtils.h" />
