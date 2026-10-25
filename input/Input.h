@@ -1,435 +1,440 @@
 #pragma once
 
-#define DIRECTINPUT_VERSION 0x0800 //DirectInputのバージョン指定
+#define DIRECTINPUT_VERSION 0x0800 // DirectInputのバージョン指定
 #include <dinput.h>
 
 #include <Xinput.h>
 #pragma comment(lib, "Xinput.lib")
 
-#include <wrl.h>
+#include "math/Vector2.h"
 #include <array>
-#include <unordered_map>
-#include <vector>
 #include <functional>
 #include <memory>
-#include "math/Vector2.h"
+#include <unordered_map>
+#include <vector>
+#include <wrl.h>
 
 namespace KCE
 {
-// 前方宣言
-class WinApp;
+	// 前方宣言
+	class WinApp;
 
-/**
- * @brief ゲーム内で使用するアクションの列挙型
- * 
- * 入力デバイスに依存しないアクション定義。
- * ボタンリマッピング機能により、キーボードやゲームパッドの
- * 任意のボタンにアクションを割り当て可能。
- */
-enum class Action {
-    MoveLeft,    // 左移動
-    MoveRight,   // 右移動
-    Jump,        // ジャンプ
-    Shoot,       // 射撃
-    // 他のアクションを追加...
-};
-
-/**
- * @brief 入力デバイスの種類を表す列挙型
- */
-enum class InputType {
-    Keyboard, // キーボード（DirectInput経由）
-    Gamepad   // ゲームパッド（XInput経由）
-};
-
-/**
- * @brief 入力管理クラス（シングルトン）
- * 
- * キーボード（DirectInput）、ゲームパッド（XInput）、マウスの入力を統合管理します。
- * 
- * 主な機能:
- * - キーボード入力: DirectInput8を使用した高精度なキー状態取得
- * - ゲームパッド入力: XInputを使用したXbox互換コントローラーのサポート
- * - マウス入力: Windows APIを使用した座標・ボタン状態取得
- * - デッドゾーン: アナログスティックのニュートラル位置での微小な入力を無視
- * - ボタンリマッピング: アクションベースの入力マッピング
- * - 入力記録/再生: デバッグやリプレイ用の入力記録機能
- * - マウス固定: FPSカメラ等で使用するマウス位置固定機能
- */
-class Input {
-public:
-    /**
-     * @brief シングルトンインスタンスを取得
-     * @return Inputクラスのインスタンスへのポインタ
-     */
-    static Input* GetInstance();
-
-    /**
-     * @brief 入力システムを初期化
-     * @param winApp ウィンドウアプリケーションへのポインタ
-     */
-    void Initialize(WinApp* winApp);
-
-    /**
-     * @brief 入力システムの終了処理
-     */
-    void Finalize();
-
-    /**
-     * @brief 入力状態を更新
-     * 
-     * 毎フレーム呼び出してキーボード、マウス、ゲームパッドの状態を更新します。
-     */
-    void Update();
-
-    /**
-     * @brief キーが押されているかチェック
-     * @param keyNumber DirectInputのキーコード（DIK_*定数）
-     * @return キーが押されている場合true
-     */
-    bool PushKey(BYTE keyNumber) const;
-
-    /**
-     * @brief キーが押された瞬間かチェック
-     * @param keyNumber DirectInputのキーコード（DIK_*定数）
-     * @return キーが押された瞬間の場合true
-     */
-    bool TriggerKey(BYTE keyNumber) const;
-
-    /**
-     * @brief キーが離された瞬間かチェック
-     * @param keyNumber DirectInputのキーコード（DIK_*定数）
-     * @return キーが離された瞬間の場合true
-     */
-    bool ReleaseTrigger(BYTE keyNumber) const;
-
-    /**
-     * @brief ゲームパッドのボタンが離された瞬間かチェック
-     * @param gamepadIndex ゲームパッドのインデックス（0〜3）
-     * @param buttonCode XInputのボタンコード（XINPUT_GAMEPAD_*定数）
-     * @return ボタンが離された瞬間の場合true
-     */
-    bool ReleaseButton(DWORD gamepadIndex, DWORD buttonCode) const;
-
-    /**
-     * @brief デッドゾーンを設定
-     *
-     * アナログスティックの入力がこの値以下の場合、入力なしとして扱います。
-     * @param deadZone デッドゾーンの閾値（0.0〜1.0）
-     */
-    void SetDeadZone(float deadZone);
-
-    /**
-     * @brief ゲームパッドが接続されているかチェック
-     * @param gamepadIndex ゲームパッドのインデックス（0〜3）
-     * @return 接続されている場合true
-     */
-    bool IsConnected(DWORD gamepadIndex) const;
-
-    /**
-     * @brief 左スティックの入力値を取得（デッドゾーン適用済み、-1.0〜1.0）
-     * @param gamepadIndex ゲームパッドのインデックス（0〜3）
-     * @return 左スティックの座標（x, y）
-     */
-    KCE::Vector2 GetLeftStick(DWORD gamepadIndex) const;
-
-    /**
-     * @brief 右スティックの入力値を取得（デッドゾーン適用済み、-1.0〜1.0）
-     * @param gamepadIndex ゲームパッドのインデックス（0〜3）
-     * @return 右スティックの座標（x, y）
-     */
-    KCE::Vector2 GetRightStick(DWORD gamepadIndex) const;
-
-    /**
-     * @brief 左トリガーの入力値を取得（0.0〜1.0）
-     * @param gamepadIndex ゲームパッドのインデックス（0〜3）
-     * @return 左トリガーの押し込み量
-     */
-    float GetLeftTrigger(DWORD gamepadIndex) const;
-
-    /**
-     * @brief 右トリガーの入力値を取得（0.0〜1.0）
-     * @param gamepadIndex ゲームパッドのインデックス（0〜3）
-     * @return 右トリガーの押し込み量
-     */
-    float GetRightTrigger(DWORD gamepadIndex) const;
-
-    /**
-     * @brief ゲームパッドの振動を設定
-     * @param gamepadIndex ゲームパッドのインデックス（0〜3）
-     * @param leftMotor 左モーターの振動強度（0〜65535）
-     * @param rightMotor 右モーターの振動強度（0〜65535）
-     */
-    void SetVibration(DWORD gamepadIndex, WORD leftMotor, WORD rightMotor);
-
-    /**
-     * @brief アクションに対する入力をリマッピング
-     * @param action リマッピングするアクション
-     * @param type 入力デバイスの種類
-     * @param code 入力コード（キーコードまたはボタンコード）
-     */
-    void RemapButton(Action action, InputType type, DWORD code);
-
-    /**
-     * @brief アクションにコールバック関数をバインド
-     * @param action バインドするアクション
-     * @param callback アクション実行時に呼び出されるコールバック
-     */
-    void BindAction(Action action, std::function<void()> callback);
-
-    /**
-     * @brief 入力の記録を開始
-     * 
-     * アクションベースで入力を記録します。デバッグやリプレイ機能に使用。
-     */
-    void StartRecording();
-
-    /**
-     * @brief 入力の記録を停止
-     */
-    void StopRecording();
-
-    /**
-     * @brief 記録した入力を再生
-     */
-    void PlayRecording();
-
-    /**
-     * @brief ゲームパッドのボタンが押されているかチェック
-     * @param gamepadIndex ゲームパッドのインデックス（0〜3）
-     * @param buttonCode XInputのボタンコード（XINPUT_GAMEPAD_*定数）
-     * @return ボタンが押されている場合true
-     */
-    bool IsButtonPressed(DWORD gamepadIndex, DWORD buttonCode) const;
-
-    /**
-     * @brief ゲームパッドのボタンが押された瞬間かチェック
-     * @param gamepadIndex ゲームパッドのインデックス（0〜3）
-     * @param buttonCode XInputのボタンコード（XINPUT_GAMEPAD_*定数）
-     * @return ボタンが押された瞬間の場合true
-     */
-    bool IsButtonTriggered(DWORD gamepadIndex, DWORD buttonCode) const;
-
-    /**
-     * @brief マウスボタンが押されているかチェック
-     * @param button ボタン番号（0:左、1:中、2:右）
-     * @return ボタンが押されている場合true
-     */
-    bool IsMouseButtonPressed(int button) const;
-
-    /**
-     * @brief マウスボタンが押された瞬間かチェック
-     * @param button ボタン番号（0:左、1:中、2:右）
-     * @return ボタンが押された瞬間の場合true
-     */
-    bool IsMouseButtonTriggered(int button) const;
-
-    /**
-     * @brief マウスボタンが離された瞬間かチェック
-     * @param button ボタン番号（0:左、1:中、2:右）
-     * @return ボタンが離された瞬間の場合true
-     */
-    bool IsMouseButtonReleased(int button) const;
-
-    /**
-     * @brief マウスのX方向移動量を取得
-     * @return X方向の移動量（ピクセル）
-     */
-    float GetMouseDeltaX() const;
-
-    /**
-     * @brief マウスのY方向移動量を取得
-     * @return Y方向の移動量（ピクセル）
-     */
-    float GetMouseDeltaY() const;
-
-    /**
-     * @brief マウスのX座標を取得
-     * @return クライアント領域内のX座標
-     */
-    float GetMouseX() const;
-
-    /**
-     * @brief マウスのY座標を取得
-     * @return クライアント領域内のY座標
-     */
-    float GetMouseY() const;
-
-    /**
-     * @brief マウスの座標を取得
-     * @return クライアント領域内のマウス座標ベクトル
+	/**
+	 * @brief ゲーム内で使用するアクションの列挙型
+	 *
+	 * 入力デバイスに依存しないアクション定義。
+	 * ボタンリマッピング機能により、キーボードやゲームパッドの
+	 * 任意のボタンにアクションを割り当て可能。
 	 */
-	KCE::Vector2 GetMousePosition() const;
+	enum class Action
+	{
+		MoveLeft,  // 左移動
+		MoveRight, // 右移動
+		Jump,	   // ジャンプ
+		Shoot,	   // 射撃
+		// 他のアクションを追加...
+	};
 
-    /**
-     * @brief エディタUIによる入力の横取りを有効にするか設定
-     *
-     * 有効な場合、ImGuiがキーボード／マウスを掴んでいる間、
-     * PushKey等はすべて「押されていない」を返します。
-     * テキスト入力中にゲームが動いてしまう問題を防ぎます。
-     * @param enabled 有効にする場合true（既定は有効）
-     */
-    void SetUICaptureEnabled(bool enabled) { isUICaptureEnabled_ = enabled; }
+	/**
+	 * @brief 入力デバイスの種類を表す列挙型
+	 */
+	enum class InputType
+	{
+		Keyboard, // キーボード（DirectInput経由）
+		Gamepad	  // ゲームパッド（XInput経由）
+	};
 
-    /**
-     * @brief エディタUIがキーボードを掴んでいるかチェック
-     * @return ImGuiがキーボード入力を必要としている場合true
-     */
-    bool IsUICapturingKeyboard() const;
+	/**
+	 * @brief 入力管理クラス（シングルトン）
+	 *
+	 * キーボード（DirectInput）、ゲームパッド（XInput）、マウスの入力を統合管理します。
+	 *
+	 * 主な機能:
+	 * - キーボード入力: DirectInput8を使用した高精度なキー状態取得
+	 * - ゲームパッド入力: XInputを使用したXbox互換コントローラーのサポート
+	 * - マウス入力: Windows APIを使用した座標・ボタン状態取得
+	 * - デッドゾーン: アナログスティックのニュートラル位置での微小な入力を無視
+	 * - ボタンリマッピング: アクションベースの入力マッピング
+	 * - 入力記録/再生: デバッグやリプレイ用の入力記録機能
+	 * - マウス固定: FPSカメラ等で使用するマウス位置固定機能
+	 */
+	class Input
+	{
+	public:
+		/**
+		 * @brief シングルトンインスタンスを取得
+		 * @return Inputクラスのインスタンスへのポインタ
+		 */
+		static Input* GetInstance();
 
-    /**
-     * @brief エディタUIがマウスを掴んでいるかチェック
-     * @return ImGuiがマウス入力を必要としている場合true
-     */
-    bool IsUICapturingMouse() const;
+		/**
+		 * @brief 入力システムを初期化
+		 * @param winApp ウィンドウアプリケーションへのポインタ
+		 */
+		void Initialize(WinApp* winApp);
 
-    /**
-     * @brief ゲーム操作のロックを設定
-     *
-     * ロック中は PushKey / TriggerKey / マウス / ゲームパッドの入力がすべて
-     * 「押されていない」になります。カットシーン中にプレイヤーを動かさないために使います
-     * （SEQUENCER_PLAN 7.7）。スキップ操作などシステム側の入力は *Raw 系で読みます。
-     * @param locked ロックするならtrue
-     */
-    void SetGameplayLocked(bool locked);
+		/**
+		 * @brief 入力システムの終了処理
+		 */
+		void Finalize();
 
-    /**
-     * @brief ゲーム操作がロックされているか
-     * @return ロック中ならtrue
-     */
-    bool IsGameplayLocked() const { return gameplayLocked_; }
+		/**
+		 * @brief 入力状態を更新
+		 *
+		 * 毎フレーム呼び出してキーボード、マウス、ゲームパッドの状態を更新します。
+		 */
+		void Update();
 
-    /**
-     * @brief ロックの影響を受けずに、キーが押された瞬間かチェック
-     * @details カットシーンのスキップなど、ロック中でも受け付けたいシステムの入力用。
-     * @param keyNumber DirectInputのキーコード（DIK_*定数）
-     * @return キーが押された瞬間の場合true
-     */
-    bool TriggerKeyRaw(BYTE keyNumber) const;
+		/**
+		 * @brief キーが押されているかチェック
+		 * @param keyNumber DirectInputのキーコード（DIK_*定数）
+		 * @return キーが押されている場合true
+		 */
+		bool PushKey(BYTE keyNumber) const;
 
-    /**
-     * @brief ロックの影響を受けずに、ゲームパッドのボタンが押された瞬間かチェック
-     * @param gamepadIndex ゲームパッドのインデックス（0〜3）
-     * @param buttonCode XInputのボタンコード（XINPUT_GAMEPAD_*定数）
-     * @return ボタンが押された瞬間の場合true
-     */
-    bool IsButtonTriggeredRaw(DWORD gamepadIndex, DWORD buttonCode) const;
+		/**
+		 * @brief キーが押された瞬間かチェック
+		 * @param keyNumber DirectInputのキーコード（DIK_*定数）
+		 * @return キーが押された瞬間の場合true
+		 */
+		bool TriggerKey(BYTE keyNumber) const;
 
-    /**
-     * @brief マウスの固定状態を設定
-     * 
-     * 有効にするとマウスカーソルがウィンドウ中央に固定され、
-     * 移動量のみが取得可能になります。FPSカメラ等で使用。
-     * @param enabled 固定を有効にする場合true
-     */
-    void SetMouseLockEnabled(bool enabled) { isMouseLockEnabled_ = enabled; }
+		/**
+		 * @brief キーが離された瞬間かチェック
+		 * @param keyNumber DirectInputのキーコード（DIK_*定数）
+		 * @return キーが離された瞬間の場合true
+		 */
+		bool ReleaseTrigger(BYTE keyNumber) const;
 
-    /**
-     * @brief マウスカーソルの表示状態を設定
-     * @param visible 表示する場合true
-     */
-    void SetMouseVisible(bool visible) { isMouseVisible_ = visible; }
+		/**
+		 * @brief ゲームパッドのボタンが離された瞬間かチェック
+		 * @param gamepadIndex ゲームパッドのインデックス（0〜3）
+		 * @param buttonCode XInputのボタンコード（XINPUT_GAMEPAD_*定数）
+		 * @return ボタンが離された瞬間の場合true
+		 */
+		bool ReleaseButton(DWORD gamepadIndex, DWORD buttonCode) const;
 
-    /**
-     * @brief マウスの補正を設定する（ImGuiなどのSceneウィンドウ用）
-     * @param offset 描画領域の左上座標
-     * @param size 描画領域のサイズ
-     */
-    void SetMouseCorrection(const KCE::Vector2& offset, const KCE::Vector2& size)
-    {
-        nextMouseOffset_ = offset;
-        nextMouseSize_ = size;
-        hasNextCorrection_ = true;
-    }
+		/**
+		 * @brief デッドゾーンを設定
+		 *
+		 * アナログスティックの入力がこの値以下の場合、入力なしとして扱います。
+		 * @param deadZone デッドゾーンの閾値（0.0〜1.0）
+		 */
+		void SetDeadZone(float deadZone);
 
-    /**
-     * @brief マウスの補正を解除する
-     */
-    void ResetMouseCorrection()
-    {
-        hasCorrection_ = false;
-        hasNextCorrection_ = false;
-    }
+		/**
+		 * @brief ゲームパッドが接続されているかチェック
+		 * @param gamepadIndex ゲームパッドのインデックス（0〜3）
+		 * @return 接続されている場合true
+		 */
+		bool IsConnected(DWORD gamepadIndex) const;
 
-private:
-    friend std::unique_ptr<Input> std::make_unique<Input>();
-    Input();
+		/**
+		 * @brief 左スティックの入力値を取得（デッドゾーン適用済み、-1.0〜1.0）
+		 * @param gamepadIndex ゲームパッドのインデックス（0〜3）
+		 * @return 左スティックの座標（x, y）
+		 */
+		KCE::Vector2 GetLeftStick(DWORD gamepadIndex) const;
 
-    // コピーと代入を禁止
-    Input(const Input&) = delete;
-    Input& operator=(const Input&) = delete;
+		/**
+		 * @brief 右スティックの入力値を取得（デッドゾーン適用済み、-1.0〜1.0）
+		 * @param gamepadIndex ゲームパッドのインデックス（0〜3）
+		 * @return 右スティックの座標（x, y）
+		 */
+		KCE::Vector2 GetRightStick(DWORD gamepadIndex) const;
 
-public:
-    ~Input();
+		/**
+		 * @brief 左トリガーの入力値を取得（0.0〜1.0）
+		 * @param gamepadIndex ゲームパッドのインデックス（0〜3）
+		 * @return 左トリガーの押し込み量
+		 */
+		float GetLeftTrigger(DWORD gamepadIndex) const;
 
-private:
-    // ゲームパッドの状態構造体
-    struct GamepadState {
-        XINPUT_STATE state;      // 現在の状態
-        XINPUT_STATE prevState;  // 前回の状態
-        bool isConnected;        // 接続状態
-        XINPUT_VIBRATION vibration; // 振動設定
-    };
+		/**
+		 * @brief 右トリガーの入力値を取得（0.0〜1.0）
+		 * @param gamepadIndex ゲームパッドのインデックス（0〜3）
+		 * @return 右トリガーの押し込み量
+		 */
+		float GetRightTrigger(DWORD gamepadIndex) const;
 
-   	// シングルトンインスタンス
-	static std::unique_ptr<Input> instance_;
+		/**
+		 * @brief ゲームパッドの振動を設定
+		 * @param gamepadIndex ゲームパッドのインデックス（0〜3）
+		 * @param leftMotor 左モーターの振動強度（0〜65535）
+		 * @param rightMotor 右モーターの振動強度（0〜65535）
+		 */
+		void SetVibration(DWORD gamepadIndex, WORD leftMotor, WORD rightMotor);
 
-    WinApp* winApp_;                                      // ウィンドウアプリケーション
-    Microsoft::WRL::ComPtr<IDirectInput8> directInput_;   // DirectInputインターフェース
-    Microsoft::WRL::ComPtr<IDirectInputDevice8> keyboard_; // キーボードデバイス
+		/**
+		 * @brief アクションに対する入力をリマッピング
+		 * @param action リマッピングするアクション
+		 * @param type 入力デバイスの種類
+		 * @param code 入力コード（キーコードまたはボタンコード）
+		 */
+		void RemapButton(Action action, InputType type, DWORD code);
 
-    BYTE key_[256] = {};     // 現在のキーボード状態
-    BYTE keyPre_[256] = {};  // 前フレームのキーボード状態
+		/**
+		 * @brief アクションにコールバック関数をバインド
+		 * @param action バインドするアクション
+		 * @param callback アクション実行時に呼び出されるコールバック
+		 */
+		void BindAction(Action action, std::function<void()> callback);
 
-    float mouseDeltaX_ = 0.0f; // マウスのX移動量
-    float mouseDeltaY_ = 0.0f; // マウスのY移動量
-    int lastMouseX_ = 0;       // 前フレームのマウスX座標
-    int lastMouseY_ = 0;       // 前フレームのマウスY座標
-    POINT mousePos_;           // マウスの現在座標
-    bool isMouseLockEnabled_ = false; // マウス固定フラグ
-    // Scene の上で始めたマウス固定を、ボタンを離すまでゲームが持っているか。
-    // 持っている間は、カーソルが Scene の外へはみ出しても UI に渡さない
-    bool mouseLookOwnedByGame_ = false;
-    bool isUICaptureEnabled_ = true;  // エディタUIによる入力横取りの有効フラグ
-    bool gameplayLocked_ = false;     // ゲーム操作のロック（カットシーン中など）
-    BYTE rawKey_[256] = {};           // ロック前のキーボード状態（システム入力用）
-    BYTE rawKeyPre_[256] = {};        // ロック前の前フレームのキーボード状態
-    WORD rawGamepadButtons_[XUSER_MAX_COUNT] = {};    // ロック前のゲームパッドのボタン
-    WORD rawGamepadButtonsPre_[XUSER_MAX_COUNT] = {}; // ロック前の前フレームのボタン
-    bool isMouseVisible_ = true;      // マウス表示フラグ
-    bool preMouseVisible_ = true;     // 前フレームのマウス表示状態
+		/**
+		 * @brief 入力の記録を開始
+		 *
+		 * アクションベースで入力を記録します。デバッグやリプレイ機能に使用。
+		 */
+		void StartRecording();
 
-    BYTE mouseButtons_[3] = {};     // マウスボタン状態（左:0, 中:1, 右:2）
-    BYTE mouseButtonsPre_[3] = {};  // 前フレームのマウスボタン状態
-    BYTE rawMouseButtons_[sizeof(mouseButtons_)] = {}; // ロック前のマウスボタン（解除した瞬間の誤判定を防ぐ）
+		/**
+		 * @brief 入力の記録を停止
+		 */
+		void StopRecording();
 
-    float deadZone_; // アナログスティックのデッドゾーン閾値
+		/**
+		 * @brief 記録した入力を再生
+		 */
+		void PlayRecording();
 
-    std::array<GamepadState, XUSER_MAX_COUNT> gamepads_; // ゲームパッド状態配列
+		/**
+		 * @brief ゲームパッドのボタンが押されているかチェック
+		 * @param gamepadIndex ゲームパッドのインデックス（0〜3）
+		 * @param buttonCode XInputのボタンコード（XINPUT_GAMEPAD_*定数）
+		 * @return ボタンが押されている場合true
+		 */
+		bool IsButtonPressed(DWORD gamepadIndex, DWORD buttonCode) const;
 
-    // ボタンリマッピング用構造体
-    struct InputBinding {
-        InputType type; // デバイス種類
-        DWORD code;     // 入力コード
-    };
-    std::unordered_map<Action, InputBinding> buttonMappings_; // アクションマッピング
+		/**
+		 * @brief ゲームパッドのボタンが押された瞬間かチェック
+		 * @param gamepadIndex ゲームパッドのインデックス（0〜3）
+		 * @param buttonCode XInputのボタンコード（XINPUT_GAMEPAD_*定数）
+		 * @return ボタンが押された瞬間の場合true
+		 */
+		bool IsButtonTriggered(DWORD gamepadIndex, DWORD buttonCode) const;
 
-    std::unordered_map<Action, std::function<void()>> actionCallbacks_; // アクションコールバック
+		/**
+		 * @brief マウスボタンが押されているかチェック
+		 * @param button ボタン番号（0:左、1:中、2:右）
+		 * @return ボタンが押されている場合true
+		 */
+		bool IsMouseButtonPressed(int button) const;
 
-    // 入力記録/再生用
-    bool isRecording_;                                 // 記録中フラグ
-    bool isPlaying_;                                   // 再生中フラグ
-    std::vector<std::pair<Action, DWORD>> recordedInputs_; // 記録された入力
-    size_t playIndex_;                                 // 再生インデックス
+		/**
+		 * @brief マウスボタンが押された瞬間かチェック
+		 * @param button ボタン番号（0:左、1:中、2:右）
+		 * @return ボタンが押された瞬間の場合true
+		 */
+		bool IsMouseButtonTriggered(int button) const;
 
-    // マウス補正用
-    KCE::Vector2 mouseOffset_ = { 0.0f, 0.0f };
-    KCE::Vector2 mouseSize_ = { 0.0f, 0.0f };
-    bool hasCorrection_ = false;
+		/**
+		 * @brief マウスボタンが離された瞬間かチェック
+		 * @param button ボタン番号（0:左、1:中、2:右）
+		 * @return ボタンが離された瞬間の場合true
+		 */
+		bool IsMouseButtonReleased(int button) const;
 
-    // 次フレーム適用バッファ
-    KCE::Vector2 nextMouseOffset_ = { 0.0f, 0.0f };
-    KCE::Vector2 nextMouseSize_ = { 0.0f, 0.0f };
-    bool hasNextCorrection_ = false;
-};
+		/**
+		 * @brief マウスのX方向移動量を取得
+		 * @return X方向の移動量（ピクセル）
+		 */
+		float GetMouseDeltaX() const;
+
+		/**
+		 * @brief マウスのY方向移動量を取得
+		 * @return Y方向の移動量（ピクセル）
+		 */
+		float GetMouseDeltaY() const;
+
+		/**
+		 * @brief マウスのX座標を取得
+		 * @return クライアント領域内のX座標
+		 */
+		float GetMouseX() const;
+
+		/**
+		 * @brief マウスのY座標を取得
+		 * @return クライアント領域内のY座標
+		 */
+		float GetMouseY() const;
+
+		/**
+		 * @brief マウスの座標を取得
+		 * @return クライアント領域内のマウス座標ベクトル
+		 */
+		KCE::Vector2 GetMousePosition() const;
+
+		/**
+		 * @brief エディタUIによる入力の横取りを有効にするか設定
+		 *
+		 * 有効な場合、ImGuiがキーボード／マウスを掴んでいる間、
+		 * PushKey等はすべて「押されていない」を返します。
+		 * テキスト入力中にゲームが動いてしまう問題を防ぎます。
+		 * @param enabled 有効にする場合true（既定は有効）
+		 */
+		void SetUICaptureEnabled(bool enabled) { isUICaptureEnabled_ = enabled; }
+
+		/**
+		 * @brief エディタUIがキーボードを掴んでいるかチェック
+		 * @return ImGuiがキーボード入力を必要としている場合true
+		 */
+		bool IsUICapturingKeyboard() const;
+
+		/**
+		 * @brief エディタUIがマウスを掴んでいるかチェック
+		 * @return ImGuiがマウス入力を必要としている場合true
+		 */
+		bool IsUICapturingMouse() const;
+
+		/**
+		 * @brief ゲーム操作のロックを設定
+		 *
+		 * ロック中は PushKey / TriggerKey / マウス / ゲームパッドの入力がすべて
+		 * 「押されていない」になります。カットシーン中にプレイヤーを動かさないために使います
+		 * （SEQUENCER_PLAN 7.7）。スキップ操作などシステム側の入力は *Raw 系で読みます。
+		 * @param locked ロックするならtrue
+		 */
+		void SetGameplayLocked(bool locked);
+
+		/**
+		 * @brief ゲーム操作がロックされているか
+		 * @return ロック中ならtrue
+		 */
+		bool IsGameplayLocked() const { return gameplayLocked_; }
+
+		/**
+		 * @brief ロックの影響を受けずに、キーが押された瞬間かチェック
+		 * @details カットシーンのスキップなど、ロック中でも受け付けたいシステムの入力用。
+		 * @param keyNumber DirectInputのキーコード（DIK_*定数）
+		 * @return キーが押された瞬間の場合true
+		 */
+		bool TriggerKeyRaw(BYTE keyNumber) const;
+
+		/**
+		 * @brief ロックの影響を受けずに、ゲームパッドのボタンが押された瞬間かチェック
+		 * @param gamepadIndex ゲームパッドのインデックス（0〜3）
+		 * @param buttonCode XInputのボタンコード（XINPUT_GAMEPAD_*定数）
+		 * @return ボタンが押された瞬間の場合true
+		 */
+		bool IsButtonTriggeredRaw(DWORD gamepadIndex, DWORD buttonCode) const;
+
+		/**
+		 * @brief マウスの固定状態を設定
+		 *
+		 * 有効にするとマウスカーソルがウィンドウ中央に固定され、
+		 * 移動量のみが取得可能になります。FPSカメラ等で使用。
+		 * @param enabled 固定を有効にする場合true
+		 */
+		void SetMouseLockEnabled(bool enabled) { isMouseLockEnabled_ = enabled; }
+
+		/**
+		 * @brief マウスカーソルの表示状態を設定
+		 * @param visible 表示する場合true
+		 */
+		void SetMouseVisible(bool visible) { isMouseVisible_ = visible; }
+
+		/**
+		 * @brief マウスの補正を設定する（ImGuiなどのSceneウィンドウ用）
+		 * @param offset 描画領域の左上座標
+		 * @param size 描画領域のサイズ
+		 */
+		void SetMouseCorrection(const KCE::Vector2& offset, const KCE::Vector2& size)
+		{
+			nextMouseOffset_ = offset;
+			nextMouseSize_ = size;
+			hasNextCorrection_ = true;
+		}
+
+		/**
+		 * @brief マウスの補正を解除する
+		 */
+		void ResetMouseCorrection()
+		{
+			hasCorrection_ = false;
+			hasNextCorrection_ = false;
+		}
+
+	private:
+		friend std::unique_ptr<Input> std::make_unique<Input>();
+		Input();
+
+		// コピーと代入を禁止
+		Input(const Input&) = delete;
+		Input& operator=(const Input&) = delete;
+
+	public:
+		~Input();
+
+	private:
+		// ゲームパッドの状態構造体
+		struct GamepadState
+		{
+			XINPUT_STATE state;			// 現在の状態
+			XINPUT_STATE prevState;		// 前回の状態
+			bool isConnected;			// 接続状態
+			XINPUT_VIBRATION vibration; // 振動設定
+		};
+
+		// シングルトンインスタンス
+		static std::unique_ptr<Input> instance_;
+
+		WinApp* winApp_;									   // ウィンドウアプリケーション
+		Microsoft::WRL::ComPtr<IDirectInput8> directInput_;	   // DirectInputインターフェース
+		Microsoft::WRL::ComPtr<IDirectInputDevice8> keyboard_; // キーボードデバイス
+
+		BYTE key_[256] = {};	// 現在のキーボード状態
+		BYTE keyPre_[256] = {}; // 前フレームのキーボード状態
+
+		float mouseDeltaX_ = 0.0f;		  // マウスのX移動量
+		float mouseDeltaY_ = 0.0f;		  // マウスのY移動量
+		int lastMouseX_ = 0;			  // 前フレームのマウスX座標
+		int lastMouseY_ = 0;			  // 前フレームのマウスY座標
+		POINT mousePos_;				  // マウスの現在座標
+		bool isMouseLockEnabled_ = false; // マウス固定フラグ
+		// Scene の上で始めたマウス固定を、ボタンを離すまでゲームが持っているか。
+		// 持っている間は、カーソルが Scene の外へはみ出しても UI に渡さない
+		bool mouseLookOwnedByGame_ = false;
+		bool isUICaptureEnabled_ = true;				  // エディタUIによる入力横取りの有効フラグ
+		bool gameplayLocked_ = false;					  // ゲーム操作のロック（カットシーン中など）
+		BYTE rawKey_[256] = {};							  // ロック前のキーボード状態（システム入力用）
+		BYTE rawKeyPre_[256] = {};						  // ロック前の前フレームのキーボード状態
+		WORD rawGamepadButtons_[XUSER_MAX_COUNT] = {};	  // ロック前のゲームパッドのボタン
+		WORD rawGamepadButtonsPre_[XUSER_MAX_COUNT] = {}; // ロック前の前フレームのボタン
+		bool isMouseVisible_ = true;					  // マウス表示フラグ
+		bool preMouseVisible_ = true;					  // 前フレームのマウス表示状態
+
+		BYTE mouseButtons_[3] = {};						   // マウスボタン状態（左:0, 中:1, 右:2）
+		BYTE mouseButtonsPre_[3] = {};					   // 前フレームのマウスボタン状態
+		BYTE rawMouseButtons_[sizeof(mouseButtons_)] = {}; // ロック前のマウスボタン（解除した瞬間の誤判定を防ぐ）
+
+		float deadZone_; // アナログスティックのデッドゾーン閾値
+
+		std::array<GamepadState, XUSER_MAX_COUNT> gamepads_; // ゲームパッド状態配列
+
+		// ボタンリマッピング用構造体
+		struct InputBinding
+		{
+			InputType type; // デバイス種類
+			DWORD code;		// 入力コード
+		};
+		std::unordered_map<Action, InputBinding> buttonMappings_; // アクションマッピング
+
+		std::unordered_map<Action, std::function<void()>> actionCallbacks_; // アクションコールバック
+
+		// 入力記録/再生用
+		bool isRecording_;									   // 記録中フラグ
+		bool isPlaying_;									   // 再生中フラグ
+		std::vector<std::pair<Action, DWORD>> recordedInputs_; // 記録された入力
+		size_t playIndex_;									   // 再生インデックス
+
+		// マウス補正用
+		KCE::Vector2 mouseOffset_ = {0.0f, 0.0f};
+		KCE::Vector2 mouseSize_ = {0.0f, 0.0f};
+		bool hasCorrection_ = false;
+
+		// 次フレーム適用バッファ
+		KCE::Vector2 nextMouseOffset_ = {0.0f, 0.0f};
+		KCE::Vector2 nextMouseSize_ = {0.0f, 0.0f};
+		bool hasNextCorrection_ = false;
+	};
 } // namespace KCE

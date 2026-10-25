@@ -591,6 +591,12 @@
     <ClCompile Include="input\Input.cpp">
       <Filter>input</Filter>
     </ClCompile>
+    <ClCompile Include="input\SensorInput.cpp">
+      <Filter>input</Filter>
+    </ClCompile>
+    <ClCompile Include="input\SerialPort.cpp">
+      <Filter>input</Filter>
+    </ClCompile>
     <ClCompile Include="jsonEditor\JsonEditableBase.cpp">
       <Filter>jsonEditor</Filter>
     </ClCompile>
@@ -1257,6 +1263,12 @@
       <Filter>graphics\view</Filter>
     </ClInclude>
     <ClInclude Include="input\Input.h">
+      <Filter>input</Filter>
+    </ClInclude>
+    <ClInclude Include="input\SensorInput.h">
+      <Filter>input</Filter>
+    </ClInclude>
+    <ClInclude Include="input\SerialPort.h">
       <Filter>input</Filter>
     </ClInclude>
     <ClInclude Include="jsonEditor\IJsonEditable.h">
