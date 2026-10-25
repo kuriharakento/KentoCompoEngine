@@ -34,6 +34,7 @@ bool SequencerEditor::HasInstance()
 #include "editor/EditorContext.h"
 #include "editor/SceneGizmo.h"
 #include "editor/SceneViewContext.h"
+#include "manager/graphics/LineManager.h"
 #include "editor/SelectionContext.h"
 #include "editor/command/CommandHistory.h"
 #include "gameobject/base/GameObject.h"
@@ -109,6 +110,24 @@ const char* const kPreviewLightsKey = "lights";
 
 /** @brief キーのマーカーの半径（ピクセル） */
 constexpr float kKeyMarkerRadius = 5.0f;
+// ツールバーの編集操作が1行に収まるのに要る幅の目安
+constexpr float kToolbarEditGroupWidth = 620.0f;
+// 編集欄の最低の高さ。窓がこれより低いときは窓全体をスクロールさせる
+constexpr float kEditAreaMinHeight = 260.0f;
+constexpr const char* kAddTrackPopupId = "##AddTrackPopup";
+// カメラ軌道の線（1秒あたりの刻み数・刻みの上限・色・マーカーの大きさ）
+constexpr float kCameraPathSamplesPerSecond = 30.0f;
+constexpr size_t kCameraPathMaxSegments = 1024;
+constexpr Vector4 kCameraPathColor = { 1.0f, 0.75f, 0.2f, 1.0f };
+constexpr Vector4 kCameraPathKeyColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+constexpr Vector4 kCameraPathNowColor = { 1.0f, 0.3f, 0.3f, 1.0f };
+constexpr float kCameraPathKeySize = 0.3f;
+constexpr float kCameraPathNowRadius = 0.25f;
+// トラック行の色味とキー範囲の帯（アルファは 0-255）
+constexpr ImU32 kTrackRowTintAlpha = 38;
+constexpr ImU32 kTrackBarAlpha = 110;
+constexpr float kTrackBarHalfHeight = 4.0f;
+constexpr float kTrackBarRounding = 3.0f;
 /** @brief キーを掴めるとみなす距離（ピクセル） */
 constexpr float kKeyGrabRadius = 7.0f;
 /** @brief 波形を描き始めるルーラー内のY位置 */
@@ -788,6 +807,51 @@ void SequencerEditor::Update()
 	ApplyPreviewBindings();
 	HandleShortcuts();
 	player_.Update();
+	DrawCameraPath();
+}
+
+void SequencerEditor::DrawCameraPath() const
+{
+#ifdef _DEBUG
+	if (!showCameraPath_)
+	{
+		return;
+	}
+	LineManager* lines = LineManager::GetInstance();
+	for (size_t trackIndex = 0; trackIndex < sequence_.GetTrackCount(); ++trackIndex)
+	{
+		const CameraTrack* track = dynamic_cast<const CameraTrack*>(sequence_.GetTrack(trackIndex));
+		if (!track || track->IsMuted())
+		{
+			continue;
+		}
+		const Vector3Curve& curve = track->GetPositionCurve();
+		if (curve.IsEmpty())
+		{
+			continue;
+		}
+
+		// カーブを一定の間隔で刻んで折れ線にする（ベジェ補間でもなめらかに見える細かさ）
+		const float startTime = curve.GetStartTime();
+		const float endTime = curve.GetEndTime();
+		const size_t segmentCount = std::clamp(static_cast<size_t>((endTime - startTime) * kCameraPathSamplesPerSecond), size_t{ 1 }, kCameraPathMaxSegments);
+		Vector3 previous = curve.Evaluate(startTime);
+		for (size_t i = 1; i <= segmentCount; ++i)
+		{
+			const float time = startTime + (endTime - startTime) * static_cast<float>(i) / static_cast<float>(segmentCount);
+			const Vector3 current = curve.Evaluate(time);
+			lines->DrawLine(previous, current, kCameraPathColor);
+			previous = current;
+		}
+
+		// キーの位置と、今の時刻の位置
+		for (const auto& key : curve.GetKeys())
+		{
+			lines->DrawCube(key.value, kCameraPathKeySize, kCameraPathKeyColor);
+		}
+		lines->DrawSphere(curve.Evaluate(player_.GetTime()), kCameraPathNowRadius, kCameraPathNowColor);
+	}
+#endif
 }
 
 int SequencerEditor::GetSelectedTrackIndex() const
@@ -804,6 +868,51 @@ int SequencerEditor::GetSelectedTrackIndex() const
 ///=============================================================================
 ///						ツールバー
 ///=============================================================================
+
+void SequencerEditor::DrawAddTrackMenu()
+{
+	size_t typeCount = 0;
+	const char* const* typeNames = TrackFactory::GetCreatableTypeNames(typeCount);
+	GameObject* selectedObject = SelectionContext::GetInstance()->GetPrimaryGameObject();
+	for (size_t index = 0; index < typeCount; ++index)
+	{
+		const std::string typeName = typeNames[index];
+		if (typeName != "Transform" && typeName != "Component")
+		{
+			if (ImGui::MenuItem(typeName.c_str()))
+			{
+				AddTrack(typeName);
+			}
+			continue;
+		}
+
+		// GameObject を動かす種別は、対象をここで選んでそのまま割り当てる
+		if (!ImGui::BeginMenu(typeName.c_str()))
+		{
+			continue;
+		}
+		if (selectedObject && ImGui::MenuItem(("選択中: " + selectedObject->GetName()).c_str()))
+		{
+			AddGameObjectTrack(typeName, *selectedObject);
+		}
+		if (GameObjectManager::HasInstance())
+		{
+			ImGui::Separator();
+			for (GameObject* object : GameObjectManager::GetInstance()->GetGameObjects())
+			{
+				if (!object) { continue; }
+				// 同名オブジェクトを区別できるよう、GUID を ID に使う
+				ImGui::PushID(object->GetGuid().ToString().c_str());
+				if (ImGui::MenuItem(object->GetName().c_str()))
+				{
+					AddGameObjectTrack(typeName, *object);
+				}
+				ImGui::PopID();
+			}
+		}
+		ImGui::EndMenu();
+	}
+}
 
 void SequencerEditor::DrawToolbar()
 {
@@ -880,23 +989,35 @@ void SequencerEditor::DrawToolbar()
 		}
 	}
 
-	// --- 2行目: 編集操作 ---
-	size_t typeCount = 0;
-	const char* const* typeNames = TrackFactory::GetCreatableTypeNames(typeCount);
-	ImGui::SetNextItemWidth(120.0f);
-	ImGui::Combo("##TrackType", &addTrackTypeIndex_, typeNames, static_cast<int>(typeCount));
-	ImGui::SameLine();
-	if (ImGui::Button("トラックを追加"))
+	// --- 編集操作 --- 幅が足りるときは再生操作と同じ行に続ける（縦を食わないため）
+	if (ImGui::GetContentRegionAvail().x > kToolbarEditGroupWidth)
 	{
-		if (addTrackTypeIndex_ >= 0 && static_cast<size_t>(addTrackTypeIndex_) < typeCount)
-		{
-			AddTrack(typeNames[addTrackTypeIndex_]);
-		}
+		ImGui::SameLine();
+		ImGui::TextDisabled("|");
+		ImGui::SameLine();
+	}
+	if (ImGui::Button("+ トラック"))
+	{
+		ImGui::OpenPopup(kAddTrackPopupId);
+	}
+	if (ImGui::BeginPopup(kAddTrackPopupId))
+	{
+		DrawAddTrackMenu();
+		ImGui::EndPopup();
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("キーを追加 (K)"))
 	{
 		AddKeyAtCurrentTime();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("カメラをキーに"))
+	{
+		RecordCameraKey();
+	}
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("シーケンスカメラの今の位置・向きをキーにします。\n外から眺める状態でギズモでカメラを動かし、これで確定します");
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("キーを削除 (Del)"))
@@ -1237,6 +1358,17 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 					ImVec2(canvasMin.x + 6.0f, rowCenter + ImGui::GetTextLineHeight() * 0.15f),
 					IM_COL32(255, 150, 80, 255), "対象が未割り当て");
 			}
+			else if (row == 0 && !track->GetBindingRole().empty())
+			{
+				// どの対象を動かすトラックかを、名前の横に薄く添える
+				const ImVec2 nameSize = ImGui::CalcTextSize(headerLabel);
+				const float roleX = canvasMin.x + 6.0f + nameSize.x + 8.0f;
+				if (roleX < canvasMin.x + view_.headerWidth - 40.0f)
+				{
+					drawList->AddText(ImVec2(roleX, rowCenter - ImGui::GetTextLineHeight() * 0.5f),
+						IM_COL32(130, 130, 145, 255), track->GetBindingRole().c_str());
+				}
+			}
 
 			// ミュートの切り替えボタン。先頭の行にだけ置く
 			if (row == 0)
@@ -1256,6 +1388,34 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 				// トラックの境目。どこから別のトラックかを分かりやすくする
 				drawList->AddLine(ImVec2(canvasMin.x, rowTop), ImVec2(canvasMin.x + canvasSize.x, rowTop), IM_COL32(70, 70, 80, 255));
 				drawList->AddRectFilled(ImVec2(canvasMin.x, rowTop), ImVec2(canvasMin.x + 4.0f, rowBottom), typeColor);
+
+				// トラックの行はほかより目立たせ、最初から最後のキーまでを帯で示す
+				if (!track->IsMuted())
+				{
+					drawList->AddRectFilled(ImVec2(left, rowTop + 1.0f), ImVec2(canvasMin.x + canvasSize.x, rowBottom),
+						(typeColor & 0x00FFFFFF) | (kTrackRowTintAlpha << 24));
+				}
+				float firstKeyTime = FLT_MAX;
+				float lastKeyTime = -FLT_MAX;
+				for (size_t channelIndex = 0; channelIndex < track->GetChannelCount(); ++channelIndex)
+				{
+					ICurveChannel* range = track->GetChannel(channelIndex);
+					if (range && range->GetKeyCount() > 0)
+					{
+						firstKeyTime = (std::min)(firstKeyTime, range->GetKeyTime(0));
+						lastKeyTime = (std::max)(lastKeyTime, range->GetKeyTime(range->GetKeyCount() - 1));
+					}
+				}
+				if (firstKeyTime <= lastKeyTime)
+				{
+					const float barLeft = (std::max)(TimeToPixel(firstKeyTime, left), left);
+					const float barRight = TimeToPixel(lastKeyTime, left);
+					if (barRight > barLeft)
+					{
+						drawList->AddRectFilled(ImVec2(barLeft, rowCenter - kTrackBarHalfHeight), ImVec2(barRight, rowCenter + kTrackBarHalfHeight),
+							(typeColor & 0x00FFFFFF) | (kTrackBarAlpha << 24), kTrackBarRounding);
+					}
+				}
 				for (size_t channelIndex = 0; channelIndex < track->GetChannelCount(); ++channelIndex)
 				{
 					ICurveChannel* aggregate = track->GetChannel(channelIndex);
@@ -2147,15 +2307,24 @@ void SequencerEditor::DrawTimelineWindow()
 	ImGui::Separator();
 
 	// ファイルと再生のすぐ下に設定を横に並べる。編集欄に横幅を全部使わせるため
+	// 畳んでいる間も、名前・BPM・長さは見出しに出しておく
 	if (showSettingsPane_)
 	{
-		ImGui::BeginChild("SequencerSettings", ImVec2(0.0f, 0.0f), ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY);
-		DrawSettingsPane();
-		ImGui::EndChild();
+		const SequenceMeta& summaryMeta = sequence_.GetMeta();
+		char settingsLabel[192];
+		std::snprintf(settingsLabel, sizeof(settingsLabel), "設定   %s   BPM %.1f   長さ %.2f s###SequencerSettingsHeader",
+			summaryMeta.name.c_str(), summaryMeta.bpm, sequence_.GetDuration());
+		if (ImGui::CollapsingHeader(settingsLabel))
+		{
+			ImGui::BeginChild("SequencerSettings", ImVec2(0.0f, 0.0f), ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY);
+			DrawSettingsPane();
+			ImGui::EndChild();
+		}
 	}
 
-	// 下: ドープシートとカーブを縦に並べる。片方だけを全面に出すこともできる
-	ImGui::BeginChild("SequencerEditArea");
+	// 下: ドープシートとカーブを縦に並べる。片方だけを全面に出すこともできる。
+	// 窓が低くて最低の高さに足りないときは、潰さずに窓全体のスクロールで見せる
+	ImGui::BeginChild("SequencerEditArea", ImVec2(0.0f, (std::max)(ImGui::GetContentRegionAvail().y, kEditAreaMinHeight)));
 	editAreaHovered_ = ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
 
 	// 表示の切り替え。今のものを押された色にしておく
@@ -2340,6 +2509,41 @@ void SequencerEditor::DrawSettingsPane()
 	if (ImGui::IsItemHovered())
 	{
 		ImGui::SetTooltip("オフの間は元のカメラ（main）から眺め、シーケンスカメラをギズモで操作できます。視点は Scene の上で右ドラッグ + WASD で動かします");
+	}
+
+	// シーケンスカメラの今の位置。どこにいるか分からなくならないよう、ここで数値と移動操作を出す
+	if (Camera* sequenceCamera = GetSequenceCamera())
+	{
+		const Vector3 cameraPosition = sequenceCamera->GetTranslate();
+		const Vector3 cameraRotate = sequenceCamera->GetRotateQuaternion().ToEuler();
+		ImGui::Text("カメラ位置: %.2f, %.2f, %.2f", cameraPosition.x, cameraPosition.y, cameraPosition.z);
+		ImGui::Text("カメラ回転: %.2f, %.2f, %.2f", cameraRotate.x, cameraRotate.y, cameraRotate.z);
+
+		ImGui::Checkbox("カメラの軌道を線で表示", &showCameraPath_);
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("Position のカーブを曲線で、キーを白い箱で、今の位置を赤い球で出します");
+		}
+
+		bool frustumVisible = cameraManager_ ? cameraManager_->IsDebugLineVisible(sequenceCameraName_) : false;
+		if (cameraManager_ && ImGui::Checkbox("視錐台とギズモを表示", &frustumVisible))
+		{
+			cameraManager_->SetDebugLineVisible(sequenceCameraName_, frustumVisible);
+		}
+
+		// 眺めているカメラをシーケンスカメラの位置へ寄せる（シーケンスカメラ自身で見ているときは不要）
+		Camera* viewCamera = SceneViewContext::HasInstance() ? SceneViewContext::GetInstance()->GetCamera() : nullptr;
+		ImGui::BeginDisabled(!viewCamera || viewCamera == sequenceCamera);
+		if (ImGui::Button("視点をカメラへ移動"))
+		{
+			viewCamera->SetTranslate(sequenceCamera->GetTranslate());
+			viewCamera->SetRotateQuaternion(sequenceCamera->GetRotateQuaternion());
+		}
+		ImGui::EndDisabled();
+		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+		{
+			ImGui::SetTooltip("今眺めているカメラを、シーケンスカメラと同じ位置・向きにします");
+		}
 	}
 
 	ImGui::PopItemWidth();
@@ -3193,6 +3397,26 @@ void SequencerEditor::AddKeyAtCurrentTime()
 		}
 	}
 
+	AddKeyToTrack(trackIndex);
+}
+
+void SequencerEditor::RecordCameraKey()
+{
+	int trackIndex = FindTargetCameraTrackIndex();
+	if (trackIndex < 0)
+	{
+		AddTrack("Camera");
+		trackIndex = FindTargetCameraTrackIndex();
+		if (trackIndex < 0)
+		{
+			return;
+		}
+	}
+	AddKeyToTrack(trackIndex);
+}
+
+void SequencerEditor::AddKeyToTrack(int trackIndex)
+{
 	ITrack* track = sequence_.GetTrack(static_cast<size_t>(trackIndex));
 	if (!track)
 	{

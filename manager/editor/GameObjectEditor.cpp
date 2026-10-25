@@ -8,6 +8,7 @@
 #include "editor/command/CommandHistory.h"
 #include "sequencer/editor/SequencerCommands.h"
 #include "externals/imgui/imgui.h"
+#include "graphics/3d/IRenderable3d.h"
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -134,6 +135,11 @@ void GameObjectEditor::DrawListImGui()
 		GameObject* newObj = GameObjectManager::GetInstance()->CreateGameObject("NewObject", "GameObject");
 		if (newObj)
 		{
+			// 初期の Deferred は G-Buffer を描かないシーンだと映らないので、どのシーンでも映る Forward にしておく
+			if (IRenderable3d* renderable = newObj->GetRenderable3d())
+			{
+				renderable->SetRenderingType(RenderingType::Forward);
+			}
 			selected_ = newObj;
 			// シーン上のギズモは選択の一元管理（SelectionContext）を見るので、そちらにも伝える
 			SelectionContext::GetInstance()->SelectGameObject(newObj);
@@ -256,6 +262,31 @@ void GameObjectEditor::DrawInspectorImGui()
 		ImGui::Spacing();
 		ImGui::Separator();
 		ImGui::Spacing();
+
+		// 見た目（色・描画方式）。本体の描画物がある物だけ出す
+		if (IRenderable3d* renderable = selected_->GetRenderable3d())
+		{
+			if (ImGui::CollapsingHeader("見た目", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				Vector4 color = renderable->GetColor();
+				if (ImGui::ColorEdit4("色", &color.x))
+				{
+					renderable->SetColor(color);
+				}
+
+				int renderingType = static_cast<int>(renderable->GetRenderingType());
+				const char* const kRenderingTypeLabels[] = { "Deferred", "Forward" };
+				if (ImGui::Combo("描画方式", &renderingType, kRenderingTypeLabels, IM_ARRAYSIZE(kRenderingTypeLabels)))
+				{
+					renderable->SetRenderingType(static_cast<RenderingType>(renderingType));
+				}
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("映らないときは Forward にする。Deferred は G-Buffer を描くシーンでだけ映る");
+				}
+			}
+			ImGui::Spacing();
+		}
 
 		// 2. 基本プロパティ＆アタッチされたコンポーネントのパラメータ描画
 		selected_->DrawImGui();

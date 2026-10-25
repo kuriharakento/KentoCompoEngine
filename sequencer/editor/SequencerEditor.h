@@ -172,6 +172,15 @@ private:
 	void HandleShortcuts();
 	/** @brief 対象の現在の状態を、現在時刻にキーとして打つ */
 	void AddKeyAtCurrentTime();
+	/**
+	 * @brief 指定トラックの今の時刻にキーを打つ
+	 * @param trackIndex 対象のトラック番号
+	 */
+	void AddKeyToTrack(int trackIndex);
+	/** @brief シーケンスカメラの今の位置・向きを、カメラトラックのキーにする。トラックが無ければ作る */
+	void RecordCameraKey();
+	/** @brief 「+ トラック」のメニューの中身を描く。対象が要る種別は、GameObject をその場で選ばせる */
+	void DrawAddTrackMenu();
 	/** @brief 選択中のキーをすべて削除する。何本のトラックにまたがっても Undo は1回 */
 	void DeleteSelectedKey();
 	/**
@@ -252,6 +261,8 @@ private:
 	 *          名前で読み込んでまだ見つかっていない割り当てがあれば、ここで探し直す。
 	 */
 	void ApplyPreviewBindings();
+	/** @brief カメラトラックの位置カーブを、シーン上に線で描く（軌道・キーの位置・今の位置） */
+	void DrawCameraPath() const;
 	/**
 	 * @brief プレビュー用の割り当てをシーケンスのエディタ用データへ書く
 	 * @details GUID は生成のたびに振り直されて次の起動では合わないので、名前で保存する。
@@ -316,7 +327,6 @@ private:
 	std::unordered_map<std::string, std::string> pendingObjectBindings_;
 
 	// 「トラックを追加」で選んでいる種別
-	int addTrackTypeIndex_ = 0;
 	// 追加直後に表示へ入れるトラック。負なら自動スクロールしない
 	int pendingScrollToTrack_ = -1;
 	// タイムライン上にマウスがあるか。F の対象判定に使う
@@ -328,6 +338,9 @@ private:
 
 	// シーケンスカメラ視点でプレビューするか
 	bool previewThroughSequenceCamera_ = false;
+
+	// カメラの軌道をシーンに線で出すか
+	bool showCameraPath_ = true;
 
 	// グリッドスナップを有効にするか
 	bool snapEnabled_ = true;
