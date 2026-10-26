@@ -555,6 +555,78 @@ void SequencerEditor::RegisterSequenceCameraGizmo()
 		}
 	};
 	SceneGizmo::GetInstance()->RegisterTarget(this, SelectionKind::None, std::move(cameraTarget));
+
+	// 選んでいるキーの位置・回転・スケールを、ギズモで直接動かす。Position のキーなら移動、
+	// Rotation なら回転、Scale なら拡大縮小。ギズモは同じ時刻の他の値から置き場所と向きを決める
+	GizmoTarget keyTarget;
+	keyTarget.getPose = [this](const SelectionItem& item, Matrix4x4& world, uint32_t& operations)
+	{
+		ICurveChannel* channel = GetSelectedChannel(sequence_, item);
+		ITrack* track = sequence_.GetTrack(static_cast<size_t>(item.trackIndex));
+		if (!channel || !track || item.keyIndex < 0 || static_cast<size_t>(item.keyIndex) >= channel->GetKeyCount())
+		{
+			return false;
+		}
+		const std::string name = channel->GetName();
+		if (name == "Position") { operations = kGizmoTranslate; }
+		else if (name == "Rotation") { operations = kGizmoRotate; }
+		else if (name == "Scale") { operations = kGizmoScale; }
+		else { return false; }
+
+		// キーの時刻での位置・回転・スケール。選んだ値だけキーそのものを、他は曲線の値を使う
+		const float time = channel->GetKeyTime(static_cast<size_t>(item.keyIndex));
+		const auto evaluate = [&](const char* channelName, size_t component, float fallback)
+		{
+			for (size_t index = 0; index < track->GetChannelCount(); ++index)
+			{
+				ICurveChannel* other = track->GetChannel(index);
+				if (other && channelName == std::string(other->GetName()) && other->GetKeyCount() > 0)
+				{
+					return other->EvaluateComponent(time, component);
+				}
+			}
+			return fallback;
+		};
+		constexpr float kDegreesToRadians = 0.017453292519943295f;
+		const Vector3 position = { evaluate("Position", 0, 0.0f), evaluate("Position", 1, 0.0f), evaluate("Position", 2, 0.0f) };
+		const Vector3 euler = { evaluate("Rotation", 0, 0.0f) * kDegreesToRadians, evaluate("Rotation", 1, 0.0f) * kDegreesToRadians,
+			evaluate("Rotation", 2, 0.0f) * kDegreesToRadians };
+		const Vector3 scale = { evaluate("Scale", 0, 1.0f), evaluate("Scale", 1, 1.0f), evaluate("Scale", 2, 1.0f) };
+		world = MakeAffineMatrix(scale, euler, position);
+		return true;
+	};
+	keyTarget.apply = [this](const SelectionItem& item, const GizmoResult& after, uint32_t dragId)
+	{
+		ICurveChannel* channel = GetSelectedChannel(sequence_, item);
+		if (!channel || item.keyIndex < 0 || static_cast<size_t>(item.keyIndex) >= channel->GetKeyCount())
+		{
+			return;
+		}
+		const size_t keyIndex = static_cast<size_t>(item.keyIndex);
+		const std::string name = channel->GetName();
+		Vector3 value = after.translate;
+		if (name == "Rotation")
+		{
+			constexpr float kRadiansToDegrees = 57.29577951308232f;
+			const Vector3 euler = after.rotate.ToEuler();
+			value = { euler.x * kRadiansToDegrees, euler.y * kRadiansToDegrees, euler.z * kRadiansToDegrees };
+		}
+		else if (name == "Scale")
+		{
+			value = after.scale;
+		}
+
+		// 同じ名前の続けての編集は1つの Undo にまとまるので、ドラッグごとの番号を付けて別にする
+		const std::string commandName = "Move Key Gizmo " + std::to_string(dragId);
+		ExecuteTrackEdit(sequence_, static_cast<size_t>(item.trackIndex), commandName.c_str(), [&]()
+		{
+			channel->SetKeyComponent(keyIndex, 0, value.x);
+			channel->SetKeyComponent(keyIndex, 1, value.y);
+			channel->SetKeyComponent(keyIndex, 2, value.z);
+		});
+		player_.EvaluateCurrentTime();
+	};
+	SceneGizmo::GetInstance()->RegisterTarget(this, SelectionKind::SequenceKey, std::move(keyTarget));
 }
 
 void SequencerEditor::Finalize()
