@@ -75,6 +75,9 @@ void ParticleEmitter::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 	{
 		if (simulationMode_ == SimulationMode::GPU && gpuSimulator_ && gpuSimulator_->IsInitialized() && gpuSimulator_->IsPureGPUPath())
 		{
+			// Pure GPUの描画データは最後にDispatchした時点のもの。エフェクトの更新が止まった後も
+			// 描き続けると、最後のフレームで生きていた粒が画面に固まって残るので描かない
+			if (!gpuSimulator_->MayHaveLiveParticles()) return;
 			renderer_->SetGPUMode(true, gpuSimulator_->GetRenderSrvIndex(), gpuSimulator_->GetParticleCount(),
 				gpuSimulator_->IsPureGPUPath() ? gpuSimulator_->GetDrawArgumentsBuffer() : nullptr);
 			const bool gpuRibbon = gpuSimulator_->IsPureGPUPath() && renderer_->GetType() == RendererType::Ribbon;
@@ -347,7 +350,7 @@ bool ParticleEmitter::IsComplete() const
 uint32_t ParticleEmitter::GetActiveParticleCount() const
 {
 	return simulationMode_ == SimulationMode::GPU && gpuSimulator_ && gpuSimulator_->IsPureGPUPath()
-		? (gpuSimulator_->MayHaveLiveParticles() ? gpuSimulator_->GetMaxParticles() : 0u)
+		? (gpuSimulator_->MayHaveLiveParticles() ? gpuSimulator_->GetAliveCount() : 0u)
 		: static_cast<uint32_t>(particles_.size());
 }
 

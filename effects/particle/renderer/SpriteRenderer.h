@@ -87,10 +87,8 @@ private:
 	/**
 	 * @brief インスタンスデータを更新
 	 * @param particle パーティクルデータ
-	 * @param billboardMatrix ビルボード行列
-	 * @param camera カメラマネージャー
 	 */
-	void UpdateInstanceData(const Particle& particle, const Matrix4x4& billboardMatrix, CameraManager* camera);
+	void UpdateInstanceData(const Particle& particle);
 
 	/**
 	 * @brief バッファを初期化

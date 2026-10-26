@@ -1,15 +1,12 @@
 #pragma pack_matrix(row_major)
 #include "Particle.hlsli"
 
-struct TransformationMatrix
+// 描画するカメラのビュー定数（ビューごとにCPUで確保される）
+cbuffer ParticleView : register(b0)
 {
-    float4x4 WVP;
-    float4x4 World;
+    float4x4 gViewProjection;
+    float4x4 gBillboard; // カメラの回転（平行移動なし）
 };
-
-// ParticleForGPUはParticle.hlsliで定義済み
-
-
 
 StructuredBuffer<ParticleForGPU> gParticle : register(t0);
 
@@ -23,7 +20,18 @@ struct VertexShaderInput
 VertexShaderOutput main(VertexShaderInput input, uint instanceId : SV_InstanceID)
 {
     VertexShaderOutput output;
-    float4x4 wvp = gParticle[instanceId].WVP;
+    ParticleForGPU particle = gParticle[instanceId];
+    float4x4 world = particle.World;
+
+    // ビルボード: ローカルの回転・スケールの後にカメラの回転を掛ける（平行移動はそのまま）
+    if (particle.billboard != 0)
+    {
+        float3x3 oriented = mul((float3x3)world, (float3x3)gBillboard);
+        world[0].xyz = oriented[0];
+        world[1].xyz = oriented[1];
+        world[2].xyz = oriented[2];
+    }
+    float4x4 wvp = mul(world, gViewProjection);
 
     // Reject the whole billboard when one of its corners crosses the camera
     // plane. Rejecting only the offending vertex lets the remaining triangle
@@ -40,6 +48,6 @@ VertexShaderOutput main(VertexShaderInput input, uint instanceId : SV_InstanceID
 
     output.position = validQuad ? mul(input.position, wvp) : float4(2.0f, 2.0f, 0.0f, 1.0f);
     output.texcoord = input.texxcoord;
-    output.color = validQuad ? gParticle[instanceId].color : 0.0f;
+    output.color = validQuad ? particle.color : 0.0f;
     return output;
 }

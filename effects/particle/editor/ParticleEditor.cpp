@@ -226,13 +226,14 @@ void ParticleEditor::Update(CameraManager* camera)
 	// トレイル/マルチソースプレビュー用のダミーモーション更新
 	if (enablePreviewTarget_ && currentEffect_)
 	{
-		previewTargetTime_ += dt;
+		previewTargetTime_ += currentEffect_->IsPaused() ? 0.0f : dt * currentEffect_->GetPlaybackSpeed();
 
 		// 3次元のループ軌跡（円運動 ＋ サイン波の高さ変化）を計算
+		// 動かし始めた位置を中心に回す（一時停止中・再生速度にも合わせる）
 		float angle = previewTargetTime_ * previewTargetSpeed_;
-		previewTargetPos_.x = std::cos(angle) * previewTargetRadius_;
-		previewTargetPos_.z = std::sin(angle) * previewTargetRadius_;
-		previewTargetPos_.y = std::sin(angle * 2.0f) * (previewTargetRadius_ * 0.5f) + previewTargetRadius_;
+		previewTargetPos_.x = previewRestPosition_.x + std::cos(angle) * previewTargetRadius_;
+		previewTargetPos_.z = previewRestPosition_.z + std::sin(angle) * previewTargetRadius_;
+		previewTargetPos_.y = previewRestPosition_.y + std::sin(angle * 2.0f) * (previewTargetRadius_ * 0.5f);
 
 		// エフェクト自体の位置を動かす（エミッター位置を動かすことで通常トレイルをプレビュー可能にする）
 		currentEffect_->SetPosition(previewTargetPos_);
@@ -513,6 +514,7 @@ void ParticleEditor::NewEffect()
 	selectedModule_ = nullptr;
 	inspectorTarget_ = InspectorTarget::Effect;
 	previewSourceId_ = 0;
+	previewRestPosition_ = currentEffect_->GetPosition();
 	effectPath_.clear();
 	strcpy_s(effectNameBuffer_, "NewEffect");
 	isDirty_ = false;
@@ -573,6 +575,7 @@ bool ParticleEditor::LoadEffect(const std::string& path)
 		selectedModule_ = nullptr;
 		inspectorTarget_ = InspectorTarget::Effect;
 		previewSourceId_ = 0;
+		previewRestPosition_ = currentEffect_->GetPosition();
 		isDirty_ = false;
 		operationSucceeded_ = true;
 		operationStatus_ = "Loaded: " + path;
@@ -593,6 +596,9 @@ bool ParticleEditor::SaveEffect(const std::string& path)
 	}
 	try
 	{
+		// 移動プレビュー中は、回している位置ではなく元の位置で保存する
+		if (enablePreviewTarget_) currentEffect_->SetPosition(previewRestPosition_);
+
 		// 編集中の名前をエフェクトに反映
 		if (effectNameBuffer_[0] != '\0')
 		{
@@ -949,16 +955,6 @@ void ParticleEditor::DrawToolbar()
 		ImGui::SeparatorText("Scene");
 		ImGui::SetNextItemWidth(180.0f);
 		ImGui::ColorEdit3("Skydome Color", &skydomeColor_.x);
-		ImGui::SeparatorText("Motion Dummy");
-		ImGui::Checkbox("Enable Motion Dummy", &enablePreviewTarget_);
-		ImGui::SetItemTooltip("トレイル確認用に、エフェクトを円軌道で動かすダミーを有効化します");
-		if (enablePreviewTarget_)
-		{
-			ImGui::SetNextItemWidth(180.0f);
-			ImGui::DragFloat("Motion Speed", &previewTargetSpeed_, 0.05f, 0.1f, 10.0f, "%.2f");
-			ImGui::SetNextItemWidth(180.0f);
-			ImGui::DragFloat("Motion Radius", &previewTargetRadius_, 0.1f, 0.5f, 20.0f, "%.1f");
-		}
 		ImGui::EndPopup();
 	}
 
@@ -1030,6 +1026,16 @@ void ParticleEditor::DrawToolbar()
 	ImGui::SameLine();
 	ImGui::Checkbox("Loop", &previewLooping_);
 	ImGui::SetItemTooltip("一定間隔で自動的にPlayし直す");
+	ImGui::SameLine();
+	bool moving = enablePreviewTarget_;
+	if (ImGui::Checkbox("Move", &moving))
+	{
+		// 動かし始めた位置を中心に回し、やめたらその位置へ戻す
+		if (moving) previewRestPosition_ = currentEffect_->GetPosition();
+		else currentEffect_->SetPosition(previewRestPosition_);
+		enablePreviewTarget_ = moving;
+	}
+	ImGui::SetItemTooltip("エフェクトを円軌道で動かしてプレビューする（トレイルや移動時のみ生成の確認用）。\n速度・半径はEffectのインスペクタで調整");
 	if (previewLooping_)
 	{
 		ImGui::SameLine();
@@ -1391,12 +1397,31 @@ void ParticleEditor::DrawEffectPanel()
 		currentEffect_->SetName(effectNameBuffer_);
 	}
 
-	// 位置
-	Vector3 pos = currentEffect_->GetPosition();
+	// 位置（Move中は軌道の中心を編集する）
+	Vector3 pos = enablePreviewTarget_ ? previewRestPosition_ : currentEffect_->GetPosition();
 	if (ImGui::DragFloat3("Position", &pos.x, 0.1f))
 	{
-		currentEffect_->SetPosition(pos);
+		if (enablePreviewTarget_) previewRestPosition_ = pos;
+		else currentEffect_->SetPosition(pos);
 	}
+
+	//===== 移動プレビュー =====//
+	ImGui::SeparatorText("Move Preview");
+	bool moving = enablePreviewTarget_;
+	if (ImGui::Checkbox("Move Effect", &moving))
+	{
+		if (moving) previewRestPosition_ = currentEffect_->GetPosition();
+		else currentEffect_->SetPosition(previewRestPosition_);
+		enablePreviewTarget_ = moving;
+	}
+	ImGui::SetItemTooltip("エフェクトを円軌道で動かしてプレビューする（トレイル・Spawn Only When Moving・追従の確認用）");
+	ImGui::DragFloat("Speed (rad/s)", &previewTargetSpeed_, 0.05f, 0.1f, 10.0f, "%.2f");
+	ImGui::DragFloat("Radius", &previewTargetRadius_, 0.1f, 0.5f, 20.0f, "%.1f");
+	if (enablePreviewTarget_)
+	{
+		ImGui::TextDisabled("Current: (%.2f, %.2f, %.2f)", previewTargetPos_.x, previewTargetPos_.y, previewTargetPos_.z);
+	}
+	ImGui::Spacing();
 
 	int deltaType = static_cast<int>(currentEffect_->GetDeltaTimeType());
 	const char* deltaTypeNames[] = { "DeltaTime", "RealDeltaTime" };

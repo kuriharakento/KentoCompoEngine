@@ -828,7 +828,9 @@ void TrailRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 	commandList->IASetVertexBuffers(0, 1, &vbView);
 
 	// ビュープロジェクション行列 (Slot 0)
-	commandList->SetGraphicsRootConstantBufferView(0, viewProjResource_->GetGPUVirtualAddress());
+	// 描画中のビューの定数（先頭がViewProjection）を優先し、サブビューでも正しい位置に描く
+	const D3D12_GPU_VIRTUAL_ADDRESS viewConstants = ParticleManager::GetInstance()->GetViewConstantsAddress();
+	commandList->SetGraphicsRootConstantBufferView(0, viewConstants != 0 ? viewConstants : viewProjResource_->GetGPUVirtualAddress());
 
 	// マテリアル (Slot 1)
 	commandList->SetGraphicsRootConstantBufferView(1, materialResource_->GetGPUVirtualAddress());

@@ -8,8 +8,12 @@
 #include "effects/particle/gpu/GPUSimulator.h"
 #include "time/TimeManager.h"
 #include "time/Timer.h"
+#include "base/Camera.h"
+#include "graphics/FrameConstantAllocator.h"
+#include "math/MatrixFunc.h"
 #include <algorithm>
 #include <chrono>
+#include <numbers>
 #include "effects/particle/diagnostics/ParticleDiagnostics.h"
 
 #ifdef USE_IMGUI
@@ -99,9 +103,24 @@ void ParticleManager::Update(CameraManager* camera)
 	RemoveFinishedEffects();
 }
 
-void ParticleManager::Draw()
+void ParticleManager::Draw(const Camera* camera, FrameConstantAllocator* allocator)
 {
 	if (effects_.empty() && emitters_.empty()) return;
+	if (!camera || !allocator) return;
+
+	// このビューのカメラでビュー定数を作る。インスタンスデータはカメラ非依存なので、
+	// サブビューごとに定数だけ差し替えれば同じパーティクルを正しい向きで描ける
+	const auto allocation = allocator->Allocate(sizeof(ParticleViewConstants));
+	if (!allocation.cpuAddress || allocation.gpuAddress == 0) return;
+	auto* constants = static_cast<ParticleViewConstants*>(allocation.cpuAddress);
+	constants->viewProjection = camera->GetViewProjectionMatrix();
+	Matrix4x4 cameraRotation = camera->GetWorldMatrix();
+	cameraRotation.m[3][0] = 0.0f;
+	cameraRotation.m[3][1] = 0.0f;
+	cameraRotation.m[3][2] = 0.0f;
+	// 板ポリの表面（-Z向き）をカメラへ向ける
+	constants->billboard = MakeRotateYMatrix(std::numbers::pi_v<float>) * cameraRotation;
+	viewConstantsAddress_ = allocation.gpuAddress;
 
 	dxCommon_->GetCommandList()->SetGraphicsRootSignature(pipelineManager_->GetRootSignature());
 	dxCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -117,6 +136,7 @@ void ParticleManager::Draw()
 	{
 		emitter->Draw(dxCommon_, srvManager_);
 	}
+	viewConstantsAddress_ = 0;
 }
 
 void ParticleManager::DrawImGui()

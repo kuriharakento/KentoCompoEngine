@@ -21,6 +21,8 @@ class CameraManager;
 class ParticlePipelineManager;
 class ParticleEffect;
 class GPUSimulator;
+class Camera;
+class FrameConstantAllocator;
 
 /**
  * @brief パーティクルマネージャー
@@ -35,7 +37,16 @@ public:
 	void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager);
 	void Finalize();
 	void Update(CameraManager* camera);
-	void Draw();
+
+	/**
+	 * @brief 描画（ビューごとに呼ばれる）
+	 * @param camera 描画するビューのカメラ。ビルボードとViewProjectionはこのカメラで合成される
+	 * @param allocator ビュー定数を確保するフレーム定数アロケータ
+	 */
+	void Draw(const Camera* camera, FrameConstantAllocator* allocator);
+
+	/** 現在描画中のビューのビュー定数（ParticleViewConstants）。Draw中のみ有効 */
+	D3D12_GPU_VIRTUAL_ADDRESS GetViewConstantsAddress() const { return viewConstantsAddress_; }
 
 	/**
 	 * @brief ImGuiでデバッグ情報を表示
@@ -220,5 +231,6 @@ private:
 	std::unique_ptr<ParticlePipelineManager> pipelineManager_;
 	DirectXCommon* dxCommon_ = nullptr;
 	SrvManager* srvManager_ = nullptr;
+	D3D12_GPU_VIRTUAL_ADDRESS viewConstantsAddress_ = 0;
 };
 } // namespace KCE

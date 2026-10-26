@@ -212,10 +212,16 @@ public:
 	 * @return パーティクル数
 	 */
 	uint32_t GetParticleCount() const { return particleCount_; }
-	// Pure GPU mode deliberately never reads the alive counter back to the CPU.
-	// Completion is conservatively estimated from the last spawn time and the
-	// greatest configured lifetime; rendering uses GPU indirect arguments.
+	// Pure GPU mode never waits on the GPU for the alive counter. Completion is
+	// conservatively estimated from the last spawn time and the greatest
+	// configured lifetime; rendering uses GPU indirect arguments.
 	bool MayHaveLiveParticles() const { return pureGpuDispatchEver_ && (totalTime_ - lastSpawnTime_) < maxSpawnLifetime_; }
+
+	/**
+	 * @brief Pure GPU経路で描画対象になった生存パーティクル数（表示・診断用）
+	 * @details 間接描画引数を非同期にリードバックした値で、GPUの完了を待たないため数フレーム遅れることがある
+	 */
+	uint32_t GetAliveCount() const { return aliveCount_; }
 
 	/**
 	 * @brief 最大パーティクル数を取得
@@ -306,6 +312,9 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> renderBuffer_;
 	Microsoft::WRL::ComPtr<ID3D12Resource> drawArgumentsBuffer_;
 	Microsoft::WRL::ComPtr<ID3D12Resource> drawArgumentsResetBuffer_;
+	Microsoft::WRL::ComPtr<ID3D12Resource> aliveCountReadbackBuffer_; ///< 間接描画引数のInstanceCountを読む
+	uint64_t aliveCountFence_ = 0;   ///< リードバックをコピーしたコマンドリストのfence値（0 = 未コピー）
+	uint32_t aliveCount_ = 0;
 	uint32_t drawArgumentsUavIndex_ = SrvManager::kInvalidSrvIndex;
 	D3D12_RESOURCE_STATES drawArgumentsState_ = D3D12_RESOURCE_STATE_COMMON;
 

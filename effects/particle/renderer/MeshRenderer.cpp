@@ -235,21 +235,7 @@ void MeshRenderer::Update(const std::vector<Particle>& particles, CameraManager*
 	}
 
 	instanceCount_ = 0;
-
-	Camera* activeCamera = camera->GetActiveCamera();
-	if (!activeCamera) return;
-
-	// ビルボード用の回転行列（カメラの逆回転）
-	Matrix4x4 billboardMatrix = MakeIdentity4x4();
-	if (useBillboard_)
-	{
-		Matrix4x4 backToFrontMatrix = MakeRotateYMatrix(std::numbers::pi_v<float>);
-		Matrix4x4 cameraRotationMatrix = activeCamera->GetWorldMatrix();
-		cameraRotationMatrix.m[3][0] = 0.0f;
-		cameraRotationMatrix.m[3][1] = 0.0f;
-		cameraRotationMatrix.m[3][2] = 0.0f;
-		billboardMatrix = Multiply(backToFrontMatrix, cameraRotationMatrix);
-	}
+	(void)camera; // ビルボードとViewProjectionは描画時のビュー定数で合成する
 
 	for (const auto& particle : particles)
 	{
@@ -262,34 +248,18 @@ void MeshRenderer::Update(const std::vector<Particle>& particles, CameraManager*
 			particle.scale.z * baseScale_
 		});
 
+		// ビルボード時は頂点シェーダーがローカル回転の後にカメラの回転を挟む
 		Matrix4x4 localRotMatrix = MakeRotateMatrix(particle.rotation);
-		Matrix4x4 rotateMatrix;
-		if (useBillboard_)
-		{
-			// パーティクルのローカル回転を適用してからビルボード回転
-			rotateMatrix = Multiply(localRotMatrix, billboardMatrix);
-		}
-		else
-		{
-			rotateMatrix = localRotMatrix;
-		}
-
 		Matrix4x4 translateMatrix = MakeTranslateMatrix(particle.position);
 
 		// ワールド行列合成
-		Matrix4x4 worldMatrix = Multiply(scaleMatrix, Multiply(rotateMatrix, translateMatrix));
-
-		// ビュープロジェクション行列取得
-		const Matrix4x4& viewProj = activeCamera->GetViewProjectionMatrix();
-		
-		// WVP行列合成
-		Matrix4x4 wvp = Multiply(worldMatrix, viewProj);
+		Matrix4x4 worldMatrix = Multiply(scaleMatrix, Multiply(localRotMatrix, translateMatrix));
 
 		// データを格納
 		instanceData_[instanceCount_].world = worldMatrix;
-		instanceData_[instanceCount_].worldViewProj = wvp;
 		instanceData_[instanceCount_].color = particle.color;
 		instanceData_[instanceCount_].uvOffsetScale = { 0.0f, 0.0f, 1.0f, 1.0f };
+		instanceData_[instanceCount_].billboard = useBillboard_ ? 1u : 0u;
 
 		instanceCount_++;
 	}
@@ -307,6 +277,8 @@ void MeshRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 	uint32_t drawCount = isGPUMode_ ? gpuParticleCount_ : instanceCount_;
 	if (drawCount == 0) return;
 	if (!primitiveVertexResource_ || primitiveMesh_.indices.empty()) return;
+	const D3D12_GPU_VIRTUAL_ADDRESS viewConstants = ParticleManager::GetInstance()->GetViewConstantsAddress();
+	if (viewConstants == 0) return;
 
 	// パイプラインステートの設定（ブレンドモード反映）
 	auto* pm = ParticleManager::GetInstance();
@@ -337,6 +309,8 @@ void MeshRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 
 	// インスタンシングデータ (Slot 1 - VertexShader用)
 	dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(1, srvManager->GetGPUDescriptorHandle(particleSrvIndex));
+	// 描画するビューのカメラ（VertexShader用）
+	dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(ParticlePipelineManager::kRootParamViewConstants, viewConstants);
 
 	auto* commandList = dxCommon->GetCommandList();
 	if (isGPUMode_ && gpuDrawArguments_ && indexedDrawCommandSignature_ && indexedDrawArgumentsData_)

@@ -113,12 +113,7 @@ void SpriteRenderer::Update(const std::vector<Particle>& particles, CameraManage
 		return;
 	}
 
-	Matrix4x4 backToFrontMatrix = MakeRotateYMatrix(std::numbers::pi_v<float>);
-	Matrix4x4 cameraRotationMatrix = camera->GetActiveCamera()->GetWorldMatrix();
-	cameraRotationMatrix.m[3][0] = 0.0f;
-	cameraRotationMatrix.m[3][1] = 0.0f;
-	cameraRotationMatrix.m[3][2] = 0.0f;
-	Matrix4x4 billboardMatrix = backToFrontMatrix * cameraRotationMatrix;
+	(void)camera; // ビルボードとViewProjectionは描画時のビュー定数で合成する
 
 	instanceCount_ = 0;
 	for (const auto& particle : particles)
@@ -126,7 +121,7 @@ void SpriteRenderer::Update(const std::vector<Particle>& particles, CameraManage
 		if (instanceCount_ >= kMaxParticles) break;
 		if (!particle.IsAlive()) continue;
 
-		UpdateInstanceData(particle, billboardMatrix, camera);
+		UpdateInstanceData(particle);
 		++instanceCount_;
 	}
 }
@@ -168,6 +163,8 @@ void SpriteRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 
 	uint32_t drawCount = isGPUMode_ ? gpuParticleCount_ : instanceCount_;
 	if (drawCount == 0) return;
+	const D3D12_GPU_VIRTUAL_ADDRESS viewConstants = ParticleManager::GetInstance()->GetViewConstantsAddress();
+	if (viewConstants == 0) return;
 
 	// コマンドリスト取得
 	auto commandList = dxCommon->GetCommandList();
@@ -197,6 +194,8 @@ void SpriteRenderer::Draw(DirectXCommon* dxCommon, SrvManager* srvManager)
 
 	// インスタンシングデータ (Slot 1 - VertexShader用)
 	commandList->SetGraphicsRootDescriptorTable(1, srvManager->GetGPUDescriptorHandle(particleSrvIndex));
+	// 描画するビューのカメラ（VertexShader用）
+	commandList->SetGraphicsRootConstantBufferView(ParticlePipelineManager::kRootParamViewConstants, viewConstants);
 
 	// 描画
 	if (isGPUMode_ && gpuDrawArguments_ && drawCommandSignature_)
@@ -217,28 +216,17 @@ void SpriteRenderer::SetGPUMode(bool enable, uint32_t srvIndex, uint32_t count, 
 	gpuDrawArguments_ = drawArguments;
 }
 
-void SpriteRenderer::UpdateInstanceData(const Particle& particle, const Matrix4x4& billboardMatrix, CameraManager* camera)
+void SpriteRenderer::UpdateInstanceData(const Particle& particle)
 {
-	Matrix4x4 scaleMatrix = MakeScaleMatrix(particle.scale);
-	Matrix4x4 rotZMatrix = MakeRotateZMatrix(particle.rotation.z);
-	Matrix4x4 translateMatrix = MakeTranslateMatrix(particle.position);
-
-	Matrix4x4 worldMatrix = scaleMatrix * rotZMatrix;
-	if (isBillboard_)
-	{
-		worldMatrix = worldMatrix * billboardMatrix;
-	}
-	worldMatrix = worldMatrix * translateMatrix;
-
-	Matrix4x4 wvp = Multiply(worldMatrix,
-		Multiply(camera->GetActiveCamera()->GetViewMatrix(),
-			camera->GetActiveCamera()->GetProjectionMatrix()));
+	// ビルボード時は頂点シェーダーが「スケール・Z回転」の後にカメラの回転を挟む
+	Matrix4x4 worldMatrix = MakeScaleMatrix(particle.scale) * MakeRotateZMatrix(particle.rotation.z) * MakeTranslateMatrix(particle.position);
 
 	if (instancingData_)
 	{
 		instancingData_[instanceCount_].world = worldMatrix;
-		instancingData_[instanceCount_].worldViewProj = wvp;
 		instancingData_[instanceCount_].color = particle.color;
+		instancingData_[instanceCount_].uvOffsetScale = { 0.0f, 0.0f, 1.0f, 1.0f };
+		instancingData_[instanceCount_].billboard = isBillboard_ ? 1u : 0u;
 	}
 }
 } // namespace KCE

@@ -443,7 +443,7 @@ void TransparentPass::Execute(const RenderPassContext& ctx)
 		const D3D12_CPU_DESCRIPTOR_HANDLE targets[] = { rtv, bloomMask->GetRTVHandle() };
 		ctx.dxCommon->GetCommandList()->OMSetRenderTargets(2, targets, FALSE, &dsv);
 	}
-	ParticleManager::GetInstance()->Draw();
+	ParticleManager::GetInstance()->Draw(ctx.cameraManager ? ctx.cameraManager->GetActiveCamera() : nullptr, ctx.frameConstantAllocator);
 	if (selectiveBloom)
 	{
 		// ポストプロセスが読めるようにしてから、描画先を元の1枚に戻す

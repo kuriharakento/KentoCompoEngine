@@ -212,6 +212,12 @@ void GPUSimulator::CreateBuffers()
 		RequireD3D(drawArgumentsResetBuffer_->Map(0, nullptr, &mapped), "draw arguments reset map");
 		*static_cast<D3D12_DRAW_ARGUMENTS*>(mapped) = { 4, 0, 0, 0 };
 		drawArgumentsResetBuffer_->Unmap(0, nullptr);
+
+		D3D12_HEAP_PROPERTIES readbackHeap{};
+		readbackHeap.Type = D3D12_HEAP_TYPE_READBACK;
+		desc.Width = sizeof(uint32_t);
+		RequireD3D(device->CreateCommittedResource(&readbackHeap, D3D12_HEAP_FLAG_NONE, &desc,
+			D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&aliveCountReadbackBuffer_)), "alive count readback buffer");
 	}
 
 	{
@@ -670,6 +676,8 @@ void GPUSimulator::ClearParticles()
 	lastDispatchWasPure_ = false;
 	lastSpawnTime_ = -1000000.0f;
 	maxSpawnLifetime_ = 0.0f;
+	aliveCount_ = 0;
+	aliveCountFence_ = 0;
 }
 
 void GPUSimulator::SetEventSource(GPUSimulator* source, uint32_t trigger, float probability,
@@ -732,6 +740,21 @@ void GPUSimulator::DispatchPure(float deltaTime, CameraManager* camera,
 	const Matrix4x4& emitterWorld, uint32_t simulationSpace, bool emitting, bool resetEmitterState)
 {
 	if (!initialized_) return;
+
+	// 前回までにコピーした生存数が届いていれば読む（GPUの完了は待たない）
+	if (aliveCountFence_ != 0 && aliveCountReadbackBuffer_ && dxCommon_->GetCompletedFenceValue() >= aliveCountFence_)
+	{
+		const D3D12_RANGE readRange{ 0, sizeof(uint32_t) };
+		void* mapped = nullptr;
+		if (SUCCEEDED(aliveCountReadbackBuffer_->Map(0, &readRange, &mapped)) && mapped)
+		{
+			aliveCount_ = *static_cast<const uint32_t*>(mapped);
+			const D3D12_RANGE writeRange{ 0, 0 };
+			aliveCountReadbackBuffer_->Unmap(0, &writeRange);
+		}
+		aliveCountFence_ = 0;
+	}
+
 	if (!gpuPoolInitialized_)
 	{
 		std::vector<Particle> deadPool(maxParticles_);
@@ -1231,6 +1254,21 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera, const std::v
 	);
 
 	commandList->ResourceBarrier(2, barriers);
+	if (pureGpuDispatch_ && aliveCountReadbackBuffer_ && aliveCountFence_ == 0)
+	{
+		// InstanceCount（変換で数えた生存数）を非同期リードバック用にコピーする
+		D3D12_RESOURCE_BARRIER toCopy = CD3DX12_RESOURCE_BARRIER::Transition(
+			drawArgumentsBuffer_.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE);
+		commandList->ResourceBarrier(1, &toCopy);
+		commandList->CopyBufferRegion(aliveCountReadbackBuffer_.Get(), 0, drawArgumentsBuffer_.Get(),
+			offsetof(D3D12_DRAW_ARGUMENTS, InstanceCount), sizeof(uint32_t));
+		D3D12_RESOURCE_BARRIER toIndirect = CD3DX12_RESOURCE_BARRIER::Transition(
+			drawArgumentsBuffer_.Get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+		commandList->ResourceBarrier(1, &toIndirect);
+		drawArgumentsState_ = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+		aliveCountFence_ = dxCommon_->GetNextFenceValue();
+	}
+	else
 	{
 		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
 			drawArgumentsBuffer_.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);

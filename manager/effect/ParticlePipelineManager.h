@@ -20,6 +20,9 @@ class DirectXCommon;
 class ParticlePipelineManager
 {
 public:
+    /// パーティクル描画用ルートシグネチャのビュー定数（ParticleViewConstants）のスロット
+    static constexpr UINT kRootParamViewConstants = 5;
+
     ParticlePipelineManager() = default;  // コンストラクタ
     ~ParticlePipelineManager() = default; // デストラクタ
 

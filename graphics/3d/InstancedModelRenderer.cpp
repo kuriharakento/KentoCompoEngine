@@ -113,7 +113,7 @@ void InstancedModelRenderer::DrawInstanced(Camera* camera, LightManager* lightMa
     commandList->SetGraphicsRootConstantBufferView(4, camera->GetConstantBufferAddress());
 
     // 環境マップ
-    commandList->SetGraphicsRootDescriptorTable(8, srvManager_->GetGPUDescriptorHandle(TextureManager::GetInstance()->GetSRVIndex("./Resources/rostock_laage_airport_4k.dds")));
+    commandList->SetGraphicsRootDescriptorTable(8, srvManager_->GetGPUDescriptorHandle(TextureManager::GetInstance()->GetSRVIndex("./Resources/skybox.dds")));
 
     // ライトのバインド
     if (lightManager)

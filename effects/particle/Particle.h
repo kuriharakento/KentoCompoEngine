@@ -90,12 +90,27 @@ static_assert(offsetof(Particle, pad3) == 124, "offsetof pad3 must be 124");
 
 /**
  * @brief GPU転送用パーティクルインスタンスデータ
+ *
+ * カメラに依存する値（ビルボード回転・ViewProjection）は持たない。
+ * 描画するビューのカメラで頂点シェーダーが合成するため、サブビューや
+ * 複数カメラのプレビューでも同じインスタンスデータを使い回せる。
  */
 struct ParticleGPU
 {
-	Matrix4x4 worldViewProj;
-	Matrix4x4 world;
+	Matrix4x4 world;        // billboard != 0 のとき上3x3はビルボード前のローカル回転・スケール
 	Vector4 color;
-	Vector4 uvOffsetScale; // テクスチャシート用 (offsetX, offsetY, scaleX, scaleY)
+	Vector4 uvOffsetScale;  // テクスチャシート用 (offsetX, offsetY, scaleX, scaleY)
+	uint32_t billboard = 0; // 0: worldをそのまま使う / 1: カメラ方向へビルボード
+	uint32_t padding[3] = {};
+};
+static_assert(sizeof(ParticleGPU) == 112, "ParticleGPU must match ParticleForGPU in Particle.hlsli");
+
+/**
+ * @brief パーティクル描画時のビュー定数（描画するカメラごとに確保する）
+ */
+struct ParticleViewConstants
+{
+	Matrix4x4 viewProjection;
+	Matrix4x4 billboard; // カメラの回転（背面向き補正込み）。平行移動なし
 };
 } // namespace KCE

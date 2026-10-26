@@ -154,13 +154,15 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     if (id >= particleCount) return;
 
     Particle p = gParticles[id];
-    
-    // Aliveチェック
+
+    // Aliveチェック（Pure GPUでは描画数に数えないだけ。旧経路は透明インスタンスにする）
     if ((p.flags & FLAG_ALIVE) == 0)
     {
-        gRenderParticles[id].World = (float4x4)0;
-        gRenderParticles[id].WVP = (float4x4)0;
-        gRenderParticles[id].color = float4(0,0,0,0);
+        if (pureGpuEnabled == 0)
+        {
+            gRenderParticles[id].World = (float4x4)0;
+            gRenderParticles[id].color = float4(0,0,0,0);
+        }
         return;
     }
 
@@ -170,9 +172,11 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
         all(abs(p.scale) <= 10000.0f) && all(abs(p.rotation) <= 1000000.0f);
     if (!finitePayload || !boundedPayload)
     {
-        gRenderParticles[id].World = (float4x4)0;
-        gRenderParticles[id].WVP = (float4x4)0;
-        gRenderParticles[id].color = float4(0,0,0,0);
+        if (pureGpuEnabled == 0)
+        {
+            gRenderParticles[id].World = (float4x4)0;
+            gRenderParticles[id].color = float4(0,0,0,0);
+        }
         return;
     }
 
@@ -183,45 +187,30 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     scaleMat[2][2] = p.scale.z;
     scaleMat[3][3] = 1.0f;
 
-    // 回転行列
-    float4x4 rotMat;
-    if (isBillboard)
-    {
-        rotMat = CalculateBillboardMatrix(p.position, cameraEye);
-        // Z回転のみ適用する？（通常ビルボードはZ回転許容）
-        // ここでは簡易ビルボードとする
-    }
-    else
-    {
-        rotMat = EulerToMatrix(p.rotation.xyz);
-    }
-
-    // 平行移動行列
-    float4x4 transMat = (float4x4)0;
-    transMat[0][0] = 1.0f; transMat[1][1] = 1.0f; transMat[2][2] = 1.0f; transMat[3][3] = 1.0f;
-    transMat[3][0] = p.position.x;
-    transMat[3][1] = p.position.y;
-    transMat[3][2] = p.position.z;
+    // 回転行列。ビルボードはCPUのスプライトと同じくZ回転だけを持ち、
+    // カメラの回転は描画時に頂点シェーダーがビューごとに掛ける
+    float4x4 rotMat = isBillboard ? MakeRotateZMatrix(p.rotation.z) : EulerToMatrix(p.rotation.xyz);
+    float4x4 local = mul(scaleMat, rotMat);
 
     // World行列合成 (Scale * Rot * Trans)
-    float4x4 world = mul(scaleMat, mul(rotMat, transMat));
+    float4x4 world = local;
+    world[3] = float4(p.position, 1.0f);
 
     // ローカルシミュレーションの場合はエミッターのワールド行列を適用
     if (simulationSpace == 1)
     {
-        world = mul(world, emitterWorld);
+        if (isBillboard)
+        {
+            // ビルボードは向きをカメラに任せるので、位置だけをワールドへ移す
+            world[3] = float4(mul(float4(p.position, 1.0f), emitterWorld).xyz, 1.0f);
+        }
+        else
+        {
+            world = mul(world, emitterWorld);
+        }
     }
 
-    // WVP行列
-    float4x4 viewProj = mul(cameraView, cameraProjection);
-    float4x4 wvp = mul(world, viewProj);
-	float4 clipCenter = mul(float4(0.0f, 0.0f, 0.0f, 1.0f), wvp);
-
-    // Reject invalid clip transforms before incrementing the indirect instance
-    // count. NaN/Inf in SV_Position has driver-dependent rasterization results.
-    if (!all(isfinite(world[0])) || !all(isfinite(world[1])) || !all(isfinite(world[2])) || !all(isfinite(world[3])) ||
-        !all(isfinite(wvp[0])) || !all(isfinite(wvp[1])) || !all(isfinite(wvp[2])) || !all(isfinite(wvp[3])) ||
-		!all(isfinite(clipCenter)) || clipCenter.w <= 0.0001f)
+    if (!all(isfinite(world[0])) || !all(isfinite(world[1])) || !all(isfinite(world[2])) || !all(isfinite(world[3])))
     {
         return;
     }
@@ -233,8 +222,9 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     }
 
     gRenderParticles[outputIndex].World = world;
-    gRenderParticles[outputIndex].WVP = wvp;
     gRenderParticles[outputIndex].color = p.color;
+    gRenderParticles[outputIndex].billboard = isBillboard != 0 ? 1u : 0u;
+    gRenderParticles[outputIndex].padding = uint3(0, 0, 0);
 	uint columns = max(textureSheetColumns, 1u);
 	uint rows = max(textureSheetRows, 1u);
 	uint frame = hasTextureSheet != 0 ? p.spriteIndex % (columns * rows) : 0u;

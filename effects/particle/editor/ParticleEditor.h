@@ -257,6 +257,7 @@ private:
 	float previewTargetTime_ = 0.0f;         // ダミー移動経過時間
 	uint32_t previewSourceId_ = 0;           // プレビュー用ソースID
 	Vector3 previewTargetPos_ = {};          // ダミーの現在位置
+	Vector3 previewRestPosition_ = {};       // 動かし始めたときのエフェクト位置（軌道の中心）
 
 	std::string effectPath_;
 	std::string operationStatus_;

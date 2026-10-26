@@ -87,7 +87,7 @@ void ParticlePipelineManager::CreateRootSignature()
 	// RootParameter作成（4つのルートパラメータを設定）
 	D3D12_DESCRIPTOR_RANGE emissiveRange = descriptorRange[0];
 	emissiveRange.BaseShaderRegister = 1;
-	D3D12_ROOT_PARAMETER rootParameters[5] = {};
+	D3D12_ROOT_PARAMETER rootParameters[6] = {};
 	// マテリアル用CBV（PixelShaderで使用）
 	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
@@ -114,6 +114,11 @@ void ParticlePipelineManager::CreateRootSignature()
 	rootParameters[4].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	rootParameters[4].DescriptorTable.pDescriptorRanges = &emissiveRange;
 	rootParameters[4].DescriptorTable.NumDescriptorRanges = 1;
+
+	// 描画するカメラのビュー定数（VertexShaderで使用）。ビューごとに差し替える
+	rootParameters[kRootParamViewConstants].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[kRootParamViewConstants].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+	rootParameters[kRootParamViewConstants].Descriptor.ShaderRegister = 0;
 
 	// サンプラーの設定
 	D3D12_STATIC_SAMPLER_DESC staticSamplers[1] = {};
