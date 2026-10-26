@@ -28,6 +28,7 @@ bool SequencerEditor::HasInstance()
 #include <cmath>
 #include <cstdio>
 #include <filesystem>
+#include <initializer_list>
 
 #include "audio/Audio.h"
 #include "base/Logger.h"
@@ -47,6 +48,7 @@ bool SequencerEditor::HasInstance()
 #include "sequencer/track/CameraTrack.h"
 #include "sequencer/track/ComponentTrack.h"
 #include "sequencer/track/LightTrack.h"
+#include "sequencer/track/TransformTrack.h"
 
 namespace KCE
 {
@@ -110,8 +112,15 @@ const char* const kPreviewLightsKey = "lights";
 
 /** @brief キーのマーカーの半径（ピクセル） */
 constexpr float kKeyMarkerRadius = 5.0f;
-// ツールバーの編集操作が1行に収まるのに要る幅の目安
-constexpr float kToolbarEditGroupWidth = 620.0f;
+// トラック名欄で、チャンネル行の値の編集欄が始まる位置（欄の左端から。手前はチャンネル名）
+constexpr float kInlineValueLeft = 170.0f;
+// トラック名欄の右端の割り当て先の名前のボタン（文字に足す余白・最大の幅）と、その右のミュートボタンの分の空き
+constexpr float kTargetButtonPadding = 12.0f;
+constexpr float kTargetButtonMaxWidth = 150.0f;
+constexpr float kMuteButtonReserve = 36.0f;
+constexpr const char* kAssignTargetPopupId = "##AssignTargetPopup";
+// 値の編集欄の左に出す、再生ヘッドにキーがあるかの印の大きさ
+constexpr float kInlineKeyMarkSize = 14.0f;
 // 編集欄の最低の高さ。窓がこれより低いときは窓全体をスクロールさせる
 constexpr float kEditAreaMinHeight = 260.0f;
 constexpr const char* kAddTrackPopupId = "##AddTrackPopup";
@@ -122,6 +131,9 @@ constexpr Vector4 kCameraPathColor = { 1.0f, 0.75f, 0.2f, 1.0f };
 constexpr Vector4 kCameraPathKeyColor = { 1.0f, 1.0f, 1.0f, 1.0f };
 constexpr Vector4 kCameraPathNowColor = { 1.0f, 0.3f, 0.3f, 1.0f };
 constexpr float kCameraPathKeySize = 0.3f;
+// キーごとの視錐台の奥行き（ワールド単位）と、再生ヘッドにあるキーの色
+constexpr float kCameraKeyFrustumDepth = 1.5f;
+constexpr Vector4 kCameraKeyFrustumNowColor = { 1.0f, 0.9f, 0.3f, 1.0f };
 constexpr float kCameraPathNowRadius = 0.25f;
 // トラック行の色味とキー範囲の帯（アルファは 0-255）
 constexpr ImU32 kTrackRowTintAlpha = 38;
@@ -182,6 +194,8 @@ const char* const kComponentLabels[] = { "X", "Y", "Z", "W" };
 /** @brief ドープシートで使える操作の案内 */
 const char* const kDopeSheetHint =
 	"トラック名の左の v / > : 値ごとの行を開閉\n"
+	"値の行の数値: 再生ヘッドの値。いじるとその時刻にキーができる\n"
+	"数値の左のひし形: 塗りつぶしなら再生ヘッドにキーがある。押すと打つ・消す\n"
 	"行をダブルクリック: キーを打つ\n"
 	"キーをクリック・ドラッグ: 選択と移動（Ctrl で追加選択）\n"
 	"空いた所から引っ張る: 範囲選択\n"
@@ -234,6 +248,54 @@ void DrawPaneHeader(const char* title, const char* hint)
 		ImGui::TextUnformatted(hint);
 		ImGui::PopTextWrapPos();
 		ImGui::EndTooltip();
+	}
+}
+
+/**
+ * @brief 文字に合わせたボタンの幅を求める
+ * @param label ボタンの文字。## 以降は数えない
+ */
+float ButtonWidth(const char* label)
+{
+	return ImGui::CalcTextSize(label, nullptr, true).x + ImGui::GetStyle().FramePadding.x * 2.0f;
+}
+
+/**
+ * @brief 1つの対象に1本あれば足りる種別か
+ * @details 位置や画面の明るさが2本から動かされると、後のトラックが勝ってどちらを直せばよいか分からなくなる。
+ *          Component は同じ対象に別の値を動かすトラックを何本も持てるので含めない
+ */
+bool IsOnePerObjectTrack(const std::string& typeName)
+{
+	return typeName == "Transform" || typeName == "Screen";
+}
+
+/**
+ * @brief ツールバーで、同じ行の操作のまとまりを区切る縦線を描く
+ */
+void DrawToolbarSeparator()
+{
+	ImGui::SameLine();
+	ImGui::TextDisabled("|");
+	ImGui::SameLine();
+}
+
+/**
+ * @brief 同じ行の右端にボタンを並べられるよう、カーソルを寄せる。幅が足りなければ左に詰めて続ける
+ * @param labels 右端に並べるボタンの文字
+ */
+void AlignButtonsRight(std::initializer_list<const char*> labels)
+{
+	float width = ImGui::GetStyle().ItemSpacing.x * static_cast<float>(labels.size() - 1);
+	for (const char* label : labels)
+	{
+		width += ButtonWidth(label);
+	}
+	ImGui::SameLine();
+	const float x = ImGui::GetWindowContentRegionMax().x - width;
+	if (x > ImGui::GetCursorPosX())
+	{
+		ImGui::SetCursorPosX(x);
 	}
 }
 
@@ -489,6 +551,7 @@ void SequencerEditor::RegisterSequenceCameraGizmo()
 		{
 			targetCamera->SetTranslate(after.translate);
 			targetCamera->SetRotateQuaternion(after.rotate);
+			cameraMovedByGizmo_ = true;
 		}
 	};
 	SceneGizmo::GetInstance()->RegisterTarget(this, SelectionKind::None, std::move(cameraTarget));
@@ -685,8 +748,47 @@ std::string SequencerEditor::MakeUniqueObjectRole(const GameObject& object) cons
 	}
 }
 
-int SequencerEditor::AddGameObjectTrack(const std::string& typeName, GameObject& object)
+int SequencerEditor::FindObjectTrack(const std::string& typeName, const GameObject& object) const
 {
+	for (size_t index = 0; index < sequence_.GetTrackCount(); ++index)
+	{
+		const ITrack* track = sequence_.GetTrack(index);
+		if (!track || typeName != track->GetTypeName())
+		{
+			continue;
+		}
+		const auto binding = previewObjectBindings_.find(track->GetBindingRole());
+		if (binding != previewObjectBindings_.end() && binding->second == object.GetGuid())
+		{
+			return static_cast<int>(index);
+		}
+	}
+	return -1;
+}
+
+void SequencerEditor::SelectTrack(int trackIndex)
+{
+	SelectionItem selected;
+	selected.kind = SelectionKind::SequenceTrack;
+	selected.trackIndex = trackIndex;
+	SelectionContext::GetInstance()->Select(selected);
+	pendingScrollToTrack_ = trackIndex;
+}
+
+int SequencerEditor::AddGameObjectTrack(const std::string& typeName, GameObject& object, bool select)
+{
+	// 位置や画面の明るさは1つの対象に1本あれば足りる。2本あると後のトラックが勝ち、どちらを直せばよいか分からなくなる
+	if (IsOnePerObjectTrack(typeName))
+	{
+		const int existing = FindObjectTrack(typeName, object);
+		if (existing >= 0)
+		{
+			if (select) { SelectTrack(existing); }
+			statusMessage_ = "「" + object.GetName() + "」の " + typeName + " トラックはもうあります";
+			return existing;
+		}
+	}
+
 	TrackPtr track = TrackFactory::Create(typeName);
 	if (!track)
 	{
@@ -718,12 +820,249 @@ int SequencerEditor::AddGameObjectTrack(const std::string& typeName, GameObject&
 
 	ApplyPreviewBindings();
 	const int trackIndex = static_cast<int>(sequence_.GetTrackCount()) - 1;
-	SelectionItem selected;
-	selected.kind = SelectionKind::SequenceTrack;
-	selected.trackIndex = trackIndex;
-	SelectionContext::GetInstance()->Select(selected);
-	pendingScrollToTrack_ = selected.trackIndex;
+	if (select) { SelectTrack(trackIndex); }
 	return trackIndex;
+}
+
+int SequencerEditor::AddLightTrack(LightTrackKind kind, const std::string& lightName)
+{
+	const bool directional = kind == LightTrackKind::Directional;
+	// 役はライトごとに分ける。GameObject の役（オブジェクト名）とぶつからないよう前に印を付ける
+	const std::string role = directional ? std::string() : "Light: " + lightName;
+
+	// 同じライトを動かすトラックがもうあれば、作らずにそれを選ぶ
+	for (size_t index = 0; index < sequence_.GetTrackCount(); ++index)
+	{
+		const auto* lightTrack = dynamic_cast<const LightTrack*>(sequence_.GetTrack(index));
+		if (!lightTrack || lightTrack->GetKind() != kind) { continue; }
+		const auto binding = previewLightBindings_.find(lightTrack->GetBindingRole());
+		if (directional || (binding != previewLightBindings_.end() && binding->second == lightName))
+		{
+			SelectTrack(static_cast<int>(index));
+			statusMessage_ = "「" + (directional ? std::string("平行光源") : lightName) + "」のトラックはもうあります";
+			return static_cast<int>(index);
+		}
+	}
+
+	TrackPtr track = TrackFactory::Create("Light");
+	auto* lightTrack = dynamic_cast<LightTrack*>(track.get());
+	if (!lightTrack)
+	{
+		return -1;
+	}
+	lightTrack->SetKind(kind);
+	lightTrack->SetName(directional ? "平行光源" : lightName);
+	if (!directional) { lightTrack->SetBindingRole(role); }
+
+	auto command = std::make_unique<SequenceStructureCommand>(&sequence_, "Add Light Track");
+	if (!directional)
+	{
+		BindingDefinition definition;
+		definition.role = role;
+		definition.type = BindingType::Light;
+		sequence_.AddBinding(definition);
+	}
+	sequence_.AddTrack(std::move(track));
+	command->CaptureAfter();
+	if (command->HasChanged())
+	{
+		CommandHistory::GetInstance()->Execute(std::move(command));
+	}
+
+	if (!directional)
+	{
+		previewLightBindings_[role] = lightName;
+		ApplyPreviewBindings();
+	}
+	player_.EvaluateCurrentTime();
+	const int trackIndex = static_cast<int>(sequence_.GetTrackCount()) - 1;
+	SelectTrack(trackIndex);
+	return trackIndex;
+}
+
+std::string SequencerEditor::GetTrackTargetName(const ITrack& track, bool& outAssignable) const
+{
+	outAssignable = false;
+	BindingType type;
+	if (!GetBindingTypeForTrack(track, type))
+	{
+		return std::string();
+	}
+	const std::string& role = track.GetBindingRole();
+
+	switch (type)
+	{
+	case BindingType::Camera:
+		return role;
+
+	case BindingType::Light:
+	{
+		const auto* lightTrack = dynamic_cast<const LightTrack*>(&track);
+		if (lightTrack && lightTrack->GetKind() == LightTrackKind::Directional)
+		{
+			return "平行光源";
+		}
+		outAssignable = true;
+		const auto it = previewLightBindings_.find(role);
+		return it != previewLightBindings_.end() ? it->second : std::string();
+	}
+
+	case BindingType::GameObject:
+	{
+		outAssignable = true;
+		const auto it = previewObjectBindings_.find(role);
+		if (it != previewObjectBindings_.end() && GameObjectManager::HasInstance())
+		{
+			if (const GameObject* object = GameObjectManager::GetInstance()->FindByGuid(it->second))
+			{
+				return object->GetName();
+			}
+		}
+		// ファイルで覚えていた名前の物が今のシーンに居ないときは、それが分かるように出す
+		const auto pending = pendingObjectBindings_.find(role);
+		return pending != pendingObjectBindings_.end() ? "(無い: " + pending->second + ")" : std::string();
+	}
+
+	default:
+		return std::string();
+	}
+}
+
+void SequencerEditor::AssignTrackObject(size_t trackIndex, GameObject& object)
+{
+	ITrack* track = sequence_.GetTrack(trackIndex);
+	if (!track)
+	{
+		return;
+	}
+
+	// 位置や画面は1つの対象に1本まで。別のトラックが持っている対象へは替えられない
+	const std::string typeName = track->GetTypeName();
+	if (IsOnePerObjectTrack(typeName))
+	{
+		const int existing = FindObjectTrack(typeName, object);
+		if (existing >= 0 && existing != static_cast<int>(trackIndex))
+		{
+			statusMessage_ = "「" + object.GetName() + "」の " + typeName + " トラックはもうあります（" + sequence_.GetTrack(static_cast<size_t>(existing))->GetName() + "）";
+			return;
+		}
+	}
+
+	// 役を他のトラックと共有していると、替えたときに道連れになる。その場合はこのトラックだけ別の役にする
+	std::string role = track->GetBindingRole();
+	bool sharedRole = role.empty();
+	for (size_t index = 0; index < sequence_.GetTrackCount() && !sharedRole; ++index)
+	{
+		const ITrack* other = sequence_.GetTrack(index);
+		sharedRole = other && index != trackIndex && other->GetBindingRole() == role;
+	}
+
+	CommandHistory* history = CommandHistory::GetInstance();
+	history->BeginTransaction("Assign Track Target");
+	if (sharedRole)
+	{
+		role = MakeUniqueObjectRole(object);
+		ExecuteTrackEdit(sequence_, trackIndex, "Change Role", [&]() { track->SetBindingRole(role); });
+		BindingDefinition definition;
+		definition.role = role;
+		definition.type = BindingType::GameObject;
+		sequence_.AddBinding(definition);
+	}
+	pendingObjectBindings_.erase(role);
+	history->Execute(std::make_unique<PreviewObjectBindingCommand>(&previewObjectBindings_, role, object.GetGuid()));
+	history->EndTransaction();
+
+	ApplyPreviewBindings();
+	player_.EvaluateCurrentTime();
+	statusMessage_ = "「" + track->GetName() + "」の対象を「" + object.GetName() + "」にしました";
+}
+
+void SequencerEditor::AssignTrackLight(size_t trackIndex, const std::string& lightName)
+{
+	ITrack* track = sequence_.GetTrack(trackIndex);
+	if (!track)
+	{
+		return;
+	}
+	const std::string& role = track->GetBindingRole();
+	if (role.empty())
+	{
+		return;
+	}
+	previewLightBindings_[role] = lightName;
+	ApplyPreviewBindings();
+	player_.EvaluateCurrentTime();
+	statusMessage_ = "「" + track->GetName() + "」のライトを「" + lightName + "」にしました";
+}
+
+void SequencerEditor::DrawAssignTargetPopup()
+{
+	if (!ImGui::BeginPopup(kAssignTargetPopupId))
+	{
+		return;
+	}
+	ITrack* track = assignTargetTrack_ >= 0 ? sequence_.GetTrack(static_cast<size_t>(assignTargetTrack_)) : nullptr;
+	bool assignable = false;
+	const std::string current = track ? GetTrackTargetName(*track, assignable) : std::string();
+	if (!track || !assignable)
+	{
+		ImGui::TextDisabled("このトラックは割り当てを使いません");
+		ImGui::EndPopup();
+		return;
+	}
+	const size_t trackIndex = static_cast<size_t>(assignTargetTrack_);
+	ImGui::TextDisabled("%s の対象", track->GetName().c_str());
+	ImGui::Separator();
+
+	if (const auto* lightTrack = dynamic_cast<const LightTrack*>(track))
+	{
+		// 種類に合ったライトだけを並べる
+		std::vector<std::string> names;
+		if (lightManager_)
+		{
+			const auto collect = [&names](const auto& lights)
+			{
+				for (const auto& [name, light] : lights) { (void)light; names.push_back(name); }
+			};
+			if (lightTrack->GetKind() == LightTrackKind::Spot) { collect(lightManager_->GetSpotLights()); }
+			else { collect(lightManager_->GetPointLights()); }
+		}
+		std::sort(names.begin(), names.end());
+		if (names.empty()) { ImGui::TextDisabled("シーンにありません"); }
+		for (const std::string& name : names)
+		{
+			if (ImGui::Selectable(name.c_str(), name == current))
+			{
+				AssignTrackLight(trackIndex, name);
+			}
+		}
+	}
+	else
+	{
+		if (GameObject* selectedObject = SelectionContext::GetInstance()->GetPrimaryGameObject())
+		{
+			if (ImGui::Selectable(("選択中: " + selectedObject->GetName()).c_str()))
+			{
+				AssignTrackObject(trackIndex, *selectedObject);
+			}
+			ImGui::Separator();
+		}
+		if (GameObjectManager::HasInstance())
+		{
+			for (GameObject* object : GameObjectManager::GetInstance()->GetGameObjects())
+			{
+				if (!object) { continue; }
+				// 同名オブジェクトを区別できるよう、GUID を ID に使う
+				ImGui::PushID(object->GetGuid().ToString().c_str());
+				if (ImGui::Selectable(object->GetName().c_str(), object->GetName() == current))
+				{
+					AssignTrackObject(trackIndex, *object);
+				}
+				ImGui::PopID();
+			}
+		}
+	}
+	ImGui::EndPopup();
 }
 
 int SequencerEditor::FindTargetCameraTrackIndex() const
@@ -805,6 +1144,16 @@ void SequencerEditor::Update()
 	}
 
 	ApplyPreviewBindings();
+
+	// 自動キー。ギズモを離した瞬間に打つ。再生中は動かしてもすぐ上書きされるので打たない
+	const bool gizmoDragging = SceneGizmo::HasInstance() && SceneGizmo::GetInstance()->IsDragging();
+	if (wasGizmoDragging_ && !gizmoDragging)
+	{
+		if (autoKey_ && !player_.IsPlaying()) { RecordAutoKey(); }
+		cameraMovedByGizmo_ = false;
+	}
+	wasGizmoDragging_ = gizmoDragging;
+
 	HandleShortcuts();
 	player_.Update();
 	DrawCameraPath();
@@ -845,9 +1194,34 @@ void SequencerEditor::DrawCameraPath() const
 		}
 
 		// キーの位置と、今の時刻の位置
+		const Camera* sequenceCamera = GetSequenceCamera();
+		const float aspect = sequenceCamera ? sequenceCamera->GetAspectRatio() : 16.0f / 9.0f;
 		for (const auto& key : curve.GetKeys())
 		{
 			lines->DrawCube(key.value, kCameraPathKeySize, kCameraPathKeyColor);
+
+			// そのキーでカメラがどこを向いて何を映すかを視錐台で示す。再生ヘッドにあるキーは色を変える。
+			// 向きと FOV は曲線の値なので、注目点やロールで上書きされる分は含まない
+			const Quaternion rotation = track->GetRotationCurve().IsEmpty() ? Quaternion::Identity() : track->GetRotationCurve().Evaluate(key.time);
+			const float fovY = track->GetFovCurve().IsEmpty() ? 0.7f : track->GetFovCurve().Evaluate(key.time);
+			const Vector3 right = rotation.RotateVector({ 1.0f, 0.0f, 0.0f });
+			const Vector3 up = rotation.RotateVector({ 0.0f, 1.0f, 0.0f });
+			const Vector3 forward = rotation.RotateVector({ 0.0f, 0.0f, 1.0f });
+			const float halfHeight = std::tan(fovY * 0.5f) * kCameraKeyFrustumDepth;
+			const float halfWidth = halfHeight * aspect;
+			const Vector3 center = key.value + forward * kCameraKeyFrustumDepth;
+			const Vector3 corners[4] = { center + up * halfHeight - right * halfWidth, center + up * halfHeight + right * halfWidth,
+				center - up * halfHeight + right * halfWidth, center - up * halfHeight - right * halfWidth };
+			const bool atPlayhead = std::abs(key.time - player_.GetTime()) < 0.001f;
+			const Vector4& color = atPlayhead ? kCameraKeyFrustumNowColor : kCameraPathColor;
+			for (int i = 0; i < 4; ++i)
+			{
+				lines->DrawLine(key.value, corners[i], color);
+				lines->DrawLine(corners[i], corners[(i + 1) % 4], color);
+			}
+			// 上の辺に印を付けて、画面の上下が分かるようにする
+			lines->DrawLine(corners[0], corners[1], color);
+			lines->DrawLine(center + up * halfHeight, center + up * halfHeight * 1.3f, color);
 		}
 		lines->DrawSphere(curve.Evaluate(player_.GetTime()), kCameraPathNowRadius, kCameraPathNowColor);
 	}
@@ -871,77 +1245,176 @@ int SequencerEditor::GetSelectedTrackIndex() const
 
 void SequencerEditor::DrawAddTrackMenu()
 {
+	const auto hint = [](const char* text)
+	{
+		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("%s", text); }
+	};
+
+	if (ImGui::MenuItem("カメラ")) { AddTrack("Camera"); }
+	hint("シーケンスカメラの位置・向き・FOV などを動かします");
+
+	// 対象が要る種別は、ここで対象まで選ばせる。未割り当てのトラックを作らないため
+	ImGui::SeparatorText("対象を動かす");
+	DrawObjectTrackMenu("Transform", "オブジェクト", "GameObject の位置・回転・大きさを動かします");
+	DrawObjectTrackMenu("Component", "コンポーネントの値", "GameObject のコンポーネントの値を動かします");
+	DrawObjectTrackMenu("Screen", "画面（モニター）", "画面の GameObject の明るさと寄りを動かします");
+	DrawLightTrackMenu();
+
+	ImGui::SeparatorText("演出");
+	struct EffectItem
+	{
+		const char* typeName;
+		const char* label;
+		const char* hint;
+	};
+	static const EffectItem kEffectItems[] = {
+		{ "PostProcess", "ポストエフェクト", "画面全体の効果（色味・ブルームなど）を動かします" },
+		{ "Particle", "パーティクル", "パーティクルを指定の時刻に出します" },
+		{ "Text", "文字（画面）", "画面に文字を出します" },
+		{ "Text3D", "文字（3D 空間）", "3D 空間に文字を出します" },
+		{ "Event", "イベント", "指定の時刻にゲーム側へ合図を送ります" },
+	};
+	for (const EffectItem& item : kEffectItems)
+	{
+		if (ImGui::MenuItem(item.label)) { AddTrack(item.typeName); }
+		hint(item.hint);
+	}
+
+	// 上に無い種別（あとから足したもの）は、名前のまま出しておく
+	static const char* const kListedTypes[] = { "Camera", "Transform", "Component", "Screen", "Light", "PostProcess", "Particle", "Text", "Text3D", "Event" };
 	size_t typeCount = 0;
 	const char* const* typeNames = TrackFactory::GetCreatableTypeNames(typeCount);
-	GameObject* selectedObject = SelectionContext::GetInstance()->GetPrimaryGameObject();
 	for (size_t index = 0; index < typeCount; ++index)
 	{
 		const std::string typeName = typeNames[index];
-		if (typeName != "Transform" && typeName != "Component")
+		const bool listed = std::any_of(std::begin(kListedTypes), std::end(kListedTypes), [&](const char* name) { return typeName == name; });
+		if (!listed && ImGui::MenuItem(typeName.c_str()))
 		{
-			if (ImGui::MenuItem(typeName.c_str()))
-			{
-				AddTrack(typeName);
-			}
-			continue;
+			AddTrack(typeName);
 		}
+	}
+}
 
-		// GameObject を動かす種別は、対象をここで選んでそのまま割り当てる
-		if (!ImGui::BeginMenu(typeName.c_str()))
+void SequencerEditor::DrawObjectTrackMenu(const char* typeName, const char* label, const char* hint)
+{
+	const bool open = ImGui::BeginMenu(label);
+	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("%s", hint); }
+	if (!open)
+	{
+		return;
+	}
+
+	// もうトラックがある対象には印を付ける。選ぶと新しく作らずにそのトラックへ飛ぶ
+	const bool onePerObject = IsOnePerObjectTrack(typeName);
+	const auto objectItem = [&](GameObject& object, const std::string& itemLabel)
+	{
+		const bool exists = onePerObject && FindObjectTrack(typeName, object) >= 0;
+		if (ImGui::MenuItem(itemLabel.c_str(), exists ? "トラックあり" : nullptr))
 		{
-			continue;
+			AddGameObjectTrack(typeName, object);
 		}
-		if (selectedObject && ImGui::MenuItem(("選択中: " + selectedObject->GetName()).c_str()))
+	};
+
+	if (GameObject* selectedObject = SelectionContext::GetInstance()->GetPrimaryGameObject())
+	{
+		objectItem(*selectedObject, "選択中: " + selectedObject->GetName());
+		ImGui::Separator();
+	}
+	if (GameObjectManager::HasInstance())
+	{
+		for (GameObject* object : GameObjectManager::GetInstance()->GetGameObjects())
 		{
-			AddGameObjectTrack(typeName, *selectedObject);
+			if (!object) { continue; }
+			// 同名オブジェクトを区別できるよう、GUID を ID に使う
+			ImGui::PushID(object->GetGuid().ToString().c_str());
+			objectItem(*object, object->GetName());
+			ImGui::PopID();
 		}
-		if (GameObjectManager::HasInstance())
+	}
+	ImGui::EndMenu();
+}
+
+void SequencerEditor::DrawLightTrackMenu()
+{
+	const bool open = ImGui::BeginMenu("ライト");
+	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("ライトの色・強さ・形を動かします"); }
+	if (!open)
+	{
+		return;
+	}
+
+	if (ImGui::MenuItem("平行光源"))
+	{
+		AddLightTrack(LightTrackKind::Directional, "");
+	}
+
+	// 種類ごとにシーンのライトを名前順で並べる
+	const auto lightMenu = [this](const char* label, LightTrackKind kind, const auto& lights)
+	{
+		if (!ImGui::BeginMenu(label))
 		{
-			ImGui::Separator();
-			for (GameObject* object : GameObjectManager::GetInstance()->GetGameObjects())
+			return;
+		}
+		std::vector<std::string> names;
+		for (const auto& [name, light] : lights)
+		{
+			(void)light;
+			names.push_back(name);
+		}
+		std::sort(names.begin(), names.end());
+		if (names.empty())
+		{
+			ImGui::TextDisabled("シーンにありません");
+		}
+		for (const std::string& name : names)
+		{
+			if (ImGui::MenuItem(name.c_str()))
 			{
-				if (!object) { continue; }
-				// 同名オブジェクトを区別できるよう、GUID を ID に使う
-				ImGui::PushID(object->GetGuid().ToString().c_str());
-				if (ImGui::MenuItem(object->GetName().c_str()))
-				{
-					AddGameObjectTrack(typeName, *object);
-				}
-				ImGui::PopID();
+				AddLightTrack(kind, name);
 			}
 		}
 		ImGui::EndMenu();
+	};
+	if (lightManager_)
+	{
+		lightMenu("点光源", LightTrackKind::Point, lightManager_->GetPointLights());
+		lightMenu("スポットライト", LightTrackKind::Spot, lightManager_->GetSpotLights());
 	}
+	ImGui::EndMenu();
 }
 
 void SequencerEditor::DrawToolbar()
 {
 	EditorContext* editorContext = EditorContext::GetInstance();
 
+	// 1行目: モード・再生操作・時刻、右端に Undo/Redo
+	// 2行目: 表示の切り替え・編集操作、右端に全体を表示
+	// 幅で折り返さず、ボタンの位置がいつも同じになるようにする
+
 	// --- モード切り替え ---
 	const bool isEditMode = editorContext->IsEditMode();
-	if (ImGui::Button(isEditMode ? "モード: 編集" : "モード: 再生"))
+	if (ImGui::Button(isEditMode ? "編集モード###ModeToggle" : "再生モード###ModeToggle", ImVec2(ButtonWidth("編集モード"), 0.0f)))
 	{
 		editorContext->ToggleMode();
 	}
 	if (ImGui::IsItemHovered())
 	{
-		ImGui::SetTooltip("編集モードではゲーム時間が止まり、\n絵はシーケンサの時刻だけで決まります");
+		ImGui::SetTooltip("押すと切り替えます。\n編集モードではゲーム時間が止まり、\n絵はシーケンサの時刻だけで決まります");
 	}
 
-	ImGui::SameLine();
-	ImGui::TextDisabled("|");
-	ImGui::SameLine();
+	DrawToolbarSeparator();
 
 	// --- 再生操作 ---
 	if (ImGui::Button("|<"))
 	{
 		player_.Seek(0.0f);
 	}
+	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("先頭へ"); }
 	ImGui::SameLine();
 
+	// 再生と一時停止で文字の幅が変わっても、右のボタンがずれないよう幅を揃える
 	const bool isPlaying = player_.IsPlaying();
-	if (ImGui::Button(isPlaying ? "一時停止" : "再生"))
+	if (ImGui::Button(isPlaying ? "一時停止###PlayPause" : "再生###PlayPause", ImVec2(ButtonWidth("一時停止"), 0.0f)))
 	{
 		if (isPlaying) { player_.Pause(); }
 		else { player_.Resume(); }
@@ -954,7 +1427,7 @@ void SequencerEditor::DrawToolbar()
 	}
 	ImGui::SameLine();
 
-	if (ImGui::Button("末尾へ"))
+	if (ImGui::Button(">|"))
 	{
 		// 純関数契約が守られていれば、これだけで最終状態になる
 		player_.SkipToEnd();
@@ -971,13 +1444,17 @@ void SequencerEditor::DrawToolbar()
 		player_.SetLoop(loop);
 	}
 
-	// --- 時刻表示 ---
+	// --- 時刻表示 --- 数字の幅で右がずれないよう、いちばん広い表示の分を取っておく
 	ImGui::SameLine();
 	char currentBuffer[32];
 	char durationBuffer[32];
 	FormatTime(currentBuffer, sizeof(currentBuffer), player_.GetTime());
 	FormatTime(durationBuffer, sizeof(durationBuffer), player_.GetDuration());
+	const float timeSlotX = ImGui::GetCursorPosX() + ImGui::CalcTextSize("00:00.000 / 00:00.000").x;
 	ImGui::Text("%s / %s", currentBuffer, durationBuffer);
+	ImGui::SameLine();
+	if (timeSlotX > ImGui::GetCursorPosX()) { ImGui::SetCursorPosX(timeSlotX); }
+	ImGui::Dummy(ImVec2(0.0f, 0.0f));
 
 	if (player_.IsAudioDriven())
 	{
@@ -989,13 +1466,42 @@ void SequencerEditor::DrawToolbar()
 		}
 	}
 
-	// --- 編集操作 --- 幅が足りるときは再生操作と同じ行に続ける（縦を食わないため）
-	if (ImGui::GetContentRegionAvail().x > kToolbarEditGroupWidth)
+	// --- Undo/Redo --- 右端
+	AlignButtonsRight({ "Undo", "Redo" });
+	CommandHistory* history = CommandHistory::GetInstance();
+	ImGui::BeginDisabled(!history->CanUndo());
+	if (ImGui::Button("Undo"))
 	{
-		ImGui::SameLine();
-		ImGui::TextDisabled("|");
-		ImGui::SameLine();
+		history->Undo();
+		player_.EvaluateCurrentTime();
 	}
+	ImGui::EndDisabled();
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) { ImGui::SetTooltip("Ctrl+Z"); }
+	ImGui::SameLine();
+	ImGui::BeginDisabled(!history->CanRedo());
+	if (ImGui::Button("Redo"))
+	{
+		history->Redo();
+		player_.EvaluateCurrentTime();
+	}
+	ImGui::EndDisabled();
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) { ImGui::SetTooltip("Ctrl+Y"); }
+
+	// --- 表示の切り替え --- 今のものを押された色にしておく
+	static const char* const kViewLabels[kEditAreaViewCount] = { "ドープシート", "カーブ", "両方" };
+	for (int index = 0; index < kEditAreaViewCount; ++index)
+	{
+		if (index > 0) { ImGui::SameLine(0.0f, 0.0f); }
+		const bool current = static_cast<int>(editAreaView_) == index;
+		if (current) { ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive)); }
+		if (ImGui::Button(kViewLabels[index])) { editAreaView_ = static_cast<EditAreaView>(index); }
+		if (current) { ImGui::PopStyleColor(); }
+		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Tab で切り替え"); }
+	}
+
+	DrawToolbarSeparator();
+
+	// --- 編集操作 ---
 	if (ImGui::Button("+ トラック"))
 	{
 		ImGui::OpenPopup(kAddTrackPopupId);
@@ -1011,6 +1517,11 @@ void SequencerEditor::DrawToolbar()
 		AddKeyAtCurrentTime();
 	}
 	ImGui::SameLine();
+	if (ImGui::Button("キーを削除 (Del)"))
+	{
+		DeleteSelectedKey();
+	}
+	ImGui::SameLine();
 	if (ImGui::Button("カメラをキーに"))
 	{
 		RecordCameraKey();
@@ -1020,31 +1531,27 @@ void SequencerEditor::DrawToolbar()
 		ImGui::SetTooltip("シーケンスカメラの今の位置・向きをキーにします。\n外から眺める状態でギズモでカメラを動かし、これで確定します");
 	}
 	ImGui::SameLine();
-	if (ImGui::Button("キーを削除 (Del)"))
+	// 入っている間は赤くして、勝手にキーが増える状態だと分かるようにする
+	const bool autoKey = autoKey_;
+	if (autoKey) { ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.75f, 0.2f, 0.2f, 1.0f)); }
+	if (ImGui::Button("自動キー"))
 	{
-		DeleteSelectedKey();
+		autoKey_ = !autoKey_;
+	}
+	if (autoKey) { ImGui::PopStyleColor(); }
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("入れている間は、ギズモで動かして離すと再生ヘッドの時刻にキーを打ちます。\n"
+			"シーケンスカメラ、または選んでいる GameObject が対象です（Transform トラックが無ければ作ります）");
 	}
 
-	ImGui::SameLine();
-	ImGui::TextDisabled("|");
-	ImGui::SameLine();
-
-	CommandHistory* history = CommandHistory::GetInstance();
-	ImGui::BeginDisabled(!history->CanUndo());
-	if (ImGui::Button("Undo"))
+	// --- 全体を表示 --- 右端。カーブだけのときはカーブを、それ以外はドープシートを合わせる
+	AlignButtonsRight({ "全体を表示 (F)" });
+	if (ImGui::Button("全体を表示 (F)"))
 	{
-		history->Undo();
-		player_.EvaluateCurrentTime();
+		if (editAreaView_ == EditAreaView::Curve) { FrameSelectedCurves(); }
+		else { FrameAllKeys(); }
 	}
-	ImGui::EndDisabled();
-	ImGui::SameLine();
-	ImGui::BeginDisabled(!history->CanRedo());
-	if (ImGui::Button("Redo"))
-	{
-		history->Redo();
-		player_.EvaluateCurrentTime();
-	}
-	ImGui::EndDisabled();
 
 	// 保存していない変更を捨ててよいかの確認。読み込みと新規作成で共用する
 	if (discardPopupRequested_)
@@ -1348,26 +1855,55 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 			{
 				std::snprintf(headerLabel, sizeof(headerLabel), "%s", track->GetName().c_str());
 			}
+			// 値の編集欄を置く行は、名前が欄に食い込まないよう切る
+			const bool hasInlineValue = channel && channel->HasInlineValueEditor();
+			const float valueLeft = canvasMin.x + kInlineValueLeft;
+
+			// トラックの行には、割り当て先の名前を右に置く。名前はその手前で切る
+			bool targetAssignable = false;
+			const std::string targetName = row == 0 ? GetTrackTargetName(*track, targetAssignable) : std::string();
+			const bool hasTarget = row == 0 && (targetAssignable || !targetName.empty());
+			const std::string targetLabel = targetName.empty() ? "未割り当て" : targetName;
+			const float targetWidth = hasTarget ? (std::min)(ImGui::CalcTextSize(targetLabel.c_str()).x + kTargetButtonPadding, kTargetButtonMaxWidth) : 0.0f;
+			const float targetLeft = canvasMin.x + view_.headerWidth - kMuteButtonReserve - targetWidth;
+			float nameClipRight = canvasMin.x + view_.headerWidth;
+			if (hasInlineValue) { nameClipRight = valueLeft - 4.0f; }
+			else if (hasTarget) { nameClipRight = targetLeft - 4.0f; }
+			drawList->PushClipRect(ImVec2(canvasMin.x, rowTop), ImVec2(nameClipRight, rowBottom), true);
 			drawList->AddText(
 				ImVec2(canvasMin.x + 6.0f, rowCenter - ImGui::GetTextLineHeight() * 0.5f),
 				track->IsMuted() ? IM_COL32(110, 110, 115, 255) : IM_COL32(215, 215, 225, 255),
 				headerLabel);
-			if (!hasBinding && row == 0)
+			drawList->PopClipRect();
+
+			// 行が上下にはみ出しているときは、ルーラーやスクロールバーに重ならないよう出さない
+			const bool rowFullyVisible = rowTop >= canvasMin.y + view_.rulerHeight && rowBottom <= canvasMin.y + canvasSize.y;
+			if (hasInlineValue && rowFullyVisible)
 			{
-				drawList->AddText(
-					ImVec2(canvasMin.x + 6.0f, rowCenter + ImGui::GetTextLineHeight() * 0.15f),
-					IM_COL32(255, 150, 80, 255), "対象が未割り当て");
+				ImGui::PushID(static_cast<int>(trackIndex));
+				ImGui::PushID(static_cast<int>(row));
+				DrawInlineValue(trackIndex, *channel, valueLeft, canvasMin.x + view_.headerWidth - 6.0f, rowCenter);
+				ImGui::PopID();
+				ImGui::PopID();
 			}
-			else if (row == 0 && !track->GetBindingRole().empty())
+			if (hasTarget)
 			{
-				// どの対象を動かすトラックかを、名前の横に薄く添える
-				const ImVec2 nameSize = ImGui::CalcTextSize(headerLabel);
-				const float roleX = canvasMin.x + 6.0f + nameSize.x + 8.0f;
-				if (roleX < canvasMin.x + view_.headerWidth - 40.0f)
+				ImGui::SetCursorScreenPos(ImVec2(targetLeft, rowTop + 2.0f));
+				ImGui::PushID(static_cast<int>(trackIndex));
+				ImGui::PushStyleColor(ImGuiCol_Text, targetName.empty() ? ImVec4(1.0f, 0.6f, 0.3f, 1.0f) : ImVec4(0.75f, 0.78f, 0.9f, 1.0f));
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 1.0f, 1.0f, 0.06f));
+				const bool pressed = ImGui::Button((targetLabel + "###Target").c_str(), ImVec2(targetWidth, view_.trackHeight - 4.0f));
+				ImGui::PopStyleColor(2);
+				if (targetAssignable)
 				{
-					drawList->AddText(ImVec2(roleX, rowCenter - ImGui::GetTextLineHeight() * 0.5f),
-						IM_COL32(130, 130, 145, 255), track->GetBindingRole().c_str());
+					if (ImGui::IsItemHovered()) { ImGui::SetTooltip("押すと割り当て先を選び直します"); }
+					if (pressed)
+					{
+						assignTargetTrack_ = static_cast<int>(trackIndex);
+						ImGui::OpenPopup(kAssignTargetPopupId);
+					}
 				}
+				ImGui::PopID();
 			}
 
 			// ミュートの切り替えボタン。先頭の行にだけ置く
@@ -1567,18 +2103,7 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 		if (channel)
 		{
 			const float time = (std::max)(SnapTime(PixelToTime(mousePos.x, left)), 0.0f);
-			bool added = false;
-			ExecuteTrackEdit(sequence_, static_cast<size_t>(trackIndex), "Add Key", [&]()
-			{
-				if (channel->IsEmpty() && HasRequiredBinding(*track, player_.GetBindingContext()))
-				{
-					track->RecordKey(time, player_.GetBindingContext());
-					added = !channel->IsEmpty();
-				}
-				if (!added) { added = channel->AddKeyAt(time); }
-			});
-			statusMessage_ = added ? "キーを追加しました" : "この行にはキーを追加できません";
-			player_.EvaluateCurrentTime();
+			AddChannelKey(static_cast<size_t>(trackIndex), *channel, time);
 		}
 	}
 
@@ -1612,6 +2137,7 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 		ImGui::OpenPopup("TimelineContextMenu");
 	}
 	DrawTimelineContextMenu();
+	DrawAssignTargetPopup();
 
 	// ミュートボタンなど他のウィジェットを押した場合は選択を変えない
 	if (mouseInRows && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) &&
@@ -1701,6 +2227,12 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 					selection->Select(picked);
 				}
 				BeginKeyDrag(picked);
+
+				// 掴んだキーの時刻へ再生ヘッドを移す。行の横の値が、そのキーの値になる
+				if (const ICurveChannel* grabbedChannel = GetSelectedChannel(sequence_, picked))
+				{
+					player_.Seek(grabbedChannel->GetKeyTime(static_cast<size_t>(picked.keyIndex)));
+				}
 			}
 		}
 		else
@@ -2327,19 +2859,6 @@ void SequencerEditor::DrawTimelineWindow()
 	ImGui::BeginChild("SequencerEditArea", ImVec2(0.0f, (std::max)(ImGui::GetContentRegionAvail().y, kEditAreaMinHeight)));
 	editAreaHovered_ = ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
 
-	// 表示の切り替え。今のものを押された色にしておく
-	static const char* const kViewLabels[kEditAreaViewCount] = { "ドープシート", "カーブ", "両方" };
-	for (int index = 0; index < kEditAreaViewCount; ++index)
-	{
-		if (index > 0) { ImGui::SameLine(); }
-		const bool current = static_cast<int>(editAreaView_) == index;
-		if (current) { ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive)); }
-		if (ImGui::Button(kViewLabels[index])) { editAreaView_ = static_cast<EditAreaView>(index); }
-		if (current) { ImGui::PopStyleColor(); }
-	}
-	ImGui::SameLine();
-	ImGui::TextDisabled("Tab で切り替え");
-
 	const bool showDopeSheet = editAreaView_ != EditAreaView::Curve;
 	const bool showCurve = editAreaView_ != EditAreaView::DopeSheet;
 	const bool showBoth = showDopeSheet && showCurve;
@@ -2564,21 +3083,8 @@ void SequencerEditor::DrawSettingsPane()
 
 void SequencerEditor::DrawDopeSheet()
 {
+	// ズームとスクロールはホイールと中ボタンのドラッグで行う
 	DrawPaneHeader("ドープシート", kDopeSheetHint);
-	ImGui::SameLine();
-
-	// ズーム
-	ImGui::SetNextItemWidth(200.0f);
-	ImGui::DragFloat("ズーム", &view_.pixelsPerSecond, 1.0f, 5.0f, 2000.0f, "%.0f px/s");
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(200.0f);
-	ImGui::DragFloat("スクロール", &view_.scrollTime, 0.05f, 0.0f, 3600.0f, "%.2f s");
-	ImGui::SameLine();
-	if (ImGui::Button("全体を表示 (F)"))
-	{
-		FrameAllKeys();
-	}
-
 
 	// --- キャンバス ---
 	const ImVec2 canvasMin = ImGui::GetCursorScreenPos();
@@ -3441,6 +3947,126 @@ void SequencerEditor::AddKeyToTrack(int trackIndex)
 	}
 }
 
+bool SequencerEditor::AddChannelKey(size_t trackIndex, ICurveChannel& channel, float time)
+{
+	ITrack* track = sequence_.GetTrack(trackIndex);
+	if (!track)
+	{
+		return false;
+	}
+
+	bool added = false;
+	ExecuteTrackEdit(sequence_, trackIndex, "Add Key", [&]()
+	{
+		// 空の行は型の既定値（FOV が 0 など）だと困るので、割り当て先の今の状態から打つ
+		if (channel.IsEmpty() && HasRequiredBinding(*track, player_.GetBindingContext()))
+		{
+			track->RecordKey(time, player_.GetBindingContext());
+			added = !channel.IsEmpty();
+		}
+		if (!added) { added = channel.AddKeyAt(time); }
+	});
+	statusMessage_ = added ? "キーを追加しました" : "この行にはキーを追加できません";
+	player_.EvaluateCurrentTime();
+	return added;
+}
+
+void SequencerEditor::RecordAutoKey()
+{
+	if (cameraMovedByGizmo_)
+	{
+		RecordCameraKey();
+		return;
+	}
+
+	GameObject* object = SelectionContext::GetInstance()->GetPrimaryGameObject();
+	if (!object)
+	{
+		return;
+	}
+	const BindingContext& context = player_.GetBindingContext();
+	int trackIndex = -1;
+	for (size_t index = 0; index < sequence_.GetTrackCount(); ++index)
+	{
+		const auto* transformTrack = dynamic_cast<const TransformTrack*>(sequence_.GetTrack(index));
+		if (transformTrack && context.GetGameObject(transformTrack->GetBindingRole()) == object)
+		{
+			trackIndex = static_cast<int>(index);
+			break;
+		}
+	}
+	if (trackIndex < 0)
+	{
+		trackIndex = AddGameObjectTrack("Transform", *object);
+	}
+	if (trackIndex >= 0)
+	{
+		AddKeyToTrack(trackIndex);
+	}
+}
+
+void SequencerEditor::DrawInlineValue(size_t trackIndex, ICurveChannel& channel, float left, float right, float rowCenter)
+{
+	// K と同じく、スナップした再生ヘッドの時刻を対象にする
+	const float time = (std::max)(SnapTime(player_.GetTime()), 0.0f);
+	const int keyHere = channel.FindKeyAt(time, 0.001f);
+
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 1.0f));
+	const float frameHeight = ImGui::GetFrameHeight();
+	const float top = rowCenter - frameHeight * 0.5f;
+
+	// --- キーの有無の印 --- 押すとその時刻のキーを打つ・消す
+	ImGui::SetCursorScreenPos(ImVec2(left, top));
+	if (ImGui::InvisibleButton("##KeyMark", ImVec2(kInlineKeyMarkSize, frameHeight)))
+	{
+		if (keyHere >= 0)
+		{
+			ExecuteTrackEdit(sequence_, trackIndex, "Remove Key", [&]() { channel.RemoveKey(static_cast<size_t>(keyHere)); });
+			// 番号がずれるので、キーの選択は外しておく
+			SelectionContext::GetInstance()->ClearSelection();
+			player_.EvaluateCurrentTime();
+		}
+		else
+		{
+			AddChannelKey(trackIndex, channel, time);
+		}
+	}
+	const bool markHovered = ImGui::IsItemHovered();
+	if (markHovered)
+	{
+		ImGui::SetTooltip(keyHere >= 0 ? "再生ヘッドのキーを消す" : "再生ヘッドにキーを打つ");
+	}
+	const float half = kInlineKeyMarkSize * 0.35f;
+	const ImVec2 center(left + kInlineKeyMarkSize * 0.5f, rowCenter);
+	const ImVec2 diamond[4] = { { center.x, center.y - half }, { center.x + half, center.y }, { center.x, center.y + half }, { center.x - half, center.y } };
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	const ImU32 markColor = keyHere >= 0 ? IM_COL32(255, 200, 60, 255) : (markHovered ? IM_COL32(200, 200, 210, 255) : IM_COL32(110, 110, 120, 255));
+	if (keyHere >= 0) { drawList->AddConvexPolyFilled(diamond, 4, markColor); }
+	else { drawList->AddPolyline(diamond, 4, markColor, ImDrawFlags_Closed, 1.5f); }
+
+	// --- 値 --- 空の行はキーが無いと値が決まらないので、打つボタンだけ出す
+	const float fieldLeft = left + kInlineKeyMarkSize + 4.0f;
+	ImGui::SetCursorScreenPos(ImVec2(fieldLeft, top));
+	if (channel.IsEmpty())
+	{
+		ImGui::TextDisabled("キーなし");
+	}
+	else
+	{
+		ImGui::SetNextItemWidth((std::max)(right - fieldLeft, 40.0f));
+		if (channel.DrawInlineValueEditor(time))
+		{
+			ExecuteTrackEdit(sequence_, trackIndex, "Edit Value", [&]() { channel.ApplyInlineValue(time); });
+			player_.EvaluateCurrentTime();
+		}
+		if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+		{
+			ImGui::SetTooltip("再生ヘッドの値です。いじるとこの時刻にキーができます（あれば上書き）");
+		}
+	}
+	ImGui::PopStyleVar();
+}
+
 void SequencerEditor::DeleteSelectedKey()
 {
 	std::vector<SelectionItem> keys = CollectSelectedKeys(sequence_);
@@ -3763,11 +4389,6 @@ void SequencerEditor::HandleShortcuts()
 	else if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_V, false))
 	{
 		PasteKeysAtCurrentTime();
-	}
-	else if (ImGui::IsKeyPressed(ImGuiKey_Space, false))
-	{
-		if (player_.IsPlaying()) { player_.Pause(); }
-		else { player_.Resume(); }
 	}
 	else if (ImGui::IsKeyPressed(ImGuiKey_K, false))
 	{

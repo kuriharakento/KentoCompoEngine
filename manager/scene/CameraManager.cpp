@@ -1,4 +1,5 @@
 #include "CameraManager.h"
+#include <algorithm>
 #include <iostream>
 
 // system
@@ -140,6 +141,19 @@ Camera* CameraManager::GetCamera(const std::string& name) {
     }
     // 見つからない場合はnullptrを返す
     return nullptr;
+}
+
+std::vector<std::string> CameraManager::GetCameraNames() const
+{
+	std::vector<std::string> names;
+	names.reserve(cameras_.size());
+	for (const auto& entry : cameras_)
+	{
+		names.push_back(entry.first);
+	}
+	// unordered_map の順は毎回変わり得るので、選択欄で並びが揺れないよう名前順にする
+	std::sort(names.begin(), names.end());
+	return names;
 }
 
 void CameraManager::SetActiveCamera(const std::string& name) {

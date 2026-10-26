@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 #include <memory>
 #include "base/Camera.h"
 
@@ -48,6 +49,12 @@ public:
      */
     Camera* GetCamera(const std::string& name);
 
+	/**
+	 * @brief 登録しているカメラの名前を一覧で取得する
+	 * @return 名前順に並べた一覧。カメラの選択欄などに使う
+	 */
+	std::vector<std::string> GetCameraNames() const;
+
     /**
      * @brief アクティブカメラの設定
      * @param name アクティブにするカメラの名前
@@ -76,6 +83,9 @@ public:
 	 * @param camera 差し替えるカメラ（所有しない）。CameraManager が持つカメラを渡す
 	 */
 	void SetViewCameraOverride(Camera* camera) { viewCameraOverride_ = camera; }
+
+	/** @brief 画面に映すカメラの差し替え先を取得する。差し替えていなければ nullptr */
+	Camera* GetViewCameraOverride() const { return viewCameraOverride_; }
 
 	/** @brief 画面に映すカメラの差し替えを解除する */
 	void ClearViewCameraOverride() { viewCameraOverride_ = nullptr; }

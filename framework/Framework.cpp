@@ -408,6 +408,10 @@ void Framework::Initialize()
 	subViewPipeline_ = std::make_unique<RenderPipeline>();
 	BuildSceneOnlyRenderPipeline(*subViewPipeline_);
 
+	// カメラプレビュー窓（サブビューの作成元が用意できてから登録する）
+	cameraPreviewEditor_ = std::make_unique<CameraPreviewEditor>();
+	cameraPreviewEditor_->Initialize(this, cameraManager_.get());
+
 	// 本編のパイプラインからサブビューの描画を呼べるようにする
 	if (auto* subViewPass = dynamic_cast<SubViewRenderPass*>(renderPipeline_->FindPass("SubViews")))
 	{
@@ -485,6 +489,11 @@ void Framework::Finalize()
 	debugCamera_.reset();
 #endif
 	spriteAnimationEditor_.reset();
+	if (cameraPreviewEditor_)
+	{
+		cameraPreviewEditor_->Finalize();
+	}
+	cameraPreviewEditor_.reset();
 	ShaderHotReload::GetInstance()->Finalize();
 	CutsceneManager::GetInstance()->Finalize();
 	SequencerEditor::GetInstance()->Finalize();

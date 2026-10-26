@@ -98,6 +98,20 @@ public:
 	 * @return 値が変わったら真
 	 */
 	virtual bool DrawKeyValueEditor(size_t index) = 0;
+
+	/** @brief タイムラインの行の横で、値を直接編集できるチャンネルか */
+	virtual bool HasInlineValueEditor() const { return false; }
+
+	/**
+	 * @brief 指定時刻の値を、タイムラインの行の横で編集するUIを描く
+	 * @details 描くだけでカーブは書き換えない。変わったら ApplyInlineValue() で書き込む。
+	 *          書き込む前に Undo 用の状態を取れるよう、2段に分けている
+	 * @return 値が変わったら真
+	 */
+	virtual bool DrawInlineValueEditor(float time) { (void)time; return false; }
+
+	/** @brief DrawInlineValueEditor() で変えた値を、その時刻のキーとして書き込む。キーがあれば上書きする */
+	virtual void ApplyInlineValue(float time) { (void)time; }
 #endif
 };
 
@@ -119,6 +133,27 @@ inline bool DrawCurveValue(const char* label, Quaternion& value)
 	if (ImGui::DragFloat3(label, &euler.x, 0.01f))
 	{
 		value = Quaternion::FromEuler(euler);
+		return true;
+	}
+	return false;
+}
+
+/** @brief タイムラインの行の横に置く、狭い場所向けの編集UI。見出しは付けない */
+inline bool DrawCurveValueInline(float& value) { return ImGui::DragFloat("##value", &value, 0.01f, 0.0f, 0.0f, "%.2f"); }
+inline bool DrawCurveValueInline(Vector3& value) { return ImGui::DragFloat3("##value", &value.x, 0.05f, 0.0f, 0.0f, "%.2f"); }
+inline bool DrawCurveValueInline(Vector4& value)
+{
+	return ImGui::ColorEdit4("##value", &value.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_NoInputs);
+}
+inline bool DrawCurveValueInline(Quaternion& value)
+{
+	// 行の横では、見て分かりやすい度で出す
+	constexpr float kRadiansToDegrees = 57.29577951308232f;
+	const Vector3 euler = value.ToEuler();
+	Vector3 degrees = { euler.x * kRadiansToDegrees, euler.y * kRadiansToDegrees, euler.z * kRadiansToDegrees };
+	if (ImGui::DragFloat3("##value", &degrees.x, 0.5f, 0.0f, 0.0f, "%.1f"))
+	{
+		value = Quaternion::FromEuler({ degrees.x / kRadiansToDegrees, degrees.y / kRadiansToDegrees, degrees.z / kRadiansToDegrees });
 		return true;
 	}
 	return false;
@@ -235,6 +270,16 @@ public:
 	{
 		return detail::DrawCurveValue(name_, curve_->GetKey(index).value);
 	}
+
+	bool HasInlineValueEditor() const override { return true; }
+
+	bool DrawInlineValueEditor(float time) override
+	{
+		inlineValue_ = curve_->IsEmpty() ? T{} : curve_->Evaluate(time);
+		return detail::DrawCurveValueInline(inlineValue_);
+	}
+
+	void ApplyInlineValue(float time) override { SetKey(time, inlineValue_); }
 #endif
 
 private:
@@ -271,5 +316,9 @@ private:
 
 	const char* name_;
 	Curve<T>* curve_;
+#ifdef USE_IMGUI
+	// 行の横で編集中の値。DrawInlineValueEditor() で描き、ApplyInlineValue() で書き込む
+	T inlineValue_{};
+#endif
 };
 } // namespace KCE

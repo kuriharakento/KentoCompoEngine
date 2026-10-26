@@ -22,6 +22,7 @@
 #include "graphics/2d/SpriteCommon.h"
 #include "graphics/2d/GlyphAtlas.h"
 #include "graphics/2d/TextOverlay.h"
+#include "editor/CameraPreviewEditor.h"
 #include "editor/SpriteAnimationEditor.h"
 #include "graphics/text/Text3DRenderer.h"
 #include "graphics/3d/Object3dCommon.h"
@@ -263,6 +264,8 @@ protected: // メンバ変数
 	std::unique_ptr<TextOverlay> textOverlay_;
 	// スプライトアニメーションの編集ウィンドウ。DebugUIManager に登録するので、先に片付ける
 	std::unique_ptr<SpriteAnimationEditor> spriteAnimationEditor_;
+	// カメラの映像を見るプレビュー窓。サブビューを持つので、Framework の破棄より前に畳む
+	std::unique_ptr<CameraPreviewEditor> cameraPreviewEditor_;
 	// 3D 空間の文字。文字列はシーンが持ち、名前で登録する
 	std::unique_ptr<Text3DRenderer> text3DRenderer_;
 	// 3Dオブジェクト共通部

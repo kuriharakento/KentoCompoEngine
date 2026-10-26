@@ -164,6 +164,7 @@
     <ClCompile Include="editor\EditorContext.cpp" />
     <ClCompile Include="editor\SceneGizmo.cpp" />
     <ClCompile Include="editor\SceneViewContext.cpp" />
+    <ClCompile Include="editor\CameraPreviewEditor.cpp" />
     <ClCompile Include="editor\SpriteAnimationEditor.cpp" />
     <ClCompile Include="editor\SelectionContext.cpp" />
     <ClCompile Include="editor\command\CommandHistory.cpp" />
@@ -418,6 +419,7 @@
     <ClInclude Include="editor\EditorContext.h" />
     <ClInclude Include="editor\SceneGizmo.h" />
     <ClInclude Include="editor\SceneViewContext.h" />
+    <ClInclude Include="editor\CameraPreviewEditor.h" />
     <ClInclude Include="editor\SpriteAnimationEditor.h" />
     <ClInclude Include="editor\SelectionContext.h" />
     <ClInclude Include="editor\command\CommandHistory.h" />

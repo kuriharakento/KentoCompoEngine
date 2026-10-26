@@ -40,6 +40,9 @@ constexpr float kMaximumUiScale = 3.0f;
 constexpr float kSettingsListWidth = 180.0f;
 // 置き場所が見つからないウィンドウは画面の真ん中に出す
 constexpr float kCenterPivot = 0.5f;
+// 浮かせて開くウィンドウの初めの大きさ（ピクセル）
+constexpr float kFloatingWindowWidth = 480.0f;
+constexpr float kFloatingWindowHeight = 320.0f;
 
 constexpr char kSettingsTypeName[] = "DebugUI";
 constexpr char kGlobalSettingsName[] = "GlobalSettings";
@@ -156,6 +159,31 @@ void DebugUIManager::RegisterWindow(void* owner, const std::string& name, std::f
 	const auto saved = s_persisted.visibility.find(name);
 	const bool visible = saved != s_persisted.visibility.end() ? saved->second : defaultVisible;
 	windows_.push_back({ owner, name, dock, std::move(draw), visible, defaultVisible });
+}
+
+bool DebugUIManager::IsWindowVisible(const std::string& name) const
+{
+	for (const auto& window : windows_)
+	{
+		if (window.name == name)
+		{
+			return window.visible;
+		}
+	}
+	return false;
+}
+
+void DebugUIManager::SetWindowVisible(const std::string& name, bool visible)
+{
+	for (auto& window : windows_)
+	{
+		if (window.name == name && window.visible != visible)
+		{
+			window.visible = visible;
+			SaveSettings();
+			return;
+		}
+	}
 }
 
 void DebugUIManager::RegisterSettingsPage(void* owner, const std::string& category, const std::string& name, std::function<void()> draw)
@@ -466,6 +494,12 @@ void DebugUIManager::DockOnFirstOpen(const std::string& name, EditorDock dock)
 	// imgui.ini に設定がある（＝ユーザーが置いた場所がある）ウィンドウには触らない
 	if (ImGui::FindWindowByName(name.c_str()) || ImGui::FindWindowSettingsByID(ImHashStr(name.c_str())))
 	{
+		return;
+	}
+	if (dock == EditorDock::Floating)
+	{
+		ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_FirstUseEver, ImVec2(kCenterPivot, kCenterPivot));
+		ImGui::SetNextWindowSize(ImVec2(kFloatingWindowWidth, kFloatingWindowHeight), ImGuiCond_FirstUseEver);
 		return;
 	}
 

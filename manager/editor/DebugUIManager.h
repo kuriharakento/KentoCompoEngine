@@ -13,10 +13,13 @@ struct ImGuiTextBuffer;
 
 namespace KCE
 {
-/** @brief エディタの初期ドッキング先。 */
-enum class EditorDock { Left, Right, RightBottom, Bottom };
+/**
+ * @brief エディタの初期ドッキング先。
+ * @details Floating はどこにもドッキングせず、画面の真ん中に浮かせて開く（後から増やす窓など）。
+ */
+enum class EditorDock { Left, Right, RightBottom, Bottom, Floating };
 /** @brief EditorDock の数。置き場所ごとの配列の大きさに使う。 */
-constexpr size_t kEditorDockCount = 4;
+constexpr size_t kEditorDockCount = 5;
 
 /**
  * @brief エディタの ImGui ウィンドウを置き場所ごとにまとめて描く。
@@ -43,6 +46,19 @@ public:
 	 * @param defaultVisible 覚えた表示状態が無いときに開いておくか
 	 */
 	void RegisterWindow(void* owner, const std::string& name, std::function<void()> draw, EditorDock dock, bool defaultVisible = true);
+	/**
+	 * @brief 登録した独立ウィンドウが開いているか返す。
+	 * @param name RegisterWindow に渡した名前
+	 * @return 開いていれば真。タブの裏に隠れていても開いている扱い。登録が無ければ偽
+	 */
+	bool IsWindowVisible(const std::string& name) const;
+	/**
+	 * @brief 登録した独立ウィンドウを開く・閉じる。
+	 * @details 変わったときだけ imgui.ini に覚える。Draw の中（ウィンドウの描画中）から呼んでもよい
+	 * @param name RegisterWindow に渡した名前
+	 * @param visible 開くなら真
+	 */
+	void SetWindowVisible(const std::string& name, bool visible);
 	/**
 	 * @brief Settings のページを登録する。
 	 * @param category 左の一覧の分類名（"Rendering" など）
@@ -106,6 +122,8 @@ public:
 	void Initialize() {}
 	void Finalize() {}
 	void RegisterWindow(void*, const std::string&, std::function<void()>, EditorDock, bool = true) {}
+	bool IsWindowVisible(const std::string&) const { return false; }
+	void SetWindowVisible(const std::string&, bool) {}
 	void RegisterSettingsPage(void*, const std::string&, const std::string&, std::function<void()>) {}
 	void RegisterInspector(void*, SelectionKind, std::function<void(const SelectionItem&)>) {}
 	void RegisterSceneOverlay(void*, std::function<void()>) {}

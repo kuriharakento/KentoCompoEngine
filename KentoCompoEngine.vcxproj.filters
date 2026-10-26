@@ -333,6 +333,9 @@
     <ClCompile Include="editor\SelectionContext.cpp">
       <Filter>editor</Filter>
     </ClCompile>
+    <ClCompile Include="editor\CameraPreviewEditor.cpp">
+      <Filter>editor</Filter>
+    </ClCompile>
     <ClCompile Include="editor\SpriteAnimationEditor.cpp">
       <Filter>editor</Filter>
     </ClCompile>
@@ -906,6 +909,9 @@
       <Filter>editor</Filter>
     </ClInclude>
     <ClInclude Include="editor\SelectionContext.h">
+      <Filter>editor</Filter>
+    </ClInclude>
+    <ClInclude Include="editor\CameraPreviewEditor.h">
       <Filter>editor</Filter>
     </ClInclude>
     <ClInclude Include="editor\SpriteAnimationEditor.h">

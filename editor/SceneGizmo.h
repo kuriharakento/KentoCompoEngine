@@ -70,6 +70,8 @@ public:
 	void RegisterTarget(void* owner, SelectionKind kind, GizmoTarget target);
 	/** @brief owner が登録した物をすべて外す */
 	void Unregister(void* owner);
+	/** @brief 前のフレームでギズモを掴んでいたか。離した瞬間を知りたい側が使う */
+	bool IsDragging() const { return wasUsing_; }
 
 	~SceneGizmo() = default;
 

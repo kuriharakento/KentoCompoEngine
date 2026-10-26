@@ -18,6 +18,7 @@
 namespace KCE
 {
 struct SelectionItem;
+enum class LightTrackKind;
 class BeamRenderer;
 class Camera;
 class CameraManager;
@@ -40,7 +41,7 @@ struct TimelineViewState
 	//! トラック1本の高さ（ピクセル）
 	float trackHeight = 26.0f;
 	//! 左側のトラック名欄の幅（ピクセル）
-	float headerWidth = 180.0f;
+	float headerWidth = 440.0f;
 	//! 時間ルーラーの高さ（ピクセル）
 	float rulerHeight = 72.0f;
 	//! 行領域の縦スクロール量（ピクセル）
@@ -179,6 +180,18 @@ private:
 	void AddKeyToTrack(int trackIndex);
 	/** @brief シーケンスカメラの今の位置・向きを、カメラトラックのキーにする。トラックが無ければ作る */
 	void RecordCameraKey();
+	/**
+	 * @brief チャンネル1本の指定時刻にキーを打つ。空の行なら、割り当て先の今の状態から打つ
+	 * @return 打てたら真
+	 */
+	bool AddChannelKey(size_t trackIndex, ICurveChannel& channel, float time);
+	/**
+	 * @brief 自動キー。ギズモで動かした物（シーケンスカメラか選択中の GameObject）を、再生ヘッドの時刻にキーにする
+	 * @details GameObject に Transform トラックが無ければ作る
+	 */
+	void RecordAutoKey();
+	/** @brief チャンネル行の見出しに、再生ヘッドの値の編集欄とキーの有無の印を描く */
+	void DrawInlineValue(size_t trackIndex, ICurveChannel& channel, float left, float right, float rowCenter);
 	/** @brief 「+ トラック」のメニューの中身を描く。対象が要る種別は、GameObject をその場で選ばせる */
 	void DrawAddTrackMenu();
 	/** @brief 選択中のキーをすべて削除する。何本のトラックにまたがっても Undo は1回 */
@@ -278,8 +291,40 @@ private:
 	void FrameAllKeys();
 	/** @brief 折りたたみ状態を含むトラックの表示行数 */
 	size_t GetVisibleRowCount(size_t trackIndex) const;
-	/** @brief GameObject を割り当てたトラックを追加し、追加した番号を返す */
-	int AddGameObjectTrack(const std::string& typeName, GameObject& object);
+	/**
+	 * @brief GameObject を割り当てたトラックを追加し、追加した番号を返す
+	 * @details 1つの対象に1本で足りる種別（Transform・Screen）は、もうあれば作らずにそれを返す
+	 * @param select 追加した（見つけた）トラックを選ぶか。GameObject の選択を保ちたいときは偽
+	 */
+	int AddGameObjectTrack(const std::string& typeName, GameObject& object, bool select = true);
+	/**
+	 * @brief ライトを割り当てたトラックを追加し、追加した番号を返す。同じライトのトラックがあればそれを選ぶ
+	 * @param lightName ライトの名前。平行光源では使わない
+	 */
+	int AddLightTrack(LightTrackKind kind, const std::string& lightName);
+	/**
+	 * @brief 指定種別で、object を割り当てたトラックを探す
+	 * @return トラック番号。無ければ -1
+	 */
+	int FindObjectTrack(const std::string& typeName, const GameObject& object) const;
+	/** @brief トラックを選んで、表示に入るようスクロールさせる */
+	void SelectTrack(int trackIndex);
+	/** @brief 「+ トラック」で、GameObject を選んでトラックを作るメニューを描く */
+	void DrawObjectTrackMenu(const char* typeName, const char* label, const char* hint);
+	/** @brief 「+ トラック」で、ライトの種類と対象を選んでトラックを作るメニューを描く */
+	void DrawLightTrackMenu();
+	/**
+	 * @brief トラックの見出しに出す、割り当て先の名前を求める
+	 * @param outAssignable タイムライン上で選び直せる種別なら真
+	 * @return 名前。割り当てを使わないトラックなら空
+	 */
+	std::string GetTrackTargetName(const ITrack& track, bool& outAssignable) const;
+	/** @brief トラック1本の割り当て先を GameObject に替える。他のトラックの割り当ては変えない */
+	void AssignTrackObject(size_t trackIndex, GameObject& object);
+	/** @brief トラック1本の割り当て先をライトに替える */
+	void AssignTrackLight(size_t trackIndex, const std::string& lightName);
+	/** @brief タイムラインの見出しから開く、割り当て先を選び直す小窓を描く */
+	void DrawAssignTargetPopup();
 	/** @brief オブジェクト名を基に、別オブジェクトと競合しない役名を作る */
 	std::string MakeUniqueObjectRole(const GameObject& object) const;
 	/** @brief 選択中、または先頭のカメラトラックを返す */
@@ -341,6 +386,16 @@ private:
 
 	// カメラの軌道をシーンに線で出すか
 	bool showCameraPath_ = true;
+
+	// 割り当て先を選び直す小窓の対象のトラック番号
+	int assignTargetTrack_ = -1;
+
+	// 自動キー。ギズモを離したときに、動かした物のキーを再生ヘッドの時刻に打つ
+	bool autoKey_ = false;
+	// 前のフレームでギズモを掴んでいたか。離した瞬間を知るため
+	bool wasGizmoDragging_ = false;
+	// 今のドラッグでシーケンスカメラをギズモで動かしたか
+	bool cameraMovedByGizmo_ = false;
 
 	// グリッドスナップを有効にするか
 	bool snapEnabled_ = true;
