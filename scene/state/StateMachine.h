@@ -30,6 +30,8 @@ namespace KCE
  * states_.Start(TitleState::Intro);
  * // CommonUpdate
  * states_.Update();
+ * // Draw2D
+ * states_.Draw2D();
  * // OnFinalize
  * states_.Stop();
  * @endcode
@@ -113,6 +115,17 @@ public:
 		if (current_)
 		{
 			current_->OnUpdate(owner_);
+		}
+	}
+
+	/**
+	 * @brief 今のステートの OnDraw2D を呼ぶ。シーンの Draw2D で呼ぶ。
+	 */
+	void Draw2D()
+	{
+		if (current_)
+		{
+			current_->OnDraw2D(owner_);
 		}
 	}
 
