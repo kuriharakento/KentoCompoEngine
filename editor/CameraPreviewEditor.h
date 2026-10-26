@@ -83,9 +83,6 @@ private:
 	CameraManager* cameraManager_ = nullptr;
 	// ウィンドウの一覧。ラムダが参照を持つので、要素のアドレスを変えないよう unique_ptr で持つ
 	std::vector<std::unique_ptr<PreviewTarget>> targets_;
-	// 描画中にウィンドウの一覧を触らないよう、「+」は次のフレームの頭で処理する
-	bool pendingAdd_ = false;
-	std::string pendingAddCamera_;
 	// 「Scene で見る」で差し替えているカメラ
 	Camera* sceneViewCamera_ = nullptr;
 	int nextIndex_ = 1;

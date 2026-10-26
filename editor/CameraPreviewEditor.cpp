@@ -19,6 +19,8 @@ namespace KCE
 namespace
 {
 constexpr const char* kWindowTitle = "カメラプレビュー";
+// 用意しておく窓の枚数。多いほど同時に見られるが、見えている窓の分だけ描くので重くなる
+constexpr int kMaxWindows = 4;
 // 解像度の刻み。窓を少し動かすたびに作り直さないよう丸める
 constexpr uint32_t kSizeStep = 32;
 constexpr uint32_t kMinSize = 64;
@@ -54,8 +56,13 @@ void CameraPreviewEditor::Initialize(ISubViewProvider* provider, CameraManager* 
 	}
 	initialized_ = true;
 
-	// 最初の1枚は閉じておく。メニューの「ウィンドウ」から開く
-	AddWindow(false);
+	// 窓は決まった枚数を最初に全部登録しておく。imgui.ini の位置と開閉が、窓の名前で次の起動にも効くため
+	// （実行中に足した窓は次の起動で作られず、置いた場所も開いていたことも失われる）。
+	// 全部閉じた状態で始め、開いていたものは imgui.ini の記録で開き直る。メニューの「ウィンドウ」から開ける
+	for (int index = 0; index < kMaxWindows; ++index)
+	{
+		AddWindow(false);
+	}
 	DebugUIManager::GetInstance()->RegisterDialog(this, [this]() { BeginFrame(); });
 #else
 	(void)provider;
@@ -106,8 +113,7 @@ void CameraPreviewEditor::OpenPreview(const std::string& cameraName)
 			return;
 		}
 	}
-	pendingAdd_ = true;
-	pendingAddCamera_ = cameraName;
+	// 全部開いているときは増やせない
 #else
 	(void)cameraName;
 #endif
@@ -143,14 +149,6 @@ void CameraPreviewEditor::BeginFrame()
 		}
 		target->view->SetEnabled(false);
 	}
-
-	if (pendingAdd_)
-	{
-		pendingAdd_ = false;
-		PreviewTarget& added = AddWindow(true);
-		added.cameraName = pendingAddCamera_;
-		pendingAddCamera_.clear();
-	}
 }
 
 void CameraPreviewEditor::DrawWindow(PreviewTarget& target)
@@ -182,12 +180,11 @@ void CameraPreviewEditor::DrawWindow(PreviewTarget& target)
 	ImGui::SameLine();
 	if (ImGui::Button("+"))
 	{
-		pendingAdd_ = true;
-		pendingAddCamera_ = target.cameraName;
+		OpenPreview(target.cameraName);
 	}
 	if (ImGui::IsItemHovered())
 	{
-		ImGui::SetTooltip("プレビューの窓を増やす");
+		ImGui::SetTooltip("プレビューの窓を増やす（最大 %d 枚）", kMaxWindows);
 	}
 
 	// Scene ビューをこのカメラに切り替える（もう一度押すと戻す）
