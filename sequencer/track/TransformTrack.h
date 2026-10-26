@@ -1,13 +1,14 @@
 #pragma once
 #include "math/Quaternion.h"
 #include "math/Vector3.h"
+#include "math/Vector4.h"
 #include "sequencer/core/Curve.h"
 #include "sequencer/core/ITrack.h"
 
 namespace KCE
 {
 /**
- * @brief GameObject の位置・回転・スケールをカーブで駆動するトラック
+ * @brief GameObject の位置・回転・スケール・色をカーブで駆動するトラック
  *
  * @details 役（ロール）に割り当てた GameObject を動かす。
  *          「被弾リアクション」の Target のように、同じシーケンスを
@@ -16,6 +17,9 @@ namespace KCE
  *          回転はクォータニオンで補間し、GameObject へはオイラー角で渡す。
  *          GameObject のオイラー角規約（X→Y→Z）は Quaternion::FromEuler / ToEuler と
  *          一致することを検証済み。
+ *
+ *          色は GameObject 本体の描画物（SetColor が効くもの）にだけ効く。
+ *          キーの無いチャンネルには触れないので、色のキーが無ければ今までどおり色は変えない。
  */
 class TransformTrack : public ITrack
 {
@@ -39,21 +43,24 @@ public:
 	bool RecordKey(float time, const BindingContext& ctx) override;
 
 private:
-	/** @brief チャンネル数（位置・回転・スケール） */
-	static constexpr size_t kChannelCount = 3;
+	/** @brief チャンネル数（位置・回転・スケール・色） */
+	static constexpr size_t kChannelCount = 4;
 
 	Vector3Curve positionCurve_;
 	QuaternionCurve rotationCurve_;
 	Vector3Curve scaleCurve_;
+	Vector4Curve colorCurve_;
 
 	CurveChannel<Vector3> positionChannel_{ "Position", &positionCurve_ };
 	CurveChannel<Quaternion> rotationChannel_{ "Rotation", &rotationCurve_ };
 	CurveChannel<Vector3> scaleChannel_{ "Scale", &scaleCurve_ };
+	CurveChannel<Vector4> colorChannel_{ "Color", &colorCurve_ };
 
 	// --- 状態の退避 ---
 	bool hasCapturedState_ = false;
 	Vector3 capturedPosition_{};
 	Vector3 capturedRotation_{};
 	Vector3 capturedScale_{ 1.0f, 1.0f, 1.0f };
+	Vector4 capturedColor_{ 1.0f, 1.0f, 1.0f, 1.0f };
 };
 } // namespace KCE

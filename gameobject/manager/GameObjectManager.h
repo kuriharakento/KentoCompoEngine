@@ -52,6 +52,16 @@ public:
 	void SetObject3dCommon(Object3dCommon* object3dCommon) { cachedObject3dCommon_ = object3dCommon; }
 	/** @brief LightManager の設定 */
 	void SetLightManager(LightManager* lightManager) { cachedLightManager_ = lightManager; }
+	/**
+	 * @brief 共有リソースが空なら埋める。シーンが SetObject3dCommon / SetLightManager を呼ばなくても、
+	 *        CreateGameObject で作った物がモデルを持てるようにする
+	 * @details すでにあるものは上書きしない
+	 */
+	void EnsureSharedResources(Object3dCommon* object3dCommon, LightManager* lightManager)
+	{
+		if (!cachedObject3dCommon_) { cachedObject3dCommon_ = object3dCommon; }
+		if (!cachedLightManager_) { cachedLightManager_ = lightManager; }
+	}
 
 	/**
 	 * @brief GameObjectの登録

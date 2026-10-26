@@ -683,6 +683,8 @@ void Framework::ExecuteRenderPipeline(RenderTexture* outputTarget)
 	// 本編は全レイヤーを描く
 	if (GameObjectManager::HasInstance())
 	{
+		// シーンが渡し忘れていても、エディタで作った GameObject がモデルを持って映るよう、共有リソースを補う
+		GameObjectManager::GetInstance()->EnsureSharedResources(objectCommon_.get(), lightManager_.get());
 		GameObjectManager::GetInstance()->SetRenderLayerMask(mainView_->GetLayerMask());
 		// 更新が全部終わった後、どのビューを描くより前に、行列を全員分1回だけ確定させる
 		GameObjectManager::GetInstance()->UpdateRenderTransforms();
