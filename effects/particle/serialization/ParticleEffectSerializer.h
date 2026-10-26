@@ -35,5 +35,12 @@ public:
 	 * @return 成功したらtrue
 	 */
 	static bool Save(const ParticleEffect& effect, const std::string& path);
+
+	/**
+	 * @brief エミッターを複製（JSONへの保存→読み込みを経由した深いコピー）
+	 * @param emitter 複製元
+	 * @return 複製したエミッター。失敗時はnullptr
+	 */
+	static std::unique_ptr<ParticleEmitter> CloneEmitter(const ParticleEmitter& emitter);
 };
 } // namespace KCE

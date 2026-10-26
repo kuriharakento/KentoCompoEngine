@@ -8,6 +8,7 @@
  */
 #include <string>
 #include <memory>
+#include <functional>
 #include "math/Vector3.h"
 #include "math/Vector4.h"
 
@@ -107,10 +108,36 @@ public:
 	bool SelectEmitter(size_t index);
 
 private:
+	/** インスペクタに表示する対象 */
+	enum class InspectorTarget
+	{
+		Effect,
+		Emitter,
+		Module,
+		Renderer
+	};
+
 	/**
-	 * @brief メニューバーを描画
+	 * @brief ツールバー（ファイル操作・再生制御・表示設定）を描画
 	 */
-	void DrawMenuBar();
+	void DrawToolbar();
+
+	/**
+	 * @brief アウトライナー（エミッター一覧＋モジュールスタック）を描画
+	 */
+	void DrawOutliner();
+
+	/**
+	 * @brief アウトライナー内のモジュールスタックを描画
+	 * @param emitter 対象エミッター
+	 * @param emitterIndex 対象エミッターのindex（選択時に使用）
+	 */
+	void DrawModuleStack(ParticleEmitter* emitter, size_t emitterIndex);
+
+	/**
+	 * @brief 選択対象に応じたインスペクタを描画
+	 */
+	void DrawInspector();
 
 	/**
 	 * @brief エフェクト設定パネルを描画
@@ -123,19 +150,15 @@ private:
 	void DrawEmitterPanel();
 
 	/**
-	 * @brief モジュール設定パネルを描画
+	 * @brief エミッターパラメータ・Dynamic Inputを描画
+	 * @param emitter 対象エミッター
 	 */
-	void DrawModulePanel();
+	void DrawEmitterParameterPanel(ParticleEmitter* emitter);
 
 	/**
 	 * @brief レンダラー設定パネルを描画
 	 */
 	void DrawRendererPanel();
-
-	/**
-	 * @brief プレビューパネルを描画
-	 */
-	void DrawPreviewPanel();
 
 	/**
 	 * @brief モジュールのプロパティUIを描画
@@ -154,6 +177,38 @@ private:
 	 */
 	void AddModuleDialog(ParticleEmitter* emitter);
 
+	/**
+	 * @brief 名前を付けて保存ダイアログを表示
+	 */
+	void SaveAsDialog();
+
+	/**
+	 * @brief 未保存の変更を破棄するか確認するダイアログを表示
+	 */
+	void DiscardConfirmDialog();
+
+	/**
+	 * @brief 未保存の変更があれば確認してからactionを実行する
+	 */
+	void RunWithDiscardCheck(std::function<void()> action);
+
+	/** エミッターを複製して末尾に追加する */
+	void DuplicateEmitter(size_t index);
+
+	/** 指定エミッター以外をミュートする（既にソロなら全員のミュートを解除） */
+	void SoloEmitter(size_t index);
+
+	/** エミッターのミュート状態を設定する（ミュート中は生成せず既存パーティクルも消す） */
+	void SetEmitterMuted(ParticleEmitter* emitter, bool muted);
+
+	/** 選択中のモジュールを取得（エミッター内に存在しなければnullptr） */
+	class IModule* GetSelectedModule(ParticleEmitter* emitter) const;
+
+	/** 選択中のエミッターを取得 */
+	ParticleEmitter* GetSelectedEmitter() const;
+
+	void MarkDirty() { isDirty_ = true; }
+
 private:
 	ParticleEffect* currentEffect_ = nullptr;
 
@@ -166,8 +221,29 @@ private:
 	bool showParticleMarkers_ = false; // パーティクルクロスマーカー表示ON/OFF
 	bool showAddEmitterDialog_ = false;
 	bool showAddModuleDialog_ = false;
+	bool showSaveAsDialog_ = false;
 	int selectedEmitterIndex_ = -1;
-	int selectedModuleIndex_ = -1;
+	// モジュールはエミッター内で優先度ソートされindexが変わるため、ポインタで選択を保持する
+	class IModule* selectedModule_ = nullptr;
+	InspectorTarget inspectorTarget_ = InspectorTarget::Effect;
+
+	// 未保存の変更管理
+	bool isDirty_ = false;
+	std::function<void()> pendingDiscardAction_;
+	bool openDiscardConfirm_ = false;
+
+	// レイアウト
+	float outlinerHeight_ = 260.0f;          // 縦並び時のアウトライナー高さ
+	int renameEmitterIndex_ = -1;            // リネーム中のエミッター
+	bool openRenamePopup_ = false;
+	int addEmitterTemplate_ = 0;             // エミッター追加時のテンプレート
+	char renameBuffer_[256] = {};
+	char saveAsBuffer_[256] = {};
+	char loadFilterBuffer_[128] = {};
+	char addModuleFilterBuffer_[128] = {};
+	char newParameterNameBuffer_[96] = "User.Value";
+	int addModulePhaseFilter_ = 0;           // 0=All, 1=Spawn, 2=Update
+	std::string addModuleSelection_;         // 選択中のモジュールID
 
 	// プレビュー制御
 	bool previewLooping_ = false;           // ループ再生フラグ

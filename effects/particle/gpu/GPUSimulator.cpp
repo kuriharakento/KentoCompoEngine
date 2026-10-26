@@ -718,6 +718,7 @@ bool GPUSimulator::SupportsPureGPU(const std::vector<std::unique_ptr<class IModu
 	uint32_t burstModuleCount = 0;
 	for (const auto& module : modules)
 	{
+		if (!module->IsEnabled()) continue;
 		const std::string name = module->GetName();
 		if (name == "SpawnBurst" && ++burstModuleCount > 1) return false;
 		const auto* descriptor = ModuleDescriptorRegistry::GetInstance().Find(name);
@@ -753,6 +754,7 @@ void GPUSimulator::DispatchPure(float deltaTime, CameraManager* camera,
 	float maxLifetime = 1.0f;
 	for (const auto& module : modules)
 	{
+		if (!module->IsEnabled()) continue;
 		if (auto* lifetime = dynamic_cast<InitialLifetimeModule*>(module.get()))
 		{
 			maxLifetime = (std::max)(0.0f, lifetime->GetMaxLifetime());
@@ -841,6 +843,7 @@ void GPUSimulator::UpdateConstantBuffer(float deltaTime, const std::vector<std::
 		// モジュールを走査してパラメータを抽出
 		for (const auto& module : modules)
 		{
+			if (!module->IsEnabled()) continue;
 			if (auto* m = dynamic_cast<SpawnRateModule*>(module.get()))
 			{
 				constantData_->gpuSpawnRate += (std::max)(0.0f, m->GetRate());
@@ -913,7 +916,7 @@ void GPUSimulator::UpdateModuleProgram(const std::vector<std::unique_ptr<class I
 	auto nextRecord = [&]() { cursor = 16 + (++count * kRecordSize); };
 	for (const auto& module : modules)
 	{
-		if (count >= 255 || !module || module->GetPhase() != ModulePhase::Update) continue;
+		if (count >= 255 || !module || !module->IsEnabled() || module->GetPhase() != ModulePhase::Update) continue;
 		if (auto* value = dynamic_cast<DragModule*>(module.get()))
 		{ writeUInt(1); writeFloat(value->GetMinDrag()); writeFloat(value->GetMaxDrag()); nextRecord(); }
 		else if (auto* value = dynamic_cast<VelocityOverLifetimeModule*>(module.get()))
@@ -1071,7 +1074,7 @@ void GPUSimulator::Dispatch(float deltaTime, CameraManager* camera, const std::v
 	// フェーズ1.5: 各モジュールのGPUシミュレーション実行
 	for (const auto& module : modules)
 	{
-		if (module->IsGPUSupported())
+		if (module->IsEnabled() && module->IsGPUSupported())
 		{
 			module->DispatchGPU(this, commandList, deltaTime);
 		}

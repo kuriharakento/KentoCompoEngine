@@ -99,6 +99,7 @@ public:
 	void ClearFollowEmitterPosition() { followingEmitter_ = false; }
 
 	const std::string& GetName() const { return name_; }
+	void SetName(const std::string& name) { name_ = name; }
 
 	// Play/Stop制御
 	void SetEnabled(bool enabled) { enabled_ = enabled; }
@@ -210,6 +211,8 @@ public:
 	void RemoveModule(size_t index);
 	void MoveModuleUp(size_t index);
 	void MoveModuleDown(size_t index);
+	/** モジュールの有効/無効を切り替え、実行stackを再コンパイルさせる */
+	void SetModuleEnabled(size_t index, bool enabled);
 
 	GPUSimulator* GetGPUSimulator() const { return gpuSimulator_.get(); }
 

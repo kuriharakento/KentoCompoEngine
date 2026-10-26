@@ -342,6 +342,7 @@ CompiledEmitter ModuleDescriptorRegistry::Compile(const std::vector<std::unique_
 	for (const auto& module : modules)
 	{
 		if (!module) { output.errors.emplace_back("Null module instance"); continue; }
+		if (!module->IsEnabled()) continue;
 		const ModuleDescriptor* descriptor = Find(module->GetName());
 		if (!descriptor)
 		{

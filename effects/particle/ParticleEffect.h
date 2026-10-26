@@ -6,6 +6,7 @@
  * 複数のエミッターを1つのエフェクトとしてグループ化。
  * JSONファイルからの読み込み・保存に対応。
  */
+#include <algorithm>
 #include <memory>
 #include <vector>
 #include <string>
@@ -143,6 +144,23 @@ public:
 	void SetDeltaTimeType(DeltaTimeType type) { deltaTimeType_ = type; }
 	DeltaTimeType GetDeltaTimeType() const { return deltaTimeType_; }
 
+	/**
+	 * @brief 再生速度（deltaTimeへの倍率。0以上、1 = 等速）
+	 */
+	void SetPlaybackSpeed(float speed) { playbackSpeed_ = (std::max)(0.0f, speed); }
+	float GetPlaybackSpeed() const { return playbackSpeed_; }
+
+	/**
+	 * @brief 一時停止（パーティクルをその場で凍結する）
+	 */
+	void SetPaused(bool paused) { isPaused_ = paused; }
+	bool IsPaused() const { return isPaused_; }
+
+	/**
+	 * @brief 一時停止中に指定秒数だけ進める（コマ送り）。次のUpdateで消費される
+	 */
+	void StepFrame(float seconds) { pendingStepTime_ += (std::max)(0.0f, seconds); }
+
 	//===== プロパティ =====//
 
 	const std::string& GetName() const { return name_; }
@@ -189,5 +207,8 @@ private:
 	bool isPlaying_ = false;
 	bool isAutoRemove_ = true;
 	DeltaTimeType deltaTimeType_ = DeltaTimeType::DeltaTime;
+	float playbackSpeed_ = 1.0f;
+	bool isPaused_ = false;
+	float pendingStepTime_ = 0.0f;
 };
 } // namespace KCE

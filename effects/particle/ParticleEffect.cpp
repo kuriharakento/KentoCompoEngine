@@ -24,6 +24,19 @@ void ParticleEffect::Initialize(const std::string& name)
 
 void ParticleEffect::Update(float deltaTime, CameraManager* camera)
 {
+	// 一時停止中はコマ送り分だけ進める
+	if (isPaused_)
+	{
+		if (pendingStepTime_ <= 0.0f) return;
+		deltaTime = pendingStepTime_;
+		pendingStepTime_ = 0.0f;
+	}
+	else
+	{
+		pendingStepTime_ = 0.0f;
+		deltaTime *= playbackSpeed_;
+	}
+
 	// isPlaying_がfalseも既存パーティクルを寿命で自然に消すため更新を続ける
 	bool hasActiveParticles = false;
 	for (const auto& emitter : emitters_)
@@ -184,6 +197,9 @@ void ParticleEffect::ResetForPool()
 	}
 	position_ = {};
 	isPlaying_ = false;
+	playbackSpeed_ = 1.0f;
+	isPaused_ = false;
+	pendingStepTime_ = 0.0f;
 }
 
 bool ParticleEffect::IsFinished() const

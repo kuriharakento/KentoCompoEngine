@@ -395,6 +395,15 @@ void ParticleEmitter::MoveModuleDown(size_t index)
 	}
 }
 
+void ParticleEmitter::SetModuleEnabled(size_t index, bool enabled)
+{
+	if (index >= modules_.size() || modules_[index]->IsEnabled() == enabled) return;
+	modules_[index]->SetEnabled(enabled);
+	modules_[index]->Reset();
+	compiledEmitterDirty_ = true;
+	modulesSorted_ = false; // 次回SortModulesByPriorityで再コンパイルさせる
+}
+
 void ParticleEmitter::SortModulesByPriority()
 {
 	if (modulesSorted_) return;
@@ -528,7 +537,7 @@ void ParticleEmitter::UpdateCPU(float deltaTime)
 		bool allSpawnDone  = true;
 		for (const auto& module : modules_)
 		{
-			if (module->GetPhase() == ModulePhase::Spawn)
+			if (module->IsEnabled() && module->GetPhase() == ModulePhase::Spawn)
 			{
 				hasSpawnModule = true;
 				if (!module->IsComplete())
@@ -581,6 +590,7 @@ void ParticleEmitter::UpdateGPU(float deltaTime, CameraManager* camera)
 			Vector3 gravity = { 0.0f, 0.0f, 0.0f };
 			for (const auto& module : modules_)
 			{
+				if (!module->IsEnabled()) continue;
 				if (auto* gravityModule = dynamic_cast<GravityModule*>(module.get()))
 				{
 					gravity = gravityModule->GetMinGravity();
@@ -595,6 +605,7 @@ void ParticleEmitter::UpdateGPU(float deltaTime, CameraManager* camera)
 				uint32_t ribbonGroupCount = 1;
 				for (const auto& module : modules_)
 				{
+					if (!module->IsEnabled()) continue;
 					if (const auto* assign = dynamic_cast<const AssignRibbonIdModule*>(module.get()))
 					{
 						ribbonGroupCount = assign->GetGroupCount();
@@ -756,7 +767,7 @@ void ParticleEmitter::UpdateGPUSpawns(float deltaTime)
 		bool allSpawnDone  = true;
 		for (const auto& module : modules_)
 		{
-			if (module->GetPhase() == ModulePhase::Spawn)
+			if (module->IsEnabled() && module->GetPhase() == ModulePhase::Spawn)
 			{
 				hasSpawnModule = true;
 				if (!module->IsComplete())
@@ -781,6 +792,7 @@ void ParticleEmitter::RemoveDeadParticles()
 	SubEmitterModule* subEmitter = nullptr;
 	for (auto& module : modules_)
 	{
+		if (!module->IsEnabled()) continue;
 		if ((subEmitter = dynamic_cast<SubEmitterModule*>(module.get())))
 		{
 			break;

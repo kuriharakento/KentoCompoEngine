@@ -288,6 +288,25 @@ bool ParticleEffectSerializer::Save(const ParticleEffect& effect, const std::str
 #endif
 }
 
+std::unique_ptr<ParticleEmitter> ParticleEffectSerializer::CloneEmitter(const ParticleEmitter& emitter)
+{
+#ifdef USE_NLOHMANN_JSON
+	try
+	{
+		json data;
+		SaveEmitter(emitter, data);
+		return LoadEmitter(data);
+	}
+	catch (const std::exception&)
+	{
+		return nullptr;
+	}
+#else
+	(void)emitter;
+	return nullptr;
+#endif
+}
+
 #ifdef USE_NLOHMANN_JSON
 static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 {
@@ -1066,6 +1085,13 @@ static std::unique_ptr<ParticleEmitter> LoadEmitter(const json& data)
 				// Registry entries must never be silently ignored by the migration loader.
 				return nullptr;
 			}
+
+			// 無効化されたモジュール（省略時は有効）
+			if (moduleData.contains("enabled"))
+			{
+				if (!moduleData["enabled"].is_boolean()) return nullptr;
+				emitter->SetModuleEnabled(emitter->GetModuleCount() - 1, moduleData["enabled"].get<bool>());
+			}
 		}
 	}
 
@@ -1313,6 +1339,7 @@ static void SaveEmitter(const ParticleEmitter& emitter, json& data)
 		{
 			moduleData["version"] = descriptor->version;
 		}
+		if (!module->IsEnabled()) moduleData["enabled"] = false;
 
 		// 各モジュールタイプ別にパラメータを保存
 		if (auto* m = dynamic_cast<const SpawnRateModule*>(module))

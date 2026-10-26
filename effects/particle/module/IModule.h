@@ -78,5 +78,17 @@ public:
 	 * @param deltaTime 経過時間
 	 */
 	virtual void DispatchGPU(class GPUSimulator* simulator, ID3D12GraphicsCommandList* cmdList, float deltaTime) { (void)simulator; (void)cmdList; (void)deltaTime; }
+
+	/**
+	 * @brief モジュールの有効/無効
+	 *
+	 * 無効なモジュールはCPU/GPUどちらの実行stackにも含まれない（設定値は保持される）。
+	 * 変更はParticleEmitter::SetModuleEnabled経由で行い、実行stackを再コンパイルさせること。
+	 */
+	bool IsEnabled() const { return enabled_; }
+	void SetEnabled(bool enabled) { enabled_ = enabled; }
+
+private:
+	bool enabled_ = true;
 };
 } // namespace KCE
