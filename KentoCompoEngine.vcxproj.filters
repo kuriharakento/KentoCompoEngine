@@ -741,6 +741,9 @@
     <ClCompile Include="time\TimerManager.cpp">
       <Filter>time</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\2d\Fade.cpp">
+      <Filter>graphics\2d</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="animation\AnimationPoseCache.h">
@@ -1510,6 +1513,9 @@
     </ClInclude>
     <ClInclude Include="time\TimerManager.h">
       <Filter>time</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\2d\Fade.h">
+      <Filter>graphics\2d</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
