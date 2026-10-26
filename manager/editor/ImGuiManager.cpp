@@ -169,6 +169,13 @@ void ImGuiManager::Initialize([[maybe_unused]] WinApp* winApp, [[maybe_unused]] 
 	// ドッキング機能を有効にする
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	// 窓をゲームのウィンドウの外へ出せるようにする（マルチビューポート）。
+	// ImGui の座標はスクリーン座標になるので、クライアント座標が要る所はメインビューポートの位置を引くこと
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+	// 外に出した窓はOSのウィンドウになる。角の丸みと半透明の背景が残ると、四隅が抜けて見えるので消す
+	ImGuiStyle& viewportStyle = ImGui::GetStyle();
+	viewportStyle.WindowRounding = 0.0f;
+	viewportStyle.Colors[ImGuiCol_WindowBg].w = 1.0f;
 
 	// フォントを読み込んで設定する
 	float fontSize = 15.0f;
@@ -245,6 +252,13 @@ void ImGuiManager::Draw()
 	
 	// 描画コマンドを発行
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
+
+	// ゲームのウィンドウの外に出した窓を更新して描く。それぞれが自分のスワップチェーンとコマンドキューを持つ
+	if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+	{
+		ImGui::UpdatePlatformWindows();
+		ImGui::RenderPlatformWindowsDefault(nullptr, static_cast<void*>(commandList));
+	}
 #endif
 }
 } // namespace KCE

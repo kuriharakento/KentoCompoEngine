@@ -851,6 +851,26 @@ void ImGui_ImplDX12_NewFrame()
 // If you are new to dear imgui or creating a new binding for dear imgui, it is recommended that you completely ignore this section first..
 //--------------------------------------------------------------------------------------------------------
 
+// [local patch] フリップ方式のスワップチェーンは _SRGB のフォーマットで作れない（DXGI_ERROR_INVALID_CALL）。
+// スワップチェーンは UNORM で作り、描画先ビュー（RTV）だけ _SRGB にして、メインの描画と合わせる
+static DXGI_FORMAT ImGui_ImplDX12_ToSwapChainFormat(DXGI_FORMAT format)
+{
+    switch (format)
+    {
+    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB: return DXGI_FORMAT_R8G8B8A8_UNORM;
+    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB: return DXGI_FORMAT_B8G8R8A8_UNORM;
+    default: return format;
+    }
+}
+
+static void ImGui_ImplDX12_CreateViewportRenderTargetView(ImGui_ImplDX12_Data* bd, ID3D12Resource* back_buffer, D3D12_CPU_DESCRIPTOR_HANDLE handle)
+{
+    D3D12_RENDER_TARGET_VIEW_DESC desc = {};
+    desc.Format = bd->RTVFormat;
+    desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+    bd->pd3dDevice->CreateRenderTargetView(back_buffer, &desc, handle);
+}
+
 static void ImGui_ImplDX12_CreateWindow(ImGuiViewport* viewport)
 {
     ImGui_ImplDX12_Data* bd = ImGui_ImplDX12_GetBackendData();
@@ -899,7 +919,7 @@ static void ImGui_ImplDX12_CreateWindow(ImGuiViewport* viewport)
     sd1.BufferCount = bd->numFramesInFlight;
     sd1.Width = (UINT)viewport->Size.x;
     sd1.Height = (UINT)viewport->Size.y;
-    sd1.Format = bd->RTVFormat;
+    sd1.Format = ImGui_ImplDX12_ToSwapChainFormat(bd->RTVFormat);
     sd1.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     sd1.SampleDesc.Count = 1;
     sd1.SampleDesc.Quality = 0;
@@ -948,7 +968,7 @@ static void ImGui_ImplDX12_CreateWindow(ImGuiViewport* viewport)
         {
             IM_ASSERT(vd->FrameCtx[i].RenderTarget == nullptr);
             vd->SwapChain->GetBuffer(i, IID_PPV_ARGS(&back_buffer));
-            bd->pd3dDevice->CreateRenderTargetView(back_buffer, nullptr, vd->FrameCtx[i].RenderTargetCpuDescriptors);
+            ImGui_ImplDX12_CreateViewportRenderTargetView(bd, back_buffer, vd->FrameCtx[i].RenderTargetCpuDescriptors);
             vd->FrameCtx[i].RenderTarget = back_buffer;
         }
     }
@@ -1015,7 +1035,7 @@ static void ImGui_ImplDX12_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
         for (UINT i = 0; i < bd->numFramesInFlight; i++)
         {
             vd->SwapChain->GetBuffer(i, IID_PPV_ARGS(&back_buffer));
-            bd->pd3dDevice->CreateRenderTargetView(back_buffer, nullptr, vd->FrameCtx[i].RenderTargetCpuDescriptors);
+            ImGui_ImplDX12_CreateViewportRenderTargetView(bd, back_buffer, vd->FrameCtx[i].RenderTargetCpuDescriptors);
             vd->FrameCtx[i].RenderTarget = back_buffer;
         }
     }
