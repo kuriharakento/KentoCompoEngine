@@ -65,6 +65,7 @@ namespace
 	constexpr float kWideLayoutWidth = 720.0f;
 	constexpr float kSplitterHeight = 6.0f;
 	constexpr float kMinOutlinerHeight = 80.0f;
+	constexpr float kEmitterRowExtraPadding = 4.0f; // アウトライナーのエミッター行に足す縦余白
 
 	// 数学定数
 	constexpr float kPi = 3.14159f;
@@ -1079,19 +1080,24 @@ void ParticleEditor::DrawOutliner()
 		if (!emitter) continue;
 		ImGui::PushID(emitter);
 
+		// エミッター行は選択・操作しやすいよう縦の余白を広げる
+		const ImVec2 framePadding = ImGui::GetStyle().FramePadding;
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(framePadding.x + 2.0f, framePadding.y + kEmitterRowExtraPadding));
+		const float rowButtonSize = ImGui::GetFrameHeight();
+
 		// ミュート / ソロ（プレビュー専用。保存されない）
 		const bool muted = !emitter->IsEnabled();
 		ImGui::PushStyleColor(ImGuiCol_Button, muted ? ImVec4(0.6f, 0.2f, 0.2f, 1.0f) : ImGui::GetStyleColorVec4(ImGuiCol_Button));
-		if (ImGui::SmallButton("M")) SetEmitterMuted(emitter, !muted);
+		if (ImGui::Button("M", ImVec2(rowButtonSize, rowButtonSize))) SetEmitterMuted(emitter, !muted);
 		ImGui::PopStyleColor();
 		ImGui::SetItemTooltip(muted ? "Unmute" : "Mute（プレビュー専用）");
 		ImGui::SameLine();
-		if (ImGui::SmallButton("S")) SoloEmitter(i);
+		if (ImGui::Button("S", ImVec2(rowButtonSize, rowButtonSize))) SoloEmitter(i);
 		ImGui::SetItemTooltip("Solo（他のエミッターをミュート）");
 		ImGui::SameLine();
 
 		const bool isSelected = selectedEmitterIndex_ == static_cast<int>(i);
-		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_FramePadding;
 		if (isSelected && inspectorTarget_ == InspectorTarget::Emitter) flags |= ImGuiTreeNodeFlags_Selected;
 		if (isSelected) flags |= ImGuiTreeNodeFlags_DefaultOpen;
 
@@ -1130,6 +1136,7 @@ void ParticleEditor::DrawOutliner()
 		ImGui::SameLine(ImGui::GetContentRegionMax().x - ImGui::CalcTextSize(countText).x);
 		ImGui::TextColored(emitter->IsEmitting() ? ImVec4(0.4f, 1.0f, 0.4f, 1.0f) : ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s", countText);
 		ImGui::SetItemTooltip(emitter->IsEmitting() ? "Emitting / Active particles" : "Not emitting / Active particles");
+		ImGui::PopStyleVar();
 
 		if (open)
 		{

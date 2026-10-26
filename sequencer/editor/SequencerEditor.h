@@ -197,6 +197,11 @@ private:
 	/** @brief 選択中のキーをすべて削除する。何本のトラックにまたがっても Undo は1回 */
 	void DeleteSelectedKey();
 	/**
+	 * @brief トラックを1本削除する。Undo で元の位置に戻せる
+	 * @details 他のトラックが使っていない役の定義も一緒に外す。対象に書き込んでいた分は元の状態へ戻す
+	 */
+	void DeleteTrack(int trackIndex);
+	/**
 	 * @brief 選択中のキーをまとめて掴む
 	 * @param grabbed マウスで掴んだキー。動かす量はこのキーの時刻を基準に決める
 	 */

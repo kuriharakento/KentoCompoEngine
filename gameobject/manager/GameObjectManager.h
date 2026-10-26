@@ -49,6 +49,11 @@ public:
 	void Finalize();
 
 	/** @brief Object3dCommon の設定 */
+	/**
+	 * @brief Unregister で外して取っておいた GameObject を壊す
+	 * @details 前のフレームの GPU 完了を待ち終わった後（フレームの頭）に呼ぶ。コマンドリストがもう指していない
+	 */
+	void FlushPendingDestroy();
 	void SetObject3dCommon(Object3dCommon* object3dCommon) { cachedObject3dCommon_ = object3dCommon; }
 	/** @brief LightManager の設定 */
 	void SetLightManager(LightManager* lightManager) { cachedLightManager_ = lightManager; }
@@ -316,6 +321,9 @@ private:
 
 	// 動的に作成され、マネージャーが所有するGameObjectのリスト
 	std::vector<std::unique_ptr<GameObject>> dynamicGameObjects_;
+	// Unregister で外した動的な GameObject。描画の途中で外されると、今のフレームのコマンドリストが
+	// まだその GPU リソースを指しているので、すぐには壊さず次のフレームの頭で壊す
+	std::vector<std::unique_ptr<GameObject>> pendingDestroyObjects_;
 
 	// 初期化用にキャッシュされた共有システムポインタ
 	Object3dCommon* cachedObject3dCommon_ = nullptr;

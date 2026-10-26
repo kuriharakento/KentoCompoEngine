@@ -238,6 +238,13 @@ void ImGuiManager::End()
 #ifdef USE_IMGUI
 	// 描画前準備（描画データを確定させる）
 	ImGui::Render();
+
+	// 外に出した窓の更新は、描くかどうかに関わらず毎フレーム呼ぶ（呼ばないと次の NewFrame で ImGui が止まる）。
+	// ゲーム画面だけを出しているときは Draw を呼ばないので、ここに置く。窓が無くなれば外のウィンドウも閉じる
+	if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+	{
+		ImGui::UpdatePlatformWindows();
+	}
 #endif
 }
 
@@ -256,7 +263,7 @@ void ImGuiManager::Draw()
 	// ゲームのウィンドウの外に出した窓を更新して描く。それぞれが自分のスワップチェーンとコマンドキューを持つ
 	if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 	{
-		ImGui::UpdatePlatformWindows();
+		// UpdatePlatformWindows は End() で済んでいる
 		ImGui::RenderPlatformWindowsDefault(nullptr, static_cast<void*>(commandList));
 	}
 #endif

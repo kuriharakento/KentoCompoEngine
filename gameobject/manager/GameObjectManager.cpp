@@ -172,6 +172,7 @@ void GameObjectManager::Finalize()
 	// 二重解放・再帰的呼び出し時のイテレータ破壊を防ぐため、一旦ローカル変数に移してからクリアする
 	auto toDestroy = std::move(dynamicGameObjects_);
 	toDestroy.clear();
+	pendingDestroyObjects_.clear();
 
 	cachedObject3dCommon_ = nullptr;
 	cachedLightManager_ = nullptr;
@@ -215,8 +216,8 @@ void GameObjectManager::Unregister(GameObject* gameObject)
 			gameObjects_.erase(std::remove(gameObjects_.begin(), gameObjects_.end(), gameObject), gameObjects_.end());
 		}
 
-		// 二重解放・再帰的デストラクトを防ぐため、一時的に取り出してローカル変数で保持してから解放する
-		std::unique_ptr<GameObject> toDelete = nullptr;
+		// 二重解放・再帰的デストラクトを防ぐため、リストから取り出す。壊すのは次のフレームの頭（FlushPendingDestroy）。
+		// 今すぐ壊すと、このフレームで描いた分のコマンドリストが、解放された GPU リソースを指したまま閉じられてしまう
 		for (auto it = dynamicGameObjects_.begin(); it != dynamicGameObjects_.end(); ++it)
 		{
 			if (it->get() == gameObject)
@@ -225,12 +226,20 @@ void GameObjectManager::Unregister(GameObject* gameObject)
 				{
 					break;
 				}
-				toDelete = std::move(*it);
+				pendingDestroyObjects_.push_back(std::move(*it));
 				dynamicGameObjects_.erase(it);
 				break;
 			}
 		}
 	}
+}
+
+void GameObjectManager::FlushPendingDestroy()
+{
+	// デストラクタから別の Unregister が呼ばれても壊れないよう、いったんローカルへ移してから壊す
+	auto toDestroy = std::move(pendingDestroyObjects_);
+	pendingDestroyObjects_.clear();
+	toDestroy.clear();
 }
 
 void GameObjectManager::Update()

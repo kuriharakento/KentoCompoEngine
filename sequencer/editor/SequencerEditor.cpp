@@ -4139,6 +4139,71 @@ void SequencerEditor::DrawInlineValue(size_t trackIndex, ICurveChannel& channel,
 	ImGui::PopStyleVar();
 }
 
+void SequencerEditor::DeleteTrack(int trackIndex)
+{
+	if (trackIndex < 0 || static_cast<size_t>(trackIndex) >= sequence_.GetTrackCount())
+	{
+		return;
+	}
+	ITrack* track = sequence_.GetTrack(static_cast<size_t>(trackIndex));
+	const std::string trackName = track->GetName();
+
+	// このトラックが動かしていた対象を、触る前の状態へ戻す。消したあとも動いたままになるのを避けるため
+	track->RestoreState(player_.GetBindingContext());
+
+	auto command = std::make_unique<SequenceStructureCommand>(&sequence_, "Delete Track");
+	TrackPtr removed = sequence_.DetachTrack(static_cast<size_t>(trackIndex));
+
+	// 役の定義は、ほかのトラックが使っていなければ外す（カメラの注目点の役も数える）
+	const auto isRoleUsed = [this](const std::string& role)
+	{
+		for (size_t index = 0; index < sequence_.GetTrackCount(); ++index)
+		{
+			const ITrack* other = sequence_.GetTrack(index);
+			if (!other) { continue; }
+			if (other->GetBindingRole() == role) { return true; }
+			if (const auto* camera = dynamic_cast<const CameraTrack*>(other))
+			{
+				if (camera->GetAimRoleA() == role || camera->GetAimRoleB() == role) { return true; }
+			}
+		}
+		return false;
+	};
+	std::vector<std::string> roles = { removed->GetBindingRole() };
+	if (const auto* camera = dynamic_cast<const CameraTrack*>(removed.get()))
+	{
+		roles.push_back(camera->GetAimRoleA());
+		roles.push_back(camera->GetAimRoleB());
+	}
+	auto& bindings = sequence_.GetBindings();
+	for (const std::string& role : roles)
+	{
+		if (role.empty() || isRoleUsed(role)) { continue; }
+		bindings.erase(std::remove_if(bindings.begin(), bindings.end(),
+			[&role](const BindingDefinition& definition) { return definition.role == role; }), bindings.end());
+	}
+	removed.reset();
+
+	command->CaptureAfter();
+	if (command->HasChanged())
+	{
+		CommandHistory::GetInstance()->Execute(std::move(command));
+	}
+
+	// 番号がずれるので、選択と折りたたみは外す。折りたたみは削除した番号より後ろを詰める
+	SelectionContext::GetInstance()->ClearSelection();
+	const size_t removedIndex = static_cast<size_t>(trackIndex);
+	collapsedTracks_.erase(std::remove(collapsedTracks_.begin(), collapsedTracks_.end(), removedIndex), collapsedTracks_.end());
+	for (size_t& collapsed : collapsedTracks_)
+	{
+		if (collapsed > removedIndex) { --collapsed; }
+	}
+	contextTrackIndex_ = -1;
+	contextChannelIndex_ = -1;
+	player_.EvaluateCurrentTime();
+	statusMessage_ = "トラックを削除しました: " + trackName;
+}
+
 void SequencerEditor::DeleteSelectedKey()
 {
 	std::vector<SelectionItem> keys = CollectSelectedKeys(sequence_);
@@ -4325,6 +4390,10 @@ void SequencerEditor::DrawTimelineContextMenu()
 		player_.EvaluateCurrentTime();
 	}
 	if (ImGui::MenuItem("選択したキーを削除", nullptr, false, !CollectSelectedKeys(sequence_).empty())) { DeleteSelectedKey(); }
+	if (ImGui::MenuItem(track ? ("トラックを削除: " + track->GetName()).c_str() : "トラックを削除", nullptr, false, track != nullptr))
+	{
+		DeleteTrack(contextTrackIndex_);
+	}
 	if (ImGui::MenuItem("コピー", nullptr, false, !CollectSelectedKeys(sequence_).empty())) { CopySelectedKeys(); }
 	if (ImGui::MenuItem("ここに貼り付け", nullptr, false, !clipboard_.empty())) { PasteKeysAt(contextTime_); }
 
@@ -4472,7 +4541,16 @@ void SequencerEditor::HandleShortcuts()
 	}
 	else if (ImGui::IsKeyPressed(ImGuiKey_Delete, false))
 	{
-		DeleteSelectedKey();
+		// キーを選んでいればキーを消す。キーが無くトラックだけ選んでいるときは、タイムラインの上でだけトラックを消す
+		const SelectionItem& primary = GetPrimarySelection();
+		if (CollectSelectedKeys(sequence_).empty() && primary.kind == SelectionKind::SequenceTrack)
+		{
+			if (editAreaHovered_) { DeleteTrack(primary.trackIndex); }
+		}
+		else
+		{
+			DeleteSelectedKey();
+		}
 	}
 }
 } // namespace KCE

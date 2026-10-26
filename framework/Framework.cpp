@@ -576,6 +576,11 @@ void Framework::Update()
 	// 前のフレームで登録を外したサブビューを破棄する。PostDraw で前のフレームの GPU 完了を待ち終わっているので、
 	// もうどのコマンドリストも指していない
 	pendingDestroySubViews_.clear();
+	// GameObject も同じ。エディタで削除した物は、ここまで GPU リソースを残してある
+	if (GameObjectManager::HasInstance())
+	{
+		GameObjectManager::GetInstance()->FlushPendingDestroy();
+	}
 
 	// 画面サイズ変更のキー入力チェック（F12でフルスクリーントグル）
 	if (Input::GetInstance()->TriggerKey(DIK_F12))
