@@ -178,6 +178,18 @@ size_t ModelManager::GetSceneModelCount() const
 	return models_.size() - GetResidentModelCount();
 }
 
+std::vector<std::string> ModelManager::GetLoadedModelNames() const
+{
+	std::vector<std::string> names;
+	names.reserve(models_.size());
+	// std::map なので、名前順に並んでいる
+	for (const auto& [name, entry] : models_)
+	{
+		names.push_back(name);
+	}
+	return names;
+}
+
 Model* ModelManager::FindModel(const std::string& filePath)
 {
 	// 読み込み済みモデルを検索

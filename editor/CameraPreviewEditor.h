@@ -8,6 +8,7 @@ namespace KCE
 {
 class Camera;
 class CameraManager;
+class DebugCamera;
 class ISubViewProvider;
 class RenderView;
 
@@ -34,8 +35,9 @@ public:
 	 * @details DebugUIManager が使える状態で呼ぶ。
 	 * @param provider サブビューの作成元。Finalize まで生きている前提
 	 * @param cameraManager カメラの取得元。Finalize まで生きている前提
+	 * @param debugCamera デバッグカメラ。渡すと、デバッグカメラを映している窓の上でも右ドラッグと WASD で動かせる。無くてもよい
 	 */
-	void Initialize(ISubViewProvider* provider, CameraManager* cameraManager);
+	void Initialize(ISubViewProvider* provider, CameraManager* cameraManager, DebugCamera* debugCamera = nullptr);
 
 	/**
 	 * @brief ビューを破棄して、登録したウィンドウを外す
@@ -81,6 +83,8 @@ private:
 	ISubViewProvider* provider_ = nullptr;
 	// カメラの取得元
 	CameraManager* cameraManager_ = nullptr;
+	// 窓の上でデバッグカメラを動かすための窓口。所有しない（Framework が持つ）
+	DebugCamera* debugCamera_ = nullptr;
 	// ウィンドウの一覧。ラムダが参照を持つので、要素のアドレスを変えないよう unique_ptr で持つ
 	std::vector<std::unique_ptr<PreviewTarget>> targets_;
 	// 「Scene で見る」で差し替えているカメラ

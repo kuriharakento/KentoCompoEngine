@@ -234,8 +234,28 @@ void GameObjectManager::Unregister(GameObject* gameObject)
 	}
 }
 
+void GameObjectManager::RequestModelChange(GameObject* object, const std::string& modelName)
+{
+	if (!object || modelName.empty())
+	{
+		return;
+	}
+	pendingModelChanges_.push_back({ object->GetGuid(), modelName });
+}
+
 void GameObjectManager::FlushPendingDestroy()
 {
+	// 前のフレームの GPU 完了を待ち終わったここで差し替える。古いモデルの GPU リソースを、描画の途中で壊さない
+	auto modelChanges = std::move(pendingModelChanges_);
+	pendingModelChanges_.clear();
+	for (const PendingModelChange& change : modelChanges)
+	{
+		if (GameObject* object = FindByGuid(change.guid))
+		{
+			object->SetModel(change.modelName);
+		}
+	}
+
 	// デストラクタから別の Unregister が呼ばれても壊れないよう、いったんローカルへ移してから壊す
 	auto toDestroy = std::move(pendingDestroyObjects_);
 	pendingDestroyObjects_.clear();
@@ -548,6 +568,29 @@ GameObject* GameObjectManager::CreateGameObject(const std::string& name, const s
 	return ptr;
 }
 
+std::unique_ptr<GameObject> GameObjectManager::CreateFromPrefabJson(const nlohmann::json& json) const
+{
+	if (!cachedObject3dCommon_ || !cachedLightManager_)
+	{
+		Logger::Log("プレハブを作るための共有システムがありません。\n", Logger::LogLevel::Error);
+		return nullptr;
+	}
+	try
+	{
+		auto object = DeserializePrefabNode(json, cachedObject3dCommon_, cachedLightManager_);
+		if (!object)
+		{
+			Logger::Log("プレハブの形式が壊れています。\n", Logger::LogLevel::Error);
+		}
+		return object;
+	}
+	catch (const std::exception& error)
+	{
+		Logger::Log(std::string("プレハブを作れません: ") + error.what() + "\n", Logger::LogLevel::Error);
+		return nullptr;
+	}
+}
+
 std::unique_ptr<GameObject> GameObjectManager::LoadPrefab(const std::string& prefabPath) const
 {
 	if (prefabPath.empty() || !cachedObject3dCommon_ || !cachedLightManager_)
@@ -579,6 +622,18 @@ std::unique_ptr<GameObject> GameObjectManager::LoadPrefab(const std::string& pre
 		Logger::Log("プレハブを読み込めません: " + fullPath.string() + " (" + error.what() + ")\n", Logger::LogLevel::Error);
 		return nullptr;
 	}
+}
+
+GameObject* GameObjectManager::Adopt(std::unique_ptr<GameObject> object)
+{
+	if (!object)
+	{
+		return nullptr;
+	}
+	GameObject* result = object.get();
+	dynamicGameObjects_.push_back(std::move(object));
+	Register(result);
+	return result;
 }
 
 GameObject* GameObjectManager::Instantiate(const std::string& prefabPath, const Transform& transform)

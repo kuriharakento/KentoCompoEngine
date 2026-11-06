@@ -1,205 +1,97 @@
 #pragma once
 
 #include <array>
-#include <cstdint>
-#include <filesystem>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include <nlohmann/json.hpp>
-#include "graphics/text/TextMesh3D.h"
+#include "scene/SceneContext.h"
+#include "stage/IStageElement.h"
+#include "stage/Stage.h"
 
 namespace KCE
 {
-class CameraManager;
-class GameObject;
-class ISubViewProvider;
-class LightManager;
-class Object3dCommon;
-class StageMonitor;
-class RenderView;
-class Text3DRenderer;
-struct SelectionItem;
-
-/** @brief ステージモニター画面の縦横比。 */
-enum class MonitorAspect
-{
-	Aspect16x9,
-	Aspect4x3,
-	Aspect1x1,
-	Aspect9x16,
-	Aspect21x9,
-	Free,
-};
-
 /**
- * @brief ステージに置く物を所有し、編集とファイル保存をまとめる。
+ * @brief ステージの読み込みと破棄を受け持つ。どのシーンからでも、好きなときに使える。
  *
- * Text3DRenderer には非所有で登録し、所有物を破棄する前に必ず登録を外す。
+ * 使い方:
+ *   Stage* stage = StageManager::GetInstance()->Load("live01");
+ *   if (auto* ball = stage->Find<ModelElement>("mirror_ball")) { ... }
+ *   StageManager::GetInstance()->Unload("live01");
+ *
+ * - 初期化と更新はアプリ側（MyGame）が SceneContext を作ったあとに呼ぶ
+ * - 同じ名前を2回 Load すると、読み込み済みのステージを返す
  */
 class StageManager
 {
 public:
-	static constexpr uint32_t kDefaultMonitorWidth = 480;
-	static constexpr uint32_t kDefaultMonitorHeight = 270;
-	static constexpr uint32_t kMinMonitorResolution = 16;
-	static constexpr uint32_t kMaxMonitorResolution = 4096;
-	static constexpr float kDefaultMonitorFramesPerSecond = 24.0f;
-	static constexpr float kMinMonitorFramesPerSecond = 1.0f;
-	static constexpr float kMaxMonitorFramesPerSecond = 240.0f;
+	static StageManager* GetInstance();
+	static bool HasInstance();
 
-	StageManager() = default;
-	~StageManager();
 	/**
-	 * @brief ステージを初期化して同名ファイルを読む。
-	 * @param stageName 拡張子を含まないステージ名
-	 * @param text3DRenderer Framework 所有。StageManager より長生きする前提
-	 * @param cameraManager Framework 所有。StageManager より長生きする前提
-	 * @param subViewProvider サブビューの作成元。Framework 所有
-	 * @param object3dCommon 画面オブジェクトの初期化元。Framework 所有
-	 * @param lightManager 画面オブジェクトの初期化元。Framework 所有
+	 * @brief 要素の種類を登録して初期化する
+	 * @param context 要素を作るときに渡す、エンジン側の物への参照。StageManager が終わるまで有効な前提
 	 */
-	void Initialize(const std::string& stageName, Text3DRenderer* text3DRenderer, CameraManager* cameraManager,
-		ISubViewProvider* subViewProvider, Object3dCommon* object3dCommon, LightManager* lightManager);
-	/** @brief 所有するモニターを更新する。 */
+	void Initialize(const SceneContext& context);
+	/** @brief 読み込み済みのステージをすべて破棄して、片付ける */
+	void Finalize();
+
+	/** @brief 要素の種類を登録する。登録順が読み込み順（参照する側を後に） */
+	void RegisterElementType(StageElementType type);
+	const std::vector<StageElementType>& GetElementTypes() const { return types_; }
+
+	/**
+	 * @brief ステージを読み込む。すでに読み込み済みならそれを返す
+	 * @return 読み込めたステージ。所有は StageManager。ファイルが壊れていれば nullptr
+	 */
+	Stage* Load(const std::string& name);
+	/** @brief ステージを破棄する。要素が持つ GameObject などもまとめて外れる */
+	void Unload(const std::string& name);
+	/** @return 読み込み済みのステージ。無ければ nullptr */
+	Stage* Find(const std::string& name) const;
+
+	/** @brief 読み込み済みの全ステージを更新する。毎フレーム呼ぶ */
 	void Update();
-	/** @brief 現在の内容をステージファイルへ保存する。 */
-	bool SaveToFile();
-	/** @brief ステージファイルを読む。無ければ空のステージとして成功する。 */
-	bool LoadFromFile();
-	/** @return 保存後に内容が変わっていれば真。 */
-	bool IsDirty() const;
-	/** @brief 3D 文字を所有へ移し、Renderer に登録する。 */
-	bool AddText3D(const std::string& name, std::unique_ptr<TextMesh3D> mesh);
-	/** @brief 3D 文字を登録解除し、所有権を返す。 */
-	std::unique_ptr<TextMesh3D> RemoveText3D(const std::string& name);
-	/** @return このステージが所有する名前なら真。 */
-	bool OwnsText3D(const std::string& name) const;
-	/** @return ステージ所有の3D文字。見つからなければ nullptr。 */
-	TextMesh3D* GetOwnedText3D(const std::string& name);
 
-	/** @brief モニターの保存・編集対象。 */
-	struct MonitorState
-	{
-		Vector3 screenPosition{};
-		Vector3 screenRotation{};
-		Vector3 screenScale{ 1.0f, 1.0f, 1.0f };
-		Vector3 cameraPosition{};
-		Vector3 cameraRotation{};
-		uint32_t width = kDefaultMonitorWidth;
-		uint32_t height = kDefaultMonitorHeight;
-		float framesPerSecond = kDefaultMonitorFramesPerSecond;
-		MonitorAspect aspect = MonitorAspect::Free;
-	};
-
-	/** @brief ステージカメラの保存・編集対象。 */
-	struct CameraState
-	{
-		Vector3 position{};
-		Vector3 rotation{};
-		uint32_t width = kDefaultMonitorWidth;
-		uint32_t height = kDefaultMonitorHeight;
-		float framesPerSecond = kDefaultMonitorFramesPerSecond;
-	};
-
-	/** @brief CameraManager のカメラと共有サブビューをまとめて所有する。 */
-	struct CameraEntry
-	{
-		std::string name;
-		CameraState state;
-		// Framework 所有。DestroySubView まで有効
-		RenderView* view = nullptr;
-	};
-
-	/** @brief StageManager が所有するモニター一式。 */
-	struct MonitorEntry
-	{
-		std::string name;
-		std::string cameraName;
-		MonitorState state;
-		std::unique_ptr<GameObject> screen;
-		std::unique_ptr<StageMonitor> monitor;
-	};
-
-	/**
-	 * @brief モニター一式を登録して動作を開始する。
-	 * @param entry 成功したときだけ所有権を受け取る（中身は空になる）。失敗したら呼び出し側に残る
-	 * @return 登録できたら真
-	 */
-	bool AddStageMonitor(std::unique_ptr<MonitorEntry>& entry);
-	/** @brief モニターを停止・登録解除し、所有権を返す。 */
-	std::unique_ptr<MonitorEntry> RemoveStageMonitor(const std::string& name);
-	/** @brief 保存済みの状態をモニターへ適用する。 */
-	bool ApplyMonitorState(const std::string& name, const MonitorState& state, bool recreateView);
-	bool AddStageCamera(std::unique_ptr<CameraEntry>& entry);
-	std::unique_ptr<CameraEntry> RemoveStageCamera(const std::string& name);
-	bool ApplyCameraState(const std::string& name, const CameraState& state, bool recreateView);
-	bool SetMonitorCamera(const std::string& monitorName, const std::string& cameraName);
-	const std::string& GetStageName() const { return stageName_; }
-	uint64_t GetLifetimeId() const { return lifetimeId_; }
-	/** @brief Undo コマンドがシーン破棄後の Manager を触らないための確認。 */
-	static bool IsAlive(const StageManager* manager, uint64_t lifetimeId);
+	~StageManager() = default;
 
 private:
-	struct TextEntry { std::string name; std::unique_ptr<TextMesh3D> mesh; };
-	MonitorEntry* FindMonitor(const std::string& name);
-	const MonitorEntry* FindMonitor(const std::string& name) const;
-	CameraEntry* FindCamera(const std::string& name);
-	const CameraEntry* FindCamera(const std::string& name) const;
-	std::unique_ptr<CameraEntry> CreateCamera(const std::string& name, const CameraState& state);
-	std::unique_ptr<MonitorEntry> CreateMonitor(const std::string& name, const std::string& cameraName, const MonitorState& state);
-	void UpdateMonitorCrop(MonitorEntry& entry);
-	nlohmann::ordered_json Serialize() const;
-	bool Deserialize(const nlohmann::json& json, std::string& outError);
-	std::filesystem::path GetFilePath() const;
-	void Clear();
-	/** @brief 今の中身を「保存した時点」として覚える。保存と読み込みのあとに呼ぶ */
-	void CaptureSavedState();
+	static std::unique_ptr<StageManager> instance_;
+	friend std::unique_ptr<StageManager> std::make_unique<StageManager>();
+
+	StageManager() = default;
+	StageManager(const StageManager&) = delete;
+	StageManager& operator=(const StageManager&) = delete;
+
 #ifdef USE_IMGUI
-	void RegisterDebugUI();
-	void DrawHierarchyImGui();
-	void DrawInspectorImGui(const SelectionItem& item);
+	/** @brief 「Stage」ウィンドウの中身。ステージの選択・読み込み・再生・保存・要素の一覧 */
+	void DrawWindowImGui();
+	/** @brief ステージの選択と、フォルダからの読み込み・新規作成を描く */
+	void DrawStagePickerImGui();
+	/** @brief 選んでいるステージの操作行（再生・保存・追加）と要素の一覧を描く */
+	void DrawStageBodyImGui(Stage& stage);
+	/** @brief Resources/json/stage の中の .json のステージ名（拡張子なし）を並べる */
+	static std::vector<std::string> ListStageFiles();
+	/** @brief Resources/json/prefab の中の .json のファイル名を並べる */
+	static std::vector<std::string> ListPrefabFiles();
+	/** @brief 同じ名前が無いよう、元の名前に数字を足す */
+	static std::string MakeUniqueName(const Stage& stage, const std::string& baseName);
 #endif
-	/** @brief 保存（か読み込み）した時点の3D文字。未保存かを JSON にせず比べるために持つ */
-	struct SavedText { std::string name; std::string text; TextMesh3D::Params params; };
-	struct SavedMonitor { std::string name; std::string cameraName; MonitorState state; };
-	struct SavedCamera { std::string name; CameraState state; };
-	std::string stageName_;
-	std::vector<TextEntry> texts3D_;
-	std::vector<std::unique_ptr<MonitorEntry>> monitors_;
-	std::vector<std::unique_ptr<CameraEntry>> cameras_;
-	// 保存（か読み込み）した時点の中身。IsDirty() が毎フレームこれと比べる
-	std::vector<SavedText> savedTexts_;
-	std::vector<SavedMonitor> savedMonitors_;
-	std::vector<SavedCamera> savedCameras_;
-	uint64_t lifetimeId_ = 0;
-	// Framework 所有。StageManager より長生きする前提
-	Text3DRenderer* text3DRenderer_ = nullptr;
-	// Framework 所有。StageManager より長生きする前提
-	CameraManager* cameraManager_ = nullptr;
-	// Framework 所有。StageManager より長生きする前提
-	ISubViewProvider* subViewProvider_ = nullptr;
-	// Framework 所有。StageManager より長生きする前提
-	Object3dCommon* object3dCommon_ = nullptr;
-	// Framework 所有。StageManager より長生きする前提
-	LightManager* lightManager_ = nullptr;
+
+	SceneContext context_{};
+	std::vector<StageElementType> types_;
+	// 名前順に並べて、ウィンドウの並びが安定するようにする
+	std::map<std::string, std::unique_ptr<Stage>> stages_;
 #ifdef USE_IMGUI
-	std::array<char, 128> newName_{};
-	std::array<char, 512> newText_{};
-	std::array<char, 128> newMonitorName_{};
-	std::array<char, 128> newCameraName_{};
-	bool createPopupRequested_ = false;
-	bool createMonitorPopupRequested_ = false;
-	bool createCameraPopupRequested_ = false;
-	std::string createError_;
-	std::string createMonitorError_;
-	std::string createCameraError_;
-	MonitorState editStartState_{};
-	std::string editingMonitorName_;
-	CameraState editStartCameraState_{};
-	std::string editingCameraName_;
-	std::string newMonitorCameraName_;
+	// Stage ウィンドウで編集しているステージの名前。読み込み済みでなければ、先頭のものに合わせる
+	std::string selectedStageName_;
+	// 新規作成する名前の入力欄
+	std::array<char, 128> newStageName_{};
+	// 要素の一覧を絞り込む検索欄
+	std::array<char, 128> elementFilter_{};
+	// 読み込みに失敗した理由。次に読み込むまで出しておく
+	std::string loadError_;
 #endif
 };
 } // namespace KCE

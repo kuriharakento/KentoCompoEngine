@@ -418,6 +418,17 @@ public: // アクセッサ
 	 * @return 現在のアクティブ状態
 	 */
 	bool IsActive() const { return isActive_ && (!parent_ || parent_->IsActive()); }
+
+	/**
+	 * @brief コンポーネントの更新だけを止める・再開する
+	 * @details SetActive と違って描画は止まらない。止めている間は Start / Update / LateUpdate が呼ばれない
+	 *          （コライダーの更新は続く）。再開するときに各コンポーネントの OnUpdateResumed を呼ぶ。
+	 *          既定は更新する。ステージエディタが、編集中は止めて再生中だけ動かすのに使う
+	 * @param enabled 更新するか
+	 */
+	void SetUpdateEnabled(bool enabled);
+	/** @brief 親が止まっていれば子も止まっているので、親をたどって返す */
+	bool IsUpdateEnabled() const { return updateEnabled_ && (!parent_ || parent_->IsUpdateEnabled()); }
 	/** @brief コンポーネントを破棄している途中か返す。 */
 	bool IsDestroying() const { return isDestroying_; }
 
@@ -543,6 +554,8 @@ private:
 	 */
 	void ProcessPendingChanges();
 	void SyncComponentActivation();
+	/** @brief 自分と、止めていない子孫のコンポーネントへ OnUpdateResumed を伝える */
+	void NotifyUpdateResumed();
 	void DestroyAllComponents();
 
 private:
@@ -577,6 +590,8 @@ private:
 	RenderLayerMask renderLayer_ = kRenderLayerDefault;
 	// アクティブ状態フラグ
 	bool isActive_;
+	// コンポーネントを更新するか。描画は止めない
+	bool updateEnabled_ = true;
 	// 破棄保留中フラグ
 	bool isPendingDestroy_ = false;
 

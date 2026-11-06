@@ -59,6 +59,9 @@ public:
     void DrawInstancedGBuffer(Camera* camera);
     void DrawInstancedShadow(Camera* camera, class ShadowMapManager* shadowMapManager);
 
+    /** @brief 入れられるインスタンス数の上限（作ったときに決めた大きさ） */
+    uint32_t GetMaxInstances() const { return maxInstances_; }
+
 private:
 
 private:

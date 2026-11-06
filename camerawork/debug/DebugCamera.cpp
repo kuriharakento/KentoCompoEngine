@@ -58,6 +58,14 @@ void DebugCamera::SetEnabled(bool enabled)
     }
 
     // 今映っているカメラから始める。差し替える前なので GetActiveCamera は本来のカメラを返す
+    CopyPoseFromActiveCamera();
+
+    cameraManager_->SetViewCameraOverride(camera_);
+    isActive_ = true;
+}
+
+void DebugCamera::CopyPoseFromActiveCamera()
+{
     if (const Camera* source = cameraManager_->GetActiveCamera())
     {
         camera_->SetTranslate(source->GetTranslate());
@@ -67,9 +75,16 @@ void DebugCamera::SetEnabled(bool enabled)
     const Vector3 euler = camera_->GetRotateQuaternion().ToEuler();
     pitch_ = euler.x;
     yaw_ = euler.y;
+    placed_ = true;
+}
 
-    cameraManager_->SetViewCameraOverride(camera_);
-    isActive_ = true;
+void DebugCamera::AlignToActiveCameraOnce()
+{
+    if (placed_ || isActive_ || !camera_ || !cameraManager_)
+    {
+        return;
+    }
+    CopyPoseFromActiveCamera();
 }
 
 void DebugCamera::Update()
@@ -80,17 +95,25 @@ void DebugCamera::Update()
         SetEnabled(!isActive_);
     }
 
-    if (!isActive_ || !camera_) return;
+    // カメラプレビューから伝えられた分は、この1フレームだけ使う
+    const bool previewHovered = previewHovered_;
+    previewHovered_ = false;
+    if (!camera_) return;
+    // Scene に映していなくても、プレビューの画像の上なら動かせる
+    if (!isActive_ && !previewHovered && !dragging_) return;
 
     // 右ドラッグしている間だけカメラに触る。
     // 触っていない間も回転を書くと、シーンやカットシーンが動かしたカメラを毎フレーム戻してしまう
     const bool rightPressed = Input::GetInstance()->IsMouseButtonPressed(2);
     if (!dragging_)
     {
-        if (!rightPressed || !IsMouseOverSceneView())
+        // Scene に映しているなら Scene の上で、プレビューが映しているならプレビューの画像の上で掴む
+        const bool overTarget = (isActive_ && IsMouseOverSceneView()) || previewHovered;
+        if (!rightPressed || !overTarget)
         {
             return;
         }
+        placed_ = true;
         // 掴んだ瞬間に今の向きから始める。前回離したときの角度を使うと、他で動かされた分だけ向きが飛ぶ
         const Vector3 euler = camera_->GetRotateQuaternion().ToEuler();
         pitch_ = euler.x;

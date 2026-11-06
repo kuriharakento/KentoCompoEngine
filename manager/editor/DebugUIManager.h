@@ -76,6 +76,11 @@ public:
 	 */
 	void RegisterHierarchySection(void* owner, const std::string& name, std::function<void()> draw);
 	/**
+	 * @brief Hierarchy の検索欄の文字に、text が当てはまるか返す。大文字と小文字は区別しない。
+	 * @details 検索欄が空なら常に真。区画の描画から、行を絞るのに使う
+	 */
+	bool MatchesHierarchyFilter(const std::string& text) const;
+	/**
 	 * @brief 上のメニューバーにメニューを登録する。メニューは登録順に並ぶ。
 	 * @param name メニュー名。同じ名前を複数が登録したら、1つのメニューに登録順で続けて描く（間に区切り線）
 	 * @param draw メニューが開いている間だけ呼ばれる中身の描画
@@ -128,6 +133,7 @@ public:
 	void RegisterInspector(void*, SelectionKind, std::function<void(const SelectionItem&)>) {}
 	void RegisterSceneOverlay(void*, std::function<void()>) {}
 	void RegisterHierarchySection(void*, const std::string&, std::function<void()>) {}
+	bool MatchesHierarchyFilter(const std::string&) const { return true; }
 	void RegisterMainMenu(void*, const std::string&, std::function<void()>) {}
 	void RegisterDialog(void*, std::function<void()>) {}
 	void Unregister(void*) {}
@@ -241,6 +247,7 @@ private:
 	std::array<std::vector<std::string>, kEditorDockCount> dockWindowNames_;
 	std::string selectedSettingsPage_;
 	std::array<char, 128> settingsFilter_{};
+	std::array<char, 128> hierarchyFilter_{};
 	float uiScale_ = 1.0f;
 	// ScaleAllSizes は掛け算なので、前回の拡大率との比で掛ける
 	float previousUiScale_ = 1.0f;

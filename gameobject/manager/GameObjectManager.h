@@ -4,6 +4,8 @@
 #include <memory>
 #include <unordered_set>
 
+#include <nlohmann/json.hpp>
+
 #include "core/Guid.h"
 #include "gameobject/manager/GameObjectInstancing.h"
 #include "gameobject/manager/GameObjectRenderer.h"
@@ -54,6 +56,15 @@ public:
 	 * @details 前のフレームの GPU 完了を待ち終わった後（フレームの頭）に呼ぶ。コマンドリストがもう指していない
 	 */
 	void FlushPendingDestroy();
+
+	/**
+	 * @brief GameObject のモデルの差し替えを頼む。実際の差し替えは、次のフレームの頭（FlushPendingDestroy）で行う
+	 * @details SetModel は古いモデルの複製（GPU リソースつき）をその場で壊す。エディタの操作は、このフレームの描画命令を積んだ後に走るので、
+	 *          その場で差し替えると、積んだ命令が壊れたリソースを指したまま実行されてしまう
+	 * @param object 対象。頼んだ後に消えていたら、何もしない（GUID で探し直す）
+	 * @param modelName ModelManager に読み込み済みのモデル名
+	 */
+	void RequestModelChange(GameObject* object, const std::string& modelName);
 	void SetObject3dCommon(Object3dCommon* object3dCommon) { cachedObject3dCommon_ = object3dCommon; }
 	/** @brief LightManager の設定 */
 	void SetLightManager(LightManager* lightManager) { cachedLightManager_ = lightManager; }
@@ -86,7 +97,8 @@ public:
 	void Update();
 
 	/**
-	 * @brief 3D描画
+	 * @brief 3D描画（Forward）
+	 * @details 描画パス（StandardRenderPasses）が、シーンの描画のあとに呼ぶ。シーンからは呼ばない（二重に描かれる）
 	 * @param camera カメラ管理クラス
 	 */
 	void Draw3D(CameraManager* camera);
@@ -101,12 +113,14 @@ public:
 
 	/**
 	 * @brief シャドウマップ描画
+	 * @details 描画パス（StandardRenderPasses）が、シーンの描画のあとに呼ぶ。シーンからは呼ばない（二重に描かれる）
 	 * @param camera 使用するカメラ
 	 */
 	void DrawShadow(Camera* camera = nullptr);
 
 	/**
-	 * @brief G-Buffer描画
+	 * @brief G-Buffer描画（Deferred）
+	 * @details 描画パス（StandardRenderPasses）が、シーンの描画のあとに呼ぶ。シーンからは呼ばない（二重に描かれる）
 	 * @param camera カメラ管理クラス
 	 */
 	void DrawGBuffer(CameraManager* camera = nullptr);
@@ -132,6 +146,21 @@ public:
 	 * @return 読み込みに成功したツリー。所有権は呼び出し側へ移る
 	 */
 	std::unique_ptr<GameObject> LoadPrefab(const std::string& prefabPath) const;
+
+	/**
+	 * @brief GameObject::SerializePrefab の JSON から、まだmanagerへ登録していないツリーを作る。
+	 * @param json SerializePrefab が返した形
+	 * @return 読み込めたツリー。形が壊れていればログを出して nullptr
+	 */
+	std::unique_ptr<GameObject> CreateFromPrefabJson(const nlohmann::json& json) const;
+
+	/**
+	 * @brief 作ったツリーの所有をmanagerへ渡して登録する
+	 * @details Unregister したあとの破棄は次のフレームの頭になるので、描画中に外しても GPU リソースが先に壊れない
+	 * @param object 渡すツリー。nullptr なら何もしない
+	 * @return 登録した GameObject。所有はmanager。object が nullptr なら nullptr
+	 */
+	GameObject* Adopt(std::unique_ptr<GameObject> object);
 
 	/**
 	 * @brief プレハブを生成してmanager所有にする。
@@ -234,6 +263,12 @@ public:
 	 */
 	void SetShadowMapPipeline(ShadowMapPipeline* pipeline) { shadowMapPipeline_ = pipeline; }
 
+	/**
+	 * @brief まとめて描く物へ、影の管理を渡す
+	 * @details GameObject の Object3d は影の管理を持たないので、描画パスから渡す。ShadowMapPass が毎フレーム設定する（所有しない）
+	 */
+	void SetShadowMapManager(ShadowMapManager* shadowMapManager) { instancing_.SetShadowMapManager(shadowMapManager); }
+
 	/** @brief 同じモデルをまとめて1回で描くのを使うか（比べるときに切る） */
 	void SetInstancingEnabled(bool enabled) { instancing_.SetEnabled(enabled); }
 	bool IsInstancingEnabled() const { return instancing_.IsEnabled(); }
@@ -324,6 +359,14 @@ private:
 	// Unregister で外した動的な GameObject。描画の途中で外されると、今のフレームのコマンドリストが
 	// まだその GPU リソースを指しているので、すぐには壊さず次のフレームの頭で壊す
 	std::vector<std::unique_ptr<GameObject>> pendingDestroyObjects_;
+
+	/** @brief 次のフレームの頭で行うモデルの差し替え1件 */
+	struct PendingModelChange
+	{
+		Guid guid;
+		std::string modelName;
+	};
+	std::vector<PendingModelChange> pendingModelChanges_;
 
 	// 初期化用にキャッシュされた共有システムポインタ
 	Object3dCommon* cachedObject3dCommon_ = nullptr;

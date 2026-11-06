@@ -114,16 +114,19 @@ void GameObject::Update()
 	isUpdating_ = true;
 
 	SyncComponentActivation();
+	// 更新を止められていても、コライダーは今まで通り動かす
+	const bool runComponents = IsUpdateEnabled();
 	for (auto& component : components_)
 	{
 		if (component->activeInHierarchy_)
 		{
-			if (!component->started_)
+			const bool isCollider = component->IsCollider();
+			if (!component->started_ && (runComponents || isCollider))
 			{
 				component->Start();
 				component->started_ = true;
 			}
-			if (!component->IsCollider())
+			if (runComponents && !isCollider)
 			{
 				component->Update();
 			}
@@ -185,11 +188,46 @@ float GameObject::GetDeltaTime() const
 	return TimeManager::GetInstance().GetDeltaTime(GetClock());
 }
 
-void GameObject::LateUpdate()
+void GameObject::SetUpdateEnabled(bool enabled)
 {
+	if (updateEnabled_ == enabled)
+	{
+		return;
+	}
+	updateEnabled_ = enabled;
+	if (!enabled)
+	{
+		return;
+	}
+	// 親が止まったままなら、自分も子も動き出さないので通知しない
+	if (!parent_ || parent_->IsUpdateEnabled())
+	{
+		NotifyUpdateResumed();
+	}
+}
+
+void GameObject::NotifyUpdateResumed()
+{
+	// 止まっていた間の持ち越しを捨てさせる。子は自分で止めている場合だけ除く
 	for (auto& component : components_)
 	{
-		if (component->activeInHierarchy_)
+		component->OnUpdateResumed();
+	}
+	for (auto& [name, child] : children_)
+	{
+		if (child && child->updateEnabled_)
+		{
+			child->NotifyUpdateResumed();
+		}
+	}
+}
+
+void GameObject::LateUpdate()
+{
+	const bool runComponents = IsUpdateEnabled();
+	for (auto& component : components_)
+	{
+		if (runComponents && component->activeInHierarchy_)
 		{
 			component->LateUpdate();
 		}

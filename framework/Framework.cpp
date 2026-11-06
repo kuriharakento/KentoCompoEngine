@@ -33,6 +33,8 @@
 // editor
 #include "editor/EditorContext.h"
 #include "editor/SceneGizmo.h"
+#include "editor/SceneViewPicker.h"
+#include "gameobject/component/motion/MotionComponents.h"
 #include "editor/SceneViewContext.h"
 #include "editor/SelectionContext.h"
 #include "editor/command/CommandHistory.h"
@@ -88,6 +90,10 @@ void Framework::Initialize()
 	DebugUIManager::GetInstance()->Initialize();
 	ConsoleLog::GetInstance()->Initialize();
 	SceneGizmo::GetInstance()->Initialize();
+	// ギズモの掴み判定を見るので、ギズモのあとに登録する
+	SceneViewPicker::GetInstance()->Initialize();
+	// 静的ライブラリの中のコンポーネントを、登録が走るよう確実に取り込む
+	GameObjectComponent::ForceLinkMotionComponents();
 
 	// 読み込みを並べて回すワーカー。起動時の素材読み込みから使う
 	jobSystem_ = std::make_unique<JobSystem>();
@@ -410,7 +416,7 @@ void Framework::Initialize()
 
 	// カメラプレビュー窓（サブビューの作成元が用意できてから登録する）
 	cameraPreviewEditor_ = std::make_unique<CameraPreviewEditor>();
-	cameraPreviewEditor_->Initialize(this, cameraManager_.get());
+	cameraPreviewEditor_->Initialize(this, cameraManager_.get(), debugCamera_.get());
 
 	// 本編のパイプラインからサブビューの描画を呼べるようにする
 	if (auto* subViewPass = dynamic_cast<SubViewRenderPass*>(renderPipeline_->FindPass("SubViews")))
@@ -497,6 +503,7 @@ void Framework::Finalize()
 	ShaderHotReload::GetInstance()->Finalize();
 	CutsceneManager::GetInstance()->Finalize();
 	SequencerEditor::GetInstance()->Finalize();
+	SceneViewPicker::GetInstance()->Finalize();
 	SceneGizmo::GetInstance()->Finalize();
 	TimeManager::GetInstance().UnregisterDebugUI();
 	SceneViewContext::GetInstance()->Finalize();

@@ -34,6 +34,7 @@ void SceneGizmo::Unregister(void* owner)
 #ifdef USE_IMGUI
 
 #include <cmath>
+#include <cstdio>
 
 #include "ImGui/imgui.h"
 #include "ImGuizmo/ImGuizmo.h"
@@ -153,6 +154,7 @@ void SceneGizmo::Draw()
 		found = FindTarget(SelectionKind::None, primary, world, operations);
 	}
 
+	HandleShortcuts(found ? operations : 0);
 	DrawToolbar(found ? operations : 0);
 
 	if (!found)
@@ -201,10 +203,61 @@ void SceneGizmo::Draw()
 	found->target.apply(primary, after, dragId_);
 }
 
+void SceneGizmo::HandleShortcuts(uint32_t operations)
+{
+	const ImGuiIO& io = ImGui::GetIO();
+	// ゲームのキー入力と重ならないよう、Ctrl を押している間だけ効かせる。
+	// Scene 画像の上で、文字入力中・カメラ操作中（右ボタン押下）は奪わない
+	if (!SceneViewContext::GetInstance()->IsHovered() || io.WantTextInput || !io.KeyCtrl || io.KeyAlt || io.KeyShift
+		|| ImGui::IsMouseDown(ImGuiMouseButton_Right))
+	{
+		return;
+	}
+	// 今の対象で使えない操作へは切り替えない
+	const auto select = [&](ImGuiKey key, uint32_t operation)
+	{
+		if (ImGui::IsKeyPressed(key, false) && (operations == 0 || (operations & operation) != 0))
+		{
+			operation_ = operation;
+		}
+	};
+	select(ImGuiKey_W, kGizmoTranslate);
+	select(ImGuiKey_E, kGizmoRotate);
+	select(ImGuiKey_R, kGizmoScale);
+	if (ImGui::IsKeyPressed(ImGuiKey_X, false))
+	{
+		worldSpace_ = !worldSpace_;
+	}
+}
+
 void SceneGizmo::DrawToolbar(uint32_t operations)
 {
 	const SceneViewRect& rect = SceneViewContext::GetInstance()->GetViewportRect();
 	ImGui::SetCursorScreenPos(ImVec2(rect.x + kToolbarMargin, rect.y + kToolbarMargin));
+
+	const uint32_t current = ResolveOperation(operation_, operations == 0 ? kGizmoAll : operations);
+
+	if (!showToolbar_)
+	{
+		// 既定は今のモードを薄い文字で出すだけ。押すとツールバーを開く
+		const char* operationName = current == kGizmoRotate ? "回転" : (current == kGizmoScale ? "拡大" : "移動");
+		// 拡大縮小は常にローカルで動くので、表示もそれに合わせる
+		const bool isWorld = worldSpace_ && current != kGizmoScale;
+		char label[64];
+		std::snprintf(label, sizeof(label), "%s / %s##SceneGizmoMode", operationName, isWorld ? "ワールド" : "ローカル");
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+		ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+		if (ImGui::SmallButton(label))
+		{
+			showToolbar_ = true;
+		}
+		ImGui::PopStyleColor(2);
+		if (ImGui::IsItemHovered())
+		{
+			SceneViewContext::GetInstance()->SetHovered(false);
+		}
+		return;
+	}
 
 	const ImGuiChildFlags childFlags = ImGuiChildFlags_AutoResizeX | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_FrameStyle;
 	if (ImGui::BeginChild("##SceneGizmoToolbar", ImVec2(0.0f, 0.0f), childFlags, ImGuiWindowFlags_NoScrollbar))
@@ -213,17 +266,22 @@ void SceneGizmo::DrawToolbar(uint32_t operations)
 		const auto operationButton = [&](const char* label, uint32_t operation)
 		{
 			ImGui::BeginDisabled(operations != 0 && (operations & operation) == 0);
-			if (ImGui::RadioButton(label, ResolveOperation(operation_, operations == 0 ? kGizmoAll : operations) == operation))
+			if (ImGui::RadioButton(label, current == operation))
 			{
 				operation_ = operation;
 			}
 			ImGui::EndDisabled();
 			ImGui::SameLine();
 		};
-		operationButton("移動", kGizmoTranslate);
-		operationButton("回転", kGizmoRotate);
-		operationButton("拡大", kGizmoScale);
-		ImGui::Checkbox("ワールド", &worldSpace_);
+		operationButton("移動(Ctrl+W)", kGizmoTranslate);
+		operationButton("回転(Ctrl+E)", kGizmoRotate);
+		operationButton("拡大(Ctrl+R)", kGizmoScale);
+		ImGui::Checkbox("ワールド(Ctrl+X)", &worldSpace_);
+		ImGui::SameLine();
+		if (ImGui::SmallButton("閉じる"))
+		{
+			showToolbar_ = false;
+		}
 	}
 	// ツールバーの上ではマウスをゲームへ渡さない（Scene 画像の上の判定は画像を描いた時点で済んでいるので上書きする）
 	if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows))

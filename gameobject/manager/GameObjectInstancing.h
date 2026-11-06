@@ -73,8 +73,15 @@ public:
 	/** @brief まとめた分を描く（影） */
 	void DrawShadow(ShadowMapManager* shadowMapManager);
 
-	/** @brief Build のときに描画物から拾ったカスケードシャドウの管理。無ければ nullptr */
-	ShadowMapManager* GetShadowMapManagerFromObjects() const { return shadowMapManagerFromObjects_; }
+	/**
+	 * @brief 影の管理を直接渡す。描画パスが毎フレーム渡す（所有しない）
+	 * @details GameObject の Object3d は ShadowSystem に登録されないので、影の管理を持たない。
+	 *          これが無いと、まとめて描く影はライトの行列を結び付けないまま描かれ、でたらめな影になる。
+	 *          まとめて描く Forward も、シャドウマップを受け取れない
+	 */
+	void SetShadowMapManager(ShadowMapManager* shadowMapManager) { shadowMapManager_ = shadowMapManager; }
+	/** @brief まとめて描くときに使う影の管理。直接渡された物を優先し、無ければ Build のときに描画物から拾った物。どちらも無ければ nullptr */
+	ShadowMapManager* GetShadowMapManagerFromObjects() const { return shadowMapManager_ ? shadowMapManager_ : shadowMapManagerFromObjects_; }
 
 	/**
 	 * @brief この描画物をまとめて描いてよいか調べる
@@ -108,18 +115,36 @@ private:
 		std::vector<const GameObjectRenderer::Entry*> entries;
 		// このまとまりの物の行列。ビューごとに WVP だけ作り直す。配列は使い回す
 		std::vector<TransformationMatrix> instanceData;
-		// このまとまり用のバッファ。モデルごとに1つ作って使い回す
-		std::unique_ptr<InstancedModelRenderer> renderer;
+		// このまとまり用のバッファ。1回の描画ごとに別のものを使う（下の AcquireRenderer）。作ったものは使い回す
+		std::vector<std::unique_ptr<InstancedModelRenderer>> renderers;
+		// このフレームで使い始めたバッファの数。フレームが変わると 0 に戻す
+		uint32_t usedRenderers = 0;
 	};
+
+	/**
+	 * @brief このまとまりの、まだこのフレームで使っていないバッファを1つ渡す
+	 * @details 行列は描画命令を積む時点で CPU が書き込むが、GPU が読むのはフレームの最後にまとめて実行するとき。
+	 *          1つのバッファを使い回すと、同じフレームの別のビュー・別のパス（影のカスケード、G-Buffer、Forward）が
+	 *          後から書いた行列で、先に積んだ描画まで描かれてしまう。描画ごとに別のバッファを使って避ける。
+	 * @param group 使うまとまり。instanceData に今回の行列が入っている
+	 * @return 今回の描画用のバッファ。足りなければ作る
+	 */
+	InstancedModelRenderer* AcquireRenderer(Group& group);
 
 	DirectXCommon* dxCommon_ = nullptr;
 	SrvManager* srvManager_ = nullptr;
 	bool enabled_ = true;
 	// 描画物から拾ったカスケードシャドウの管理。所有しない（ShadowSystem が持つ）
 	ShadowMapManager* shadowMapManagerFromObjects_ = nullptr;
+	// 描画パスから直接渡された影の管理。所有しない
+	ShadowMapManager* shadowMapManager_ = nullptr;
 
 	// 元モデルごとのまとまり。確保し直さないよう持ち続ける
 	std::unordered_map<Model*, Group> groups_;
+	// AcquireRenderer が最後に使用数を戻したフレーム
+	uint64_t renderersResetFrame_ = ~0ull;
+	// 大きいものに作り直されて、使わなくなったバッファ。前のフレームの描画が読み終わるまで壊せないので、終了まで置いておく
+	std::vector<std::unique_ptr<InstancedModelRenderer>> retiredRenderers_;
 	// このフレームに中身が入ったまとまり。所有は groups_
 	std::vector<Group*> activeGroups_;
 	// まとめられなかった物。配列は使い回す

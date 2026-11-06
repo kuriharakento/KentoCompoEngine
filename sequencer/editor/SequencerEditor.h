@@ -432,7 +432,7 @@ private:
 	float curvePaneHeight_ = 220.0f;
 	// 最後の保存・読み込みの結果メッセージ
 	std::string statusMessage_;
-	// シーン所有の StageManager を直接持たず、保存操作だけを借りる
+	// シーン所有の LegacyStageManager を直接持たず、保存操作だけを借りる
 	std::function<bool()> stageSaveCallback_;
 	// 状態メッセージを目立たせ始めた時刻
 	double statusMessageTime_ = 0.0;

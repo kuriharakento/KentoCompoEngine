@@ -47,7 +47,8 @@ struct GizmoTarget
  *
  * - 置ける物の持ち主が、選択の種類ごとに GizmoTarget を登録する（DebugUIManager::RegisterInspector と同じ形）
  * - 主選択の種類に登録が無いか、getPose が false なら、SelectionKind::None の登録を順に試す（シーケンスのカメラなど）
- * - 移動・回転・拡大の切り替えとワールド／ローカルは、Scene の左上のツールバーで選ぶ
+ * - 移動・回転・拡大の切り替えは Ctrl+W / E / R、ワールド／ローカルは Ctrl+X（Scene 画像の上で、右ボタンを押していないとき）
+ * - Scene の左上には今のモードを薄く出す。押すとツールバーが開く
  * - 描くのは DebugUIManager の Scene 重ね描きの中。USE_IMGUI が無いときは何もしない
  */
 class SceneGizmo
@@ -98,7 +99,9 @@ private:
 	 * @return 見つかった登録（所有しない、このフレームの間だけ使う）。無ければ nullptr
 	 */
 	const Entry* FindTarget(SelectionKind kind, const SelectionItem& item, Matrix4x4& world, uint32_t& operations) const;
-	/** @brief 移動・回転・拡大の切り替えとワールド／ローカルを描く */
+	/** @brief Ctrl+W / E / R で移動・回転・拡大、Ctrl+X でワールド／ローカルを切り替える */
+	void HandleShortcuts(uint32_t operations);
+	/** @brief 今のモードを薄く出す。開いているときは移動・回転・拡大の切り替えとワールド／ローカルを描く */
 	void DrawToolbar(uint32_t operations);
 
 	std::vector<Entry> entries_;
@@ -106,6 +109,8 @@ private:
 	uint32_t operation_ = kGizmoTranslate;
 	// ワールド座標で動かすか（拡大縮小は常にローカル）
 	bool worldSpace_ = true;
+	// ツールバーを開いているか。既定は閉じて、今のモードの薄い表示だけを出す
+	bool showToolbar_ = false;
 	// ギズモを掴んだ回数。ドラッグごとに別の Undo にするための番号
 	uint32_t dragId_ = 0;
 	// 前のフレームでギズモを掴んでいたか

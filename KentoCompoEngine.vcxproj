@@ -75,6 +75,7 @@
     <ClCompile Include="gameobject\component\base\Collider.cpp" />
     <ClCompile Include="gameobject\component\base\Component.cpp" />
     <ClCompile Include="gameobject\component\collision\AABBCollider.cpp" />
+    <ClCompile Include="gameobject\component\motion\MotionComponents.cpp" />
     <ClCompile Include="gameobject\component\collision\CollisionAlgorithm.cpp" />
     <ClCompile Include="gameobject\component\collision\GameObjectCollisionManager.cpp" />
     <ClCompile Include="gameobject\component\collision\CollisionUtils.cpp" />
@@ -165,6 +166,7 @@
     <ClCompile Include="editor\EditorContext.cpp" />
     <ClCompile Include="editor\SceneGizmo.cpp" />
     <ClCompile Include="editor\SceneViewContext.cpp" />
+    <ClCompile Include="editor\SceneViewPicker.cpp" />
     <ClCompile Include="editor\CameraPreviewEditor.cpp" />
     <ClCompile Include="editor\SpriteAnimationEditor.cpp" />
     <ClCompile Include="editor\SelectionContext.cpp" />
@@ -186,6 +188,9 @@
     <ClCompile Include="sequencer\track\ScreenTrack.cpp" />
     <ClCompile Include="sequencer\track\TextTrack.cpp" />
     <ClCompile Include="sequencer\track\TransformTrack.cpp" />
+    <ClCompile Include="stage\LegacyStageManager.cpp" />
+    <ClCompile Include="stage\ModelElement.cpp" />
+    <ClCompile Include="stage\Stage.cpp" />
     <ClCompile Include="stage\StageManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -294,6 +299,7 @@
     <ClInclude Include="gameobject\component\base\Collider.h" />
     <ClInclude Include="gameobject\component\base\Component.h" />
     <ClInclude Include="gameobject\component\collision\AABBCollider.h" />
+    <ClInclude Include="gameobject\component\motion\MotionComponents.h" />
     <ClInclude Include="gameobject\component\collision\CollisionAlgorithm.h" />
     <ClInclude Include="gameobject\component\collision\GameObjectCollisionManager.h" />
     <ClInclude Include="gameobject\component\collision\CollisionUtils.h" />
@@ -421,6 +427,7 @@
     <ClInclude Include="editor\EditorContext.h" />
     <ClInclude Include="editor\SceneGizmo.h" />
     <ClInclude Include="editor\SceneViewContext.h" />
+    <ClInclude Include="editor\SceneViewPicker.h" />
     <ClInclude Include="editor\CameraPreviewEditor.h" />
     <ClInclude Include="editor\SpriteAnimationEditor.h" />
     <ClInclude Include="editor\SelectionContext.h" />
@@ -448,6 +455,10 @@
     <ClInclude Include="sequencer\track\TextTrack.h" />
     <ClInclude Include="sequencer\track\TransformTrack.h" />
     <ClInclude Include="sequencer\core\CurveChannel.h" />
+    <ClInclude Include="stage\IStageElement.h" />
+    <ClInclude Include="stage\LegacyStageManager.h" />
+    <ClInclude Include="stage\ModelElement.h" />
+    <ClInclude Include="stage\Stage.h" />
     <ClInclude Include="stage\StageManager.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

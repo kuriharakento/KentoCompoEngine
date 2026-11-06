@@ -78,6 +78,12 @@ public: /*========[ メンバ関数 ]========*/
 	size_t GetSceneModelCount() const;
 
 	/**
+	 * @brief 読み込み済みのモデルの名前（ファイルパス）を、名前順に返す
+	 * @details エディタで GameObject のモデルを選ぶ一覧に使う。まだ読み込んでいないモデルは含まない
+	 */
+	std::vector<std::string> GetLoadedModelNames() const;
+
+	/**
 	 * @brief モデルの検索
 	 * @param filePath モデルファイルパス
 	 * @return モデルへのポインタ（見つからない場合はnullptr）

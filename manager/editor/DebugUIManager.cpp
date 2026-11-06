@@ -366,16 +366,32 @@ void DebugUIManager::DrawHierarchy()
 {
 	DockOnFirstOpen(kHierarchyWindowName, EditorDock::Left);
 	ImGui::Begin(kHierarchyWindowName);
+	ImGui::InputTextWithHint("##hierarchy_filter", "検索", hierarchyFilter_.data(), hierarchyFilter_.size());
+	// Settings の左の一覧と同じ、枠つきの領域に分類（区画）と行を並べる
+	ImGui::BeginChild("HierarchyList", ImVec2(0.0f, 0.0f), true);
+	const bool filtering = hierarchyFilter_[0] != '\0';
 	for (const auto& section : hierarchySections_)
 	{
 		ImGui::PushID(&section);
-		if (ImGui::CollapsingHeader(section.name.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+		// 検索中は、行が絞られて見えなくなる区画も開いておく
+		if (filtering)
+		{
+			ImGui::SetNextItemOpen(true);
+		}
+		if (ImGui::TreeNodeEx(section.name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth))
 		{
 			section.draw();
+			ImGui::TreePop();
 		}
 		ImGui::PopID();
 	}
+	ImGui::EndChild();
 	ImGui::End();
+}
+
+bool DebugUIManager::MatchesHierarchyFilter(const std::string& text) const
+{
+	return hierarchyFilter_[0] == '\0' || ContainsIgnoreCase(text, hierarchyFilter_.data());
 }
 
 void DebugUIManager::DrawInspector()

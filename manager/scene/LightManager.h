@@ -214,6 +214,14 @@ public: // DirectionalLight関連
 	const DirectionalLight& GetDirectionalLight() const { return directionalLight_; }
 
 	/**
+	 * @brief 平行光源の影（カスケードシャドウ）を出すか
+	 * @details オフにすると、Forward と Deferred のどちらでも、平行光源の影を判定しない（影のパスは走るが、結果を使わない）。
+	 *          影が原因かどうかを切り分けるのに使う。Hierarchy で Directional Light を選ぶと、Inspector にもある
+	 */
+	void SetDirectionalShadowEnabled(bool enabled) { directionalShadowEnabled_ = enabled; }
+	bool IsDirectionalShadowEnabled() const { return directionalShadowEnabled_; }
+
+	/**
 	 * @brief ディレクショナルライトのシャドウ用行列を更新
 	 * @param targetCenter シャドウを投影する中心位置
 	 * @param shadowMapSize シャドウマップがカバーする範囲（ワールド単位）
@@ -581,6 +589,8 @@ private:
 
 	// ディレクショナルライトデータ
 	DirectionalLight directionalLight_;
+	// 平行光源の影を使うか。UpdateCascadeShadowMatrices が GPU へ渡す enableShadow に反映する
+	bool directionalShadowEnabled_ = true;
 	// ディレクショナルライト用定数バッファ
 	Microsoft::WRL::ComPtr<ID3D12Resource> directionalLightResource_;
 	// ディレクショナルライトのデータポインタ

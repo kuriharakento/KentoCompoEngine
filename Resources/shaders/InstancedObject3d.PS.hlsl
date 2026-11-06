@@ -100,6 +100,8 @@ SamplerComparisonState gShadowSampler : register(s1);
 
 // シャドウマップ設定
 static const float SHADOW_BIAS = 0.0005f;
+// 光に向いた度合い（N·L）がこの逆数を超えるまで、影の判定を少しずつ効かせる。光に背を向けた面は、影の判定を使わない
+static const float SHADOW_FACING_FADE_SCALE = 8.0f;
 static const float SHADOW_MAP_SIZE = 2048.0f;
 static const int PCF_SAMPLES = 1; // -1 to +1 = 3x3 samples
 
@@ -306,6 +308,10 @@ PixelShaderOutput main(VertexShaderOutput input)
 
     /*-----[ ディレクショナルライト ]-----*/
     float3 lightDir = normalize(-gDirectionalLight.direction);
+    // 光に背を向けた面と、光と平行な面は、影の判定を使わない。
+    // そういう面はシャドウマップ上では線にしかならず、自分自身の影になるかどうかが不安定になる（黒い筋・ちらつき）。
+    // その面の明暗は、下の半球ランバートで決まるので、影は「光の当たる面を、ほかの物が遮る」ときだけ効かせる
+    shadow = lerp(1.0f, shadow, saturate(dot(normal, lightDir) * SHADOW_FACING_FADE_SCALE));
     float NdotL = CalculateHalfLambert(normal, lightDir);
     // シャドウを適用
     float3 diffuse = baseColor * gDirectionalLight.color.rgb * NdotL * gDirectionalLight.intensity * shadow;

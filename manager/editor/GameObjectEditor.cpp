@@ -9,6 +9,7 @@
 #include "sequencer/editor/SequencerCommands.h"
 #include "externals/imgui/imgui.h"
 #include "graphics/3d/IRenderable3d.h"
+#include "manager/graphics/ModelManager.h"
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -130,53 +131,87 @@ void GameObjectEditor::OnGameObjectRemoved(GameObject* gameObject)
 void GameObjectEditor::DrawListImGui()
 {
 #ifdef USE_IMGUI
+	// シーン上のクリックなど、ここ以外で選ばれても行の強調がずれないよう、選択の一元管理に合わせる
+	selected_ = SelectionContext::GetInstance()->GetPrimaryGameObject();
+
 	if (ImGui::Button("GameObjectを作成", ImVec2(-FLT_MIN, 0.0f)))
 	{
-		GameObject* newObj = GameObjectManager::GetInstance()->CreateGameObject("NewObject", "GameObject");
-		if (newObj)
-		{
-			// 初期の Deferred は G-Buffer を描かないシーンだと映らないので、どのシーンでも映る Forward にしておく
-			if (IRenderable3d* renderable = newObj->GetRenderable3d())
-			{
-				renderable->SetRenderingType(RenderingType::Forward);
-			}
-			selected_ = newObj;
-			// シーン上のギズモは選択の一元管理（SelectionContext）を見るので、そちらにも伝える
-			SelectionContext::GetInstance()->SelectGameObject(newObj);
-		}
+		CreateAndSelectNew();
 	}
 
-	ImGui::Spacing();
-
-	// 階層リストの高さ（全体の邪魔にならないよう適度な固定高にする）
-	ImGui::BeginChild("HierarchyList", ImVec2(0, 150.0f), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+	// 行の上で右クリックしたときの削除は、描画中に一覧を変えないよう、描き終えてから行う
+	GameObject* objectToDelete = nullptr;
 	const auto& objects = GameObjectManager::GetInstance()->GetGameObjects();
 	for (GameObject* obj : objects)
 	{
 		if (!obj) continue;
 
-		std::string label = obj->GetName() + " (" + obj->GetTag() + ")";
-		bool isSelected = (selected_ == obj);
-		if (ImGui::Selectable(label.c_str(), isSelected))
+		const std::string label = obj->GetName() + " (" + obj->GetTag() + ")";
+		if (!DebugUIManager::GetInstance()->MatchesHierarchyFilter(label))
+		{
+			continue;
+		}
+
+		// 同じ名前と種類の GameObject があっても、行の ID がぶつからないようにする
+		ImGui::PushID(obj);
+		if (ImGui::Selectable(label.c_str(), selected_ == obj))
 		{
 			selected_ = obj;
 			// シーン上のギズモは選択の一元管理（SelectionContext）を見るので、そちらにも伝える
 			SelectionContext::GetInstance()->SelectGameObject(obj);
 		}
-	}
-	ImGui::EndChild();
-
-	if (selected_)
-	{
-		if (ImGui::Button("選択中を削除", ImVec2(-FLT_MIN, 0.0f)))
+		if (ImGui::BeginPopupContextItem("GameObjectRowMenu"))
 		{
-			// 不正ポインタ参照を防ぐため、Unregister前にselected_をクリア
-			GameObject* objToDelete = selected_;
-			selected_ = nullptr;
-			GameObjectManager::GetInstance()->Unregister(objToDelete);
+			// 右クリックした行を選んでから出す。削除の対象がどれか分かるようにする
+			if (selected_ != obj)
+			{
+				selected_ = obj;
+				SelectionContext::GetInstance()->SelectGameObject(obj);
+			}
+			if (ImGui::MenuItem("削除"))
+			{
+				objectToDelete = obj;
+			}
+			ImGui::EndPopup();
 		}
+		ImGui::PopID();
 	}
 
+	// 一覧の空いている所で右クリックしても作れる
+	if (ImGui::BeginPopupContextWindow("GameObjectListMenu", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+	{
+		if (ImGui::MenuItem("GameObjectを作成"))
+		{
+			CreateAndSelectNew();
+		}
+		ImGui::EndPopup();
+	}
+
+	if (objectToDelete)
+	{
+		// 不正ポインタ参照を防ぐため、Unregister前にselected_をクリア
+		selected_ = nullptr;
+		GameObjectManager::GetInstance()->Unregister(objectToDelete);
+	}
+
+#endif
+}
+
+void GameObjectEditor::CreateAndSelectNew()
+{
+#ifdef USE_IMGUI
+	GameObject* newObj = GameObjectManager::GetInstance()->CreateGameObject("NewObject", "GameObject");
+	if (newObj)
+	{
+		// 初期の Deferred は G-Buffer を描かないシーンだと映らないので、どのシーンでも映る Forward にしておく
+		if (IRenderable3d* renderable = newObj->GetRenderable3d())
+		{
+			renderable->SetRenderingType(RenderingType::Forward);
+		}
+		selected_ = newObj;
+		// シーン上のギズモは選択の一元管理（SelectionContext）を見るので、そちらにも伝える
+		SelectionContext::GetInstance()->SelectGameObject(newObj);
+	}
 #endif
 }
 
@@ -268,6 +303,28 @@ void GameObjectEditor::DrawInspectorImGui()
 		{
 			if (ImGui::CollapsingHeader("見た目", ImGuiTreeNodeFlags_DefaultOpen))
 			{
+				// モデル（静的モデルの物だけ）。読み込み済みのモデルから選ぶ
+				if (selected_->GetObject3d())
+				{
+					const std::string currentModel = selected_->GetModelName();
+					if (ImGui::BeginCombo("モデル", currentModel.empty() ? "（なし）" : currentModel.c_str()))
+					{
+						for (const std::string& modelName : ModelManager::GetInstance()->GetLoadedModelNames())
+						{
+							if (ImGui::Selectable(modelName.c_str(), modelName == currentModel))
+							{
+								// 古いモデルの GPU リソースを描画の途中で壊さないよう、次のフレームの頭に差し替える
+								GameObjectManager::GetInstance()->RequestModelChange(selected_, modelName);
+							}
+						}
+						ImGui::EndCombo();
+					}
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::SetTooltip("読み込み済みのモデルから選ぶ。次のフレームで変わる。変えると素材の設定（色など）は読み込んだ状態に戻るので、色はあとで直す");
+					}
+				}
+
 				Vector4 color = renderable->GetColor();
 				if (ImGui::ColorEdit4("色", &color.x))
 				{

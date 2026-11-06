@@ -184,6 +184,8 @@ void ShadowMapPass::Execute(const RenderPassContext& ctx)
 	ctx.shadowMapManager->BeginFrame();
 	// まとめて描く分でパイプラインを切り替えた後に戻せるよう、影の描画設定を教えておく
 	GameObjectManager::GetInstance()->SetShadowMapPipeline(ctx.shadowMapPipeline);
+	// GameObject は影の管理を自分では持たない。まとめて描く影と Forward が使えるよう、ここから渡す
+	GameObjectManager::GetInstance()->SetShadowMapManager(ctx.shadowMapManager);
 
 	// カスケードシャドウ行列を計算する
 	ctx.lightManager->UpdateCascadeShadowMatrices(
@@ -206,6 +208,7 @@ void ShadowMapPass::Execute(const RenderPassContext& ctx)
 		// このカスケードの範囲に入らない GameObject は影を描かない（深度は GPU でも切られるので結果は同じ）
 		GameObjectManager::GetInstance()->SetShadowCullingViewProjection(&ctx.lightManager->GetCascadeViewProjection(cascade));
 		ctx.sceneManager->DrawShadow();
+		GameObjectManager::GetInstance()->DrawShadow();
 		GameObjectManager::GetInstance()->SetShadowCullingViewProjection(nullptr);
 		ctx.shadowMapManager->EndShadowPass();
 	}
@@ -246,6 +249,7 @@ void ShadowMapPass::Execute(const RenderPassContext& ctx)
 		// スポットライトの照らす範囲に入らない GameObject は影を描かない
 		GameObjectManager::GetInstance()->SetShadowCullingViewProjection(&ctx.lightManager->GetSpotLightShadowMatrix(name));
 		ctx.sceneManager->DrawShadow();
+		GameObjectManager::GetInstance()->DrawShadow();
 		GameObjectManager::GetInstance()->SetShadowCullingViewProjection(nullptr);
 		ctx.shadowMapManager->EndShadowPass();
 		ctx.shadowMapManager->MarkSpotLightShadowRedrawn(name, lightState, casterState);
@@ -280,6 +284,7 @@ void ShadowMapPass::Execute(const RenderPassContext& ctx)
 			}
 
 			ctx.sceneManager->DrawShadow();
+			GameObjectManager::GetInstance()->DrawShadow();
 			ctx.shadowMapManager->EndShadowPass();
 		}
 	}
@@ -298,6 +303,8 @@ void GBufferPass::Execute(const RenderPassContext& ctx)
 
 	ctx.deferredRenderer->BeginGeometryPass(ctx.view->GetGBuffer());
 	ctx.sceneManager->DrawGBuffer();
+	// GameObject はシーンを問わずここで描く。シーンの物を先に描くのは、GameObject が描画の設定を切り替えることがあるため
+	GameObjectManager::GetInstance()->DrawGBuffer(ctx.cameraManager);
 	ctx.deferredRenderer->EndGeometryPass(ctx.view->GetGBuffer());
 }
 
@@ -372,8 +379,9 @@ void ForwardOpaquePass::Execute(const RenderPassContext& ctx)
 		}
 	}
 
-	// フォワードパス対象オブジェクトの描画
+	// フォワードパス対象オブジェクトの描画。GameObject はシーンを問わず、シーンの物のあとに描く
 	ctx.sceneManager->Draw3D();
+	GameObjectManager::GetInstance()->Draw3D(ctx.cameraManager);
 
 	// 線を省くビューでは、このビューの Draw3D で積まれた分を描かずに捨てる。
 	// 残すと次の本編でもう一度描かれて、線が二重に見える

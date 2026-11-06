@@ -5,6 +5,7 @@
 
 #include "base/Camera.h"
 #include "base/RenderTexture.h"
+#include "camerawork/debug/DebugCamera.h"
 #include "graphics/view/ISubViewProvider.h"
 #include "graphics/view/RenderView.h"
 #include "manager/editor/DebugUIManager.h"
@@ -45,11 +46,12 @@ CameraPreviewEditor::~CameraPreviewEditor()
 	Finalize();
 }
 
-void CameraPreviewEditor::Initialize(ISubViewProvider* provider, CameraManager* cameraManager)
+void CameraPreviewEditor::Initialize(ISubViewProvider* provider, CameraManager* cameraManager, DebugCamera* debugCamera)
 {
 #ifdef USE_IMGUI
 	provider_ = provider;
 	cameraManager_ = cameraManager;
+	debugCamera_ = debugCamera;
 	if (!provider_ || !cameraManager_ || initialized_)
 	{
 		return;
@@ -67,6 +69,7 @@ void CameraPreviewEditor::Initialize(ISubViewProvider* provider, CameraManager* 
 #else
 	(void)provider;
 	(void)cameraManager;
+	(void)debugCamera;
 #endif
 }
 
@@ -166,6 +169,11 @@ void CameraPreviewEditor::DrawWindow(PreviewTarget& target)
 			if (ImGui::Selectable(name.c_str(), selected))
 			{
 				target.cameraName = name;
+				// デバッグカメラを初めて映すときは、今映っているカメラの位置から始める（原点にならないように）
+				if (debugCamera_ && name == DebugCamera::kCameraName)
+				{
+					debugCamera_->AlignToActiveCameraOnce();
+				}
 			}
 			if (selected)
 			{
@@ -270,6 +278,11 @@ void CameraPreviewEditor::DrawWindow(PreviewTarget& target)
 	const ImVec2 cursor = ImGui::GetCursorPos();
 	ImGui::SetCursorPos(ImVec2(cursor.x + (available.x - imageSize.x) * 0.5f, cursor.y + (available.y - imageSize.y) * 0.5f));
 	ImGui::Image(static_cast<ImTextureID>(target.view->GetSceneColor()->GetGPUHandle().ptr), imageSize);
+	// デバッグカメラを映している画像の上では、右ドラッグと WASD でそのカメラを動かせる
+	if (debugCamera_ && target.cameraName == DebugCamera::kCameraName && ImGui::IsItemHovered())
+	{
+		debugCamera_->SetPreviewHovered(true);
+	}
 #else
 	(void)target;
 #endif

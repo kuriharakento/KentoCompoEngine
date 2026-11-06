@@ -66,6 +66,20 @@ public:
     void Stop();
 
     /**
+     * @brief カメラプレビューが、デバッグカメラの映像を出している画像の上にマウスがあると伝える
+     * @details 毎フレーム、画像を描くときに呼ぶ。次の Update で1回だけ使って戻す。
+     *          その間は、Scene にデバッグカメラを映していなくても、右ドラッグと WASD で動かせる
+     */
+    void SetPreviewHovered(bool hovered) { previewHovered_ = hovered; }
+
+    /**
+     * @brief まだ動かしたことがなければ、今映っているカメラの位置と向きに合わせる
+     * @details プレビューでデバッグカメラを初めて選んだときに、原点から始まらないようにする。
+     *          一度でも合わせたか、オンにしたか、動かしたことがあれば何もしない
+     */
+    void AlignToActiveCameraOnce();
+
+    /**
      * @brief カメラを初期位置・向きにリセット
      */
     void Reset();
@@ -113,6 +127,12 @@ public:
     float GetMouseSensitivity() const { return mouseSensitivity_; }
 
 private:
+    /**
+     * @brief 今映っているカメラの位置・向き・画角を、このカメラへ写す
+     * @details Scene を差し替える前に呼ぶ。差し替えた後は、映っているのがこのカメラ自身になる
+     */
+    void CopyPoseFromActiveCamera();
+
     /**
      * @brief 移動処理の更新
      */
@@ -176,6 +196,10 @@ private:
     CameraManager* cameraManager_ = nullptr;
     // 右ドラッグでカメラを掴んでいる間は真。掴んでいない間はカメラにもマウスの設定にも触らない
     bool dragging_ = false;
+    // カメラプレビューの、デバッグカメラを映している画像の上にマウスがあるか。Update が1回使うと戻す
+    bool previewHovered_ = false;
+    // 位置を合わせたか、動かしたことがあるか。プレビューで初めて選んだときだけ、映っているカメラに合わせるのに使う
+    bool placed_ = false;
     // デバッグUI表示フラグ
     bool showDebugUI_ = true;
 

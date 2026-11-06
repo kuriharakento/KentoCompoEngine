@@ -112,6 +112,9 @@
     <Filter Include="gameobject\component\collision">
       <UniqueIdentifier>{0BF4CDBB-E0D3-C0F2-A002-EABFE1C27DD0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="gameobject\component\motion">
+      <UniqueIdentifier>{5E1D7A42-3B96-4C0F-A8D5-7F2C91B6E304}</UniqueIdentifier>
+    </Filter>
     <Filter Include="gameobject\component\render">
       <UniqueIdentifier>{9C816D03-85E7-18B5-8F9A-3F460DCA60EB}</UniqueIdentifier>
     </Filter>
@@ -330,6 +333,9 @@
     <ClCompile Include="editor\SceneViewContext.cpp">
       <Filter>editor</Filter>
     </ClCompile>
+    <ClCompile Include="editor\SceneViewPicker.cpp">
+      <Filter>editor</Filter>
+    </ClCompile>
     <ClCompile Include="editor\SelectionContext.cpp">
       <Filter>editor</Filter>
     </ClCompile>
@@ -431,6 +437,9 @@
     </ClCompile>
     <ClCompile Include="gameobject\component\collision\AABBCollider.cpp">
       <Filter>gameobject\component\collision</Filter>
+    </ClCompile>
+    <ClCompile Include="gameobject\component\motion\MotionComponents.cpp">
+      <Filter>gameobject\component\motion</Filter>
     </ClCompile>
     <ClCompile Include="gameobject\component\collision\CollisionAlgorithm.cpp">
       <Filter>gameobject\component\collision</Filter>
@@ -729,6 +738,15 @@
     <ClCompile Include="sequencer\track\TransformTrack.cpp">
       <Filter>sequencer\track</Filter>
     </ClCompile>
+    <ClCompile Include="stage\LegacyStageManager.cpp">
+      <Filter>stage</Filter>
+    </ClCompile>
+    <ClCompile Include="stage\ModelElement.cpp">
+      <Filter>stage</Filter>
+    </ClCompile>
+    <ClCompile Include="stage\Stage.cpp">
+      <Filter>stage</Filter>
+    </ClCompile>
     <ClCompile Include="stage\StageManager.cpp">
       <Filter>stage</Filter>
     </ClCompile>
@@ -911,6 +929,9 @@
     <ClInclude Include="editor\SceneViewContext.h">
       <Filter>editor</Filter>
     </ClInclude>
+    <ClInclude Include="editor\SceneViewPicker.h">
+      <Filter>editor</Filter>
+    </ClInclude>
     <ClInclude Include="editor\SelectionContext.h">
       <Filter>editor</Filter>
     </ClInclude>
@@ -1087,6 +1108,9 @@
     </ClInclude>
     <ClInclude Include="gameobject\component\collision\AABBCollider.h">
       <Filter>gameobject\component\collision</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\component\motion\MotionComponents.h">
+      <Filter>gameobject\component\motion</Filter>
     </ClInclude>
     <ClInclude Include="gameobject\component\collision\CollisionAlgorithm.h">
       <Filter>gameobject\component\collision</Filter>
@@ -1495,6 +1519,18 @@
     </ClInclude>
     <ClInclude Include="sequencer\track\TransformTrack.h">
       <Filter>sequencer\track</Filter>
+    </ClInclude>
+    <ClInclude Include="stage\IStageElement.h">
+      <Filter>stage</Filter>
+    </ClInclude>
+    <ClInclude Include="stage\LegacyStageManager.h">
+      <Filter>stage</Filter>
+    </ClInclude>
+    <ClInclude Include="stage\ModelElement.h">
+      <Filter>stage</Filter>
+    </ClInclude>
+    <ClInclude Include="stage\Stage.h">
+      <Filter>stage</Filter>
     </ClInclude>
     <ClInclude Include="stage\StageManager.h">
       <Filter>stage</Filter>

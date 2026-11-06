@@ -869,6 +869,8 @@ void LightManager::DrawInspectorImGui(const SelectionItem& item)
 		}
 		ImGui::DragFloat("強さ", &directionalLight_.intensity, 0.05f, 0.0f, 10.0f);
 		ImGui::ColorEdit4("環境光の色", &directionalLight_.ambient.x);
+		// 影が原因か切り分けるときに切る
+		ImGui::Checkbox("影を出す", &directionalShadowEnabled_);
 		break;
 
 	case SelectionLightType::Point:
@@ -1405,7 +1407,7 @@ void LightManager::UpdateCascadeShadowMatrices(Camera* camera, float nearPlane, 
 				*cascadeLightVPData_[i] = cascadeViewProjections_[i];
 			}
 		}
-		cascadeShadowData_->enableShadow = 1;
+		cascadeShadowData_->enableShadow = directionalShadowEnabled_ ? 1 : 0;
 	}
 }
 

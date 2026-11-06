@@ -22,6 +22,11 @@ public:
     virtual void Update() {}
     /** @brief 全コンポーネントの Update 後に呼ばれる。 */
     virtual void LateUpdate() {}
+    /**
+     * @brief GameObject の更新が止められていたのが、再開されるときに呼ばれる。
+     * @details 経過時間や基準位置など、更新の間に持ち越している値を捨てるのに使う（ステージエディタの再生ボタンなど）。
+     */
+    virtual void OnUpdateResumed() {}
     /** @brief 無効になる直前に呼ばれる。 */
     virtual void OnDisable() {}
     /** @brief 破棄直前に一度だけ呼ばれる。 */

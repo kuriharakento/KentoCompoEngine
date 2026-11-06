@@ -1,11 +1,13 @@
 #include "gameobject/manager/GameObjectInstancing.h"
 
+#include <algorithm>
 #include <cstring>
 
 #include "gameobject/base/GameObject.h"
 #include "graphics/3d/InstancedModelRenderer.h"
 #include "graphics/3d/Object3d.h"
 #include "manager/graphics/ModelManager.h"
+#include "time/TimeManager.h"
 
 namespace KCE
 {
@@ -15,6 +17,19 @@ namespace
 constexpr uint32_t kMaxInstancesPerGroup = 4096;
 // これ未満ならまとめても得しないので1体ずつ描く
 constexpr size_t kMinInstancesPerGroup = 2;
+// バッファを作るときの最小の大きさ。描画ごとに別のバッファを持つので、小さく始めて足りなければ作り直す
+constexpr uint32_t kMinRendererCapacity = 64;
+
+/** @brief count 以上の最小の2の冪（1 以上）。バッファの大きさをそろえて、作り直しを減らす */
+uint32_t RoundUpToPowerOfTwo(uint32_t count)
+{
+	uint32_t result = 1;
+	while (result < count)
+	{
+		result <<= 1;
+	}
+	return result;
+}
 
 /** @brief 2つのモデルの素材が全部同じか。1体ごとに色などをいじった物をまとめないための確認 */
 bool HasSameMaterials(const Model& lhs, const Model& rhs)
@@ -54,6 +69,7 @@ void GameObjectInstancing::Initialize(DirectXCommon* dxCommon, SrvManager* srvMa
 void GameObjectInstancing::Finalize()
 {
 	groups_.clear();
+	retiredRenderers_.clear();
 	activeGroups_.clear();
 	singles_.clear();
 }
@@ -161,23 +177,55 @@ void GameObjectInstancing::BuildInternal(const std::vector<const GameObjectRende
 			data.WVP = viewProjection ? (source->World * *viewProjection) : source->World;
 			group.instanceData.push_back(data);
 		}
-		if (!group.renderer)
-		{
-			group.renderer = std::make_unique<InstancedModelRenderer>(kMaxInstancesPerGroup);
-			group.renderer->Initialize(dxCommon_, srvManager_, group.model);
-		}
 		activeGroups_.push_back(&group);
 		lastInstancedCount_ += static_cast<uint32_t>(group.instanceData.size());
 	}
 	lastGroupCount_ = static_cast<uint32_t>(activeGroups_.size());
 }
 
+InstancedModelRenderer* GameObjectInstancing::AcquireRenderer(Group& group)
+{
+	// フレームが変わったら、全部のまとまりのバッファを最初から使い直す
+	const uint64_t frame = TimeManager::GetInstance().GetFrameCount();
+	if (frame != renderersResetFrame_)
+	{
+		renderersResetFrame_ = frame;
+		for (auto& [model, other] : groups_)
+		{
+			other.usedRenderers = 0;
+		}
+	}
+
+	const uint32_t needed = static_cast<uint32_t>(group.instanceData.size());
+	const uint32_t slot = group.usedRenderers++;
+	if (slot >= group.renderers.size())
+	{
+		group.renderers.resize(slot + 1);
+	}
+	std::unique_ptr<InstancedModelRenderer>& renderer = group.renderers[slot];
+	// 足りないバッファは作り直す。使っていたものの SRV の番号は戻さないが、大きくなる方向にしか作り直さないので数は限られる。
+	// 前のフレームの描画がまだ GPU で読んでいる可能性があるので、壊さずに置いておく
+	if (!renderer || renderer->GetMaxInstances() < needed)
+	{
+		const uint32_t capacity = (std::min)(kMaxInstancesPerGroup, RoundUpToPowerOfTwo((std::max)(needed, kMinRendererCapacity)));
+		auto created = std::make_unique<InstancedModelRenderer>(capacity);
+		created->Initialize(dxCommon_, srvManager_, group.model);
+		if (renderer)
+		{
+			retiredRenderers_.push_back(std::move(renderer));
+		}
+		renderer = std::move(created);
+	}
+	return renderer.get();
+}
+
 void GameObjectInstancing::DrawForward(Camera* camera, LightManager* lightManager, ShadowMapManager* shadowMapManager)
 {
 	for (Group* group : activeGroups_)
 	{
-		group->renderer->UpdateBufferDirect(group->instanceData.data(), static_cast<uint32_t>(group->instanceData.size()));
-		group->renderer->DrawInstanced(camera, lightManager, shadowMapManager);
+		InstancedModelRenderer* renderer = AcquireRenderer(*group);
+		renderer->UpdateBufferDirect(group->instanceData.data(), static_cast<uint32_t>(group->instanceData.size()));
+		renderer->DrawInstanced(camera, lightManager, shadowMapManager);
 	}
 }
 
@@ -185,8 +233,9 @@ void GameObjectInstancing::DrawGBuffer(Camera* camera)
 {
 	for (Group* group : activeGroups_)
 	{
-		group->renderer->UpdateBufferDirect(group->instanceData.data(), static_cast<uint32_t>(group->instanceData.size()));
-		group->renderer->DrawInstancedGBuffer(camera);
+		InstancedModelRenderer* renderer = AcquireRenderer(*group);
+		renderer->UpdateBufferDirect(group->instanceData.data(), static_cast<uint32_t>(group->instanceData.size()));
+		renderer->DrawInstancedGBuffer(camera);
 	}
 }
 
@@ -194,9 +243,10 @@ void GameObjectInstancing::DrawShadow(ShadowMapManager* shadowMapManager)
 {
 	for (Group* group : activeGroups_)
 	{
-		group->renderer->UpdateBufferDirect(group->instanceData.data(), static_cast<uint32_t>(group->instanceData.size()));
+		InstancedModelRenderer* renderer = AcquireRenderer(*group);
+		renderer->UpdateBufferDirect(group->instanceData.data(), static_cast<uint32_t>(group->instanceData.size()));
 		// 影のシェーダーはカメラを見ないので渡さない
-		group->renderer->DrawInstancedShadow(nullptr, shadowMapManager);
+		renderer->DrawInstancedShadow(nullptr, shadowMapManager);
 	}
 }
 } // namespace KCE

@@ -1,6 +1,7 @@
 #include "base/DirectXCommon.h"
 
 #include <cassert>
+#include <cstdlib>
 #include <format>
 #include <thread>
 #include <filesystem>
@@ -377,12 +378,28 @@ void DirectXCommon::InitializeDevice()
 	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
 		//デバッグレイヤーを有効化する（Debug では必ずオン。切らないこと）
 		debugController->EnableDebugLayer();
-#ifdef KCE_GPU_VALIDATION
 		//さらにGPU側でもチェックを行うようにする。
 		//全シェーダーのリソースを読む命令に確認が埋め込まれ、毎フレーム GPU が数倍重くなるので、ふだんは切っておく。
-		//見た目がおかしいのにデバッグレイヤーが何も言わないとき（数フレームに1回だけ状態を間違えるなど）に、KCE_GPU_VALIDATION を定義して探す
-		debugController->SetEnableGPUBasedValidation(TRUE);
+		//見た目がおかしいのにデバッグレイヤーが何も言わないとき（数フレームに1回だけ状態を間違えるなど）に、
+		//KCE_GPU_VALIDATION を定義するか、環境変数 KCE_GPU_VALIDATION=1 を付けて起動して探す（環境変数なら再ビルドは要らない）
+		bool gpuValidation = false;
+#ifdef KCE_GPU_VALIDATION
+		gpuValidation = true;
 #endif
+		if (!gpuValidation)
+		{
+			char* value = nullptr;
+			size_t length = 0;
+			if (_dupenv_s(&value, &length, "KCE_GPU_VALIDATION") == 0 && value)
+			{
+				gpuValidation = value[0] == '1';
+				free(value);
+			}
+		}
+		if (gpuValidation)
+		{
+			debugController->SetEnableGPUBasedValidation(TRUE);
+		}
 	}
 #endif
 

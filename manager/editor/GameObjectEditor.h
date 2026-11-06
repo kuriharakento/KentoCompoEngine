@@ -51,6 +51,9 @@ private:
 	GameObjectEditor(const GameObjectEditor&) = delete;
 	GameObjectEditor& operator=(const GameObjectEditor&) = delete;
 
+	/** @brief GameObject を1つ作って選ぶ。 */
+	void CreateAndSelectNew();
+
 	/**
 	 * @brief コンポーネントを新規作成してGameObjectに追加する
 	 * @param owner 対象のGameObject
