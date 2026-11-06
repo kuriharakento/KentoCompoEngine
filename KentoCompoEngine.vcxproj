@@ -188,9 +188,11 @@
     <ClCompile Include="sequencer\track\ScreenTrack.cpp" />
     <ClCompile Include="sequencer\track\TextTrack.cpp" />
     <ClCompile Include="sequencer\track\TransformTrack.cpp" />
+    <ClCompile Include="stage\CameraElement.cpp" />
     <ClCompile Include="stage\LegacyStageManager.cpp" />
     <ClCompile Include="stage\ModelElement.cpp" />
     <ClCompile Include="stage\Stage.cpp" />
+    <ClCompile Include="stage\TextElement.cpp" />
     <ClCompile Include="stage\StageManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -455,10 +457,12 @@
     <ClInclude Include="sequencer\track\TextTrack.h" />
     <ClInclude Include="sequencer\track\TransformTrack.h" />
     <ClInclude Include="sequencer\core\CurveChannel.h" />
+    <ClInclude Include="stage\CameraElement.h" />
     <ClInclude Include="stage\IStageElement.h" />
     <ClInclude Include="stage\LegacyStageManager.h" />
     <ClInclude Include="stage\ModelElement.h" />
     <ClInclude Include="stage\Stage.h" />
+    <ClInclude Include="stage\TextElement.h" />
     <ClInclude Include="stage\StageManager.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

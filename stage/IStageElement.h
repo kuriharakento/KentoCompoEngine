@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <string>
@@ -11,6 +12,8 @@ namespace KCE
 struct SceneContext;
 #ifdef USE_IMGUI
 struct SelectionItem;
+struct GizmoResult;
+struct Matrix4x4;
 #endif
 
 /**
@@ -55,6 +58,20 @@ public:
 	virtual void DrawHierarchyRow() = 0;
 	/** @brief 選択が自分の物なら Inspector の中身を描く。選択の種類が合わなければ何もしない */
 	virtual void DrawInspector(const SelectionItem& selected) = 0;
+	/**
+	 * @brief 選択が自分の物なら、ギズモで動かす姿勢を返す。自分の物でなければ false
+	 * @param operations 使える操作（GizmoOperationFlags）。既定は全部
+	 */
+	virtual bool GetGizmoPose(const SelectionItem& selected, Matrix4x4& world, uint32_t& operations) const
+	{
+		(void)selected; (void)world; (void)operations;
+		return false;
+	}
+	/** @brief ギズモで動かした結果を受け取る。自分の物でなければ何もしない */
+	virtual void ApplyGizmo(const SelectionItem& selected, const GizmoResult& result, uint32_t dragId)
+	{
+		(void)selected; (void)result; (void)dragId;
+	}
 #endif
 
 protected:

@@ -738,6 +738,9 @@
     <ClCompile Include="sequencer\track\TransformTrack.cpp">
       <Filter>sequencer\track</Filter>
     </ClCompile>
+    <ClCompile Include="stage\CameraElement.cpp">
+      <Filter>stage</Filter>
+    </ClCompile>
     <ClCompile Include="stage\LegacyStageManager.cpp">
       <Filter>stage</Filter>
     </ClCompile>
@@ -745,6 +748,9 @@
       <Filter>stage</Filter>
     </ClCompile>
     <ClCompile Include="stage\Stage.cpp">
+      <Filter>stage</Filter>
+    </ClCompile>
+    <ClCompile Include="stage\TextElement.cpp">
       <Filter>stage</Filter>
     </ClCompile>
     <ClCompile Include="stage\StageManager.cpp">
@@ -1520,6 +1526,9 @@
     <ClInclude Include="sequencer\track\TransformTrack.h">
       <Filter>sequencer\track</Filter>
     </ClInclude>
+    <ClInclude Include="stage\CameraElement.h">
+      <Filter>stage</Filter>
+    </ClInclude>
     <ClInclude Include="stage\IStageElement.h">
       <Filter>stage</Filter>
     </ClInclude>
@@ -1530,6 +1539,9 @@
       <Filter>stage</Filter>
     </ClInclude>
     <ClInclude Include="stage\Stage.h">
+      <Filter>stage</Filter>
+    </ClInclude>
+    <ClInclude Include="stage\TextElement.h">
       <Filter>stage</Filter>
     </ClInclude>
     <ClInclude Include="stage\StageManager.h">

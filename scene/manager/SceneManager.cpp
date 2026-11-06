@@ -5,6 +5,7 @@
 #include "base/Logger.h"
 #include "externals/imgui/imgui.h"
 #include "effects/particle/ParticleManager.h"
+#include "gameobject/component/collision/GameObjectCollisionManager.h"
 #include "manager/editor/DebugUIManager.h"
 #include "manager/graphics/ModelManager.h"
 #include "manager/graphics/TextureManager.h"
@@ -175,6 +176,8 @@ void SceneManager::ReserveNextScene()
 
 		// シーン切り替え時にパーティクルをすべてクリア
 		ParticleManager::GetInstance()->Clear();
+		// 前のシーンのコライダーを持ち越さない
+		GameObjectCollisionManager::GetInstance()->Clear();
 
 		// 旧シーンの描画がGPUで終わってから、参照されなくなった素材と番号を返す。
 		if (context_.dxCommon)

@@ -37,7 +37,6 @@ bool GameObjectCollisionManager::HasInstance()
 }
 void GameObjectCollisionManager::Initialize()
 {
-	colliders_.clear();
 #ifdef USE_IMGUI
 	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "デバッグ", "当たり判定の一覧", [this]() { this->DrawImGui(); });
 #endif
@@ -204,6 +203,14 @@ void GameObjectCollisionManager::Initialize()
 		outMtv = tmpMtv;
 		return true;
 	};
+}
+
+void GameObjectCollisionManager::Clear()
+{
+	colliders_.clear();
+	currentCollisions_.clear();
+	currentObjectCollisions_.clear();
+	nextObjectCollisions_.clear();
 }
 
 void GameObjectCollisionManager::Finalize()

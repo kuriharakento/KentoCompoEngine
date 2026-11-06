@@ -6,10 +6,14 @@
 
 #include "base/Logger.h"
 #include "manager/editor/DebugUIManager.h"
+#include "stage/CameraElement.h"
 #include "stage/ModelElement.h"
+#include "stage/TextElement.h"
 #include "time/TimeManager.h"
 #ifdef USE_IMGUI
 #include "base/PathManager.h"
+#include "editor/SceneGizmo.h"
+#include "editor/SelectionContext.h"
 #include "externals/imgui/imgui.h"
 #endif
 
@@ -36,9 +40,43 @@ void StageManager::Initialize(const SceneContext& context)
 	context_ = context;
 	// 参照される種類を先に、参照する種類を後に登録する
 	RegisterElementType(ModelElement::MakeType());
+	RegisterElementType(TextElement::MakeType());
+	// カメラは、モニターなど映す側より先に登録する
+	RegisterElementType(CameraElement::MakeType());
 #ifdef USE_IMGUI
 	// 初めて開くときは、Hierarchy と同じ左側のタブに入る
 	DebugUIManager::GetInstance()->RegisterWindow(this, "ステージ###Stage", [this]() { DrawWindowImGui(); }, EditorDock::Left);
+	// 要素ごとの詳細とギズモは、選ばれた物の持ち主に渡す（持ち主でなければ要素が何もしない）
+	for (const SelectionKind kind : { SelectionKind::Text3D, SelectionKind::Camera })
+	{
+		DebugUIManager::GetInstance()->RegisterInspector(this, kind, [this](const SelectionItem& item)
+		{
+			for (auto& [name, stage] : stages_)
+			{
+				for (const auto& element : stage->GetElements()) { element->DrawInspector(item); }
+			}
+		});
+		GizmoTarget target;
+		target.getPose = [this](const SelectionItem& item, Matrix4x4& world, uint32_t& operations)
+		{
+			for (auto& [name, stage] : stages_)
+			{
+				for (const auto& element : stage->GetElements())
+				{
+					if (element->GetGizmoPose(item, world, operations)) { return true; }
+				}
+			}
+			return false;
+		};
+		target.apply = [this](const SelectionItem& item, const GizmoResult& result, uint32_t dragId)
+		{
+			for (auto& [name, stage] : stages_)
+			{
+				for (const auto& element : stage->GetElements()) { element->ApplyGizmo(item, result, dragId); }
+			}
+		};
+		SceneGizmo::GetInstance()->RegisterTarget(this, kind, std::move(target));
+	}
 #endif
 }
 
@@ -48,6 +86,10 @@ void StageManager::Finalize()
 	if (DebugUIManager::HasInstance())
 	{
 		DebugUIManager::GetInstance()->Unregister(this);
+	}
+	if (SceneGizmo::HasInstance())
+	{
+		SceneGizmo::GetInstance()->Unregister(this);
 	}
 #endif
 	stages_.clear();
@@ -337,15 +379,18 @@ void StageManager::DrawStageBodyImGui(Stage& stage)
 	{
 		// 編集の邪魔にならないよう、再生中は足せないようにする
 		ImGui::BeginDisabled(stage.IsPlaying());
-		if (ImGui::MenuItem("空のオブジェクト"))
+		// 種類ごとの「空の新規」。登録した種類が増えれば、自動で並ぶ
+		for (const StageElementType& type : types_)
 		{
-			for (const StageElementType& type : types_)
+			if (!type.createDefault)
 			{
-				if (type.key == "models" && type.createDefault)
-				{
-					auto element = type.createDefault(MakeUniqueName(stage, "Model"), context_);
-					stage.Add(element);
-				}
+				continue;
+			}
+			const std::string label = type.displayName + "を追加";
+			if (ImGui::MenuItem(label.c_str()))
+			{
+				auto element = type.createDefault(MakeUniqueName(stage, type.displayName), context_);
+				stage.Add(element);
 			}
 		}
 		ImGui::Separator();

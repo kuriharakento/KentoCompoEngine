@@ -93,6 +93,7 @@ public:
 
 	/**
 	 * @brief すべてのGameObjectの更新
+	 * @details MyGame が、シーンの更新の直後に毎フレーム1回呼ぶ。シーンからは呼ばない
 	 */
 	void Update();
 
