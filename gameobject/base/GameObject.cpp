@@ -1,3 +1,4 @@
+#include <cstdio>
 #include "GameObject.h"
 #include "base/PathManager.h"
 #include "core/SchemaVersion.h"
@@ -907,38 +908,53 @@ bool GameObject::LoadJson(const std::string& path)
 void GameObject::DrawImGui()
 {
 #ifdef USE_IMGUI
-	// 階層表示を描画
-	ShowImGuiHierarchy();
+	ImGui::PushID(this);
 
-	ImGui::Spacing();
-	ImGui::Separator();
-	ImGui::Spacing();
-
-	// 自身のプロパティ（TransformやName）を描画
-	JsonEditableBase::DrawImGui();
-
-	// 各コンポーネントのプロパティを描画
-	for (size_t index = 0; index < components_.size(); ++index)
+	// --- 名前・タグ・有効 ---
+	char nameBuffer[128];
+	std::snprintf(nameBuffer, sizeof(nameBuffer), "%s", name_.c_str());
+	ImGui::SetNextItemWidth(-FLT_MIN);
+	if (ImGui::InputTextWithHint("##Name", "名前", nameBuffer, sizeof(nameBuffer)))
 	{
-		const auto& compName = componentTypeNames_[index];
-		const auto& comp = components_[index];
-		auto* editableComp = dynamic_cast<JsonEditableBase*>(comp.get());
-		if (editableComp)
-		{
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-
-			// コンポーネント用のヘッダーセクション。同じ種類を2つ持てるので、見出しごと ID を分ける
-			std::string headerLabel = compName + " Component";
-			ImGui::PushID(comp.get());
-			if (ImGui::CollapsingHeader(headerLabel.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				editableComp->DrawImGui();
-			}
-			ImGui::PopID();
-		}
+		name_ = nameBuffer;
 	}
+	ImGui::TextDisabled("タグ: %s", tag_.c_str());
+	ImGui::SameLine();
+	bool active = isActive_;
+	if (ImGui::Checkbox("有効", &active))
+	{
+		SetActive(active);
+	}
+
+	// --- Transform。軸ごとに色を付け、ラベルは左にそろえる ---
+	ImGui::SeparatorText("Transform");
+	const auto drawVector = [](const char* label, Vector3& value, float speed)
+	{
+		ImGui::PushID(label);
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted(label);
+		ImGui::SameLine(72.0f);
+		ImGui::SetNextItemWidth(-FLT_MIN);
+		ImGui::DragFloat3("##Value", &value.x, speed);
+		ImGui::PopID();
+	};
+	drawVector("位置", transform_.translate, 0.1f);
+	drawVector("回転", transform_.rotate, 0.01f);
+	drawVector("拡大", transform_.scale, 0.01f);
+
+	// --- 子 ---
+	if (!children_.empty() && ImGui::TreeNode("子オブジェクト"))
+	{
+		for (const auto& [childName, child] : children_)
+		{
+			if (child)
+			{
+				child->ShowImGuiHierarchy();
+			}
+		}
+		ImGui::TreePop();
+	}
+	ImGui::PopID();
 #endif // USE_IMGUI
 }
 } // namespace KCE

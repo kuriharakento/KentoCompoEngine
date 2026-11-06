@@ -19,6 +19,18 @@
 
 namespace KCE
 {
+namespace
+{
+/**
+ * @brief Inspector の見出し。折りたたまず、線つきの文字で区切る。中身は常に表示する
+ */
+void InspectorSection(const char* label)
+{
+	ImGui::Spacing();
+	ImGui::SeparatorText(label);
+}
+} // namespace
+
 std::unique_ptr<GameObjectEditor> GameObjectEditor::instance_ = nullptr;
 
 GameObjectEditor* GameObjectEditor::GetInstance()
@@ -219,89 +231,18 @@ void GameObjectEditor::DrawInspectorImGui()
 {
 #ifdef USE_IMGUI
 
-	// スクロール可能な詳細領域（残り領域を全て使い、はみ出た場合はスクロールさせる）
-	ImGui::BeginChild("InspectorDetailsArea", ImVec2(0, -75.0f), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+	// 子のスクロール領域は作らない（ウィンドウのスクロールと二重になり、ホイールが使いにくいため）
 
 	if (selected_)
 	{
-		// 1. JSON ファイル操作（折りたたみ可能にしてスッキリさせる）
-		if (ImGui::CollapsingHeader("JSON保存", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			ImGui::Spacing();
-			ImGui::PushItemWidth(200.0f);
-			if (ImGui::InputText("JSONファイル名", fileNameBuf_, sizeof(fileNameBuf_)))
-			{
-				// 入力時にもファイル一覧をリフレッシュ
-			}
-			ImGui::PopItemWidth();
-
-			if (ImGui::Button("JSONを保存", ImVec2(100.0f, 0.0f)))
-			{
-				if (selected_->SaveJson(fileNameBuf_))
-				{
-					UpdateJsonFileList(); // セーブ成功したら一覧を更新
-				}
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("読み込み（上書き）", ImVec2(130.0f, 0.0f)))
-			{
-				selected_->LoadJson(fileNameBuf_);
-			}
-			ImGui::Spacing();
-		}
-
-		if (ImGui::CollapsingHeader("プレハブ", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			ImGui::PushItemWidth(200.0f);
-			ImGui::InputText("プレハブファイル名", prefabFileNameBuf_, sizeof(prefabFileNameBuf_));
-			ImGui::PopItemWidth();
-			if (ImGui::Button("プレハブとして保存"))
-			{
-				if (selected_->SavePrefab(prefabFileNameBuf_))
-				{
-					UpdatePrefabFileList();
-				}
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("プレハブを生成") && !prefabFiles_.empty())
-			{
-				GameObject* object = GameObjectManager::GetInstance()->Instantiate(prefabFiles_[selectedPrefabIndex_]);
-				if (object)
-				{
-					selected_ = object;
-					SelectionContext::GetInstance()->SelectGameObject(object);
-				}
-			}
-			if (!prefabFiles_.empty())
-			{
-				ImGui::PushItemWidth(200.0f);
-				if (ImGui::BeginCombo("プレハブ元", prefabFiles_[selectedPrefabIndex_].c_str()))
-				{
-					for (int index = 0; index < static_cast<int>(prefabFiles_.size()); ++index)
-					{
-						if (ImGui::Selectable(prefabFiles_[index].c_str(), selectedPrefabIndex_ == index))
-						{
-							selectedPrefabIndex_ = index;
-						}
-					}
-					ImGui::EndCombo();
-				}
-				ImGui::PopItemWidth();
-			}
-			else
-			{
-				ImGui::TextDisabled("プレハブファイルがありません。");
-			}
-		}
-
-		ImGui::Spacing();
-		ImGui::Separator();
+		// 名前・Transform（一番よく触るので最上部）
+		selected_->DrawImGui();
 		ImGui::Spacing();
 
 		// 見た目（色・描画方式）。本体の描画物がある物だけ出す
 		if (IRenderable3d* renderable = selected_->GetRenderable3d())
 		{
-			if (ImGui::CollapsingHeader("見た目", ImGuiTreeNodeFlags_DefaultOpen))
+			InspectorSection("見た目");
 			{
 				// モデル（静的モデルの物だけ）。読み込み済みのモデルから選ぶ
 				if (selected_->GetObject3d())
@@ -345,89 +286,141 @@ void GameObjectEditor::DrawInspectorImGui()
 			ImGui::Spacing();
 		}
 
-		// 2. 基本プロパティ＆アタッチされたコンポーネントのパラメータ描画
-		selected_->DrawImGui();
+		// コンポーネント。見出しごとに折りたたみ、右端の「削除」で外す
+		{
+			std::string removeName;
+			const auto& comps = selected_->GetComponents();
+			const auto& componentNames = selected_->GetComponentTypeNames();
+			for (size_t index = 0; index < comps.size(); ++index)
+			{
+				const std::string& compName = componentNames[index];
+				// 同じ種類を2つ持てるので、種類名ではなく並び順で ID を分ける
+				ImGui::PushID(static_cast<int>(index));
+				const float deleteWidth = ImGui::CalcTextSize("削除").x + ImGui::GetStyle().FramePadding.x * 2.0f;
+				InspectorSection(compName.c_str());
+				ImGui::SameLine(ImGui::GetContentRegionMax().x - deleteWidth);
+				if (ImGui::SmallButton("削除"))
+				{
+					removeName = compName;
+				}
+				{
+					if (auto* editable = dynamic_cast<JsonEditableBase*>(comps[index].get()))
+					{
+						editable->DrawImGui();
+					}
+					else
+					{
+						ImGui::TextDisabled("編集できる項目はありません。");
+					}
+				}
+				ImGui::PopID();
+			}
+			if (!removeName.empty())
+			{
+				selected_->RemoveComponent(removeName);
+			}
+		}
 
-		ImGui::Spacing();
-		ImGui::Separator();
-		ImGui::Spacing();
-
-		// 3. コンポーネントの管理（追加・削除を一目でわかりやすく整理）
-		if (ImGui::CollapsingHeader("Componentマネージャー", ImGuiTreeNodeFlags_DefaultOpen))
+		// コンポーネントの追加
+		if (!availableComponents_.empty())
 		{
 			ImGui::Spacing();
-			ImGui::Text("追加済みComponent:");
-			ImGui::Indent();
-
-			std::vector<std::string> toRemove;
-			const auto& comps = selected_->GetComponents();
-			if (comps.empty())
+			ImGui::SetNextItemWidth(-ImGui::CalcTextSize("追加").x - ImGui::GetStyle().FramePadding.x * 2.0f - ImGui::GetStyle().ItemSpacing.x);
+			if (ImGui::BeginCombo("##CompSelect", availableComponents_[selectedCompIndex_].c_str()))
 			{
-				ImGui::TextDisabled("Componentはありません。");
-			}
-			else
-			{
-				const auto& componentNames = selected_->GetComponentTypeNames();
-				for (size_t index = 0; index < comps.size(); ++index)
+				for (int i = 0; i < static_cast<int>(availableComponents_.size()); ++i)
 				{
-					const auto& compName = componentNames[index];
-					const auto& comp = comps[index];
-					// 同じ種類を2つ持てるので、種類名ではなく並び順で ID を分ける
-					ImGui::PushID(static_cast<int>(index));
-					ImGui::AlignTextToFramePadding();
-					ImGui::Bullet();
-					ImGui::Text("%s", compName.c_str());
-					ImGui::SameLine(ImGui::GetWindowWidth() - 110.0f);
-					if (ImGui::Button("削除", ImVec2(75.0f, 0.0f)))
+					if (ImGui::Selectable(availableComponents_[i].c_str(), selectedCompIndex_ == i))
 					{
-						toRemove.push_back(compName);
+						selectedCompIndex_ = i;
 					}
-					ImGui::PopID();
+				}
+				ImGui::EndCombo();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("追加"))
+			{
+				AddComponentByName(selected_, availableComponents_[selectedCompIndex_]);
+			}
+		}
+
+		// 保存（使う頻度が低いので、最後に折りたたんで置く）
+		ImGui::Spacing();
+		// 1. JSON ファイル操作（折りたたみ可能にしてスッキリさせる）
+		InspectorSection("JSON保存");
+		{
+			ImGui::Spacing();
+			ImGui::PushItemWidth(200.0f);
+			if (ImGui::InputText("JSONファイル名", fileNameBuf_, sizeof(fileNameBuf_)))
+			{
+				// 入力時にもファイル一覧をリフレッシュ
+			}
+			ImGui::PopItemWidth();
+
+			if (ImGui::Button("JSONを保存", ImVec2(100.0f, 0.0f)))
+			{
+				if (selected_->SaveJson(fileNameBuf_))
+				{
+					UpdateJsonFileList(); // セーブ成功したら一覧を更新
 				}
 			}
-
-			for (const auto& compName : toRemove)
+			ImGui::SameLine();
+			if (ImGui::Button("読み込み（上書き）", ImVec2(130.0f, 0.0f)))
 			{
-				selected_->RemoveComponent(compName);
+				selected_->LoadJson(fileNameBuf_);
 			}
-
-			ImGui::Unindent();
-
 			ImGui::Spacing();
+		}
 
-			// コンポーネント追加セクション
-			if (!availableComponents_.empty())
+		InspectorSection("プレハブ");
+		{
+			ImGui::PushItemWidth(200.0f);
+			ImGui::InputText("プレハブファイル名", prefabFileNameBuf_, sizeof(prefabFileNameBuf_));
+			ImGui::PopItemWidth();
+			if (ImGui::Button("プレハブとして保存"))
 			{
-				ImGui::Text("Componentを追加:");
-				ImGui::PushItemWidth(180.0f);
-				if (ImGui::BeginCombo("##CompSelect", availableComponents_[selectedCompIndex_].c_str()))
+				if (selected_->SavePrefab(prefabFileNameBuf_))
 				{
-					for (int i = 0; i < static_cast<int>(availableComponents_.size()); ++i)
+					UpdatePrefabFileList();
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("プレハブを生成") && !prefabFiles_.empty())
+			{
+				GameObject* object = GameObjectManager::GetInstance()->Instantiate(prefabFiles_[selectedPrefabIndex_]);
+				if (object)
+				{
+					selected_ = object;
+					SelectionContext::GetInstance()->SelectGameObject(object);
+				}
+			}
+			if (!prefabFiles_.empty())
+			{
+				ImGui::PushItemWidth(200.0f);
+				if (ImGui::BeginCombo("プレハブ元", prefabFiles_[selectedPrefabIndex_].c_str()))
+				{
+					for (int index = 0; index < static_cast<int>(prefabFiles_.size()); ++index)
 					{
-						bool isSel = (selectedCompIndex_ == i);
-						if (ImGui::Selectable(availableComponents_[i].c_str(), isSel))
+						if (ImGui::Selectable(prefabFiles_[index].c_str(), selectedPrefabIndex_ == index))
 						{
-							selectedCompIndex_ = i;
+							selectedPrefabIndex_ = index;
 						}
 					}
 					ImGui::EndCombo();
 				}
 				ImGui::PopItemWidth();
-				ImGui::SameLine();
-				if (ImGui::Button("Componentを追加"))
-				{
-					AddComponentByName(selected_, availableComponents_[selectedCompIndex_]);
-				}
 			}
-			ImGui::Spacing();
+			else
+			{
+				ImGui::TextDisabled("プレハブファイルがありません。");
+			}
 		}
+
 	}
 	else
 	{
 		ImGui::TextDisabled("一覧からGameObjectを選ぶと編集できます。");
 	}
-
-	ImGui::EndChild(); // InspectorDetailsArea
 
 	// ------------------ 最下部: 既存 JSON のシーンロード ------------------
 	ImGui::Spacing();
