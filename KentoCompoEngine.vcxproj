@@ -167,6 +167,8 @@
     <ClCompile Include="editor\SceneGizmo.cpp" />
     <ClCompile Include="editor\SceneViewContext.cpp" />
     <ClCompile Include="editor\SceneViewPicker.cpp" />
+    <ClCompile Include="manager\editor\SettingsStore.cpp" />
+    <ClCompile Include="manager\graphics\ResourceManifest.cpp" />
     <ClCompile Include="editor\CameraPreviewEditor.cpp" />
     <ClCompile Include="editor\SpriteAnimationEditor.cpp" />
     <ClCompile Include="editor\SelectionContext.cpp" />
@@ -191,6 +193,7 @@
     <ClCompile Include="stage\CameraElement.cpp" />
     <ClCompile Include="stage\LegacyStageManager.cpp" />
     <ClCompile Include="stage\ModelElement.cpp" />
+    <ClCompile Include="stage\MonitorElement.cpp" />
     <ClCompile Include="stage\Stage.cpp" />
     <ClCompile Include="stage\TextElement.cpp" />
     <ClCompile Include="stage\StageManager.cpp" />
@@ -430,6 +433,9 @@
     <ClInclude Include="editor\SceneGizmo.h" />
     <ClInclude Include="editor\SceneViewContext.h" />
     <ClInclude Include="editor\SceneViewPicker.h" />
+    <ClInclude Include="manager\editor\SettingsJson.h" />
+    <ClInclude Include="manager\editor\SettingsStore.h" />
+    <ClInclude Include="manager\graphics\ResourceManifest.h" />
     <ClInclude Include="editor\CameraPreviewEditor.h" />
     <ClInclude Include="editor\SpriteAnimationEditor.h" />
     <ClInclude Include="editor\SelectionContext.h" />
@@ -461,6 +467,7 @@
     <ClInclude Include="stage\IStageElement.h" />
     <ClInclude Include="stage\LegacyStageManager.h" />
     <ClInclude Include="stage\ModelElement.h" />
+    <ClInclude Include="stage\MonitorElement.h" />
     <ClInclude Include="stage\Stage.h" />
     <ClInclude Include="stage\TextElement.h" />
     <ClInclude Include="stage\StageManager.h" />

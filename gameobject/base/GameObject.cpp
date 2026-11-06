@@ -1,5 +1,6 @@
 #include <cstdio>
 #include "GameObject.h"
+#include <algorithm>
 #include "base/PathManager.h"
 #include "core/SchemaVersion.h"
 #include "engine/gameobject/manager/GameObjectManager.h"
@@ -76,7 +77,30 @@ void GameObject::SetModel(const std::string& modelName)
 	{
 		obj3d->SetModel(modelName);
 		modelName_ = modelName;
+		// 新しいモデルは、本来のテクスチャから始まる
+		meshTextures_.clear();
 	}
+}
+
+bool GameObject::SetMeshTexture(size_t meshIndex, const std::string& texturePath)
+{
+	auto* obj3d = GetObject3d();
+	Model* model = obj3d ? obj3d->GetModel() : nullptr;
+	if (!model || !model->SetMeshTexture(meshIndex, texturePath))
+	{
+		return false;
+	}
+	if (meshTextures_.size() <= meshIndex)
+	{
+		meshTextures_.resize(meshIndex + 1);
+	}
+	meshTextures_[meshIndex] = texturePath;
+	// 全部が本来のテクスチャなら、覚えをやめる（保存に余計な項目を書かない）
+	if (std::all_of(meshTextures_.begin(), meshTextures_.end(), [](const std::string& path) { return path.empty(); }))
+	{
+		meshTextures_.clear();
+	}
+	return true;
 }
 
 void GameObject::SetSkinnedModel(const std::string& modelPath, const std::string& ext)
@@ -780,6 +804,11 @@ nlohmann::json GameObject::SerializePrefab() const
 	if (GetObject3d() && !modelName_.empty())
 	{
 		prefab["model"] = modelName_;
+		// 替えたテクスチャがあれば、メッシュの順に書く（空は本来のまま）
+		if (!meshTextures_.empty())
+		{
+			prefab["meshTextures"] = meshTextures_;
+		}
 	}
 
 	prefab["components"] = nlohmann::json::array();

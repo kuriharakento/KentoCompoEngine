@@ -98,6 +98,35 @@ public:
 	/** @brief シーン寿命のテクスチャ数を取得する */
 	size_t GetSceneTextureCount() const;
 
+	/** @brief 読み込み済みのテクスチャ1つ。エディタの一覧に使う */
+	struct LoadedTexture
+	{
+		//! 登録名（正規化したパス。リニア版は末尾に接尾辞が付く）
+		std::string path;
+		ResourceLifetime lifetime = ResourceLifetime::Scene;
+		uint32_t width = 0;
+		uint32_t height = 0;
+		uint32_t srvIndex = 0;
+		//! 起動後に、パスで引かれた回数。未使用の見分けに使う（描画のたびではなく、番号を引いた回数）
+		uint64_t referenceCount = 0;
+		//! 最後に引かれたフレーム。一度も引かれていなければ 0
+		uint64_t lastReferenceFrame = 0;
+		//! ImGui::Image に渡す GPU ハンドル
+		uint64_t gpuHandle = 0;
+		//! 普通の 2D 画像として描けるか。キューブマップや配列は、2D として描くと GPU のデバッグレイヤーが止まるので偽
+		bool previewable = false;
+	};
+	/**
+	 * @brief テクスチャを1つ解放する
+	 * @param key GetLoadedTextures の path（登録名）
+	 * @details GPU がまだ使っているかもしれないので、呼ぶ前に GPU の完了を待つこと。
+	 *          別の物（モデルの素材など）が、SRV の番号を持っていると、その表示が壊れる。参照されていない物にだけ使う
+	 * @return 解放できたら真。登録が無ければ偽
+	 */
+	bool ReleaseTexture(const std::string& key);
+	/** @brief 読み込み済みのテクスチャを、名前順に返す */
+	std::vector<LoadedTexture> GetLoadedTextures() const;
+
 public: // アクセッサ
 	/**
 	 * @brief ファイルパスからテクスチャインデックスを取得
@@ -207,6 +236,8 @@ private: // 構造体
 		D3D12_CPU_DESCRIPTOR_HANDLE srvHandleCPU;            // CPU側ディスクリプタハンドル
 		D3D12_GPU_DESCRIPTOR_HANDLE srvHandleGPU;            // GPU側ディスクリプタハンドル
 		ResourceLifetime lifetime = ResourceLifetime::Scene;
+		uint64_t referenceCount = 0;                          // パスで引かれた回数（エディタの未使用の見分け用）
+		uint64_t lastReferenceFrame = 0;                      // 最後に引かれたフレーム
 	};
 
 	// テクスチャデータのキャッシュ（ファイルパス -> テクスチャデータ）

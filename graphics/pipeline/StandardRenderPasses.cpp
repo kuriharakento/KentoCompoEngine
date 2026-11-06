@@ -382,6 +382,8 @@ void ForwardOpaquePass::Execute(const RenderPassContext& ctx)
 	// フォワードパス対象オブジェクトの描画。GameObject はシーンを問わず、シーンの物のあとに描く
 	ctx.sceneManager->Draw3D();
 	GameObjectManager::GetInstance()->Draw3D(ctx.cameraManager);
+	// 地面のグリッドは、シーンを問わず設定どおりに描く。線を省くビューでは、下で捨てられる
+	LineManager::GetInstance()->DrawConfiguredGrid();
 
 	// 線を省くビューでは、このビューの Draw3D で積まれた分を描かずに捨てる。
 	// 残すと次の本編でもう一度描かれて、線が二重に見える

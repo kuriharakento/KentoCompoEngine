@@ -8,6 +8,9 @@
 #include "base/PathManager.h"
 #include "core/SchemaVersion.h"
 #include "scene/SceneContext.h"
+#ifdef USE_IMGUI
+#include "editor/SelectionContext.h"
+#endif
 #include "stage/StageManager.h"
 
 namespace KCE
@@ -25,13 +28,22 @@ Stage::Stage(std::string name, const SceneContext& context)
 
 Stage::~Stage()
 {
-	// 要素のデストラクタが、持っている物の登録を外す
-	elements_.clear();
+	ClearElements();
+}
+
+void Stage::ClearElements()
+{
+	// 後ろに足された物（モニターなど、前の物を参照する側）から先に壊す。
+	// 映す側が、映される側（カメラの映像）より先に畳まれるようにする
+	while (!elements_.empty())
+	{
+		elements_.pop_back();
+	}
 }
 
 bool Stage::Load()
 {
-	elements_.clear();
+	ClearElements();
 	passthrough_ = nlohmann::ordered_json::object();
 
 	const std::filesystem::path fullPath = PathManager::GetApplicationResourceRoot() / kStageDirectory / (name_ + ".json");
@@ -55,7 +67,7 @@ bool Stage::Load()
 		if (!Deserialize(json, error))
 		{
 			Logger::Log("Stage: 読み込みに失敗しました: " + error + "\n", Logger::LogLevel::Error);
-			elements_.clear();
+			ClearElements();
 			passthrough_ = nlohmann::ordered_json::object();
 			return false;
 		}
@@ -63,7 +75,7 @@ bool Stage::Load()
 	catch (const nlohmann::json::exception& e)
 	{
 		Logger::Log(std::string("Stage: JSON を読めません: ") + e.what() + "\n", Logger::LogLevel::Error);
-		elements_.clear();
+		ClearElements();
 		passthrough_ = nlohmann::ordered_json::object();
 		return false;
 	}
@@ -144,7 +156,37 @@ bool Stage::Add(std::unique_ptr<IStageElement>& element)
 	}
 	// 編集中に足した物は、止まった状態から始める
 	element->SetPlaying(playing_);
+	element->BindStage(this);
 	elements_.push_back(std::move(element));
+	return true;
+}
+
+bool Stage::Rename(const std::string& oldName, const std::string& newName)
+{
+	IStageElement* target = FindElement(oldName);
+	if (!target || newName.empty() || FindElement(newName))
+	{
+		return false;
+	}
+	if (!target->OnRename(newName))
+	{
+		return false;
+	}
+	target->SetName(newName);
+	for (auto& element : elements_)
+	{
+		element->OnElementRenamed(oldName, newName);
+	}
+#ifdef USE_IMGUI
+	// 選んでいたなら、新しい名前の物を選び直す
+	const SelectionItem primary = SelectionContext::GetInstance()->GetPrimary();
+	if (!primary.name.empty() && primary.name == oldName)
+	{
+		SelectionItem renamed = primary;
+		renamed.name = newName;
+		SelectionContext::GetInstance()->Select(renamed);
+	}
+#endif
 	return true;
 }
 
@@ -257,6 +299,7 @@ bool Stage::Deserialize(const nlohmann::json& json, std::string& outError)
 				Logger::Log("Stage: 名前が重複する項目を読み飛ばしました: " + element->GetName() + "\n", Logger::LogLevel::Warning);
 				continue;
 			}
+			element->BindStage(this);
 			elements_.push_back(std::move(element));
 		}
 	}

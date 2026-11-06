@@ -8,6 +8,7 @@
 #include "manager/editor/DebugUIManager.h"
 #include "stage/CameraElement.h"
 #include "stage/ModelElement.h"
+#include "stage/MonitorElement.h"
 #include "stage/TextElement.h"
 #include "time/TimeManager.h"
 #ifdef USE_IMGUI
@@ -43,11 +44,13 @@ void StageManager::Initialize(const SceneContext& context)
 	RegisterElementType(TextElement::MakeType());
 	// カメラは、モニターなど映す側より先に登録する
 	RegisterElementType(CameraElement::MakeType());
+	// モニターは、映すカメラより後に登録する
+	RegisterElementType(MonitorElement::MakeType());
 #ifdef USE_IMGUI
 	// 初めて開くときは、Hierarchy と同じ左側のタブに入る
 	DebugUIManager::GetInstance()->RegisterWindow(this, "ステージ###Stage", [this]() { DrawWindowImGui(); }, EditorDock::Left);
 	// 要素ごとの詳細とギズモは、選ばれた物の持ち主に渡す（持ち主でなければ要素が何もしない）
-	for (const SelectionKind kind : { SelectionKind::Text3D, SelectionKind::Camera })
+	for (const SelectionKind kind : { SelectionKind::Text3D, SelectionKind::Camera, SelectionKind::StageMonitor })
 	{
 		DebugUIManager::GetInstance()->RegisterInspector(this, kind, [this](const SelectionItem& item)
 		{
@@ -389,7 +392,7 @@ void StageManager::DrawStageBodyImGui(Stage& stage)
 			const std::string label = type.displayName + "を追加";
 			if (ImGui::MenuItem(label.c_str()))
 			{
-				auto element = type.createDefault(MakeUniqueName(stage, type.displayName), context_);
+				auto element = type.createDefault(MakeUniqueName(stage, type.defaultName.empty() ? type.key : type.defaultName), context_);
 				stage.Add(element);
 			}
 		}
@@ -434,6 +437,14 @@ void StageManager::DrawStageBodyImGui(Stage& stage)
 		if (ImGui::BeginPopupContextItem("StageElementMenu"))
 		{
 			ImGui::BeginDisabled(stage.IsPlaying());
+			if (ImGui::MenuItem("名前を変更"))
+			{
+				renameTarget_ = element->GetName();
+				renameBuffer_.fill(0);
+				renameTarget_.copy(renameBuffer_.data(), renameBuffer_.size() - 1);
+				renameError_.clear();
+				renamePopupRequested_ = true;
+			}
 			if (ImGui::MenuItem("削除"))
 			{
 				removeName = element->GetName();
@@ -455,6 +466,36 @@ void StageManager::DrawStageBodyImGui(Stage& stage)
 		stage.Remove(removeName);
 	}
 	ImGui::EndChild();
+
+	// 名前の変更。メニューの中では開けないので、フラグを受けてここで開く
+	if (renamePopupRequested_)
+	{
+		renamePopupRequested_ = false;
+		ImGui::OpenPopup("RenameElement");
+	}
+	if (ImGui::BeginPopupModal("RenameElement", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("「%s」の新しい名前", renameTarget_.c_str());
+		if (ImGui::IsWindowAppearing()) { ImGui::SetKeyboardFocusHere(); }
+		const bool submitted = ImGui::InputText("##RenameInput", renameBuffer_.data(), renameBuffer_.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+		const bool pressed = ImGui::Button("変更");
+		ImGui::SameLine();
+		const bool cancelled = ImGui::Button("キャンセル");
+		if (submitted || pressed)
+		{
+			if (stage.Rename(renameTarget_, renameBuffer_.data()))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+			else
+			{
+				renameError_ = "変更できません（名前が空か、すでに使われています）";
+			}
+		}
+		if (cancelled) { ImGui::CloseCurrentPopup(); }
+		if (!renameError_.empty()) { ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s", renameError_.c_str()); }
+		ImGui::EndPopup();
+	}
 }
 #endif
 } // namespace KCE

@@ -47,6 +47,7 @@ public:
 
 	const char* GetTypeKey() const override { return "models"; }
 	void SetPlaying(bool playing) override;
+	bool OnRename(const std::string& newName) override;
 	nlohmann::ordered_json Serialize() const override;
 
 	/** @return ゲームから動かしたいときの窓口。所有権は持たない */

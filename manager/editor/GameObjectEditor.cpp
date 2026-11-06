@@ -9,7 +9,10 @@
 #include "sequencer/editor/SequencerCommands.h"
 #include "externals/imgui/imgui.h"
 #include "graphics/3d/IRenderable3d.h"
+#include "graphics/3d/Model.h"
+#include "graphics/3d/Object3d.h"
 #include "manager/graphics/ModelManager.h"
+#include "manager/graphics/TextureManager.h"
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -263,6 +266,40 @@ void GameObjectEditor::DrawInspectorImGui()
 					if (ImGui::IsItemHovered())
 					{
 						ImGui::SetTooltip("読み込み済みのモデルから選ぶ。次のフレームで変わる。変えると素材の設定（色など）は読み込んだ状態に戻るので、色はあとで直す");
+					}
+				}
+
+				// テクスチャ（メッシュごと）。読み込み済みの画像から選ぶ。キューブマップなど、2D でない物は出さない
+				Model* model = selected_->GetObject3d() ? selected_->GetObject3d()->GetModel() : nullptr;
+				if (model && model->GetMeshCount() > 0)
+				{
+					const auto textures = TextureManager::GetInstance()->GetLoadedTextures();
+					const auto& meshTextures = selected_->GetMeshTextures();
+					for (size_t meshIndex = 0; meshIndex < model->GetMeshCount(); ++meshIndex)
+					{
+						const std::string current = meshIndex < meshTextures.size() ? meshTextures[meshIndex] : std::string();
+						const std::string label = model->GetMeshCount() == 1 ? std::string("テクスチャ") : "テクスチャ " + std::to_string(meshIndex + 1);
+						ImGui::PushID(static_cast<int>(meshIndex));
+						if (ImGui::BeginCombo(label.c_str(), current.empty() ? "（モデルのまま）" : current.c_str()))
+						{
+							if (ImGui::Selectable("（モデルのまま）", current.empty()))
+							{
+								selected_->SetMeshTexture(meshIndex, std::string());
+							}
+							for (const auto& texture : textures)
+							{
+								if (texture.previewable && ImGui::Selectable(texture.path.c_str(), texture.path == current))
+								{
+									selected_->SetMeshTexture(meshIndex, texture.path);
+								}
+							}
+							ImGui::EndCombo();
+						}
+						ImGui::PopID();
+					}
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::SetTooltip("読み込み済みのテクスチャから選ぶ。Project ウィンドウで、読み込める。\n替えた物は、同じモデルの物とまとめて描かれず、1体ずつ描かれる");
 					}
 				}
 

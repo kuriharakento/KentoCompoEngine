@@ -34,6 +34,7 @@
 #include "editor/EditorContext.h"
 #include "editor/SceneGizmo.h"
 #include "editor/SceneViewPicker.h"
+#include "manager/editor/SettingsStore.h"
 #include "gameobject/component/motion/MotionComponents.h"
 #include "editor/SceneViewContext.h"
 #include "editor/SelectionContext.h"
@@ -88,6 +89,8 @@ void Framework::Initialize()
 
 	// DebugUIManager と ConsoleLog の初期化
 	DebugUIManager::GetInstance()->Initialize();
+	// 保存した設定を読む。各持ち主が登録するとき、その場で値が戻る
+	SettingsStore::GetInstance()->Initialize();
 	ConsoleLog::GetInstance()->Initialize();
 	SceneGizmo::GetInstance()->Initialize();
 	// ギズモの掴み判定を見るので、ギズモのあとに登録する
@@ -503,6 +506,8 @@ void Framework::Finalize()
 	ShaderHotReload::GetInstance()->Finalize();
 	CutsceneManager::GetInstance()->Finalize();
 	SequencerEditor::GetInstance()->Finalize();
+	// 持ち主が先に壊れる前に、保存項目の登録を外す
+	SettingsStore::GetInstance()->Finalize();
 	SceneViewPicker::GetInstance()->Finalize();
 	SceneGizmo::GetInstance()->Finalize();
 	TimeManager::GetInstance().UnregisterDebugUI();

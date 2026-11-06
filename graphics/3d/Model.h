@@ -55,6 +55,16 @@ public:
 	const std::vector<MeshResource>& GetMeshResources() const { return meshResources_; }
 
 	/**
+	 * @brief メッシュのテクスチャを、読み込み済みの別のテクスチャに替える
+	 * @details このモデルが物体ごとの複製のときだけ使う（元のモデルに使うと、同じモデルの全部が替わる）。
+	 *          替えた物は、同じ元のモデルを使う物とまとめて描けなくなり、1体ずつ描かれる
+	 * @param meshIndex メッシュの番号
+	 * @param texturePath 読み込み済みのテクスチャの登録名。空なら、モデル本来のテクスチャへ戻す
+	 * @return 替えられたら真。番号が範囲外か、テクスチャが読み込まれていなければ偽（何も変えない）
+	 */
+	bool SetMeshTexture(size_t meshIndex, const std::string& texturePath);
+
+	/**
 	 * @brief コピーコンストラクタ
 	 * @param other コピー元のモデル
 	 */

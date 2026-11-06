@@ -111,6 +111,7 @@ StageElementType ModelElement::MakeType()
 	StageElementType type;
 	type.key = "models";
 	type.displayName = "モデル";
+	type.defaultName = "Model";
 	type.create = &CreateFromJson;
 	type.createDefault = &CreateDefault;
 	return type;
@@ -154,6 +155,15 @@ void ModelElement::RestorePose()
 	object_->SetPosition(startPose_.position);
 	object_->SetRotation(startPose_.rotation);
 	object_->SetScale(startPose_.scale);
+}
+
+bool ModelElement::OnRename(const std::string& newName)
+{
+	if (object_)
+	{
+		object_->SetName(newName);
+	}
+	return true;
 }
 
 void ModelElement::SetPlaying(bool playing)

@@ -336,6 +336,12 @@
     <ClCompile Include="editor\SceneViewPicker.cpp">
       <Filter>editor</Filter>
     </ClCompile>
+    <ClCompile Include="manager\editor\SettingsStore.cpp">
+      <Filter>manager\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="manager\graphics\ResourceManifest.cpp">
+      <Filter>manager\graphics</Filter>
+    </ClCompile>
     <ClCompile Include="editor\SelectionContext.cpp">
       <Filter>editor</Filter>
     </ClCompile>
@@ -744,6 +750,9 @@
     <ClCompile Include="stage\LegacyStageManager.cpp">
       <Filter>stage</Filter>
     </ClCompile>
+    <ClCompile Include="stage\MonitorElement.cpp">
+      <Filter>stage</Filter>
+    </ClCompile>
     <ClCompile Include="stage\ModelElement.cpp">
       <Filter>stage</Filter>
     </ClCompile>
@@ -937,6 +946,15 @@
     </ClInclude>
     <ClInclude Include="editor\SceneViewPicker.h">
       <Filter>editor</Filter>
+    </ClInclude>
+    <ClInclude Include="manager\editor\SettingsJson.h">
+      <Filter>manager\editor</Filter>
+    </ClInclude>
+    <ClInclude Include="manager\editor\SettingsStore.h">
+      <Filter>manager\editor</Filter>
+    </ClInclude>
+    <ClInclude Include="manager\graphics\ResourceManifest.h">
+      <Filter>manager\graphics</Filter>
     </ClInclude>
     <ClInclude Include="editor\SelectionContext.h">
       <Filter>editor</Filter>
@@ -1533,6 +1551,9 @@
       <Filter>stage</Filter>
     </ClInclude>
     <ClInclude Include="stage\LegacyStageManager.h">
+      <Filter>stage</Filter>
+    </ClInclude>
+    <ClInclude Include="stage\MonitorElement.h">
       <Filter>stage</Filter>
     </ClInclude>
     <ClInclude Include="stage\ModelElement.h">

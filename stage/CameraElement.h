@@ -55,6 +55,13 @@ public:
 
 	const char* GetTypeKey() const override { return "cameras"; }
 	nlohmann::ordered_json Serialize() const override;
+	bool OnRename(const std::string& newName) override;
+
+	uint32_t GetWidth() const { return state_.width; }
+	uint32_t GetHeight() const { return state_.height; }
+	/** @brief 映像が見られていると伝える。次のフレームの Update で、映像を描かせる */
+	void RequestView() { viewRequested_ = true; }
+	void Update(float deltaTime) override;
 
 	/** @return モニターが映す映像。解像度を変えると作り直されるので、持ち続けず毎回引く。所有は Framework */
 	RenderView* GetView() const { return view_; }
@@ -83,5 +90,7 @@ private:
 	ISubViewProvider* provider_ = nullptr;
 	// 所有は provider。DestroySubView まで有効
 	RenderView* view_ = nullptr;
+	// モニターから見られているか。Update が1回使うと戻す
+	bool viewRequested_ = false;
 };
 } // namespace KCE

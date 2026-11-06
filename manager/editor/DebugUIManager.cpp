@@ -2,6 +2,7 @@
 
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
+#include "manager/editor/SettingsStore.h"
 #include "externals/imgui/imgui_internal.h"
 #include <algorithm>
 #include <cctype>
@@ -429,6 +430,26 @@ void DebugUIManager::DrawSettings()
 {
 	DockOnFirstOpen(kSettingsWindowName, EditorDock::RightBottom);
 	ImGui::Begin(kSettingsWindowName);
+	// 保存する項目だけを、ファイルへ書く・戻す。勝手には書き換えない
+	if (SettingsStore::HasInstance())
+	{
+		SettingsStore* store = SettingsStore::GetInstance();
+		const bool dirty = store->IsDirty();
+		if (ImGui::Button(dirty ? "設定を保存 *" : "設定を保存"))
+		{
+			store->Save();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("保存した設定を読み込む"))
+		{
+			store->Reload();
+		}
+		if (!store->GetStatusMessage().empty())
+		{
+			ImGui::SameLine();
+			ImGui::TextDisabled("%s", store->GetStatusMessage().c_str());
+		}
+	}
 	ImGui::InputTextWithHint("##settings_filter", "検索", settingsFilter_.data(), settingsFilter_.size());
 	ImGui::BeginChild("SettingsList", ImVec2(kSettingsListWidth, 0.0f), true);
 	const bool filtering = settingsFilter_[0] != '\0';

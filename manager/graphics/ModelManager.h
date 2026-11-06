@@ -83,6 +83,31 @@ public: /*========[ メンバ関数 ]========*/
 	 */
 	std::vector<std::string> GetLoadedModelNames() const;
 
+	/** @brief 読み込み済みのモデル1つ。エディタの一覧に使う */
+	struct LoadedModel
+	{
+		std::string name;
+		//! 読み込んだときのファイル形式（".obj" など）。不明なら空
+		std::string type;
+		ResourceLifetime lifetime = ResourceLifetime::Scene;
+		//! 起動後に、名前で引かれた回数（物体にモデルを設定した回数など）
+		uint64_t referenceCount = 0;
+		//! 最後に引かれたフレーム。一度も引かれていなければ 0
+		uint64_t lastReferenceFrame = 0;
+	};
+	/** @brief 読み込み済みのモデルを、名前順に返す */
+	std::vector<LoadedModel> GetLoadedModels() const;
+	/**
+	 * @brief モデルを1つ解放する
+	 * @details GPU がまだ使っているかもしれないので、呼ぶ前に GPU の完了を待つこと。
+	 *          物体は、モデルを複製して持つので、元を解放しても、すでにある物体は動く。
+	 *          ただし、名前で引き直すと、シーン寿命で読み直される
+	 * @return 解放できたら真
+	 */
+	bool ReleaseModel(const std::string& name);
+	/** @brief 読み込み済みか。FindModel と違い、読み直さず、参照の回数にも数えない */
+	bool HasModel(const std::string& name) const { return models_.contains(name); }
+
 	/**
 	 * @brief モデルの検索
 	 * @param filePath モデルファイルパス
@@ -135,6 +160,8 @@ private: /*========[ メンバ変数 ]========*/
 	{
 		std::unique_ptr<Model> model;
 		ResourceLifetime lifetime = ResourceLifetime::Scene;
+		uint64_t referenceCount = 0;
+		uint64_t lastReferenceFrame = 0;
 	};
 	std::map<std::string, ModelEntry> models_;
 	std::map<std::string, std::string> knownModelTypes_;

@@ -12,6 +12,8 @@
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
 #include "manager/editor/DebugUIManager.h"
+#include "manager/editor/SettingsJson.h"
+#include "manager/editor/SettingsStore.h"
 #endif
 
 namespace KCE
@@ -181,6 +183,23 @@ void FogRenderer::Draw(Camera* camera, GBuffer* gBuffer, D3D12_CPU_DESCRIPTOR_HA
 void FogRenderer::RegisterDebugUI()
 {
 	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "レンダリング", "フォグ", [this]() { DrawImGui(); });
+	SettingsStore::GetInstance()->RegisterItem(this, "fog",
+		[this]()
+		{
+			return nlohmann::json{ { "enabled", settings_.enabled }, { "color", SettingsJson::ToJson(settings_.color) },
+				{ "density", settings_.density }, { "baseHeight", settings_.baseHeight }, { "heightFalloff", settings_.heightFalloff },
+				{ "maxOpacity", settings_.maxOpacity }, { "skyAmount", settings_.skyAmount } };
+		},
+		[this](const nlohmann::json& json)
+		{
+			SettingsJson::Read(json, "enabled", settings_.enabled);
+			SettingsJson::Read(json, "color", settings_.color);
+			SettingsJson::Read(json, "density", settings_.density);
+			SettingsJson::Read(json, "baseHeight", settings_.baseHeight);
+			SettingsJson::Read(json, "heightFalloff", settings_.heightFalloff);
+			SettingsJson::Read(json, "maxOpacity", settings_.maxOpacity);
+			SettingsJson::Read(json, "skyAmount", settings_.skyAmount);
+		});
 }
 
 void FogRenderer::DrawImGui()

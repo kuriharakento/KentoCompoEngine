@@ -1,6 +1,7 @@
 #include "ModelManager.h"
 
 #include <algorithm>
+#include "time/TimeManager.h"
 
 #include "base/JobSystem.h"
 #include "manager/graphics/TextureManager.h"
@@ -178,6 +179,24 @@ size_t ModelManager::GetSceneModelCount() const
 	return models_.size() - GetResidentModelCount();
 }
 
+bool ModelManager::ReleaseModel(const std::string& name)
+{
+	return models_.erase(name) != 0;
+}
+
+std::vector<ModelManager::LoadedModel> ModelManager::GetLoadedModels() const
+{
+	std::vector<LoadedModel> list;
+	list.reserve(models_.size());
+	for (const auto& [name, entry] : models_)
+	{
+		const auto type = knownModelTypes_.find(name);
+		list.push_back({ name, type != knownModelTypes_.end() ? type->second : std::string(), entry.lifetime,
+			entry.referenceCount, entry.lastReferenceFrame });
+	}
+	return list;
+}
+
 std::vector<std::string> ModelManager::GetLoadedModelNames() const
 {
 	std::vector<std::string> names;
@@ -193,10 +212,13 @@ std::vector<std::string> ModelManager::GetLoadedModelNames() const
 Model* ModelManager::FindModel(const std::string& filePath)
 {
 	// 読み込み済みモデルを検索
-	if (models_.contains(filePath))
+	if (const auto found = models_.find(filePath); found != models_.end())
 	{
+		// 使われているかを、エディタで見られるよう数える
+		++found->second.referenceCount;
+		found->second.lastReferenceFrame = TimeManager::GetInstance().GetFrameCount();
 		// 読み込み済みならモデルを返す
-		return models_.at(filePath).model.get();
+		return found->second.model.get();
 	}
 
 	// 解放後にパスで引かれたら、前回と同じ形式でシーン素材として読み直す。

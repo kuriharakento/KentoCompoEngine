@@ -10,6 +10,8 @@
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
 #include "manager/editor/DebugUIManager.h"
+#include "manager/editor/SettingsJson.h"
+#include "manager/editor/SettingsStore.h"
 #endif
 
 namespace KCE
@@ -634,6 +636,149 @@ bool PostProcessManager::ReloadShaders(std::string& outError)
 void PostProcessManager::RegisterDebugUI()
 {
 	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "レンダリング", "ポストプロセス", [this]() { this->DrawImGui(); });
+	// 全エフェクトの、有効と各項目を保存する。読み込みは、キーが無い項目を既定のままにする
+	SettingsStore::GetInstance()->RegisterItem(this, "postProcess",
+		[this]()
+		{
+			nlohmann::json json;
+			json["tonemap"] = { { "enabled", tonemapEffect_->IsEnabled() }, { "mode", static_cast<int>(tonemapEffect_->GetMode()) },
+				{ "exposure", tonemapEffect_->GetExposure() } };
+			json["bloom"] = { { "enabled", bloomEffect_->IsEnabled() }, { "selective", selectiveBloomModeEnabled_ },
+				{ "threshold", bloomEffect_->GetThreshold() }, { "intensity", bloomEffect_->GetIntensity() },
+				{ "knee", bloomEffect_->GetThresholdKnee() }, { "radius", bloomEffect_->GetRadius() } };
+			json["gaussianBlur"] = { { "enabled", gaussianBlurEffect_->IsEnabled() }, { "radius", gaussianBlurEffect_->GetRadius() },
+				{ "strength", gaussianBlurEffect_->GetStrength() } };
+			json["diffusion"] = { { "enabled", diffusionEffect_->IsEnabled() }, { "radius", diffusionEffect_->GetRadius() },
+				{ "intensity", diffusionEffect_->GetIntensity() } };
+			const Vector2 center = radialBlurEffect_->GetCenter();
+			json["radialBlur"] = { { "enabled", radialBlurEffect_->IsEnabled() }, { "center", nlohmann::json::array({ center.x, center.y }) },
+				{ "strength", radialBlurEffect_->GetStrength() }, { "samples", radialBlurEffect_->GetSampleCount() },
+				{ "blend", radialBlurEffect_->GetBlend() } };
+			json["colorGrading"] = { { "enabled", colorGradingEffect_->IsEnabled() },
+				{ "lift", SettingsJson::ToJson(colorGradingEffect_->GetLift()) }, { "gamma", SettingsJson::ToJson(colorGradingEffect_->GetGamma()) },
+				{ "gain", SettingsJson::ToJson(colorGradingEffect_->GetGain()) }, { "saturation", colorGradingEffect_->GetSaturation() },
+				{ "contrast", colorGradingEffect_->GetContrast() } };
+			json["grayscale"] = { { "enabled", grayscaleEffect_->IsEnabled() }, { "intensity", grayscaleEffect_->GetIntensity() } };
+			json["vignette"] = { { "enabled", vignetteEffect_->IsEnabled() }, { "intensity", vignetteEffect_->GetIntensity() },
+				{ "radius", vignetteEffect_->GetRadius() }, { "softness", vignetteEffect_->GetSoftness() },
+				{ "color", SettingsJson::ToJson(vignetteEffect_->GetColor()) } };
+			json["noise"] = { { "enabled", noiseEffect_->IsEnabled() }, { "intensity", noiseEffect_->GetIntensity() },
+				{ "grainSize", noiseEffect_->GetGrainSize() }, { "luminanceAffect", noiseEffect_->GetLuminanceAffect() } };
+			json["crt"] = { { "enabled", crtEffect_->IsEnabled() }, { "scanline", crtEffect_->IsScanlineEnabled() != 0 },
+				{ "scanlineIntensity", crtEffect_->GetScanlineIntensity() }, { "scanlineCount", crtEffect_->GetScanlineCount() },
+				{ "distortion", crtEffect_->IsDistortionEnabled() != 0 }, { "distortionStrength", crtEffect_->GetDistortionStrength() },
+				{ "chromaticAberration", crtEffect_->IsChromaticAberrationEnabled() != 0 },
+				{ "chromaticAberrationOffset", crtEffect_->GetChromaticAberrationOffset() } };
+			return json;
+		},
+		[this](const nlohmann::json& json)
+		{
+			using SettingsJson::Read;
+			// 項目の入った object を探す。無ければ nullptr
+			const auto section = [&json](const char* key) -> const nlohmann::json*
+			{
+				const auto found = json.find(key);
+				return (found != json.end() && found->is_object()) ? &*found : nullptr;
+			};
+			if (const auto* s = section("tonemap"))
+			{
+				bool enabled = tonemapEffect_->IsEnabled();
+				int mode = static_cast<int>(tonemapEffect_->GetMode());
+				float exposure = tonemapEffect_->GetExposure();
+				Read(*s, "enabled", enabled); Read(*s, "mode", mode); Read(*s, "exposure", exposure);
+				tonemapEffect_->SetEnabled(enabled);
+				if (mode == static_cast<int>(TonemapMode::ACES) || mode == static_cast<int>(TonemapMode::Reinhard))
+				{
+					tonemapEffect_->SetMode(static_cast<TonemapMode>(mode));
+				}
+				tonemapEffect_->SetExposure(exposure);
+			}
+			if (const auto* s = section("bloom"))
+			{
+				bool enabled = bloomEffect_->IsEnabled();
+				float threshold = bloomEffect_->GetThreshold(), intensity = bloomEffect_->GetIntensity();
+				float knee = bloomEffect_->GetThresholdKnee(), radius = bloomEffect_->GetRadius();
+				Read(*s, "enabled", enabled); Read(*s, "selective", selectiveBloomModeEnabled_);
+				Read(*s, "threshold", threshold); Read(*s, "intensity", intensity); Read(*s, "knee", knee); Read(*s, "radius", radius);
+				bloomEffect_->SetEnabled(enabled); bloomEffect_->SetThreshold(threshold); bloomEffect_->SetIntensity(intensity);
+				bloomEffect_->SetThresholdKnee(knee); bloomEffect_->SetRadius(radius);
+			}
+			if (const auto* s = section("gaussianBlur"))
+			{
+				bool enabled = gaussianBlurEffect_->IsEnabled();
+				float radius = gaussianBlurEffect_->GetRadius(), strength = gaussianBlurEffect_->GetStrength();
+				Read(*s, "enabled", enabled); Read(*s, "radius", radius); Read(*s, "strength", strength);
+				gaussianBlurEffect_->SetEnabled(enabled); gaussianBlurEffect_->SetRadius(radius); gaussianBlurEffect_->SetStrength(strength);
+			}
+			if (const auto* s = section("diffusion"))
+			{
+				bool enabled = diffusionEffect_->IsEnabled();
+				float radius = diffusionEffect_->GetRadius(), intensity = diffusionEffect_->GetIntensity();
+				Read(*s, "enabled", enabled); Read(*s, "radius", radius); Read(*s, "intensity", intensity);
+				diffusionEffect_->SetEnabled(enabled); diffusionEffect_->SetRadius(radius); diffusionEffect_->SetIntensity(intensity);
+			}
+			if (const auto* s = section("radialBlur"))
+			{
+				bool enabled = radialBlurEffect_->IsEnabled();
+				Vector2 center = radialBlurEffect_->GetCenter();
+				float strength = radialBlurEffect_->GetStrength(), blend = radialBlurEffect_->GetBlend();
+				int samples = radialBlurEffect_->GetSampleCount();
+				Read(*s, "enabled", enabled); SettingsJson::ReadFloats(*s, "center", 2, &center.x);
+				Read(*s, "strength", strength); Read(*s, "samples", samples); Read(*s, "blend", blend);
+				radialBlurEffect_->SetEnabled(enabled); radialBlurEffect_->SetCenter(center); radialBlurEffect_->SetStrength(strength);
+				radialBlurEffect_->SetSampleCount(samples); radialBlurEffect_->SetBlend(blend);
+			}
+			if (const auto* s = section("colorGrading"))
+			{
+				bool enabled = colorGradingEffect_->IsEnabled();
+				Vector3 lift = colorGradingEffect_->GetLift(), gamma = colorGradingEffect_->GetGamma(), gain = colorGradingEffect_->GetGain();
+				float saturation = colorGradingEffect_->GetSaturation(), contrast = colorGradingEffect_->GetContrast();
+				Read(*s, "enabled", enabled); Read(*s, "lift", lift); Read(*s, "gamma", gamma); Read(*s, "gain", gain);
+				Read(*s, "saturation", saturation); Read(*s, "contrast", contrast);
+				colorGradingEffect_->SetEnabled(enabled); colorGradingEffect_->SetLift(lift); colorGradingEffect_->SetGamma(gamma);
+				colorGradingEffect_->SetGain(gain); colorGradingEffect_->SetSaturation(saturation); colorGradingEffect_->SetContrast(contrast);
+			}
+			if (const auto* s = section("grayscale"))
+			{
+				bool enabled = grayscaleEffect_->IsEnabled();
+				float intensity = grayscaleEffect_->GetIntensity();
+				Read(*s, "enabled", enabled); Read(*s, "intensity", intensity);
+				grayscaleEffect_->SetEnabled(enabled); grayscaleEffect_->SetIntensity(intensity);
+			}
+			if (const auto* s = section("vignette"))
+			{
+				bool enabled = vignetteEffect_->IsEnabled();
+				float intensity = vignetteEffect_->GetIntensity(), radius = vignetteEffect_->GetRadius(), softness = vignetteEffect_->GetSoftness();
+				Vector3 color = vignetteEffect_->GetColor();
+				Read(*s, "enabled", enabled); Read(*s, "intensity", intensity); Read(*s, "radius", radius);
+				Read(*s, "softness", softness); Read(*s, "color", color);
+				vignetteEffect_->SetEnabled(enabled); vignetteEffect_->SetIntensity(intensity); vignetteEffect_->SetRadius(radius);
+				vignetteEffect_->SetSoftness(softness); vignetteEffect_->SetColor(color);
+			}
+			if (const auto* s = section("noise"))
+			{
+				bool enabled = noiseEffect_->IsEnabled();
+				float intensity = noiseEffect_->GetIntensity(), grainSize = noiseEffect_->GetGrainSize(), luminance = noiseEffect_->GetLuminanceAffect();
+				Read(*s, "enabled", enabled); Read(*s, "intensity", intensity); Read(*s, "grainSize", grainSize); Read(*s, "luminanceAffect", luminance);
+				noiseEffect_->SetEnabled(enabled); noiseEffect_->SetIntensity(intensity); noiseEffect_->SetGrainSize(grainSize);
+				noiseEffect_->SetLuminanceAffect(luminance);
+			}
+			if (const auto* s = section("crt"))
+			{
+				bool enabled = crtEffect_->IsEnabled();
+				bool scanline = crtEffect_->IsScanlineEnabled() != 0, distortion = crtEffect_->IsDistortionEnabled() != 0;
+				bool chroma = crtEffect_->IsChromaticAberrationEnabled() != 0;
+				float scanlineIntensity = crtEffect_->GetScanlineIntensity(), scanlineCount = crtEffect_->GetScanlineCount();
+				float distortionStrength = crtEffect_->GetDistortionStrength(), chromaOffset = crtEffect_->GetChromaticAberrationOffset();
+				Read(*s, "enabled", enabled); Read(*s, "scanline", scanline); Read(*s, "distortion", distortion); Read(*s, "chromaticAberration", chroma);
+				Read(*s, "scanlineIntensity", scanlineIntensity); Read(*s, "scanlineCount", scanlineCount);
+				Read(*s, "distortionStrength", distortionStrength); Read(*s, "chromaticAberrationOffset", chromaOffset);
+				crtEffect_->SetEnabled(enabled); crtEffect_->SetScanlineEnabled(scanline ? 1 : 0); crtEffect_->SetDistortionEnabled(distortion ? 1 : 0);
+				crtEffect_->SetChromaticAberrationEnabled(chroma ? 1 : 0); crtEffect_->SetScanlineIntensity(scanlineIntensity);
+				crtEffect_->SetScanlineCount(scanlineCount); crtEffect_->SetDistortionStrength(distortionStrength);
+				crtEffect_->SetChromaticAberrationOffset(chromaOffset);
+			}
+		});
 }
 
 void PostProcessManager::DrawImGui()

@@ -257,6 +257,30 @@ void Model::DrawGBuffer()
 	}
 }
 
+bool Model::SetMeshTexture(size_t meshIndex, const std::string& texturePath)
+{
+	if (meshIndex >= meshResources_.size())
+	{
+		return false;
+	}
+	MeshResource& mesh = meshResources_[meshIndex];
+	if (texturePath.empty())
+	{
+		// 本来の素材のテクスチャへ戻す
+		mesh.textureIndex = modelData_.materials[mesh.materialIndex].textureIndex;
+		return true;
+	}
+	uint32_t index = 0;
+	if (!TextureManager::GetInstance()->TryGetTextureIndexByFilePath(texturePath, index))
+	{
+		return false;
+	}
+	// Try は参照に数えないので、ここで1回引く。Project ウィンドウで、使っている物として扱われる
+	index = TextureManager::GetInstance()->GetTextureIndexByFilePath(texturePath);
+	mesh.textureIndex = index;
+	return true;
+}
+
 D3D12_GPU_DESCRIPTOR_HANDLE Model::GetTextureHandle(const MeshResource& meshResource) const
 {
 	if (overrideTexture_.ptr != 0)

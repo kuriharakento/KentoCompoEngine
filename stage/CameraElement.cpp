@@ -94,6 +94,7 @@ StageElementType CameraElement::MakeType()
 	StageElementType type;
 	type.key = "cameras";
 	type.displayName = "カメラ";
+	type.defaultName = "Camera";
 	type.create = &CreateFromJson;
 	type.createDefault = &CreateDefault;
 	return type;
@@ -174,6 +175,13 @@ bool CameraElement::Apply()
 	return true;
 }
 
+void CameraElement::Update(float)
+{
+	// 前のフレームに、モニターから見られていたときだけ映像を描く
+	SetViewEnabled(viewRequested_);
+	viewRequested_ = false;
+}
+
 void CameraElement::SetViewEnabled(bool enabled)
 {
 	if (!view_ || view_->IsEnabled() == enabled)
@@ -185,6 +193,11 @@ void CameraElement::SetViewEnabled(bool enabled)
 	{
 		view_->RequestImmediateUpdate();
 	}
+}
+
+bool CameraElement::OnRename(const std::string& newName)
+{
+	return cameraManager_ && cameraManager_->RenameCamera(GetName(), newName);
 }
 
 nlohmann::ordered_json CameraElement::Serialize() const

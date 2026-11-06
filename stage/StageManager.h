@@ -92,6 +92,11 @@ private:
 	std::array<char, 128> elementFilter_{};
 	// 読み込みに失敗した理由。次に読み込むまで出しておく
 	std::string loadError_;
+	// 名前を変えている要素と、入力欄・エラー
+	std::string renameTarget_;
+	std::array<char, 128> renameBuffer_{};
+	std::string renameError_;
+	bool renamePopupRequested_ = false;
 #endif
 };
 } // namespace KCE

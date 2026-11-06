@@ -13,6 +13,8 @@
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
 #include "manager/editor/DebugUIManager.h"
+#include "manager/editor/SettingsJson.h"
+#include "manager/editor/SettingsStore.h"
 #endif
 
 namespace KCE
@@ -126,6 +128,19 @@ void DepthOfFieldRenderer::Draw(Camera* camera, RenderView* view, FrameConstantA
 void DepthOfFieldRenderer::RegisterDebugUI()
 {
 	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "レンダリング", "被写界深度", [this]() { DrawImGui(); });
+	SettingsStore::GetInstance()->RegisterItem(this, "depthOfField",
+		[this]()
+		{
+			return nlohmann::json{ { "enabled", settings_.enabled }, { "focusDistance", settings_.focusDistance },
+				{ "focusRange", settings_.focusRange }, { "maxBlurPixels", settings_.maxBlurPixels } };
+		},
+		[this](const nlohmann::json& json)
+		{
+			SettingsJson::Read(json, "enabled", settings_.enabled);
+			SettingsJson::Read(json, "focusDistance", settings_.focusDistance);
+			SettingsJson::Read(json, "focusRange", settings_.focusRange);
+			SettingsJson::Read(json, "maxBlurPixels", settings_.maxBlurPixels);
+		});
 }
 
 void DepthOfFieldRenderer::DrawImGui()

@@ -120,6 +120,23 @@ void CameraManager::AddCamera(const std::string& name) {
     }
 }
 
+bool CameraManager::RenameCamera(const std::string& oldName, const std::string& newName)
+{
+	if (newName.empty() || cameras_.contains(newName) || !cameras_.contains(oldName))
+	{
+		return false;
+	}
+	// ノードごと取り出してキーだけ替える。Camera は動かないので、持っているポインタは有効のまま
+	auto node = cameras_.extract(oldName);
+	node.key() = newName;
+	cameras_.insert(std::move(node));
+	if (activeCameraName_ == oldName)
+	{
+		activeCameraName_ = newName;
+	}
+	return true;
+}
+
 bool CameraManager::RemoveCamera(const std::string& name)
 {
 	auto it = cameras_.find(name);

@@ -20,6 +20,17 @@ class FrameConstantAllocator;
  */
 class LineManager {
 public:
+	/** @brief 地面のグリッドの設定。描画パスが毎フレーム、この設定で描く */
+	struct GridSettings
+	{
+		bool enabled = true;
+		// 全体の大きさ（一辺）
+		float size = 40.0f;
+		// 線の間隔
+		float spacing = 2.0f;
+		Vector4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+	};
+
 	/**
 	 * @brief シングルトンインスタンスを取得
 	 * @return LineManagerのインスタンス
@@ -54,6 +65,14 @@ public:
 	 * @brief 終了処理
 	 */
 	void Finalize();
+
+	GridSettings& GetGridSettings() { return gridSettings_; }
+	const GridSettings& GetGridSettings() const { return gridSettings_; }
+	/**
+	 * @brief 設定どおりに地面のグリッドを描く。オフなら何もしない
+	 * @details 描画パスが呼ぶ。シーンからは呼ばない（シーンごとに大きさが食い違うため）
+	 */
+	void DrawConfiguredGrid();
 
 	/**
 	 * @brief ラインの描画
@@ -128,6 +147,7 @@ private:
 	CameraManager* cameraManager_ = nullptr; // CameraManagerへのポインタ
 	// フレーム単位の置き場。所有しない
 	FrameConstantAllocator* frameConstantAllocator_ = nullptr;
+	GridSettings gridSettings_;
 
 private:    // シングルトンインスタンス
 	static std::unique_ptr<LineManager> instance_;

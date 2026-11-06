@@ -284,6 +284,16 @@ public: // アクセッサ
 	const std::string& GetModelName() const { return modelName_; }
 
 	/**
+	 * @brief メッシュのテクスチャを替える。静的モデルの物だけ
+	 * @param meshIndex メッシュの番号
+	 * @param texturePath 読み込み済みのテクスチャの登録名。空なら、モデル本来のテクスチャへ戻す
+	 * @return 替えられたら真
+	 */
+	bool SetMeshTexture(size_t meshIndex, const std::string& texturePath);
+	/** @brief メッシュごとに替えたテクスチャの登録名。空の要素は、モデル本来のテクスチャ。保存（プレハブ）に入る */
+	const std::vector<std::string>& GetMeshTextures() const { return meshTextures_; }
+
+	/**
 	 * @brief Object3Dインスタンスの取得
 	 * @return Object3Dのポインタ
 	 */
@@ -509,6 +519,8 @@ protected:
 	std::unique_ptr<IRenderable3d> renderable3d_;
 	// SetModel で設定した静的モデル名。プレハブ保存時に使う
 	std::string modelName_;
+	// メッシュごとに替えたテクスチャの登録名（空は、モデル本来のテクスチャ）。モデルを替えると空になる
+	std::vector<std::string> meshTextures_;
 	// Object3dCommonへのポインタ（SetSkinnedModel用）
 	Object3dCommon* object3dCommon_ = nullptr;
 	// LightManagerへのポインタ（SetSkinnedModel用）

@@ -91,9 +91,25 @@ StageElementType TextElement::MakeType()
 	StageElementType type;
 	type.key = "texts3d";
 	type.displayName = "3D文字";
+	type.defaultName = "Text";
 	type.create = &CreateFromJson;
 	type.createDefault = &CreateDefault;
 	return type;
+}
+
+bool TextElement::OnRename(const std::string& newName)
+{
+	// 登録名は Text3DRenderer が持っている。ほかの文字と名前がぶつかるなら変えない
+	if (renderer_ && mesh_)
+	{
+		if (renderer_->Find(newName))
+		{
+			return false;
+		}
+		renderer_->Unregister(mesh_.get());
+		renderer_->Register(newName, mesh_.get());
+	}
+	return true;
 }
 
 nlohmann::ordered_json TextElement::Serialize() const

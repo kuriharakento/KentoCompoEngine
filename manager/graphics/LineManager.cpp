@@ -7,6 +7,12 @@
 #include "math/MathUtils.h"
 // system
 #include "manager/scene/CameraManager.h"
+#ifdef USE_IMGUI
+#include "externals/imgui/imgui.h"
+#include "manager/editor/DebugUIManager.h"
+#include "manager/editor/SettingsJson.h"
+#include "manager/editor/SettingsStore.h"
+#endif
 
 namespace KCE
 {
@@ -51,6 +57,29 @@ void LineManager::Initialize(DirectXCommon* dxCommon, CameraManager* cameraManag
 	// Lineの初期化
 	line_ = std::make_unique<Line>();
 	line_->Initialize(lineCommon_.get());
+
+#ifdef USE_IMGUI
+	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "シーン", "グリッド", [this]()
+	{
+		ImGui::Checkbox("地面のグリッドを出す", &gridSettings_.enabled);
+		ImGui::DragFloat("大きさ", &gridSettings_.size, 1.0f, 1.0f, 500.0f, "%.0f");
+		ImGui::DragFloat("間隔", &gridSettings_.spacing, 0.1f, 0.1f, 50.0f, "%.1f");
+		ImGui::ColorEdit4("色", &gridSettings_.color.x);
+	});
+	SettingsStore::GetInstance()->RegisterItem(this, "grid",
+		[this]()
+		{
+			return nlohmann::json{ { "enabled", gridSettings_.enabled }, { "size", gridSettings_.size },
+				{ "spacing", gridSettings_.spacing }, { "color", SettingsJson::ToJson(gridSettings_.color) } };
+		},
+		[this](const nlohmann::json& json)
+		{
+			SettingsJson::Read(json, "enabled", gridSettings_.enabled);
+			SettingsJson::Read(json, "size", gridSettings_.size);
+			SettingsJson::Read(json, "spacing", gridSettings_.spacing);
+			SettingsJson::Read(json, "color", gridSettings_.color);
+		});
+#endif
 }
 
 void LineManager::Clear() {
@@ -60,8 +89,23 @@ void LineManager::Clear() {
 
 void LineManager::Finalize()
 {
+#ifdef USE_IMGUI
+	if (DebugUIManager::HasInstance())
+	{
+		DebugUIManager::GetInstance()->Unregister(this);
+	}
+#endif
 	// リソースを解放
 	instance_.reset();
+}
+
+void LineManager::DrawConfiguredGrid()
+{
+	if (!gridSettings_.enabled || gridSettings_.size <= 0.0f || gridSettings_.spacing <= 0.0f)
+	{
+		return;
+	}
+	DrawGrid(gridSettings_.size, gridSettings_.spacing, gridSettings_.color);
 }
 
 void LineManager::RenderLines() {

@@ -84,6 +84,19 @@ std::unique_ptr<GameObject> DeserializePrefabNode(
 			return nullptr;
 		}
 		object->SetModel(node["model"].get<std::string>());
+		// 替えたテクスチャを戻す。読み込まれていないテクスチャは、本来のままにして、ログで知らせる
+		if (node.contains("meshTextures") && node["meshTextures"].is_array())
+		{
+			const auto& textures = node["meshTextures"];
+			for (size_t meshIndex = 0; meshIndex < textures.size(); ++meshIndex)
+			{
+				if (!textures[meshIndex].is_string() || textures[meshIndex].get_ref<const std::string&>().empty()) { continue; }
+				if (!object->SetMeshTexture(meshIndex, textures[meshIndex].get<std::string>()))
+				{
+					Logger::Log("プレハブのテクスチャが読み込まれていません: " + textures[meshIndex].get<std::string>() + "\n", Logger::LogLevel::Warning);
+				}
+			}
+		}
 	}
 
 	for (const auto& componentNode : node["components"])

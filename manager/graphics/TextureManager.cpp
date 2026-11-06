@@ -1,6 +1,7 @@
 #include "TextureManager.h"
 
 #include <algorithm>
+#include "time/TimeManager.h"
 #include <filesystem>
 #include <iterator>
 
@@ -420,6 +421,26 @@ void TextureManager::ReleaseSceneResources()
 	ClearIntermediateResources();
 }
 
+bool TextureManager::ReleaseTexture(const std::string& key)
+{
+	const auto textureIt = textureDatas_.find(key);
+	if (textureIt == textureDatas_.end())
+	{
+		return false;
+	}
+	// シーンの解放と同じ手順で、1つだけ外す。同じ番号を指す名前（代替のエイリアスなど）も全部外す
+	const uint32_t srvIndex = textureIt->second.srvIndex;
+	for (auto pathIt = filePathToIndex_.begin(); pathIt != filePathToIndex_.end();)
+	{
+		pathIt = pathIt->second == srvIndex ? filePathToIndex_.erase(pathIt) : std::next(pathIt);
+	}
+	indexToFilePath_.erase(srvIndex);
+	srvManager_->Free(srvIndex);
+	textureDatas_.erase(textureIt);
+	ClearIntermediateResources();
+	return true;
+}
+
 size_t TextureManager::GetResidentTextureCount() const
 {
 	return static_cast<size_t>(std::count_if(textureDatas_.begin(), textureDatas_.end(), [](const auto& item)
@@ -431,6 +452,21 @@ size_t TextureManager::GetResidentTextureCount() const
 size_t TextureManager::GetSceneTextureCount() const
 {
 	return textureDatas_.size() - GetResidentTextureCount();
+}
+
+std::vector<TextureManager::LoadedTexture> TextureManager::GetLoadedTextures() const
+{
+	std::vector<LoadedTexture> textures;
+	textures.reserve(textureDatas_.size());
+	for (const auto& [path, data] : textureDatas_)
+	{
+		textures.push_back({ path, data.lifetime, static_cast<uint32_t>(data.metadata.width),
+			static_cast<uint32_t>(data.metadata.height), data.srvIndex, data.referenceCount, data.lastReferenceFrame,
+			data.srvHandleGPU.ptr,
+			data.metadata.dimension == DirectX::TEX_DIMENSION_TEXTURE2D && !data.metadata.IsCubemap() && data.metadata.arraySize == 1 });
+	}
+	std::sort(textures.begin(), textures.end(), [](const LoadedTexture& a, const LoadedTexture& b) { return a.path < b.path; });
+	return textures;
 }
 
 uint32_t TextureManager::GetLinearTextureIndexByFilePath(const std::string& filePath)
@@ -452,6 +488,12 @@ uint32_t TextureManager::GetTextureIndexByFilePath(const std::string& filePath)
 	auto found = filePathToIndex_.find(normalizedPath);
 	if (found != filePathToIndex_.end())
 	{
+		// 使われているかを、エディタで見られるよう数える
+		if (const auto data = textureDatas_.find(normalizedPath); data != textureDatas_.end())
+		{
+			++data->second.referenceCount;
+			data->second.lastReferenceFrame = TimeManager::GetInstance().GetFrameCount();
+		}
 		return found->second;
 	}
 

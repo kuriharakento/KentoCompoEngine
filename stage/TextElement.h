@@ -31,6 +31,7 @@ public:
 
 	const char* GetTypeKey() const override { return "texts3d"; }
 	nlohmann::ordered_json Serialize() const override;
+	bool OnRename(const std::string& newName) override;
 
 	/** @return ゲームから文字を変えたいときの窓口。所有は TextElement */
 	TextMesh3D* GetMesh() const { return mesh_.get(); }

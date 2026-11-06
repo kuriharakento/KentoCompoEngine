@@ -122,6 +122,12 @@ public:
 	 */
 	const std::string& GetActiveCameraName() { return activeCameraName_; }
 
+	/**
+	 * @brief カメラの名前を変える。カメラ本体（ポインタ）は変わらない
+	 * @return 変えられたら真。元の名前が無い、新しい名前がすでにあるときは偽
+	 */
+	bool RenameCamera(const std::string& oldName, const std::string& newName);
+
     /**
      * @brief 更新処理
      * @details アクティブカメラの更新

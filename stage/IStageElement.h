@@ -10,6 +10,7 @@
 namespace KCE
 {
 struct SceneContext;
+class Stage;
 #ifdef USE_IMGUI
 struct SelectionItem;
 struct GizmoResult;
@@ -28,8 +29,22 @@ class IStageElement
 public:
 	virtual ~IStageElement() = default;
 
+	/** @brief 所属するステージ。Stage が追加のときに設定する。要素どうしの参照（モニターが使うカメラなど）に使う */
+	void BindStage(Stage* stage) { stage_ = stage; }
+	Stage* GetStage() const { return stage_; }
+
 	/** @return ステージ内で一意な名前 */
 	const std::string& GetName() const { return name_; }
+
+	/**
+	 * @brief 名前を変える前に呼ばれる。持っている物（登録名など）を新しい名前へ移す
+	 * @return 移せなければ偽（名前は変わらない）
+	 */
+	virtual bool OnRename(const std::string& newName) { (void)newName; return true; }
+	/** @brief 別の要素の名前が変わったときに呼ばれる。名前で参照しているなら、書き換える */
+	virtual void OnElementRenamed(const std::string& oldName, const std::string& newName) { (void)oldName; (void)newName; }
+	/** @brief 名前を確定する。Stage::Rename だけが呼ぶ */
+	void SetName(std::string name) { name_ = std::move(name); }
 
 	/**
 	 * @brief JSON の配列名。種類ごとに固定の文字列を返す
@@ -79,6 +94,8 @@ protected:
 
 private:
 	std::string name_;
+	// 所有しない。要素より長生きする
+	Stage* stage_ = nullptr;
 };
 
 /**
@@ -92,6 +109,8 @@ struct StageElementType
 	std::string key;
 	//! エディタの「追加」に出す名前
 	std::string displayName;
+	//! 新しく作る要素の名前の元（英数字。重複したら _2 などを足す）
+	std::string defaultName;
 	//! JSON の1件から要素を作る。不正なら nullptr（呼び出し側が読み飛ばす）
 	std::function<std::unique_ptr<IStageElement>(const nlohmann::json& entry, const SceneContext& context)> create;
 	//! エディタで新規に作るときの初期状態。エディタが無いビルドでは空でよい

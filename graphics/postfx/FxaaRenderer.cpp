@@ -10,6 +10,8 @@
 #ifdef USE_IMGUI
 #include "externals/imgui/imgui.h"
 #include "manager/editor/DebugUIManager.h"
+#include "manager/editor/SettingsJson.h"
+#include "manager/editor/SettingsStore.h"
 #endif
 
 namespace KCE
@@ -123,6 +125,19 @@ void FxaaRenderer::Apply(RenderTexture* output, FrameConstantAllocator* allocato
 void FxaaRenderer::RegisterDebugUI()
 {
 	DebugUIManager::GetInstance()->RegisterSettingsPage(this, "レンダリング", "アンチエイリアス", [this]() { DrawImGui(); });
+	SettingsStore::GetInstance()->RegisterItem(this, "fxaa",
+		[this]()
+		{
+			return nlohmann::json{ { "enabled", settings_.enabled }, { "subpixel", settings_.subpixel },
+				{ "edgeThreshold", settings_.edgeThreshold }, { "edgeThresholdMin", settings_.edgeThresholdMin } };
+		},
+		[this](const nlohmann::json& json)
+		{
+			SettingsJson::Read(json, "enabled", settings_.enabled);
+			SettingsJson::Read(json, "subpixel", settings_.subpixel);
+			SettingsJson::Read(json, "edgeThreshold", settings_.edgeThreshold);
+			SettingsJson::Read(json, "edgeThresholdMin", settings_.edgeThresholdMin);
+		});
 }
 
 void FxaaRenderer::DrawImGui()

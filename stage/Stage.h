@@ -54,6 +54,11 @@ public:
 	 * @param element 成功したときだけ所有権を受け取る。名前が重複していたら呼び出し側に残る
 	 */
 	bool Add(std::unique_ptr<IStageElement>& element);
+	/**
+	 * @brief 要素の名前を変える。ほかの要素が名前で参照している分と、選択も追従させる
+	 * @return 変えられたら真。名前が空・重複している、元の要素が無い、要素が移せないときは偽
+	 */
+	bool Rename(const std::string& oldName, const std::string& newName);
 	/** @brief 要素を外して所有権を返す。Undo のコマンドが持っておけるようにするため */
 	std::unique_ptr<IStageElement> Remove(const std::string& name);
 
@@ -67,6 +72,8 @@ public:
 
 private:
 	IStageElement* FindElement(const std::string& name) const;
+	/** @brief 要素を後ろから順に壊す */
+	void ClearElements();
 	nlohmann::ordered_json Serialize() const;
 	bool Deserialize(const nlohmann::json& json, std::string& outError);
 
