@@ -16,6 +16,7 @@ class LightManager;
 class PostProcessManager;
 class TextOverlay;
 class Text3DRenderer;
+class SpriteLayer;
 class DepthOfFieldRenderer;
 
 /**
@@ -138,6 +139,10 @@ public:
 	void SetText3DRenderer(Text3DRenderer* text3DRenderer) { text3DRenderer_ = text3DRenderer; }
 	Text3DRenderer* GetText3DRenderer() const { return text3DRenderer_; }
 
+	// 2D スプライト。Sprite トラックはここから名前で探す
+	void SetSpriteLayer(SpriteLayer* spriteLayer) { spriteLayer_ = spriteLayer; }
+	SpriteLayer* GetSpriteLayer() const { return spriteLayer_; }
+
 	// 被写界深度。カメラトラックがピントを注目点に合わせるときに使う。画面に1つ
 	void SetDepthOfFieldRenderer(DepthOfFieldRenderer* depthOfFieldRenderer) { depthOfFieldRenderer_ = depthOfFieldRenderer; }
 	DepthOfFieldRenderer* GetDepthOfFieldRenderer() const { return depthOfFieldRenderer_; }
@@ -200,6 +205,7 @@ private:
 	BeamRenderer* beamRenderer_ = nullptr;
 	TextOverlay* textOverlay_ = nullptr;
 	Text3DRenderer* text3DRenderer_ = nullptr;
+	SpriteLayer* spriteLayer_ = nullptr;
 	DepthOfFieldRenderer* depthOfFieldRenderer_ = nullptr;
 	SequenceOrigin origin_;
 	// 拍の刻み。SequencePlayer が評価の直前に入れる

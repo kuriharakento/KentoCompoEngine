@@ -47,7 +47,7 @@ public:
      * @param count 有効なインスタンス数
      * @details 呼ぶ側が既に行列を持っている場合に使う。ここでは何も計算しない
      */
-    void UpdateBufferDirect(const TransformationMatrix* data, uint32_t count);
+    void UpdateBufferDirect(const InstanceData* data, uint32_t count);
 
     /**
      * @brief インスタンス描画命令の発行
@@ -75,7 +75,7 @@ private:
 
     // Direct3D12 リソース
     Microsoft::WRL::ComPtr<ID3D12Resource> instancedResource_;
-    Matrix4x4* mappedMatrices_ = nullptr;
+    InstanceData* mappedMatrices_ = nullptr;
     uint32_t srvIndex_ = 0;
 
     Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;

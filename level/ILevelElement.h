@@ -69,6 +69,13 @@ public:
 	 */
 	virtual void SetPlaying(bool playing) { (void)playing; }
 
+	/**
+	 * @brief シーケンサの状態を伝える（毎フレーム）
+	 * @param active シーケンサが対象を動かしている最中か（再生中・一時停止・スクラブ）。偽の間は、いまの姿が置き場所
+	 * @param playing シーケンサが再生中か。再生中は、コンポーネントも一緒に動かす
+	 */
+	virtual void OnSequencerState(bool active, bool playing) { (void)active; (void)playing; }
+
 	/** @brief 今の状態を JSON にする。読み込みで同じ状態に戻せること */
 	virtual nlohmann::ordered_json Serialize() const = 0;
 

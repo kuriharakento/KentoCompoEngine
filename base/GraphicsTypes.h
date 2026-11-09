@@ -161,6 +161,16 @@ struct TransformationMatrix
 };
 
 /**
+ * @brief まとめて描く（インスタンシング）ときの1体分のデータ
+ * @details 行列に、1体ごとの色を足した物。色はマテリアルの色に掛ける（白なら変わらない）。
+ *          シェーダー側（InstancedObject3d / InstancedGBufferPass / InstancedShadowMap の VS）の構造体と同じ並びにする
+ */
+struct InstanceData : TransformationMatrix
+{
+    Vector4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+};
+
+/**
  * @brief ライン用座標変換行列データ
  */
 struct LineTransformationMatrix

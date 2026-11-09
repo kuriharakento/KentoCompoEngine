@@ -492,6 +492,9 @@
     <ClCompile Include="graphics\2d\Sprite.cpp">
       <Filter>graphics\2d</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\2d\SpriteLayer.cpp">
+      <Filter>graphics\2d</Filter>
+    </ClCompile>
     <ClCompile Include="graphics\2d\SpriteAnimationClip.cpp">
       <Filter>graphics\2d</Filter>
     </ClCompile>
@@ -741,6 +744,9 @@
     <ClCompile Include="sequencer\track\Text3DTrack.cpp">
       <Filter>sequencer\track</Filter>
     </ClCompile>
+    <ClCompile Include="sequencer\track\SpriteTrack.cpp">
+      <Filter>sequencer\track</Filter>
+    </ClCompile>
     <ClCompile Include="sequencer\track\TextTrack.cpp">
       <Filter>sequencer\track</Filter>
     </ClCompile>
@@ -760,6 +766,9 @@
       <Filter>level</Filter>
     </ClCompile>
     <ClCompile Include="level\TextElement.cpp">
+      <Filter>level</Filter>
+    </ClCompile>
+    <ClCompile Include="level\SpriteElement.cpp">
       <Filter>level</Filter>
     </ClCompile>
     <ClCompile Include="level\LevelManager.cpp">
@@ -1181,6 +1190,9 @@
     <ClInclude Include="graphics\2d\Sprite.h">
       <Filter>graphics\2d</Filter>
     </ClInclude>
+    <ClInclude Include="graphics\2d\SpriteLayer.h">
+      <Filter>graphics\2d</Filter>
+    </ClInclude>
     <ClInclude Include="graphics\2d\SpriteAnimationClip.h">
       <Filter>graphics\2d</Filter>
     </ClInclude>
@@ -1541,6 +1553,9 @@
     <ClInclude Include="sequencer\track\Text3DTrack.h">
       <Filter>sequencer\track</Filter>
     </ClInclude>
+    <ClInclude Include="sequencer\track\SpriteTrack.h">
+      <Filter>sequencer\track</Filter>
+    </ClInclude>
     <ClInclude Include="sequencer\track\TextTrack.h">
       <Filter>sequencer\track</Filter>
     </ClInclude>
@@ -1563,6 +1578,9 @@
       <Filter>level</Filter>
     </ClInclude>
     <ClInclude Include="level\TextElement.h">
+      <Filter>level</Filter>
+    </ClInclude>
+    <ClInclude Include="level\SpriteElement.h">
       <Filter>level</Filter>
     </ClInclude>
     <ClInclude Include="level\LevelManager.h">

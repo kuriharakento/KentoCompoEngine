@@ -15,6 +15,8 @@ struct TransformationMatrix
     float4x4 WVP;
     float4x4 World;
     float4x4 WorldInverseTranspose;
+    // 1体ごとの色（マテリアルの色に掛ける）。C++ の InstanceData と同じ並び
+    float4 color;
 };
 
 // ライトのビュー・プロジェクション行列

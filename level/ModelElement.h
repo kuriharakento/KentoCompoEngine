@@ -4,6 +4,7 @@
 #include <string>
 
 #include "math/Vector3.h"
+#include "math/Vector4.h"
 #include "level/ILevelElement.h"
 
 namespace KCE
@@ -47,6 +48,7 @@ public:
 
 	const char* GetTypeKey() const override { return "models"; }
 	void SetPlaying(bool playing) override;
+	void OnSequencerState(bool active, bool playing) override;
 	bool OnRename(const std::string& newName) override;
 	void OnLevelBound() override;
 	nlohmann::ordered_json Serialize() const override;
@@ -74,7 +76,11 @@ private:
 	GameObject* object_ = nullptr;
 	std::string prefabName_;
 	Pose startPose_;
+	// 作った時点の色。これと違うときだけ、色を保存する（モデルが元から持つ色を、全メッシュ同じ色で上書きしないため）
+	Vector4 baseColor_{ 1.0f, 1.0f, 1.0f, 1.0f };
 	// 作った時点は更新が有効（ゲームの中ではそのまま動く）。エディタが停止を指示すると止まる
 	bool playing_ = true;
+	// シーケンサの再生に合わせて、更新を有効にしている（Level 自体は停止中）
+	bool sequencerDriven_ = false;
 };
 } // namespace KCE

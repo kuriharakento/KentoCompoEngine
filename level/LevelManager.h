@@ -12,6 +12,7 @@
 
 namespace KCE
 {
+class DirectXCommon;
 /**
  * @brief ステージの読み込みと破棄を受け持つ。どのシーンからでも、好きなときに使える。
  *
@@ -47,12 +48,20 @@ public:
 	 */
 	Level* Load(const std::string& name);
 	/** @brief ステージを破棄する。要素が持つ GameObject などもまとめて外れる */
+	/**
+	 * @brief Level を外す。実際に壊すのは次の ProcessPendingUnloads
+	 * @details 描画の途中（ImGui のボタンなど）で GPU の物を壊すと、記録中のコマンドが壊れた物を指してエラーになるため
+	 */
 	void Unload(const std::string& name);
+	/** @brief 外す予約をした Level を、GPU の描画が終わってから壊す。フレームの頭（更新）で呼ぶ */
+	void ProcessPendingUnloads(DirectXCommon* dxCommon);
 	/** @return 読み込み済みのステージ。無ければ nullptr */
 	Level* Find(const std::string& name) const;
 
 	/** @brief 読み込み済みの全ステージを更新する。毎フレーム呼ぶ */
 	void Update();
+	/** @brief シーケンサの状態。SequencerEditor が毎フレーム伝え、次の Update で要素へ渡す（active は対象を動かしている最中、playing は再生中） */
+	void SetSequencerState(bool active, bool playing) { sequencerActive_ = active; sequencerPlaying_ = playing; }
 
 	~LevelManager() = default;
 
@@ -77,9 +86,18 @@ private:
 	static std::vector<std::string> ListPrefabFiles();
 	/** @brief 同じ名前が無いよう、元の名前に数字を足す */
 	static std::string MakeUniqueName(const Level& stage, const std::string& baseName);
+	/**
+	 * @brief 要素を複製して同じ Level に足す
+	 * @details 保存する形（Serialize）に書き出して、同じ種類の create で作り直す。名前は「元の名前_2」のように重ならない物にする
+	 * @return 足せたら真
+	 */
+	bool DuplicateElement(Level& stage, const std::string& name);
 #endif
 
 	SceneContext context_{};
+	std::vector<std::string> pendingUnloads_;
+	bool sequencerActive_ = false;
+	bool sequencerPlaying_ = false;
 	std::vector<LevelElementType> types_;
 	// 名前順に並べて、ウィンドウの並びが安定するようにする
 	std::map<std::string, std::unique_ptr<Level>> stages_;

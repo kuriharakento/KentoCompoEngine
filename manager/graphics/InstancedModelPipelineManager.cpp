@@ -153,7 +153,7 @@ void InstancedModelPipelineManager::CreatePipeline()
 
 	//----- GBuffer用パイプラインステートの生成 -----//
 	auto vsGBufferBlob = dxCommon_->CompileSharder(L"Resources/shaders/InstancedGBufferPass.VS.hlsl", L"vs_6_0");
-	auto psGBufferBlob = dxCommon_->CompileSharder(L"Resources/shaders/GBufferPass.PS.hlsl", L"ps_6_0");
+	auto psGBufferBlob = dxCommon_->CompileSharder(L"Resources/shaders/InstancedGBufferPass.PS.hlsl", L"ps_6_0");
 	assert(vsGBufferBlob && "Failed to compile VS for Instanced GBuffer");
 	assert(psGBufferBlob && "Failed to compile PS for GBuffer");
 

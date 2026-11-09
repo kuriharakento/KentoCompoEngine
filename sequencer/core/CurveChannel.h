@@ -169,7 +169,13 @@ template<class T>
 class CurveChannel : public ICurveChannel
 {
 public:
-	CurveChannel(const char* name, Curve<T>* curve) : name_(name), curve_(curve) {}
+	/**
+	 * @param defaultValue カーブが空のときにキーを足す値。スケールは(1,1,1)、色は白のように、0では困る物に渡す
+	 */
+	CurveChannel(const char* name, Curve<T>* curve, T defaultValue = T{}) : name_(name), curve_(curve), defaultValue_(defaultValue) {}
+
+	/** @brief カーブが空のときに足すキーの値を差し替える。対象の今の値を初期値にするために使う */
+	void SetDefaultValue(const T& value) { defaultValue_ = value; }
 
 	const char* GetName() const override { return name_; }
 	size_t GetKeyCount() const override { return curve_->GetKeyCount(); }
@@ -238,7 +244,7 @@ public:
 
 	bool AddKeyAt(float time) override
 	{
-		SetKey(time, curve_->IsEmpty() ? T{} : curve_->Evaluate(time));
+		SetKey(time, curve_->IsEmpty() ? defaultValue_ : curve_->Evaluate(time));
 		return true;
 	}
 
@@ -275,7 +281,7 @@ public:
 
 	bool DrawInlineValueEditor(float time) override
 	{
-		inlineValue_ = curve_->IsEmpty() ? T{} : curve_->Evaluate(time);
+		inlineValue_ = curve_->IsEmpty() ? defaultValue_ : curve_->Evaluate(time);
 		return detail::DrawCurveValueInline(inlineValue_);
 	}
 
@@ -316,6 +322,7 @@ private:
 
 	const char* name_;
 	Curve<T>* curve_;
+	T defaultValue_;
 #ifdef USE_IMGUI
 	// 行の横で編集中の値。DrawInlineValueEditor() で描き、ApplyInlineValue() で書き込む
 	T inlineValue_{};

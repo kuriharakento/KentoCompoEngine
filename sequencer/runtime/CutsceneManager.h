@@ -17,6 +17,7 @@ class DepthOfFieldRenderer;
 class FogRenderer;
 class TextOverlay;
 class Text3DRenderer;
+class SpriteLayer;
 class LightManager;
 class PostProcessManager;
 
@@ -117,6 +118,9 @@ public:
 
 	/** @brief Text3D トラックの探し先を渡す（Framework 所有） */
 	void SetText3DRenderer(Text3DRenderer* text3DRenderer);
+
+	/** @brief Sprite トラックの探し先を渡す（Framework 所有） */
+	void SetSpriteLayer(SpriteLayer* spriteLayer);
 
 	/** @brief カメラトラックがピントを合わせる被写界深度を渡す（Framework 所有） */
 	void SetDepthOfField(DepthOfFieldRenderer* depthOfFieldRenderer);

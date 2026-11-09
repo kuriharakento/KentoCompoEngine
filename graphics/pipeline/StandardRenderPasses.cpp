@@ -7,6 +7,7 @@
 #include "effects/particle/ParticleManager.h"
 #include "graphics/2d/SpriteCommon.h"
 #include "graphics/2d/TextOverlay.h"
+#include "graphics/2d/SpriteLayer.h"
 #include "graphics/text/Text3DRenderer.h"
 #include "graphics/3d/Object3dCommon.h"
 #include "graphics/3d/Skybox.h"
@@ -642,6 +643,11 @@ void Sprite2DPass::Execute(const RenderPassContext& ctx)
 	}
 
 	ApplyCommon2DRenderingSetting(ctx);
+	// Level に置いたスプライトは、シーンの 2D より奥に描く
+	if (ctx.spriteLayer)
+	{
+		ctx.spriteLayer->Draw();
+	}
 	ctx.sceneManager->Draw2D();
 
 	// スプライトアニメーションエディタの画面表示プレビュー

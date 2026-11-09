@@ -63,8 +63,8 @@ private:
 	FloatCurve exitCurve_;
 	CurveChannel<Vector3> positionChannel_{ "Position", &positionCurve_ };
 	CurveChannel<Quaternion> rotationChannel_{ "Rotation", &rotationCurve_ };
-	CurveChannel<float> scaleChannel_{ "Scale", &scaleCurve_ };
-	CurveChannel<Vector4> colorChannel_{ "Color", &colorCurve_ };
+	CurveChannel<float> scaleChannel_{ "Scale", &scaleCurve_, 1.0f };
+	CurveChannel<Vector4> colorChannel_{ "Color", &colorCurve_, Vector4{ 1.0f, 1.0f, 1.0f, 1.0f } };
 	CurveChannel<float> revealChannel_{ "Reveal", &revealCurve_ };
 	CurveChannel<float> exitChannel_{ "Exit", &exitCurve_ };
 

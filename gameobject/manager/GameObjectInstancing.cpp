@@ -1,6 +1,7 @@
 #include "gameobject/manager/GameObjectInstancing.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 
 #include "gameobject/base/GameObject.h"
@@ -31,25 +32,68 @@ uint32_t RoundUpToPowerOfTwo(uint32_t count)
 	return result;
 }
 
-/** @brief 2つのモデルの素材が全部同じか。1体ごとに色などをいじった物をまとめないための確認 */
-bool HasSameMaterials(const Model& lhs, const Model& rhs)
+bool NearlyEqual(float a, float b)
 {
-	const auto& lhsMeshes = lhs.GetMeshResources();
-	const auto& rhsMeshes = rhs.GetMeshResources();
-	if (lhsMeshes.size() != rhsMeshes.size())
+	return std::fabs(a - b) <= 1.0e-4f;
+}
+
+/**
+ * @brief 2つのモデルの素材が、色以外は全部同じか。1体ごとに色以外をいじった物をまとめないための確認
+ * @param own 1体ごとのモデル
+ * @param shared ModelManager が持つ元のモデル
+ * @param outColorScale 元の色に掛けると own の色になる倍率。全メッシュで同じ倍率になるときだけ決まる
+ * @return 色以外が同じで、色が元の色の倍率で表せれば真
+ */
+bool HasSameMaterials(const Model& own, const Model& shared, Vector4& outColorScale)
+{
+	const auto& ownMeshes = own.GetMeshResources();
+	const auto& sharedMeshes = shared.GetMeshResources();
+	if (ownMeshes.size() != sharedMeshes.size())
 	{
 		return false;
 	}
-	for (size_t i = 0; i < lhsMeshes.size(); ++i)
+	outColorScale = { 1.0f, 1.0f, 1.0f, 1.0f };
+	bool scaleDecided = false;
+	for (size_t i = 0; i < ownMeshes.size(); ++i)
 	{
-		const Material* a = lhsMeshes[i].gpuMaterial;
-		const Material* b = rhsMeshes[i].gpuMaterial;
-		if (!a || !b || std::memcmp(a, b, sizeof(Material)) != 0)
+		const Material* a = ownMeshes[i].gpuMaterial;
+		const Material* b = sharedMeshes[i].gpuMaterial;
+		if (!a || !b || ownMeshes[i].textureIndex != sharedMeshes[i].textureIndex)
 		{
 			return false;
 		}
-		if (lhsMeshes[i].textureIndex != rhsMeshes[i].textureIndex)
+		// 色を除いて全部同じか
+		Material withSharedColor = *a;
+		withSharedColor.color = b->color;
+		if (std::memcmp(&withSharedColor, b, sizeof(Material)) != 0)
 		{
+			return false;
+		}
+		// 色は、元の色に掛ける倍率で表す。元の色が0の成分は、倍率が決まらないので同じ値のときだけ許す
+		const float ownColor[4] = { a->color.x, a->color.y, a->color.z, a->color.w };
+		const float baseColor[4] = { b->color.x, b->color.y, b->color.z, b->color.w };
+		float scale[4];
+		for (int c = 0; c < 4; ++c)
+		{
+			if (std::fabs(baseColor[c]) <= 1.0e-4f)
+			{
+				if (!NearlyEqual(ownColor[c], baseColor[c])) { return false; }
+				scale[c] = 1.0f;
+			}
+			else
+			{
+				scale[c] = ownColor[c] / baseColor[c];
+			}
+		}
+		if (!scaleDecided)
+		{
+			outColorScale = { scale[0], scale[1], scale[2], scale[3] };
+			scaleDecided = true;
+		}
+		else if (!NearlyEqual(scale[0], outColorScale.x) || !NearlyEqual(scale[1], outColorScale.y) ||
+			!NearlyEqual(scale[2], outColorScale.z) || !NearlyEqual(scale[3], outColorScale.w))
+		{
+			// メッシュごとに色の変え方が違う物は、1つの倍率で表せない
 			return false;
 		}
 	}
@@ -74,7 +118,7 @@ void GameObjectInstancing::Finalize()
 	singles_.clear();
 }
 
-Model* GameObjectInstancing::FindSharedModel(const Object3d* object3d)
+Model* GameObjectInstancing::FindSharedModel(const Object3d* object3d, Vector4* outColorScale)
 {
 	const std::string& modelName = object3d->GetModelName();
 	if (modelName.empty())
@@ -87,10 +131,15 @@ Model* GameObjectInstancing::FindSharedModel(const Object3d* object3d)
 	{
 		return nullptr;
 	}
-	// 1体ごとに素材をいじっていたら、まとめると見た目が変わってしまう
-	if (!HasSameMaterials(*own, *shared))
+	// 色以外の素材を1体ごとにいじっていたら、まとめると見た目が変わってしまう。色は1体ごとのデータで渡す
+	Vector4 colorScale{ 1.0f, 1.0f, 1.0f, 1.0f };
+	if (!HasSameMaterials(*own, *shared, colorScale))
 	{
 		return nullptr;
+	}
+	if (outColorScale)
+	{
+		*outColorScale = colorScale;
 	}
 	return shared;
 }
@@ -171,7 +220,8 @@ void GameObjectInstancing::BuildInternal(const std::vector<const GameObjectRende
 				singles_.push_back(entry);
 				continue;
 			}
-			TransformationMatrix data;
+			InstanceData data;
+			data.color = entry->instanceColor;
 			data.World = source->World;
 			data.WorldInverseTranspose = source->WorldInverseTranspose;
 			data.WVP = viewProjection ? (source->World * *viewProjection) : source->World;

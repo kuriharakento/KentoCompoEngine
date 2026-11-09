@@ -13,6 +13,7 @@ struct VertexShaderOutput
     float2 texcoord : TEXCOORD0;
     float3 normal : NORMAL0;
     float3 worldPos : TEXCOORD1;
+    float4 instanceColor : COLOR0; // 1体ごとの色（InstancedGBufferPass.PS が受ける）
 };
 
 struct TransformationMatrix
@@ -20,6 +21,8 @@ struct TransformationMatrix
     float4x4 WVP;
     float4x4 World;
     float4x4 WorldInverseTranspose;
+    // 1体ごとの色（マテリアルの色に掛ける）。C++ の InstanceData と同じ並び
+    float4 color;
 };
 
 StructuredBuffer<TransformationMatrix> gInstanceMatrices : register(t0);
@@ -36,6 +39,7 @@ VertexShaderOutput main(VertexShaderInput input, uint instanceId : SV_InstanceID
     output.texcoord = input.texcoord;
     output.normal = normalize(mul(input.normal, (float3x3)worldInverseTranspose));
     output.worldPos = mul(input.position, worldMatrix).xyz;
+    output.instanceColor = gInstanceMatrices[instanceId].color;
     
     return output;
 }

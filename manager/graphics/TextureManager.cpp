@@ -423,6 +423,11 @@ void TextureManager::ReleaseSceneResources()
 
 bool TextureManager::ReleaseTexture(const std::string& key)
 {
+	// エンジンが実行中に作った物（文字のアトラスなど）は、使われていなく見えても外さない。外すと文字が描かれなくなる
+	if (key.rfind("runtime/", 0) == 0)
+	{
+		return false;
+	}
 	const auto textureIt = textureDatas_.find(key);
 	if (textureIt == textureDatas_.end())
 	{

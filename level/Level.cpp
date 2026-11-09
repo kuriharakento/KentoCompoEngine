@@ -132,6 +132,14 @@ void Level::Update(float deltaTime)
 	}
 }
 
+void Level::SetSequencerState(bool active, bool playing)
+{
+	for (auto& element : elements_)
+	{
+		element->OnSequencerState(active, playing);
+	}
+}
+
 void Level::SetPlaying(bool playing)
 {
 	playing_ = playing;

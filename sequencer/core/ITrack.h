@@ -25,6 +25,7 @@ enum class TrackType
 	Text3D,		 //!< 3D 空間の文字
 	Component,	 //!< GameObject コンポーネントの項目
 	Particle,	 //!< パーティクルのエフェクトを出す
+	Sprite,		 //!< 2D スプライト
 	Unknown,	 //!< 未知（前方互換のためのプレースホルダ）
 };
 
@@ -141,6 +142,12 @@ public:
 	 * @return キーを打てたら真
 	 */
 	virtual bool RecordKey(float time, const BindingContext& ctx) { (void)time; (void)ctx; return false; }
+
+	/**
+	 * @brief 空のチャンネルに最初のキーを打つときの初期値を、対象の今の値にそろえる（エディタが毎フレーム呼ぶ）
+	 * @details 空のチャンネルは対象を動かさないので、対象の今の値がそのまま出発点になる
+	 */
+	virtual void UpdateKeyDefaults(const BindingContext& ctx) { (void)ctx; }
 
 	/**
 	 * @brief このトラックが値を持つ最後の時刻（全チャンネルの最大）

@@ -38,6 +38,8 @@ public:
 	/** @brief 全要素へ再生・停止を伝える */
 	void SetPlaying(bool playing);
 	bool IsPlaying() const { return playing_; }
+	/** @brief 全要素へシーケンサの状態を伝える。LevelManager が毎フレーム呼ぶ */
+	void SetSequencerState(bool active, bool playing);
 
 	/**
 	 * @brief 要素を名前で探す

@@ -37,7 +37,7 @@ void InstancedModelRenderer::Initialize(DirectXCommon* dxCommon, SrvManager* srv
     model_ = model;
 
     // Structured Buffer の作成
-    size_t elementSize = sizeof(TransformationMatrix);
+    size_t elementSize = sizeof(InstanceData);
     size_t bufferSize = elementSize * maxInstances_;
     instancedResource_ = dxCommon_->CreateBufferResource(bufferSize);
 
@@ -58,7 +58,7 @@ void InstancedModelRenderer::UpdateBuffer(const Matrix4x4* matrices, uint32_t co
     }
 
     Matrix4x4 viewProjection = camera->GetViewProjectionMatrix();
-    TransformationMatrix* mappedData = reinterpret_cast<TransformationMatrix*>(mappedMatrices_);
+    InstanceData* mappedData = mappedMatrices_;
 
     // モデルのルートノード行列を取得（座標系変換や初期スケールが含まれる場合がある）
     Matrix4x4 rootMatrix = MakeIdentity4x4();
@@ -73,7 +73,7 @@ void InstancedModelRenderer::UpdateBuffer(const Matrix4x4* matrices, uint32_t co
         Matrix4x4 world = Multiply(rootMatrix, matrices[i]);
         Matrix4x4 wvp = Multiply(world, viewProjection);
         
-        TransformationMatrix data;
+        InstanceData data;
         data.WVP = wvp;
         data.World = world;
         // 法線変換用行列の計算（逆転置）
@@ -83,14 +83,14 @@ void InstancedModelRenderer::UpdateBuffer(const Matrix4x4* matrices, uint32_t co
     }
 }
 
-void InstancedModelRenderer::UpdateBufferDirect(const TransformationMatrix* data, uint32_t count)
+void InstancedModelRenderer::UpdateBufferDirect(const InstanceData* data, uint32_t count)
 {
     currentInstanceCount_ = (count > maxInstances_) ? maxInstances_ : count;
     if (currentInstanceCount_ == 0 || !mappedMatrices_ || !data)
     {
         return;
     }
-    std::memcpy(mappedMatrices_, data, sizeof(TransformationMatrix) * currentInstanceCount_);
+    std::memcpy(mappedMatrices_, data, sizeof(InstanceData) * currentInstanceCount_);
 }
 
 void InstancedModelRenderer::DrawInstanced(Camera* camera, LightManager* lightManager, ShadowMapManager* shadowMapManager)

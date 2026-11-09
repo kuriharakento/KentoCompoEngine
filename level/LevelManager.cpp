@@ -4,10 +4,12 @@
 #include <cctype>
 #include <filesystem>
 
+#include "base/DirectXCommon.h"
 #include "base/Logger.h"
 #include "manager/editor/DebugUIManager.h"
 #include "level/CameraElement.h"
 #include "level/ModelElement.h"
+#include "level/SpriteElement.h"
 #include "level/MonitorElement.h"
 #include "level/TextElement.h"
 #include "time/TimeManager.h"
@@ -42,6 +44,7 @@ void LevelManager::Initialize(const SceneContext& context)
 	// 参照される種類を先に、参照する種類を後に登録する
 	RegisterElementType(ModelElement::MakeType());
 	RegisterElementType(TextElement::MakeType());
+	RegisterElementType(SpriteElement::MakeType());
 	// カメラは、モニターなど映す側より先に登録する
 	RegisterElementType(CameraElement::MakeType());
 	// モニターは、映すカメラより後に登録する
@@ -50,7 +53,7 @@ void LevelManager::Initialize(const SceneContext& context)
 	// 初めて開くときは、Hierarchy と同じ左側のタブに入る
 	DebugUIManager::GetInstance()->RegisterWindow(this, "Level###Level", [this]() { DrawWindowImGui(); }, EditorDock::Left);
 	// 要素ごとの詳細とギズモは、選ばれた物の持ち主に渡す（持ち主でなければ要素が何もしない）
-	for (const SelectionKind kind : { SelectionKind::Text3D, SelectionKind::Camera, SelectionKind::StageMonitor })
+	for (const SelectionKind kind : { SelectionKind::Text3D, SelectionKind::Camera, SelectionKind::StageMonitor, SelectionKind::Sprite2D })
 	{
 		DebugUIManager::GetInstance()->RegisterInspector(this, kind, [this](const SelectionItem& item)
 		{
@@ -95,6 +98,7 @@ void LevelManager::Finalize()
 		SceneGizmo::GetInstance()->Unregister(this);
 	}
 #endif
+	pendingUnloads_.clear();
 	stages_.clear();
 	types_.clear();
 	instance_.reset();
@@ -133,7 +137,23 @@ Level* LevelManager::Load(const std::string& name)
 
 void LevelManager::Unload(const std::string& name)
 {
-	stages_.erase(name);
+	if (Find(name) && std::find(pendingUnloads_.begin(), pendingUnloads_.end(), name) == pendingUnloads_.end())
+	{
+		pendingUnloads_.push_back(name);
+	}
+}
+
+void LevelManager::ProcessPendingUnloads(DirectXCommon* dxCommon)
+{
+	if (pendingUnloads_.empty()) { return; }
+	auto names = std::move(pendingUnloads_);
+	pendingUnloads_.clear();
+	// 前のフレームまでの描画が GPU で終わってから壊す
+	if (dxCommon) { dxCommon->ExecuteAndWait(); }
+	for (const std::string& name : names)
+	{
+		stages_.erase(name);
+	}
 }
 
 Level* LevelManager::Find(const std::string& name) const
@@ -147,6 +167,7 @@ void LevelManager::Update()
 	const float deltaTime = TimeManager::GetInstance().GetDeltaTime(GameClock());
 	for (auto& [name, stage] : stages_)
 	{
+		stage->SetSequencerState(sequencerActive_, sequencerPlaying_);
 		stage->Update(deltaTime);
 	}
 }
@@ -202,6 +223,33 @@ std::vector<std::string> LevelManager::ListStageFiles()
 std::vector<std::string> LevelManager::ListPrefabFiles()
 {
 	return ListFiles(PathManager::GetApplicationResourceRoot() / "json" / "prefab", false);
+}
+
+bool LevelManager::DuplicateElement(Level& stage, const std::string& name)
+{
+	const ILevelElement* source = stage.Find<ILevelElement>(name);
+	if (!source)
+	{
+		return false;
+	}
+	const std::string typeKey = source->GetTypeKey();
+	const auto type = std::find_if(types_.begin(), types_.end(), [&typeKey](const LevelElementType& t) { return t.key == typeKey; });
+	if (type == types_.end() || !type->create)
+	{
+		return false;
+	}
+	nlohmann::json entry = source->Serialize();
+	entry["name"] = MakeUniqueName(stage, name);
+	std::unique_ptr<ILevelElement> copy;
+	try
+	{
+		copy = type->create(entry, context_);
+	}
+	catch (const nlohmann::json::exception&)
+	{
+		return false;
+	}
+	return copy && stage.Add(copy);
 }
 
 std::string LevelManager::MakeUniqueName(const Level& stage, const std::string& baseName)
@@ -426,6 +474,7 @@ void LevelManager::DrawStageBodyImGui(Level& stage)
 	ImGui::InputTextWithHint("##ElementFilter", "検索", elementFilter_.data(), elementFilter_.size());
 	ImGui::BeginChild("StageElements", ImVec2(0.0f, 0.0f), true);
 	std::string removeName;
+	std::string duplicateName;
 	for (const auto& element : stage.GetElements())
 	{
 		if (!ContainsIgnoreCase(element->GetName(), elementFilter_.data()))
@@ -444,6 +493,10 @@ void LevelManager::DrawStageBodyImGui(Level& stage)
 				renameTarget_.copy(renameBuffer_.data(), renameBuffer_.size() - 1);
 				renameError_.clear();
 				renamePopupRequested_ = true;
+			}
+			if (ImGui::MenuItem("複製"))
+			{
+				duplicateName = element->GetName();
 			}
 			if (ImGui::MenuItem("削除"))
 			{
@@ -464,6 +517,10 @@ void LevelManager::DrawStageBodyImGui(Level& stage)
 	if (!removeName.empty())
 	{
 		stage.Remove(removeName);
+	}
+	if (!duplicateName.empty())
+	{
+		DuplicateElement(stage, duplicateName);
 	}
 	ImGui::EndChild();
 

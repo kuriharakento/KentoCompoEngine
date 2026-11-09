@@ -24,8 +24,8 @@ class SrvManager;
  *
  * - GameObjectRenderer が作った「見えている物のリスト」を受け取り、
  *   まとめて描ける物（instanced）と1体ずつ描く物（single）に分ける
- * - まとめる条件は「同じモデル名」かつ「素材が読み込んだままで、1体ごとにいじられていない」こと。
- *   色を変えた物や、ライティングを切った物、輪郭線を付けた物は1体ずつ描く
+ * - まとめる条件は「同じモデル名」かつ「素材が、色以外は読み込んだままで、1体ごとにいじられていない」こと。
+ *   色は1体ごとのデータとして渡すので、色が違ってもまとめられる。ライティングを切った物や、輪郭線を付けた物は1体ずつ描く
  * - まとめて描く分は ModelManager が持つ元のモデルで描く。1体ごとの複製は使わない
  * - 行列の配列もまとめ分けの入れ物も使い回し、毎フレーム確保しない
  * - メインスレッドだけで使う
@@ -86,10 +86,11 @@ public:
 	/**
 	 * @brief この描画物をまとめて描いてよいか調べる
 	 * @param object3d 調べる描画物
+	 * @param outColorScale まとめてよいとき、元モデルの色に掛けるとこの物の色になる倍率の出力先（任意）
 	 * @return まとめてよければ ModelManager が持つ元のモデル。だめなら nullptr（所有権は移らない）
 	 * @details 物ごとに1回だけ呼ぶ想定（GameObjectRenderer::Collect）。ビューごとに呼ぶと重い
 	 */
-	static Model* FindSharedModel(const Object3d* object3d);
+	static Model* FindSharedModel(const Object3d* object3d, Vector4* outColorScale = nullptr);
 
 	/** @brief まとめて描くのを使うか（比べるときに切る） */
 	void SetEnabled(bool enabled) { enabled_ = enabled; }
@@ -114,7 +115,7 @@ private:
 		// このまとまりに入った物。配列は使い回す
 		std::vector<const GameObjectRenderer::Entry*> entries;
 		// このまとまりの物の行列。ビューごとに WVP だけ作り直す。配列は使い回す
-		std::vector<TransformationMatrix> instanceData;
+		std::vector<InstanceData> instanceData;
 		// このまとまり用のバッファ。1回の描画ごとに別のものを使う（下の AcquireRenderer）。作ったものは使い回す
 		std::vector<std::unique_ptr<InstancedModelRenderer>> renderers;
 		// このフレームで使い始めたバッファの数。フレームが変わると 0 に戻す

@@ -89,6 +89,7 @@
     <ClCompile Include="graphics\2d\FontSprite.cpp" />
     <ClCompile Include="graphics\2d\NumberSprite.cpp" />
     <ClCompile Include="graphics\2d\Sprite.cpp" />
+    <ClCompile Include="graphics\2d\SpriteLayer.cpp" />
     <ClCompile Include="graphics\2d\AnimatedSprite.cpp" />
     <ClCompile Include="graphics\2d\SpriteAnimationClip.cpp" />
     <ClCompile Include="graphics\2d\SpriteAnimator.cpp" />
@@ -145,6 +146,7 @@
     <ClCompile Include="graphics\text\TextMesh3D.cpp" />
     <ClCompile Include="graphics\text\Text3DRenderer.cpp" />
     <ClCompile Include="sequencer\track\Text3DTrack.cpp" />
+    <ClCompile Include="sequencer\track\SpriteTrack.cpp" />
     <ClCompile Include="graphics\2d\GlyphAtlas.cpp" />
     <ClCompile Include="graphics\2d\TextOverlay.cpp" />
     <ClCompile Include="graphics\2d\TextSprite.cpp" />
@@ -196,6 +198,7 @@
     <ClCompile Include="level\MonitorElement.cpp" />
     <ClCompile Include="level\Level.cpp" />
     <ClCompile Include="level\TextElement.cpp" />
+    <ClCompile Include="level\SpriteElement.cpp" />
     <ClCompile Include="level\LevelManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -319,6 +322,7 @@
     <ClInclude Include="graphics\2d\FontSprite.h" />
     <ClInclude Include="graphics\2d\NumberSprite.h" />
     <ClInclude Include="graphics\2d\Sprite.h" />
+    <ClInclude Include="graphics\2d\SpriteLayer.h" />
     <ClInclude Include="graphics\2d\AnimatedSprite.h" />
     <ClInclude Include="graphics\2d\SpriteAnimationClip.h" />
     <ClInclude Include="graphics\2d\SpriteAnimator.h" />
@@ -424,6 +428,7 @@
     <ClInclude Include="graphics\text\TextMesh3D.h" />
     <ClInclude Include="graphics\text\Text3DRenderer.h" />
     <ClInclude Include="sequencer\track\Text3DTrack.h" />
+    <ClInclude Include="sequencer\track\SpriteTrack.h" />
     <ClInclude Include="graphics\atmosphere\BeamRenderer.h" />
     <ClInclude Include="graphics\atmosphere\FogRenderer.h" />
     <ClInclude Include="graphics\npr\OutlineRenderer.h" />
@@ -470,6 +475,7 @@
     <ClInclude Include="level\MonitorElement.h" />
     <ClInclude Include="level\Level.h" />
     <ClInclude Include="level\TextElement.h" />
+    <ClInclude Include="level\SpriteElement.h" />
     <ClInclude Include="level\LevelManager.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -41,6 +41,10 @@ public:
 	size_t GetChannelCount() const override { return kChannelCount; }
 	ICurveChannel* GetChannel(size_t index) override;
 	bool RecordKey(float time, const BindingContext& ctx) override;
+	void UpdateKeyDefaults(const BindingContext& ctx) override;
+
+	/** @brief 位置のカーブ。シーンに軌跡を描くために読む */
+	const Vector3Curve& GetPositionCurve() const { return positionCurve_; }
 
 private:
 	/** @brief チャンネル数（位置・回転・スケール・色） */
@@ -53,8 +57,8 @@ private:
 
 	CurveChannel<Vector3> positionChannel_{ "Position", &positionCurve_ };
 	CurveChannel<Quaternion> rotationChannel_{ "Rotation", &rotationCurve_ };
-	CurveChannel<Vector3> scaleChannel_{ "Scale", &scaleCurve_ };
-	CurveChannel<Vector4> colorChannel_{ "Color", &colorCurve_ };
+	CurveChannel<Vector3> scaleChannel_{ "Scale", &scaleCurve_, Vector3{ 1.0f, 1.0f, 1.0f } };
+	CurveChannel<Vector4> colorChannel_{ "Color", &colorCurve_, Vector4{ 1.0f, 1.0f, 1.0f, 1.0f } };
 
 	// --- 状態の退避 ---
 	bool hasCapturedState_ = false;

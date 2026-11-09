@@ -114,6 +114,8 @@ public:
 	 *          絵だけ更新したいときに使う。
 	 */
 	void EvaluateCurrentTime();
+	/** @return 対象の元の状態を退避済みか（再生・スクラブで対象を動かしている最中は真） */
+	bool HasCapturedState() const { return hasCapturedState_; }
 
 	float GetTime() const { return time_; }
 	PlaybackState GetState() const { return state_; }

@@ -284,6 +284,10 @@ private:
 	void AutoBindObjectRoles();
 	// 設定欄を開いているか（見出しではなくボタンで開閉する）
 	bool settingsOpen_ = false;
+	// 終了位置の旗の上にカーソルがある（前のフレームの結果）。ルーラーのスクラブを始めないために使う
+	bool endHandleHovered_ = false;
+	bool wasSequencePlaying_ = false;
+	bool pendingReevaluate_ = false;
 	// 右クリックメニューから「対象を変更」を選んだ。メニューを閉じた次の描画で割り当ての窓を開く
 	bool openAssignPopupRequested_ = false;
 	/** @brief カメラトラックの位置カーブを、シーン上に線で描く（軌道・キーの位置・今の位置） */

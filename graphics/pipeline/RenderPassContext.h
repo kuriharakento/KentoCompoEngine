@@ -24,6 +24,7 @@ class SpriteCommon;
 class SrvManager;
 class TextOverlay;
 class Text3DRenderer;
+class SpriteLayer;
 class FxaaRenderer;
 class DepthOfFieldRenderer;
 class VolumetricLightRenderer;
@@ -126,6 +127,8 @@ struct RenderPassContext
 	TextOverlay* textOverlay = nullptr;
 	//! 3D 空間の文字（半透明の後）
 	Text3DRenderer* text3DRenderer = nullptr;
+	// Level に置いた 2D スプライト。シーンの 2D より奥に描く
+	SpriteLayer* spriteLayer = nullptr;
 
 	// --- 画の質 ---
 	//! トーンマップ後のジャギーを均す

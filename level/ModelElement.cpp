@@ -66,7 +66,17 @@ std::unique_ptr<ILevelElement> CreateFromJson(const nlohmann::json& entry, const
 	ApplyRenderingType(*object, ParseRenderingType(entry));
 	GameObject* adopted = GameObjectManager::GetInstance()->Adopt(std::move(object));
 	const std::string prefab = (entry.contains("prefab") && entry["prefab"].is_string()) ? entry["prefab"].get<std::string>() : std::string();
-	return std::make_unique<ModelElement>(name, prefab, adopted);
+	auto element = std::make_unique<ModelElement>(name, prefab, adopted);
+	// 保存した色。作った時点の色は element が覚えているので、そのあとで上書きする
+	if (entry.contains("color") && entry["color"].is_array() && entry["color"].size() == 4 && adopted)
+	{
+		const auto& c = entry["color"];
+		if (c[0].is_number() && c[1].is_number() && c[2].is_number() && c[3].is_number())
+		{
+			adopted->SetColor(Vector4(c[0].get<float>(), c[1].get<float>(), c[2].get<float>(), c[3].get<float>()));
+		}
+	}
+	return element;
 }
 
 /** @brief エディタで新規に作る、何も持たない GameObject の要素 */
@@ -92,6 +102,7 @@ ModelElement::ModelElement(std::string name, std::string prefabName, GameObject*
 	if (object_)
 	{
 		object_->SetName(GetName());
+		baseColor_ = object_->GetColor();
 	}
 	CapturePose();
 }
@@ -174,8 +185,35 @@ bool ModelElement::OnRename(const std::string& newName)
 	return true;
 }
 
+void ModelElement::OnSequencerState(bool active, bool playing)
+{
+	// Level 自体を再生しているときは、そちらが更新を決める
+	if (!object_ || playing_)
+	{
+		return;
+	}
+	if (sequencerDriven_ && !playing)
+	{
+		// シーケンサが止まった（または一時停止）。コンポーネントの動きで離れた分を置き場所へ戻す
+		sequencerDriven_ = false;
+		object_->SetUpdateEnabled(false);
+		RestorePose();
+	}
+	else if (!sequencerDriven_ && playing)
+	{
+		sequencerDriven_ = true;
+		object_->SetUpdateEnabled(true);
+	}
+	// シーケンサが触っていない間は、いまの姿が置き場所。触り始めたら覚えるのをやめる
+	if (!active && !sequencerDriven_)
+	{
+		CapturePose();
+	}
+}
+
 void ModelElement::SetPlaying(bool playing)
 {
+	sequencerDriven_ = false;
 	if (!object_ || playing == playing_)
 	{
 		return;
@@ -206,6 +244,15 @@ nlohmann::ordered_json ModelElement::Serialize() const
 	// プレハブの形には描画方式が無いので、ここに別に書く。インスペクタで切り替えた結果が、読み込み直しても残る
 	const IRenderable3d* renderable = object_->GetRenderable3d();
 	json[kRenderingTypeKey] = (renderable && renderable->GetRenderingType() == RenderingType::Deferred) ? kRenderingDeferred : kRenderingForward;
+	// 作った時点から色を変えていれば書く（描画物を持たない物は色が無い）
+	if (renderable)
+	{
+		const Vector4 color = object_->GetColor();
+		if (color.x != baseColor_.x || color.y != baseColor_.y || color.z != baseColor_.z || color.w != baseColor_.w)
+		{
+			json["color"] = { color.x, color.y, color.z, color.w };
+		}
+	}
 	nlohmann::json object = object_->SerializePrefab();
 	if (playing_)
 	{

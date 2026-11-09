@@ -34,6 +34,7 @@ bool SequencerEditor::HasInstance()
 #include "base/Logger.h"
 #include "editor/EditorContext.h"
 #include "editor/SceneGizmo.h"
+#include "level/LevelManager.h"
 #include "editor/SceneViewContext.h"
 #include "manager/graphics/LineManager.h"
 #include "editor/SelectionContext.h"
@@ -111,7 +112,7 @@ const char* const kPreviewObjectsKey = "objects";
 const char* const kPreviewLightsKey = "lights";
 
 /** @brief キーのマーカーの半径（ピクセル） */
-constexpr float kKeyMarkerRadius = 5.0f;
+constexpr float kKeyMarkerRadius = 8.0f;
 // トラック名欄で、チャンネル行の値の編集欄が始まる位置（欄の左端から。手前はチャンネル名）
 constexpr float kInlineValueLeft = 170.0f;
 // トラック名欄の右端の割り当て先の名前のボタン（文字に足す余白・最大の幅）と、その右のミュートボタンの分の空き
@@ -120,7 +121,7 @@ constexpr float kTargetButtonMaxWidth = 150.0f;
 constexpr float kMuteButtonReserve = 36.0f;
 constexpr const char* kAssignTargetPopupId = "##AssignTargetPopup";
 // 値の編集欄の左に出す、再生ヘッドにキーがあるかの印の大きさ
-constexpr float kInlineKeyMarkSize = 14.0f;
+constexpr float kInlineKeyMarkSize = 20.0f;
 // 編集欄の最低の高さ。窓がこれより低いときは窓全体をスクロールさせる
 constexpr float kEditAreaMinHeight = 260.0f;
 constexpr const char* kAddTrackPopupId = "##AddTrackPopup";
@@ -464,7 +465,7 @@ bool ExecuteTrackEdit(Sequence& sequence, size_t trackIndex, const char* name, E
 void ExecuteMetaEdit(Sequence& sequence, const SequenceMeta& after, const char* name, uint32_t editId)
 {
 	const SequenceMeta before = sequence.GetMeta();
-	if (before.bpm == after.bpm && before.offset == after.offset && before.audioClip == after.audioClip)
+	if (before.bpm == after.bpm && before.offset == after.offset && before.audioClip == after.audioClip && before.duration == after.duration)
 	{
 		return;
 	}
@@ -640,6 +641,9 @@ void SequencerEditor::Finalize()
 		SceneGizmo::GetInstance()->Unregister(this);
 	}
 
+	// 終了時にはシーンの GameObject が先に壊れている。割り当てを外してから止めないと、
+	// 止めるときの「元に戻す」が壊れた GameObject を触って落ちる
+	player_.GetBindingContext().Clear();
 	player_.SetSequence(nullptr);
 	sequence_.Clear();
 	previewObjectBindings_.clear();
@@ -1300,6 +1304,26 @@ void SequencerEditor::Update()
 
 	ApplyPreviewBindings();
 
+	// Level の要素へシーケンサの状態を伝える。再生中はコンポーネントも動かし、
+	// 止まったら（または一時停止したら）置き場所へ戻す。戻した後の姿は、次のフレームで評価し直す
+	{
+		const bool playing = player_.IsPlaying();
+		const bool active = playing || player_.HasCapturedState();
+		if (pendingReevaluate_)
+		{
+			pendingReevaluate_ = false;
+			if (player_.HasCapturedState()) { player_.EvaluateCurrentTime(); }
+		}
+		// 空のチャンネルに最初のキーを打つときは、対象の今の値から始める
+		for (size_t trackIndex = 0; trackIndex < sequence_.GetTrackCount(); ++trackIndex)
+		{
+			if (ITrack* track = sequence_.GetTrack(trackIndex)) { track->UpdateKeyDefaults(player_.GetBindingContext()); }
+		}
+		if (wasSequencePlaying_ && !playing) { pendingReevaluate_ = true; }
+		wasSequencePlaying_ = playing;
+		if (LevelManager::HasInstance()) { LevelManager::GetInstance()->SetSequencerState(active, playing); }
+	}
+
 	// 自動キー。ギズモを離した瞬間に打つ。再生中は動かしてもすぐ上書きされるので打たない
 	const bool gizmoDragging = SceneGizmo::HasInstance() && SceneGizmo::GetInstance()->IsDragging();
 	if (wasGizmoDragging_ && !gizmoDragging)
@@ -1380,6 +1404,38 @@ void SequencerEditor::DrawCameraPath() const
 		}
 		lines->DrawSphere(curve.Evaluate(player_.GetTime()), kCameraPathNowRadius, kCameraPathNowColor);
 	}
+
+	// オブジェクトの位置トラックも、軌跡とキーの位置を線で出す
+	const Vector4 objectPathColor{ 0.35f, 0.9f, 0.55f, 1.0f };
+	for (size_t trackIndex = 0; trackIndex < sequence_.GetTrackCount(); ++trackIndex)
+	{
+		const TransformTrack* track = dynamic_cast<const TransformTrack*>(sequence_.GetTrack(trackIndex));
+		if (!track || track->IsMuted())
+		{
+			continue;
+		}
+		const Vector3Curve& curve = track->GetPositionCurve();
+		if (curve.IsEmpty())
+		{
+			continue;
+		}
+		const float startTime = curve.GetStartTime();
+		const float endTime = curve.GetEndTime();
+		const size_t segmentCount = std::clamp(static_cast<size_t>((endTime - startTime) * kCameraPathSamplesPerSecond), size_t{ 1 }, kCameraPathMaxSegments);
+		Vector3 previous = curve.Evaluate(startTime);
+		for (size_t i = 1; i <= segmentCount; ++i)
+		{
+			const float time = startTime + (endTime - startTime) * static_cast<float>(i) / static_cast<float>(segmentCount);
+			const Vector3 current = curve.Evaluate(time);
+			lines->DrawLine(previous, current, objectPathColor);
+			previous = current;
+		}
+		for (const auto& key : curve.GetKeys())
+		{
+			lines->DrawCube(key.value, kCameraPathKeySize, kCameraPathKeyColor);
+		}
+		lines->DrawSphere(curve.Evaluate(player_.GetTime()), kCameraPathNowRadius, kCameraPathNowColor);
+	}
 #endif
 }
 
@@ -1427,6 +1483,7 @@ void SequencerEditor::DrawAddTrackMenu()
 		{ "Particle", "パーティクル", "パーティクルを指定の時刻に出します" },
 		{ "Text", "文字（画面）", "画面に文字を出します" },
 		{ "Text3D", "文字（3D 空間）", "3D 空間に文字を出します" },
+		{ "Sprite", "スプライト（2D）", "Level に置いた 2D スプライトの位置・大きさ・色を動かします" },
 		{ "Event", "イベント", "指定の時刻にゲーム側へ合図を送ります" },
 	};
 	for (const EffectItem& item : kEffectItems)
@@ -1436,7 +1493,7 @@ void SequencerEditor::DrawAddTrackMenu()
 	}
 
 	// 上に無い種別（あとから足したもの）は、名前のまま出しておく
-	static const char* const kListedTypes[] = { "Camera", "Transform", "Component", "Screen", "Light", "PostProcess", "Particle", "Text", "Text3D", "Event" };
+	static const char* const kListedTypes[] = { "Camera", "Transform", "Component", "Screen", "Light", "PostProcess", "Particle", "Text", "Text3D", "Sprite", "Event" };
 	size_t typeCount = 0;
 	const char* const* typeNames = TrackFactory::GetCreatableTypeNames(typeCount);
 	for (size_t index = 0; index < typeCount; ++index)
@@ -2032,6 +2089,7 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 			case TrackType::Text3D: return IM_COL32(185, 130, 200, 255);
 			case TrackType::Component: return IM_COL32(200, 125, 70, 255);
 			case TrackType::Particle: return IM_COL32(230, 150, 190, 255);
+			case TrackType::Sprite: return IM_COL32(120, 190, 120, 255);
 			default: return IM_COL32(110, 110, 120, 255);
 			}
 		}();
@@ -2162,7 +2220,7 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 					for (size_t keyIndex = 0; aggregate && keyIndex < aggregate->GetKeyCount(); ++keyIndex)
 					{
 						const float x = TimeToPixel(aggregate->GetKeyTime(keyIndex), left);
-						drawList->AddCircleFilled(ImVec2(x, rowCenter), 3.0f, typeColor);
+						drawList->AddCircleFilled(ImVec2(x, rowCenter), 5.0f, typeColor);
 					}
 				}
 				rowY = rowBottom;
@@ -2698,7 +2756,7 @@ void SequencerEditor::DrawPlayhead(const ImVec2& canvasMin, const ImVec2& canvas
 		mousePos.x >= left && mousePos.x <= canvasMin.x + canvasSize.x &&
 		mousePos.y >= canvasMin.y && mousePos.y <= canvasMin.y + view_.rulerHeight;
 
-	if (inRuler && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+	if (inRuler && !endHandleHovered_ && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 	{
 		draggingPlayhead_ = true;
 	}
@@ -3430,6 +3488,7 @@ void SequencerEditor::DrawDopeSheet()
 	DrawPlayhead(canvasMin, canvasSize);
 
 	// 終了位置。ルーラーの下の旗をドラッグして、シーケンスの長さを決める
+	endHandleHovered_ = false;
 	{
 		const float left = canvasMin.x + view_.headerWidth;
 		const float endX = TimeToPixel(sequence_.GetDuration(), left);
@@ -3443,6 +3502,7 @@ void SequencerEditor::DrawDopeSheet()
 			ImGui::SetCursorScreenPos(ImVec2(endX - 6.0f, flagTop));
 			ImGui::InvisibleButton("##EndHandle", ImVec2(24.0f, 18.0f));
 			const bool endActive = ImGui::IsItemActive();
+			endHandleHovered_ = ImGui::IsItemHovered() || endActive;
 			if (ImGui::IsItemActivated()) { ++metaEditId_; }
 			if (ImGui::IsItemHovered() || endActive)
 			{
@@ -4299,8 +4359,21 @@ bool SequencerEditor::AddChannelKey(size_t trackIndex, ICurveChannel& channel, f
 		// 空の行は型の既定値（FOV が 0 など）だと困るので、割り当て先の今の状態から打つ
 		if (channel.IsEmpty() && HasRequiredBinding(*track, player_.GetBindingContext()))
 		{
+			// RecordKey は全チャンネルに打つので、押した行以外で元が空だった所は、打たれたキーを消す
+			std::vector<bool> wasEmpty;
+			for (size_t channelIndex = 0; channelIndex < track->GetChannelCount(); ++channelIndex)
+			{
+				const ICurveChannel* each = track->GetChannel(channelIndex);
+				wasEmpty.push_back(each && each->IsEmpty());
+			}
 			track->RecordKey(time, player_.GetBindingContext());
 			added = !channel.IsEmpty();
+			for (size_t channelIndex = 0; channelIndex < wasEmpty.size(); ++channelIndex)
+			{
+				ICurveChannel* each = track->GetChannel(channelIndex);
+				if (!each || each == &channel || !wasEmpty[channelIndex]) { continue; }
+				for (size_t keyIndex = each->GetKeyCount(); keyIndex > 0; --keyIndex) { each->RemoveKey(keyIndex - 1); }
+			}
 		}
 		if (!added) { added = channel.AddKeyAt(time); }
 	});

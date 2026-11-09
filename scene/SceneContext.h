@@ -16,6 +16,7 @@ class DepthOfFieldRenderer;
 class VolumetricLightRenderer;
 class PlanarReflection;
 class Text3DRenderer;
+class SpriteLayer;
 class DirectXCommon;
 class SrvManager;
 
@@ -44,5 +45,7 @@ struct SceneContext
 	Text3DRenderer* text3D = nullptr;
 	DirectXCommon* dxCommon = nullptr;
 	SrvManager* srvManager = nullptr;
+	// 名前を付けて置く 2D スプライトの置き場（Level のスプライト要素とシーケンサのトラックが使う）
+	SpriteLayer* sprites = nullptr;
 };
 } // namespace KCE

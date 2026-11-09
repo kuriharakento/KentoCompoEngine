@@ -74,7 +74,7 @@ private:
 	// ポイントのみ: 届く半径
 	FloatCurve radiusCurve_;
 
-	CurveChannel<Vector4> colorChannel_{ "Color", &colorCurve_ };
+	CurveChannel<Vector4> colorChannel_{ "Color", &colorCurve_, Vector4{ 1.0f, 1.0f, 1.0f, 1.0f } };
 	CurveChannel<float> intensityChannel_{ "Intensity", &intensityCurve_ };
 	CurveChannel<float> coneAngleChannel_{ "Cone Angle", &coneAngleCurve_ };
 	CurveChannel<float> radiusChannel_{ "Radius", &radiusCurve_ };

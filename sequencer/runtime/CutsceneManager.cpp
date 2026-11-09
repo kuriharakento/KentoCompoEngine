@@ -152,6 +152,11 @@ void CutsceneManager::SetTextOverlay(TextOverlay* textOverlay)
 	player_.GetBindingContext().SetTextOverlay(textOverlay);
 }
 
+void CutsceneManager::SetSpriteLayer(SpriteLayer* spriteLayer)
+{
+	player_.GetBindingContext().SetSpriteLayer(spriteLayer);
+}
+
 void CutsceneManager::SetText3DRenderer(Text3DRenderer* text3DRenderer)
 {
 	player_.GetBindingContext().SetText3DRenderer(text3DRenderer);
@@ -170,6 +175,8 @@ void CutsceneManager::Finalize()
 	{
 		Input::GetInstance()->SetGameplayLocked(false);
 	}
+	// 終了時は GameObject が先に壊れている。割り当てを外してから止める
+	player_.GetBindingContext().Clear();
 	player_.SetSequence(nullptr);
 	instance_.reset();
 }

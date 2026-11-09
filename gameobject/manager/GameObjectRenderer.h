@@ -46,6 +46,8 @@ public:
 		Model* instancedModel = nullptr;
 		// 静的モデルならその Object3d。所有しない
 		Object3d* object3d = nullptr;
+		// まとめて描くときに、元モデルの色に掛けて、この物の色にする倍率。白なら元モデルのまま
+		Vector4 instanceColor = { 1.0f, 1.0f, 1.0f, 1.0f };
 	};
 
 	/** @brief どのパスのリストを作るか */

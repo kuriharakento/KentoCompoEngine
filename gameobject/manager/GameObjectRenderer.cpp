@@ -75,7 +75,7 @@ void GameObjectRenderer::AddEntry(GameObject* object, IRenderable3d* renderable,
 	entry.castShadow = castShadow;
 	// まとめて描けるかは物ごとに1回だけ見る。ビューごとに見直さない
 	entry.object3d = dynamic_cast<Object3d*>(renderable);
-	entry.instancedModel = entry.object3d ? GameObjectInstancing::FindSharedModel(entry.object3d) : nullptr;
+	entry.instancedModel = entry.object3d ? GameObjectInstancing::FindSharedModel(entry.object3d, &entry.instanceColor) : nullptr;
 	entries_.push_back(entry);
 }
 

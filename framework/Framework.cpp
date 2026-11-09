@@ -360,6 +360,7 @@ void Framework::Initialize()
 	}
 
 	// 3D 空間の文字（ライブ映像の歌詞の演出など）
+	spriteLayer_ = std::make_unique<SpriteLayer>();
 	text3DRenderer_ = std::make_unique<Text3DRenderer>();
 	text3DRenderer_->Initialize(dxCommon_.get(), glyphAtlas_.get());
 	shaderHotReload->Register(text3DRenderer_.get(), "Text3D",
@@ -382,6 +383,7 @@ void Framework::Initialize()
 	SequencerEditor::GetInstance()->SetAtmosphere(fogRenderer_.get(), beamRenderer_.get());
 	SequencerEditor::GetInstance()->SetTextOverlay(textOverlay_.get());
 	SequencerEditor::GetInstance()->GetPlayer().GetBindingContext().SetText3DRenderer(text3DRenderer_.get());
+	SequencerEditor::GetInstance()->GetPlayer().GetBindingContext().SetSpriteLayer(spriteLayer_.get());
 	SequencerEditor::GetInstance()->GetPlayer().GetBindingContext().SetDepthOfFieldRenderer(depthOfFieldRenderer_.get());
 
 	// ゲームからカットシーンを再生する窓口
@@ -390,6 +392,7 @@ void Framework::Initialize()
 	cutscene->SetAtmosphere(fogRenderer_.get(), beamRenderer_.get());
 	cutscene->SetTextOverlay(textOverlay_.get());
 	cutscene->SetText3DRenderer(text3DRenderer_.get());
+	cutscene->SetSpriteLayer(spriteLayer_.get());
 	cutscene->SetDepthOfField(depthOfFieldRenderer_.get());
 #ifdef USE_IMGUI
 	cutscene->RegisterDebugUI();
@@ -577,6 +580,7 @@ void Framework::Finalize()
 	textOverlay_.reset();
 	textSpritePipeline_.reset();
 	text3DRenderer_.reset();
+	spriteLayer_.reset();
 	glyphAtlas_.reset();
 
 	GameObjectEditor::GetInstance()->Finalize();
@@ -675,6 +679,7 @@ RenderPassContext Framework::MakeRenderPassContext(RenderView* view, RenderTextu
 	ctx.outlineRenderer = outlineRenderer_.get();
 	ctx.textOverlay = textOverlay_.get();
 	ctx.text3DRenderer = text3DRenderer_.get();
+	ctx.spriteLayer = spriteLayer_.get();
 	ctx.fxaaRenderer = fxaaRenderer_.get();
 	ctx.depthOfFieldRenderer = depthOfFieldRenderer_.get();
 	ctx.volumetricLightRenderer = volumetricLightRenderer_.get();

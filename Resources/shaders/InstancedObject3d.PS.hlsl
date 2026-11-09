@@ -264,7 +264,17 @@ float CalculateShadow(float3 worldPos)
 }
 
 
-PixelShaderOutput main(VertexShaderOutput input)
+// 頂点シェーダーの出力（InstancedObject3d.VS と同じにする）
+struct InstancedPixelInput
+{
+    float32_t4 position : SV_POSITION;
+    float32_t2 texcoord : TEXCOORD0;
+    float32_t3 normal : NORMAL0;
+    float32_t3 worldPos : POSITION0;
+    float32_t4 instanceColor : COLOR0;
+};
+
+PixelShaderOutput main(InstancedPixelInput input)
 {
     PixelShaderOutput output;
 
@@ -281,14 +291,14 @@ PixelShaderOutput main(VertexShaderOutput input)
     // ライティングが無効な場合の早期リターン
     if (gMaterial.enableLighting == 0)
     {
-        output.color = gMaterial.color * textureColor;
+        output.color = gMaterial.color * input.instanceColor * textureColor;
         return output;
     }
 
     // 共通計算（一度だけ実行）
     float3 normal = normalize(input.normal);
     float3 toEye = normalize(gCamera.worldPos - input.worldPos);
-    float3 baseColor = gMaterial.color.rgb * textureColor.rgb;
+    float3 baseColor = gMaterial.color.rgb * input.instanceColor.rgb * textureColor.rgb;
 
     // シャドウ計算（カスケードシャドウを使用）
     float shadow = 1.0f;
@@ -388,7 +398,7 @@ PixelShaderOutput main(VertexShaderOutput input)
     }
 
     output.color.rgb = finalColor;
-    output.color.a = gMaterial.color.a * textureColor.a;
+    output.color.a = gMaterial.color.a * input.instanceColor.a * textureColor.a;
 
     return output;
 }

@@ -90,6 +90,20 @@ void TransformTrack::RestoreState(const BindingContext& ctx)
 	}
 }
 
+void TransformTrack::UpdateKeyDefaults(const BindingContext& ctx)
+{
+	const GameObject* object = ctx.GetGameObject(GetBindingRole());
+	if (!object)
+	{
+		return;
+	}
+	if (positionCurve_.IsEmpty()) { positionChannel_.SetDefaultValue(object->GetPosition()); }
+	if (rotationCurve_.IsEmpty()) { rotationChannel_.SetDefaultValue(Quaternion::FromEuler(object->GetRotation())); }
+	if (scaleCurve_.IsEmpty()) { scaleChannel_.SetDefaultValue(object->GetScale()); }
+	// 描画物を持たない物の色は、白のまま
+	if (colorCurve_.IsEmpty() && object->GetRenderable3d()) { colorChannel_.SetDefaultValue(object->GetColor()); }
+}
+
 bool TransformTrack::RecordKey(float time, const BindingContext& ctx)
 {
 	const GameObject* object = ctx.GetGameObject(GetBindingRole());
