@@ -684,6 +684,8 @@ void SequencerEditor::ApplyPreviewBindings()
 		ResolvePendingObjectBindings();
 	}
 
+	AutoBindObjectRoles();
+
 	// GameObject は GUID から毎フレーム引き直す。破棄されていれば割り当ては外れる
 	for (const auto& [role, guid] : previewObjectBindings_)
 	{
@@ -762,6 +764,69 @@ void SequencerEditor::RestorePreviewBindings()
 	ResolvePendingObjectBindings();
 }
 
+void SequencerEditor::AutoBindObjectRoles()
+{
+	if (!GameObjectManager::HasInstance())
+	{
+		return;
+	}
+	BindingContext& ctx = player_.GetBindingContext();
+	GameObjectManager* manager = GameObjectManager::GetInstance();
+	const std::vector<GameObject*>& objects = manager->GetGameObjects();
+
+	for (size_t index = 0; index < sequence_.GetTrackCount(); ++index)
+	{
+		const ITrack* track = sequence_.GetTrack(index);
+		BindingType type;
+		if (!track || !GetBindingTypeForTrack(*track, type) || type != BindingType::GameObject)
+		{
+			continue;
+		}
+		const std::string& role = track->GetBindingRole();
+		// 手動の割り当て（保存済みの名前を探し中の物も含む）が優先
+		if (role.empty() || previewObjectBindings_.count(role) || pendingObjectBindings_.count(role))
+		{
+			continue;
+		}
+
+		// 前に自動で割り当てた相手が今もいれば、そのまま
+		const auto previous = autoObjectBindings_.find(role);
+		if (previous != autoObjectBindings_.end() && manager->FindByGuid(previous->second))
+		{
+			ctx.BindGameObject(role, manager->FindByGuid(previous->second));
+			continue;
+		}
+
+		// 名前を先に、なければタグ。同じ物が複数あれば、一覧で先に出てくる物
+		const auto byName = std::find_if(objects.begin(), objects.end(),
+			[&role](const GameObject* o)
+			{
+				if (!o) { return false; }
+				const std::string& n = o->GetName();
+				if (n == role) { return true; }
+				// Level の要素は "Level_ファイル名_要素名" なので、要素名でも見つかるようにする
+				const std::string suffix = "_" + role;
+				return n.rfind("Level_", 0) == 0 && n.size() > suffix.size() && n.compare(n.size() - suffix.size(), suffix.size(), suffix) == 0;
+			});
+		const auto found = byName != objects.end() ? byName : std::find_if(objects.begin(), objects.end(),
+			[&role](const GameObject* o) { return o && o->GetTag() == role; });
+		if (found != objects.end())
+		{
+			autoObjectBindings_[role] = (*found)->GetGuid();
+			autoBindMissLogged_.erase(role);
+			ctx.BindGameObject(role, *found);
+		}
+		else
+		{
+			autoObjectBindings_.erase(role);
+			if (autoBindMissLogged_.insert(role).second)
+			{
+				Logger::Log("[Sequencer] 役 \"" + role + "\" に割り当てる GameObject（同じ名前かタグ）が見つかりません\n", Logger::LogLevel::Error);
+			}
+		}
+	}
+}
+
 void SequencerEditor::ResolvePendingObjectBindings()
 {
 	if (!GameObjectManager::HasInstance())
@@ -803,6 +868,13 @@ void SequencerEditor::ClearPreviewBindings()
 	previewObjectBindings_.clear();
 	previewLightBindings_.clear();
 	pendingObjectBindings_.clear();
+	for (const auto& [role, guid] : autoObjectBindings_)
+	{
+		(void)guid;
+		ctx.BindGameObject(role, nullptr);
+	}
+	autoObjectBindings_.clear();
+	autoBindMissLogged_.clear();
 }
 
 std::string SequencerEditor::MakeUniqueObjectRole(const GameObject& object) const
@@ -992,7 +1064,13 @@ std::string SequencerEditor::GetTrackTargetName(const ITrack& track, bool& outAs
 		}
 		// ファイルで覚えていた名前の物が今のシーンに居ないときは、それが分かるように出す
 		const auto pending = pendingObjectBindings_.find(role);
-		return pending != pendingObjectBindings_.end() ? "(無い: " + pending->second + ")" : std::string();
+		if (pending != pendingObjectBindings_.end()) { return "(無い: " + pending->second + ")"; }
+		// 手動の割り当てが無くても、名前・タグで自動的に結び付いていれば、その名前を出す
+		if (const GameObject* autoBound = player_.GetBindingContext().GetGameObject(role))
+		{
+			return autoBound->GetName();
+		}
+		return std::string();
 	}
 
 	default:
@@ -1069,6 +1147,11 @@ void SequencerEditor::AssignTrackLight(size_t trackIndex, const std::string& lig
 
 void SequencerEditor::DrawAssignTargetPopup()
 {
+	if (openAssignPopupRequested_)
+	{
+		openAssignPopupRequested_ = false;
+		ImGui::OpenPopup(kAssignTargetPopupId);
+	}
 	if (!ImGui::BeginPopup(kAssignTargetPopupId))
 	{
 		return;
@@ -1589,6 +1672,14 @@ void SequencerEditor::DrawToolbar()
 		AddKeyAtCurrentTime();
 	}
 	ImGui::SameLine();
+	if (ImGui::Button("開始にキー"))
+	{
+		// 再生ヘッドを先頭へ戻して、そこにキーを打つ
+		player_.Seek(0.0f);
+		AddKeyAtCurrentTime();
+	}
+	if (ImGui::IsItemHovered()) { ImGui::SetTooltip("0秒にキーを打ちます（選択中のトラック）"); }
+	ImGui::SameLine();
 	if (ImGui::Button("キーを削除 (Del)"))
 	{
 		DeleteSelectedKey();
@@ -1869,6 +1960,54 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 	float rowY = canvasMin.y + view_.rulerHeight - view_.verticalScroll;
 	size_t globalRow = 0;
 
+	// 先に行の背景だけを塗り、その上に時間とビートの縦線を引く。
+	// 背景が後から線を覆うと、タイムラインの目盛りが見えなくなるため
+	{
+		float backgroundY = rowY;
+		size_t backgroundRow = 0;
+		for (size_t trackIndex = 0; trackIndex < sequence_.GetTrackCount(); ++trackIndex)
+		{
+			const ITrack* track = sequence_.GetTrack(trackIndex);
+			if (!track) { continue; }
+			const size_t rows = GetVisibleRowCount(trackIndex);
+			for (size_t row = 0; row < rows; ++row, ++backgroundRow)
+			{
+				ImU32 background = (backgroundRow % 2 == 0) ? IM_COL32(30, 30, 34, 255) : IM_COL32(37, 37, 43, 255);
+				if (static_cast<int>(trackIndex) == selectedTrack) { background = IM_COL32(44, 48, 62, 255); }
+				if (track->IsMuted()) { background = IM_COL32(23, 23, 26, 255); }
+				drawList->AddRectFilled(ImVec2(canvasMin.x, backgroundY), ImVec2(canvasMin.x + canvasSize.x, backgroundY + view_.trackHeight), background);
+				backgroundY += view_.trackHeight;
+			}
+		}
+
+		const float gridBottom = canvasMin.y + canvasSize.y;
+		const float step = PickTickStep(kTimeTickSteps, view_.pixelsPerSecond, kTimeTickMinSpacing);
+		const float endTime = PixelToTime(canvasMin.x + canvasSize.x, left);
+		for (float t = std::floor(view_.scrollTime / step) * step; t <= endTime; t += step)
+		{
+			const float x = TimeToPixel(t, left);
+			if (x >= left) { drawList->AddLine(ImVec2(x, canvasMin.y + view_.rulerHeight), ImVec2(x, gridBottom), IM_COL32(120, 120, 135, 70)); }
+		}
+		const SequenceMeta& gridMeta = sequence_.GetMeta();
+		if (gridMeta.bpm > 0.0f)
+		{
+			const float beatDuration = 60.0f / gridMeta.bpm;
+			if (beatDuration * view_.pixelsPerSecond >= 6.0f)
+			{
+				for (int beat = static_cast<int>(std::floor((view_.scrollTime - gridMeta.offset) / beatDuration)); ; ++beat)
+				{
+					const float t = gridMeta.offset + static_cast<float>(beat) * beatDuration;
+					if (t > endTime) { break; }
+					const float x = TimeToPixel(t, left);
+					if (x < left) { continue; }
+					const bool isBarStart = beat % 4 == 0;
+					drawList->AddLine(ImVec2(x, canvasMin.y + view_.rulerHeight), ImVec2(x, gridBottom),
+						isBarStart ? IM_COL32(110, 130, 170, 130) : IM_COL32(80, 85, 100, 70));
+				}
+			}
+		}
+	}
+
 	for (size_t trackIndex = 0; trackIndex < sequence_.GetTrackCount(); ++trackIndex)
 	{
 		ITrack* track = sequence_.GetTrack(trackIndex);
@@ -1903,14 +2042,7 @@ void SequencerEditor::DrawTracks(const ImVec2& canvasMin, const ImVec2& canvasSi
 			const float rowCenter = (rowTop + rowBottom) * 0.5f;
 			ICurveChannel* channel = row > 0 ? track->GetChannel(row - 1) : nullptr;
 
-			// 行の背景。選択中のトラックは明るくし、それ以外は1行おきに明度を変える
-			ImU32 background = (globalRow % 2 == 0) ? IM_COL32(30, 30, 34, 255) : IM_COL32(34, 34, 39, 255);
-			if (static_cast<int>(trackIndex) == selectedTrack)
-			{
-				background = IM_COL32(44, 48, 62, 255);
-			}
-			if (track->IsMuted()) { background = IM_COL32(23, 23, 26, 255); }
-			drawList->AddRectFilled(ImVec2(canvasMin.x, rowTop), ImVec2(canvasMin.x + canvasSize.x, rowBottom), background);
+			// 行の背景は先に塗ってある（縦線を背景の上に出すため）
 
 			// トラック名欄
 			char headerLabel[128];
@@ -2916,11 +3048,19 @@ void SequencerEditor::DrawTimelineWindow()
 	{
 		const SequenceMeta& summaryMeta = sequence_.GetMeta();
 		char settingsLabel[192];
-		std::snprintf(settingsLabel, sizeof(settingsLabel), "設定   %s   BPM %.1f   長さ %.2f s###SequencerSettingsHeader",
+		std::snprintf(settingsLabel, sizeof(settingsLabel), "設定   %s   BPM %.1f   長さ %.2f s",
 			summaryMeta.name.c_str(), summaryMeta.bpm, sequence_.GetDuration());
-		if (ImGui::CollapsingHeader(settingsLabel))
+		if (ImGui::Button(settingsOpen_ ? "設定を閉じる###SettingsToggle" : "設定を開く###SettingsToggle"))
 		{
-			ImGui::BeginChild("SequencerSettings", ImVec2(0.0f, 0.0f), ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY);
+			settingsOpen_ = !settingsOpen_;
+		}
+		ImGui::SameLine();
+		ImGui::TextUnformatted(settingsLabel);
+		if (settingsOpen_)
+		{
+			// 高さは決めておき、中身が多いときは設定欄の中でスクロールする（編集欄を押し出さない）
+			const float settingsHeight = (std::min)(ImGui::GetContentRegionAvail().y * 0.4f, 300.0f);
+			ImGui::BeginChild("SequencerSettings", ImVec2(0.0f, settingsHeight), ImGuiChildFlags_Borders);
 			DrawSettingsPane();
 			ImGui::EndChild();
 		}
@@ -3151,6 +3291,46 @@ void SequencerEditor::DrawSettingsPane()
 
 	ImGui::PopItemWidth();
 	ImGui::EndTable();
+
+	// 割り当て結果：役ごとに、手動・自動・未割り当てのどれかを出す
+	if (ImGui::TreeNode("割り当て結果"))
+	{
+		const BindingContext& ctx = player_.GetBindingContext();
+		std::unordered_set<std::string> shown;
+		for (size_t index = 0; index < sequence_.GetTrackCount(); ++index)
+		{
+			const ITrack* track = sequence_.GetTrack(index);
+			BindingType type;
+			if (!track || !GetBindingTypeForTrack(*track, type) || type != BindingType::GameObject)
+			{
+				continue;
+			}
+			const std::string& role = track->GetBindingRole();
+			if (role.empty() || !shown.insert(role).second)
+			{
+				continue;
+			}
+			const GameObject* object = ctx.GetGameObject(role);
+			if (!object)
+			{
+				ImGui::TextColored(ImVec4(1.0f, 0.35f, 0.35f, 1.0f), "! %s : 未割り当て", role.c_str());
+				// Level の要素（モデル）もここから選べる
+				ImGui::SameLine();
+				ImGui::PushID(role.c_str());
+				ImGui::SetNextItemWidth(180.0f);
+				DrawPreviewObjectCombo(role, "##assign");
+				ImGui::PopID();
+				continue;
+			}
+			const bool isManual = previewObjectBindings_.count(role) != 0;
+			ImGui::Text("%s : %s（%s）", role.c_str(), object->GetName().c_str(), isManual ? "手動" : "自動");
+		}
+		if (shown.empty())
+		{
+			ImGui::TextDisabled("オブジェクトの役はありません");
+		}
+		ImGui::TreePop();
+	}
 }
 
 void SequencerEditor::DrawDopeSheet()
@@ -3248,6 +3428,71 @@ void SequencerEditor::DrawDopeSheet()
 	DrawWaveform(canvasMin, canvasSize.x);
 	DrawTracks(canvasMin, canvasSize);
 	DrawPlayhead(canvasMin, canvasSize);
+
+	// 終了位置。ルーラーの下の旗をドラッグして、シーケンスの長さを決める
+	{
+		const float left = canvasMin.x + view_.headerWidth;
+		const float endX = TimeToPixel(sequence_.GetDuration(), left);
+		ImDrawList* endList = ImGui::GetWindowDrawList();
+		const float flagTop = canvasMin.y + view_.rulerHeight - 18.0f;
+		if (endX >= left && endX <= canvasMin.x + canvasSize.x)
+		{
+			// 終了より後ろを暗くして、範囲外だと分かるようにする
+			endList->AddRectFilled(ImVec2(endX, canvasMin.y + view_.rulerHeight), ImVec2(canvasMin.x + canvasSize.x, canvasMin.y + canvasSize.y), IM_COL32(0, 0, 0, 70));
+			endList->AddLine(ImVec2(endX, flagTop), ImVec2(endX, canvasMin.y + canvasSize.y), IM_COL32(230, 120, 100, 255), 2.0f);
+			ImGui::SetCursorScreenPos(ImVec2(endX - 6.0f, flagTop));
+			ImGui::InvisibleButton("##EndHandle", ImVec2(24.0f, 18.0f));
+			const bool endActive = ImGui::IsItemActive();
+			if (ImGui::IsItemActivated()) { ++metaEditId_; }
+			if (ImGui::IsItemHovered() || endActive)
+			{
+				ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+				ImGui::SetTooltip("終了位置（ドラッグで長さを変更）\nダブルクリックで最後のキーに合わせる");
+			}
+			if (endActive)
+			{
+				const float newDuration = (std::max)(SnapTime(PixelToTime(ImGui::GetIO().MousePos.x, left)), 0.1f);
+				if (std::fabs(newDuration - sequence_.GetMeta().duration) > 0.0001f)
+				{
+					SequenceMeta after = sequence_.GetMeta();
+					after.duration = newDuration;
+					ExecuteMetaEdit(sequence_, after, "Change Duration", metaEditId_);
+				}
+			}
+			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+			{
+				++metaEditId_;
+				SequenceMeta after = sequence_.GetMeta();
+				after.duration = 0.0f;
+				ExecuteMetaEdit(sequence_, after, "Reset Duration", metaEditId_);
+			}
+			endList->AddTriangleFilled(ImVec2(endX, flagTop), ImVec2(endX + 14.0f, flagTop + 6.0f), ImVec2(endX, flagTop + 12.0f),
+				endActive ? IM_COL32(255, 170, 150, 255) : IM_COL32(230, 120, 100, 255));
+		}
+	}
+
+	// 縦スクロールバー。行が多いとき、右端に見える形で出してドラッグで動かせるようにする
+	if (maxVerticalScroll > 0.0f)
+	{
+		const float barWidth = 12.0f;
+		const float trackTop = canvasMin.y + view_.rulerHeight;
+		const float trackHeightPx = (std::max)(visibleRowsHeight, 1.0f);
+		const float thumbHeight = (std::max)(trackHeightPx * trackHeightPx / (trackHeightPx + maxVerticalScroll), 24.0f);
+		const float thumbTravel = (std::max)(trackHeightPx - thumbHeight, 1.0f);
+		const float thumbTop = trackTop + thumbTravel * (view_.verticalScroll / maxVerticalScroll);
+		const ImVec2 barMin(canvasMin.x + canvasSize.x - barWidth, trackTop);
+		ImGui::SetCursorScreenPos(barMin);
+		ImGui::InvisibleButton("##VScroll", ImVec2(barWidth, trackHeightPx));
+		const bool barActive = ImGui::IsItemActive();
+		if (barActive)
+		{
+			view_.verticalScroll = std::clamp(view_.verticalScroll + ImGui::GetIO().MouseDelta.y * (maxVerticalScroll / thumbTravel), 0.0f, maxVerticalScroll);
+		}
+		ImDrawList* barList = ImGui::GetWindowDrawList();
+		barList->AddRectFilled(barMin, ImVec2(barMin.x + barWidth, trackTop + trackHeightPx), IM_COL32(20, 20, 24, 200));
+		barList->AddRectFilled(ImVec2(barMin.x + 2.0f, thumbTop), ImVec2(barMin.x + barWidth - 2.0f, thumbTop + thumbHeight),
+			barActive ? IM_COL32(170, 180, 220, 255) : IM_COL32(120, 125, 150, 230), 3.0f);
+	}
 
 	ImGui::SetCursorScreenPos(ImVec2(canvasMin.x + view_.headerWidth, canvasMin.y + canvasSize.y - ImGui::GetFrameHeight()));
 	ImGui::SetNextItemWidth(canvasSize.x - view_.headerWidth);
@@ -3733,7 +3978,28 @@ bool SequencerEditor::SaveSequenceFile(const std::string& path, bool saveStage)
 {
 	StorePreviewBindings();
 	const bool sequenceSaved = sequence_.SaveToFile(path);
-	const bool stageSaved = !saveStage || !stageSaveCallback_ || stageSaveCallback_();
+	bool stageSaved = true;
+	if (saveStage && stageSaveCallback_)
+	{
+		// プレビューが対象を動かしたままだと、動いた先の姿が Level に書かれてしまう。
+		// 基準の姿へ戻してから保存し、保存後に見ていた時刻へ戻す
+		const float previewTime = player_.GetTime();
+		const bool wasPlaying = player_.IsPlaying();
+		const bool wasActive = player_.GetState() != PlaybackState::Stopped || previewTime > 0.0f;
+		if (wasActive)
+		{
+			player_.Stop();
+		}
+		stageSaved = stageSaveCallback_();
+		if (wasActive)
+		{
+			player_.Seek(previewTime);
+			if (wasPlaying)
+			{
+				player_.Resume();
+			}
+		}
+	}
 	if (sequenceSaved && stageSaved)
 	{
 		filePath_ = path;
@@ -4382,12 +4648,43 @@ void SequencerEditor::DrawTimelineContextMenu()
 	ITrack* track = contextTrackIndex_ >= 0 ? sequence_.GetTrack(static_cast<size_t>(contextTrackIndex_)) : nullptr;
 	ICurveChannel* channel = track && contextChannelIndex_ >= 0
 		? track->GetChannel(static_cast<size_t>(contextChannelIndex_)) : nullptr;
+	// 右クリックした場所に、トラックを足す（新しいトラックは選んだ対象まで決められる）
+	if (ImGui::BeginMenu("トラックを追加"))
+	{
+		DrawAddTrackMenu();
+		ImGui::EndMenu();
+	}
 	if (channel && ImGui::MenuItem("ここにキーを打つ"))
 	{
 		bool added = false;
 		ExecuteTrackEdit(sequence_, static_cast<size_t>(contextTrackIndex_), "Add Key", [&]() { added = channel->AddKeyAt(contextTime_); });
 		statusMessage_ = added ? "キーを追加しました" : "この行にはキーを追加できません";
 		player_.EvaluateCurrentTime();
+	}
+	else if (!channel && track && ImGui::MenuItem("ここにキーを打つ（このトラックの全項目）"))
+	{
+		// トラックの見出し行では、そのトラックの全項目にまとめて打つ
+		int addedCount = 0;
+		ExecuteTrackEdit(sequence_, static_cast<size_t>(contextTrackIndex_), "Add Key", [&]()
+		{
+			for (size_t channelIndex = 0; channelIndex < track->GetChannelCount(); ++channelIndex)
+			{
+				ICurveChannel* each = track->GetChannel(channelIndex);
+				if (each && each->AddKeyAt(contextTime_)) { ++addedCount; }
+			}
+		});
+		statusMessage_ = std::to_string(addedCount) + " 個のキーを追加しました";
+		player_.EvaluateCurrentTime();
+	}
+	ImGui::Separator();
+	{
+		bool assignable = false;
+		if (track) { GetTrackTargetName(*track, assignable); }
+		if (ImGui::MenuItem("対象を変更", nullptr, false, track != nullptr && assignable))
+		{
+			assignTargetTrack_ = contextTrackIndex_;
+			openAssignPopupRequested_ = true;
+		}
 	}
 	if (ImGui::MenuItem("選択したキーを削除", nullptr, false, !CollectSelectedKeys(sequence_).empty())) { DeleteSelectedKey(); }
 	if (ImGui::MenuItem(track ? ("トラックを削除: " + track->GetName()).c_str() : "トラックを削除", nullptr, false, track != nullptr))

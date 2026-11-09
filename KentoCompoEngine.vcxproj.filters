@@ -220,7 +220,7 @@
     <Filter Include="sequencer\track">
       <UniqueIdentifier>{2C062E89-C4BE-BACA-DBC1-5F692696E2EA}</UniqueIdentifier>
     </Filter>
-    <Filter Include="stage">
+    <Filter Include="level">
       <UniqueIdentifier>{9D2B8C9A-8B51-63C1-E996-11FBACEA63B2}</UniqueIdentifier>
     </Filter>
     <Filter Include="time">
@@ -714,6 +714,9 @@
     <ClCompile Include="sequencer\runtime\CutsceneManager.cpp">
       <Filter>sequencer\runtime</Filter>
     </ClCompile>
+    <ClCompile Include="sequencer\runtime\SequenceTriggers.cpp">
+      <Filter>sequencer\runtime</Filter>
+    </ClCompile>
     <ClCompile Include="sequencer\track\CameraTrack.cpp">
       <Filter>sequencer\track</Filter>
     </ClCompile>
@@ -744,26 +747,23 @@
     <ClCompile Include="sequencer\track\TransformTrack.cpp">
       <Filter>sequencer\track</Filter>
     </ClCompile>
-    <ClCompile Include="stage\CameraElement.cpp">
-      <Filter>stage</Filter>
+    <ClCompile Include="level\CameraElement.cpp">
+      <Filter>level</Filter>
     </ClCompile>
-    <ClCompile Include="stage\LegacyStageManager.cpp">
-      <Filter>stage</Filter>
+    <ClCompile Include="level\MonitorElement.cpp">
+      <Filter>level</Filter>
     </ClCompile>
-    <ClCompile Include="stage\MonitorElement.cpp">
-      <Filter>stage</Filter>
+    <ClCompile Include="level\ModelElement.cpp">
+      <Filter>level</Filter>
     </ClCompile>
-    <ClCompile Include="stage\ModelElement.cpp">
-      <Filter>stage</Filter>
+    <ClCompile Include="level\Level.cpp">
+      <Filter>level</Filter>
     </ClCompile>
-    <ClCompile Include="stage\Stage.cpp">
-      <Filter>stage</Filter>
+    <ClCompile Include="level\TextElement.cpp">
+      <Filter>level</Filter>
     </ClCompile>
-    <ClCompile Include="stage\TextElement.cpp">
-      <Filter>stage</Filter>
-    </ClCompile>
-    <ClCompile Include="stage\StageManager.cpp">
-      <Filter>stage</Filter>
+    <ClCompile Include="level\LevelManager.cpp">
+      <Filter>level</Filter>
     </ClCompile>
     <ClCompile Include="time\TimeManager.cpp">
       <Filter>time</Filter>
@@ -1514,6 +1514,9 @@
     <ClInclude Include="sequencer\runtime\CutsceneManager.h">
       <Filter>sequencer\runtime</Filter>
     </ClInclude>
+    <ClInclude Include="sequencer\runtime\SequenceTriggers.h">
+      <Filter>sequencer\runtime</Filter>
+    </ClInclude>
     <ClInclude Include="sequencer\track\CameraTrack.h">
       <Filter>sequencer\track</Filter>
     </ClInclude>
@@ -1544,29 +1547,26 @@
     <ClInclude Include="sequencer\track\TransformTrack.h">
       <Filter>sequencer\track</Filter>
     </ClInclude>
-    <ClInclude Include="stage\CameraElement.h">
-      <Filter>stage</Filter>
+    <ClInclude Include="level\CameraElement.h">
+      <Filter>level</Filter>
     </ClInclude>
-    <ClInclude Include="stage\IStageElement.h">
-      <Filter>stage</Filter>
+    <ClInclude Include="level\ILevelElement.h">
+      <Filter>level</Filter>
     </ClInclude>
-    <ClInclude Include="stage\LegacyStageManager.h">
-      <Filter>stage</Filter>
+    <ClInclude Include="level\MonitorElement.h">
+      <Filter>level</Filter>
     </ClInclude>
-    <ClInclude Include="stage\MonitorElement.h">
-      <Filter>stage</Filter>
+    <ClInclude Include="level\ModelElement.h">
+      <Filter>level</Filter>
     </ClInclude>
-    <ClInclude Include="stage\ModelElement.h">
-      <Filter>stage</Filter>
+    <ClInclude Include="level\Level.h">
+      <Filter>level</Filter>
     </ClInclude>
-    <ClInclude Include="stage\Stage.h">
-      <Filter>stage</Filter>
+    <ClInclude Include="level\TextElement.h">
+      <Filter>level</Filter>
     </ClInclude>
-    <ClInclude Include="stage\TextElement.h">
-      <Filter>stage</Filter>
-    </ClInclude>
-    <ClInclude Include="stage\StageManager.h">
-      <Filter>stage</Filter>
+    <ClInclude Include="level\LevelManager.h">
+      <Filter>level</Filter>
     </ClInclude>
     <ClInclude Include="time\ClockId.h">
       <Filter>time</Filter>

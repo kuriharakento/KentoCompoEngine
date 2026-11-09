@@ -184,19 +184,19 @@
     <ClCompile Include="sequencer\track\ComponentTrack.cpp" />
     <ClCompile Include="sequencer\track\EventTrack.cpp" />
     <ClCompile Include="sequencer\runtime\CutsceneManager.cpp" />
+    <ClCompile Include="sequencer\runtime\SequenceTriggers.cpp" />
     <ClCompile Include="sequencer\track\LightTrack.cpp" />
     <ClCompile Include="sequencer\track\ParticleTrack.cpp" />
     <ClCompile Include="sequencer\track\PostProcessTrack.cpp" />
     <ClCompile Include="sequencer\track\ScreenTrack.cpp" />
     <ClCompile Include="sequencer\track\TextTrack.cpp" />
     <ClCompile Include="sequencer\track\TransformTrack.cpp" />
-    <ClCompile Include="stage\CameraElement.cpp" />
-    <ClCompile Include="stage\LegacyStageManager.cpp" />
-    <ClCompile Include="stage\ModelElement.cpp" />
-    <ClCompile Include="stage\MonitorElement.cpp" />
-    <ClCompile Include="stage\Stage.cpp" />
-    <ClCompile Include="stage\TextElement.cpp" />
-    <ClCompile Include="stage\StageManager.cpp" />
+    <ClCompile Include="level\CameraElement.cpp" />
+    <ClCompile Include="level\ModelElement.cpp" />
+    <ClCompile Include="level\MonitorElement.cpp" />
+    <ClCompile Include="level\Level.cpp" />
+    <ClCompile Include="level\TextElement.cpp" />
+    <ClCompile Include="level\LevelManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="animation\AnimationPoseCache.h" />
@@ -456,6 +456,7 @@
     <ClInclude Include="sequencer\track\ComponentTrack.h" />
     <ClInclude Include="sequencer\track\EventTrack.h" />
     <ClInclude Include="sequencer\runtime\CutsceneManager.h" />
+    <ClInclude Include="sequencer\runtime\SequenceTriggers.h" />
     <ClInclude Include="sequencer\track\LightTrack.h" />
     <ClInclude Include="sequencer\track\ParticleTrack.h" />
     <ClInclude Include="sequencer\track\PostProcessTrack.h" />
@@ -463,14 +464,13 @@
     <ClInclude Include="sequencer\track\TextTrack.h" />
     <ClInclude Include="sequencer\track\TransformTrack.h" />
     <ClInclude Include="sequencer\core\CurveChannel.h" />
-    <ClInclude Include="stage\CameraElement.h" />
-    <ClInclude Include="stage\IStageElement.h" />
-    <ClInclude Include="stage\LegacyStageManager.h" />
-    <ClInclude Include="stage\ModelElement.h" />
-    <ClInclude Include="stage\MonitorElement.h" />
-    <ClInclude Include="stage\Stage.h" />
-    <ClInclude Include="stage\TextElement.h" />
-    <ClInclude Include="stage\StageManager.h" />
+    <ClInclude Include="level\CameraElement.h" />
+    <ClInclude Include="level\ILevelElement.h" />
+    <ClInclude Include="level\ModelElement.h" />
+    <ClInclude Include="level\MonitorElement.h" />
+    <ClInclude Include="level\Level.h" />
+    <ClInclude Include="level\TextElement.h" />
+    <ClInclude Include="level\LevelManager.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>

@@ -1,4 +1,4 @@
-#include "stage/ModelElement.h"
+#include "level/ModelElement.h"
 
 #include "base/GraphicsTypes.h"
 #include "base/Logger.h"
@@ -45,7 +45,7 @@ RenderingType ParseRenderingType(const nlohmann::json& entry)
 }
 
 /** @brief JSON の1件から要素を作る。形が壊れていれば nullptr */
-std::unique_ptr<IStageElement> CreateFromJson(const nlohmann::json& entry, const SceneContext&)
+std::unique_ptr<ILevelElement> CreateFromJson(const nlohmann::json& entry, const SceneContext&)
 {
 	if (!entry.is_object() || !entry.contains("name") || !entry["name"].is_string() ||
 		!entry.contains("object") || !GameObjectManager::HasInstance())
@@ -70,7 +70,7 @@ std::unique_ptr<IStageElement> CreateFromJson(const nlohmann::json& entry, const
 }
 
 /** @brief エディタで新規に作る、何も持たない GameObject の要素 */
-std::unique_ptr<IStageElement> CreateDefault(const std::string& name, const SceneContext&)
+std::unique_ptr<ILevelElement> CreateDefault(const std::string& name, const SceneContext&)
 {
 	if (!GameObjectManager::HasInstance())
 	{
@@ -87,7 +87,7 @@ std::unique_ptr<IStageElement> CreateDefault(const std::string& name, const Scen
 } // namespace
 
 ModelElement::ModelElement(std::string name, std::string prefabName, GameObject* object)
-	: IStageElement(std::move(name)), object_(object), prefabName_(std::move(prefabName))
+	: ILevelElement(std::move(name)), object_(object), prefabName_(std::move(prefabName))
 {
 	if (object_)
 	{
@@ -106,9 +106,9 @@ ModelElement::~ModelElement()
 	object_ = nullptr;
 }
 
-StageElementType ModelElement::MakeType()
+LevelElementType ModelElement::MakeType()
 {
-	StageElementType type;
+	LevelElementType type;
 	type.key = "models";
 	type.displayName = "モデル";
 	type.defaultName = "Model";
@@ -157,11 +157,19 @@ void ModelElement::RestorePose()
 	object_->SetScale(startPose_.scale);
 }
 
+void ModelElement::OnLevelBound()
+{
+	if (object_)
+	{
+		object_->SetName(MakeObjectName(GetName()));
+	}
+}
+
 bool ModelElement::OnRename(const std::string& newName)
 {
 	if (object_)
 	{
-		object_->SetName(newName);
+		object_->SetName(MakeObjectName(newName));
 	}
 	return true;
 }

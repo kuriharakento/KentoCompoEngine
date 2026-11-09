@@ -4,7 +4,7 @@
 #include <string>
 
 #include "math/Vector3.h"
-#include "stage/IStageElement.h"
+#include "level/ILevelElement.h"
 
 namespace KCE
 {
@@ -35,17 +35,18 @@ enum class MonitorScreenAspect
  * - 画面が本編カメラに見えているときだけ、映すカメラを描かせる（カメラは次のフレームに反映する）
  * - version 1 の旧形式（カメラをモニター内に持つ）は読めない。version 2 以降の保存で使うこと
  */
-class MonitorElement final : public IStageElement
+class MonitorElement final : public ILevelElement
 {
 public:
 	~MonitorElement() override;
 
-	/** @brief StageManager に登録する、"monitors" の種類。カメラの種類より後に登録すること */
-	static StageElementType MakeType();
+	/** @brief LevelManager に登録する、"monitors" の種類。カメラの種類より後に登録すること */
+	static LevelElementType MakeType();
 
 	const char* GetTypeKey() const override { return "monitors"; }
 	void Update(float deltaTime) override;
 	bool OnRename(const std::string& newName) override;
+	void OnLevelBound() override;
 	void OnElementRenamed(const std::string& oldName, const std::string& newName) override;
 	nlohmann::ordered_json Serialize() const override;
 

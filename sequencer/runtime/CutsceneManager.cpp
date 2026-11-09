@@ -6,6 +6,9 @@
 #include "base/Logger.h"
 #include "input/Input.h"
 #include "manager/scene/CameraManager.h"
+#include "gameobject/base/GameObject.h"
+#include "gameobject/manager/GameObjectManager.h"
+#include "sequencer/core/ITrack.h"
 #include "time/TimeManager.h"
 
 #ifdef USE_IMGUI
@@ -20,6 +23,58 @@ namespace
 {
 /** @brief シーケンスがカメラとして要求する役 */
 const char* const kCameraRole = "MainCam";
+
+/**
+ * @brief 手動で割り当てられていない GameObject の役を、同じ名前（なければ同じタグ）の物へ自動で割り当てる
+ * @details 見つからない役は赤ログを出す。再生は止めない（トラックは未割り当てを飛ばす）
+ */
+void AutoBindObjectRoles(const Sequence& sequence, BindingContext& ctx)
+{
+	if (!GameObjectManager::HasInstance())
+	{
+		return;
+	}
+	GameObjectManager* manager = GameObjectManager::GetInstance();
+	const std::vector<GameObject*>& objects = manager->GetGameObjects();
+	for (size_t index = 0; index < sequence.GetTrackCount(); ++index)
+	{
+		const ITrack* track = sequence.GetTrack(index);
+		if (!track)
+		{
+			continue;
+		}
+		const TrackType type = track->GetType();
+		if (type != TrackType::Transform && type != TrackType::Screen && type != TrackType::Component)
+		{
+			continue;
+		}
+		const std::string& role = track->GetBindingRole();
+		if (role.empty() || ctx.GetGameObject(role))
+		{
+			continue;
+		}
+		const auto byName = std::find_if(objects.begin(), objects.end(),
+			[&role](const GameObject* o)
+			{
+				if (!o) { return false; }
+				const std::string& n = o->GetName();
+				if (n == role) { return true; }
+				// Level の要素は "Level_ファイル名_要素名" なので、要素名でも見つかるようにする
+				const std::string suffix = "_" + role;
+				return n.rfind("Level_", 0) == 0 && n.size() > suffix.size() && n.compare(n.size() - suffix.size(), suffix.size(), suffix) == 0;
+			});
+		const auto found = byName != objects.end() ? byName : std::find_if(objects.begin(), objects.end(),
+			[&role](const GameObject* o) { return o && o->GetTag() == role; });
+		if (found != objects.end())
+		{
+			ctx.BindGameObject(role, *found);
+		}
+		else
+		{
+			Logger::Log("[Cutscene] 役 \"" + role + "\" に割り当てる GameObject（同じ名前かタグ）が見つかりません\n", Logger::LogLevel::Error);
+		}
+	}
+}
 
 /** @brief 始めと終わりをゆっくりにした 0〜1 の補間係数 */
 float SmoothWeight(float elapsed, float duration)
@@ -157,6 +212,7 @@ bool CutsceneManager::Play(const CutsceneRequest& request, std::string* outError
 	{
 		request_.bind(ctx);
 	}
+	AutoBindObjectRoles(sequence_, ctx);
 	ctx.BindCamera(kCameraRole, cutsceneCamera_);
 
 	SequenceOrigin origin;

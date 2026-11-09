@@ -4,7 +4,7 @@
 #include <string>
 
 #include "math/Vector3.h"
-#include "stage/IStageElement.h"
+#include "level/ILevelElement.h"
 
 namespace KCE
 {
@@ -24,7 +24,7 @@ class GameObject;
  * - 再生中だけ GameObject の更新を有効にし、停止で再生前の置き場所へ戻す（根の GameObject だけ。子の動きは戻さない）
  * - 保存は常に再生前の置き場所を書く。再生中に動いた位置が保存されない
  */
-class ModelElement final : public IStageElement
+class ModelElement final : public ILevelElement
 {
 public:
 	/**
@@ -35,8 +35,8 @@ public:
 	ModelElement(std::string name, std::string prefabName, GameObject* object);
 	~ModelElement() override;
 
-	/** @brief StageManager に登録する、"models" の種類 */
-	static StageElementType MakeType();
+	/** @brief LevelManager に登録する、"models" の種類 */
+	static LevelElementType MakeType();
 	/**
 	 * @brief プレハブのファイルから要素を作る
 	 * @param name 要素の名前
@@ -48,6 +48,7 @@ public:
 	const char* GetTypeKey() const override { return "models"; }
 	void SetPlaying(bool playing) override;
 	bool OnRename(const std::string& newName) override;
+	void OnLevelBound() override;
 	nlohmann::ordered_json Serialize() const override;
 
 	/** @return ゲームから動かしたいときの窓口。所有権は持たない */

@@ -1,4 +1,4 @@
-#include "stage/CameraElement.h"
+#include "level/CameraElement.h"
 
 #include <algorithm>
 
@@ -38,7 +38,7 @@ CameraElement::State Clamped(CameraElement::State state)
 	return state;
 }
 
-std::unique_ptr<IStageElement> CreateFromJson(const nlohmann::json& entry, const SceneContext& context)
+std::unique_ptr<ILevelElement> CreateFromJson(const nlohmann::json& entry, const SceneContext& context)
 {
 	if (!entry.is_object() || !entry.contains("name") || !entry["name"].is_string())
 	{
@@ -61,7 +61,7 @@ std::unique_ptr<IStageElement> CreateFromJson(const nlohmann::json& entry, const
 	return CameraElement::Create(entry["name"].get<std::string>(), state, context.cameraManager, context.subViewProvider);
 }
 
-std::unique_ptr<IStageElement> CreateDefault(const std::string& name, const SceneContext& context)
+std::unique_ptr<ILevelElement> CreateDefault(const std::string& name, const SceneContext& context)
 {
 	CameraElement::State state;
 	// 新しく置くカメラは、今映っているカメラの少し前から始める
@@ -71,7 +71,7 @@ std::unique_ptr<IStageElement> CreateDefault(const std::string& name, const Scen
 } // namespace
 
 CameraElement::CameraElement(std::string name, const State& state, CameraManager* cameraManager, ISubViewProvider* provider)
-	: IStageElement(std::move(name)), state_(Clamped(state)), cameraManager_(cameraManager), provider_(provider)
+	: ILevelElement(std::move(name)), state_(Clamped(state)), cameraManager_(cameraManager), provider_(provider)
 {
 }
 
@@ -89,9 +89,9 @@ CameraElement::~CameraElement()
 	}
 }
 
-StageElementType CameraElement::MakeType()
+LevelElementType CameraElement::MakeType()
 {
-	StageElementType type;
+	LevelElementType type;
 	type.key = "cameras";
 	type.displayName = "カメラ";
 	type.defaultName = "Camera";

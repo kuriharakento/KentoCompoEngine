@@ -288,12 +288,32 @@ void GameObjectEditor::DrawInspectorImGui()
 							}
 							for (const auto& texture : textures)
 							{
-								if (texture.previewable && ImGui::Selectable(texture.path.c_str(), texture.path == current))
+								if (!texture.previewable) { continue; }
+								if (ImGui::Selectable(texture.path.c_str(), texture.path == current))
 								{
 									selected_->SetMeshTexture(meshIndex, texture.path);
 								}
+								// 選ぶ前に中身が分かるよう、重ねた項目にカーソルを置くとプレビューを出す
+								if (ImGui::IsItemHovered() && texture.gpuHandle != 0 && texture.width > 0 && texture.height > 0)
+								{
+									const float scale = (std::min)(192.0f / static_cast<float>(texture.width), 192.0f / static_cast<float>(texture.height));
+									ImGui::BeginTooltip();
+									ImGui::Image(static_cast<ImTextureID>(texture.gpuHandle), ImVec2(static_cast<float>(texture.width) * scale, static_cast<float>(texture.height) * scale));
+									ImGui::TextDisabled("%u x %u", texture.width, texture.height);
+									ImGui::EndTooltip();
+								}
 							}
 							ImGui::EndCombo();
+						}
+						// いま使っているテクスチャの小さなプレビュー
+						if (!current.empty())
+						{
+							const auto now = std::find_if(textures.begin(), textures.end(), [&current](const auto& tex) { return tex.path == current; });
+							if (now != textures.end() && now->previewable && now->gpuHandle != 0 && now->width > 0 && now->height > 0)
+							{
+								const float scale = (std::min)(64.0f / static_cast<float>(now->width), 64.0f / static_cast<float>(now->height));
+								ImGui::Image(static_cast<ImTextureID>(now->gpuHandle), ImVec2(static_cast<float>(now->width) * scale, static_cast<float>(now->height) * scale));
+							}
 						}
 						ImGui::PopID();
 					}

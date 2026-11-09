@@ -1,4 +1,4 @@
-#include "stage/StageManager.h"
+#include "level/LevelManager.h"
 
 #include <algorithm>
 #include <cctype>
@@ -6,10 +6,10 @@
 
 #include "base/Logger.h"
 #include "manager/editor/DebugUIManager.h"
-#include "stage/CameraElement.h"
-#include "stage/ModelElement.h"
-#include "stage/MonitorElement.h"
-#include "stage/TextElement.h"
+#include "level/CameraElement.h"
+#include "level/ModelElement.h"
+#include "level/MonitorElement.h"
+#include "level/TextElement.h"
 #include "time/TimeManager.h"
 #ifdef USE_IMGUI
 #include "base/PathManager.h"
@@ -20,23 +20,23 @@
 
 namespace KCE
 {
-std::unique_ptr<StageManager> StageManager::instance_ = nullptr;
+std::unique_ptr<LevelManager> LevelManager::instance_ = nullptr;
 
-StageManager* StageManager::GetInstance()
+LevelManager* LevelManager::GetInstance()
 {
 	if (!instance_)
 	{
-		instance_ = std::make_unique<StageManager>();
+		instance_ = std::make_unique<LevelManager>();
 	}
 	return instance_.get();
 }
 
-bool StageManager::HasInstance()
+bool LevelManager::HasInstance()
 {
 	return instance_ != nullptr;
 }
 
-void StageManager::Initialize(const SceneContext& context)
+void LevelManager::Initialize(const SceneContext& context)
 {
 	context_ = context;
 	// 参照される種類を先に、参照する種類を後に登録する
@@ -48,7 +48,7 @@ void StageManager::Initialize(const SceneContext& context)
 	RegisterElementType(MonitorElement::MakeType());
 #ifdef USE_IMGUI
 	// 初めて開くときは、Hierarchy と同じ左側のタブに入る
-	DebugUIManager::GetInstance()->RegisterWindow(this, "ステージ###Stage", [this]() { DrawWindowImGui(); }, EditorDock::Left);
+	DebugUIManager::GetInstance()->RegisterWindow(this, "Level###Level", [this]() { DrawWindowImGui(); }, EditorDock::Left);
 	// 要素ごとの詳細とギズモは、選ばれた物の持ち主に渡す（持ち主でなければ要素が何もしない）
 	for (const SelectionKind kind : { SelectionKind::Text3D, SelectionKind::Camera, SelectionKind::StageMonitor })
 	{
@@ -83,7 +83,7 @@ void StageManager::Initialize(const SceneContext& context)
 #endif
 }
 
-void StageManager::Finalize()
+void LevelManager::Finalize()
 {
 #ifdef USE_IMGUI
 	if (DebugUIManager::HasInstance())
@@ -100,49 +100,49 @@ void StageManager::Finalize()
 	instance_.reset();
 }
 
-void StageManager::RegisterElementType(StageElementType type)
+void LevelManager::RegisterElementType(LevelElementType type)
 {
-	const auto found = std::find_if(types_.begin(), types_.end(), [&type](const StageElementType& registered) { return registered.key == type.key; });
+	const auto found = std::find_if(types_.begin(), types_.end(), [&type](const LevelElementType& registered) { return registered.key == type.key; });
 	if (found != types_.end())
 	{
-		Logger::Log("StageManager: 同じ種類を二重に登録しました: " + type.key + "\n", Logger::LogLevel::Warning);
+		Logger::Log("LevelManager: 同じ種類を二重に登録しました: " + type.key + "\n", Logger::LogLevel::Warning);
 		return;
 	}
 	types_.push_back(std::move(type));
 }
 
-Stage* StageManager::Load(const std::string& name)
+Level* LevelManager::Load(const std::string& name)
 {
 	if (name.empty())
 	{
 		return nullptr;
 	}
-	if (Stage* loaded = Find(name))
+	if (Level* loaded = Find(name))
 	{
 		return loaded;
 	}
-	auto stage = std::make_unique<Stage>(name, context_);
+	auto stage = std::make_unique<Level>(name, context_);
 	if (!stage->Load())
 	{
 		return nullptr;
 	}
-	Stage* result = stage.get();
+	Level* result = stage.get();
 	stages_[name] = std::move(stage);
 	return result;
 }
 
-void StageManager::Unload(const std::string& name)
+void LevelManager::Unload(const std::string& name)
 {
 	stages_.erase(name);
 }
 
-Stage* StageManager::Find(const std::string& name) const
+Level* LevelManager::Find(const std::string& name) const
 {
 	const auto found = stages_.find(name);
 	return found != stages_.end() ? found->second.get() : nullptr;
 }
 
-void StageManager::Update()
+void LevelManager::Update()
 {
 	const float deltaTime = TimeManager::GetInstance().GetDeltaTime(GameClock());
 	for (auto& [name, stage] : stages_)
@@ -163,7 +163,7 @@ bool ContainsIgnoreCase(const std::string& text, const char* needle)
 	return target.empty() || found != text.end();
 }
 
-/** @brief ステージ名にしてよいか。ファイル名になるので、パスや使えない文字を含めない */
+/** @brief Level 名にしてよいか。ファイル名になるので、パスや使えない文字を含めない */
 bool IsValidStageName(const std::string& name)
 {
 	if (name.empty() || name.front() == ' ' || name.back() == ' ' || name.find("..") != std::string::npos)
@@ -194,48 +194,48 @@ std::vector<std::string> ListFiles(const std::filesystem::path& directory, bool 
 }
 } // namespace
 
-std::vector<std::string> StageManager::ListStageFiles()
+std::vector<std::string> LevelManager::ListStageFiles()
 {
-	return ListFiles(PathManager::GetApplicationResourceRoot() / "json" / "stage", true);
+	return ListFiles(PathManager::GetApplicationResourceRoot() / "json" / "level", true);
 }
 
-std::vector<std::string> StageManager::ListPrefabFiles()
+std::vector<std::string> LevelManager::ListPrefabFiles()
 {
 	return ListFiles(PathManager::GetApplicationResourceRoot() / "json" / "prefab", false);
 }
 
-std::string StageManager::MakeUniqueName(const Stage& stage, const std::string& baseName)
+std::string LevelManager::MakeUniqueName(const Level& stage, const std::string& baseName)
 {
-	if (!stage.Find<IStageElement>(baseName))
+	if (!stage.Find<ILevelElement>(baseName))
 	{
 		return baseName;
 	}
 	for (int suffix = 2;; ++suffix)
 	{
 		const std::string candidate = baseName + "_" + std::to_string(suffix);
-		if (!stage.Find<IStageElement>(candidate))
+		if (!stage.Find<ILevelElement>(candidate))
 		{
 			return candidate;
 		}
 	}
 }
 
-void StageManager::DrawWindowImGui()
+void LevelManager::DrawWindowImGui()
 {
 	DrawStagePickerImGui();
 	ImGui::Separator();
-	Stage* stage = Find(selectedStageName_);
+	Level* stage = Find(selectedStageName_);
 	if (!stage)
 	{
-		ImGui::TextDisabled("ステージを読み込むか、新規作成してください。");
+		ImGui::TextDisabled("Level を読み込むか、新規作成してください。");
 		return;
 	}
 	DrawStageBodyImGui(*stage);
 }
 
-void StageManager::DrawStagePickerImGui()
+void LevelManager::DrawStagePickerImGui()
 {
-	// 選んでいたステージが無くなっていたら、残っている先頭のものに合わせる
+	// 選んでいた Level が無くなっていたら、残っている先頭のものに合わせる
 	if (!Find(selectedStageName_))
 	{
 		selectedStageName_ = stages_.empty() ? std::string() : stages_.begin()->first;
@@ -247,7 +247,7 @@ void StageManager::DrawStagePickerImGui()
 		return ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(buttonLabel).x - style.FramePadding.x * 2.0f - style.ItemSpacing.x;
 	};
 
-	// 読み込み済みのステージを切り替える
+	// 読み込み済みの Level を切り替える
 	const char* preview = selectedStageName_.empty() ? "（なし）" : selectedStageName_.c_str();
 	ImGui::SetNextItemWidth(widthBeside("閉じる"));
 	if (ImGui::BeginCombo("##LoadedStage", preview))
@@ -265,7 +265,7 @@ void StageManager::DrawStagePickerImGui()
 	ImGui::BeginDisabled(selectedStageName_.empty());
 	if (ImGui::Button("閉じる"))
 	{
-		const Stage* stage = Find(selectedStageName_);
+		const Level* stage = Find(selectedStageName_);
 		if (stage && stage->IsDirty())
 		{
 			// 保存していない変更があるときは、確認してから閉じる
@@ -282,7 +282,7 @@ void StageManager::DrawStagePickerImGui()
 		ImGui::Text("「%s」に保存していない変更があります。", selectedStageName_.c_str());
 		if (ImGui::Button("保存して閉じる"))
 		{
-			if (Stage* stage = Find(selectedStageName_); stage && stage->Save())
+			if (Level* stage = Find(selectedStageName_); stage && stage->Save())
 			{
 				Unload(selectedStageName_);
 			}
@@ -302,14 +302,14 @@ void StageManager::DrawStagePickerImGui()
 		ImGui::EndPopup();
 	}
 
-	// フォルダの中のステージを選んで読み込む
+	// フォルダの中の Level を選んで読み込む
 	if (ImGui::CollapsingHeader("ファイルから読み込む"))
 	{
 		ImGui::BeginChild("StageFiles", ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() * 6.0f), true);
 		const std::vector<std::string> files = ListStageFiles();
 		if (files.empty())
 		{
-			ImGui::TextDisabled("Resources/json/stage にステージのファイルがない。");
+			ImGui::TextDisabled("Resources/json/level に Level のファイルがない。");
 		}
 		for (const std::string& file : files)
 		{
@@ -342,7 +342,7 @@ void StageManager::DrawStagePickerImGui()
 		const std::string name = newStageName_.data();
 		if (!IsValidStageName(name))
 		{
-			loadError_ = "ステージ名が空か、使えない文字が入っています";
+			loadError_ = "Level 名が空か、使えない文字が入っています";
 		}
 		else if (Load(name))
 		{
@@ -361,7 +361,7 @@ void StageManager::DrawStagePickerImGui()
 	}
 }
 
-void StageManager::DrawStageBodyImGui(Stage& stage)
+void LevelManager::DrawStageBodyImGui(Level& stage)
 {
 	if (stage.IsDirty())
 	{
@@ -383,7 +383,7 @@ void StageManager::DrawStageBodyImGui(Stage& stage)
 		// 編集の邪魔にならないよう、再生中は足せないようにする
 		ImGui::BeginDisabled(stage.IsPlaying());
 		// 種類ごとの「空の新規」。登録した種類が増えれば、自動で並ぶ
-		for (const StageElementType& type : types_)
+		for (const LevelElementType& type : types_)
 		{
 			if (!type.createDefault)
 			{
@@ -404,7 +404,7 @@ void StageManager::DrawStageBodyImGui(Stage& stage)
 				auto model = ModelElement::CreateFromPrefab(MakeUniqueName(stage, std::filesystem::path(file).stem().string()), file);
 				if (model)
 				{
-					std::unique_ptr<IStageElement> element = std::move(model);
+					std::unique_ptr<ILevelElement> element = std::move(model);
 					stage.Add(element);
 				}
 			}

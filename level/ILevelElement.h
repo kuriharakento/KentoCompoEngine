@@ -10,7 +10,7 @@
 namespace KCE
 {
 struct SceneContext;
-class Stage;
+class Level;
 #ifdef USE_IMGUI
 struct SelectionItem;
 struct GizmoResult;
@@ -21,17 +21,21 @@ struct Matrix4x4;
  * @brief ステージに置く物1つ。3D 文字、モニター、カメラ、モデルなど種類ごとに継承する。
  *
  * - 自分が使うエンジン側の物（TextMesh3D、GameObject、RenderView など）を所有し、破棄のときに登録を外す
- * - 保存は Serialize、読み込みは StageElementType::create が受け持つ。Stage は中身の種類を知らない
+ * - 保存は Serialize、読み込みは LevelElementType::create が受け持つ。Level は中身の種類を知らない
  * - 名前はステージ内で重複しない。要素どうしの参照（モニターが使うカメラなど）も名前で指す
  */
-class IStageElement
+class ILevelElement
 {
 public:
-	virtual ~IStageElement() = default;
+	virtual ~ILevelElement() = default;
 
-	/** @brief 所属するステージ。Stage が追加のときに設定する。要素どうしの参照（モニターが使うカメラなど）に使う */
-	void BindStage(Stage* stage) { stage_ = stage; }
-	Stage* GetStage() const { return stage_; }
+	/** @brief 所属するステージ。Level が追加のときに設定する。要素どうしの参照（モニターが使うカメラなど）に使う */
+	void BindLevel(Level* stage)
+	{
+		level_ = stage;
+		OnLevelBound();
+	}
+	Level* GetLevel() const { return level_; }
 
 	/** @return ステージ内で一意な名前 */
 	const std::string& GetName() const { return name_; }
@@ -43,7 +47,7 @@ public:
 	virtual bool OnRename(const std::string& newName) { (void)newName; return true; }
 	/** @brief 別の要素の名前が変わったときに呼ばれる。名前で参照しているなら、書き換える */
 	virtual void OnElementRenamed(const std::string& oldName, const std::string& newName) { (void)oldName; (void)newName; }
-	/** @brief 名前を確定する。Stage::Rename だけが呼ぶ */
+	/** @brief 名前を確定する。Level::Rename だけが呼ぶ */
 	void SetName(std::string name) { name_ = std::move(name); }
 
 	/**
@@ -90,12 +94,17 @@ public:
 #endif
 
 protected:
-	explicit IStageElement(std::string name) : name_(std::move(name)) {}
+	explicit ILevelElement(std::string name) : name_(std::move(name)) {}
+
+	/** @brief 所属する Level が決まった。GameObject を持つ要素は、ここで名前を "Level_ファイル名_要素名" にする */
+	virtual void OnLevelBound() {}
+	/** @brief GameObject につける名前。他の Level や本編の物と名前がぶつからないよう、Level の名前を前に付ける */
+	std::string MakeObjectName(const std::string& elementName) const;
 
 private:
 	std::string name_;
 	// 所有しない。要素より長生きする
-	Stage* stage_ = nullptr;
+	Level* level_ = nullptr;
 };
 
 /**
@@ -103,17 +112,17 @@ private:
  *
  * 登録した順が、読み込みの順になる。ほかの要素を参照する種類（モニター）は、参照される種類（カメラ）より後に登録する
  */
-struct StageElementType
+struct LevelElementType
 {
-	//! JSON の配列名。IStageElement::GetTypeKey と同じ
+	//! JSON の配列名。ILevelElement::GetTypeKey と同じ
 	std::string key;
 	//! エディタの「追加」に出す名前
 	std::string displayName;
 	//! 新しく作る要素の名前の元（英数字。重複したら _2 などを足す）
 	std::string defaultName;
 	//! JSON の1件から要素を作る。不正なら nullptr（呼び出し側が読み飛ばす）
-	std::function<std::unique_ptr<IStageElement>(const nlohmann::json& entry, const SceneContext& context)> create;
+	std::function<std::unique_ptr<ILevelElement>(const nlohmann::json& entry, const SceneContext& context)> create;
 	//! エディタで新規に作るときの初期状態。エディタが無いビルドでは空でよい
-	std::function<std::unique_ptr<IStageElement>(const std::string& name, const SceneContext& context)> createDefault;
+	std::function<std::unique_ptr<ILevelElement>(const std::string& name, const SceneContext& context)> createDefault;
 };
 } // namespace KCE

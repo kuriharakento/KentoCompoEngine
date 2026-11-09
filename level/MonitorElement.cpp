@@ -1,4 +1,4 @@
-#include "stage/MonitorElement.h"
+#include "level/MonitorElement.h"
 
 #include <cmath>
 #include <numbers>
@@ -15,8 +15,8 @@
 #include "manager/scene/CameraManager.h"
 #include "math/Frustum.h"
 #include "scene/SceneContext.h"
-#include "stage/CameraElement.h"
-#include "stage/Stage.h"
+#include "level/CameraElement.h"
+#include "level/Level.h"
 #ifdef USE_IMGUI
 #include "editor/SceneGizmo.h"
 #include "editor/SelectionContext.h"
@@ -133,7 +133,7 @@ struct MonitorElementFactory
 
 namespace
 {
-std::unique_ptr<IStageElement> CreateFromJson(const nlohmann::json& entry, const SceneContext& context)
+std::unique_ptr<ILevelElement> CreateFromJson(const nlohmann::json& entry, const SceneContext& context)
 {
 	if (!entry.is_object() || !entry.contains("name") || !entry["name"].is_string()
 		|| !entry.contains("screen") || !entry["screen"].is_object()
@@ -155,14 +155,14 @@ std::unique_ptr<IStageElement> CreateFromJson(const nlohmann::json& entry, const
 	return MonitorElementFactory::Make(entry["name"].get<std::string>(), entry["camera"].get<std::string>(), aspect, position, rotation, scale, context);
 }
 
-std::unique_ptr<IStageElement> CreateDefault(const std::string& name, const SceneContext& context)
+std::unique_ptr<ILevelElement> CreateDefault(const std::string& name, const SceneContext& context)
 {
 	return MonitorElementFactory::Make(name, std::string(), MonitorScreenAspect::Aspect16x9, kDefaultScreenPosition, kDefaultScreenRotation, kDefaultScreenScale, context);
 }
 } // namespace
 
 MonitorElement::MonitorElement(std::string name, std::string cameraName, MonitorScreenAspect aspect, GameObject* screen, CameraManager* cameraManager)
-	: IStageElement(std::move(name)), screen_(screen), cameraName_(std::move(cameraName)), aspect_(aspect), cameraManager_(cameraManager)
+	: ILevelElement(std::move(name)), screen_(screen), cameraName_(std::move(cameraName)), aspect_(aspect), cameraManager_(cameraManager)
 {
 	monitor_ = std::make_unique<StageMonitor>();
 	monitor_->SetScreen(screen_);
@@ -179,9 +179,9 @@ MonitorElement::~MonitorElement()
 	screen_ = nullptr;
 }
 
-StageElementType MonitorElement::MakeType()
+LevelElementType MonitorElement::MakeType()
 {
-	StageElementType type;
+	LevelElementType type;
 	type.key = "monitors";
 	type.displayName = "モニター";
 	type.defaultName = "Monitor";
@@ -195,7 +195,7 @@ void MonitorElement::UpdateCrop()
 	auto* object = screen_ ? dynamic_cast<Object3d*>(screen_->GetRenderable3d()) : nullptr;
 	Model* model = object ? object->GetModel() : nullptr;
 	if (!model) { return; }
-	const CameraElement* camera = GetStage() ? GetStage()->Find<CameraElement>(cameraName_) : nullptr;
+	const CameraElement* camera = GetLevel() ? GetLevel()->Find<CameraElement>(cameraName_) : nullptr;
 	const Vector3 scale = screen_->GetScale();
 	const float screenAspect = scale.y != 0.0f ? std::abs(scale.x / scale.y) : 0.0f;
 	const float cameraAspect = camera && camera->GetHeight() != 0
@@ -221,11 +221,19 @@ void MonitorElement::UpdateCrop()
 	model->SetUVTranslate(uvTranslate);
 }
 
+void MonitorElement::OnLevelBound()
+{
+	if (screen_)
+	{
+		screen_->SetName(MakeObjectName(GetName()));
+	}
+}
+
 bool MonitorElement::OnRename(const std::string& newName)
 {
 	if (screen_)
 	{
-		screen_->SetName(newName);
+		screen_->SetName(MakeObjectName(newName));
 	}
 	return true;
 }
@@ -242,7 +250,7 @@ void MonitorElement::OnElementRenamed(const std::string& oldName, const std::str
 void MonitorElement::Update(float)
 {
 	if (!monitor_ || !screen_) { return; }
-	CameraElement* camera = GetStage() ? GetStage()->Find<CameraElement>(cameraName_) : nullptr;
+	CameraElement* camera = GetLevel() ? GetLevel()->Find<CameraElement>(cameraName_) : nullptr;
 	RenderView* view = camera ? camera->GetView() : nullptr;
 	// カメラが差し替わった（解像度が変わった・消えた）ときだけつなぎ直す
 	if (view != attachedView_)
@@ -351,9 +359,9 @@ void MonitorElement::DrawInspector(const SelectionItem& selected)
 	if (ImGui::BeginCombo("カメラ", cameraName_.empty() ? "なし" : cameraName_.c_str()))
 	{
 		if (ImGui::Selectable("なし", cameraName_.empty())) { cameraName_.clear(); }
-		if (GetStage())
+		if (GetLevel())
 		{
-			for (const auto& element : GetStage()->GetElements())
+			for (const auto& element : GetLevel()->GetElements())
 			{
 				if (std::string(element->GetTypeKey()) == "cameras" && ImGui::Selectable(element->GetName().c_str(), cameraName_ == element->GetName()))
 				{

@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "core/Guid.h"
@@ -39,9 +40,9 @@ struct TimelineViewState
 	//! 1秒あたりのピクセル数
 	float pixelsPerSecond = 120.0f;
 	//! トラック1本の高さ（ピクセル）
-	float trackHeight = 26.0f;
+	float trackHeight = 30.0f;
 	//! 左側のトラック名欄の幅（ピクセル）
-	float headerWidth = 440.0f;
+	float headerWidth = 360.0f;
 	//! 時間ルーラーの高さ（ピクセル）
 	float rulerHeight = 72.0f;
 	//! 行領域の縦スクロール量（ピクセル）
@@ -279,6 +280,12 @@ private:
 	 *          名前で読み込んでまだ見つかっていない割り当てがあれば、ここで探し直す。
 	 */
 	void ApplyPreviewBindings();
+	/** @brief 手動の割り当てが無い物の役を、同じ名前（なければ同じタグ）の GameObject へ自動で割り当てる。見つからなければ赤ログを1回だけ出す */
+	void AutoBindObjectRoles();
+	// 設定欄を開いているか（見出しではなくボタンで開閉する）
+	bool settingsOpen_ = false;
+	// 右クリックメニューから「対象を変更」を選んだ。メニューを閉じた次の描画で割り当ての窓を開く
+	bool openAssignPopupRequested_ = false;
 	/** @brief カメラトラックの位置カーブを、シーン上に線で描く（軌道・キーの位置・今の位置） */
 	void DrawCameraPath() const;
 	/**
@@ -375,6 +382,10 @@ private:
 	// ファイルから名前で読んだが、まだ同じ名前の GameObject が見つかっていない割り当て（役 → 名前）。
 	// 保存するときもそのまま書き戻す（シーンに居ないだけで消さない）
 	std::unordered_map<std::string, std::string> pendingObjectBindings_;
+	// 自動で割り当てた役と相手の GUID。保存はしない（毎回名前・タグから引き直す）
+	std::unordered_map<std::string, Guid> autoObjectBindings_;
+	// 見つからないと赤ログを出した役。同じ役で毎フレーム出さないため
+	std::unordered_set<std::string> autoBindMissLogged_;
 
 	// 「トラックを追加」で選んでいる種別
 	// 追加直後に表示へ入れるトラック。負なら自動スクロールしない
@@ -425,14 +436,14 @@ private:
 	// メニューの下の設定欄を出すか
 	bool showSettingsPane_ = true;
 	// 編集欄に出すもの。ふだんは縦に両方並べる
-	EditAreaView editAreaView_ = EditAreaView::Both;
+	EditAreaView editAreaView_ = EditAreaView::DopeSheet;
 	// 編集欄の上にマウスがあるか。Tab の切り替えをここだけで効かせるため
 	bool editAreaHovered_ = false;
 	// カーブ欄の高さ（ピクセル）。境目のドラッグで変わる
 	float curvePaneHeight_ = 220.0f;
 	// 最後の保存・読み込みの結果メッセージ
 	std::string statusMessage_;
-	// シーン所有の LegacyStageManager を直接持たず、保存操作だけを借りる
+	// ステージ（LevelManager）を直接持たず、保存操作だけを借りる
 	std::function<bool()> stageSaveCallback_;
 	// 状態メッセージを目立たせ始めた時刻
 	double statusMessageTime_ = 0.0;

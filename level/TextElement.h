@@ -4,7 +4,7 @@
 #include <string>
 
 #include "graphics/text/TextMesh3D.h"
-#include "stage/IStageElement.h"
+#include "level/ILevelElement.h"
 
 namespace KCE
 {
@@ -20,14 +20,14 @@ class Text3DRenderer;
  * - 一覧と Inspector は Text3DRenderer が名前で持っているので、ここでは選択を渡すだけ
  * - reveal / exit はシーケンスが動かす値なので、保存も復元もしない（読み込み時は全部表示）
  */
-class TextElement final : public IStageElement
+class TextElement final : public ILevelElement
 {
 public:
 	TextElement(std::string name, std::unique_ptr<TextMesh3D> mesh, Text3DRenderer* renderer);
 	~TextElement() override;
 
-	/** @brief StageManager に登録する、"texts3d" の種類 */
-	static StageElementType MakeType();
+	/** @brief LevelManager に登録する、"texts3d" の種類 */
+	static LevelElementType MakeType();
 
 	const char* GetTypeKey() const override { return "texts3d"; }
 	nlohmann::ordered_json Serialize() const override;

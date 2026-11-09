@@ -5,7 +5,7 @@
 #include <string>
 
 #include "math/Vector3.h"
-#include "stage/IStageElement.h"
+#include "level/ILevelElement.h"
 
 namespace KCE
 {
@@ -22,7 +22,7 @@ class RenderView;
  * - サブビューは、モニターが映すときだけ描けば足りるので、作った直後は止めておく（SetViewEnabled で切り替える）
  * - 位置と向きは CameraManager のカメラが持つ。保存のときはそこから読む（ギズモや Inspector で動かした結果が入る）
  */
-class CameraElement final : public IStageElement
+class CameraElement final : public ILevelElement
 {
 public:
 	static constexpr uint32_t kDefaultWidth = 480;
@@ -45,8 +45,8 @@ public:
 
 	~CameraElement() override;
 
-	/** @brief StageManager に登録する、"cameras" の種類 */
-	static StageElementType MakeType();
+	/** @brief LevelManager に登録する、"cameras" の種類 */
+	static LevelElementType MakeType();
 	/**
 	 * @brief カメラとサブビューを作って要素にする
 	 * @return 作れなければ nullptr（名前の重複、ビューを作れないなど）

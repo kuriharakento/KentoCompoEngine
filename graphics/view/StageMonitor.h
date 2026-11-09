@@ -54,7 +54,7 @@ public:
 
 	/**
 	 * @brief 外部所有のサブビューを画面へつなぐ。
-	 * @param view LegacyStageManager 所有。次に AttachView を呼ぶまで有効
+	 * @param view MonitorElement 所有。次に AttachView を呼ぶまで有効
 	 */
 	void AttachView(RenderView* view);
 

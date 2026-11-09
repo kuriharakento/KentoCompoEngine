@@ -1,4 +1,4 @@
-#include "stage/TextElement.h"
+#include "level/TextElement.h"
 
 #include "graphics/text/Text3DRenderer.h"
 #include "scene/SceneContext.h"
@@ -28,7 +28,7 @@ bool ReadFloats(const nlohmann::json& json, size_t count, float* out)
 	return true;
 }
 
-std::unique_ptr<IStageElement> CreateFromJson(const nlohmann::json& entry, const SceneContext& context)
+std::unique_ptr<ILevelElement> CreateFromJson(const nlohmann::json& entry, const SceneContext& context)
 {
 	if (!context.text3D || !entry.is_object() || !entry.contains("name") || !entry["name"].is_string()
 		|| !entry.contains("text") || !entry["text"].is_string())
@@ -54,7 +54,7 @@ std::unique_ptr<IStageElement> CreateFromJson(const nlohmann::json& entry, const
 	return std::make_unique<TextElement>(name, std::move(mesh), context.text3D);
 }
 
-std::unique_ptr<IStageElement> CreateDefault(const std::string& name, const SceneContext& context)
+std::unique_ptr<ILevelElement> CreateDefault(const std::string& name, const SceneContext& context)
 {
 	if (!context.text3D || context.text3D->Find(name))
 	{
@@ -69,7 +69,7 @@ std::unique_ptr<IStageElement> CreateDefault(const std::string& name, const Scen
 } // namespace
 
 TextElement::TextElement(std::string name, std::unique_ptr<TextMesh3D> mesh, Text3DRenderer* renderer)
-	: IStageElement(std::move(name)), mesh_(std::move(mesh)), renderer_(renderer)
+	: ILevelElement(std::move(name)), mesh_(std::move(mesh)), renderer_(renderer)
 {
 	if (renderer_ && mesh_)
 	{
@@ -86,9 +86,9 @@ TextElement::~TextElement()
 	}
 }
 
-StageElementType TextElement::MakeType()
+LevelElementType TextElement::MakeType()
 {
-	StageElementType type;
+	LevelElementType type;
 	type.key = "texts3d";
 	type.displayName = "3D文字";
 	type.defaultName = "Text";
