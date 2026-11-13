@@ -23,6 +23,8 @@ class IRenderable3d;
 class LightManager;
 class GBufferPipeline;
 class ShadowMapPipeline;
+class SpriteCommon;
+namespace GameObjectComponent { class ISpriteRenderableComponent; }
 
 /**
  * @brief GameObjectを一括管理するマネージャークラス（シングルトン）
@@ -111,6 +113,18 @@ public:
 	 * @brief 2D描画
 	 */
 	void Draw2D();
+
+	/**
+	 * @brief 2D スプライトを持つコンポーネント（SpriteRendererComponent など）をまとめて描く
+	 * @details Sprite2DPass が、スプライト用のパイプラインを設定したあとに呼ぶ。
+	 *          アクティブで見える GameObject の木をたどって集め、order の小さい順（同じなら木をたどった順）に描く
+	 */
+	void DrawSprites2D();
+
+	/** @brief スプライト共通部の設定。Framework が作ったあとに渡す（所有しない） */
+	void SetSpriteCommon(SpriteCommon* spriteCommon) { spriteCommon_ = spriteCommon; }
+	/** @return スプライト共通部。まだ無ければ nullptr */
+	SpriteCommon* GetSpriteCommon() const { return spriteCommon_; }
 
 	/**
 	 * @brief シャドウマップ描画
@@ -333,6 +347,15 @@ private:
 	const Matrix4x4* viewCullingViewProjection_ = nullptr;
 	// 影を描いている間のライトの行列。ShadowMapPass が設定して戻す（LightManager が持つ行列。所有しない）
 	const Matrix4x4* shadowCullingViewProjection_ = nullptr;
+	// スプライト共通部。Framework が持つ（所有しない）
+	SpriteCommon* spriteCommon_ = nullptr;
+	// 2D スプライトを描く順の作業用。毎フレーム確保しないよう使い回す
+	struct SpriteDrawItem
+	{
+		GameObjectComponent::ISpriteRenderableComponent* renderer = nullptr;
+		int order = 0;
+	};
+	std::vector<SpriteDrawItem> spriteDrawList_;
 	// 描く物の一覧と、ビューごとの見えている物のリスト
 	GameObjectRenderer renderer_;
 	// 同じモデルをまとめて1回で描く分

@@ -77,6 +77,10 @@ std::unique_ptr<GameObject> DeserializePrefabNode(
 	object->SetScale(transform.scale);
 	object->SetRotation(transform.rotate);
 	object->SetPosition(transform.translate);
+	if (node.contains("visible") && node["visible"].is_boolean())
+	{
+		object->SetVisible(node["visible"].get<bool>());
+	}
 	if (node.contains("model"))
 	{
 		if (!node["model"].is_string() || node["model"].get_ref<const std::string&>().empty())
@@ -163,7 +167,8 @@ void GameObjectManager::Initialize()
 	gameObjects_.clear();
 	updateObjects_.clear();
 	registeredObjects_.clear();
-	dynamicGameObjects_.clear();
+	GameObject::PurgeRemovedComponents(true);
+dynamicGameObjects_.clear();
 	cachedObject3dCommon_ = nullptr;
 	cachedLightManager_ = nullptr;
 }
@@ -277,6 +282,9 @@ void GameObjectManager::FlushPendingDestroy()
 
 void GameObjectManager::Update()
 {
+	// 外されたコンポーネントの破棄は数フレーム遅らせている。時間の過ぎた物を片付ける
+	GameObject::PurgeRemovedComponents();
+
 	// フレーム頭の対象だけを固定する。領域は使い回し、更新中の Register/Unregister では壊れない
 	updateObjects_.clear();
 	updateObjects_.insert(updateObjects_.end(), gameObjects_.begin(), gameObjects_.end());
@@ -382,7 +390,7 @@ void GameObjectManager::Draw3D(CameraManager* camera)
 	// Behaviour の 3D 描画（エフェクト・デバッグ表示など）は、描画物の有無や描き方に関係なく、このビューのレイヤーに入る物全部で呼ぶ
 	const auto drawBehaviours = [&](const auto& self, GameObject* obj) -> void
 	{
-		if (!obj->IsActive())
+		if (!obj->IsActive() || !obj->IsVisible())
 		{
 			return;
 		}
@@ -453,6 +461,51 @@ void GameObjectManager::Draw2D()
 		{
 			obj->Draw2D();
 		}
+	}
+}
+
+void GameObjectManager::DrawSprites2D()
+{
+	spriteDrawList_.clear();
+	// 非アクティブ・非表示の物は子ごと省く。行列は、描く物がある物だけ確定させる
+	const auto collect = [this](const auto& self, GameObject* object) -> void
+	{
+		if (!object->IsActive() || !object->IsVisible())
+		{
+			return;
+		}
+		const auto& renderers = object->GetSpriteRenderableComponents();
+		if (!renderers.empty())
+		{
+			object->EnsureRenderTransform();
+			for (GameObjectComponent::ISpriteRenderableComponent* renderer : renderers)
+			{
+				spriteDrawList_.push_back({ renderer, renderer->GetSpriteOrder() });
+			}
+		}
+		for (const auto& [name, child] : object->GetChildren())
+		{
+			if (child)
+			{
+				self(self, child.get());
+			}
+		}
+	};
+	for (GameObject* root : gameObjects_)
+	{
+		if (root)
+		{
+			collect(collect, root);
+		}
+	}
+	if (spriteDrawList_.empty())
+	{
+		return;
+	}
+	std::stable_sort(spriteDrawList_.begin(), spriteDrawList_.end(), [](const SpriteDrawItem& a, const SpriteDrawItem& b) { return a.order < b.order; });
+	for (const SpriteDrawItem& item : spriteDrawList_)
+	{
+		item.renderer->DrawSprite2D();
 	}
 }
 

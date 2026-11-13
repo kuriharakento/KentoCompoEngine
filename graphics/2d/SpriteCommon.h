@@ -25,6 +25,14 @@ public: // メンバ関数
 	 */
 	void CommonRenderingSetting();
 
+	/**
+	 * @brief 3D のシーン（カラーは HDR 形式、深度あり・書き込みなし）へ描く版の共通描画設定
+	 * @details 画面の 2D 用とはレンダーターゲットの形式が違うので、パイプラインだけ別。3D のゲージが使う。
+	 *          描き終えたあと、2D に戻すなら CommonRenderingSetting を呼び直す
+	 * @param depthTest 真なら奥の物に隠れる。偽なら深度を見ず、常に手前に描く
+	 */
+	void SceneRenderingSetting(bool depthTest = true);
+
 public: // アクセッサ
 	/**
 	 * @brief DirectXCommonの取得
@@ -53,6 +61,10 @@ private: // メンバ変数
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_ = nullptr;
 	// グラフィックスパイプラインステート
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState_ = nullptr;
+	// 3D のシーンへ描く版
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> scenePipelineState_ = nullptr;
+	// 3D のシーンへ描く版で、深度を見ない
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> sceneNoDepthPipelineState_ = nullptr;
 
 
 };

@@ -38,6 +38,13 @@ void SpriteCommon::CommonRenderingSetting()
 
 }
 
+void SpriteCommon::SceneRenderingSetting(bool depthTest)
+{
+	dxCommon_->GetCommandList()->SetGraphicsRootSignature(rootSignature_.Get());
+	dxCommon_->GetCommandList()->SetPipelineState(depthTest ? scenePipelineState_.Get() : sceneNoDepthPipelineState_.Get());
+	dxCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
 void SpriteCommon::CreateRootSignature()
 {
 	// ディスクリプタレンジの設定
@@ -191,6 +198,18 @@ void SpriteCommon::CreateGraphicsPipelineState()
 
 	// パイプラインステートを生成
 	hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&graphicsPipelineState_));
+	assert(SUCCEEDED(hr));
+
+	// 3D のシーンへ描く版（3D のゲージ用）。同じシェーダーとルートシグネチャで、
+	// 出力先をシーンのカラー形式にし、奥の物に隠れるよう深度は見るが、半透明なので書き込まない
+	graphicsPipelineStateDesc.RTVFormats[0] = kSceneColorFormat;
+	graphicsPipelineStateDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+	hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&scenePipelineState_));
+	assert(SUCCEEDED(hr));
+
+	// 奥の物に隠れず、常に手前に見せる版
+	graphicsPipelineStateDesc.DepthStencilState.DepthEnable = false;
+	hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&sceneNoDepthPipelineState_));
 	assert(SUCCEEDED(hr));
 }
 } // namespace KCE

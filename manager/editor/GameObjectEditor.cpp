@@ -55,7 +55,15 @@ void GameObjectEditor::Initialize()
 	selected_ = nullptr;
 
 	// ファクトリに登録されているすべてのコンポーネント名を取得
-	availableComponents_ = GameObjectComponent::ComponentFactory::GetInstance()->GetRegisteredNames();
+	// レンダラー（モデル・スプライト・ゲージ）は追加ではなく選んで切り替えるので、一覧から外す
+	availableComponents_.clear();
+	for (const std::string& name : GameObjectComponent::ComponentFactory::GetInstance()->GetRegisteredNames())
+	{
+		if (!GameObjectComponent::ComponentFactory::GetInstance()->IsRenderer(name))
+		{
+			availableComponents_.push_back(name);
+		}
+	}
 
 	selectedCompIndex_ = 0;
 	selectedJsonIndex_ = 0;
@@ -89,6 +97,11 @@ void GameObjectEditor::Initialize()
 	{
 		GameObject* object = SelectionContext::GetInstance()->GetPrimaryGameObject();
 		if (!object)
+		{
+			return false;
+		}
+		// 画面（px）に置く 2D は、3D のギズモでは動かせない（数 px しか動かない）。位置はインスペクタの数値で決める
+		if (object->HasScreenSpaceSprite())
 		{
 			return false;
 		}
@@ -156,6 +169,8 @@ void GameObjectEditor::DrawListImGui()
 
 	// 行の上で右クリックしたときの削除は、描画中に一覧を変えないよう、描き終えてから行う
 	GameObject* objectToDelete = nullptr;
+	// 複製も同じ理由で、描き終えてから行う
+	GameObject* objectToDuplicate = nullptr;
 	const auto& objects = GameObjectManager::GetInstance()->GetGameObjects();
 	for (GameObject* obj : objects)
 	{
@@ -169,6 +184,20 @@ void GameObjectEditor::DrawListImGui()
 
 		// 同じ名前と種類の GameObject があっても、行の ID がぶつからないようにする
 		ImGui::PushID(obj);
+		// 描画のオンオフ。更新は止まらない（止めるなら、インスペクタの「有効」）
+		{
+			// 一覧は根だけなので、親の影響は無い
+			bool visible = obj->IsVisible();
+			if (ImGui::Checkbox("##visible", &visible))
+			{
+				obj->SetVisible(visible);
+			}
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::SetTooltip("表示（描画だけオンオフ。更新は止まらない）");
+			}
+			ImGui::SameLine();
+		}
 		if (ImGui::Selectable(label.c_str(), selected_ == obj))
 		{
 			selected_ = obj;
@@ -182,6 +211,10 @@ void GameObjectEditor::DrawListImGui()
 			{
 				selected_ = obj;
 				SelectionContext::GetInstance()->SelectGameObject(obj);
+			}
+			if (ImGui::MenuItem("複製", "Ctrl+D"))
+			{
+				objectToDuplicate = obj;
 			}
 			if (ImGui::MenuItem("削除"))
 			{
@@ -200,6 +233,25 @@ void GameObjectEditor::DrawListImGui()
 			CreateAndSelectNew();
 		}
 		ImGui::EndPopup();
+	}
+
+	// Ctrl+D でも複製する（一覧にフォーカスがあるとき）
+	if (selected_ && ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_D, false))
+	{
+		objectToDuplicate = selected_;
+	}
+	if (objectToDuplicate)
+	{
+		// プレハブの形にして作り直す（コンポーネントの値も、子も一緒に写る）。新しい GUID が付く
+		if (auto copy = GameObjectManager::GetInstance()->CreateFromPrefabJson(objectToDuplicate->SerializePrefab()))
+		{
+			copy->SetName(objectToDuplicate->GetName() + "_copy");
+			if (GameObject* added = GameObjectManager::GetInstance()->Adopt(std::move(copy)))
+			{
+				selected_ = added;
+				SelectionContext::GetInstance()->SelectGameObject(added);
+			}
+		}
 	}
 
 	if (objectToDelete)
@@ -223,6 +275,9 @@ void GameObjectEditor::CreateAndSelectNew()
 		{
 			renderable->SetRenderingType(RenderingType::Forward);
 		}
+		// 最初はモデルレンダラー。本体の立方体はレンダラーが代わりに描くので隠す
+		AddComponentByName(newObj, "ModelRendererComponent");
+		newObj->SetBodyVisible(false);
 		selected_ = newObj;
 		// シーン上のギズモは選択の一元管理（SelectionContext）を見るので、そちらにも伝える
 		SelectionContext::GetInstance()->SelectGameObject(newObj);
@@ -243,7 +298,8 @@ void GameObjectEditor::DrawInspectorImGui()
 		ImGui::Spacing();
 
 		// 見た目（色・描画方式）。本体の描画物がある物だけ出す
-		if (IRenderable3d* renderable = selected_->GetRenderable3d())
+		// 本体を隠している（レンダラーが描く）ときは、本体の見た目は出さない
+		if (IRenderable3d* renderable = selected_->IsBodyVisible() ? selected_->GetRenderable3d() : nullptr)
 		{
 			InspectorSection("見た目");
 			{
@@ -343,6 +399,50 @@ void GameObjectEditor::DrawInspectorImGui()
 			ImGui::Spacing();
 		}
 
+		// レンダラー。追加ではなく選んで切り替える（モデル・スプライト・ゲージなど、描画を担うコンポーネント）
+		{
+			auto* factory = GameObjectComponent::ComponentFactory::GetInstance();
+			const auto& rendererNames = factory->GetRendererNames();
+			const auto& compNames = selected_->GetComponentTypeNames();
+			std::string currentRenderer;
+			for (const std::string& name : compNames)
+			{
+				if (factory->IsRenderer(name)) { currentRenderer = name; break; }
+			}
+			if (!rendererNames.empty())
+			{
+				InspectorSection("レンダラー");
+				// レンダラーが無い物（古いデータなど）は、本体のモデルで描かれている
+				if (ImGui::BeginCombo("種類", currentRenderer.empty() ? "（本体のモデル）" : currentRenderer.c_str()))
+				{
+					std::string nextRenderer = currentRenderer;
+					bool changed = false;
+					for (const std::string& name : rendererNames)
+					{
+						if (ImGui::Selectable(name.c_str(), name == currentRenderer))
+						{
+							nextRenderer = name;
+							changed = true;
+						}
+					}
+					ImGui::EndCombo();
+					if (changed && nextRenderer != currentRenderer)
+					{
+						// いまのレンダラーを外して、選んだものに差し替える
+						if (!currentRenderer.empty()) { selected_->RemoveComponent(currentRenderer); }
+						AddComponentByName(selected_, nextRenderer);
+						// 選んだレンダラーが描くので、本体の立方体は隠す
+						selected_->SetBodyVisible(false);
+					}
+				}
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("描画を担うもの。1つだけ選べる。\n新しく作った物は、モデルから始まる");
+				}
+				ImGui::Spacing();
+			}
+		}
+
 		// コンポーネント。見出しごとに折りたたみ、右端の「削除」で外す
 		{
 			std::string removeName;
@@ -355,10 +455,14 @@ void GameObjectEditor::DrawInspectorImGui()
 				ImGui::PushID(static_cast<int>(index));
 				const float deleteWidth = ImGui::CalcTextSize("削除").x + ImGui::GetStyle().FramePadding.x * 2.0f;
 				InspectorSection(compName.c_str());
-				ImGui::SameLine(ImGui::GetContentRegionMax().x - deleteWidth);
-				if (ImGui::SmallButton("削除"))
+				// レンダラーは上の「レンダラー」で切り替えるので、ここには削除を出さない
+				if (!GameObjectComponent::ComponentFactory::GetInstance()->IsRenderer(compName))
 				{
-					removeName = compName;
+					ImGui::SameLine(ImGui::GetContentRegionMax().x - deleteWidth);
+					if (ImGui::SmallButton("削除"))
+					{
+						removeName = compName;
+					}
 				}
 				{
 					if (auto* editable = dynamic_cast<JsonEditableBase*>(comps[index].get()))

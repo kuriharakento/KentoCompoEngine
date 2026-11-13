@@ -17,6 +17,7 @@
 #include "engine/gameobject/component/base/Collider.h"
 #include "engine/gameobject/component/base/ComponentFactory.h"
 #include "engine/gameobject/component/base/IRenderableComponent.h"
+#include "engine/gameobject/component/base/ISpriteRenderableComponent.h"
 // json
 #include "jsonEditor/JsonEditableBase.h"
 // core
@@ -153,6 +154,14 @@ public:
 	 *          ビューごとの WVP は描く直前に Object3d が作るので、ここではビューに依存しない行列だけ作る
 	 */
 	void EnsureRenderTransform();
+
+	/**
+	 * @brief 外したコンポーネントの本当の破棄を、数フレーム遅らせたものを片付ける
+	 * @details スプライトなど GPU の資源を持つコンポーネントを、描画を記録したフレームのうちに壊すと
+	 *          「使用中に削除された」エラーになる。外した物はいったん預かり、数フレーム後にここで壊す
+	 * @param all 真なら、待たずにすべて壊す（終了時）
+	 */
+	static void PurgeRemovedComponents(bool all = false);
 
 	/**
 	 * @brief コンポーネントの追加
@@ -305,6 +314,13 @@ public: // アクセッサ
 	 *          GameObjectRenderer が本体の描画物と一緒に集める。所有権は移らない
 	 */
 	const std::vector<GameObjectComponent::IRenderableComponent*>& GetRenderableComponents() const { return renderableComponents_; }
+	/** @brief 2D で描く物を持つコンポーネント。GameObjectManager::DrawSprites2D が集める。所有権は移らない */
+	const std::vector<GameObjectComponent::ISpriteRenderableComponent*>& GetSpriteRenderableComponents() const { return spriteRenderableComponents_; }
+
+	/**
+	 * @return 画面（px）に置く 2D の描画物を持っていれば真。3D のギズモで動かしても px では誤差にしかならない
+	 */
+	bool HasScreenSpaceSprite() const;
 
 	/**
 	 * @brief EnsureRenderTransform で確定させた、このフレームの描画用ワールド行列
@@ -428,6 +444,25 @@ public: // アクセッサ
 	 * @return 現在のアクティブ状態
 	 */
 	bool IsActive() const { return isActive_ && (!parent_ || parent_->IsActive()); }
+
+	/**
+	 * @brief 描画だけを止める・再開する
+	 * @details SetActive と違って、Start / Update などの更新は止まらない。
+	 *          止めている間は 3D・2D とも描かれず、影も落とさない。既定は表示する。プレハブに保存する
+	 * @param visible 描くか
+	 */
+	void SetVisible(bool visible) { visible_ = visible; }
+	/** @brief 親が見えていなければ子も見えないので、親をたどって返す */
+	bool IsVisible() const { return visible_ && (!parent_ || parent_->IsVisible()); }
+
+	/**
+	 * @brief 本体の 3D の描画物（既定の立方体など）を描くか
+	 * @details 2D のスプライトやゲージのように、3D の形を持たない GameObject が、既定の立方体を映さないために切る。
+	 *          描画物は消さず、集めて描くのを止めるだけ（描画中に壊さないため）。ワールド行列はこれまでどおり作る。
+	 *          コンポーネントの描画物（ModelRendererComponent など）には効かない。保存はしない（コンポーネントが Awake で切る）
+	 */
+	void SetBodyVisible(bool visible) { bodyVisible_ = visible; }
+	bool IsBodyVisible() const { return bodyVisible_; }
 
 	/**
 	 * @brief コンポーネントの更新だけを止める・再開する
@@ -590,6 +625,8 @@ private:
 	Matrix4x4 renderWorldMatrix_ = MakeIdentity4x4();
 	// 描く物を持つコンポーネント。components_ の中身を指すだけで所有しない
 	std::vector<GameObjectComponent::IRenderableComponent*> renderableComponents_;
+	// 2D で描く物を持つコンポーネント。components_ の中身を指すだけで所有しない
+	std::vector<GameObjectComponent::ISpriteRenderableComponent*> spriteRenderableComponents_;
 
 	// === オブジェクト基本情報 ===
 	// オブジェクトのタグ（分類用）
@@ -604,6 +641,10 @@ private:
 	bool isActive_;
 	// コンポーネントを更新するか。描画は止めない
 	bool updateEnabled_ = true;
+	// 描くか。更新は止めない。プレハブに保存する（無いデータは表示のまま）
+	bool visible_ = true;
+	// 本体の 3D の描画物を描くか
+	bool bodyVisible_ = true;
 	// 破棄保留中フラグ
 	bool isPendingDestroy_ = false;
 

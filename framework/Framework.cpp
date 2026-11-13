@@ -36,6 +36,9 @@
 #include "editor/SceneViewPicker.h"
 #include "manager/editor/SettingsStore.h"
 #include "gameobject/component/motion/MotionComponents.h"
+#include "gameobject/component/render/GaugeComponent.h"
+#include "gameobject/component/render/ModelRendererComponent.h"
+#include "gameobject/component/render/SpriteRendererComponent.h"
 #include "editor/SceneViewContext.h"
 #include "editor/SelectionContext.h"
 #include "editor/command/CommandHistory.h"
@@ -97,6 +100,9 @@ void Framework::Initialize()
 	SceneViewPicker::GetInstance()->Initialize();
 	// 静的ライブラリの中のコンポーネントを、登録が走るよう確実に取り込む
 	GameObjectComponent::ForceLinkMotionComponents();
+	GameObjectComponent::ForceLinkSpriteRendererComponent();
+	GameObjectComponent::ForceLinkGaugeComponent();
+	GameObjectComponent::ForceLinkModelRendererComponent();
 
 	// 読み込みを並べて回すワーカー。起動時の素材読み込みから使う
 	jobSystem_ = std::make_unique<JobSystem>();
@@ -707,6 +713,8 @@ void Framework::ExecuteRenderPipeline(RenderTexture* outputTarget)
 	{
 		// シーンが渡し忘れていても、エディタで作った GameObject がモデルを持って映るよう、共有リソースを補う
 		GameObjectManager::GetInstance()->EnsureSharedResources(objectCommon_.get(), lightManager_.get());
+		// 2D スプライト・ゲージのコンポーネントが Sprite を作るのに使う。持ち主はこの Framework
+		GameObjectManager::GetInstance()->SetSpriteCommon(spriteCommon_.get());
 		GameObjectManager::GetInstance()->SetRenderLayerMask(mainView_->GetLayerMask());
 		// 更新が全部終わった後、どのビューを描くより前に、行列を全員分1回だけ確定させる
 		GameObjectManager::GetInstance()->UpdateRenderTransforms();

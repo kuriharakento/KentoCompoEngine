@@ -12,6 +12,11 @@ namespace KCE
 namespace GameObjectComponent
 {
 /**
+ * @brief 静的ライブラリから、この .obj を確実に取り込ませるための空関数（REGISTER_COMPONENT を走らせる）
+ */
+void ForceLinkModelRendererComponent();
+
+/**
  * @brief 静的モデルを1つ描くコンポーネント
  *
  * - GameObject 本体の SetModel と同じことを、コンポーネントとして持てるようにしたもの

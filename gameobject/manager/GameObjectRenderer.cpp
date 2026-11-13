@@ -91,9 +91,14 @@ void GameObjectRenderer::Collect(const std::vector<GameObject*>& roots)
 		{
 			return;
 		}
+		// 見えない物は描かない（更新は止まらない）。影も落とさない。IsVisible が親を見るので、子ごと省かれる
+		if (!object->IsVisible())
+		{
+			return;
+		}
 		// 行列はここでフレームに1回だけ確定させる。子は中で親を先に確定させる
 		object->EnsureRenderTransform();
-		if (IRenderable3d* renderable = object->GetRenderable3d())
+		if (IRenderable3d* renderable = object->IsBodyVisible() ? object->GetRenderable3d() : nullptr)
 		{
 			bool castShadow = true;
 			if (const Object3d* object3d = object->GetObject3d())

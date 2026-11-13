@@ -50,6 +50,7 @@ GameObject::GameObject(const std::string& tag)
 	REGISTER_MEMBER(name_);
 	REGISTER_MEMBER(tag_);
 	REGISTER_MEMBER(transform_);
+	REGISTER_MEMBER(visible_);
 }
 
 void GameObject::Initialize(Object3dCommon* object3dCommon, LightManager* lightManager, const Transform& initialTransform)
@@ -607,8 +608,28 @@ GameObjectComponent::Component* GameObject::AddComponentImmediate(std::unique_pt
 		// 型を見るのは追加のときだけ。毎フレームは一覧をそのまま回す
 		renderableComponents_.push_back(renderer);
 	}
+	if (auto* spriteRenderer = dynamic_cast<GameObjectComponent::ISpriteRenderableComponent*>(result))
+	{
+		spriteRenderableComponents_.push_back(spriteRenderer);
+	}
 	SyncComponentActivation();
 	return result;
+}
+
+namespace
+{
+	// 外したコンポーネントの預かり場所。数フレーム後に GameObject::PurgeRemovedComponents が壊す
+	struct RemovedComponent
+	{
+		uint64_t frame;
+		std::unique_ptr<KCE::GameObjectComponent::Component> component;
+	};
+
+	std::vector<RemovedComponent>& GetRemovedComponents()
+	{
+		static std::vector<RemovedComponent> removed;
+		return removed;
+	}
 }
 
 void GameObject::RemoveComponentImmediate(const std::string& name)
@@ -632,8 +653,33 @@ void GameObject::RemoveComponentImmediate(const std::string& name)
 	{
 		std::erase(renderableComponents_, renderer);
 	}
+	if (auto* spriteRenderer = dynamic_cast<GameObjectComponent::ISpriteRenderableComponent*>(component.get()))
+	{
+		std::erase(spriteRenderableComponents_, spriteRenderer);
+	}
+	// すぐには壊さず預かる（描画を記録したフレームのうちに GPU の資源を壊さないため）
+	GetRemovedComponents().push_back({ TimeManager::GetInstance().GetFrameCount(), std::move(components_[index]) });
 	components_.erase(components_.begin() + index);
 	componentTypeNames_.erase(nameIt);
+}
+
+bool GameObject::HasScreenSpaceSprite() const
+{
+	for (const GameObjectComponent::ISpriteRenderableComponent* sprite : spriteRenderableComponents_)
+	{
+		if (sprite->IsScreenSpace()) { return true; }
+	}
+	return false;
+}
+
+void GameObject::PurgeRemovedComponents(bool all)
+{
+	constexpr uint64_t kKeepFrames = 4;
+	const uint64_t frame = TimeManager::GetInstance().GetFrameCount();
+	std::erase_if(GetRemovedComponents(), [&](const RemovedComponent& removed)
+	{
+		return all || frame >= removed.frame + kKeepFrames;
+	});
 }
 
 void GameObject::ProcessPendingChanges()
@@ -801,6 +847,11 @@ nlohmann::json GameObject::SerializePrefab() const
 	prefab["tag"] = tag_;
 	// 登録名（transform_）に頼らず、Transform をそのまま書く
 	prefab["transform"] = nlohmann::json(transform_);
+	// 見えるのが普通なので、隠すときだけ書く（書かれていない古いデータは、そのまま見える）
+	if (!visible_)
+	{
+		prefab["visible"] = false;
+	}
 	if (GetObject3d() && !modelName_.empty())
 	{
 		prefab["model"] = modelName_;
@@ -954,6 +1005,16 @@ void GameObject::DrawImGui()
 	{
 		SetActive(active);
 	}
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("オフにすると、更新も描画も止まる");
+	}
+	ImGui::SameLine();
+	ImGui::Checkbox("表示", &visible_);
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("オフにすると、描画だけ止まる（更新は続く）。影も落とさない");
+	}
 
 	// --- Transform。軸ごとに色を付け、ラベルは左にそろえる ---
 	ImGui::SeparatorText("Transform");
@@ -967,7 +1028,13 @@ void GameObject::DrawImGui()
 		ImGui::DragFloat3("##Value", &value.x, speed);
 		ImGui::PopID();
 	};
-	drawVector("位置", transform_.translate, 0.1f);
+	// 画面（px）に置くスプライトやゲージは、0.1 刻みだと動きが見えないので粗くする
+	float positionSpeed = 0.1f;
+	for (const GameObjectComponent::ISpriteRenderableComponent* sprite : spriteRenderableComponents_)
+	{
+		if (sprite->IsScreenSpace()) { positionSpeed = 1.0f; break; }
+	}
+	drawVector("位置", transform_.translate, positionSpeed);
 	drawVector("回転", transform_.rotate, 0.01f);
 	drawVector("拡大", transform_.scale, 0.01f);
 

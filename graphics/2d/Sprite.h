@@ -10,6 +10,7 @@ namespace KCE
 {
 // ポインタが必要なので前方宣言
 class SpriteCommon;
+class FrameConstantAllocator;
 
 /**
  * @brief スプライトクラス
@@ -38,10 +39,31 @@ public: // メンバ関数
 	void Update();
 
 	/**
+	 * @brief 更新処理（ワールド空間用）
+	 * @details 頂点データは Update と同じに作り、変換行列だけ、渡されたワールド行列とビュー×プロジェクションで作る。
+	 *          3D のゲージで使う。頂点は「サイズ(px)の四角」ではなく 0〜1 の単位四角（アンカー引き済み）なので、
+	 *          大きさ・向き・位置はワールド行列に入れる。Y が下向きなので、上を向けるなら Y を反転して渡す
+	 * @param world スプライトのワールド行列（行ベクトル）
+	 * @param viewProjection カメラのビュー×プロジェクション
+	 */
+	void UpdateWithMatrix(const Matrix4x4& world, const Matrix4x4& viewProjection);
+
+	/**
 	 * @brief 描画
-	 * @details コマンドリストに描画コマンドを発行する
+	 * @details コマンドリストに描画コマンドを発行する。表示が空（扇が 0）なら何もしない
 	 */
 	void Draw();
+
+	/**
+	 * @brief ワールド空間用の描画。変換行列を、描くたびに別の領域へ置く
+	 * @details 同じスプライトを、1フレームの中で複数のビュー（Scene・カメラプレビューなど）から描くと、
+	 *          Sprite 自身の定数バッファを共有していては、最後に書いた行列がすべての描画に使われてしまう。
+	 *          これは行列を毎回フレームの定数領域へ置くので、ビューごとに正しい位置へ描かれる
+	 * @param world スプライトのワールド行列（行ベクトル）
+	 * @param viewProjection いま描くビューのビュー×プロジェクション
+	 * @param allocator 1フレームの定数領域
+	 */
+	void DrawWithMatrix(const Matrix4x4& world, const Matrix4x4& viewProjection, FrameConstantAllocator* allocator);
 
 public: // アクセッサ
 	/*---------------[ ゲッター ]---------------*/
@@ -162,6 +184,18 @@ public: // アクセッサ
 	 */
 	void SetTextureSize(const KCE::Vector2& textureSize) { textureSize_ = textureSize; }
 
+	/**
+	 * @brief ラジアルワイプ（扇形に切り抜いて表示）の設定
+	 * @details 画像の中心から、開始角度の向きを起点に、割合ぶんだけ扇形に表示する。
+	 *          角度は真上が 0 で、時計回りに増える。1 なら全部、0 なら何も描かない
+	 * @param fill 表示する割合（0〜1）
+	 * @param startAngle 開始角度（ラジアン）
+	 * @param clockwise 時計回りに埋めるか
+	 */
+	void SetRadialFill(float fill, float startAngle = 0.0f, bool clockwise = true);
+	/** @brief ラジアルワイプの割合 */
+	float GetRadialFill() const { return fillAmount_; }
+
 private: // メンバ関数
 	/**
 	 * @brief 頂点データ作成
@@ -174,6 +208,12 @@ private: // メンバ関数
 	 * @details アンカーポイント、フリップ、テクスチャ座標を反映する
 	 */
 	void UpdateVertexData();
+
+	/**
+	 * @brief ラジアルワイプの頂点データの更新
+	 * @details 画像の中心を起点にした扇形（三角形の扇）を作る。割合が 0 なら描かない
+	 */
+	void UpdateRadialVertexData();
 
 	/**
 	 * @brief 行列の更新
@@ -243,5 +283,12 @@ private: // メンバ変数
 
 	// テクスチャ切り出しサイズ
 	KCE::Vector2 textureSize_ = { 0.0f,0.0f };
+
+	// ラジアルワイプ。1 なら通常の四角
+	float fillAmount_ = 1.0f;
+	float fillStartAngle_ = 0.0f;
+	bool fillClockwise_ = true;
+	// 今のインデックス数（四角なら 6、扇なら三角形の数 × 3、0 なら描かない）
+	uint32_t drawIndexCount_ = 6;
 };
 } // namespace KCE

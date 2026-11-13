@@ -12,12 +12,16 @@
 
 namespace KCE
 {
-REGISTER_COMPONENT(ModelRendererComponent)
+REGISTER_RENDERER_COMPONENT(ModelRendererComponent)
 
 namespace GameObjectComponent
 {
+	void ForceLinkModelRendererComponent() {}
+
 	ModelRendererComponent::ModelRendererComponent()
 	{
+		// 空のままだと何も映らないので、本体の既定と同じ cube で始める
+		modelName_ = "cube";
 		Register("model", &modelName_);
 		Register("castShadow", &castShadow_);
 	}
@@ -37,6 +41,8 @@ namespace GameObjectComponent
 
 		object3d_ = std::make_unique<Object3d>();
 		object3d_->Initialize(common, common->GetDefaultCamera());
+		// Deferred は G-Buffer を描かないシーンだと映らない。どのシーンでも映る Forward にする
+		object3d_->SetRenderingType(RenderingType::Forward);
 		if (LightManager* lightManager = owner->GetLightManager())
 		{
 			object3d_->SetLightManager(lightManager);

@@ -648,6 +648,11 @@ void Sprite2DPass::Execute(const RenderPassContext& ctx)
 	{
 		ctx.spriteLayer->Draw();
 	}
+	// GameObject のスプライト（SpriteRendererComponent など）。order の小さい順で、シーンの 2D より奥に描く
+	if (GameObjectManager::HasInstance())
+	{
+		GameObjectManager::GetInstance()->DrawSprites2D();
+	}
 	ctx.sceneManager->Draw2D();
 
 	// スプライトアニメーションエディタの画面表示プレビュー

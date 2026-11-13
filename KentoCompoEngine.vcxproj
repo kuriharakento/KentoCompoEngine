@@ -84,6 +84,8 @@
     <ClCompile Include="gameobject\component\collision\SphereCollider.cpp" />
     <ClCompile Include="gameobject\manager\GameObjectManager.cpp" />
     <ClCompile Include="gameobject\component\render\ModelRendererComponent.cpp" />
+    <ClCompile Include="gameobject\component\render\SpriteRendererComponent.cpp" />
+    <ClCompile Include="gameobject\component\render\GaugeComponent.cpp" />
     <ClCompile Include="gameobject\manager\GameObjectInstancing.cpp" />
     <ClCompile Include="gameobject\manager\GameObjectRenderer.cpp" />
     <ClCompile Include="graphics\2d\FontSprite.cpp" />
@@ -317,6 +319,10 @@
     <ClInclude Include="gameobject\manager\GameObjectManager.h" />
     <ClInclude Include="gameobject\component\base\IRenderableComponent.h" />
     <ClInclude Include="gameobject\component\render\ModelRendererComponent.h" />
+    <ClInclude Include="gameobject\component\render\SpriteRendererComponent.h" />
+    <ClInclude Include="gameobject\component\render\GaugeComponent.h" />
+    <ClInclude Include="gameobject\component\render\SpriteRenderUtil.h" />
+    <ClInclude Include="gameobject\component\base\ISpriteRenderableComponent.h" />
     <ClInclude Include="gameobject\manager\GameObjectInstancing.h" />
     <ClInclude Include="gameobject\manager\GameObjectRenderer.h" />
     <ClInclude Include="graphics\2d\FontSprite.h" />

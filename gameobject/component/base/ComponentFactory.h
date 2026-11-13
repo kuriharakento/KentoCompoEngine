@@ -74,6 +74,28 @@ namespace GameObjectComponent
 			return names;
 		}
 
+		/**
+		 * @brief 「レンダラー」の種類として印を付ける
+		 * @details レンダラー（モデル・スプライト・ゲージなど）は追加するのではなく、インスペクタで選んで切り替える
+		 */
+		void MarkAsRenderer(const std::string& typeName)
+		{
+			rendererNames_.push_back(typeName);
+		}
+
+		/** @return レンダラーの種類なら真 */
+		bool IsRenderer(const std::string& typeName) const
+		{
+			for (const auto& name : rendererNames_)
+			{
+				if (name == typeName) { return true; }
+			}
+			return false;
+		}
+
+		/** @return レンダラーの種類名の一覧（登録順） */
+		const std::vector<std::string>& GetRendererNames() const { return rendererNames_; }
+
 	private:
 		ComponentFactory() = default;
 		~ComponentFactory() = default;
@@ -83,6 +105,7 @@ namespace GameObjectComponent
 	private:
 		std::unordered_map<std::string, std::function<std::unique_ptr<Component>(GameObject*)>> registry_;
 		std::unordered_map<std::type_index, std::string> typeNames_;
+		std::vector<std::string> rendererNames_;
 	};
 
 	/**
@@ -115,6 +138,13 @@ namespace GameObjectComponent
  */
 #define REGISTER_COMPONENT(Type) \
 	static KCE::GameObjectComponent::ComponentRegisterer<KCE::GameObjectComponent::Type> g_registerer_##Type(#Type);
+/**
+ * @brief レンダラー（描画を担うコンポーネント）を登録するマクロ。REGISTER_COMPONENT に加えて、レンダラーの印を付ける
+ * @details 追加の一覧には出さず、インスペクタの「レンダラー」で選んで切り替える
+ */
+#define REGISTER_RENDERER_COMPONENT(Type) \
+	REGISTER_COMPONENT(Type) \
+	static const bool g_rendererMark_##Type = (KCE::GameObjectComponent::ComponentFactory::GetInstance()->MarkAsRenderer(#Type), true);
 #define REGISTER_COMPONENT_ALIAS(Type, Alias) \
 	static KCE::GameObjectComponent::ComponentRegisterer<KCE::GameObjectComponent::Type> g_registerer_##Type##_##Alias(#Alias);
 } // namespace KCE

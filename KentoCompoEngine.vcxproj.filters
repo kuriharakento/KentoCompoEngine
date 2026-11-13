@@ -468,6 +468,12 @@
     <ClCompile Include="gameobject\component\render\ModelRendererComponent.cpp">
       <Filter>gameobject\component\render</Filter>
     </ClCompile>
+    <ClCompile Include="gameobject\component\render\SpriteRendererComponent.cpp">
+      <Filter>gameobject\component\render</Filter>
+    </ClCompile>
+    <ClCompile Include="gameobject\component\render\GaugeComponent.cpp">
+      <Filter>gameobject\component\render</Filter>
+    </ClCompile>
     <ClCompile Include="gameobject\manager\GameObjectInstancing.cpp">
       <Filter>gameobject\manager</Filter>
     </ClCompile>
@@ -1165,6 +1171,18 @@
     </ClInclude>
     <ClInclude Include="gameobject\component\render\ModelRendererComponent.h">
       <Filter>gameobject\component\render</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\component\render\SpriteRendererComponent.h">
+      <Filter>gameobject\component\render</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\component\render\GaugeComponent.h">
+      <Filter>gameobject\component\render</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\component\render\SpriteRenderUtil.h">
+      <Filter>gameobject\component\render</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\component\base\ISpriteRenderableComponent.h">
+      <Filter>gameobject\component\base</Filter>
     </ClInclude>
     <ClInclude Include="gameobject\manager\GameObjectInstancing.h">
       <Filter>gameobject\manager</Filter>
