@@ -46,6 +46,15 @@ public:
 	 */
 	static std::unique_ptr<ModelElement> CreateFromPrefab(const std::string& name, const std::string& prefabFile);
 
+	/**
+	 * @brief GameObject の JSON から、新しい要素を作る。JSON にあるコンポーネントを付けて、値を読み込む
+	 * @param name 要素の名前
+	 * @param jsonFile Resources/json/gameobject の中のファイル名
+	 * @return 作った要素。読み込めなければ nullptr
+	 * @note JSON は子とモデルを保存しないので、それらが要るならプレハブを使う
+	 */
+	static std::unique_ptr<ModelElement> CreateFromGameObjectJson(const std::string& name, const std::string& jsonFile);
+
 	const char* GetTypeKey() const override { return "models"; }
 	void SetPlaying(bool playing) override;
 	void OnSequencerState(bool active, bool playing) override;

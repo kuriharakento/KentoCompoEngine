@@ -199,6 +199,7 @@ public: // アクセッサ
 	 * @param strength 強さ（0 で無効）
 	 */
 	void SetOutlineStrength(float strength);
+	float GetOutlineStrength() const { return (meshResources_.empty() || !meshResources_[0].gpuMaterial) ? 0.0f : meshResources_[0].gpuMaterial->outlineStrength; }
 
 	/**
 	 * @brief 反射強度の取得（最初のマテリアル）

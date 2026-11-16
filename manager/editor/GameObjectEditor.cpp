@@ -14,6 +14,7 @@
 #include "manager/graphics/ModelManager.h"
 #include "manager/graphics/TextureManager.h"
 #include <algorithm>
+#include <cctype>
 #include <filesystem>
 #include <fstream>
 
@@ -31,6 +32,19 @@ void InspectorSection(const char* label)
 {
 	ImGui::Spacing();
 	ImGui::SeparatorText(label);
+}
+
+/** @brief 大文字小文字を区別せず、text に filter が含まれるか。filter が空なら常に真 */
+bool MatchesFilter(const std::string& text, const char* filter)
+{
+	if (filter[0] == '\0')
+	{
+		return true;
+	}
+	const std::string needle = filter;
+	const auto it = std::search(text.begin(), text.end(), needle.begin(), needle.end(),
+		[](unsigned char a, unsigned char b) { return std::tolower(a) == std::tolower(b); });
+	return it != text.end();
 }
 } // namespace
 
@@ -74,11 +88,12 @@ void GameObjectEditor::Initialize()
 	UpdatePrefabFileList();
 
 #ifdef USE_IMGUI
-	// 一覧は Hierarchy の区画、詳細は Inspector に出す
-	DebugUIManager::GetInstance()->RegisterHierarchySection(
+	// 一覧は専用ウィンドウ（Hierarchy と同じ左の置き場所にタブで並ぶ）、詳細は Inspector に出す
+	DebugUIManager::GetInstance()->RegisterWindow(
 		this,
-		"GameObject",
-		[this]() { this->DrawListImGui(); }
+		"GameObject###GameObjectTree",
+		[this]() { this->DrawListImGui(); },
+		EditorDock::Left
 	);
 	DebugUIManager::GetInstance()->RegisterInspector(
 		this,
@@ -162,75 +177,39 @@ void GameObjectEditor::DrawListImGui()
 	// シーン上のクリックなど、ここ以外で選ばれても行の強調がずれないよう、選択の一元管理に合わせる
 	selected_ = SelectionContext::GetInstance()->GetPrimaryGameObject();
 
+	// 削除・複製・作成は、描画中に一覧を変えないよう、描き終えてから行う
+	PendingActions actions;
+
 	if (ImGui::Button("GameObjectを作成", ImVec2(-FLT_MIN, 0.0f)))
 	{
-		CreateAndSelectNew();
+		ImGui::OpenPopup("GameObjectCreateMenu");
 	}
+	if (ImGui::BeginPopup("GameObjectCreateMenu"))
+	{
+		DrawCreateMenu(nullptr, actions);
+		ImGui::EndPopup();
+	}
+	ImGui::SetNextItemWidth(-FLT_MIN);
+	ImGui::InputTextWithHint("##gameobject_filter", "検索", filter_, sizeof(filter_));
 
-	// 行の上で右クリックしたときの削除は、描画中に一覧を変えないよう、描き終えてから行う
-	GameObject* objectToDelete = nullptr;
-	// 複製も同じ理由で、描き終えてから行う
-	GameObject* objectToDuplicate = nullptr;
 	const auto& objects = GameObjectManager::GetInstance()->GetGameObjects();
 	for (GameObject* obj : objects)
 	{
-		if (!obj) continue;
-
-		const std::string label = obj->GetName() + " (" + obj->GetTag() + ")";
-		if (!DebugUIManager::GetInstance()->MatchesHierarchyFilter(label))
+		if (obj)
 		{
-			continue;
+			DrawObjectNode(obj, actions);
 		}
-
-		// 同じ名前と種類の GameObject があっても、行の ID がぶつからないようにする
-		ImGui::PushID(obj);
-		// 描画のオンオフ。更新は止まらない（止めるなら、インスペクタの「有効」）
-		{
-			// 一覧は根だけなので、親の影響は無い
-			bool visible = obj->IsVisible();
-			if (ImGui::Checkbox("##visible", &visible))
-			{
-				obj->SetVisible(visible);
-			}
-			if (ImGui::IsItemHovered())
-			{
-				ImGui::SetTooltip("表示（描画だけオンオフ。更新は止まらない）");
-			}
-			ImGui::SameLine();
-		}
-		if (ImGui::Selectable(label.c_str(), selected_ == obj))
-		{
-			selected_ = obj;
-			// シーン上のギズモは選択の一元管理（SelectionContext）を見るので、そちらにも伝える
-			SelectionContext::GetInstance()->SelectGameObject(obj);
-		}
-		if (ImGui::BeginPopupContextItem("GameObjectRowMenu"))
-		{
-			// 右クリックした行を選んでから出す。削除の対象がどれか分かるようにする
-			if (selected_ != obj)
-			{
-				selected_ = obj;
-				SelectionContext::GetInstance()->SelectGameObject(obj);
-			}
-			if (ImGui::MenuItem("複製", "Ctrl+D"))
-			{
-				objectToDuplicate = obj;
-			}
-			if (ImGui::MenuItem("削除"))
-			{
-				objectToDelete = obj;
-			}
-			ImGui::EndPopup();
-		}
-		ImGui::PopID();
 	}
+	GameObject*& objectToDelete = actions.toDelete;
+	GameObject*& objectToDuplicate = actions.toDuplicate;
 
 	// 一覧の空いている所で右クリックしても作れる
 	if (ImGui::BeginPopupContextWindow("GameObjectListMenu", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
 	{
-		if (ImGui::MenuItem("GameObjectを作成"))
+		if (ImGui::BeginMenu("GameObjectを作成"))
 		{
-			CreateAndSelectNew();
+			DrawCreateMenu(nullptr, actions);
+			ImGui::EndMenu();
 		}
 		ImGui::EndPopup();
 	}
@@ -245,8 +224,25 @@ void GameObjectEditor::DrawListImGui()
 		// プレハブの形にして作り直す（コンポーネントの値も、子も一緒に写る）。新しい GUID が付く
 		if (auto copy = GameObjectManager::GetInstance()->CreateFromPrefabJson(objectToDuplicate->SerializePrefab()))
 		{
-			copy->SetName(objectToDuplicate->GetName() + "_copy");
-			if (GameObject* added = GameObjectManager::GetInstance()->Adopt(std::move(copy)))
+			GameObject* added = nullptr;
+			if (GameObject* parent = objectToDuplicate->GetParent())
+			{
+				// 子の複製は同じ親の下へ。名前は親の中でぶつからないようにする
+				std::string name = objectToDuplicate->GetName() + "_copy";
+				for (int suffix = 1; parent->GetChild(name); ++suffix)
+				{
+					name = objectToDuplicate->GetName() + "_copy" + std::to_string(suffix);
+				}
+				copy->SetName(name);
+				added = copy.get();
+				parent->AddChild(name, std::move(copy));
+			}
+			else
+			{
+				copy->SetName(objectToDuplicate->GetName() + "_copy");
+				added = GameObjectManager::GetInstance()->Adopt(std::move(copy));
+			}
+			if (added)
 			{
 				selected_ = added;
 				SelectionContext::GetInstance()->SelectGameObject(added);
@@ -254,20 +250,353 @@ void GameObjectEditor::DrawListImGui()
 		}
 	}
 
+	for (const auto& action : actions.deferred)
+	{
+		action();
+	}
+	DrawDialogs(true, false);
+
 	if (objectToDelete)
 	{
-		// 不正ポインタ参照を防ぐため、Unregister前にselected_をクリア
+		// 不正ポインタ参照を防ぐため、削除前にselected_をクリア
 		selected_ = nullptr;
-		GameObjectManager::GetInstance()->Unregister(objectToDelete);
+		SelectionContext::GetInstance()->ClearSelection();
+		if (objectToDelete->GetParent())
+		{
+			GameObjectManager::GetInstance()->DestroyChild(objectToDelete);
+		}
+		else
+		{
+			GameObjectManager::GetInstance()->Unregister(objectToDelete);
+		}
 	}
 
 #endif
 }
 
-void GameObjectEditor::CreateAndSelectNew()
+void GameObjectEditor::DrawObjectNode(GameObject* obj, PendingActions& actions)
 {
 #ifdef USE_IMGUI
-	GameObject* newObj = GameObjectManager::GetInstance()->CreateGameObject("NewObject", "GameObject");
+	const std::string label = obj->GetName() + " (" + obj->GetTag() + ")";
+	// 検索中は、自分か子孫のどれかが合えば出す（合う子の親が消えて辿れなくなるのを防ぐ）
+	const auto matches = [this](const auto& self, const GameObject* node) -> bool
+	{
+		const std::string text = node->GetName() + " (" + node->GetTag() + ")";
+		if (MatchesFilter(text, filter_)) return true;
+		for (const auto& [childName, child] : node->GetChildren())
+		{
+			if (child && self(self, child.get())) return true;
+		}
+		return false;
+	};
+	if (!matches(matches, obj))
+	{
+		return;
+	}
+
+	// 同じ名前と種類の GameObject があっても、行の ID がぶつからないようにする
+	ImGui::PushID(obj);
+	// 描画のオンオフ。更新は止まらない（止めるなら、インスペクタの「有効」）
+	bool visible = obj->IsVisible();
+	if (ImGui::Checkbox("##visible", &visible))
+	{
+		obj->SetVisible(visible);
+	}
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("表示（描画だけオンオフ。更新は止まらない）");
+	}
+	ImGui::SameLine();
+
+	bool hasChildren = false;
+	for (const auto& [childName, child] : obj->GetChildren())
+	{
+		if (child) { hasChildren = true; break; }
+	}
+	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_DefaultOpen;
+	if (!hasChildren) flags |= ImGuiTreeNodeFlags_Leaf;
+	if (selected_ == obj) flags |= ImGuiTreeNodeFlags_Selected;
+	const bool open = ImGui::TreeNodeEx("##node", flags, "%s", label.c_str());
+	if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+	{
+		selected_ = obj;
+		// シーン上のギズモは選択の一元管理（SelectionContext）を見るので、そちらにも伝える
+		SelectionContext::GetInstance()->SelectGameObject(obj);
+	}
+	if (ImGui::BeginPopupContextItem("GameObjectRowMenu"))
+	{
+		// 右クリックした行を選んでから出す。削除の対象がどれか分かるようにする
+		if (selected_ != obj)
+		{
+			selected_ = obj;
+			SelectionContext::GetInstance()->SelectGameObject(obj);
+		}
+		if (ImGui::BeginMenu("子を作成"))
+		{
+			DrawCreateMenu(obj, actions);
+			ImGui::EndMenu();
+		}
+		if (ImGui::MenuItem("複製", "Ctrl+D"))
+		{
+			actions.toDuplicate = obj;
+		}
+		if (ImGui::MenuItem("削除"))
+		{
+			actions.toDelete = obj;
+		}
+		ImGui::EndPopup();
+	}
+	if (open)
+	{
+		// 名前順に並べて、フレームごとに順番が変わらないようにする
+		std::vector<GameObject*> children;
+		for (const auto& [childName, child] : obj->GetChildren())
+		{
+			if (child) children.push_back(child.get());
+		}
+		std::sort(children.begin(), children.end(), [](const GameObject* a, const GameObject* b) { return a->GetName() < b->GetName(); });
+		for (GameObject* child : children)
+		{
+			DrawObjectNode(child, actions);
+		}
+		ImGui::TreePop();
+	}
+	ImGui::PopID();
+#endif
+}
+
+std::string GameObjectEditor::MakeUniqueChildName(const GameObject* parent, const std::string& baseName)
+{
+	std::string name = baseName;
+	for (int suffix = 1; parent->GetChild(name); ++suffix)
+	{
+		name = baseName + "_" + std::to_string(suffix);
+	}
+	return name;
+}
+
+GameObject* GameObjectEditor::GetRoot(GameObject* object)
+{
+	while (object && object->GetParent())
+	{
+		object = object->GetParent();
+	}
+	return object;
+}
+
+GameObject* GameObjectEditor::CreateFromPrefabFile(const std::string& file, GameObject* parent)
+{
+	GameObject* created = nullptr;
+	if (!parent)
+	{
+		created = GameObjectManager::GetInstance()->Instantiate(file);
+	}
+	else if (auto loaded = GameObjectManager::GetInstance()->LoadPrefab(file))
+	{
+		const std::string name = MakeUniqueChildName(parent, loaded->GetName());
+		loaded->SetName(name);
+		created = loaded.get();
+		parent->AddChild(name, std::move(loaded));
+	}
+	if (created)
+	{
+		selected_ = created;
+		SelectionContext::GetInstance()->SelectGameObject(created);
+	}
+	return created;
+}
+
+GameObject* GameObjectEditor::CreateFromJsonFile(const std::string& file, GameObject* parent)
+{
+	std::ifstream ifs("Resources/json/gameobject/" + file);
+	if (!ifs)
+	{
+		return nullptr;
+	}
+	nlohmann::json json;
+	try
+	{
+		ifs >> json;
+	}
+	catch (...)
+	{
+		return nullptr;
+	}
+
+	const std::string rawName = std::filesystem::path(file).stem().string();
+	GameObject* newObj = parent
+		? GameObjectManager::GetInstance()->CreateChild(parent, rawName)
+		: GameObjectManager::GetInstance()->CreateGameObject(rawName, "GameObject");
+	if (!newObj)
+	{
+		return nullptr;
+	}
+	const std::string assignedName = newObj->GetName();
+
+	// JSON にあるコンポーネントを先に付けてから、値を読み込む
+	if (json.contains("components") && json["components"].is_object())
+	{
+		for (auto it = json["components"].begin(); it != json["components"].end(); ++it)
+		{
+			auto compInstance = GameObjectComponent::ComponentFactory::GetInstance()->Create(it.key(), newObj);
+			if (compInstance)
+			{
+				newObj->AddComponent(std::move(compInstance), it.key());
+			}
+		}
+	}
+
+	if (!newObj->LoadJson(file))
+	{
+		if (parent) { GameObjectManager::GetInstance()->DestroyChild(newObj); }
+		else { GameObjectManager::GetInstance()->Unregister(newObj); }
+		return nullptr;
+	}
+	if (parent)
+	{
+		// 親の中のキーと名前がずれないよう、読み込みで変わった名前を戻す
+		newObj->SetName(assignedName);
+	}
+	selected_ = newObj;
+	// シーン上のギズモは選択の一元管理（SelectionContext）を見るので、そちらにも伝える
+	SelectionContext::GetInstance()->SelectGameObject(newObj);
+	return newObj;
+}
+
+void GameObjectEditor::DrawCreateMenu(GameObject* parent, PendingActions& actions)
+{
+#ifdef USE_IMGUI
+	if (ImGui::MenuItem("新規"))
+	{
+		// 名前を入力するダイアログを開く（実際の作成は、ダイアログの「作成」で行う）
+		actions.deferred.push_back([this, parent]()
+		{
+			createParentGuid_ = parent ? parent->GetGuid() : Guid();
+			std::snprintf(newNameBuf_, sizeof(newNameBuf_), "%s", parent ? "NewChild" : "NewObject");
+			openCreateDialog_ = true;
+		});
+	}
+	if (ImGui::BeginMenu("既存のプレハブから", !prefabFiles_.empty()))
+	{
+		for (const std::string& file : prefabFiles_)
+		{
+			if (ImGui::MenuItem(file.c_str()))
+			{
+				actions.deferred.push_back([this, parent, file]() { CreateFromPrefabFile(file, parent); });
+			}
+		}
+		ImGui::EndMenu();
+	}
+	if (ImGui::BeginMenu("既存のJSONから", !jsonFiles_.empty()))
+	{
+		for (const std::string& file : jsonFiles_)
+		{
+			if (ImGui::MenuItem(file.c_str()))
+			{
+				actions.deferred.push_back([this, parent, file]() { CreateFromJsonFile(file, parent); });
+			}
+		}
+		ImGui::EndMenu();
+	}
+#endif
+}
+
+void GameObjectEditor::ShowNotice(const std::string& title, const std::string& message)
+{
+	noticeTitle_ = title;
+	noticeMessage_ = message;
+	openNotice_ = true;
+}
+
+void GameObjectEditor::DrawDialogs(bool drawCreate, bool drawNotice)
+{
+#ifdef USE_IMGUI
+	// ポップアップは、開いたウィンドウの中で描かないと見つからない。
+	// 作成は一覧ウィンドウ、通知はインスペクタで描くので、呼び出し側が選ぶ
+	// --- 新規作成：名前を入力してから作る ---
+	if (drawCreate && openCreateDialog_)
+	{
+		ImGui::OpenPopup("新規作成###CreateGameObject");
+		openCreateDialog_ = false;
+	}
+	// SetNextWindowPos は、直後の Begin が使う。描かないときに呼ぶと、次に描かれる別のウィンドウに効いて、
+	// ドッキングが外れてしまうので、ここで描くときだけ呼ぶ
+	if (drawCreate)
+	{
+		ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	}
+	if (drawCreate && ImGui::BeginPopupModal("新規作成###CreateGameObject", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		GameObject* parent = createParentGuid_.IsValid() ? GameObjectManager::GetInstance()->FindByGuid(createParentGuid_) : nullptr;
+		if (createParentGuid_.IsValid() && !parent)
+		{
+			// 親が消えていたら作れない
+			ImGui::TextUnformatted("親が見つかりません。");
+			if (ImGui::Button("閉じる"))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+		}
+		else
+		{
+			if (parent)
+			{
+				ImGui::Text("「%s」の子を作ります", parent->GetName().c_str());
+			}
+			ImGui::TextUnformatted("名前");
+			if (ImGui::IsWindowAppearing())
+			{
+				ImGui::SetKeyboardFocusHere();
+			}
+			const bool enter = ImGui::InputText("##newName", newNameBuf_, sizeof(newNameBuf_), ImGuiInputTextFlags_EnterReturnsTrue);
+			const bool nameEmpty = newNameBuf_[0] == '\0';
+			ImGui::BeginDisabled(nameEmpty);
+			if (ImGui::Button("作成", ImVec2(100.0f, 0.0f)) || (enter && !nameEmpty))
+			{
+				CreateAndSelectNew(parent, newNameBuf_);
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndDisabled();
+			ImGui::SameLine();
+			if (ImGui::Button("キャンセル", ImVec2(100.0f, 0.0f)))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+		}
+		ImGui::EndPopup();
+	}
+
+	// --- 通知：保存の結果など ---
+	if (drawNotice && openNotice_)
+	{
+		ImGui::OpenPopup("通知###GameObjectNotice");
+		openNotice_ = false;
+	}
+	if (drawNotice)
+	{
+		ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	}
+	if (drawNotice && ImGui::BeginPopupModal("通知###GameObjectNotice", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::TextUnformatted(noticeTitle_.c_str());
+		ImGui::Separator();
+		ImGui::TextWrapped("%s", noticeMessage_.c_str());
+		ImGui::Spacing();
+		if (ImGui::Button("OK", ImVec2(100.0f, 0.0f)))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
+#endif
+}
+
+GameObject* GameObjectEditor::CreateAndSelectNew(GameObject* parent, const std::string& name)
+{
+#ifdef USE_IMGUI
+	GameObject* newObj = parent
+		? GameObjectManager::GetInstance()->CreateChild(parent, name.empty() ? "NewChild" : name)
+		: GameObjectManager::GetInstance()->CreateGameObject(name.empty() ? "NewObject" : name, "GameObject");
 	if (newObj)
 	{
 		// 初期の Deferred は G-Buffer を描かないシーンだと映らないので、どのシーンでも映る Forward にしておく
@@ -282,6 +611,9 @@ void GameObjectEditor::CreateAndSelectNew()
 		// シーン上のギズモは選択の一元管理（SelectionContext）を見るので、そちらにも伝える
 		SelectionContext::GetInstance()->SelectGameObject(newObj);
 	}
+	return newObj;
+#else
+	return nullptr;
 #endif
 }
 
@@ -383,6 +715,16 @@ void GameObjectEditor::DrawInspectorImGui()
 				if (ImGui::ColorEdit4("色", &color.x))
 				{
 					renderable->SetColor(color);
+				}
+
+				float outlineStrength = renderable->GetOutlineStrength();
+				if (ImGui::SliderFloat("アウトライン", &outlineStrength, 0.0f, 1.0f, "%.2f"))
+				{
+					renderable->SetOutlineStrength(outlineStrength);
+				}
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("0 で線なし。Deferred 描画のオブジェクトにだけ効く（Forward には出ない）");
 				}
 
 				int renderingType = static_cast<int>(renderable->GetRenderingType());
@@ -518,11 +860,27 @@ void GameObjectEditor::DrawInspectorImGui()
 			}
 			ImGui::PopItemWidth();
 
+			// 子を選んでいても、保存は一番上の親から行う（子だけを保存して、親が消えるのを防ぐ）
+			GameObject* saveRoot = GetRoot(selected_);
+			if (saveRoot != selected_)
+			{
+				ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.3f, 1.0f), "子を選択中。親「%s」を保存します", saveRoot->GetName().c_str());
+			}
+			if (!saveRoot->GetChildren().empty())
+			{
+				ImGui::TextDisabled("JSONは子とモデルを保存しません。子ごと保存するなら、プレハブを使う");
+			}
 			if (ImGui::Button("JSONを保存", ImVec2(100.0f, 0.0f)))
 			{
-				if (selected_->SaveJson(fileNameBuf_))
+				if (saveRoot->SaveJson(fileNameBuf_))
 				{
 					UpdateJsonFileList(); // セーブ成功したら一覧を更新
+					ShowNotice("JSONを保存しました",
+						std::string("「") + saveRoot->GetName() + "」を json/gameobject/" + fileNameBuf_ + " に保存しました。");
+				}
+				else
+				{
+					ShowNotice("JSONの保存に失敗しました", std::string("「") + saveRoot->GetName() + "」を保存できませんでした。ログを確認してください。");
 				}
 			}
 			ImGui::SameLine();
@@ -538,11 +896,24 @@ void GameObjectEditor::DrawInspectorImGui()
 			ImGui::PushItemWidth(200.0f);
 			ImGui::InputText("プレハブファイル名", prefabFileNameBuf_, sizeof(prefabFileNameBuf_));
 			ImGui::PopItemWidth();
+			// 子を選んでいても、親ごと保存する（子だけを保存して、親が消えるのを防ぐ）
+			GameObject* prefabRoot = GetRoot(selected_);
+			if (prefabRoot != selected_)
+			{
+				ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.3f, 1.0f), "子を選択中。親「%s」を子ごと保存します", prefabRoot->GetName().c_str());
+			}
 			if (ImGui::Button("プレハブとして保存"))
 			{
-				if (selected_->SavePrefab(prefabFileNameBuf_))
+				if (prefabRoot->SavePrefab(prefabFileNameBuf_))
 				{
 					UpdatePrefabFileList();
+					ShowNotice("プレハブを保存しました",
+						std::string("「") + prefabRoot->GetName() + "」を子ごと json/prefab/" +
+						std::filesystem::path(prefabFileNameBuf_).filename().string() + " に保存しました。");
+				}
+				else
+				{
+					ShowNotice("プレハブの保存に失敗しました", std::string("「") + prefabRoot->GetName() + "」を保存できませんでした。ログを確認してください。");
 				}
 			}
 			ImGui::SameLine();
@@ -667,6 +1038,9 @@ void GameObjectEditor::DrawInspectorImGui()
 	{
 		UpdateJsonFileList();
 	}
+
+	// 保存の結果などの通知。ボタンを押したこのウィンドウの中で描く
+	DrawDialogs(false, true);
 #endif
 }
 

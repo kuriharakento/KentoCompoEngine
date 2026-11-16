@@ -122,6 +122,8 @@ public:
 	 * @param camera カメラ管理クラス
 	 */
 	void DrawBehaviours3D(CameraManager* camera);
+	/** @brief Behaviour の3D半透明描画（Skybox のあと）。深度を書かない物はこちらで描く */
+	void DrawBehavioursTransparent3D(CameraManager* camera);
 
 	/**
 	 * @brief 2D描画処理
@@ -502,6 +504,19 @@ public: // アクセッサ
 	 * @return 指定された名前の子オブジェクト（見つからない場合はnullptr）
 	 */
 	GameObject* GetChild(const std::string& name) const;
+
+	/**
+	 * @brief 子を親から外して、所有権を返す。
+	 * @param child 外す子（直接の子であること）
+	 * @return 外した子。直接の子でなければ nullptr
+	 */
+	std::unique_ptr<GameObject> ReleaseChild(GameObject* child);
+
+	/**
+	 * @brief 自分と子孫から、GUIDが合うものを探す。
+	 * @return 見つからなければ nullptr
+	 */
+	GameObject* FindInSubtree(const Guid& guid);
 
 	/**
 	 * @brief 親オブジェクトを取得する。

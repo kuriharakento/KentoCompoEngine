@@ -196,6 +196,7 @@ public: // アクセッサ
 	void SetToonAmount(float amount) override { if (model_) model_->SetToonAmount(amount); }
 	void SetRimStrength(float strength) override { if (model_) model_->SetRimStrength(strength); }
 	void SetOutlineStrength(float strength) override { if (model_) model_->SetOutlineStrength(strength); }
+	float GetOutlineStrength() const override { return model_ ? model_->GetOutlineStrength() : 0.0f; }
 
 	/**
 	 * @brief ライティングの有効/無効の取得

@@ -163,6 +163,15 @@ public:
 	std::unique_ptr<GameObject> LoadPrefab(const std::string& prefabPath) const;
 
 	/**
+	 * @brief 親の子として、空の GameObject を作る。名前が親の中でぶつかるときは番号を付ける。
+	 * @return 作った子（親が所有）。作れなければ nullptr
+	 */
+	GameObject* CreateChild(GameObject* parent, const std::string& baseName);
+
+	/** @brief 子を親から外して、次のフレームの頭で破棄する。根には使わない（Unregister を使う） */
+	void DestroyChild(GameObject* child);
+
+	/**
 	 * @brief GameObject::SerializePrefab の JSON から、まだmanagerへ登録していないツリーを作る。
 	 * @param json SerializePrefab が返した形
 	 * @return 読み込めたツリー。形が壊れていればログを出して nullptr

@@ -84,6 +84,9 @@ private:
 	static std::vector<std::string> ListStageFiles();
 	/** @brief Resources/json/prefab の中の .json のファイル名を並べる */
 	static std::vector<std::string> ListPrefabFiles();
+
+	/** @brief Resources/json/gameobject の中の .json のファイル名を並べる */
+	static std::vector<std::string> ListGameObjectJsonFiles();
 	/** @brief 同じ名前が無いよう、元の名前に数字を足す */
 	static std::string MakeUniqueName(const Level& stage, const std::string& baseName);
 	/**

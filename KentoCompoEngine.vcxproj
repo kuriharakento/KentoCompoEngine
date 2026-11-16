@@ -76,6 +76,7 @@
     <ClCompile Include="gameobject\component\base\Component.cpp" />
     <ClCompile Include="gameobject\component\collision\AABBCollider.cpp" />
     <ClCompile Include="gameobject\component\motion\MotionComponents.cpp" />
+    <ClCompile Include="gameobject\component\motion\RatioLink.cpp" />
     <ClCompile Include="gameobject\component\collision\CollisionAlgorithm.cpp" />
     <ClCompile Include="gameobject\component\collision\GameObjectCollisionManager.cpp" />
     <ClCompile Include="gameobject\component\collision\CollisionUtils.cpp" />
@@ -310,6 +311,7 @@
     <ClInclude Include="gameobject\component\base\Component.h" />
     <ClInclude Include="gameobject\component\collision\AABBCollider.h" />
     <ClInclude Include="gameobject\component\motion\MotionComponents.h" />
+    <ClInclude Include="gameobject\component\motion\RatioLink.h" />
     <ClInclude Include="gameobject\component\collision\CollisionAlgorithm.h" />
     <ClInclude Include="gameobject\component\collision\GameObjectCollisionManager.h" />
     <ClInclude Include="gameobject\component\collision\CollisionUtils.h" />

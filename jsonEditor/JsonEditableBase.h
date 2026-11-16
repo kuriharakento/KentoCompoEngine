@@ -111,6 +111,21 @@ protected:
 	template<typename T>
 	void RegisterDebug(const std::string& name, T* value);
 
+#ifdef USE_IMGUI
+	/**
+	 * @brief 登録済みの項目の描画を差し替える（文字入力の代わりにプルダウンを出すときなど）
+	 * @details 基本型の項目はテーブルの1行として描かれるので、差し替える関数も TableNextRow から始めること。
+	 *          登録していない名前なら何もしない
+	 */
+	void OverrideDrawer(const std::string& name, std::function<void()> drawer)
+	{
+		if (const auto it = drawers_.find(name); it != drawers_.end())
+		{
+			it->second = std::move(drawer);
+		}
+	}
+#endif
+
 private:
 	std::unordered_map<std::string, std::function<nlohmann::json()>> getters_;              // 値取得関数マップ
 	std::unordered_map<std::string, std::function<void(const nlohmann::json&)>> setters_;   // 値設定関数マップ

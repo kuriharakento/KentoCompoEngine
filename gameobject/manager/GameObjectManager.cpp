@@ -131,6 +131,24 @@ std::unique_ptr<GameObject> DeserializePrefabNode(
 		added->SetEnabled(componentNode["enabled"].get<bool>());
 	}
 
+	// 本体の立方体。書かれていれば、その通りにする。
+	// 書かれていない古いデータは、レンダラー（モデル・スプライト・ゲージ）を持つなら、レンダラーが描くので隠す
+	if (node.contains("bodyVisible") && node["bodyVisible"].is_boolean())
+	{
+		object->SetBodyVisible(node["bodyVisible"].get<bool>());
+	}
+	else
+	{
+		for (const auto& componentNode : node["components"])
+		{
+			if (GameObjectComponent::ComponentFactory::GetInstance()->IsRenderer(componentNode["type"].get<std::string>()))
+			{
+				object->SetBodyVisible(false);
+				break;
+			}
+		}
+	}
+
 	std::unordered_set<std::string> childNames;
 	for (const auto& childNode : node["children"])
 	{
@@ -451,6 +469,30 @@ void GameObjectManager::DrawTransparent(CameraManager* camera, const std::vector
 	{
 		entry.object->Draw();
 	}
+
+	// Behaviour の半透明の3D描画（深度を書かないゲージなど）。Skybox のあとなので、上書きされない
+	const auto drawBehaviours = [&](const auto& self, GameObject* obj) -> void
+	{
+		if (!obj->IsActive() || !obj->IsVisible())
+		{
+			return;
+		}
+		if (IsVisibleInLayerMask(obj->GetRenderLayer(), renderLayerMask_))
+		{
+			obj->DrawBehavioursTransparent3D(camera);
+		}
+		for (const auto& [name, child] : obj->GetChildren())
+		{
+			if (child)
+			{
+				self(self, child.get());
+			}
+		}
+	};
+	for (auto* obj : gameObjects_)
+	{
+		drawBehaviours(drawBehaviours, obj);
+	}
 }
 
 void GameObjectManager::Draw2D()
@@ -570,12 +612,51 @@ GameObject* GameObjectManager::FindByGuid(const Guid& guid) const
 
 	for (auto* obj : gameObjects_)
 	{
-		if (obj->GetGuid() == guid)
+		if (!obj) continue;
+		// 根だけでなく子孫も探す（ヒエラルキーで子を選べるように）
+		if (GameObject* found = obj->FindInSubtree(guid))
 		{
-			return obj;
+			return found;
 		}
 	}
 	return nullptr;
+}
+
+GameObject* GameObjectManager::CreateChild(GameObject* parent, const std::string& baseName)
+{
+	if (!parent || !cachedObject3dCommon_ || !cachedLightManager_)
+	{
+		return nullptr;
+	}
+	// 子の名前は親の中で一意でなければならないので、空きが出るまで番号を振る
+	std::string name = baseName;
+	for (int suffix = 1; parent->GetChild(name); ++suffix)
+	{
+		name = baseName + "_" + std::to_string(suffix);
+	}
+	auto child = std::make_unique<GameObject>("GameObject");
+	child->SetName(name);
+	child->Initialize(cachedObject3dCommon_, cachedLightManager_);
+	GameObject* ptr = child.get();
+	parent->AddChild(name, std::move(child));
+	return ptr;
+}
+
+void GameObjectManager::DestroyChild(GameObject* child)
+{
+	if (!child || !child->GetParent())
+	{
+		return;
+	}
+	if (GameObjectEditor::HasInstance())
+	{
+		GameObjectEditor::GetInstance()->OnGameObjectRemoved(child);
+	}
+	// 根と同じく、壊すのは次のフレームの頭（描画中のGPUリソースを守るため）
+	if (auto released = child->GetParent()->ReleaseChild(child))
+	{
+		pendingDestroyObjects_.push_back(std::move(released));
+	}
 }
 
 std::vector<GameObject*> GameObjectManager::FindAll(const std::string& name) const

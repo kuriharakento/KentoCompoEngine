@@ -823,6 +823,9 @@ void SequencerEditor::AutoBindObjectRoles()
 		else
 		{
 			autoObjectBindings_.erase(role);
+			// 前に割り当てた相手が削除されていたら、コンテキストの割り当ても外す。
+			// 外さないと、解放された GameObject を指したまま、トラックが触ってしまう
+			ctx.BindGameObject(role, nullptr);
 			if (autoBindMissLogged_.insert(role).second)
 			{
 				Logger::Log("[Sequencer] 役 \"" + role + "\" に割り当てる GameObject（同じ名前かタグ）が見つかりません\n", Logger::LogLevel::Error);

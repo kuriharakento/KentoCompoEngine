@@ -308,6 +308,21 @@ void GameObject::DrawBehaviours3D(CameraManager* camera)
 	}
 }
 
+void GameObject::DrawBehavioursTransparent3D(CameraManager* camera)
+{
+	if (!isActive_) { return; }
+	for (auto& component : components_)
+	{
+		if (component->activeInHierarchy_)
+		{
+			if (auto* behaviour = dynamic_cast<GameObjectComponent::Behaviour*>(component.get()))
+			{
+				behaviour->DrawTransparent3D(camera);
+			}
+		}
+	}
+}
+
 void GameObject::Draw2D()
 {
 	if (!isActive_) { return; }
@@ -512,6 +527,40 @@ void GameObject::AddChild(const std::string& name, std::unique_ptr<GameObject> c
 	{
 		KCE::Logger::Log("Error: Attempted to add a null child GameObject.");
 	}
+}
+
+std::unique_ptr<GameObject> GameObject::ReleaseChild(GameObject* child)
+{
+	for (auto it = children_.begin(); it != children_.end(); ++it)
+	{
+		if (it->second.get() == child)
+		{
+			std::unique_ptr<GameObject> released = std::move(it->second);
+			children_.erase(it);
+			released->SetParent(nullptr);
+			return released;
+		}
+	}
+	return nullptr;
+}
+
+GameObject* GameObject::FindInSubtree(const Guid& guid)
+{
+	if (guid_ == guid)
+	{
+		return this;
+	}
+	for (auto& [name, child] : children_)
+	{
+		if (child)
+		{
+			if (GameObject* found = child->FindInSubtree(guid))
+			{
+				return found;
+			}
+		}
+	}
+	return nullptr;
 }
 
 GameObject* GameObject::GetChild(const std::string& name) const
@@ -851,6 +900,11 @@ nlohmann::json GameObject::SerializePrefab() const
 	if (!visible_)
 	{
 		prefab["visible"] = false;
+	}
+	// 本体の立方体を隠しているとき（レンダラーが描く物）は、隠すと書く。書かないと、読み込んだときに立方体が現れる
+	if (!bodyVisible_)
+	{
+		prefab["bodyVisible"] = false;
 	}
 	if (GetObject3d() && !modelName_.empty())
 	{

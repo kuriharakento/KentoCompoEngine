@@ -36,6 +36,7 @@
 #include "editor/SceneViewPicker.h"
 #include "manager/editor/SettingsStore.h"
 #include "gameobject/component/motion/MotionComponents.h"
+#include "gameobject/component/motion/RatioLink.h"
 #include "gameobject/component/render/GaugeComponent.h"
 #include "gameobject/component/render/ModelRendererComponent.h"
 #include "gameobject/component/render/SpriteRendererComponent.h"
@@ -102,6 +103,7 @@ void Framework::Initialize()
 	GameObjectComponent::ForceLinkMotionComponents();
 	GameObjectComponent::ForceLinkSpriteRendererComponent();
 	GameObjectComponent::ForceLinkGaugeComponent();
+	GameObjectComponent::ForceLinkRatioLink();
 	GameObjectComponent::ForceLinkModelRendererComponent();
 
 	// 読み込みを並べて回すワーカー。起動時の素材読み込みから使う

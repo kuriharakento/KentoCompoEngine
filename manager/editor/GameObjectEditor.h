@@ -1,4 +1,6 @@
 #pragma once
+#include "core/Guid.h"
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -51,8 +53,48 @@ private:
 	GameObjectEditor(const GameObjectEditor&) = delete;
 	GameObjectEditor& operator=(const GameObjectEditor&) = delete;
 
-	/** @brief GameObject を1つ作って選ぶ。 */
-	void CreateAndSelectNew();
+	/** @brief 行の操作を、描画中に一覧を変えないよう、描き終えてから行うための受け皿。 */
+	struct PendingActions
+	{
+		GameObject* toDelete = nullptr;
+		GameObject* toDuplicate = nullptr;
+		// 作成など、一覧を変える操作。描き終えてから順に行う
+		std::vector<std::function<void()>> deferred;
+	};
+
+	/**
+	 * @brief 作り方を選ぶメニューの中身（新規 / 既存のプレハブから / 既存のJSONから）を描く。
+	 * @param parent 子として作るときの親。nullptr なら根として作る
+	 */
+	void DrawCreateMenu(GameObject* parent, PendingActions& actions);
+
+	/** @brief 親の中でぶつからない子の名前を返す。 */
+	static std::string MakeUniqueChildName(const GameObject* parent, const std::string& baseName);
+
+	/** @brief 自分から親をたどった、一番上の GameObject。保存はここから行う。 */
+	static GameObject* GetRoot(GameObject* object);
+
+	/** @brief プレハブから作って選ぶ。parent が無ければ根として作る。 */
+	GameObject* CreateFromPrefabFile(const std::string& file, GameObject* parent);
+
+	/** @brief Resources/json/gameobject の JSON から作って選ぶ。parent が無ければ根として作る。 */
+	GameObject* CreateFromJsonFile(const std::string& file, GameObject* parent);
+
+	/** @brief 1つの GameObject の行を描き、子があれば入れ子で描く。 */
+	void DrawObjectNode(GameObject* object, PendingActions& actions);
+
+	/**
+	 * @brief GameObject を1つ新規に作って選ぶ。
+	 * @param parent 子として作るときの親。nullptr なら根として作る
+	 * @param name 付ける名前。空なら既定の名前
+	 */
+	GameObject* CreateAndSelectNew(GameObject* parent = nullptr, const std::string& name = std::string());
+
+	/** @brief 新規作成の名前入力ダイアログと、保存結果の通知ダイアログを描く。 */
+	void DrawDialogs(bool drawCreate, bool drawNotice);
+
+	/** @brief 通知ダイアログを出すよう頼む（次に DrawDialogs が描くとき開く）。 */
+	void ShowNotice(const std::string& title, const std::string& message);
 
 	/**
 	 * @brief コンポーネントを新規作成してGameObjectに追加する
@@ -77,6 +119,18 @@ private:
 	// セーブ・ロード用のファイル名入力バッファ
 	char fileNameBuf_[128] = "gameObject.json";
 	char prefabFileNameBuf_[128] = "prefab.json";
+	// 一覧ウィンドウの検索文字列
+	char filter_[128] = "";
+
+	// 新規作成の名前入力ダイアログ
+	bool openCreateDialog_ = false;
+	Guid createParentGuid_;        // 子として作るときの親。無効なら根
+	char newNameBuf_[128] = "";
+
+	// 通知ダイアログ（保存の結果など）
+	bool openNotice_ = false;
+	std::string noticeTitle_;
+	std::string noticeMessage_;
 
 	// 追加可能なコンポーネントタイプのリスト
 	std::vector<std::string> availableComponents_;

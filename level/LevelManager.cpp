@@ -225,6 +225,11 @@ std::vector<std::string> LevelManager::ListPrefabFiles()
 	return ListFiles(PathManager::GetApplicationResourceRoot() / "json" / "prefab", false);
 }
 
+std::vector<std::string> LevelManager::ListGameObjectJsonFiles()
+{
+	return ListFiles(PathManager::GetApplicationResourceRoot() / "json" / "gameobject", false);
+}
+
 bool LevelManager::DuplicateElement(Level& stage, const std::string& name)
 {
 	const ILevelElement* source = stage.Find<ILevelElement>(name);
@@ -445,17 +450,40 @@ void LevelManager::DrawStageBodyImGui(Level& stage)
 			}
 		}
 		ImGui::Separator();
-		for (const std::string& file : ListPrefabFiles())
+		// プレハブ（子・モデルごと）と、GameObject の JSON（値だけ）から置く
+		const std::vector<std::string> prefabFiles = ListPrefabFiles();
+		if (ImGui::BeginMenu("プレハブから追加", !prefabFiles.empty()))
 		{
-			if (ImGui::MenuItem(file.c_str()))
+			for (const std::string& file : prefabFiles)
 			{
-				auto model = ModelElement::CreateFromPrefab(MakeUniqueName(stage, std::filesystem::path(file).stem().string()), file);
-				if (model)
+				if (ImGui::MenuItem(file.c_str()))
 				{
-					std::unique_ptr<ILevelElement> element = std::move(model);
-					stage.Add(element);
+					auto model = ModelElement::CreateFromPrefab(MakeUniqueName(stage, std::filesystem::path(file).stem().string()), file);
+					if (model)
+					{
+						std::unique_ptr<ILevelElement> element = std::move(model);
+						stage.Add(element);
+					}
 				}
 			}
+			ImGui::EndMenu();
+		}
+		const std::vector<std::string> jsonFiles = ListGameObjectJsonFiles();
+		if (ImGui::BeginMenu("JSONから追加", !jsonFiles.empty()))
+		{
+			for (const std::string& file : jsonFiles)
+			{
+				if (ImGui::MenuItem(file.c_str()))
+				{
+					auto model = ModelElement::CreateFromGameObjectJson(MakeUniqueName(stage, std::filesystem::path(file).stem().string()), file);
+					if (model)
+					{
+						std::unique_ptr<ILevelElement> element = std::move(model);
+						stage.Add(element);
+					}
+				}
+			}
+			ImGui::EndMenu();
 		}
 		ImGui::EndDisabled();
 	};

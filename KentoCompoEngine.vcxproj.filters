@@ -447,6 +447,9 @@
     <ClCompile Include="gameobject\component\motion\MotionComponents.cpp">
       <Filter>gameobject\component\motion</Filter>
     </ClCompile>
+    <ClCompile Include="gameobject\component\motion\RatioLink.cpp">
+      <Filter>gameobject\component\motion</Filter>
+    </ClCompile>
     <ClCompile Include="gameobject\component\collision\CollisionAlgorithm.cpp">
       <Filter>gameobject\component\collision</Filter>
     </ClCompile>
@@ -1149,6 +1152,9 @@
       <Filter>gameobject\component\collision</Filter>
     </ClInclude>
     <ClInclude Include="gameobject\component\motion\MotionComponents.h">
+      <Filter>gameobject\component\motion</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\component\motion\RatioLink.h">
       <Filter>gameobject\component\motion</Filter>
     </ClInclude>
     <ClInclude Include="gameobject\component\collision\CollisionAlgorithm.h">

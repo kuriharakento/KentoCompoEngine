@@ -2,6 +2,10 @@
 
 #include "base/GraphicsTypes.h"
 #include "base/Logger.h"
+#include "base/PathManager.h"
+#include "gameobject/component/base/ComponentFactory.h"
+#include <filesystem>
+#include <fstream>
 #include "gameobject/base/GameObject.h"
 #include "gameobject/manager/GameObjectManager.h"
 #include "graphics/3d/IRenderable3d.h"
@@ -18,6 +22,7 @@ namespace
 constexpr const char* kStageModelTag = "StageModel";
 
 constexpr const char* kRenderingTypeKey = "renderingType";
+constexpr const char* kOutlineStrengthKey = "outlineStrength";
 constexpr const char* kRenderingForward = "Forward";
 constexpr const char* kRenderingDeferred = "Deferred";
 
@@ -74,6 +79,14 @@ std::unique_ptr<ILevelElement> CreateFromJson(const nlohmann::json& entry, const
 		if (c[0].is_number() && c[1].is_number() && c[2].is_number() && c[3].is_number())
 		{
 			adopted->SetColor(Vector4(c[0].get<float>(), c[1].get<float>(), c[2].get<float>(), c[3].get<float>()));
+		}
+	}
+	// 保存したアウトラインの強さ（無ければ 0 のまま）
+	if (adopted && entry.contains(kOutlineStrengthKey) && entry[kOutlineStrengthKey].is_number())
+	{
+		if (IRenderable3d* renderable = adopted->GetRenderable3d())
+		{
+			renderable->SetOutlineStrength(entry[kOutlineStrengthKey].get<float>());
 		}
 	}
 	return element;
@@ -144,6 +157,59 @@ std::unique_ptr<ModelElement> ModelElement::CreateFromPrefab(const std::string& 
 	ApplyRenderingType(*object, RenderingType::Forward);
 	GameObject* adopted = GameObjectManager::GetInstance()->Adopt(std::move(object));
 	return std::make_unique<ModelElement>(name, prefabFile, adopted);
+}
+
+std::unique_ptr<ModelElement> ModelElement::CreateFromGameObjectJson(const std::string& name, const std::string& jsonFile)
+{
+	if (name.empty() || jsonFile.empty() || !GameObjectManager::HasInstance())
+	{
+		return nullptr;
+	}
+	const std::filesystem::path fullPath = PathManager::GetApplicationResourceRoot() / "json" / "gameobject" /
+		std::filesystem::path(jsonFile).filename();
+	std::ifstream input(fullPath);
+	if (!input)
+	{
+		Logger::Log("JSON を開けません: " + fullPath.string() + "\n", Logger::LogLevel::Error);
+		return nullptr;
+	}
+	nlohmann::json json;
+	try
+	{
+		input >> json;
+	}
+	catch (const std::exception& error)
+	{
+		Logger::Log("JSON を読み込めません: " + fullPath.string() + " (" + error.what() + ")\n", Logger::LogLevel::Error);
+		return nullptr;
+	}
+
+	GameObject* object = GameObjectManager::GetInstance()->CreateGameObject(name, kStageModelTag);
+	if (!object)
+	{
+		return nullptr;
+	}
+	// JSON にあるコンポーネントを先に付けてから、値を読み込む
+	if (json.contains("components") && json["components"].is_object())
+	{
+		for (auto it = json["components"].begin(); it != json["components"].end(); ++it)
+		{
+			if (auto component = GameObjectComponent::ComponentFactory::GetInstance()->Create(it.key(), object))
+			{
+				object->AddComponent(std::move(component), it.key());
+			}
+		}
+	}
+	if (!object->LoadJson(std::filesystem::path(jsonFile).filename().string()))
+	{
+		GameObjectManager::GetInstance()->Unregister(object);
+		return nullptr;
+	}
+	// JSON の guid は、同じ JSON から何度置いても重ならないよう、付け直す。名前とタグも置く側で決める
+	object->SetGuid(Guid::Generate());
+	object->SetName(name);
+	ApplyRenderingType(*object, RenderingType::Forward);
+	return std::make_unique<ModelElement>(name, std::string(), object);
 }
 
 void ModelElement::CapturePose()
@@ -252,6 +318,11 @@ nlohmann::ordered_json ModelElement::Serialize() const
 		{
 			json["color"] = { color.x, color.y, color.z, color.w };
 		}
+	}
+	// 既定は 0（線なし）。付けたものだけ書く
+	if (renderable && renderable->GetOutlineStrength() > 0.0f)
+	{
+		json[kOutlineStrengthKey] = renderable->GetOutlineStrength();
 	}
 	nlohmann::json object = object_->SerializePrefab();
 	if (playing_)

@@ -4,6 +4,8 @@
 #include "engine/gameobject/base/GameObject.h"
 // system
 #include "graphics/3d/Object3dCommon.h"
+#include "manager/graphics/ModelManager.h"
+#include "externals/imgui/imgui.h"
 // math
 #include "math/MatrixFunc.h"
 
@@ -24,6 +26,37 @@ namespace GameObjectComponent
 		modelName_ = "cube";
 		Register("model", &modelName_);
 		Register("castShadow", &castShadow_);
+
+#ifdef USE_IMGUI
+		// モデル名は文字入力ではなく、読み込み済みのモデルから選ぶ
+		OverrideDrawer("model", [this]()
+		{
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("model");
+			ImGui::TableSetColumnIndex(1);
+			ImGui::PushItemWidth(-FLT_MIN);
+			ImGui::PushID("model");
+			if (ImGui::BeginCombo("##value", modelName_.empty() ? "（なし）" : modelName_.c_str()))
+			{
+				for (const std::string& name : ModelManager::GetInstance()->GetLoadedModelNames())
+				{
+					if (ImGui::Selectable(name.c_str(), name == modelName_))
+					{
+						// 実際の差し替えは、UpdateRenderTransform の ApplySettings で行う
+						modelName_ = name;
+					}
+				}
+				ImGui::EndCombo();
+			}
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::SetTooltip("読み込み済みのモデルから選ぶ。Project ウィンドウで読み込める");
+			}
+			ImGui::PopID();
+			ImGui::PopItemWidth();
+		});
+#endif
 	}
 
 	void ModelRendererComponent::Awake()

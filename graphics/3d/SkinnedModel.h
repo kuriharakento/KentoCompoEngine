@@ -141,6 +141,14 @@ public: // アクセッサ
 	}
 
 	/**
+	 * @brief アウトラインの強さの取得（最初のマテリアル）
+	 */
+	float GetOutlineStrength() const
+	{
+		return (meshResources_.empty() || !meshResources_[0].gpuMaterial) ? 0.0f : meshResources_[0].gpuMaterial->outlineStrength;
+	}
+
+	/**
 	 * @brief リムライトの強さを設定する（0 で無効）
 	 */
 	void SetRimStrength(float strength)

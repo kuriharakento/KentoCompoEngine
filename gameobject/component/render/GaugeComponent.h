@@ -42,8 +42,8 @@ public:
 	bool IsScreenSpace() const override { return !world3d_; }
 	/** @brief 画面モードのとき、背景と前景を描く */
 	void DrawSprite2D() override;
-	/** @brief ワールドモードのとき、背景と前景を描く（本編のフォワードのあと） */
-	void Draw3D(CameraManager* camera) override;
+	/** @brief ワールドモードのとき、背景と前景を描く（Skybox のあとの半透明の段階。深度は書かないので、先に描くと Skybox に隠れる） */
+	void DrawTransparent3D(CameraManager* camera) override;
 
 	/** @brief 目標の割合（0〜1）。範囲外は丸める */
 	void SetRatio(float ratio);

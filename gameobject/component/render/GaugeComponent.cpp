@@ -220,7 +220,7 @@ void GaugeComponent::DrawSprite2D()
 	foreSprite_->Draw();
 }
 
-void GaugeComponent::Draw3D(CameraManager* cameraManager)
+void GaugeComponent::DrawTransparent3D(CameraManager* cameraManager)
 {
 	GameObject* owner = GetOwner();
 	if (!IsEnabled() || !world3d_ || !owner || !cameraManager)
@@ -299,6 +299,20 @@ void GaugeComponent::DrawImGui()
 {
 	// 数値・チェックの項目は、登録した値から出る
 	JsonEditableBase::DrawImGui();
+
+	// 画面（px）の座標のまま 3D にすると、カメラから何百ユニットも離れて映らない。気づけるよう知らせる
+	if (world3d_)
+	{
+		if (const GameObject* owner = GetOwner())
+		{
+			const Vector3 position = owner->GetPosition();
+			constexpr float kFarDistance = 100.0f;
+			if (std::fabs(position.x) > kFarDistance || std::fabs(position.y) > kFarDistance || std::fabs(position.z) > kFarDistance)
+			{
+				ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.2f, 1.0f), "位置が遠すぎる（画面の px のまま？）。カメラの前へ動かす");
+			}
+		}
+	}
 
 	// 反映は Prepare が、読み込み済みのときだけ行う
 	DrawTextureCombo("前景の画像", foreTexture_);

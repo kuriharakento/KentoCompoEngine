@@ -191,6 +191,11 @@ public:
 	 */
 	virtual void SetOutlineStrength(float strength) { (void)strength; }
 
+	/**
+	 * @brief アウトラインの強さの取得（最初のマテリアル）
+	 */
+	virtual float GetOutlineStrength() const { return 0.0f; }
+
 	virtual RenderQueue GetRenderQueue() const = 0;
 	virtual void SetRenderQueue(RenderQueue queue) = 0;
 
