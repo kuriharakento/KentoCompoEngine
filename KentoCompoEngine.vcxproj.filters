@@ -480,6 +480,12 @@
     <ClCompile Include="gameobject\component\render\GaugeComponent.cpp">
       <Filter>gameobject\component\render</Filter>
     </ClCompile>
+    <ClCompile Include="gameobject\component\render\NumberDisplay.cpp">
+      <Filter>gameobject\component\render</Filter>
+    </ClCompile>
+    <ClCompile Include="gameobject\component\render\SpriteSheetComponent.cpp">
+      <Filter>gameobject\component\render</Filter>
+    </ClCompile>
     <ClCompile Include="gameobject\manager\GameObjectInstancing.cpp">
       <Filter>gameobject\manager</Filter>
     </ClCompile>
@@ -1188,6 +1194,12 @@
       <Filter>gameobject\component\render</Filter>
     </ClInclude>
     <ClInclude Include="gameobject\component\render\GaugeComponent.h">
+      <Filter>gameobject\component\render</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\component\render\NumberDisplay.h">
+      <Filter>gameobject\component\render</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\component\render\SpriteSheetComponent.h">
       <Filter>gameobject\component\render</Filter>
     </ClInclude>
     <ClInclude Include="gameobject\component\render\SpriteRenderUtil.h">

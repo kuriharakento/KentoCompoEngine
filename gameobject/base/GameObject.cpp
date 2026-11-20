@@ -901,6 +901,11 @@ nlohmann::json GameObject::SerializePrefab() const
 	{
 		prefab["visible"] = false;
 	}
+	// 親の表示に従うのが普通なので、従わないときだけ書く
+	if (!visibleFollowsParent_)
+	{
+		prefab["visibleFollowsParent"] = false;
+	}
 	// 本体の立方体を隠しているとき（レンダラーが描く物）は、隠すと書く。書かないと、読み込んだときに立方体が現れる
 	if (!bodyVisible_)
 	{
@@ -1068,6 +1073,12 @@ void GameObject::DrawImGui()
 	if (ImGui::IsItemHovered())
 	{
 		ImGui::SetTooltip("オフにすると、描画だけ止まる（更新は続く）。影も落とさない");
+	}
+	ImGui::SameLine();
+	ImGui::Checkbox("親に従う", &visibleFollowsParent_);
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("オンだと、親の「表示」をオフにしたとき、この物も描かれない。\nオフにすると、親が隠れても、この物は自分の「表示」だけで決まる");
 	}
 
 	// --- Transform。軸ごとに色を付け、ラベルは左にそろえる ---

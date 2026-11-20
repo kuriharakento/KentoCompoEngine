@@ -454,8 +454,18 @@ public: // アクセッサ
 	 * @param visible 描くか
 	 */
 	void SetVisible(bool visible) { visible_ = visible; }
-	/** @brief 親が見えていなければ子も見えないので、親をたどって返す */
-	bool IsVisible() const { return visible_ && (!parent_ || parent_->IsVisible()); }
+	/**
+	 * @brief 親が見えていなければ子も見えないので、親をたどって返す
+	 * @details visibleFollowsParent が偽の物は、親の表示に関係なく、自分の表示だけで決まる
+	 */
+	bool IsVisible() const { return visible_ && (!visibleFollowsParent_ || !parent_ || parent_->IsVisible()); }
+	/**
+	 * @brief 親の表示（SetVisible）に従うか。既定は従う
+	 * @details 偽にすると、親の描画を止めても、この物（と、その子）は描かれ続ける。
+	 *          モデルの親を隠して、子の数字だけ見せたいときなどに使う。プレハブに保存する
+	 */
+	void SetVisibleFollowsParent(bool follows) { visibleFollowsParent_ = follows; }
+	bool IsVisibleFollowsParent() const { return visibleFollowsParent_; }
 
 	/**
 	 * @brief 本体の 3D の描画物（既定の立方体など）を描くか
@@ -658,6 +668,7 @@ private:
 	bool updateEnabled_ = true;
 	// 描くか。更新は止めない。プレハブに保存する（無いデータは表示のまま）
 	bool visible_ = true;
+	bool visibleFollowsParent_ = true;
 	// 本体の 3D の描画物を描くか
 	bool bodyVisible_ = true;
 	// 破棄保留中フラグ

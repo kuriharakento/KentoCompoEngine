@@ -81,6 +81,10 @@ std::unique_ptr<GameObject> DeserializePrefabNode(
 	{
 		object->SetVisible(node["visible"].get<bool>());
 	}
+	if (node.contains("visibleFollowsParent") && node["visibleFollowsParent"].is_boolean())
+	{
+		object->SetVisibleFollowsParent(node["visibleFollowsParent"].get<bool>());
+	}
 	if (node.contains("model"))
 	{
 		if (!node["model"].is_string() || node["model"].get_ref<const std::string&>().empty())
@@ -408,11 +412,12 @@ void GameObjectManager::Draw3D(CameraManager* camera)
 	// Behaviour の 3D 描画（エフェクト・デバッグ表示など）は、描画物の有無や描き方に関係なく、このビューのレイヤーに入る物全部で呼ぶ
 	const auto drawBehaviours = [&](const auto& self, GameObject* obj) -> void
 	{
-		if (!obj->IsActive() || !obj->IsVisible())
+		if (!obj->IsActive())
 		{
 			return;
 		}
-		if (IsVisibleInLayerMask(obj->GetRenderLayer(), renderLayerMask_))
+		// 親が隠れていても、親に従わない子は描くので、子はたどる（IsVisible が親をたどって決める）
+		if (obj->IsVisible() && IsVisibleInLayerMask(obj->GetRenderLayer(), renderLayerMask_))
 		{
 			obj->DrawBehaviours3D(camera);
 		}
@@ -473,11 +478,11 @@ void GameObjectManager::DrawTransparent(CameraManager* camera, const std::vector
 	// Behaviour の半透明の3D描画（深度を書かないゲージなど）。Skybox のあとなので、上書きされない
 	const auto drawBehaviours = [&](const auto& self, GameObject* obj) -> void
 	{
-		if (!obj->IsActive() || !obj->IsVisible())
+		if (!obj->IsActive())
 		{
 			return;
 		}
-		if (IsVisibleInLayerMask(obj->GetRenderLayer(), renderLayerMask_))
+		if (obj->IsVisible() && IsVisibleInLayerMask(obj->GetRenderLayer(), renderLayerMask_))
 		{
 			obj->DrawBehavioursTransparent3D(camera);
 		}
@@ -509,15 +514,16 @@ void GameObjectManager::Draw2D()
 void GameObjectManager::DrawSprites2D()
 {
 	spriteDrawList_.clear();
-	// 非アクティブ・非表示の物は子ごと省く。行列は、描く物がある物だけ確定させる
+	// 非アクティブの物は子ごと省く。非表示の物は、その物だけ描かない。行列は、描く物がある物だけ確定させる
 	const auto collect = [this](const auto& self, GameObject* object) -> void
 	{
-		if (!object->IsActive() || !object->IsVisible())
+		if (!object->IsActive())
 		{
 			return;
 		}
 		const auto& renderers = object->GetSpriteRenderableComponents();
-		if (!renderers.empty())
+		// 隠れている物は描かないが、親に従わない子がいるかもしれないので、子はたどる
+		if (!renderers.empty() && object->IsVisible())
 		{
 			object->EnsureRenderTransform();
 			for (GameObjectComponent::ISpriteRenderableComponent* renderer : renderers)

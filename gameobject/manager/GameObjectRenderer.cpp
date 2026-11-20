@@ -91,28 +91,28 @@ void GameObjectRenderer::Collect(const std::vector<GameObject*>& roots)
 		{
 			return;
 		}
-		// 見えない物は描かない（更新は止まらない）。影も落とさない。IsVisible が親を見るので、子ごと省かれる
-		if (!object->IsVisible())
+		// 見えない物は描かない（更新は止まらない）。影も落とさない。
+		// IsVisible が親を見るので、子も省かれる。ただし、親に従わない子がいるので、木はたどる
+		if (object->IsVisible())
 		{
-			return;
-		}
-		// 行列はここでフレームに1回だけ確定させる。子は中で親を先に確定させる
-		object->EnsureRenderTransform();
-		if (IRenderable3d* renderable = object->IsBodyVisible() ? object->GetRenderable3d() : nullptr)
-		{
-			bool castShadow = true;
-			if (const Object3d* object3d = object->GetObject3d())
+			// 行列はここでフレームに1回だけ確定させる。子は中で親を先に確定させる
+			object->EnsureRenderTransform();
+			if (IRenderable3d* renderable = object->IsBodyVisible() ? object->GetRenderable3d() : nullptr)
 			{
-				castShadow = object3d->GetCastShadow();
+				bool castShadow = true;
+				if (const Object3d* object3d = object->GetObject3d())
+				{
+					castShadow = object3d->GetCastShadow();
+				}
+				AddEntry(object, renderable, castShadow);
 			}
-			AddEntry(object, renderable, castShadow);
-		}
-		// 描画物を持つコンポーネント（ModelRendererComponent など）も同じ一覧に入れる
-		for (const GameObjectComponent::IRenderableComponent* renderer : object->GetRenderableComponents())
-		{
-			if (IRenderable3d* renderable = renderer->GetRenderable3d())
+			// 描画物を持つコンポーネント（ModelRendererComponent など）も同じ一覧に入れる
+			for (const GameObjectComponent::IRenderableComponent* renderer : object->GetRenderableComponents())
 			{
-				AddEntry(object, renderable, renderer->GetCastShadow());
+				if (IRenderable3d* renderable = renderer->GetRenderable3d())
+				{
+					AddEntry(object, renderable, renderer->GetCastShadow());
+				}
 			}
 		}
 		for (const auto& [name, child] : object->GetChildren())

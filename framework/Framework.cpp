@@ -38,6 +38,8 @@
 #include "gameobject/component/motion/MotionComponents.h"
 #include "gameobject/component/motion/RatioLink.h"
 #include "gameobject/component/render/GaugeComponent.h"
+#include "gameobject/component/render/NumberDisplay.h"
+#include "gameobject/component/render/SpriteSheetComponent.h"
 #include "gameobject/component/render/ModelRendererComponent.h"
 #include "gameobject/component/render/SkinnedModelRendererComponent.h"
 #include "gameobject/component/render/SpriteRendererComponent.h"
@@ -105,6 +107,8 @@ void Framework::Initialize()
 	GameObjectComponent::ForceLinkSpriteRendererComponent();
 	GameObjectComponent::ForceLinkGaugeComponent();
 	GameObjectComponent::ForceLinkRatioLink();
+	GameObjectComponent::ForceLinkSpriteSheetComponent();
+	GameObjectComponent::ForceLinkNumberDisplay();
 	GameObjectComponent::ForceLinkModelRendererComponent();
 	GameObjectComponent::ForceLinkSkinnedModelRendererComponent();
 
