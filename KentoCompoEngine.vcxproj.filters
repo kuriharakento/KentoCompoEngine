@@ -471,6 +471,9 @@
     <ClCompile Include="gameobject\component\render\ModelRendererComponent.cpp">
       <Filter>gameobject\component\render</Filter>
     </ClCompile>
+    <ClCompile Include="gameobject\component\render\SkinnedModelRendererComponent.cpp">
+      <Filter>gameobject\component\render</Filter>
+    </ClCompile>
     <ClCompile Include="gameobject\component\render\SpriteRendererComponent.cpp">
       <Filter>gameobject\component\render</Filter>
     </ClCompile>
@@ -1176,6 +1179,9 @@
       <Filter>gameobject\component\collision</Filter>
     </ClInclude>
     <ClInclude Include="gameobject\component\render\ModelRendererComponent.h">
+      <Filter>gameobject\component\render</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\component\render\SkinnedModelRendererComponent.h">
       <Filter>gameobject\component\render</Filter>
     </ClInclude>
     <ClInclude Include="gameobject\component\render\SpriteRendererComponent.h">

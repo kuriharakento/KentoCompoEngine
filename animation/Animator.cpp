@@ -30,6 +30,12 @@ void Animator::Initialize(const Skeleton* skeleton)
 	}
 
 	worldMatrix_ = MakeIdentity4x4();
+
+	// モデルを差し替えたときに、古いスケルトン用のクリップを引きずらない
+	currentClip_ = nullptr;
+	currentTime_ = 0.0f;
+	isPlaying_ = false;
+	sharedPose_ = nullptr;
 }
 
 void Animator::Update(float deltaTime)
@@ -58,6 +64,17 @@ void Animator::Update(float deltaTime)
 
 	// 終了したポーズは次のフレーム以降も残すため、Animator 自身の領域へ計算する
 	CalculateBoneTransforms(isPlaying_);
+}
+
+void Animator::Seek(float time)
+{
+	if (!currentClip_ || !skeleton_)
+	{
+		return;
+	}
+	currentTime_ = std::clamp(time, 0.0f, currentClip_->duration);
+	// 共有ポーズは時刻を丸めるので、スクラブでは自分の領域へ正確に計算する
+	CalculateBoneTransforms(false);
 }
 
 void Animator::PlayAnimation(const AnimationClip* clip, bool loop)

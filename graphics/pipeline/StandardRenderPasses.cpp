@@ -87,6 +87,15 @@ void HashShadowCaster(uint64_t& hash, const GameObject& object, bool& hasAnimate
 		hasAnimatedCaster = hasAnimatedCaster || object.GetSkinnedObject3d() != nullptr;
 	}
 
+	// コンポーネントが持つスキンモデルも動く影の元
+	for (const auto* renderer : object.GetRenderableComponents())
+	{
+		if (isActive && renderer->GetCastShadow() && dynamic_cast<const SkinnedObject3d*>(renderer->GetRenderable3d()))
+		{
+			hasAnimatedCaster = true;
+		}
+	}
+
 	for (const auto& [name, child] : object.GetChildren())
 	{
 		if (child)

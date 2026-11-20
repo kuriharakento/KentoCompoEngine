@@ -57,6 +57,15 @@ public:
 	void SetCurrentTime(float time) { currentTime_ = time; }
 
 	/**
+	 * @brief 指定した時刻のポーズへ即座に移る（プレビューのスクラブ用）
+	 * @details 時刻はクリップの長さに収める。再生中かどうかは変えない。クリップが無ければ何もしない。
+	 */
+	void Seek(float time);
+
+	/** @return 今のクリップ。無ければ nullptr */
+	const AnimationClip* GetCurrentClip() const { return currentClip_; }
+
+	/**
 	 * @brief 再生速度を設定
 	 */
 	void SetPlaybackSpeed(float speed) { playbackSpeed_ = speed; }

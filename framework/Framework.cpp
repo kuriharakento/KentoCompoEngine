@@ -39,6 +39,7 @@
 #include "gameobject/component/motion/RatioLink.h"
 #include "gameobject/component/render/GaugeComponent.h"
 #include "gameobject/component/render/ModelRendererComponent.h"
+#include "gameobject/component/render/SkinnedModelRendererComponent.h"
 #include "gameobject/component/render/SpriteRendererComponent.h"
 #include "editor/SceneViewContext.h"
 #include "editor/SelectionContext.h"
@@ -105,6 +106,7 @@ void Framework::Initialize()
 	GameObjectComponent::ForceLinkGaugeComponent();
 	GameObjectComponent::ForceLinkRatioLink();
 	GameObjectComponent::ForceLinkModelRendererComponent();
+	GameObjectComponent::ForceLinkSkinnedModelRendererComponent();
 
 	// 読み込みを並べて回すワーカー。起動時の素材読み込みから使う
 	jobSystem_ = std::make_unique<JobSystem>();
