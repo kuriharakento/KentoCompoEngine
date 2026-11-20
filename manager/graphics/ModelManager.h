@@ -94,6 +94,8 @@ public: /*========[ メンバ関数 ]========*/
 		uint64_t referenceCount = 0;
 		//! 最後に引かれたフレーム。一度も引かれていなければ 0
 		uint64_t lastReferenceFrame = 0;
+		//! マテリアルが使っているテクスチャのパス（重複なし）。エディタでの表示用
+		std::vector<std::string> texturePaths;
 	};
 	/** @brief 読み込み済みのモデルを、名前順に返す */
 	std::vector<LoadedModel> GetLoadedModels() const;

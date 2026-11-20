@@ -191,8 +191,20 @@ std::vector<ModelManager::LoadedModel> ModelManager::GetLoadedModels() const
 	for (const auto& [name, entry] : models_)
 	{
 		const auto type = knownModelTypes_.find(name);
-		list.push_back({ name, type != knownModelTypes_.end() ? type->second : std::string(), entry.lifetime,
-			entry.referenceCount, entry.lastReferenceFrame });
+		LoadedModel info{ name, type != knownModelTypes_.end() ? type->second : std::string(), entry.lifetime,
+			entry.referenceCount, entry.lastReferenceFrame, {} };
+		if (entry.model)
+		{
+			for (const MaterialData& material : entry.model->GetModelData().materials)
+			{
+				if (!material.textureFilePath.empty() &&
+					std::find(info.texturePaths.begin(), info.texturePaths.end(), material.textureFilePath) == info.texturePaths.end())
+				{
+					info.texturePaths.push_back(material.textureFilePath);
+				}
+			}
+		}
+		list.push_back(std::move(info));
 	}
 	return list;
 }

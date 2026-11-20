@@ -642,6 +642,12 @@ void DebugUIManager::DrawWindowMenu()
 			SaveSettings();
 		}
 	}
+	// Console は RegisterWindow の仕組みの外で描くので、ここで別に出す。閉じたあとに戻せるようにする
+	bool showConsole = showConsole_;
+	if (ImGui::MenuItem("Console", nullptr, &showConsole))
+	{
+		SetShowConsole(showConsole);
+	}
 	ImGui::EndMenu();
 }
 

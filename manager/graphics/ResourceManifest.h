@@ -76,6 +76,9 @@ public:
 	 */
 	void ProcessPendingReleases(DirectXCommon* dxCommon);
 
+	/** @brief 読み込み済みのモデルとテクスチャの一覧を、ログへ出す */
+	void LogLoadedResources() const;
+
 	/** @brief 表を保存する */
 	bool Save();
 	/** @return 最後に保存（か読み込み）してから、表が変わっていれば真 */
@@ -102,10 +105,40 @@ private:
 	static std::vector<ModelEntry> ScanModelFiles();
 	/** @brief Resources の中の、読み込めるテクスチャ（読み込みに使うパス）を探す */
 	static std::vector<std::string> ScanTextureFiles();
+
+	/** @brief フォルダの上にあるテクスチャのファイル1つ */
+	struct AssetFile
+	{
+		//! 読み込みに使うパス（"./Resources/textures/ui/x.png"）
+		std::string path;
+		//! textures からの相対（"ui/x.png"）
+		std::string relative;
+		//! textures からの相対のフォルダ（"ui"）。textures 直下なら空
+		std::string folder;
+		//! ファイル名（"x.png"）
+		std::string name;
+		//! 読み込み済みの登録名と比べるための、正規化したパス
+		std::string key;
+	};
+	/** @brief フォルダツリーの1ノード */
+	struct FolderNode
+	{
+		std::string name;
+		//! textures からの相対（"ui"）。根は空
+		std::string folder;
+		std::vector<FolderNode> children;
+	};
+	/** @brief textures の中のファイルとフォルダを探し直す */
+	void RescanAssets();
+	/** @brief フォルダツリーを描く。選んだフォルダを selectedFolder_ に入れる */
+	void DrawFolderTree(const FolderNode& node);
 #endif
 
 	std::vector<ModelEntry> models_;
 	std::vector<TextureEntry> textures_;
+	// 最後に保存（か読み込み）した時点の表。「次の起動で変わる物」を見つけるのに使う
+	std::vector<TextureEntry> savedTextures_;
+	std::vector<ModelEntry> savedModels_;
 	bool dirty_ = false;
 	/** @brief 解放の頼み1件 */
 	struct PendingRelease
@@ -124,6 +157,18 @@ private:
 	bool unusedOnly_ = false;
 	// プレビューに出しているテクスチャの登録名。空なら出さない
 	std::string selectedTexture_;
+	// ---- フォルダ表示 ----
+	std::vector<AssetFile> assetFiles_;
+	FolderNode folderRoot_;
+	bool assetsScanned_ = false;
+	// 選んでいるフォルダ（textures からの相対。空なら textures の直下）
+	std::string selectedFolder_;
+	bool includeSubfolders_ = false;
+	float thumbnailSize_ = 88.0f;
+	// 選んでいるファイル（AssetFile::path）
+	std::string selectedAsset_;
+	// 選んでいるモデル（名前）
+	std::string selectedModel_;
 	// 解放の確認を出している対象。空なら出さない
 	bool releaseConfirmIsModel_ = false;
 	std::string releaseConfirmKey_;
