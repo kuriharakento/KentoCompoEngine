@@ -147,16 +147,17 @@ private:
 		std::string key;
 	};
 	std::vector<PendingRelease> pendingReleases_;
-#ifdef USE_IMGUI
+	// 解放の結果の知らせ。解放の処理は Release でも動くので、USE_IMGUI の外に置く
 	std::string statusMessage_;
+	// プレビューに出しているテクスチャの登録名。空なら出さない（解放のとき先に外すので、USE_IMGUI の外に置く）
+	std::string selectedTexture_;
+#ifdef USE_IMGUI
 	std::array<char, 128> filter_{};
 	// 追加するときの寿命。0 が常駐、1 がシーン
 	int addLifetime_ = 0;
 	bool addLinear_ = false;
 	// 起動後に一度も参照されていない物だけ並べる
 	bool unusedOnly_ = false;
-	// プレビューに出しているテクスチャの登録名。空なら出さない
-	std::string selectedTexture_;
 	// ---- フォルダ表示 ----
 	std::vector<AssetFile> assetFiles_;
 	FolderNode folderRoot_;

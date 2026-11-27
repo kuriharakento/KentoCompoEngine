@@ -436,7 +436,13 @@ void Framework::Initialize()
 
 	// カメラプレビュー窓（サブビューの作成元が用意できてから登録する）
 	cameraPreviewEditor_ = std::make_unique<CameraPreviewEditor>();
-	cameraPreviewEditor_->Initialize(this, cameraManager_.get(), debugCamera_.get());
+	// デバッグカメラはエディタ（USE_IMGUI）のときだけ持つ。持たないビルドでは渡さない
+#ifdef USE_IMGUI
+	DebugCamera* previewDebugCamera = debugCamera_.get();
+#else
+	DebugCamera* previewDebugCamera = nullptr;
+#endif
+	cameraPreviewEditor_->Initialize(this, cameraManager_.get(), previewDebugCamera);
 
 	// 本編のパイプラインからサブビューの描画を呼べるようにする
 	if (auto* subViewPass = dynamic_cast<SubViewRenderPass*>(renderPipeline_->FindPass("SubViews")))
