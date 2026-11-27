@@ -114,6 +114,9 @@ ModelElement::ModelElement(std::string name, std::string prefabName, GameObject*
 {
 	if (object_)
 	{
+		// この物の寿命はレベルが持つ（デストラクタで Unregister する）。シーン切り替えの片付けの対象にしない。
+		// 対象にすると、先に壊れた物の住所を、あとでレベルが Unregister し、同じ住所を使い回した別の物を消してしまう
+		object_->SetPersistent(true);
 		object_->SetName(GetName());
 		baseColor_ = object_->GetColor();
 	}

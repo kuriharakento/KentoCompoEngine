@@ -164,6 +164,11 @@ std::unique_ptr<ILevelElement> CreateDefault(const std::string& name, const Scen
 MonitorElement::MonitorElement(std::string name, std::string cameraName, MonitorScreenAspect aspect, GameObject* screen, CameraManager* cameraManager)
 	: ILevelElement(std::move(name)), screen_(screen), cameraName_(std::move(cameraName)), aspect_(aspect), cameraManager_(cameraManager)
 {
+	// 板の寿命はレベルが持つ（デストラクタで Unregister する）。シーン切り替えの片付けの対象にしない
+	if (screen_)
+	{
+		screen_->SetPersistent(true);
+	}
 	monitor_ = std::make_unique<StageMonitor>();
 	monitor_->SetScreen(screen_);
 }
