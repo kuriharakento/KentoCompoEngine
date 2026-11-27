@@ -15,7 +15,7 @@ void ForceLinkNumberDisplay();
 /**
  * @brief 整数を、桁ごとの SpriteSheetComponent の板へ割り振るコンポーネント。親オブジェクトに付ける
  *
- * - 桁の板は、自分の子孫から名前で探す。名前は digitPrefix + 桁番号（digit0 が 1 の位、digit1 が 10 の位…）
+ * - 桁の板は、自分の直下の子から名前で探す（孫より下は見ない。入れ子の別の NumberDisplay の板と取り違えないため）。名前は digitPrefix + 桁番号（digit0 が 1 の位、digit1 が 10 の位…）
  * - 各桁の板の frame に、firstFrame + その桁の数字を入れる（numbers.png は 0 のコマが 0 番なので firstFrame = 0）
  * - hideLeadingZeros が真なら、上の桁が 0 の板を非表示にする。1 の位は常に出す
  * - 値が桁数に収まらないとき、clampOverflow が真なら全桁を 9 にし、偽なら下の桁だけ出す
@@ -41,7 +41,7 @@ public:
 private:
 	/** @brief 値を板へ書く。1 つでも板が見つからなければ偽（次のフレームに、もう一度試す） */
 	bool Apply();
-	/** @brief 自分の子孫から、名前の板（SpriteSheetComponent を持つ物）を探す */
+	/** @brief 自分の直下の子から、名前の板を探す。無ければ nullptr */
 	GameObject* FindDigit(int index) const;
 
 	// --- プレハブに保存する値 ---

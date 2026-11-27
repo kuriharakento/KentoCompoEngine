@@ -30,6 +30,7 @@ namespace GameObjectComponent
 		modelName_ = "cube";
 		Register("model", &modelName_);
 		Register("castShadow", &castShadow_);
+		Register("enableLighting", &enableLighting_);
 		Register("meshTextures", &meshTextures_);
 
 #ifdef USE_IMGUI
@@ -165,6 +166,12 @@ namespace GameObjectComponent
 		ApplySettings();
 	}
 
+	void ModelRendererComponent::SetEnableLighting(bool enable)
+	{
+		enableLighting_ = enable;
+		ApplySettings();
+	}
+
 	void ModelRendererComponent::SetCastShadow(bool cast)
 	{
 		castShadow_ = cast;
@@ -195,6 +202,7 @@ namespace GameObjectComponent
 			appliedModelName_ = modelName_;
 			// 新しいモデルは本来のテクスチャなので、保存した替えを、全部入れ直す
 			appliedMeshTextures_.clear();
+			appliedEnableLighting_ = true;
 		}
 		// メッシュごとのテクスチャ。変わったメッシュだけ入れ直す
 		if (Model* model = object3d_->GetModel())
@@ -215,6 +223,12 @@ namespace GameObjectComponent
 				}
 				appliedMeshTextures_[meshIndex] = wanted;
 			}
+		}
+		// ライトの影響。モデルがあるときだけ反映する（無いまま済みにすると、モデルが入ったときに反映されない）
+		if (appliedEnableLighting_ != enableLighting_ && object3d_->GetModel())
+		{
+			object3d_->SetEnableLighting(enableLighting_);
+			appliedEnableLighting_ = enableLighting_;
 		}
 		if (appliedCastShadow_ != castShadow_)
 		{

@@ -14,32 +14,6 @@ namespace GameObjectComponent
 {
 namespace
 {
-/** @brief root の子孫から、名前の GameObject を探す（root 自身は含めない） */
-GameObject* FindDescendant(const GameObject* root, const std::string& name)
-{
-	if (!root)
-	{
-		return nullptr;
-	}
-	for (const auto& child : root->GetChildren())
-	{
-		GameObject* object = child.second.get();
-		if (!object)
-		{
-			continue;
-		}
-		if (object->GetName() == name)
-		{
-			return object;
-		}
-		if (GameObject* found = FindDescendant(object, name))
-		{
-			return found;
-		}
-	}
-	return nullptr;
-}
-
 /** @brief 10 の n 乗。int に収まる範囲（n <= 9）だけ使う */
 int Pow10(int n)
 {
@@ -65,7 +39,9 @@ NumberDisplay::NumberDisplay()
 
 GameObject* NumberDisplay::FindDigit(int index) const
 {
-	return FindDescendant(GetOwner(), digitPrefix_ + std::to_string(index));
+	GameObject* owner = GetOwner();
+	// 直下の子だけを探す。深く探すと、入れ子になった別の NumberDisplay の板と取り違える
+	return owner ? owner->GetChild(digitPrefix_ + std::to_string(index)) : nullptr;
 }
 
 bool NumberDisplay::Apply()

@@ -57,6 +57,13 @@ public:
 	/** @brief メッシュごとに替えたテクスチャの登録名。空の要素は、モデル本来のテクスチャ */
 	const std::vector<std::string>& GetMeshTextures() const { return meshTextures_; }
 
+	/**
+	 * @brief ライトの影響を受けるかを設定する。UI のように、ライトで暗くしたくない物は偽にする
+	 * @details 偽だと、ライトも影も使わず、色とテクスチャのまま描かれる。既定は真。プレハブに保存する
+	 */
+	void SetEnableLighting(bool enable);
+	bool IsEnableLighting() const { return enableLighting_; }
+
 	/** @brief 影を落とすかを設定する */
 	void SetCastShadow(bool cast);
 	/** @brief 色を設定する */
@@ -75,6 +82,9 @@ private:
 	// Object3d へ反映済みのモデル名。プレハブ読み込み後の反映を拾うために持つ
 	std::string appliedModelName_;
 	bool appliedCastShadow_ = true;
+	// ライトの影響を受けるか。プレハブに保存する
+	bool enableLighting_ = true;
+	bool appliedEnableLighting_ = true;
 	// メッシュごとに替えたテクスチャの登録名（空は、モデル本来のテクスチャ）。プレハブに保存する。モデルを替えたら、保存した物は使わない
 	std::vector<std::string> meshTextures_;
 	// Object3d のモデルへ反映済みの物。変わったメッシュだけ入れ直すために持つ
