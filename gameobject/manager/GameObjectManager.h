@@ -60,6 +60,12 @@ public:
 	void FlushPendingDestroy();
 
 	/**
+	 * @brief シーン寿命の GameObject（SetPersistent していない物）を、全部片付ける
+	 * @details シーンの切り替えで、GPU の完了を待ったあとに呼ぶ。その場で壊す。素材（モデル・テクスチャ）を解放する前に呼ぶこと
+	 */
+	void ReleaseSceneObjects();
+
+	/**
 	 * @brief GameObject のモデルの差し替えを頼む。実際の差し替えは、次のフレームの頭（FlushPendingDestroy）で行う
 	 * @details SetModel は古いモデルの複製（GPU リソースつき）をその場で壊す。エディタの操作は、このフレームの描画命令を積んだ後に走るので、
 	 *          その場で差し替えると、積んだ命令が壊れたリソースを指したまま実行されてしまう

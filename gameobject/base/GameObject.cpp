@@ -906,6 +906,11 @@ nlohmann::json GameObject::SerializePrefab() const
 	{
 		prefab["visibleFollowsParent"] = false;
 	}
+	// シーン寿命が普通なので、常駐のときだけ書く
+	if (persistent_)
+	{
+		prefab["persistent"] = true;
+	}
 	// 本体の立方体を隠しているとき（レンダラーが描く物）は、隠すと書く。書かないと、読み込んだときに立方体が現れる
 	if (!bodyVisible_)
 	{
@@ -1076,6 +1081,12 @@ void GameObject::DrawImGui()
 	}
 	ImGui::SameLine();
 	ImGui::Checkbox("親に従う", &visibleFollowsParent_);
+	ImGui::SameLine();
+	ImGui::Checkbox("シーンをまたいで残す", &persistent_);
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("オフだと、シーンが切り替わるときに片付けられる。オンにすると次のシーンにも残る（親子の root に付ける）");
+	}
 	if (ImGui::IsItemHovered())
 	{
 		ImGui::SetTooltip("オンだと、親の「表示」をオフにしたとき、この物も描かれない。\nオフにすると、親が隠れても、この物は自分の「表示」だけで決まる");

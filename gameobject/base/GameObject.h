@@ -466,6 +466,12 @@ public: // アクセッサ
 	 */
 	void SetVisibleFollowsParent(bool follows) { visibleFollowsParent_ = follows; }
 	bool IsVisibleFollowsParent() const { return visibleFollowsParent_; }
+	/**
+	 * @brief シーンをまたいで残すか。既定は偽（シーンが終わると、マネージャーが片付ける）
+	 * @details 親子のうち、マネージャーが持つ root だけで見る。プレハブに保存する
+	 */
+	void SetPersistent(bool persistent) { persistent_ = persistent; }
+	bool IsPersistent() const { return persistent_; }
 
 	/**
 	 * @brief 本体の 3D の描画物（既定の立方体など）を描くか
@@ -669,6 +675,8 @@ private:
 	// 描くか。更新は止めない。プレハブに保存する（無いデータは表示のまま）
 	bool visible_ = true;
 	bool visibleFollowsParent_ = true;
+	// シーンをまたいで残すか（偽ならシーン切り替えで片付ける）
+	bool persistent_ = false;
 	// 本体の 3D の描画物を描くか
 	bool bodyVisible_ = true;
 	// 破棄保留中フラグ

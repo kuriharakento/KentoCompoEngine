@@ -85,6 +85,10 @@ std::unique_ptr<GameObject> DeserializePrefabNode(
 	{
 		object->SetVisibleFollowsParent(node["visibleFollowsParent"].get<bool>());
 	}
+	if (node.contains("persistent") && node["persistent"].is_boolean())
+	{
+		object->SetPersistent(node["persistent"].get<bool>());
+	}
 	if (node.contains("model"))
 	{
 		if (!node["model"].is_string() || node["model"].get_ref<const std::string&>().empty())
@@ -281,6 +285,25 @@ void GameObjectManager::RequestModelChange(GameObject* object, const std::string
 		return;
 	}
 	pendingModelChanges_.push_back({ object->GetGuid(), modelName });
+}
+
+void GameObjectManager::ReleaseSceneObjects()
+{
+	// Unregister が dynamicGameObjects_ を書き換えるので、対象をいったん取り出す
+	std::vector<GameObject*> targets;
+	for (const auto& object : dynamicGameObjects_)
+	{
+		if (object && !object->IsPersistent())
+		{
+			targets.push_back(object.get());
+		}
+	}
+	for (GameObject* object : targets)
+	{
+		Unregister(object);
+	}
+	// 呼び出し側が GPU の完了を待ったあとなので、その場で壊してよい
+	FlushPendingDestroy();
 }
 
 void GameObjectManager::FlushPendingDestroy()

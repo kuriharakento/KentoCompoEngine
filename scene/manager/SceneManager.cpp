@@ -6,6 +6,7 @@
 #include "externals/imgui/imgui.h"
 #include "effects/particle/ParticleManager.h"
 #include "gameobject/component/collision/GameObjectCollisionManager.h"
+#include "gameobject/manager/GameObjectManager.h"
 #include "manager/editor/DebugUIManager.h"
 #include "manager/graphics/ModelManager.h"
 #include "manager/graphics/TextureManager.h"
@@ -183,6 +184,11 @@ void SceneManager::ReserveNextScene()
 		if (context_.dxCommon)
 		{
 			context_.dxCommon->ExecuteAndWait();
+			// GameObject を先に片付ける（素材を解放したあとに、解放済みの素材を指す物を残さない）
+			if (GameObjectManager::HasInstance())
+			{
+				GameObjectManager::GetInstance()->ReleaseSceneObjects();
+			}
 			ModelManager::GetInstance()->ReleaseSceneResources();
 			TextureManager::GetInstance()->ReleaseSceneResources();
 		}
