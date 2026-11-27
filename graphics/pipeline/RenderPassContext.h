@@ -129,6 +129,8 @@ struct RenderPassContext
 	Text3DRenderer* text3DRenderer = nullptr;
 	// Level に置いた 2D スプライト。シーンの 2D より奥に描く
 	SpriteLayer* spriteLayer = nullptr;
+	//! 2D（スプライト・文字・シーンの 2D）を描くか。エディタで、カメラを動かすとき気が散らないよう切れるようにする
+	bool drawSprites2D = true;
 
 	// --- 画の質 ---
 	//! トーンマップ後のジャギーを均す

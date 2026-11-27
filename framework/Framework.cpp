@@ -730,7 +730,16 @@ void Framework::ExecuteRenderPipeline(RenderTexture* outputTarget)
 
 	// 前のフレームの計測結果を読んでから、このフレームの計測を始める
 	renderProfiler_->BeginFrame();
-	renderPipeline_->Execute(MakeRenderPassContext(mainView_.get(), outputTarget));
+	RenderPassContext mainContext = MakeRenderPassContext(mainView_.get(), outputTarget);
+	mainContext.drawSprites2D = mainSprites2D_;
+	if (!mainPostEffects_)
+	{
+		// 被写界深度もポストエフェクトの仲間として省く
+		mainContext.depthOfFieldRenderer = nullptr;
+	}
+	if (postProcessManager_) { postProcessManager_->SetEffectsBypass(!mainPostEffects_); }
+	renderPipeline_->Execute(mainContext);
+	if (postProcessManager_) { postProcessManager_->SetEffectsBypass(false); }
 	// コマンドリストを閉じる（PostDraw）前に、測った値を読み出し用へ移す
 	renderProfiler_->EndFrame();
 }
@@ -812,6 +821,25 @@ void Framework::RenderSubView(RenderView* view)
 
 	// サブビューはシーンを焼くだけなので、ポストプロセスの出力先は持たない
 	subViewPipeline_->Execute(MakeRenderPassContext(view, nullptr));
+
+	// 確認用に、本編と同じポストエフェクトと 2D を重ねる（ビューごとに選ぶ。既定は掛けない）。
+	// 出力先は本編と同じ 8bit の形式。2D のパイプラインがその形式前提のため
+	if (view->IsPostProcessEnabled() && postProcessManager_)
+	{
+		if (RenderTexture* display = view->EnsureDisplayOutput())
+		{
+			RenderPassContext postContext = MakeRenderPassContext(view, display);
+			// FXAA の作業用の画像はメインの画面の大きさなので、小さいビューでは使わない
+			postContext.fxaaRenderer = nullptr;
+			postProcessManager_->SetOutputSizeOverride(view->GetWidth(), view->GetHeight());
+			PostProcessPass().Execute(postContext);
+			postProcessManager_->ClearOutputSizeOverride();
+			if (view->IsSprites2DEnabled())
+			{
+				Sprite2DPass().Execute(postContext);
+			}
+		}
+	}
 
 	// 差し替えたままにするとゲームのロジックがサブビューのカメラを見てしまう
 	cameraManager_->ClearRenderCameraOverride();

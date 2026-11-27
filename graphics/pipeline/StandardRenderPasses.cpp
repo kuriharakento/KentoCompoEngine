@@ -644,6 +644,10 @@ void PostProcessPass::Execute(const RenderPassContext& ctx)
 
 void Sprite2DPass::Execute(const RenderPassContext& ctx)
 {
+	if (!ctx.drawSprites2D)
+	{
+		return;
+	}
 	// レンダーターゲットへ出力している場合、ポストプロセスが
 	// EndRender を呼んだ後なので、クリアせずに描画対象へ戻す
 	if (ctx.outputTarget)

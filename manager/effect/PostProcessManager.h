@@ -114,6 +114,21 @@ public:
      * @param width 新しい幅
      * @param height 新しい高さ
      */
+    /**
+     * @brief 最後の合成の出力先の大きさを、メインの画面と別にする（カメラプレビューなどの小さい出力先へ描くとき）
+     * @details Draw の前に呼び、Draw の後に ClearOutputSizeOverride で戻す。ブルームの途中の画像はメインの大きさのまま
+     */
+    void SetOutputSizeOverride(uint32_t width, uint32_t height);
+    void ClearOutputSizeOverride() { useOutputOverride_ = false; }
+
+    /**
+     * @brief エフェクトをすべて省いて、素のシーンを出す（トーンマップだけは、HDR を画面に出すために残す）
+     * @details エディタで、カメラを動かすときにエフェクトが気を散らさないようにするためのもの。
+     *          定数バッファは1つなので、同じフレームの、ほかのビューのポストエフェクトも省かれる
+     */
+    void SetEffectsBypass(bool bypass) { effectsBypass_ = bypass; }
+    bool IsEffectsBypass() const { return effectsBypass_; }
+
     void Resize(uint32_t width, uint32_t height);
 
     /**
@@ -221,6 +236,13 @@ private:
     SrvManager* srvManager_ = nullptr;   // SRVマネージャーへのポインタ
 
     // ビューポートとシザー矩形の設定
+    // 最後の合成の出力先が、メインの画面と違う大きさのとき（カメラプレビューなど）の、ビューポート。0 なら使わない
+    D3D12_VIEWPORT outputViewportOverride_ = {};
+    D3D12_RECT outputScissorOverride_ = {};
+    bool useOutputOverride_ = false;
+    bool effectsBypass_ = false;
+    /** @brief effectsBypass_ のとき、トーンマップ以外のエフェクトを params_ から外す */
+    void ApplyEffectsBypass();
     D3D12_VIEWPORT viewport_ = {};
 	D3D12_RECT scissorRect_ = {};
 

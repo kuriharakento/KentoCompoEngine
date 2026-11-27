@@ -1104,8 +1104,9 @@ void GameObject::DrawImGui()
 		ImGui::DragFloat3("##Value", &value.x, speed);
 		ImGui::PopID();
 	};
-	// 画面（px）に置くスプライトやゲージは、0.1 刻みだと動きが見えないので粗くする
-	float positionSpeed = 0.1f;
+	// 位置は 0.01 刻み（Alt を押しながらで 0.001、Shift で 0.1）。UI の置き場所などの細かい調整のため
+	// 画面（px）に置くスプライトやゲージは、細かいと動きが見えないので粗くする
+	float positionSpeed = 0.01f;
 	for (const GameObjectComponent::ISpriteRenderableComponent* sprite : spriteRenderableComponents_)
 	{
 		if (sprite->IsScreenSpace()) { positionSpeed = 1.0f; break; }

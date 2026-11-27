@@ -122,6 +122,17 @@ public: // メンバ関数
 	void ExecuteRenderPipeline(RenderTexture* outputTarget);
 
 	/**
+	 * @brief 本編の絵に、ポストエフェクトと 2D を含めるか（エディタ用。既定は含める）
+	 * @details Scene ビューでデバッグカメラを動かすとき、エフェクトやスプライトが気を散らさないよう切る。
+	 *          ExecuteRenderPipeline の前に呼ぶ。ゲーム画面だけの表示（F11）や出荷物では、含めるに戻すこと
+	 */
+	void SetMainViewEffects(bool postEffects, bool sprites2D)
+	{
+		mainPostEffects_ = postEffects;
+		mainSprites2D_ = sprites2D;
+	}
+
+	/**
 	 * @brief 描画パイプラインを取得する
 	 * @details 新しいパスを差し込むときに使う。
 	 * @return パイプライン
@@ -340,5 +351,8 @@ private:
 	 * @return 組み立てられたコンテキスト
 	 */
 	RenderPassContext MakeRenderPassContext(RenderView* view, RenderTexture* outputTarget) const;
+	// 本編の絵に含めるか（SetMainViewEffects）
+	bool mainPostEffects_ = true;
+	bool mainSprites2D_ = true;
 };
 } // namespace KCE

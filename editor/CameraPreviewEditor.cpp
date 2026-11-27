@@ -214,6 +214,21 @@ void CameraPreviewEditor::DrawWindow(PreviewTarget& target)
 	}
 	ImGui::EndDisabled();
 
+	// --- 映し方（ポストエフェクト・2D は、選んだときだけ描く） ---
+	ImGui::Checkbox("ポストエフェクト", &target.showPostProcess);
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("本編と同じポストエフェクト（ブルーム・トーンマップなど）を掛けて映す。\n描く量が増えるので、必要なときだけオンにする");
+	}
+	ImGui::SameLine();
+	ImGui::BeginDisabled(!target.showPostProcess);
+	ImGui::Checkbox("2D（スプライト・文字）", &target.showSprites2D);
+	ImGui::EndDisabled();
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+	{
+		ImGui::SetTooltip("ポストエフェクトのあとに、画面のスプライトや文字を重ねる。\nポストエフェクトをオンにしているときだけ使える");
+	}
+
 	if (!camera)
 	{
 		// カメラが消えたときに、ビューのカメラが nullptr（=アクティブカメラを描く）にならないよう止めておく
@@ -272,12 +287,15 @@ void CameraPreviewEditor::DrawWindow(PreviewTarget& target)
 		return;
 	}
 	target.view->SetCamera(camera);
+	target.view->SetPostProcessEnabled(target.showPostProcess);
+	target.view->SetSprites2DEnabled(target.showPostProcess && target.showSprites2D);
 	target.view->SetEnabled(true);
 
 	// 窓の真ん中に置く
 	const ImVec2 cursor = ImGui::GetCursorPos();
 	ImGui::SetCursorPos(ImVec2(cursor.x + (available.x - imageSize.x) * 0.5f, cursor.y + (available.y - imageSize.y) * 0.5f));
-	ImGui::Image(static_cast<ImTextureID>(target.view->GetSceneColor()->GetGPUHandle().ptr), imageSize);
+	// ポストエフェクトを掛けているときは、掛けた後の絵（まだ描かれていない最初のフレームは、シーンカラー）
+	ImGui::Image(static_cast<ImTextureID>(target.view->GetDisplayTexture()->GetGPUHandle().ptr), imageSize);
 	// デバッグカメラを映している画像の上では、右ドラッグと WASD でそのカメラを動かせる
 	if (debugCamera_ && target.cameraName == DebugCamera::kCameraName && ImGui::IsItemHovered())
 	{

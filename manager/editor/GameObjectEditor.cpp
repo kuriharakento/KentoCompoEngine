@@ -15,6 +15,7 @@
 #include "manager/graphics/TextureManager.h"
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 
@@ -25,6 +26,40 @@ namespace KCE
 {
 namespace
 {
+/** @brief 親のワールド行列。親がいなければ単位行列（ギズモは、ローカル値ではなくワールド位置に出す） */
+Matrix4x4 ParentWorldMatrix(const GameObject& object)
+{
+	const GameObject* parent = object.GetParent();
+	return parent ? parent->GetWorldMatrix() : MakeIdentity4x4();
+}
+
+/** @brief 行列を、拡大・オイラー角・位置に分ける。拡大が潰れていて分けられないなら false */
+bool DecomposeLocal(const Matrix4x4& matrix, Transform& out)
+{
+	const auto length = [](float x, float y, float z) { return std::sqrt(x * x + y * y + z * z); };
+	out.translate = { matrix.m[3][0], matrix.m[3][1], matrix.m[3][2] };
+	out.scale = {
+		length(matrix.m[0][0], matrix.m[0][1], matrix.m[0][2]),
+		length(matrix.m[1][0], matrix.m[1][1], matrix.m[1][2]),
+		length(matrix.m[2][0], matrix.m[2][1], matrix.m[2][2]) };
+	constexpr float kMinScale = 1.0e-4f;
+	if (out.scale.x < kMinScale || out.scale.y < kMinScale || out.scale.z < kMinScale)
+	{
+		return false;
+	}
+	Matrix4x4 rotation = MakeIdentity4x4();
+	for (int row = 0; row < 3; ++row)
+	{
+		const float scale = row == 0 ? out.scale.x : (row == 1 ? out.scale.y : out.scale.z);
+		for (int column = 0; column < 3; ++column)
+		{
+			rotation.m[row][column] = matrix.m[row][column] / scale;
+		}
+	}
+	out.rotate = Quaternion::FromMatrix(rotation).ToEuler();
+	return true;
+}
+
 /**
  * @brief Inspector の見出し。折りたたまず、線つきの文字で区切る。中身は常に表示する
  */
@@ -120,7 +155,8 @@ void GameObjectEditor::Initialize()
 		{
 			return false;
 		}
-		world = MakeAffineMatrix(object->GetScale(), object->GetRotation(), object->GetPosition());
+		// 親子のときは、ローカル値をそのまま出すと、ギズモが原点寄りにずれる。親のワールド行列を掛けて、見えている位置に出す
+		world = MakeAffineMatrix(object->GetScale(), object->GetRotation(), object->GetPosition()) * ParentWorldMatrix(*object);
 		operations = kGizmoAll;
 		return true;
 	};
@@ -135,11 +171,22 @@ void GameObjectEditor::Initialize()
 		before.scale = object->GetScale();
 		before.rotate = object->GetRotation();
 		before.translate = object->GetPosition();
-		// 回転はエンジンのオイラー角の規約にそろえる
+		// ギズモが返すのはワールドの値。親の逆行列を掛けて、ローカルの値へ戻す。回転はエンジンのオイラー角の規約にそろえる
 		Transform moved;
-		moved.scale = after.scale;
-		moved.rotate = after.rotate.ToEuler();
-		moved.translate = after.translate;
+		if (object->GetParent())
+		{
+			const Matrix4x4 afterWorld = MakeScaleMatrix(after.scale) * after.rotate.ToMatrix() * MakeTranslateMatrix(after.translate);
+			if (!DecomposeLocal(afterWorld * Inverse(ParentWorldMatrix(*object)), moved))
+			{
+				return;
+			}
+		}
+		else
+		{
+			moved.scale = after.scale;
+			moved.rotate = after.rotate.ToEuler();
+			moved.translate = after.translate;
+		}
 		CommandHistory::GetInstance()->Execute(std::make_unique<GameObjectTransformCommand>(object->GetGuid(), before, moved, dragId));
 	};
 	SceneGizmo::GetInstance()->RegisterTarget(this, SelectionKind::GameObject, std::move(objectTarget));

@@ -179,6 +179,31 @@ public:
 	bool IsPassEnabled(RenderViewPass pass) const { return (disabledPasses_ & static_cast<uint32_t>(pass)) == 0; }
 
 	/**
+	 * @brief 映すときに、ポストエフェクトを掛けるか（カメラプレビューなどの確認用。既定は掛けない）
+	 * @details 掛けると、本編と同じポストプロセスを通した絵（8bit）を GetDisplayTexture で返す。
+	 *          掛けない間は、HDR のシーンカラーをそのまま返す
+	 */
+	void SetPostProcessEnabled(bool enabled) { postProcessEnabled_ = enabled; }
+	bool IsPostProcessEnabled() const { return postProcessEnabled_; }
+
+	/**
+	 * @brief ポストエフェクトのあとに、シーンの 2D（スプライト・文字）を重ねるか。ポストエフェクトを掛けているときだけ効く
+	 */
+	void SetSprites2DEnabled(bool enabled) { sprites2DEnabled_ = enabled; }
+	bool IsSprites2DEnabled() const { return sprites2DEnabled_; }
+
+	/**
+	 * @brief ポストエフェクトを通した絵の出力先を返す。無ければここで作る
+	 * @return 8bit の出力先（本編の出力と同じ形式）。作れなければ nullptr
+	 */
+	RenderTexture* EnsureDisplayOutput();
+
+	/**
+	 * @brief 画面に映す絵。ポストエフェクトを掛けているなら、その出力。掛けていなければシーンカラー
+	 */
+	RenderTexture* GetDisplayTexture() const;
+
+	/**
 	 * @brief 描画に使える状態か
 	 * @return 初期化済みなら真
 	 */
@@ -195,6 +220,10 @@ private:
 	std::unique_ptr<RenderTexture> sceneColor_;
 	// 選択的ブルーム用。シーンカラーと同じ大きさ・形式で持つ
 	std::unique_ptr<RenderTexture> bloomMask_;
+	// ポストエフェクトを通した絵（8bit）。掛けるとき（EnsureDisplayOutput）に作る
+	std::unique_ptr<RenderTexture> displayColor_;
+	bool postProcessEnabled_ = false;
+	bool sprites2DEnabled_ = false;
 
 	uint32_t width_ = 0;
 	uint32_t height_ = 0;

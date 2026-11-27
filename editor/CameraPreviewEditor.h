@@ -65,6 +65,8 @@ private:
 		uint32_t wantedWidth = 0;	//!< 窓の大きさから決めた、欲しい解像度
 		uint32_t wantedHeight = 0;
 		int stableFrames = 0;		//!< 欲しい解像度が変わらずに続いたフレーム数
+		bool showPostProcess = false; //!< ポストエフェクトを掛けて映すか（確認用。重くなる）
+		bool showSprites2D = false;	  //!< ポストエフェクトのあとに、シーンの 2D を重ねるか
 	};
 
 	/** @brief ウィンドウを1つ増やして登録する */

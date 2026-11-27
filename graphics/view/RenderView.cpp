@@ -1,6 +1,7 @@
 #include "graphics/view/RenderView.h"
 
 #include "base/RenderTexture.h"
+#include "graphics/RenderFormats.h"
 #include "graphics/deferred/GBuffer.h"
 
 namespace KCE
@@ -55,5 +56,29 @@ void RenderView::Resize(uint32_t width, uint32_t height)
 	gBuffer_->Resize(width, height);
 	sceneColor_->Resize(width, height);
 	bloomMask_->Resize(width, height);
+	if (displayColor_)
+	{
+		displayColor_->Resize(width, height);
+	}
+}
+
+RenderTexture* RenderView::EnsureDisplayOutput()
+{
+	if (!IsValid())
+	{
+		return nullptr;
+	}
+	if (!displayColor_)
+	{
+		const Vector4 clearColor = { kClearColorValue, kClearColorValue, kClearColorValue, 1.0f };
+		displayColor_ = std::make_unique<RenderTexture>();
+		displayColor_->Initialize(dxCommon_, srvManager_, width_, height_, kDisplayColorFormat, clearColor);
+	}
+	return displayColor_.get();
+}
+
+RenderTexture* RenderView::GetDisplayTexture() const
+{
+	return (postProcessEnabled_ && displayColor_) ? displayColor_.get() : sceneColor_.get();
 }
 } // namespace KCE

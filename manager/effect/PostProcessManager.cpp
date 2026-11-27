@@ -350,8 +350,8 @@ void PostProcessManager::RenderFinalComposite(RenderTexture* sceneTexture, Rende
 	}
 
 	// ビューポートとシザー矩形を設定
-	cmdList->RSSetViewports(1, &viewport_);
-	cmdList->RSSetScissorRects(1, &scissorRect_);
+	cmdList->RSSetViewports(1, useOutputOverride_ ? &outputViewportOverride_ : &viewport_);
+	cmdList->RSSetScissorRects(1, useOutputOverride_ ? &outputScissorOverride_ : &scissorRect_);
 
 	// パイプラインステートとルートシグネチャを設定
 	cmdList->SetPipelineState(pipelineState_.Get());
@@ -381,6 +381,7 @@ void PostProcessManager::RenderFinalComposite(RenderTexture* sceneTexture, Rende
 	radialBlurEffect_->ApplyEffect(params_);
 	tonemapEffect_->ApplyEffect(params_);
 	colorGradingEffect_->ApplyEffect(params_);
+	ApplyEffectsBypass();
 
 	// 定数バッファを更新
 	UpdateConstantBuffer();
@@ -402,6 +403,38 @@ void PostProcessManager::SetBloomRenderTargets(RenderTexture* brightPassRT, Rend
 	blurRT_[1] = blurRT1;
 }
 
+void PostProcessManager::ApplyEffectsBypass()
+{
+	if (!effectsBypass_)
+	{
+		return;
+	}
+	// トーンマップは残す。切ると 1.0 を超えた輝度がそのまま出てしまう
+	params_.grayscaleEnabled = kEffectDisabled;
+	params_.vignetteEnabled = kEffectDisabled;
+	params_.noiseEnabled = kEffectDisabled;
+	params_.crtEnabled = kEffectDisabled;
+	params_.scanlineEnabled = kEffectDisabled;
+	params_.distortionEnabled = kEffectDisabled;
+	params_.chromAberrationEnabled = kEffectDisabled;
+	params_.bloomEnabled = kEffectDisabled;
+	params_.gaussianBlurEnabled = kEffectDisabled;
+	params_.diffusionEnabled = kEffectDisabled;
+	params_.radialBlurEnabled = kEffectDisabled;
+	params_.colorGradingEnabled = kEffectDisabled;
+}
+
+void PostProcessManager::SetOutputSizeOverride(uint32_t width, uint32_t height)
+{
+	outputViewportOverride_ = viewport_;
+	outputViewportOverride_.Width = static_cast<float>(width);
+	outputViewportOverride_.Height = static_cast<float>(height);
+	outputScissorOverride_ = scissorRect_;
+	outputScissorOverride_.right = static_cast<LONG>(width);
+	outputScissorOverride_.bottom = static_cast<LONG>(height);
+	useOutputOverride_ = true;
+}
+
 void PostProcessManager::Resize(uint32_t width, uint32_t height)
 {
 	// ビューポートとシザー矩形の設定を更新する
@@ -421,7 +454,7 @@ void PostProcessManager::Resize(uint32_t width, uint32_t height)
 void PostProcessManager::Draw(RenderTexture* inputTexture, RenderTexture* outputRT, RenderTexture* selectiveBloomSource)
 {
 	// ブルームが有効かつ、必要なレンダーターゲットが存在する場合
-	if (bloomEffect_->IsEnabled() && HasBloomRenderTargets())
+	if (!effectsBypass_ && bloomEffect_->IsEnabled() && HasBloomRenderTargets())
 	{
 		// マルチパス・ブルーム処理
 		RenderWithBloom(inputTexture, outputRT, selectiveBloomSource);
@@ -477,8 +510,8 @@ void PostProcessManager::RenderSinglePass(RenderTexture* inputTexture, RenderTex
 	}
 
 	// ビューポートとシザー矩形を設定
-	cmdList->RSSetViewports(1, &viewport_);
-	cmdList->RSSetScissorRects(1, &scissorRect_);
+	cmdList->RSSetViewports(1, useOutputOverride_ ? &outputViewportOverride_ : &viewport_);
+	cmdList->RSSetScissorRects(1, useOutputOverride_ ? &outputScissorOverride_ : &scissorRect_);
 
 	// パイプラインステートとルートシグネチャを設定
 	cmdList->SetPipelineState(pipelineState_.Get());
@@ -506,6 +539,7 @@ void PostProcessManager::RenderSinglePass(RenderTexture* inputTexture, RenderTex
 	radialBlurEffect_->ApplyEffect(params_);
 	tonemapEffect_->ApplyEffect(params_);
 	colorGradingEffect_->ApplyEffect(params_);
+	ApplyEffectsBypass();
 
 	// 定数バッファを更新
 	UpdateConstantBuffer();
