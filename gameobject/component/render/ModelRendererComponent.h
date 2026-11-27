@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "engine/gameobject/component/base/Component.h"
 #include "engine/gameobject/component/base/IRenderableComponent.h"
@@ -46,6 +47,16 @@ public:
 	/** @return 中の Object3d。所有権は移らない。用意できていなければ nullptr */
 	Object3d* GetObject3d() const { return object3d_.get(); }
 
+	/**
+	 * @brief メッシュのテクスチャを替える
+	 * @param meshIndex 何番目のメッシュか
+	 * @param texturePath 読み込み済みのテクスチャの登録名。空なら、モデル本来のテクスチャへ戻す
+	 * @details 実際の差し替えは、次の UpdateRenderTransform で行う。プレハブに保存する
+	 */
+	void SetMeshTexture(size_t meshIndex, const std::string& texturePath);
+	/** @brief メッシュごとに替えたテクスチャの登録名。空の要素は、モデル本来のテクスチャ */
+	const std::vector<std::string>& GetMeshTextures() const { return meshTextures_; }
+
 	/** @brief 影を落とすかを設定する */
 	void SetCastShadow(bool cast);
 	/** @brief 色を設定する */
@@ -64,6 +75,10 @@ private:
 	// Object3d へ反映済みのモデル名。プレハブ読み込み後の反映を拾うために持つ
 	std::string appliedModelName_;
 	bool appliedCastShadow_ = true;
+	// メッシュごとに替えたテクスチャの登録名（空は、モデル本来のテクスチャ）。プレハブに保存する。モデルを替えたら、保存した物は使わない
+	std::vector<std::string> meshTextures_;
+	// Object3d のモデルへ反映済みの物。変わったメッシュだけ入れ直すために持つ
+	std::vector<std::string> appliedMeshTextures_;
 };
 } // namespace GameObjectComponent
 } // namespace KCE

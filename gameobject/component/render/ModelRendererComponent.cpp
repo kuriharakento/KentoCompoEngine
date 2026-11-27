@@ -3,8 +3,12 @@
 // app
 #include "engine/gameobject/base/GameObject.h"
 // system
+#include <algorithm>
+#include "base/Logger.h"
+#include "graphics/3d/Model.h"
 #include "graphics/3d/Object3dCommon.h"
 #include "manager/graphics/ModelManager.h"
+#include "manager/graphics/TextureManager.h"
 #include "externals/imgui/imgui.h"
 // math
 #include "math/MatrixFunc.h"
@@ -26,6 +30,7 @@ namespace GameObjectComponent
 		modelName_ = "cube";
 		Register("model", &modelName_);
 		Register("castShadow", &castShadow_);
+		Register("meshTextures", &meshTextures_);
 
 #ifdef USE_IMGUI
 		// モデル名は文字入力ではなく、読み込み済みのモデルから選ぶ
@@ -44,6 +49,11 @@ namespace GameObjectComponent
 					if (ImGui::Selectable(name.c_str(), name == modelName_))
 					{
 						// 実際の差し替えは、UpdateRenderTransform の ApplySettings で行う
+						if (name != modelName_)
+						{
+							// 新しいモデルは、本来のテクスチャから始まる
+							meshTextures_.clear();
+						}
 						modelName_ = name;
 					}
 				}
@@ -56,6 +66,52 @@ namespace GameObjectComponent
 			ImGui::PopID();
 			ImGui::PopItemWidth();
 		});
+			// メッシュごとのテクスチャは、配列の編集ではなく、メッシュごとのプルダウンで選ばせる
+			OverrideDrawer("meshTextures", [this]()
+			{
+				Model* model = object3d_ ? object3d_->GetModel() : nullptr;
+				if (!model || model->GetMeshCount() == 0)
+				{
+					return;
+				}
+				const auto textures = TextureManager::GetInstance()->GetLoadedTextures();
+				ImGui::SeparatorText("メッシュのテクスチャ");
+				for (size_t meshIndex = 0; meshIndex < model->GetMeshCount(); ++meshIndex)
+				{
+					const std::string current = meshIndex < meshTextures_.size() ? meshTextures_[meshIndex] : std::string();
+					const std::string label = model->GetMeshCount() == 1 ? std::string("テクスチャ") : "テクスチャ " + std::to_string(meshIndex + 1);
+					ImGui::PushItemWidth(-150.0f);
+					ImGui::PushID(static_cast<int>(meshIndex));
+					if (ImGui::BeginCombo(label.c_str(), current.empty() ? "（モデルのまま）" : current.c_str()))
+					{
+						if (ImGui::Selectable("（モデルのまま）", current.empty()))
+						{
+							SetMeshTexture(meshIndex, std::string());
+						}
+						for (const auto& texture : textures)
+						{
+							// キューブマップなど、2D でない物は出さない
+							if (!texture.previewable) { continue; }
+							if (ImGui::Selectable(texture.path.c_str(), texture.path == current))
+							{
+								SetMeshTexture(meshIndex, texture.path);
+							}
+							// 選ぶ前に中身が分かるよう、カーソルを置くとプレビューを出す
+							if (ImGui::IsItemHovered() && texture.gpuHandle != 0 && texture.width > 0 && texture.height > 0)
+							{
+								const float scale = (std::min)(192.0f / static_cast<float>(texture.width), 192.0f / static_cast<float>(texture.height));
+								ImGui::BeginTooltip();
+								ImGui::Image(static_cast<ImTextureID>(texture.gpuHandle), ImVec2(static_cast<float>(texture.width) * scale, static_cast<float>(texture.height) * scale));
+								ImGui::TextDisabled("%u x %u", texture.width, texture.height);
+								ImGui::EndTooltip();
+							}
+						}
+						ImGui::EndCombo();
+					}
+					ImGui::PopID();
+					ImGui::PopItemWidth();
+				}
+			});
 #endif
 	}
 
@@ -85,7 +141,27 @@ namespace GameObjectComponent
 
 	void ModelRendererComponent::SetModel(const std::string& modelName)
 	{
+		if (modelName != modelName_)
+		{
+			// 新しいモデルは、本来のテクスチャから始まる
+			meshTextures_.clear();
+		}
 		modelName_ = modelName;
+		ApplySettings();
+	}
+
+	void ModelRendererComponent::SetMeshTexture(size_t meshIndex, const std::string& texturePath)
+	{
+		if (meshTextures_.size() <= meshIndex)
+		{
+			meshTextures_.resize(meshIndex + 1);
+		}
+		meshTextures_[meshIndex] = texturePath;
+		// 全部が本来のテクスチャなら、覚えをやめる（保存に余計な項目を書かない）
+		if (std::all_of(meshTextures_.begin(), meshTextures_.end(), [](const std::string& path) { return path.empty(); }))
+		{
+			meshTextures_.clear();
+		}
 		ApplySettings();
 	}
 
@@ -117,6 +193,28 @@ namespace GameObjectComponent
 				object3d_->SetModel(modelName_);
 			}
 			appliedModelName_ = modelName_;
+			// 新しいモデルは本来のテクスチャなので、保存した替えを、全部入れ直す
+			appliedMeshTextures_.clear();
+		}
+		// メッシュごとのテクスチャ。変わったメッシュだけ入れ直す
+		if (Model* model = object3d_->GetModel())
+		{
+			const size_t count = (std::max)(meshTextures_.size(), appliedMeshTextures_.size());
+			appliedMeshTextures_.resize(count);
+			for (size_t meshIndex = 0; meshIndex < count; ++meshIndex)
+			{
+				const std::string wanted = meshIndex < meshTextures_.size() ? meshTextures_[meshIndex] : std::string();
+				if (appliedMeshTextures_[meshIndex] == wanted)
+				{
+					continue;
+				}
+				// 読み込まれていないテクスチャなどで失敗しても、毎フレームやり直さないよう、反映済みにする
+				if (!model->SetMeshTexture(meshIndex, wanted))
+				{
+					Logger::Log("ModelRendererComponent: テクスチャを替えられません: " + wanted + "\n", Logger::LogLevel::Warning);
+				}
+				appliedMeshTextures_[meshIndex] = wanted;
+			}
 		}
 		if (appliedCastShadow_ != castShadow_)
 		{
